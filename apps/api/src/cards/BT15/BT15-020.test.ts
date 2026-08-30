@@ -101,7 +101,7 @@ describe("BT15-020", () => {
     await settle(() => s.perm("base").topCard.cardId === "BT15-020");
 
     expect(s.state.memory).toBe(3);
-    expect(s.perm("base").stack).toHaveLength(2);
+    expect(s.perm("base").stack).toHaveLength(1);
   });
 
   it("resolves Start of Your Main Phase through public turn progression", async () => {

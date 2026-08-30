@@ -34,7 +34,7 @@ describe("BT15-066", () => {
       0: {
         battleArea: [{ card: "BT15-066", as: "machinedramon" }],
         hand: [
-          { card: "BT1-084", as: "whiteOmnimon" },
+          { card: "BT15-102", as: "whiteApocalymon" },
           { card: "BT13-033", as: "blueBurstMode" },
         ],
       },
@@ -42,10 +42,8 @@ describe("BT15-066", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.inst("whiteOmnimon").digivolveTargetPermanentIds).toContain(s.perm("machinedramon").permanentId);
-    expect(s.inst("blueBurstMode").digivolveTargetPermanentIds).not.toContain(
-      s.perm("machinedramon").permanentId,
-    );
+    expect(s.inst("whiteApocalymon").digivolveTargetPermanentIds).toContain(s.perm("machinedramon").permanentId);
+    expect(s.inst("blueBurstMode").digivolveTargetPermanentIds).not.toContain(s.perm("machinedramon").permanentId);
   });
 
   it("unsuspends a legal inherited stack during the opponent's natural unsuspend phase", async () => {
@@ -58,11 +56,11 @@ describe("BT15-066", () => {
     );
     await s.ready();
     await advance(s.engine).verb.suspend([s.perm("host").permanentId]);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Reboot")).toBe(true);
     s.state.turnSeat = 1;
 
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(1);
-    expect(observe(s.engine).hasKeyword(s.perm("host"), "Reboot")).toBe(true);
     expect(s.perm("host").isSuspended).toBe(false);
     advance(s.engine).endMainPhaseIfOpen(1);
     await turn;

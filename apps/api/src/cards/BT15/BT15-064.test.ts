@@ -18,7 +18,12 @@ describe("BT15-064", () => {
     });
     expect(compiled.effects?.[1]).toMatchObject({
       trigger: "WhenDigivolving",
-      actions: [{ kind: "RevealAdd", add: [{ to: "placeUnder", underFilter: { isSelfRef: true } }] }],
+      actions: [
+        {
+          kind: "RevealAdd",
+          add: [{ to: "placeUnder", underFilter: { isSelfRef: true } }, { to: "hand" }],
+        },
+      ],
     });
   });
   it("deletes a low-cost opposing card with SoC in stack and inherited de-digivolves", () => {
@@ -54,7 +59,9 @@ describe("BT15-064", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.perm("source").stack.some(({ instanceId }) => instanceId === s.inst("underCandidate").instanceId));
+    await settle(() =>
+      s.perm("source").stack.some(({ instanceId }) => instanceId === s.inst("underCandidate").instanceId),
+    );
 
     expect(s.perm("source").stack.map(({ instanceId }) => instanceId)).toContain(s.inst("underCandidate").instanceId);
     expect(s.perm("otherHost").stack).toHaveLength(0);

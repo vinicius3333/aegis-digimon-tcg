@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT15-044.js";
@@ -13,7 +12,7 @@ describe("BT15-044", () => {
 
   it("naturally restricts the attacking Digimon when it deletes Mushroomon in battle", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT15-044", as: "mushroom", dp: 1000 }] },
+      0: { battleArea: [{ card: "BT15-044", as: "mushroom", dp: 1000, suspended: true }] },
       1: { battleArea: [{ card: "BT1-078", as: "attacker", dp: 5000 }] },
     });
     s.state.turnSeat = 1;

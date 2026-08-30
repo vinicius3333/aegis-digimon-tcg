@@ -59,7 +59,9 @@ describe("BT15-091", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("gabumon").topCard?.instanceId === s.inst("metalgarurumon").instanceId);
 
     expect(s.perm("gabumon").stack.map(({ instanceId }) => instanceId)).toEqual(
@@ -86,15 +88,16 @@ describe("BT15-091", () => {
     );
     s.state.memory = 10;
     await s.ready();
+    const optionInstanceId = s.inst("option").instanceId;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("option").instanceId));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === optionInstanceId));
 
     expect(s.perm("gabumon").topCard?.cardId).toBe("BT15-020");
     expect(s.perm("gabumon").stack).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("garurumon").instanceId);
-    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(
-      s.inst("metalgarurumon").instanceId,
-    );
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("metalgarurumon").instanceId);
   });
 });

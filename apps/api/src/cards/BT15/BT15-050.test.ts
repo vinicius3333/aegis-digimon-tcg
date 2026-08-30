@@ -42,7 +42,9 @@ describe("BT15-050", () => {
     );
     s.state.memory = 6;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cherrymon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cherrymon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.length === 2);
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
@@ -65,7 +67,9 @@ describe("BT15-050", () => {
     );
     s.state.memory = 6;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cherrymon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cherrymon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.length === 1);
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("onlyHit").instanceId]);
@@ -116,7 +120,9 @@ describe("BT15-050", () => {
 
     const moved = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT15-031");
     expect(moved?.summoningSick).toBe(true);
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: moved!.permanentId, target: { kind: "player" } })).toMatchObject({
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: moved!.permanentId, target: { kind: "player" } }),
+    ).toMatchObject({
       ok: false,
     });
   });
@@ -127,7 +133,7 @@ describe("BT15-050", () => {
     });
     await s.ready();
 
-    expect(observe(s.engine).hasKeyword(s.perm("host"), "Piercing")).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(true);
   });
 
   it("digivolves legally from a green level-4 Digimon and preserves the source stack", async () => {

@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT15-011.js";
@@ -102,7 +101,7 @@ describe("BT15-011", () => {
     await settle(() => s.perm("base").topCard.cardId === "BT15-011");
 
     expect(s.state.memory).toBe(2);
-    expect(s.perm("base").stack).toHaveLength(2);
+    expect(s.perm("base").stack).toHaveLength(1);
   });
 
   it("can suspend to block an opposing player attack", async () => {

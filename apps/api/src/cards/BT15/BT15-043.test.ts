@@ -53,7 +53,7 @@ describe("BT15-043", () => {
   it("preserves the inherited battle trigger through a legal evolution stack", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-078", as: "host", dp: 12000, under: ["BT15-043"] }] },
-      1: { battleArea: [{ card: "BT1-009", as: "target", dp: 1000 }] },
+      1: { battleArea: [{ card: "BT1-009", as: "target", dp: 1000, suspended: true }] },
     });
     s.state.memory = 0;
 

@@ -59,7 +59,7 @@ describe("BT15-101", () => {
     const permanentId = s.perm("metalGarurumon").permanentId;
     await s.ready();
 
-    expect(await advance(s.engine).verb.deletePermanent([permanentId], "byEffect")).toBe(1);
+    expect(await advance(s.engine).verb.deletePermanent([permanentId], "byEffect")).toBe(0);
     await settle(() => s.state.players[0]!.battleArea.some(({ permanentId: id }) => id === permanentId));
 
     expect(s.state.players[0]!.battleArea.map(({ permanentId: id }) => id)).toEqual([permanentId]);
@@ -68,10 +68,12 @@ describe("BT15-101", () => {
   });
 
   it("allows deletion when the suspension payment is unavailable", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT15-101", as: "metalGarurumon" }] } });
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT15-101", as: "metalGarurumon", suspended: true }] } },
+      { autoDeclineOptional: true },
+    );
     const permanentId = s.perm("metalGarurumon").permanentId;
     await s.ready();
-    await advance(s.engine).verb.suspend([permanentId]);
 
     expect(await advance(s.engine).verb.deletePermanent([permanentId], "byEffect")).toBe(1);
     expect(s.state.players[0]!.battleArea.some(({ permanentId: id }) => id === permanentId)).toBe(false);

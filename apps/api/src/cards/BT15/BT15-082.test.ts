@@ -86,9 +86,7 @@ describe("BT15-082 Sora Takenouchi", () => {
     });
     const watcher = compiled.effects?.[1]?.actions?.[0] as any;
     expect(watcher.sourceFilter.excludeNameOrTrait).toEqual([{ tokens: ["Sea Animal"], match: "trait" }]);
-    expect(watcher.actions[0].target.filter.excludeNameOrTrait).toEqual([
-      { tokens: ["Sea Animal"], match: "trait" },
-    ]);
+    expect(watcher.actions[0].target.filter.excludeNameOrTrait).toEqual([{ tokens: ["Sea Animal"], match: "trait" }]);
   });
   const module = getEffectModule("BT15-082");
 
@@ -202,6 +200,7 @@ describe("BT15-082 Sora Takenouchi", () => {
   });
 
   it("naturally returns a red Digimon from trash and free-plays a bird under the security-scaled DP cap", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -215,18 +214,24 @@ describe("BT15-082 Sora Takenouchi", () => {
         },
         1: { security: ["BT1-001", "BT1-001", "BT1-001"], deck: ["BT1-001"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds: preferred },
     );
+    const birdInstanceId = s.inst("bird").instanceId;
+    preferred.push(birdInstanceId);
     s.state.turnSeat = 0;
     s.state.memory = 10;
     await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wings").instanceId })).toEqual({ ok: true });
-    await settle(() => s.perm("bird").topCard.cardId === "BT15-008");
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === birdInstanceId),
+    );
 
     expect(s.state.memory).toBe(8);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("returnedRed").instanceId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("sora").instanceId)).toBe(true);
-    expect(s.perm("bird").topCard.cardId).toBe("BT15-008");
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === birdInstanceId)).toBe(
+      true,
+    );
   });
 });

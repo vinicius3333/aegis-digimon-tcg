@@ -22,7 +22,10 @@ describe("BT15-070", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "BT15-070", as: "demidevimon" }, { card: "BT1-001", as: "handFiller" }],
+          hand: [
+            { card: "BT15-070", as: "demidevimon" },
+            { card: "BT1-001", as: "handFiller" },
+          ],
           deck: [
             { card: "BT15-098", as: "myotismonText" },
             { card: "BT1-001" },
@@ -54,7 +57,7 @@ describe("BT15-070", () => {
   it("deletes its battle partner through a legal DemiDevimon-to-Vilemon stack", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT15-072", as: "vilemon", under: ["BT15-070"] }] },
+        0: { battleArea: [{ card: "BT15-072", as: "vilemon", under: ["BT15-070"], suspended: true }] },
         1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 5000 }] },
       },
       { autoSelectCards: true },

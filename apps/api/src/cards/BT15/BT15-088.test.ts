@@ -43,11 +43,12 @@ describe("BT15-088", () => {
     const s = setupEngine(
       {
         0: {
+          battleArea: [{ card: "BT1-012", as: "redSource" }],
           hand: [
             { card: "BT15-088", as: "wings" },
             { card: "BT15-082", as: "sora" },
           ],
-          trash: [{ card: "BT1-012", as: "returnedRed" }],
+          trash: [{ card: "BT1-010", as: "returnedRed" }],
           deck: ["BT1-001", "BT1-001"],
         },
       },
@@ -69,19 +70,21 @@ describe("BT15-088", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-009", as: "attacker" }],
           security: [{ card: "BT15-088", as: "wings" }],
           trash: [{ card: "BT1-012", as: "biyomon" }],
         },
-        1: { security: ["BT1-001"] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "attacker" }],
+          security: ["BT1-001"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
-    s.state.turnSeat = 0;
+    s.state.turnSeat = 1;
     await s.ready();
 
     expect(
-      s.engine.applyIntent(0, {
+      s.engine.applyIntent(1, {
         type: "attack",
         attackerPermanentId: s.perm("attacker").permanentId,
         target: { kind: "player" },

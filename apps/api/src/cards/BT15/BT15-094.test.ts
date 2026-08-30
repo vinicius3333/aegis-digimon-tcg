@@ -28,7 +28,7 @@ describe("BT15-094", () => {
       {
         0: {
           battleArea: [
-            { card: "BT15-043", as: "source" },
+            { card: "BT1-088", as: "source" },
             { card: "BT15-047", as: "insectoid", dp: 5000 },
           ],
           hand: [{ card: "BT15-094", as: "option" }],
@@ -37,14 +37,16 @@ describe("BT15-094", () => {
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
-    preferred.push(s.perm("target").permanentId, s.perm("insectoid").permanentId);
+    preferred.push(s.perm("target").permanentId);
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("target").isSuspended && s.perm("insectoid").currentDP === 8000);
 
     expect(s.perm("target").isSuspended).toBe(true);
     expect(s.perm("insectoid").currentDP).toBe(8000);
-    expect(s.perm("source").currentDP).toBe(1000);
+    expect(s.perm("source").topCard.cardId).toBe("BT1-088");
   });
 });

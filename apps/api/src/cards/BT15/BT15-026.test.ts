@@ -84,9 +84,7 @@ describe("BT15-026", () => {
       ok: true,
     });
     await settle(
-      () =>
-        s.state.players[0]!.trash.length === 1 &&
-        observe(s.engine).isRestricted(s.perm("tamerTarget"), "suspend"),
+      () => s.state.players[0]!.trash.length === 1 && observe(s.engine).isRestricted(s.perm("tamerTarget"), "suspend"),
     );
 
     expect(s.state.memory).toBe(0);
@@ -202,7 +200,9 @@ describe("BT15-026", () => {
     });
 
     s.state.memory = 4;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wereGarurumon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wereGarurumon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.decisions.some(({ req }) => req.kind === "selectCards"));
     const pending = s.decisions.find(({ req }) => req.kind === "selectCards")!;
     expect(pending.req.options).toMatchObject({ min: 1, max: 1 });
@@ -233,7 +233,9 @@ describe("BT15-026", () => {
     s.state.memory = 2;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
 
     expect(observe(s.engine).isRestricted(s.perm("target"), "suspend")).toBe(false);
@@ -299,9 +301,9 @@ describe("BT15-026", () => {
         0: {
           battleArea: [{ card: "BT15-026", as: "watcher" }],
           hand: [
-            { card: "BT15-026", as: "firstSource" },
-            { card: "BT15-026", as: "secondSource" },
-            { card: "BT15-026", as: "thirdSource" },
+            { card: "BT15-019", as: "firstSource" },
+            { card: "BT15-019", as: "secondSource" },
+            { card: "BT15-019", as: "thirdSource" },
           ],
           deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
@@ -342,7 +344,9 @@ describe("BT15-026", () => {
     );
 
     s.state.memory = 4;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wereGarurumon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wereGarurumon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => observe(s.engine).isRestricted(s.perm("target"), "suspend"));
 
     s.state.memory = 3;

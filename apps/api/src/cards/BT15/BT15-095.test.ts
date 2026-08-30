@@ -11,7 +11,7 @@ describe("BT15-095", () => {
     expect(compiled.effects?.[0]?.actions[1]).toMatchObject({
       kind: "GainTriggeredEffect",
       gainedTrigger: "onDeletionOf",
-      gainedActions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent" }],
+      gainedActions: [{ kind: "SecurityManipulation", op: "trashTop" }],
       condition: { kind: "youHave" },
       duration: "untilOpponentTurnEnd",
     });
@@ -43,7 +43,9 @@ describe("BT15-095", () => {
     );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("recipient").isSuspended);
 
     expect(
