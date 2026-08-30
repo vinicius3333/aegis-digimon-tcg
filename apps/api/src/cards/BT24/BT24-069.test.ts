@@ -48,14 +48,14 @@ describe("BT24-069 Vilemon", () => {
           battleArea: [{ card: "BT24-068", as: "base" }],
           hand: [
             { card: "BT24-069", as: "vilemon" },
-            { card: "BT1-001", as: "ownCard" },
+            { card: "BT4-022", as: "ownCard" },
           ],
         },
         1: {
-          hand: [{ card: "BT1-002", as: "opponentCard" }],
+          hand: [{ card: "BT4-022", as: "opponentCard" }],
           deck: [
-            { card: "BT1-003", as: "firstDeck" },
-            { card: "BT1-004", as: "secondDeck" },
+            { card: "BT4-022", as: "firstDeck" },
+            { card: "BT4-022", as: "secondDeck" },
           ],
         },
       },
