@@ -58,6 +58,7 @@ describe("BT21-090 The Strongest of Brothers", () => {
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
     s.state.turnSeat = 0;
+    s.perm("option").placedByEffect = true;
     await s.ready();
 
     const [effect] = observe(s.engine).activatableEffects(s.perm("leon")) as { effectKey: string }[];
