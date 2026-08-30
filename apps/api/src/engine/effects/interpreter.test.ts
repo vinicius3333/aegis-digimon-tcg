@@ -2395,8 +2395,12 @@ describe("v2 IR actions dispatch to real primitives", () => {
       once: true,
       expiresOnTurnEndOf: 1,
     });
-    expect(subs[0]!.args[0].sourcePermanentId).toBeUndefined();
-    expect(subs[0]!.args[0].activationContext).toBeDefined();
+    const subscription = subs[0]!.args[0] as {
+      sourcePermanentId?: string;
+      activationContext?: EffectContext;
+    };
+    expect(subscription.sourcePermanentId).toBeUndefined();
+    expect(subscription.activationContext).toBeDefined();
   });
 
   it("grants a continuous keyword (non-Piercing) via fx.grantKeyword", async () => {

@@ -227,6 +227,7 @@ export interface ReplacementSubscriptionReduceCost extends ReplacementSubscripti
     target: Permanent,
     into: CardDefinition,
     evolvingInstanceId?: string,
+    materials?: readonly Permanent[],
   ) => Promise<boolean | number>;
   /** Remove this replacement after its first successful activation. */
   consumeOnActivate?: boolean;
@@ -512,8 +513,7 @@ export class SubTriggerRegistry {
       // provenance (for example, a Tamer's PlaceUnder must publish byEffectSeat). A linked
       // card's watcher remains an effect of its host Digimon even when the linked card itself
       // is an Option (BT25-100/101, KB Q6471/Q6476).
-      const sourceKinds =
-        sub.isLinkedSource === true ? [CardKind.Digimon] : [...(ctx.source?.definition?.kinds ?? [])];
+      const sourceKinds = sub.isLinkedSource === true ? [CardKind.Digimon] : [...(ctx.source?.definition?.kinds ?? [])];
       ctx.effectSourceKinds = sourceKinds;
       ctx.fx?.enterEffectResolution?.(ctx.source.ownerSeat, sourceKinds);
       try {

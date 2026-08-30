@@ -543,7 +543,7 @@ export async function applyWouldBePlayedSelfReducer(
       const declaredZones = [
         ...(target.from ?? []),
         ...((Array.isArray(target.filter.zone) ? target.filter.zone : [target.filter.zone]).filter(
-          (zone): zone is string => typeof zone === "string",
+          (zone): zone is ZoneRef => zone !== undefined,
         ) ?? []),
       ];
       const sourceZones = new Set(
