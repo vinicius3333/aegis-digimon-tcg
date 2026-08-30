@@ -91,26 +91,17 @@ const compiled: CompiledCard = {
               kind: "GainMemory",
               amount: 2,
               condition: {
-                kind: "triggerRemovalCause",
-                removalCause: "byBattle",
-              },
-            },
-          ],
-        },
-        {
-          kind: "SubTrigger",
-          event: "onDeletionOf",
-          sourceFilter: {
-            controller: "opponent",
-            kind: ["Digimon"],
-          },
-          actions: [
-            {
-              kind: "GainMemory",
-              amount: 2,
-              condition: {
-                kind: "triggerDeletedByDpZero",
-                raw: "the opponent's Digimon was deleted by having 0 DP",
+                kind: "anyOf",
+                conditions: [
+                  {
+                    kind: "triggerRemovalCause",
+                    removalCause: "byBattle",
+                  },
+                  {
+                    kind: "triggerDeletedByDpZero",
+                    raw: "the opponent's Digimon was deleted by having 0 DP",
+                  },
+                ],
               },
             },
           ],
