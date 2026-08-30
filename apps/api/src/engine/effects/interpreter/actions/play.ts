@@ -761,11 +761,14 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
             // hand-play path filters each candidate before prompting; cards assembled from
             // another loose zone need the same guard or an auto-selection can consume invalid
             // cards and silently fall back to a non-DigiXros play.
+            const materialDefinition = (candidate: (typeof allMaterialCandidates)[number]) => {
+              const definition = ctx.game.definitionOf({ cardId: candidate.cardId } as never);
+              return candidate.instanceId === ctx.source.instanceId && action.digiXrosSourceMaterialName !== undefined
+                ? { ...definition, nameEn: action.digiXrosSourceMaterialName }
+                : definition;
+            };
             const materialCandidates = allMaterialCandidates.filter((candidate) =>
-              materialsSatisfyRecipe(
-                [ctx.game.definitionOf({ cardId: candidate.cardId } as never)],
-                requirement.materials,
-              ),
+              materialsSatisfyRecipe([materialDefinition(candidate)], requirement.materials),
             );
             const materialCap =
               requirement.maxMaterials ??
@@ -775,12 +778,9 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
               min: 0,
               max: materialCap,
             });
-            const selectedDefinitions = selected.map((id) => {
-              const definition = ctx.game.definitionOf(materialCandidates.find((card) => card.instanceId === id)!);
-              return id === ctx.source.instanceId && action.digiXrosSourceMaterialName !== undefined
-                ? { ...definition, nameEn: action.digiXrosSourceMaterialName }
-                : definition;
-            });
+            const selectedDefinitions = selected.map((id) =>
+              materialDefinition(materialCandidates.find((card) => card.instanceId === id)!),
+            );
             if (materialsSatisfyRecipe(selectedDefinitions, requirement.materials))
               digiXrosMaterialInstanceIds = selected;
           }

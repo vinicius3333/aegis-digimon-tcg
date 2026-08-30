@@ -337,6 +337,10 @@ export function setupEngine(boardOrOpts?: BoardSpec | SetupEngineOptions, maybeO
         const ordered = [...candidates].sort((a, b) => {
           const preferred = (id: string): boolean => {
             if (prefer.includes(id)) return true;
+            // `selectCards` candidates are exact loose-card identities. Expanding one
+            // through its host would make every sibling in that stack equally preferred.
+            // `chooseTargets` may instead expose a permanent id for a preferred top card.
+            if (req.kind === "selectCards") return false;
             const permanent = findPermanentForDecisionId(state, id);
             return permanent?.topCard !== undefined && prefer.includes(permanent.topCard.instanceId);
           };
