@@ -24,9 +24,7 @@ describe("BT14-071", () => {
     s.state.memory = 3;
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
-    await settle(() =>
-      s.perm("source").stack.some((card) => card.cardId === "BT14-087") && s.state.memory === 4,
-    );
+    await settle(() => s.perm("source").stack.some((card) => card.cardId === "BT14-087") && s.state.memory === 4);
     expect(s.perm("source").stack.some((card) => card.cardId === "BT14-087")).toBe(true);
     expect(s.state.memory).toBe(4);
 
@@ -49,15 +47,18 @@ describe("BT14-071", () => {
       },
       { memory: 10, turnPlayer: 0, autoSelectCards: true, autoAcceptOptional: true },
     );
+    await s.ready();
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("fangmon").instanceId,
-    }).ok).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("fangmon").instanceId,
+      }).ok,
+    ).toBe(true);
 
-    await settle(() =>
-      s.state.memory === 7 && s.state.players[0]!.trash.some((card) => card.cardId === "BT1-002"),
-    );
+    await settle(() => s.state.memory === 7 && s.state.players[0]!.trash.some((card) => card.cardId === "BT1-002"));
     expect(s.state.memory).toBe(7);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT14-071")).toBe(true);
   });

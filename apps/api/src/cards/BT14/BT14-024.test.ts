@@ -63,11 +63,17 @@ describe("BT14-024", () => {
     assertNoLoudGap(s);
   });
 
-  it("evolves legally from a blue level 3 for cost 2 and preserves the inherited watcher", async () => {
+  it("evolves legally from a blue level 3 and exposes the inherited watcher under a level 5", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT14-020", as: "base" }], hand: [{ card: "BT14-024", as: "gekomon" }] },
+      0: {
+        battleArea: [{ card: "BT14-020", as: "base" }],
+        hand: [
+          { card: "BT14-024", as: "gekomon" },
+          { card: "BT14-026", as: "zudomon" },
+        ],
+      },
     });
-    s.state.memory = 4;
+    s.state.memory = 10;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -77,7 +83,17 @@ describe("BT14-024", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT14-024");
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT14-020"]);
-    expect(s.state.memory).toBe(2);
+    expect(s.state.memory).toBe(8);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("zudomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT14-026");
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT14-020", "BT14-024"]);
+    expect(s.state.memory).toBe(5);
     s.state.turnSeat = 1;
     await advance(s.engine).recompute();
     expect(observe(s.engine).subscriptions("whenOpponentAttacks", s.perm("base").permanentId)).toHaveLength(1);

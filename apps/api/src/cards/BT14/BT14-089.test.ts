@@ -22,7 +22,7 @@ describe("BT14-089", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT14-058", as: "attacker" }],
+          battleArea: [{ card: "BT14-007", as: "redSource" }],
           hand: [{ card: "BT14-089", as: "option" }],
         },
         1: {
@@ -35,7 +35,9 @@ describe("BT14-089", () => {
       { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => !s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-069"));
     expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-069")).toBe(false);
     expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-074")).toBe(true);
@@ -66,13 +68,15 @@ describe("BT14-089", () => {
   it("naturally activates its Main effect from a Security check", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT14-058", as: "attacker" }] },
-        1: {
-          security: [{ card: "BT14-089", as: "securityOption" }],
+        0: {
           battleArea: [
+            { card: "BT14-058", as: "attacker", dp: 7000 },
             { card: "BT14-069", as: "lowest", dp: 2000 },
             { card: "BT14-074", as: "higher", dp: 6000 },
           ],
+        },
+        1: {
+          security: [{ card: "BT14-089", as: "securityOption" }],
         },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
@@ -84,8 +88,8 @@ describe("BT14-089", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-069"));
-    expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-069")).toBe(false);
-    expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-074")).toBe(true);
+    await settle(() => !s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-069"));
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-069")).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-074")).toBe(true);
   });
 });

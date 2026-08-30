@@ -1,7 +1,8 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT14-013.js";
 
@@ -44,19 +45,26 @@ describe("BT14-013", () => {
   });
 
   it("Q2375 reduces every qualifying digivolution by 1 for the turn", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT14-013", as: "tyrannomon" }],
-        hand: [
-          { card: "BT14-016", as: "triceramon" },
-          { card: "BT14-017", as: "dinorexmon" },
-        ],
-        deck: ["BT1-001", "BT1-001"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-013", as: "tyrannomon" }],
+          hand: [
+            { card: "BT14-016", as: "triceramon" },
+            { card: "BT14-017", as: "dinorexmon" },
+          ],
+          deck: ["BT1-001", "BT1-001"],
+        },
       },
-    });
+      { autoDeclineOptional: true },
+    );
     s.state.memory = 10;
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
+    await settle(
+      () =>
+        observe(s.engine).costReduction("wouldDigivolve", s.perm("tyrannomon"), getCardDefinition("BT14-016")) === 1,
+    );
 
     expect(
       s.engine.applyIntent(0, {

@@ -33,19 +33,25 @@ describe("BT14-095", () => {
         0: {
           battleArea: [{ card: "BT14-085", as: "mimi" }],
           hand: [{ card: "BT14-095", as: "option" }],
+          deck: ["BT1-010"],
+          security: ["BT1-085"],
         },
-        1: { battleArea: [{ card: "BT14-058", as: "target" }] },
+        1: { battleArea: [{ card: "BT14-058", as: "target" }], deck: ["BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => observe(s.engine).customEffectGrants(s.perm("target")).length === 1);
     advance(s.engine).endMainPhaseIfOpen(0);
     await turn;
 
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
     const opponentTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(1);
     const memoryBeforeAttack = s.state.memory;

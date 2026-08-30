@@ -31,8 +31,8 @@ describe("BT14-063", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT14-063", as: "source" }],
-          deck: ["BT1-038", "BT14-058", "BT1-001"],
+          battleArea: [{ card: "BT14-063", as: "source", suspended: true }],
+          deck: ["BT1-038", "BT14-058", "BT14-089"],
         },
         1: { battleArea: [{ card: "BT14-042", as: "attacker", dp: 9000 }] },
       },
@@ -56,7 +56,7 @@ describe("BT14-063", () => {
 
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-038");
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT14-058")).toBe(true);
-    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-001"]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT14-089"]);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT14-063")).toBe(true);
   });
 
@@ -92,8 +92,8 @@ describe("BT14-063", () => {
     await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT1-015"));
 
     expect(s.state.players[0]!.security).toHaveLength(1);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("host").permanentId)).toBe(
-      true,
-    );
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("host").permanentId),
+    ).toBe(true);
   });
 });

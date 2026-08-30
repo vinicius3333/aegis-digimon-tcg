@@ -23,7 +23,10 @@ describe("BT14-097", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT14-058", as: "base" }],
+          battleArea: [
+            { card: "BT14-058", as: "base" },
+            { card: "BT14-084", as: "yellowSource" },
+          ],
           hand: [
             { card: "BT14-097", as: "option" },
             { card: "BT14-034", as: "sukamon" },
@@ -34,7 +37,9 @@ describe("BT14-097", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("base").topCard?.cardId === "BT14-034");
 
     expect(s.perm("base").topCard?.cardId).toBe("BT14-034");

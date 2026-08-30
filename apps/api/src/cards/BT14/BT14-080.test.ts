@@ -36,15 +36,19 @@ describe("BT14-080", () => {
           trash: Array(10).fill("BT1-001"),
           deck: ["BT1-010"],
         },
-        1: { deck: ["BT1-002", "BT1-003", "BT1-004", "BT1-005"], trash: Array(10).fill("BT1-006") },
+        1: { deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"], trash: Array(10).fill("BT1-006") },
       },
       { memory: 10, autoSelectCards: true, autoAcceptOptional: true },
     );
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("source").instanceId,
-    })).toEqual({ ok: true });
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.cardId === "BT14-080" && s.state.players[1]!.trash.length === 13);
     expect(s.perm("base").topCard?.cardId).toBe("BT14-080");
     expect(s.state.players[1]!.trash.length).toBe(13);

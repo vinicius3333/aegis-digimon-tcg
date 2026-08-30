@@ -21,7 +21,7 @@ describe("BT14-069", () => {
   it("naturally gains one memory when its host is deleted in battle", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT14-058", as: "host", under: ["BT14-069"] }] },
+        0: { battleArea: [{ card: "BT14-058", as: "host", under: ["BT14-069"], suspended: true }] },
         1: { battleArea: [{ card: "BT14-042", as: "attacker", dp: 12000 }] },
       },
       { autoOrderTriggers: true },
@@ -40,6 +40,6 @@ describe("BT14-069", () => {
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT14-058"));
 
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT14-058")).toBe(true);
-    expect(s.state.memory).toBe(4);
+    expect(s.state.memory).toBe(2);
   });
 });
