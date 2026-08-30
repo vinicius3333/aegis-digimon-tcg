@@ -729,6 +729,17 @@ export class CombatController {
         return;
       }
 
+      // An effect may end the attack specifically because the block switched its target
+      // (BT16-032). That trigger resolves inside switchDefenderToBlocker, after the earlier
+      // pre-block endRequested check, so honor the newly-requested end before comparing DP.
+      if (this.endRequested) {
+        await this.hooks.fireTiming(EffectTiming.OnEndAttack, {
+          ...attackTrigger,
+          target: effectiveTarget,
+        });
+        return;
+      }
+
       // 4. Battle resolution (AttackProcess.DetermineAttackOutcome, cs:407-468).
       if (!this.defenderStillValid(effectiveTarget, defender)) {
         // Comprehensive Rules §11-2-6: even though the attack target Digimon was removed
