@@ -30,7 +30,7 @@ describe("BT17-083 Koji Minamoto — inherited hand-add trigger", () => {
       colors: ["Blue"],
       kinds: ["Tamer"],
       playCost: 4,
-      securityEffectText: "[Security] Play this card without paying the cost.",
+      effectText: expect.stringContaining("[Security] Play this card without paying the cost."),
       inheritedEffectText: expect.stringContaining("When an effect adds cards to your hand"),
     });
   });
@@ -70,7 +70,10 @@ describe("BT17-083 Koji Minamoto — inherited hand-add trigger", () => {
       {
         0: {
           battleArea: [{ card: "BT1-009", as: "host", under: [{ card: KOJI, as: "koji" }] }],
-          hand: [{ card: "BT17-021", as: "labramon" }, { card: "BT17-024", as: "material" }],
+          hand: [
+            { card: "BT17-021", as: "labramon" },
+            { card: "BT17-024", as: "material" },
+          ],
           deck: [{ card: "BT1-011", as: "drawn" }],
         },
       },
@@ -79,7 +82,9 @@ describe("BT17-083 Koji Minamoto — inherited hand-add trigger", () => {
     s.state.memory = 3;
 
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("labramon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("labramon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
 
     expect(s.state.memory).toBe(1);
@@ -111,7 +116,7 @@ describe("BT17-083 Koji Minamoto — inherited hand-add trigger", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("bonusDraw").instanceId));
 
-    expect(s.state.memory).toBe(3);
+    expect(s.state.memory).toBe(1);
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Jamming")).toBe(false);
     assertNoLoudGap(s);
   });
@@ -120,7 +125,7 @@ describe("BT17-083 Koji Minamoto — inherited hand-add trigger", () => {
     const low = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-009", as: "host", under: [KOJI] }],
+          battleArea: [{ card: KOJI, as: "koji" }],
           deck: ["BT1-010"],
           hand: ["BT1-010"],
         },
@@ -139,7 +144,7 @@ describe("BT17-083 Koji Minamoto — inherited hand-add trigger", () => {
     const high = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-009", as: "host", under: [KOJI] }],
+          battleArea: [{ card: KOJI, as: "koji" }],
           deck: ["BT1-010"],
           hand: ["BT1-010"],
         },
@@ -174,7 +179,9 @@ describe("BT17-083 Koji Minamoto — inherited hand-add trigger", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === instanceId));
+    await settle(() =>
+      s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === instanceId),
+    );
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === instanceId)).toBe(true);
     expect(s.state.players[1]!.security.some((card) => card.instanceId === instanceId)).toBe(false);

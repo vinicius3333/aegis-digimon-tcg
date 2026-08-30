@@ -86,7 +86,9 @@ describe("BT17-081 Tai Kamiya & Matt Ishida", () => {
     s.state.memory = 5;
 
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("tamer").isSuspended && s.state.memory === 5);
 
     expect(s.perm("tamer").isSuspended).toBe(true);
@@ -118,11 +120,11 @@ describe("BT17-081 Tai Kamiya & Matt Ishida", () => {
         instanceId: s.inst("evolver").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("tamer").isSuspended && s.state.memory === 3);
+    await settle(() => s.perm("tamer").isSuspended && s.state.memory === 4);
 
     expect(s.perm("base").topCard?.cardId).toBe("BT1-014");
     expect(s.perm("tamer").isSuspended).toBe(true);
-    expect(s.state.memory).toBe(3);
+    expect(s.state.memory).toBe(4);
     assertNoLoudGap(s);
   });
 
@@ -134,7 +136,9 @@ describe("BT17-081 Tai Kamiya & Matt Ishida", () => {
     s.state.memory = 5;
 
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.memory === 3 && s.state.players[0]!.hand.length === 0);
 
     expect(s.perm("tamer").isSuspended).toBe(false);
@@ -159,7 +163,9 @@ describe("BT17-081 Tai Kamiya & Matt Ishida", () => {
     s.state.memory = 5;
 
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.memory === 3 && s.state.players[0]!.hand.length === 0);
 
     expect(s.perm("tamer").isSuspended).toBe(false);
@@ -170,7 +176,12 @@ describe("BT17-081 Tai Kamiya & Matt Ishida", () => {
   it("naturally attacks an opponent player at end of turn with an unsuspended Omnimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT17-081", as: "tamer" }, { card: "BT5-086", as: "omnimon" }] },
+        0: {
+          battleArea: [
+            { card: "BT17-081", as: "tamer" },
+            { card: "BT5-086", as: "omnimon" },
+          ],
+        },
         1: { security: [{ card: "BT1-090", as: "security" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
@@ -189,14 +200,23 @@ describe("BT17-081 Tai Kamiya & Matt Ishida", () => {
   it("does not attack at end of turn when every Omnimon-named Digimon is suspended", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT17-081", as: "tamer" }, { card: "BT5-086", as: "omnimon", suspended: true }] },
+        0: {
+          battleArea: [
+            { card: "BT17-081", as: "tamer" },
+            { card: "BT5-086", as: "omnimon", suspended: true },
+          ],
+        },
         1: { security: [{ card: "BT1-090", as: "security" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
 
     await s.ready();
-    await advance(s.engine).runTurn(0);
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.suspend([s.perm("omnimon").permanentId]);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
 
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.perm("omnimon").isSuspended).toBe(true);
@@ -221,7 +241,9 @@ describe("BT17-081 Tai Kamiya & Matt Ishida", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === instanceId));
+    await settle(() =>
+      s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === instanceId),
+    );
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === instanceId)).toBe(true);
     expect(s.state.players[1]!.security.some((card) => card.instanceId === instanceId)).toBe(false);

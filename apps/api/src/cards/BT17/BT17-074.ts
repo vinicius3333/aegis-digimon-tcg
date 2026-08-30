@@ -61,8 +61,10 @@ export const compiled: CompiledCard = {
           from: ["hand"],
           payCost: false,
           optional: true,
+          controller: "opponent",
           condition: {
-            kind: "prevActionTaken",
+            kind: "ifThisEffectActed",
+            raw: "you did",
           },
         },
       ],

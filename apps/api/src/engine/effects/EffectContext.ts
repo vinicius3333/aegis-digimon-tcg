@@ -678,6 +678,8 @@ export interface Primitives {
       suspended?: boolean;
       breeding?: boolean;
       costDelta?: number;
+      /** Set the paid play's base cost to this value before continuous modifiers. */
+      costOverride?: number;
       suppressOnPlayEffects?: boolean;
       /** Card whose resolving effect initiated this play. */
       effectSourceCardId?: string;

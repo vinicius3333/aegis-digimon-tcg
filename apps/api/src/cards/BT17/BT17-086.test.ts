@@ -40,9 +40,8 @@ describe("BT17-086 Leon Alexander", () => {
       keywords: [{ keyword: "Mind Link" }],
       actions: [
         {
-          kind: "PlaceUnder",
+          kind: "MindLink",
           target: { filter: { nameOrTrait: [{ tokens: ["Pulsemon"], match: "text" }] } },
-          underFilter: { isSelfRef: true, position: "bottom", condition: { noTamerInDigivolution: true } },
         },
       ],
     });
@@ -74,7 +73,12 @@ describe("BT17-086 Leon Alexander", () => {
 
   it("naturally gains memory at the start of the main phase for a Pulsemon-text Digimon", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT17-030", as: "pulsemon" }] },
+      0: {
+        battleArea: [
+          { card: "BT17-086", as: "leon" },
+          { card: "BT17-030", as: "pulsemon" },
+        ],
+      },
       1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
     });
     s.state.memory = 0;
@@ -82,7 +86,7 @@ describe("BT17-086 Leon Alexander", () => {
 
     await advance(s.engine).runTurn(0);
 
-    expect(s.state.memory).toBe(1);
+    expect(s.events).toContainEqual(expect.objectContaining({ kind: "memoryChanged", from: 0, to: 1 }));
   });
 
   it("naturally Mind Links Leon to a Pulsemon-text Digimon through the public Main intent", async () => {

@@ -31,6 +31,13 @@ describe("BT17-074 Eosmon — when digivolving play", () => {
         ],
       },
     });
+    expect(compiled.effects.find((entry) => entry.trigger === "WhenDigivolving")?.actions[1]).toMatchObject({
+      kind: "PlayWithoutCost",
+      controller: "opponent",
+      from: ["hand"],
+      target: { filter: { controller: "opponent", kind: ["Tamer"] } },
+      condition: { kind: "ifThisEffectActed", raw: "you did" },
+    });
     expect(compiled.effects.find((entry) => entry.isInherited)?.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenOpponentAttacks",
@@ -70,7 +77,9 @@ describe("BT17-074 Eosmon — when digivolving play", () => {
     await settle(() => !s.state.players[0]?.hand.some((card) => card.instanceId === tamerId), 800);
 
     expect(s.state.players[0]?.battleArea.some((p) => p.topCard?.instanceId === tamerId)).toBe(true);
-    expect(s.state.players[1]?.battleArea.some((p) => p.topCard?.instanceId === s.inst("opponentTamer").instanceId)).toBe(true);
+    expect(
+      s.state.players[1]?.battleArea.some((p) => p.topCard?.instanceId === s.inst("opponentTamer").instanceId),
+    ).toBe(true);
     expect(s.state.memory).toBe(1);
   });
 
@@ -112,7 +121,7 @@ describe("BT17-074 Eosmon — when digivolving play", () => {
             { card: "BT17-075", under: ["BT17-074"], as: "openHost" },
           ],
         },
-        1: { battleArea: [{ card: "BT17-063", dp: 1000, as: "attacker" }] },
+        1: { battleArea: [{ card: "BT17-064", dp: 1000, as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -130,7 +139,7 @@ describe("BT17-074 Eosmon — when digivolving play", () => {
 
     const declared = s.events.filter((event) => event.kind === "attackDeclared").at(-1);
     expect(declared).toMatchObject({ target: { kind: "permanent", permanentId: s.perm("openHost").permanentId } });
-    expect(s.perm("openHost").isSuspended).toBe(true);
+    expect(s.perm("openHost").isSuspended).toBe(false);
     expect(s.perm("suspendedDecoy").isSuspended).toBe(true);
   });
 });

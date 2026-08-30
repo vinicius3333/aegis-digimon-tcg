@@ -38,6 +38,15 @@ describe("BT17-097 Return to the Primogenitor", () => {
           from: ["hand"],
           payCost: false,
           bindResultAs: "digivolvedToPreventDeletion",
+          target: {
+            filter: {
+              useTriggerSource: true,
+              zone: "battleArea",
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Free"], match: "trait" }],
+            },
+          },
           into: { nameOrTrait: [{ tokens: ["Imperialdramon"], match: "name" }] },
         },
         { kind: "Prevent", condition: { kind: "bindingExists", ref: "digivolvedToPreventDeletion" } },
@@ -84,15 +93,22 @@ describe("BT17-097 Return to the Primogenitor", () => {
           battleArea: [
             { card: "BT3-014", as: "base" },
             { card: "BT17-019", as: "colorSource" },
+            { card: "BT17-036", as: "greenColorSource" },
           ],
-          hand: [{ card: "BT17-097", as: "option" }, { card: "BT3-017", as: "valkyrimon" }],
+          hand: [
+            { card: "BT17-097", as: "option" },
+            { card: "BT3-017", as: "valkyrimon" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
+    await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("base").topCard?.cardId === "BT3-017");
 
     expect(s.perm("base").topCard?.cardId).toBe("BT3-017");
@@ -105,11 +121,8 @@ describe("BT17-097 Return to the Primogenitor", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT17-097", as: "option" },
-            { card: "BT12-028", as: "freeTarget" },
-          ],
-          hand: [{ card: "BT12-030", as: "imperialdramon" }],
+          battleArea: [{ card: "BT12-028", as: "freeTarget" }],
+          hand: [{ card: "BT17-097", as: "option" }],
         },
         1: {
           hand: [{ card: "BT17-017", as: "opponentEffect" }],
@@ -117,17 +130,27 @@ describe("BT17-097 Return to the Primogenitor", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    const optionId = s.inst("option").instanceId;
+    await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId));
+    s.give(0, "hand", { card: "BT12-030", as: "imperialdramon" });
     await s.ready();
     s.state.turnCount += 1;
     s.state.turnSeat = 1;
     s.state.memory = 20;
 
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentEffect").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentEffect").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("freeTarget").topCard?.cardId === "BT12-030");
 
     expect(s.perm("freeTarget").topCard?.cardId).toBe("BT12-030");
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-097")).toBe(true);
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("imperialdramon").instanceId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("imperialdramon").instanceId)).toBe(
+      false,
+    );
   });
 
   it("naturally plays a Davis or Ken card from Security, then places itself in the battle area", async () => {

@@ -33,7 +33,7 @@ describe("BT17-090 Tomonori Ryusenji — [Security] play self", () => {
         {
           kind: "SubTrigger",
           event: "onAddDigivolutionCards",
-          sourceFilter: { controller: "mine", kind: ["Digimon"], byEffect: true },
+          sourceFilter: { controller: "mine", kind: ["Digimon"] },
           addedDigivolutionCardFilter: { kind: ["Tamer"] },
           actions: [
             { kind: "Suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
@@ -86,7 +86,9 @@ describe("BT17-090 Tomonori Ryusenji — [Security] play self", () => {
         effectKey: effect!.effectKey,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("tomonori").isSuspended && s.perm("pulsemon").stack.some((card) => card.instanceId === leonId));
+    await settle(
+      () => s.perm("tomonori").isSuspended && s.perm("pulsemon").stack.some((card) => card.instanceId === leonId),
+    );
 
     expect(s.perm("tomonori").isSuspended).toBe(true);
     expect(s.state.memory).toBe(1);

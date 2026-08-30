@@ -58,7 +58,7 @@ describe("BT17-076 Eosmon", () => {
           kind: "Aura",
           target: { count: "all", filter: { nameOrTrait: [{ tokens: ["Eosmon"], match: "name" }] } },
           effect: { kind: "modifyDP", amount: 1000 },
-          scaling: { unit: "cards", per: 1, filter: { kind: ["Tamer"] } },
+          scaling: { unit: "cards", per: 1, filter: { controller: "any", kind: ["Tamer"] } },
         },
       ],
     });
@@ -86,6 +86,7 @@ describe("BT17-076 Eosmon", () => {
     );
     s.state.memory = 6;
     const targetId = s.perm("target").permanentId;
+    await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("playedEosmon").instanceId })).toEqual({
       ok: true,
@@ -110,6 +111,7 @@ describe("BT17-076 Eosmon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 4;
+    await s.ready();
 
     expect(
       s.engine.applyIntent(0, {

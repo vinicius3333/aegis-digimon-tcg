@@ -133,6 +133,7 @@ export const compiled: CompiledCard = {
           scaling: {
             per: 1,
             filter: {
+              controller: "any",
               kind: ["Tamer"],
             },
             unit: "cards",

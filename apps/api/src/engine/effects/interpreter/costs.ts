@@ -1703,9 +1703,18 @@ export async function payCost(
             for (const sourcePermanentId of sourceIds) {
               const permanent = ctx.game.permanentById(sourcePermanentId);
               if (permanent?.topCard === undefined) return false;
-              await ctx.fx.addSecurity(permanent.controllerSeat, [permanent.topCard.instanceId], {
+              const topInstanceId = permanent.topCard.instanceId;
+              await ctx.fx.addSecurity(permanent.controllerSeat, [topInstanceId], {
                 toTop: cost.position !== "bottom",
+                detachPermanentTop: cost.detachPermanentTop === true,
               });
+              if (cost.detachPermanentTop === true) {
+                const reachedSecurity = ctx.game.state.players.some((player) =>
+                  player.security.some((card) => card.instanceId === topInstanceId),
+                );
+                if (!reachedSecurity) return false;
+                continue;
+              }
               // The cost is paid only if the permanent actually left. A leave-prevention
               // replacement can keep it in the battle area (ST22-06 Q5425), in which case the
               // dependent effect must not resolve even though the placement was attempted.

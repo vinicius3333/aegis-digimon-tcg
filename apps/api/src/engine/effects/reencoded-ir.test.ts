@@ -164,12 +164,13 @@ describe("nameOrTrait — name/trait gates actually reject non-matching cards", 
     }
   });
 
-  it("BT8-065 accepts [Mamemon] by name OR by trait, and nothing else (traitOrName)", () => {
+  it("BT8-065 accepts only Digimon cards with [Mamemon] in their names", () => {
     assertKeysGone("BT8-065", ["traitOrName"]);
     const filter = filterWith("BT8-065", "nameOrTrait");
     expect(definitionMatches(filter, facts({ nameEn: "MetalMamemon", types: [] }))).toBe(true);
-    expect(definitionMatches(filter, facts({ nameEn: "Agumon", types: ["Mamemon"] }))).toBe(true);
-    // REVERT-CONFIRM-RED: `traitOrName` is unread — every Digimon card qualified.
+    // The committed catalog says "with [Mamemon] in their names"; a same-named
+    // trait alone is not sufficient.
+    expect(definitionMatches(filter, facts({ nameEn: "Agumon", types: ["Mamemon"] }))).toBe(false);
     expect(definitionMatches(filter, facts({ nameEn: "Agumon", types: ["Reptile"] }))).toBe(false);
   });
 
@@ -238,7 +239,8 @@ function board(cards: BoardCard[], opts?: { selfPermanentId?: string; mySecurity
   const permanents = cards.map((c) => ({
     permanentId: c.permanentId,
     ownerSeat: c.seat,
-    topCard: { cardId: c.permanentId, instanceId: `${c.permanentId}#i` },
+    controllerSeat: c.seat,
+    topCard: { cardId: c.permanentId, instanceId: `${c.permanentId}#i`, ownerSeat: c.seat },
     stack: [],
     currentDP: c.currentDP ?? 5000,
     isSuspended: false,
@@ -421,7 +423,9 @@ describe("costMax/maxCost -> playCostLte", () => {
     const filter = filterWith("BT19-036", "playCostLte");
     expect(filter.playCostLte).toBe(5);
     expect(filter.colors).toEqual(["Yellow", "Purple"]);
-    const yellow = { colors: [CardColor.Yellow] };
+    // BT19-036 places a yellow/purple Option, so keep the synthetic candidate's kind
+    // aligned with the live IR's kind gate (the default Facts kind is Digimon).
+    const yellow = { kinds: [CardKind.Option], colors: [CardColor.Yellow] };
     expect(definitionMatches(filter, facts({ ...yellow, playCost: 5 }))).toBe(true);
     // REVERT-CONFIRM-RED (cost): the ghost `costMax` bounded nothing.
     expect(definitionMatches(filter, facts({ ...yellow, playCost: 6 }))).toBe(false);

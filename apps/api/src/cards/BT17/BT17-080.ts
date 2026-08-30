@@ -47,6 +47,7 @@ export const compiled: CompiledCard = {
               ],
             },
             count: 1,
+            fromSelectionRef: "takatoTarget",
           },
           into: {
             controllerDefault: "mine",
@@ -86,6 +87,8 @@ export const compiled: CompiledCard = {
             destination: "digivolutionStack",
             position: "bottom",
             host: "target",
+            targetIsPermanent: true,
+            bindHostAs: "takatoTarget",
           },
           abortOnDecline: true,
           additionalCosts: [
@@ -106,19 +109,9 @@ export const compiled: CompiledCard = {
                 from: ["trash"],
               },
               raw: "By placing this Tamer and 1 [Growlmon] and 1 [WarGrowlmon] from your trash as the bottom digivolution cards of 1 of your [Guilmon]",
-              underFilter: {
-                controller: "mine",
-                kind: ["Digimon"],
-                nameOrTrait: [
-                  {
-                    tokens: ["Guilmon"],
-                    match: "name",
-                  },
-                ],
-              },
+              host: { filter: { boundRef: "takatoTarget" }, count: 1 },
               destination: "digivolutionStack",
               position: "bottom",
-              host: "target",
             },
             {
               kind: "place",
@@ -137,19 +130,9 @@ export const compiled: CompiledCard = {
                 from: ["trash"],
               },
               raw: "By placing this Tamer and 1 [Growlmon] and 1 [WarGrowlmon] from your trash as the bottom digivolution cards of 1 of your [Guilmon]",
-              underFilter: {
-                controller: "mine",
-                kind: ["Digimon"],
-                nameOrTrait: [
-                  {
-                    tokens: ["Guilmon"],
-                    match: "name",
-                  },
-                ],
-              },
+              host: { filter: { boundRef: "takatoTarget" }, count: 1 },
               destination: "digivolutionStack",
               position: "bottom",
-              host: "target",
             },
           ],
         },

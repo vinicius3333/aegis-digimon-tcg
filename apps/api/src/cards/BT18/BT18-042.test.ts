@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT18-042.js";
@@ -44,9 +45,7 @@ describe("BT18-042 MagnaGarurumon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT1-060", as: "base", under: [{ card: "BT1-009", as: "level3Source" }] },
-          ],
+          battleArea: [{ card: "BT1-060", as: "base", under: [{ card: "BT1-009", as: "level3Source" }] }],
           hand: [{ card: "BT18-042", as: "source" }],
           security: ["BT1-001"],
         },
@@ -73,7 +72,9 @@ describe("BT18-042 MagnaGarurumon", () => {
     await settle(() => s.perm("base").topCard?.cardId === "BT18-042");
     await settle(() => s.perm("base").stack.length === 1);
     s.state.turnSeat = 1;
-    await advance(s.engine).runTurn(1);
+    // Fire the second printed timing inside the same tracker turn. Starting a
+    // complete new turn would correctly reset every once-per-turn budget.
+    await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
 
     expect(s.perm("base").stack).toHaveLength(1);
     expect(s.state.players[0]!.security).toHaveLength(2);
@@ -124,7 +125,8 @@ describe("BT18-042 MagnaGarurumon", () => {
     await settle();
 
     expect(s.perm("source").isSuspended).toBe(false);
-    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([s.inst("second").instanceId]);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("second").instanceId);
     assertNoLoudGap(s);
   });
 

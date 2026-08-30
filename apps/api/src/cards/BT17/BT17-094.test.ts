@@ -48,10 +48,7 @@ describe("BT17-094 Ancient Guardian Deity", () => {
           condition: {
             kind: "youHave",
             filter: {
-              or: [
-                { kind: ["Tamer"] },
-                { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Hybrid"], match: "trait" }] },
-              ],
+              or: [{ kind: ["Tamer"] }, { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Hybrid"], match: "trait" }] }],
             },
           },
         },
@@ -69,7 +66,9 @@ describe("BT17-094 Ancient Guardian Deity", () => {
     s.state.memory = 4;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
   });
@@ -79,20 +78,26 @@ describe("BT17-094 Ancient Guardian Deity", () => {
       {
         0: {
           battleArea: [{ card: "BT17-093", as: "tamer" }],
-          hand: [{ card: "BT17-094", as: "option" }, { card: "BT17-017", as: "ancient" }],
+          hand: [
+            { card: "BT17-094", as: "option" },
+            { card: "BT17-017", as: "ancient" },
+          ],
           trash: [{ card: "BT17-011", as: "hybrid" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 20;
+    s.state.memory = 10;
+    await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-017"));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-017")).toBe(true);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("hybrid").instanceId);
-    expect(s.state.memory).toBe(10);
+    expect(s.state.memory).toBe(0);
   });
 
   it("naturally plays only an inherited-effect Tamer from Security, then returns this Option to hand", async () => {

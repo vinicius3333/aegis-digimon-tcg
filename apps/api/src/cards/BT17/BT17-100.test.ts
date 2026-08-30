@@ -1,3 +1,4 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, it, expect } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -60,16 +61,21 @@ describe("BT17-100 Doomsday Clock — [Main] plays Diaboromon Token", () => {
   it("[Main] plays a Diaboromon Token when used as an Option card", async () => {
     // BT17-100 is an Option card; it is used from hand.
     // The [Main] effect (OnDeclaration) plays a Diaboromon Token.
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT10-022", dp: 3000, as: "colorSource" }, // §4-21 color-requirement source (Black)
-          { card: "BT17-059", as: "cleanHost" },
-          { card: "BT17-059", as: "taintedHost", under: [DOOMSDAY_CLOCK] },
-        ],
-        hand: [{ card: DOOMSDAY_CLOCK, as: "clockCard" }],
+    const preferredHostIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-022", dp: 3000, as: "colorSource" }, // §4-21 color-requirement source (Black)
+            { card: "BT17-059", as: "cleanHost" },
+            { card: "BT17-059", as: "taintedHost", under: [DOOMSDAY_CLOCK] },
+          ],
+          hand: [{ card: DOOMSDAY_CLOCK, as: "clockCard" }],
+        },
       },
-    });
+      { autoSelectCards: true, preferInstanceIds: preferredHostIds },
+    );
+    preferredHostIds.push(s.perm("cleanHost").permanentId);
     const p0 = s.state.players[0];
     s.state.memory = 10; // enough memory to pay the cost
     const clockId = s.inst("clockCard").instanceId;
@@ -163,8 +169,10 @@ describe("BT17-100 Doomsday Clock — [Start of Your Turn] win", () => {
       1: { deck: ["AD1-001"] },
     });
 
+    for (const permanent of s.state.players[0]!.battleArea) permanent.placedByEffect = true;
     await s.ready();
-    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 0;
+    await advance(s.engine).fireGlobal(EffectTiming.OnStartTurn);
 
     expect(s.state.gameOver).toBe(true);
     expect(s.state.winnerSeat).toBe(0);

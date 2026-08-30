@@ -15,7 +15,10 @@ describe("BT17-009", () => {
             {
               count: 1,
               to: "hand",
-              filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Hybrid", "Ten Warriors"], match: "trait" }] },
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [{ tokens: ["Hybrid", "Ten Warriors"], match: "trait" }],
+              },
             },
             {
               count: 1,
@@ -32,7 +35,15 @@ describe("BT17-009", () => {
     expect(compiled.effects?.[1]).toMatchObject({
       trigger: "OnDeletion",
       isInherited: true,
-      actions: [{ kind: "PlayWithoutCost", from: ["hand"], payCost: false, optional: true }],
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+          target: { filter: { zone: "hand" } },
+        },
+      ],
     });
   });
 
@@ -57,7 +68,7 @@ describe("BT17-009", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT17-010", as: "host", under: ["BT17-001", "BT17-009"] }],
+          battleArea: [{ card: "BT17-010", as: "host", under: ["BT17-001", "BT17-009"], suspended: true }],
           hand: [{ card: "BT17-083", as: "inheritedTamer" }],
           deck: [{ card: "BT1-001", as: "drawn" }],
         },

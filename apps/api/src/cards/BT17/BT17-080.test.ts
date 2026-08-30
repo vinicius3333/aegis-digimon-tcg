@@ -75,12 +75,18 @@ describe("BT17-080 Takato Matsuki", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => security.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT17-080"));
-    expect(security.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT17-080")).toBe(true);
+    await settle(() => security.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT17-080"));
+    expect(security.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT17-080")).toBe(true);
 
-    const main = setupEngine(
-      { 0: { battleArea: [{ card: "BT17-080", as: "mainTamer" }] }, 1: { battleArea: ["BT17-063"] } },
-    );
+    const main = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT17-080", as: "mainTamer" },
+          { card: "BT17-008", as: "guilmon" },
+        ],
+      },
+      1: { battleArea: ["BT17-063"] },
+    });
     main.state.memory = 0;
     main.state.turnSeat = 0;
     await main.ready();

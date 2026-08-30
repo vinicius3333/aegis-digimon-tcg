@@ -335,8 +335,13 @@ export function setupEngine(boardOrOpts?: BoardSpec | SetupEngineOptions, maybeO
         // candidate. Falls back to candidate order.
         const prefer = opts?.preferInstanceIds ?? [];
         const ordered = [...candidates].sort((a, b) => {
-          const pa = prefer.includes(a) ? 0 : 1;
-          const pb = prefer.includes(b) ? 0 : 1;
+          const preferred = (id: string): boolean => {
+            if (prefer.includes(id)) return true;
+            const permanent = findPermanentForDecisionId(state, id);
+            return permanent?.topCard !== undefined && prefer.includes(permanent.topCard.instanceId);
+          };
+          const pa = preferred(a) ? 0 : 1;
+          const pb = preferred(b) ? 0 : 1;
           return pa - pb;
         });
         // A malformed/NaN `max` (e.g. a compiled action with an unset materials.count) must not

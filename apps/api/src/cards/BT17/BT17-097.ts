@@ -65,6 +65,7 @@ export const compiled: CompiledCard = {
           event: "wouldBeDeleted",
           leaveCause: "otherThanYourEffect",
           sourceFilter: {
+            zone: "battleArea",
             controller: "mine",
             kind: ["Digimon"],
             nameOrTrait: [
@@ -78,9 +79,14 @@ export const compiled: CompiledCard = {
             {
               kind: "Digivolve",
               target: {
-                filter: {},
+                filter: {
+                  useTriggerSource: true,
+                  zone: "battleArea",
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Free"], match: "trait" }],
+                },
                 count: 1,
-                sourceRef: "triggerSubject",
               },
               into: {
                 controllerDefault: "mine",

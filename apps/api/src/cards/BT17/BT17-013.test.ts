@@ -26,6 +26,7 @@ describe("BT17-013", () => {
         {
           kind: "SubTrigger",
           event: "onDeletionOf",
+          sourceFilter: { deleteCause: "byEffect" },
           actions: [
             { kind: "Unsuspend", optional: true, condition: { kind: "selfHasNameContaining", names: ["Gallantmon"] } },
           ],
@@ -35,18 +36,21 @@ describe("BT17-013", () => {
   });
 
   it("deletes only an opposing Digimon at 6000 DP or less when digivolving", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT1-015", as: "base" }],
-        hand: [{ card: "BT17-013", as: "wargrowlmon" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-015", as: "base" }],
+          hand: [{ card: "BT17-013", as: "wargrowlmon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", dp: 6000, as: "within" },
+            { card: "BT1-009", dp: 6001, as: "above" },
+          ],
+        },
       },
-      1: {
-        battleArea: [
-          { card: "BT1-009", dp: 6000, as: "within" },
-          { card: "BT1-009", dp: 6001, as: "above" },
-        ],
-      },
-    }, { autoSelectCards: true });
+      { autoSelectCards: true },
+    );
     s.state.memory = 3;
     const withinInstanceId = s.perm("within").topCard!.instanceId;
     const aboveInstanceId = s.perm("above").topCard!.instanceId;
@@ -74,9 +78,10 @@ describe("BT17-013", () => {
         },
         1: { battleArea: [{ card: "BT1-009", dp: 6001, as: "above" }] },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 3;
+    await s.ready();
 
     expect(
       s.engine.applyIntent(0, {
@@ -103,9 +108,10 @@ describe("BT17-013", () => {
         },
         1: { battleArea: [{ card: "BT1-009", dp: 3000, as: "target" }] },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 3;
+    await s.ready();
 
     expect(
       s.engine.applyIntent(0, {

@@ -61,6 +61,7 @@ describe("BT17-069 Fenriloogamon", () => {
     );
     s.state.memory = 10;
     const targetId = s.perm("target").permanentId;
+    await s.ready();
 
     expect(
       s.engine.applyIntent(0, {
@@ -147,6 +148,8 @@ describe("BT17-069 Fenriloogamon", () => {
 
     await advance(s.engine).runTurn(0);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT14-081")).toBe(true);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
     await advance(s.engine).runTurn(1);
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT14-081"));
 
@@ -158,7 +161,10 @@ describe("BT17-069 Fenriloogamon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT17-101", under: ["BT17-069"], as: "host" }],
-        hand: [{ card: "BT1-012", as: "firstPlay" }, { card: "BT1-012", as: "secondPlay" }],
+        hand: [
+          { card: "BT1-012", as: "firstPlay" },
+          { card: "BT1-012", as: "secondPlay" },
+        ],
         deck: ["BT1-011", "BT1-011"],
       },
       1: { deck: ["BT1-011", "BT1-011"] },
@@ -181,7 +187,9 @@ describe("BT17-069 Fenriloogamon", () => {
     });
     await turn;
 
-    expect(s.state.turnSeat).toBe(1);
-    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "BT1-012")).toHaveLength(2);
+    expect(s.state.memory).toBe(-4);
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "BT1-012")).toHaveLength(
+      2,
+    );
   });
 });

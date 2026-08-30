@@ -16,6 +16,7 @@ const compiled: CompiledCard = {
             filter: {
               zone: "battleArea",
               controller: "mine",
+              kind: ["Tamer"],
               nameOrTrait: [
                 {
                   tokens: ["Takuya Kanbara"],
@@ -24,6 +25,7 @@ const compiled: CompiledCard = {
               ],
             },
             count: 1,
+            fromSelectionRef: "takuyaHost",
           },
           into: {
             filter: {
@@ -52,6 +54,7 @@ const compiled: CompiledCard = {
             raw: "By placing 1 [Agunimon] and 1 [BurningGreymon] from your trash under 1 of your [Takuya Kanbara]s",
             underFilter: {
               controller: "mine",
+              kind: ["Tamer"],
               nameOrTrait: [
                 {
                   tokens: ["Takuya Kanbara"],
@@ -62,6 +65,7 @@ const compiled: CompiledCard = {
             destination: "digivolutionStack",
             position: "bottom",
             host: "target",
+            bindHostAs: "takuyaHost",
           },
           additionalCosts: [
             {
@@ -83,6 +87,7 @@ const compiled: CompiledCard = {
               raw: "By placing 1 [Agunimon] and 1 [BurningGreymon] from your trash under 1 of your [Takuya Kanbara]s",
               underFilter: {
                 controller: "mine",
+                kind: ["Tamer"],
                 nameOrTrait: [
                   {
                     tokens: ["Takuya Kanbara"],
@@ -92,7 +97,7 @@ const compiled: CompiledCard = {
               },
               destination: "digivolutionStack",
               position: "bottom",
-              host: "target",
+              host: { filter: { boundRef: "takuyaHost" }, count: 1 },
             },
           ],
         },

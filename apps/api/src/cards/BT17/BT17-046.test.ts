@@ -37,7 +37,7 @@ describe("BT17-046 Gargomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT17-046", dp: 6000, as: "gargomon" }],
+          battleArea: [{ card: "BT17-046", dp: 6000, suspended: true, as: "gargomon" }],
           trash: [{ card: "BT17-043", as: "terriermon" }],
         },
         1: { battleArea: [{ card: "BT4-035", dp: 12000, as: "attacker" }] },
@@ -55,9 +55,13 @@ describe("BT17-046 Gargomon", () => {
         target: { kind: "permanent", permanentId: s.perm("gargomon").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === terriermonId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === terriermonId),
+    );
 
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === terriermonId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === terriermonId)).toBe(
+      true,
+    );
     expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === terriermonId)).toBe(false);
   });
 

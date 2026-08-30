@@ -21,9 +21,7 @@ const AGUMON_LV3 = "BT1-010";
 
 describe("BT17-102 Greymon — [When Digivolving] delete opponent Digimon (KB Q4713)", () => {
   it("declares the catalogued alternate Lv.3 Agumon-in-name route", () => {
-    expect(compiled.digivolutionRequirement).toEqual([
-      { level: 3, names: ["Agumon"], cost: 2, isAlternate: true },
-    ]);
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 3, names: ["Agumon"], cost: 2, isAlternate: true }]);
     expect(runtimeCompiledCard(GREYMON)?.digivolutionRequirement).toEqual([
       { level: 3, names: ["Agumon"], cost: 2, isAlternate: true },
     ]);
@@ -85,6 +83,7 @@ describe("BT17-102 Greymon — [When Digivolving] delete opponent Digimon (KB Q4
           battleArea: [
             {
               card: GREYMON,
+              suspended: true,
               as: "greymon",
               dp: 5000,
               under: [{ card: AGUMON_LV3, as: "agumon" }],
@@ -119,6 +118,7 @@ describe("BT17-102 Greymon — [When Digivolving] delete opponent Digimon (KB Q4
           battleArea: [
             {
               card: GREYMON,
+              suspended: true,
               as: "greymon",
               dp: 5000,
               under: [{ card: AGUMON_LV3, as: "agumon" }],

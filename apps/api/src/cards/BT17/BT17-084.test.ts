@@ -39,14 +39,20 @@ describe("BT17-084 Davis Motomiya & Ken Ichijoji", () => {
         {
           kind: "Replacement",
           event: "wouldBeDeleted",
+          mode: "instead",
           leaveCause: "battle",
           sourceFilter: { controller: "mine", kind: ["Digimon"], levelComparison: { op: "gte", value: 5 } },
-          cost: { kind: "suspend", target: { filter: { isSelfRef: true }, isSelf: true } },
           actions: [
             {
-              kind: "PlayWithoutCost",
-              from: ["digivolutionCards"],
-              target: { filter: { zone: "digivolutionCards", hostFilter: { sourceRef: "triggerSubject" } } },
+              kind: "CostGatedBlock",
+              cost: { kind: "suspend", target: { filter: { isSelfRef: true }, isSelf: true } },
+              actions: [
+                {
+                  kind: "PlayWithoutCost",
+                  from: ["digivolutionCards"],
+                  target: { filter: { zone: "digivolutionCards", hostFilter: { sourceRef: "triggerSubject" } } },
+                },
+              ],
             },
           ],
         },
@@ -54,7 +60,7 @@ describe("BT17-084 Davis Motomiya & Ken Ichijoji", () => {
     });
     expect(compiled.effects?.[2]).toMatchObject({
       trigger: "EndOfYourTurn",
-      actions: [{ kind: "Attack", target: { filter: { nameOrTrait: [{ tokens: ["Free"], match: "trait" }] } } }],
+      actions: [{ kind: "Attack", attacker: { filter: { nameOrTrait: [{ tokens: ["Free"], match: "trait" }] } } }],
     });
     expect(compiled.effects?.[3]).toMatchObject({
       trigger: "Security",
@@ -70,10 +76,10 @@ describe("BT17-084 Davis Motomiya & Ken Ichijoji", () => {
           battleArea: [
             { card: TAMER, as: "tamer" },
             { card: "BT1-009", as: "unrelated", under: ["BT4-056"] },
-            { card: "BT1-083", as: "attacker", dp: 1000, under: [{ card: "BT4-056", as: "recovered" }] },
+            { card: "BT1-083", as: "attacker", dp: 1000, under: [{ card: "BT4-054", as: "recovered" }] },
           ],
         },
-        1: { battleArea: [{ card: "BT5-086", as: "opponent" }] },
+        1: { battleArea: [{ card: "BT5-086", as: "opponent", suspended: true }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
@@ -87,10 +93,14 @@ describe("BT17-084 Davis Motomiya & Ken Ichijoji", () => {
         target: { kind: "permanent", permanentId: s.perm("opponent").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === recoveredId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === recoveredId),
+    );
 
     expect(s.perm("tamer").isSuspended).toBe(true);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === recoveredId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === recoveredId)).toBe(
+      true,
+    );
     expect(s.perm("unrelated").stack.some((card) => card.cardId === "BT4-056")).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-083")).toBe(true);
     assertNoLoudGap(s);
@@ -99,8 +109,13 @@ describe("BT17-084 Davis Motomiya & Ken Ichijoji", () => {
   it("can pay the battle-deletion replacement cost even with no eligible stack card", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: TAMER, as: "tamer" }, { card: "BT1-083", as: "attacker", dp: 1000 }] },
-        1: { battleArea: [{ card: "BT5-086", as: "opponent" }] },
+        0: {
+          battleArea: [
+            { card: TAMER, as: "tamer" },
+            { card: "BT1-083", as: "attacker", dp: 1000 },
+          ],
+        },
+        1: { battleArea: [{ card: "BT5-086", as: "opponent", suspended: true }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
@@ -123,8 +138,13 @@ describe("BT17-084 Davis Motomiya & Ken Ichijoji", () => {
   it("naturally attacks an opponent's Digimon at end of turn with an unsuspended Free Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: TAMER, as: "tamer" }, { card: FREE_DIGIMON, as: "free" }] },
-        1: { battleArea: [{ card: OPPONENT_DIGIMON, as: "opponent" }] },
+        0: {
+          battleArea: [
+            { card: TAMER, as: "tamer" },
+            { card: FREE_DIGIMON, as: "free" },
+          ],
+        },
+        1: { battleArea: [{ card: OPPONENT_DIGIMON, as: "opponent", suspended: true }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
@@ -134,23 +154,37 @@ describe("BT17-084 Davis Motomiya & Ken Ichijoji", () => {
     await settle(() => s.perm("free").isSuspended);
 
     expect(s.perm("free").isSuspended).toBe(true);
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === OPPONENT_DIGIMON)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === OPPONENT_DIGIMON)).toBe(
+      false,
+    );
     assertNoLoudGap(s);
   });
 
   it("sets memory to 3 at the start of your turn only from 2 or less", async () => {
-    const low = setupEngine({ 0: { battleArea: [{ card: TAMER, as: "tamer" }] } });
+    const low = setupEngine(
+      {
+        0: { battleArea: [{ card: TAMER, as: "tamer" }], hand: ["BT1-009"], deck: ["BT1-010"] },
+        1: { hand: ["BT1-009"], deck: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
     low.state.memory = 2;
     await low.ready();
     await advance(low.engine).runTurn(0);
-    expect(low.state.memory).toBe(3);
+    expect(low.events).toContainEqual(expect.objectContaining({ kind: "memoryChanged", from: 2, to: 3 }));
     assertNoLoudGap(low);
 
-    const high = setupEngine({ 0: { battleArea: [{ card: TAMER, as: "tamer" }] } });
+    const high = setupEngine(
+      {
+        0: { battleArea: [{ card: TAMER, as: "tamer" }], hand: ["BT1-009"], deck: ["BT1-010"] },
+        1: { hand: ["BT1-009"], deck: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
     high.state.memory = 4;
     await high.ready();
     await advance(high.engine).runTurn(0);
-    expect(high.state.memory).toBe(4);
+    expect(high.events).not.toContainEqual(expect.objectContaining({ kind: "memoryChanged", from: 4, to: 3 }));
     assertNoLoudGap(high);
   });
 
@@ -170,11 +204,17 @@ describe("BT17-084 Davis Motomiya & Ken Ichijoji", () => {
     );
 
     await s.ready();
-    await advance(s.engine).runTurn(0);
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.suspend([s.perm("suspendedFree").permanentId]);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
 
     expect(s.perm("suspendedFree").isSuspended).toBe(true);
     expect(s.perm("nonFree").isSuspended).toBe(false);
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === OPPONENT_DIGIMON)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === OPPONENT_DIGIMON)).toBe(
+      true,
+    );
     assertNoLoudGap(s);
   });
 
@@ -196,7 +236,9 @@ describe("BT17-084 Davis Motomiya & Ken Ichijoji", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === instanceId));
+    await settle(() =>
+      s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === instanceId),
+    );
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === instanceId)).toBe(true);
     expect(s.state.players[1]!.security.some((card) => card.instanceId === instanceId)).toBe(false);

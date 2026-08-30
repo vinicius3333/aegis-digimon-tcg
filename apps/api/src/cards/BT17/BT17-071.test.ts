@@ -32,7 +32,10 @@ describe("BT17-071 Murmukusmon", () => {
           },
         ],
       },
-      cost: { kind: "deleteOwn", target: { filter: { controller: "mine", excludeSelf: true }, count: 1 } },
+      cost: {
+        kind: "deleteOwn",
+        target: { filter: { controller: "mine", excludeSelf: true, zone: "battleArea" }, count: 1 },
+      },
     });
   });
 
@@ -55,6 +58,7 @@ describe("BT17-071 Murmukusmon", () => {
   });
 
   it("plays Ornismon from trash after the legal Darcmon/HippoGryphonmon evolution route", async () => {
+    const preferredTargets: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -66,9 +70,11 @@ describe("BT17-071 Murmukusmon", () => {
           trash: [{ card: "BT17-072", as: "ornismon" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredTargets },
     );
     s.state.memory = 4;
+    preferredTargets.push(s.inst("ally").instanceId);
+    const allyId = s.inst("ally").instanceId;
 
     expect(
       s.engine.applyIntent(0, {
@@ -81,7 +87,7 @@ describe("BT17-071 Murmukusmon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT17-072"));
 
     expect(s.perm("darcmon").topCard.cardId).toBe("BT17-071");
-    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT17-066")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === allyId)).toBe(true);
     expect(s.perm("ornismon").topCard.cardId).toBe("BT17-072");
   });
 
@@ -90,7 +96,7 @@ describe("BT17-071 Murmukusmon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT17-066", under: ["BT17-063"], as: "host" },
+            { card: "BT17-066", as: "host" },
             { card: "BT17-064", as: "ally" },
           ],
           hand: [{ card: "BT17-071", as: "murmukusmon" }],
@@ -110,32 +116,35 @@ describe("BT17-071 Murmukusmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard.cardId === "BT17-071");
 
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("ally").permanentId)).toBe(
-      true,
-    );
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("ally").permanentId),
+    ).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT17-072")).toBe(true);
   });
 
   it("deletes an opposing Digimon after a natural battle deletion, once per turn and within the level bound", async () => {
+    const preferredTargets: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "BT17-071", as: "murmukusmon" },
-            { card: "BT17-066", as: "firstAlly" },
-            { card: "BT17-066", as: "secondAlly" },
+            { card: "BT17-066", as: "firstAlly", suspended: true },
+            { card: "BT17-066", as: "secondAlly", suspended: true },
           ],
         },
         1: {
           battleArea: [
-            { card: "BT17-063", dp: 13000, as: "firstAttacker" },
-            { card: "BT17-063", dp: 13000, as: "secondAttacker" },
+            { card: "BT17-064", dp: 13000, as: "firstAttacker" },
+            { card: "BT17-064", dp: 13000, as: "secondAttacker" },
             { card: "BT17-071", dp: 13000, as: "tooHigh" },
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, preferInstanceIds: preferredTargets },
     );
+    preferredTargets.push(s.inst("firstAttacker").instanceId);
+    const firstAttackerId = s.inst("firstAttacker").instanceId;
     s.state.turnSeat = 1;
     await s.ready();
 
@@ -149,10 +158,10 @@ describe("BT17-071 Murmukusmon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 2 && s.state.players[1]!.battleArea.length === 2);
 
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT17-066")).toBe(true);
-    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT17-063")).toBe(true);
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("tooHigh").permanentId)).toBe(
-      true,
-    );
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === firstAttackerId)).toBe(true);
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("tooHigh").permanentId),
+    ).toBe(true);
 
     expect(
       s.engine.applyIntent(1, {
@@ -164,11 +173,13 @@ describe("BT17-071 Murmukusmon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 1 && s.state.players[1]!.battleArea.length === 2);
 
     expect(s.state.players[0]!.trash.filter((card) => card.cardId === "BT17-066")).toHaveLength(2);
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("secondAttacker").permanentId)).toBe(
-      true,
-    );
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("tooHigh").permanentId)).toBe(
-      true,
-    );
+    expect(
+      s.state.players[1]!.battleArea.some(
+        (permanent) => permanent.permanentId === s.perm("secondAttacker").permanentId,
+      ),
+    ).toBe(true);
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("tooHigh").permanentId),
+    ).toBe(true);
   });
 });

@@ -52,10 +52,13 @@ describe("BT17-079 Takuya Kanbara", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => security.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT17-079"));
-    expect(security.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT17-079")).toBe(true);
+    await settle(() => security.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT17-079"));
+    expect(security.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT17-079")).toBe(true);
 
-    const main = setupEngine({ 0: { battleArea: [{ card: "BT17-079", as: "mainTamer" }] }, 1: { battleArea: ["BT17-063"] } });
+    const main = setupEngine({
+      0: { battleArea: [{ card: "BT17-079", as: "mainTamer" }] },
+      1: { battleArea: ["BT17-063"] },
+    });
     main.state.memory = 0;
     main.state.turnSeat = 0;
     await main.ready();

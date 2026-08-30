@@ -18,6 +18,13 @@ describe("BT17-028", () => {
         {
           kind: "SubTrigger",
           event: "whenEffectAddsToHand",
+          oncePerTurnKey: "BT17-028/hand-add",
+          actions: [{ kind: "SecurityManipulation", op: "toHand", controller: "opponent", amount: 1, toTop: true }],
+        },
+        {
+          kind: "SubTrigger",
+          event: "whenEffectAddsToOpponentHand",
+          oncePerTurnKey: "BT17-028/hand-add",
           actions: [{ kind: "SecurityManipulation", op: "toHand", controller: "opponent", amount: 1, toTop: true }],
         },
       ],
@@ -38,6 +45,7 @@ describe("BT17-028", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 12;
+    await s.ready();
     const lowestId = s.perm("lowest").topCard.instanceId;
     const higherId = s.perm("higher").topCard.instanceId;
 
@@ -55,12 +63,13 @@ describe("BT17-028", () => {
         0: { hand: [{ card: "BT17-028", as: "ancient" }] },
         1: {
           battleArea: [{ card: "BT1-029", as: "target" }],
-          security: ["BT1-011", { card: "BT1-010", as: "topSecurity" }],
+          security: [{ card: "BT1-010", as: "topSecurity" }, "BT1-011"],
         },
       },
       { autoSelectCards: true, autoOrderTriggers: true },
     );
     s.state.memory = 12;
+    await s.ready();
     const targetId = s.perm("target").topCard!.instanceId;
     const topSecurityId = s.inst("topSecurity").instanceId;
 

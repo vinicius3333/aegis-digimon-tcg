@@ -50,9 +50,11 @@ export async function runStaticAction(ctx: EffectContext, action: Action): Promi
             }
             break;
           }
-          case "modifyDP":
-            ctx.fx.modifyDP(id, action.effect.amount, duration, { continuous: true });
+          case "modifyDP": {
+            const amount = action.effect.amount * (action.scaling === undefined ? 1 : scaleFactor(ctx, action.scaling));
+            ctx.fx.modifyDP(id, amount, duration, { continuous: true });
             break;
+          }
           case "modifySecurityDP":
             // Security DP is seat-scoped rather than permanent-scoped. Aura target resolution
             // supplies one live host id; apply the seat delta once, not once per board Digimon.

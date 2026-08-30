@@ -50,7 +50,6 @@ export const compiled: CompiledCard = {
                 boundRef: "playedFenriloogamon",
               },
               count: 1,
-              isSelf: true,
             },
             to: "hand",
           },

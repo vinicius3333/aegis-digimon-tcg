@@ -61,7 +61,10 @@ describe("BT17-067 DexDoruGreymon", () => {
             { card: "BT17-067", as: "dexDoruGreymon" },
             { card: "BT1-001", as: "discarded" },
           ],
-          deck: [{ card: "BT1-011", as: "notDrawn" }],
+          deck: [
+            { card: "BT1-010", as: "digivolutionBonus" },
+            { card: "BT1-011", as: "notDrawn" },
+          ],
         },
         1: { battleArea: [{ card: "BT1-019", as: "target" }] },
       },
@@ -91,7 +94,10 @@ describe("BT17-067 DexDoruGreymon", () => {
           battleArea: [{ card: "BT16-061", as: "doruGreymon" }],
           trash: [{ card: "BT17-067", as: "dexDoruGreymon" }],
           hand: [{ card: "BT1-001", as: "discarded" }],
-          deck: [{ card: "BT1-011", as: "notDrawn" }],
+          deck: [
+            { card: "BT1-010", as: "digivolutionBonus" },
+            { card: "BT1-011", as: "notDrawn" },
+          ],
         },
         1: { battleArea: [{ card: "BT1-019", as: "target" }] },
       },
@@ -134,7 +140,13 @@ describe("BT17-067 DexDoruGreymon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT17-071", under: ["BT17-067"], as: "host" }] },
-        1: { battleArea: [{ card: "BT17-070", as: "levelSix" }, { card: "BT17-078", as: "levelSeven" }] },
+        1: {
+          battleArea: [
+            { card: "BT17-070", as: "levelSix" },
+            { card: "BT17-077", as: "levelSeven" },
+          ],
+          security: 2,
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -151,6 +163,6 @@ describe("BT17-067 DexDoruGreymon", () => {
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT17-070")).toBe(false);
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT17-078")).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT17-077")).toBe(true);
   });
 });

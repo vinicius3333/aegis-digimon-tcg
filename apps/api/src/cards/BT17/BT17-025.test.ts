@@ -3,6 +3,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT17-025.js";
+import "../BT1/BT1-043.js";
 import "./index.js";
 
 describe("BT17-025", () => {
@@ -20,7 +21,9 @@ describe("BT17-025", () => {
         {
           kind: "SubTrigger",
           event: "endOfOpponentTurn",
-          actions: [{ kind: "Return", to: "hand", target: { filter: { boundRef: "playedLevel3" } } }],
+          once: true,
+          on: { filter: { boundRef: "playedLevel3" }, count: 1 },
+          actions: [{ kind: "Return", to: "hand", target: { filter: { isSelfRef: true }, isSelf: true } }],
         },
       ],
     });
@@ -52,11 +55,20 @@ describe("BT17-025", () => {
           battleArea: [{ card: "BT4-083", as: "cerberusmon" }],
           trash: [{ card: "BT17-021", as: "revived" }],
           deck: ["BT1-011"],
-          hand: [{ card: "BT17-025", as: "werewolf" }],
+          // BT17-021 has its own On Play placement cost; keep a legal neutral
+          // level-3 blue card available so entry fully resolves before the
+          // delayed return watcher is exercised.
+          hand: [
+            { card: "BT17-025", as: "werewolf" },
+            { card: "BT1-029", as: "placement" },
+          ],
         },
         // Keep the public Main phase open for the opponent's complete turn; this free card is
         // never played, so it cannot alter the delayed-return outcome.
         1: {
+          // Keep the opponent's turn alive through its draw phase so the delayed
+          // end-of-opponent-turn watcher actually gets its production boundary.
+          deck: ["BT1-011"],
           battleArea: [{ card: "BT1-029", as: "opponentLevel3" }],
           hand: [{ card: "BT1-090", as: "opponentMainAction" }],
         },
@@ -77,7 +89,7 @@ describe("BT17-025", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === revivedId));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === revivedId)).toBe(true);
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === opponentId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === opponentId)).toBe(true);
     expect(observe(s.engine).hasEffectiveTrait(s.perm("cerberusmon"), "Dark Animal")).toBe(true);
 
     s.state.turnSeat = 1;
@@ -92,7 +104,7 @@ describe("BT17-025", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT17-025", as: "host" }],
+          battleArea: [{ card: "BT1-043", as: "host", under: ["BT17-025"] }],
           hand: [{ card: "BT17-021", as: "played" }],
         },
         1: { battleArea: [{ card: "BT1-029", as: "opponentLevel3" }] },
@@ -100,6 +112,7 @@ describe("BT17-025", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 3;
+    await s.ready();
     const opponentId = s.perm("opponentLevel3").permanentId;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({

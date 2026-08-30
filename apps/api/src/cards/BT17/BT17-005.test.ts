@@ -25,6 +25,7 @@ describe("BT17-005", () => {
       },
     });
     s.state.memory = 0;
+    await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
     expect(s.state.memory).toBe(1);
   });
@@ -32,6 +33,7 @@ describe("BT17-005", () => {
   it("does not gain memory when its host lacks the Unidentified trait", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT17-052", as: "host", under: ["BT17-005"] }] } });
     s.state.memory = 0;
+    await s.ready();
 
     await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
 

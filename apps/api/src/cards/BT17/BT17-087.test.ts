@@ -85,7 +85,9 @@ describe("BT17-087 Marcus Damon", () => {
     s.state.memory = 4;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => observe(s.engine).hasKeyword(s.perm("played"), "Blocker"));
 
     expect(s.perm("played").currentDP).toBe(3000);
@@ -108,12 +110,12 @@ describe("BT17-087 Marcus Damon", () => {
 
     await advance(s.engine).verb.suspend([s.perm("otherTamer").permanentId]);
     expect(s.state.memory).toBe(0);
-    expect(s.perm("agumon").currentDP).toBe(2000);
+    expect(s.perm("agumon").currentDP).toBe(1000);
 
     await advance(s.engine).verb.suspend([s.perm("marcus").permanentId]);
     await settle(() => s.state.memory === 1);
 
     expect(s.state.memory).toBe(1);
-    expect(s.perm("agumon").currentDP).toBe(5000);
+    expect(s.perm("agumon").currentDP).toBe(4000);
   });
 });

@@ -33,7 +33,9 @@ describe("BT17-033", () => {
         0: {
           battleArea: [
             { card: "BT17-033", under: ["BT17-031"], as: "geo" },
-            { card: "AD1-001", dp: 4000, as: "attacker" },
+            // Keep the attacker above the reduced security Digimon so the
+            // security battle cannot delete the attacker before the assertion.
+            { card: "AD1-001", dp: 7000, as: "attacker" },
           ],
         },
         1: { security: [{ card: "ST15-08", as: "security" }] },
@@ -51,9 +53,9 @@ describe("BT17-033", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
 
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("attacker").permanentId)).toBe(
-      true,
-    );
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("attacker").permanentId),
+    ).toBe(true);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("security").instanceId)).toBe(true);
   });
 });
