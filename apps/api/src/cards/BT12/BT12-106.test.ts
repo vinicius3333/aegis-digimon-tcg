@@ -6,8 +6,8 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT12-106.js";
 
-describe("BT12-106 handwritten module", () => {
-  it("registers its printed OnUseOption effect without declarative effect record", () => {
+describe("BT12-106 compiled module", () => {
+  it("registers its printed OnUseOption effect from declarative IR", () => {
     const module = getEffectModule("BT12-106");
     expect(module?.cardId).toBe("BT12-106");
     const source = {
@@ -25,6 +25,21 @@ describe("BT12-106 handwritten module", () => {
     const module = getEffectModule("BT12-106");
     const source = { instanceId: "source-106", cardId: "BT12-106", ownerSeat: 0, isOnBattleArea: () => false } as never;
     expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
+  });
+
+  it("keeps the Main unsuspend restriction live for later opponent entrants", async () => {
+    const { runtimeCompiledCard } = await import("../../engine/effects/interpreter/compiledCards.js");
+    const card = runtimeCompiledCard("BT12-106")!;
+    const restriction = card.effects
+      .find((effect) => effect.trigger === "Main")
+      ?.actions.find((action) => action.kind === "Restrict");
+    expect(restriction).toMatchObject({
+      kind: "Restrict",
+      target: { count: "all", filter: { controller: "opponent" } },
+      restriction: "unsuspend",
+      duration: "untilOpponentTurnEnd",
+      whileMatchesTargetFilter: true,
+    });
   });
 
   it("Security suspends opposing cards without installing the Main restriction", async () => {

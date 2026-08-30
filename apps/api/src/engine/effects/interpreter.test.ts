@@ -273,6 +273,8 @@ describe("new typed RAW-elimination conditions", () => {
       definitionOf: (id) => makeFakeDefinition({ cardId: id, kinds: [CardKind.Digimon], types: ["D-Reaper"] }),
     });
     ctx.lastResolvedPermanentIds = ["TARGET"];
+    const { ctx: emptyLegacyContext } = conditionContext({ ownBattleArea: [] });
+    expect(evaluateCondition(emptyLegacyContext, { kind: "allYoursMatchFilter" })).toBe(true);
     expect(evaluateCondition(ctx, { kind: "allYoursMatchFilter", filter: { kind: ["Digimon"] } })).toBe(true);
     expect(evaluateCondition(ctx, { kind: "digivolutionCountCompare", op: "lte" })).toBe(true);
     expect(evaluateCondition(ctx, { kind: "triggerPlayCostAtMostStackCount" })).toBe(false);
@@ -2390,10 +2392,15 @@ describe("v2 IR actions dispatch to real primitives", () => {
     expect(subs).toHaveLength(1);
     expect(subs[0]!.args[0]).toMatchObject({
       event: "endOfTurn",
-      sourcePermanentId: "SELF",
       once: true,
       expiresOnTurnEndOf: 1,
     });
+    const subscription = subs[0]!.args[0] as {
+      sourcePermanentId?: string;
+      activationContext?: EffectContext;
+    };
+    expect(subscription.sourcePermanentId).toBeUndefined();
+    expect(subscription.activationContext).toBeDefined();
   });
 
   it("grants a continuous keyword (non-Piercing) via fx.grantKeyword", async () => {
@@ -5367,6 +5374,102 @@ describe("candidateLooseInstances — hostFilter gating", () => {
       ["digivolutionCards"],
     );
     expect(result).toHaveLength(2);
+  });
+
+  it("applies a common hostFilter only to hosted cards in a mixed loose/stack pool", () => {
+    const source = makeSource();
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({
+      source,
+      recorder,
+      definitionOf: (cardId) => makeFakeDefinition({ cardId, kinds: [CardKind.Digimon] }),
+    });
+    ctx.game.player(0).trash.push({
+      instanceId: "loose-trash",
+      cardId: "LOOSE",
+      ownerSeat: 0 as Seat,
+      faceUp: true,
+    } as never);
+
+    expect(
+      candidateLooseInstances(
+        ctx,
+        {
+          filter: { controller: "mine", kind: ["Digimon"], hostFilter: { isSelfRef: true } },
+          count: 1,
+        } as never,
+        ["trash", "digivolutionCards"],
+      ).map(({ instanceId }) => instanceId),
+    ).toEqual(["loose-trash"]);
+  });
+
+  it("does not let a loose card satisfy an OR branch qualified by a hostFilter", () => {
+    const source = makeSource();
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({
+      source,
+      recorder,
+      definitionOf: (cardId) =>
+        makeFakeDefinition({ cardId, kinds: [CardKind.Digimon], nameEn: "Royal", types: ["Royal Knight"] }),
+    });
+    ctx.game.player(0).trash.push({
+      instanceId: "loose-royal",
+      cardId: "ROYAL",
+      ownerSeat: 0 as Seat,
+      faceUp: true,
+    } as never);
+
+    expect(
+      candidateLooseInstances(
+        ctx,
+        {
+          filter: {
+            controller: "mine",
+            or: [
+              { nameOrTrait: [{ tokens: ["Sistermon"], match: "name" }] },
+              { trait: "Royal Knight", hostFilter: { zone: "breeding" } },
+            ],
+          },
+          count: 1,
+        } as never,
+        ["trash", "digivolutionCards"],
+      ),
+    ).toEqual([]);
+  });
+
+  it("falls through an invalid hosted OR branch to a later branch that does not require that host", () => {
+    const source = makeSource();
+    const recorder: Recorder = { calls: [] };
+    const digi = makePermWithStack(
+      "digi1",
+      "DIGIMON",
+      ["Digimon"],
+      [{ instanceId: "fallback-stack", cardId: "FALLBACK" }],
+    );
+    const ctx = makeContext({
+      source,
+      recorder,
+      ownBattleArea: [digi],
+      definitionOf: (cardId) =>
+        makeFakeDefinition({ cardId, nameEn: cardId === "FALLBACK" ? "Fallback" : cardId, kinds: [CardKind.Digimon] }),
+    });
+
+    expect(
+      candidateLooseInstances(
+        ctx,
+        {
+          filter: {
+            controller: "mine",
+            or: [
+              { kind: ["Digimon"], hostFilter: { kind: ["Tamer"] } },
+              { nameOrTrait: [{ tokens: ["Fallback"], match: "nameExact" }] },
+            ],
+          },
+          count: 1,
+        } as never,
+        ["digivolutionCards"],
+      ).map(({ instanceId }) => instanceId),
+    ).toEqual(["fallback-stack"]);
   });
 
   it("FAILS-WHEN-REVERTED: removing hostFilter check returns both cards", () => {

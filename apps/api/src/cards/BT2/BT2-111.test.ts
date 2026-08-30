@@ -20,6 +20,7 @@ describe("BT2-111 Beelzemon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("impmon").topCard?.cardId === "BT2-111");
     expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.trash).toHaveLength(10);
   });
 
   it("rejects the Impmon shortcut with fewer than 10 cards in trash", () => {

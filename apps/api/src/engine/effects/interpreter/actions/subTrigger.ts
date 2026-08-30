@@ -73,6 +73,8 @@ export const SUBTRIGGER_EVENT_MAP: Record<string, SubTriggerEventName | undefine
   // event-shaped spelling. Both describe the same deleted-permanent payload.
   OnDeletion: "onDeletionOf",
   whenSecurityRemoved: "whenSecurityRemoved",
+  whenCardTrashedFromSecurity: "whenCardTrashedFromSecurity",
+  whenEffectTrashesFromSecurity: "whenEffectTrashesFromSecurity",
   whenSecurityBattleEnded: "whenSecurityBattleEnded",
   // Alias used by the ST15 hand-authored module; both spellings share the
   // same security-removal payload and fire sites.
@@ -217,7 +219,10 @@ export async function runSubTrigger(
   // security lost a card. Interpret sourceFilter.controller as the watched stack direction:
   // most cards watch "your" stack, while BT9-016 watches the opponent's stack.
   const securityRemovalGate =
-    event === "whenEffectRemovesFromSecurity" || event === "whenSecurityRemoved"
+    event === "whenEffectRemovesFromSecurity" ||
+    event === "whenSecurityRemoved" ||
+    event === "whenCardTrashedFromSecurity" ||
+    event === "whenEffectTrashesFromSecurity"
       ? (subCtx: EffectContext): boolean => {
           const removedSeat = subCtx.trigger?.removedFromSecuritySeat;
           if (removedSeat === undefined) return false;
@@ -257,6 +262,8 @@ export async function runSubTrigger(
     subjectFilter === undefined ||
     event === "whenEffectRemovesFromSecurity" ||
     event === "whenSecurityRemoved" ||
+    event === "whenCardTrashedFromSecurity" ||
+    event === "whenEffectTrashesFromSecurity" ||
     event === "onDiscardLibrary" ||
     event === "onDigivolutionCardReturnToDeckBottom" ||
     event === "whenHandTrashed" ||
@@ -1190,7 +1197,7 @@ export async function runGainTriggeredEffect(
     const grantedPerm = ctx.game.permanentById(targetPermanentId);
     if (grantedPerm === undefined) continue;
     let expiresOnTurnEndOf: typeof ctx.source.ownerSeat | undefined;
-    if (action.duration === "forTheTurn") expiresOnTurnEndOf = ctx.source.ownerSeat;
+    if (action.duration === "forTheTurn") expiresOnTurnEndOf = ctx.game.state.turnSeat;
     if (action.duration === "untilYourTurnEnd") expiresOnTurnEndOf = ctx.source.ownerSeat;
     if (action.duration === "untilOpponentTurnEnd") {
       expiresOnTurnEndOf = ctx.game.opponentOf(ctx.source.ownerSeat);
@@ -1219,6 +1226,10 @@ export async function runGainTriggeredEffect(
       event === "whenDeletesInBattle"
         ? (subCtx: EffectContext): boolean => subCtx.trigger.attackerPermanentId === targetPermanentId
         : undefined;
+    const grantedPermanentAttackGate =
+      event === "whenAttacking"
+        ? (subCtx: EffectContext): boolean => subCtx.trigger.attackerPermanentId === targetPermanentId
+        : undefined;
     const whenDeletesInBattleSelfGate =
       event === "whenDeletesInBattle" && sourceFilter?.isSelfRef === true && anchorPermanentId !== undefined
         ? (subCtx: EffectContext): boolean => subCtx.trigger.attackerPermanentId === anchorPermanentId
@@ -1243,6 +1254,7 @@ export async function runGainTriggeredEffect(
       ownerTurnEndGate,
       grantedPermanentDeletionGate,
       grantedPermanentBattleDeleteGate,
+      grantedPermanentAttackGate,
       whenDeletesInBattleSelfGate,
       whenSuspendedSelfGate,
       immunityAtTriggerGate,

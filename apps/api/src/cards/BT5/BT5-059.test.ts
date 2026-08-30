@@ -1,9 +1,22 @@
 import { describe, expect, it } from "vitest";
 import type { PlayerState } from "@aegis/shared";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT5-059.js";
 
 describe("BT5-059 Keramon", () => {
+  it("uses exact-name matching for the Arata Sanada reveal slot", () => {
+    expect(runtimeCompiledCard("BT5-059")?.effects[0]?.actions[0]).toMatchObject({
+      add: expect.arrayContaining([
+        expect.objectContaining({
+          filter: expect.objectContaining({
+            nameOrTrait: [{ tokens: ["Arata Sanada"], match: "nameExact" }],
+          }),
+        }),
+      ]),
+    });
+  });
+
   it("adds an Unidentified Digimon and Arata Sanada from the revealed cards", async () => {
     const preferred: string[] = [];
     const s = setupEngine(

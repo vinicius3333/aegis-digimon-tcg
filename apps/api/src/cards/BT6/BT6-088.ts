@@ -43,7 +43,7 @@ const compiled: CompiledCard = {
           controller: "mine",
           kind: ["Digimon"],
           colors: ["Blue"],
-          nameOrTrait: [{ tokens: ["Gabumon"], match: "name" }],
+          nameOrTrait: [{ tokens: ["Gabumon"], match: "nameExact" }],
         },
       },
       actions: [

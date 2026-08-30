@@ -111,12 +111,12 @@ describe("BT20-069 Punkmon", () => {
   });
 
   it("applies inherited +2000 only underneath a host on its controller's turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT20-070", under: ["BT20-069"], as: "host" }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT20-072", under: ["BT20-069"], as: "host" }] } });
     s.state.turnSeat = 0;
     await s.ready();
-    expect(s.perm("host").currentDP).toBe(8000);
+    expect(s.perm("host").currentDP).toBe(9000);
     s.state.turnSeat = 1;
     await advance(s.engine).recompute();
-    expect(s.perm("host").currentDP).toBe(6000);
+    expect(s.perm("host").currentDP).toBe(7000);
   });
 });

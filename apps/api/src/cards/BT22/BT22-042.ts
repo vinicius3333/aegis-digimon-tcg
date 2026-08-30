@@ -14,6 +14,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   - ModifyDP: removed optional:true — text says "Then, give -3000 DP" (mandatory)
 //   - ActivateEffect target: self (isSelfRef:true) not opponent's Digimon — text says
 //     "activate 1 of THIS DIGIMON's [When Digivolving] effects"
+//   - Alternate evolution: requires [Chaperomon] and a controlled [Arisa Kinosaki],
+//     rather than treating both names as interchangeable base cards.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -109,8 +111,13 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Arisa Kinosaki", "Chaperomon"],
+      namesExact: ["Chaperomon"],
       cost: 6,
+      controllerControls: {
+        kind: ["Tamer"],
+        namesExact: ["Arisa Kinosaki"],
+        min: 1,
+      },
       isAlternate: true,
     },
   ],

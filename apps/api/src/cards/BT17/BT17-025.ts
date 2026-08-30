@@ -29,11 +29,16 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "endOfOpponentTurn",
+          once: true,
+          on: {
+            filter: { boundRef: "playedLevel3" },
+            count: 1,
+          },
           actions: [
             {
               kind: "Return",
               target: {
-                filter: { boundRef: "playedLevel3" },
+                filter: { isSelfRef: true },
                 count: 1,
                 isSelf: true,
               },

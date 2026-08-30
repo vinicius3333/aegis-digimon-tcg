@@ -58,9 +58,12 @@ describe("BT6-093 Judgment of the Blade", () => {
         battleArea: [
           { card: "BT6-009", as: "firstHuckmon" },
           { card: "BT6-009", as: "secondHuckmon", under: ["BT1-001"] },
+          { card: "BT6-067", as: "ownRoyalKnight" },
+          { card: "BT6-070", as: "nonMatching" },
         ],
         hand: [{ card: "BT6-093", as: "option" }],
       },
+      1: { battleArea: [{ card: "BT6-067", as: "opponentRoyalKnight" }] },
     });
     s.state.memory = 10;
 
@@ -84,6 +87,7 @@ describe("BT6-093 Judgment of the Blade", () => {
     expect(decision.options?.candidateInstanceIds).toEqual([
       s.perm("firstHuckmon").permanentId,
       s.perm("secondHuckmon").permanentId,
+      s.perm("ownRoyalKnight").permanentId,
     ]);
     expect(
       s.engine.applyIntent(0, {

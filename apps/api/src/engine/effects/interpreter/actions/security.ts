@@ -572,6 +572,17 @@ async function runSecurityAdd(
       const candidates = candidateLooseInstances(ctx, source, zones);
       const chosen = await pickLoose(ctx, source, candidates);
       if (chosen.length > 0) await ctx.fx.addSecurity(seat, chosen, opts);
+      // A follow-up action may depend on the number of cards actually placed (BT18-102).
+      // The source can be a digivolution stack, so derive the receipt from the destination
+      // after the move rather than treating selection as proof that the primitive accepted it.
+      const moved = chosen.filter((instanceId) =>
+        ctx.game.player(seat).security.some((card) => card.instanceId === instanceId),
+      );
+      ctx.lastEffectActed = moved.length > 0;
+      if (action.trackCount !== undefined) {
+        ctx.namedCounts ??= new Map();
+        ctx.namedCounts.set(action.trackCount, moved.length);
+      }
       return;
     }
     const ids = topInstanceIds(ctx, await resolvePermanentTargets(ctx, source));

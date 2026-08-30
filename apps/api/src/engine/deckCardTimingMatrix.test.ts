@@ -32,15 +32,19 @@ const playableDeckCards = [
 
 function triggersFor(cardId: string): TriggerName[] {
   const compiled = getCompiledCard(cardId);
-  if (compiled === undefined) return [];
-  return [
-    ...new Set(
-      compiled.effects.flatMap((effect) => {
-        const trigger = (effect as typeof effect & { trigger?: unknown }).trigger;
-        return Array.isArray(trigger) ? trigger.map(String) : [String(trigger)];
-      }),
-    ),
-  ];
+  const compiledTriggers =
+    compiled === undefined
+      ? []
+      : [
+          ...new Set(
+            compiled.effects.flatMap((effect) => {
+              const trigger = (effect as typeof effect & { trigger?: unknown }).trigger;
+              return Array.isArray(trigger) ? trigger.map(String) : [String(trigger)];
+            }),
+          ),
+        ];
+  if (compiledTriggers.length > 0) return compiledTriggers;
+  return getEffectModule(cardId)?.declaredTriggers?.map(String) ?? [];
 }
 
 function board(cardId: string) {

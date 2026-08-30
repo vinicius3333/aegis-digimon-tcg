@@ -15,7 +15,7 @@ export const compiled: CompiledCard = {
             controllerDefault: "mine",
             kind: ["Digimon"],
             nameOrTrait: [
-              { tokens: ["Pulsemon"], match: "text" },
+              { tokens: ["Pulsemon"], match: "name" },
               { tokens: ["SEEKERS"], match: "trait" },
             ],
           },

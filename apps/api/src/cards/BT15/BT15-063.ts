@@ -18,6 +18,11 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenEffectSuspends",
+          sourceFilter: {
+            controller: "any",
+            excludeSelf: true,
+            kind: ["Digimon", "Tamer"],
+          },
           actions: [
             {
               kind: "Digivolve",
@@ -64,6 +69,11 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenEffectSuspends",
+          sourceFilter: {
+            controller: "any",
+            excludeSelf: true,
+            kind: ["Digimon", "Tamer"],
+          },
           actions: [
             {
               kind: "Unsuspend",

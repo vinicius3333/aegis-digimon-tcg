@@ -136,6 +136,7 @@ export function canAttemptDigivolve(ctx: EffectContext, action: Extract<Action, 
   if (!action.target) return false;
   const intoTarget = digivolveIntoTarget(action);
   if (intoTarget === undefined) return false;
+  const allowNoTarget = action.allowNoTarget === true;
   const zones: ZoneRef[] = action.from ?? ["hand", "trash"];
   let pool = filterToTriggeredSource(ctx, action, candidateLooseInstances(ctx, intoTarget, zones));
   if (action.amongPreviousSearch) {
@@ -145,7 +146,7 @@ export function canAttemptDigivolve(ctx: EffectContext, action: Extract<Action, 
   if (zones.includes("security") && action.faceDownSecurityOk !== true) {
     pool = pool.filter((candidate) => !isFaceDownSecurityCard(ctx, candidate.instanceId));
   }
-  if (pool.length === 0) return false;
+  if (pool.length === 0) return allowNoTarget;
 
   const requestedIgnoreRequirements =
     action.ignoreReqs === true || action.ignoreRequirements === true || action.ignoreDigivolutionRequirements === true;
@@ -177,9 +178,10 @@ export function canAttemptDigivolve(ctx: EffectContext, action: Extract<Action, 
 
   if (action.target.targetBreeding === true) {
     const breeding = ctx.game.player(ctx.source.ownerSeat).breeding;
-    return breeding !== undefined && hasLegalDestination(breeding.permanentId);
+    return breeding !== undefined ? hasLegalDestination(breeding.permanentId) : allowNoTarget;
   }
-  return candidatePermanents(ctx, action.target).some((permanent) => hasLegalDestination(permanent.permanentId));
+  const targets = candidatePermanents(ctx, action.target);
+  return targets.length > 0 ? targets.some((permanent) => hasLegalDestination(permanent.permanentId)) : allowNoTarget;
 }
 
 /** Cards the controller can see in the source zones while choosing what to digivolve into. */

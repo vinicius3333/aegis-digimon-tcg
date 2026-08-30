@@ -10,7 +10,7 @@ describe("BT22-097 Music of the Heart", () => {
       condition: {
         kind: "youHave",
         filter: {
-          zone: ["battleArea", "breedingArea"],
+          zone: ["battleArea", "breeding"],
           kind: ["Digimon", "Tamer"],
           nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }],
         },

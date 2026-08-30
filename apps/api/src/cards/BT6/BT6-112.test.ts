@@ -17,7 +17,10 @@ describe("BT6-112 static play-cost reduction by trash [Three Musketeers] / cost-
       {
         0: {
           hand: [{ card: "BT6-112", as: "beelstarmon" }],
-          trash: [{ card: "BT6-095", as: "option" }],
+          trash: [
+            { card: "BT6-095", as: "option" },
+            { card: "BT6-098", as: "nonSevenOption" },
+          ],
           battleArea: ["BT1-009"],
         },
         1: { battleArea: [{ card: "BT6-075", as: "target" }] },
@@ -25,6 +28,7 @@ describe("BT6-112 static play-cost reduction by trash [Three Musketeers] / cost-
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
     const optionId = s.inst("option").instanceId;
+    const nonSevenOptionId = s.inst("nonSevenOption").instanceId;
     preferred.push(optionId, s.perm("target").permanentId);
     const targetInstanceId = s.perm("target").topCard.instanceId;
     s.state.memory = 12;
@@ -40,6 +44,7 @@ describe("BT6-112 static play-cost reduction by trash [Three Musketeers] / cost-
     );
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === nonSevenOptionId)).toBe(true);
     expect(s.state.memory).toBe(1);
   });
 
@@ -148,5 +153,29 @@ describe("BT6-112 static play-cost reduction by trash [Three Musketeers] / cost-
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === optionId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(false);
+  });
+
+  it("digivolves from a legal purple level-5 stack without triggering the hand-play effect", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT6-076", as: "base" }],
+        hand: [{ card: "BT6-112", as: "beelstarmon" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("beelstarmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT6-112");
+
+    expect(s.perm("base").topCard.cardId).toBe("BT6-112");
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT6-076"]);
+    expect(s.state.memory).toBe(0);
   });
 });

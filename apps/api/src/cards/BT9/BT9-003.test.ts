@@ -1,4 +1,4 @@
-import { getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import type { Primitives } from "../../engine/effects/EffectContext.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
@@ -164,5 +164,37 @@ describe("BT9-003 Tokomon (X Antibody)", () => {
       await settle();
       expect(s.perm("target").currentDP).toBe(3000);
     }
+  });
+
+  it("keeps the inherited security watcher on a legal Tokomon-to-Salamon stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT9-003", as: "tokomon" },
+          hand: [{ card: "BT9-034", as: "salamon" }],
+          deck: [{ card: "BT1-009", as: "recovered" }],
+        },
+        1: { battleArea: [{ card: "BT1-028", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("tokomon").permanentId,
+        instanceId: s.inst("salamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("tokomon").topCard.instanceId === s.inst("salamon").instanceId);
+    s.state.phase = Phase.Breeding;
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("tokomon").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.breeding === undefined);
+
+    await primitivesOf(s).addSecurity(0, [s.inst("recovered").instanceId]);
+    await settle(() => s.perm("target").currentDP === 2000);
+    expect(s.perm("tokomon").stack.map((card) => card.cardId)).toContain("BT9-003");
+    expect(s.perm("target").currentDP).toBe(2000);
   });
 });

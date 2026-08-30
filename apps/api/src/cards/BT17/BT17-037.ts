@@ -142,6 +142,7 @@ export const compiled: CompiledCard = {
               source: {
                 filter: {
                   controllerDefault: "mine",
+                  zone: "trash",
                   nameOrTrait: [
                     {
                       tokens: ["Marcus Damon"],

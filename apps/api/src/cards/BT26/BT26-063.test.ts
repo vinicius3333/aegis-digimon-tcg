@@ -109,16 +109,9 @@ describe("BT26-063 Tellermon", () => {
       rest: "deckTopOrBottom",
     });
     expect(compiled.effects?.[1]).toMatchObject({
-      trigger: "Static",
+      trigger: "WhenLinking",
       isLinked: true,
-      actions: [
-        {
-          kind: "SubTrigger",
-          event: "whenLinked",
-          sourceFilter: { isSelfRef: true },
-          actions: [{ kind: "Delete", target: { filter: { superlative: "lowestLevel" }, count: 1 } }],
-        },
-      ],
+      actions: [{ kind: "Delete", target: { filter: { superlative: "lowestLevel" }, count: 1 } }],
     });
   });
 

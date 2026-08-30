@@ -1,8 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { effectsOf } from "../../engine/effects/collect.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-098.js";
+
+function mainEffectKey(s: ReturnType<typeof setupEngine>): string {
+  const source = (s.engine as any).cardSourceOf(s.perm("richard").topCard!);
+  return effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("BT13-098/"))!
+    .effectKey;
+}
 
 describe("BT13-098 Richard Sampson", () => {
   it("plays itself when an effect directly trashes it from security", () => {
@@ -36,13 +43,13 @@ describe("BT13-098 Richard Sampson", () => {
           controller: "mine",
           zone: "battleArea",
           kind: ["Digimon"],
-          nameOrTrait: [{ match: "name", tokens: ["Kudamon"] }],
+          nameOrTrait: [{ match: "nameExact", tokens: ["Kudamon"] }],
         },
         count: 1,
       },
       ignoreRequirements: true,
       from: ["hand"],
-      into: { nameOrTrait: [{ match: "name", tokens: ["Kentaurosmon"] }] },
+      into: { nameOrTrait: [{ match: "nameExact", tokens: ["Kentaurosmon"] }] },
       cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
       condition: { kind: "totalSecurityCount", op: "lte", value: 6 },
     });
@@ -59,5 +66,43 @@ describe("BT13-098 Richard Sampson", () => {
     s.state.memory = 0;
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("richard"));
     expect(s.state.memory).toBe(1);
+  });
+
+  it("plays itself from security when an effect directly trashes it", async () => {
+    const s = setupEngine(
+      { 0: { security: [{ card: "BT13-098", as: "richard", faceUp: true }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).verb.trash([s.inst("richard").instanceId]);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("richard").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("richard").instanceId)).toBe(false);
+  });
+
+  it("digivolves an exact Kudamon into an exact Kentaurosmon from hand by suspending this Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-098", as: "richard" }, { card: "BT1-046", as: "kudamon" }],
+          hand: [{ card: "BT13-046", as: "kentaurosmon" }],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+        1: { security: ["BT1-004", "BT1-005", "BT1-006"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("richard").topCard.instanceId,
+        effectKey: mainEffectKey(s),
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("kudamon").topCard.cardId === "BT13-046");
+    expect(s.perm("richard").isSuspended).toBe(true);
+    expect(s.perm("kudamon").topCard.cardId).toBe("BT13-046");
   });
 });

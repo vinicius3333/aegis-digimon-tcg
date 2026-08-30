@@ -18,7 +18,10 @@ describe("BT5-074 Troopmon", () => {
   it("may play another Troopmon from hand when deleted", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT5-074", as: "source" }], hand: [{ card: "BT10-076", as: "other" }] },
+        0: {
+          battleArea: [{ card: "BT5-074", as: "source", under: ["BT5-073"] }],
+          hand: [{ card: "BT10-076", as: "other" }],
+        },
         1: { hand: [{ card: "BT10-076", as: "opponent" }] },
       },
       { autoSelectCards: true, autoAcceptOptional: true },

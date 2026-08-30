@@ -8,8 +8,8 @@ describe("BT4-115 Lucemon", () => {
     const s = setupEngine({
       0: {
         hand: [{ card: "BT4-115", as: "source" }],
-        deck: ["BT4-041"],
-        trash: Array.from({ length: 10 }, () => "BT4-033"),
+        deck: ["BT1-051"],
+        trash: Array.from({ length: 10 }, () => "BT1-051"),
       },
     });
     s.state.memory = 5;
@@ -25,7 +25,7 @@ describe("BT4-115 Lucemon", () => {
 
   it("recovers the top deck card on play", async () => {
     const s = setupEngine({
-      0: { hand: [{ card: "BT4-115", as: "source" }], deck: [{ card: "BT4-041", as: "recovered" }] },
+      0: { hand: [{ card: "BT4-115", as: "source" }], deck: [{ card: "BT1-051", as: "recovered" }] },
     });
     const player = s.state.players[0] as PlayerState;
     const recoveredId = s.inst("recovered").instanceId;

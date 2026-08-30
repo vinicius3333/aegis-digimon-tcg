@@ -1,7 +1,6 @@
 // @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
-import { cardHasTrait } from "../../engine/cards/cardData.js";
-import { registerIrCard, registerWouldBePlayedSelfReducer } from "../../engine/effects/interpreter.js";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
@@ -42,6 +41,7 @@ const compiled: CompiledCard = {
                   upTo: true,
                   from: ["battleArea", "trash"],
                 },
+                host: "self",
                 raw: "by placing up to 3 [Dark Masters] trait cards with different names from your battle area or trash under it",
                 trackCount: "placedDarkMasters",
               },
@@ -65,7 +65,8 @@ const compiled: CompiledCard = {
           kind: "ActivateEffect",
           target: {
             filter: {
-              isSelfRef: true,
+              controller: "mine",
+              zone: "digivolutionCards",
             },
             count: 1,
             isSelf: true,
@@ -73,6 +74,7 @@ const compiled: CompiledCard = {
           effectType: "OnPlay",
           count: 1,
           asEffectOf: "this Digimon",
+          lastPlacedOnly: true,
           cost: {
             kind: "place",
             target: {
@@ -120,63 +122,4 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("BT15-102", compiled);
-
-// The IR's `wouldBePlayed reduceCost` record is inert on the play path (pay-time reductions run
-// through the BeforePayCost self-reducer seam), so the placement cost is hand-written here — the
-// BT12-112 pattern. KB Q2599: battle-area sources offer only their TOP card (the rest of that
-// permanent's cards are trashed via `shedOwnCards`); KB Q6241: any [Dark Masters] trait battle-area
-// card qualifies, Options included.
-registerWouldBePlayedSelfReducer("BT15-102", {
-  amount: 0,
-  amountPerPaid: 4,
-  raw: "By placing up to 3 [Dark Masters] trait cards with different names from your battle area or trash under it, reduce the play cost by 4 for each one.",
-  pay: async (ctx) => {
-    const player = ctx.game.player(ctx.source.ownerSeat);
-    const placedNames = new Set();
-    const chosenInstanceIds = new Set();
-    const chosenPermanentIds = new Set();
-    let placedCount = 0;
-    for (let pick = 0; pick < 3; pick += 1) {
-      const trashCandidates = player.trash.filter(
-        (card) =>
-          !chosenInstanceIds.has(card.instanceId) &&
-          cardHasTrait(ctx.game.definitionOf(card), "Dark Masters") &&
-          !placedNames.has(ctx.game.definitionOf(card).nameEn),
-      );
-      const permanentCandidates = player.battleArea.filter(
-        (permanent) =>
-          permanent.topCard !== undefined &&
-          !chosenPermanentIds.has(permanent.permanentId) &&
-          cardHasTrait(ctx.game.definitionOf(permanent.topCard), "Dark Masters") &&
-          !placedNames.has(ctx.game.definitionOf(permanent.topCard).nameEn),
-      );
-      const cards = [...trashCandidates, ...permanentCandidates.map((permanent) => permanent.topCard)];
-      if (cards.length === 0) break;
-      const [chosenId] = await ctx.ask.selectCards(ctx, {
-        candidates: cards.map(({ instanceId }) => instanceId),
-        min: 0,
-        max: 1,
-        visibleCards: cards.map(({ instanceId, cardId }) => ({ instanceId, cardId })),
-      });
-      if (chosenId === undefined) break;
-      const fromBattleArea = permanentCandidates.find((permanent) => permanent.topCard.instanceId === chosenId);
-      if (fromBattleArea !== undefined) {
-        chosenPermanentIds.add(fromBattleArea.permanentId);
-        placedNames.add(ctx.game.definitionOf(fromBattleArea.topCard).nameEn);
-        ctx.pendingSelfReducerRelocations = [
-          ...(ctx.pendingSelfReducerRelocations ?? []),
-          { permanentId: fromBattleArea.permanentId, shedOwnCards: true },
-        ];
-      } else {
-        const chosenCard = trashCandidates.find(({ instanceId }) => instanceId === chosenId);
-        chosenInstanceIds.add(chosenId);
-        placedNames.add(ctx.game.definitionOf(chosenCard).nameEn);
-        ctx.pendingSelfReducerPlacements = [...(ctx.pendingSelfReducerPlacements ?? []), chosenId];
-      }
-      placedCount += 1;
-    }
-    return placedCount;
-  },
-});
-
 export { compiled };

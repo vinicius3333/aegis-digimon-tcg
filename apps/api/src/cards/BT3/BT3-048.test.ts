@@ -34,4 +34,14 @@ describe("BT3-048 Gargomon", () => {
     await s.engine.recomputeContinuousEffects();
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
   });
+
+  it("does not grant the inherited bonus when Gargomon is the top card", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT3-048", as: "gargomon" }] },
+      1: { battleArea: [{ card: "BT1-019", suspended: true }] },
+    });
+
+    await s.ready();
+    expect(s.perm("gargomon").currentDP).toBe(s.perm("gargomon").baseDP);
+  });
 });

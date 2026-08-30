@@ -13,7 +13,44 @@ describe("BT7-040 Rasenmon — Main Digi-Burst", () => {
   it("trashes up to 4 digivolution cards and gives one opposing Digimon -3000 DP per card", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT7-040", under: ["BT1-048", "BT1-049", "BT1-050", "BT1-051"], as: "rasenmon" }] },
+        // Legal yellow stack: L2 egg -> L3 Herissmon -> L4 Filmon -> L5 Stefilmon -> L6 Rasenmon.
+        0: {
+          battleArea: [{ card: "BT7-040", under: ["BT1-005", "BT7-031", "BT7-034", "BT7-039"], as: "rasenmon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT7-040", dp: 15000, as: "target" },
+            { card: "BT7-039", dp: 15000, as: "otherTarget" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const source = (s.engine as any).cardSourceOf(s.perm("rasenmon").topCard!);
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
+      effect.effectKey.startsWith("BT7-040/"),
+    )!.effectKey;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("rasenmon").topCard!.instanceId,
+        effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.perm("rasenmon").stack.length === 0 && s.perm("target").currentDP === 3000,
+    );
+
+    expect(s.perm("target").currentDP).toBe(3000);
+    expect(s.perm("otherTarget").currentDP).toBe(15000);
+  });
+
+  it("activates Digi-Burst up to 4 with only 3 stack cards and scales by the paid count (Q1569)", async () => {
+    const s = setupEngine(
+      {
+        // Legal yellow stack: L3 Herissmon -> L4 Filmon -> L5 Stefilmon -> L6 Rasenmon.
+        0: { battleArea: [{ card: "BT7-040", under: ["BT7-031", "BT7-034", "BT7-039"], as: "rasenmon" }] },
         1: { battleArea: [{ card: "BT7-040", dp: 15000, as: "target" }] },
       },
       { autoSelectCards: true },
@@ -30,9 +67,9 @@ describe("BT7-040 Rasenmon — Main Digi-Burst", () => {
         effectKey,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("rasenmon").stack.length === 0 && s.perm("target").currentDP === 3000);
+    await settle(() => s.perm("rasenmon").stack.length === 0 && s.perm("target").currentDP === 6000);
 
-    expect(s.perm("target").currentDP).toBe(3000);
+    expect(s.perm("target").currentDP).toBe(6000);
   });
 });
 

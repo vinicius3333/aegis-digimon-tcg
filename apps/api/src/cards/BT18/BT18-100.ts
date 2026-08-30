@@ -13,14 +13,14 @@ export const compiled: CompiledCard = {
             filter: {
               zone: "breedingArea",
               controller: "mine",
-              kind: ["Digimon"],
             },
             count: 1,
+            targetBreeding: true,
           },
           into: {
             controller: "mine",
             kind: ["Digimon"],
-            nameOrTrait: [{ tokens: ["Lucemon"], match: "name" }],
+            nameOrTrait: [{ tokens: ["Lucemon"], match: "nameExact" }],
           },
           from: ["trash"],
           payCost: false,
@@ -40,7 +40,6 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Option"],
-              placedByPlaceInBattleAreaEffect: true,
             },
             count: 1,
           },

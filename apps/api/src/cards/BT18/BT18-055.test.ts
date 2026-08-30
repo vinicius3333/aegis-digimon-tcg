@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-055.js";
+import "../BT17/BT17-028.js";
 import "../EX8/EX8-069.js";
 
 describe("BT18-055 AncientTroymon", () => {
@@ -21,22 +22,44 @@ describe("BT18-055 AncientTroymon", () => {
       { materials: [{ names: ["Arbormon"] }, { names: ["Petaldramon"] }], count: 2 },
     ]);
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT18-055", as: "ancientTroymon" }] },
+      0: {
+        battleArea: [
+          { card: "BT18-055", as: "ancientTroymon" },
+          { card: "EX3-045", as: "target", dp: 13000, suspended: true },
+        ],
+      },
       1: {
-        battleArea: [{ card: "BT1-030", as: "opponentDigimon" }],
+        battleArea: [
+          { card: "BT1-030", as: "firstAttacker" },
+          { card: "BT1-030", as: "secondAttacker" },
+        ],
         security: ["BT1-010", "BT1-011"],
       },
     });
+    s.state.turnSeat = 1;
+    await s.ready();
     const top = s.state.players[1]!.security[0]!.instanceId;
 
-    await advance(s.engine).verb.suspend([s.perm("opponentDigimon").permanentId]);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("firstAttacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.security.some((card) => card.instanceId === top));
 
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === top)).toBe(true);
 
-    await advance(s.engine).verb.unsuspend([s.perm("opponentDigimon").permanentId]);
-    await advance(s.engine).verb.suspend([s.perm("opponentDigimon").permanentId]);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("secondAttacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
     expect(s.state.players[1]!.security).toHaveLength(1);
     assertNoLoudGap(s);
   });
@@ -46,7 +69,10 @@ describe("BT18-055 AncientTroymon", () => {
     [1, "battleArea"],
   ] as const)("may choose leave-play option %i to move an eligible stack card to %s", async (optionIndex, zone) => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT18-055", as: "ancient", under: ["BT18-047"] }] } },
+      {
+        0: { battleArea: [{ card: "BT18-055", as: "ancient", under: ["BT18-047"], suspended: true }] },
+        1: { battleArea: [{ card: "EX3-045", as: "attacker", dp: 13000 }] },
+      },
       {
         autoAcceptOptional: true,
         autoSelectCards: true,
@@ -54,10 +80,17 @@ describe("BT18-055 AncientTroymon", () => {
         preferOptionIndex: optionIndex,
       },
     );
+    s.state.turnSeat = 1;
     await s.ready();
     const materialId = s.perm("ancient").stack[0]!.instanceId;
 
-    expect(await advance(s.engine).verb.deletePermanent([s.perm("ancient").permanentId], "byRule")).toBe(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("ancient").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() =>
       zone === "hand"
         ? s.state.players[0]!.hand.some(({ instanceId }) => instanceId === materialId)
@@ -75,12 +108,23 @@ describe("BT18-055 AncientTroymon", () => {
 
   it("allows the leave-play effect to be refused without opening nested prompts", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT18-055", as: "ancient", under: ["BT18-047"] }] } },
+      {
+        0: { battleArea: [{ card: "BT18-055", as: "ancient", under: ["BT18-047"], suspended: true }] },
+        1: { battleArea: [{ card: "EX3-045", as: "attacker", dp: 13000 }] },
+      },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
+    s.state.turnSeat = 1;
+    await s.ready();
     const materialId = s.perm("ancient").stack[0]!.instanceId;
 
-    await advance(s.engine).verb.deletePermanent([s.perm("ancient").permanentId], "byRule");
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("ancient").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === materialId));
 
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === materialId)).toBe(false);
@@ -123,10 +167,21 @@ describe("BT18-055 AncientTroymon", () => {
           { card: "BT1-030", as: "ownDigimon" },
         ],
       },
-      1: { security: ["BT1-010", "BT1-011"] },
+      1: {
+        battleArea: [{ card: "EX3-045", as: "opponentTarget", dp: 13000, suspended: true }],
+        security: ["BT1-010", "BT1-011"],
+      },
     });
+    await s.ready();
 
-    await advance(s.engine).verb.suspend([s.perm("ownDigimon").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ownDigimon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("opponentTarget").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
 
     expect(s.state.players[1]!.security).toHaveLength(2);
     expect(s.state.players[1]!.trash).toHaveLength(0);
@@ -162,8 +217,9 @@ describe("BT18-055 AncientTroymon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT18-055", as: "ancient", under: ["BT1-078", "BT1-030", "BT18-047"] }],
+          battleArea: [{ card: "BT18-055", as: "ancient", under: ["BT1-078", "BT1-030", "BT18-047"], suspended: true }],
         },
+        1: { battleArea: [{ card: "EX3-045", as: "attacker", dp: 13000 }] },
       },
       {
         autoAcceptOptional: true,
@@ -172,9 +228,17 @@ describe("BT18-055 AncientTroymon", () => {
         preferOptionIndex: 0,
       },
     );
+    s.state.turnSeat = 1;
+    await s.ready();
     const eligible = s.perm("ancient").stack.find(({ cardId }) => cardId === "BT18-047")!;
 
-    await advance(s.engine).verb.deletePermanent([s.perm("ancient").permanentId], "byRule");
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("ancient").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some(({ instanceId }) => instanceId === eligible.instanceId));
 
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT18-047"]);
@@ -186,19 +250,38 @@ describe("BT18-055 AncientTroymon", () => {
 
   it("triggers for a non-deletion leave and cleanly no-ops when no stack card is eligible", async () => {
     const bounce = setupEngine(
-      { 0: { battleArea: [{ card: "BT18-055", as: "ancient", under: ["BT18-047"] }] } },
+      {
+        0: { battleArea: [{ card: "BT18-055", as: "ancient", under: ["BT18-047"] }] },
+        1: { hand: [{ card: "BT17-028", as: "bouncer" }] },
+      },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 0 },
     );
+    bounce.state.turnSeat = 1;
+    bounce.state.memory = 10;
+    await bounce.ready();
     const eligibleId = bounce.perm("ancient").stack[0]!.instanceId;
-    await advance(bounce.engine).verb.returnToHand([bounce.perm("ancient").topCard!.instanceId]);
+    expect(bounce.engine.applyIntent(1, { type: "playCard", instanceId: bounce.inst("bouncer").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => bounce.state.players[0]!.hand.some(({ instanceId }) => instanceId === eligibleId));
     expect(bounce.state.players[0]!.hand.some(({ instanceId }) => instanceId === eligibleId)).toBe(true);
 
     const unavailable = setupEngine(
-      { 0: { battleArea: [{ card: "BT18-055", as: "ancient", under: ["BT1-078", "BT1-030"] }] } },
+      {
+        0: { battleArea: [{ card: "BT18-055", as: "ancient", under: ["BT1-078", "BT1-030"], suspended: true }] },
+        1: { battleArea: [{ card: "EX3-045", as: "attacker", dp: 13000 }] },
+      },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
-    await advance(unavailable.engine).verb.deletePermanent([unavailable.perm("ancient").permanentId], "byRule");
+    unavailable.state.turnSeat = 1;
+    await unavailable.ready();
+    expect(
+      unavailable.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: unavailable.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: unavailable.perm("ancient").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => unavailable.state.players[0]!.battleArea.length === 0);
     expect(unavailable.state.pendingDecision).toBeUndefined();
     expect(unavailable.state.players[0]!.hand).toHaveLength(0);

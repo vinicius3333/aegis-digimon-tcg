@@ -2,9 +2,28 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT24-096.js";
 import "../index.js";
 
 describe("BT24-096 Seventh Graviton", () => {
+  it("limits the trash trigger to a Digimon digivolving into exact Creepymon (X Antibody)", () => {
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "YourTurn",
+      isFromTrash: true,
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenOneOfYoursDigivolves",
+          sourceFilter: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Creepymon (X Antibody)"], match: "nameExact" }],
+          },
+        },
+      ],
+    });
+  });
+
   it("pays use cost 7, deletes exactly level 6+, and does not mill after a successful deletion", async () => {
     const s = setupEngine(
       {

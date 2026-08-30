@@ -22,7 +22,7 @@ const compiled: CompiledCard = {
         {
           kind: "PlaceUnder",
           target: {
-            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Hybrid"], match: "trait" }] },
+            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Hybrid"], match: "traitContains" }] },
             from: ["trash"],
             count: 5,
           },
@@ -38,11 +38,11 @@ const compiled: CompiledCard = {
           into: {
             controllerDefault: "mine",
             kind: ["Digimon"],
-            nameOrTrait: [{ tokens: ["EmperorGreymon"], match: "name" }],
-            upTo: true,
+            nameOrTrait: [{ tokens: ["EmperorGreymon"], match: "nameExact" }],
           },
           from: ["hand"],
           payCost: true,
+          optional: true,
           virtualBase: { level: 5, colors: ["Red"] },
           condition: { kind: "namedCountAtLeast", countSource: "bt7TakuyaHybridCount", count: 5 },
         },

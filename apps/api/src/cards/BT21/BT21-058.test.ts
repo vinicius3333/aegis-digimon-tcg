@@ -38,6 +38,18 @@ describe("BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand", () =>
     expect(compiled.effects.find((effect) => effect.trigger === "OnPlay")?.actions).toEqual(
       compiled.effects.find((effect) => effect.trigger === "WhenDigivolving")?.actions,
     );
+    expect(compiled.effects.find((effect) => effect.trigger === "OnPlay")?.actions[1]).toMatchObject({
+      kind: "PlaceUnder",
+      target: {
+        filter: {
+          nameOrTrait: [{ tokens: ["Vemmon"], match: "nameExact" }],
+        },
+      },
+    });
+    expect(compiled.effects.find((effect) => effect.isInherited)?.actions[0]).toMatchObject({
+      kind: "SubTrigger",
+      sourceFilter: { nameOrTrait: [{ tokens: ["Vemmon"], match: "nameExact" }] },
+    });
   });
 
   it("adds the Vemmon card to hand and trashes the non-Vemmon cards", async () => {

@@ -9,8 +9,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // then (if deleted) offers a bool selection: TRUE => place 1 [Trial of the Four Great Dragons] from
 // hand (PlaceDelayOptionCards, root:Hand); FALSE => discard 1 [Four Great Dragons]-trait card. If
 // `discarded || selectedCards.Count > 0` (did either), give 1 opponent Digimon -7000 DP for the
-// turn. Modeled as the existing Modal action (choose 1) composing PlayWithoutCost / Trash + the
-// per-branch ModifyDP tail — no new modal primitive (the chosen branch runs exactly one path, so a
+// turn. Modeled as the existing Modal action (choose 1) composing PlaceInBattleAreaSelf / Trash +
+// the per-branch ModifyDP tail — no new modal primitive (the chosen branch runs exactly one path, so a
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -30,14 +30,7 @@ export const compiled: CompiledCard = {
                   },
                 ],
               },
-              count: 1,
-              to: "hand",
-            },
-            {
-              filter: {
-                controllerDefault: "mine",
-                colors: ["Yellow"],
-              },
+              orFilters: [{ controllerDefault: "mine", colors: ["Yellow"] }],
               count: 1,
               to: "hand",
             },
@@ -58,10 +51,12 @@ export const compiled: CompiledCard = {
           options: [
             [
               {
-                kind: "PlayWithoutCost",
+                kind: "PlaceInBattleAreaSelf",
                 target: {
                   filter: {
                     controller: "mine",
+                    zone: "hand",
+                    kind: ["Option"],
                     nameOrTrait: [
                       {
                         tokens: ["Trial of the Four Great Dragons"],
@@ -70,9 +65,8 @@ export const compiled: CompiledCard = {
                     ],
                   },
                   count: 1,
+                  from: ["hand"],
                 },
-                from: ["hand"],
-                payCost: false,
                 raw: "place 1 [Trial of the Four Great Dragons] from your hand in the battle area",
               },
             ],
@@ -95,6 +89,25 @@ export const compiled: CompiledCard = {
                 raw: "you may trash 1 [Four Great Dragons] trait card in your hand",
               },
             ],
+          ],
+          optionConditions: [
+            {
+              kind: "youHave",
+              filter: {
+                controllerDefault: "mine",
+                zone: "hand",
+                kind: ["Option"],
+                nameOrTrait: [{ tokens: ["Trial of the Four Great Dragons"], match: "name" }],
+              },
+            },
+            {
+              kind: "youHave",
+              filter: {
+                controllerDefault: "mine",
+                zone: "hand",
+                nameOrTrait: [{ tokens: ["Four Great Dragons"], match: "trait" }],
+              },
+            },
           ],
           raw: "Place 1 [Trial of the Four Great Dragons] from your hand in the battle area, or you may trash 1 [Four Great Dragons] trait card in your hand.",
         },

@@ -36,7 +36,7 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           condition: {
-            kind: "duringAttack",
+            kind: "triggerAttackerIsSelf",
           },
           optional: true,
         },

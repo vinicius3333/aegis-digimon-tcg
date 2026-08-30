@@ -1,7 +1,32 @@
 import { describe, it, expect } from "vitest";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT7-093.js";
-describe("BT7-093 Atomic Inferno", () => {
+describe("BT7-093 Firedrake Strike", () => {
+  it("uses substring trait matching for the printed Hybrid trait clause", () => {
+    const main = runtimeCompiledCard("BT7-093")?.effects.find((effect) => effect.trigger === "Main");
+    expect(main).toMatchObject({
+      actions: expect.arrayContaining([
+        expect.objectContaining({
+          kind: "SelectBind",
+          target: expect.objectContaining({
+            filter: expect.objectContaining({
+              nameOrTrait: [{ tokens: ["Hybrid"], match: "traitContains" }],
+            }),
+          }),
+        }),
+      ]),
+    });
+    expect(runtimeCompiledCard("BT7-093")?.effects.find((effect) => effect.trigger === "Security")).toMatchObject({
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: { nameOrTrait: [{ tokens: ["Takuya Kanbara"], match: "nameExact" }] } },
+        },
+      ],
+    });
+  });
+
   it("deletes an opposing Digimon within the chosen DP", async () => {
     const s = setupEngine(
       {

@@ -19,7 +19,7 @@ describe("BT20-054 Bulbmon", () => {
           actions: [
             {
               kind: "PlayWithoutCost",
-              from: ["digivolutionCards"],
+              fromOwnDigivolutionStack: true,
               payCost: false,
               optional: true,
               target: { filter: { controller: "mine", kind: ["Digimon"], playCostLte: 4 }, count: 1 },

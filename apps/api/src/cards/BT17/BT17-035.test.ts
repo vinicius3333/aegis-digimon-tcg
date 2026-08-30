@@ -12,8 +12,13 @@ describe("BT17-035 Taomon", () => {
       payCost: true,
       reduceCostBy: 2,
       optional: true,
-      filter: { controller: "mine", kind: ["Option"] },
-      orFilters: [{ nameOrTrait: [{ tokens: ["Plug-In"], match: "name" }] }, { colors: ["Yellow"] }],
+      allowMultiColor: true,
+      filter: {
+        controller: "mine",
+        kind: ["Option"],
+        playCostLte: 99,
+        or: [{ nameOrTrait: [{ tokens: ["Plug-In"], match: "name" }] }, { colors: ["Yellow"] }],
+      },
     });
   });
 
@@ -84,5 +89,40 @@ describe("BT17-035 Taomon", () => {
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === drawnId));
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
+  });
+
+  it("uses a qualifying yellow Option above the runtime's historical cost-5 default", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT17-032", as: "base" },
+            { card: "BT25-032", as: "glowingDawn" },
+          ],
+          hand: [
+            { card: "BT5-102", as: "wrongOption" },
+            { card: "BT17-035", as: "taomon" },
+            { card: "BT25-043", as: "highCostYellowOption" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    const wrongOptionId = s.inst("wrongOption").instanceId;
+    const highCostOptionId = s.inst("highCostYellowOption").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("taomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === highCostOptionId));
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(highCostOptionId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(wrongOptionId);
+    expect(s.state.memory).toBe(3);
   });
 });

@@ -12,7 +12,7 @@ describe("BT9-055 GrandisKuwagamon", () => {
     expect(compiled).toMatchObject({
       coverage: "full", residual: [], digivolutionRequirement: [{ names: ["GranKuwagamon"], cost: 1, isAlternate: true }],
       effects: [
-        { trigger: "WhenDigivolving", actions: [{ kind: "Suspend" }, { kind: "RedirectAttack", optional: true, condition: { kind: "duringAttack" } }] },
+        { trigger: "WhenDigivolving", actions: [{ kind: "Suspend" }, { kind: "RedirectAttack", optional: true, condition: { kind: "triggerAttackerIsSelf" } }] },
         { trigger: "YourTurn", actions: [{ kind: "ModifyDP", amount: 4000, duration: "permanent" }] },
         { trigger: "WhenAttacking", frequency: "OncePerTurn", actions: [{ kind: "Suspend" }, { kind: "Unsuspend" }] },
       ],

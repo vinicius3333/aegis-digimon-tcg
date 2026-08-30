@@ -125,7 +125,9 @@ export const compiled: CompiledCard = {
           },
         },
       ],
-      isSecurity: true,
+      // The immutable catalog stores this inherited-looking clause in
+      // securityEffectText; the explicit end-of-turn timing is field-resident.
+      isInherited: true,
     },
   ],
   coverage: "full",

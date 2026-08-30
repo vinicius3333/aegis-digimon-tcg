@@ -93,7 +93,6 @@ export const compiled: CompiledCard = {
             kind: ["Tamer"],
           },
           optional: true,
-          abortOnDecline: true,
         },
         {
           kind: "PlaceUnder",

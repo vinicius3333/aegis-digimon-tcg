@@ -2,6 +2,8 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import "../BT1/BT1-031.js";
 import "./BT2-084.js";
 
 describe("BT2-084 Sora Takenouchi", () => {
@@ -29,6 +31,39 @@ describe("BT2-084 Sora Takenouchi", () => {
     await settle(() => s.perm("sora").isSuspended && s.perm("attacker").currentDP === originalDP + 2000);
 
     expect(s.perm("attacker").currentDP).toBe(originalDP + 2000);
+  });
+
+  it("Q1036 keeps the +2000 DP when the declared player attack is blocked", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT2-084", as: "sora" },
+            { card: "BT1-010", as: "attacker" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-031", as: "blocker" }], security: ["BT1-011"] },
+      },
+      { autoAcceptOptional: true },
+    );
+    const originalDP = s.perm("attacker").currentDP;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).blockingSeat() === 1);
+
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && !observe(s.engine).isAttacking());
+
+    expect(s.perm("attacker").currentDP).toBe(originalDP + 2000);
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
   it("does not activate when the red Digimon attacks another Digimon", async () => {

@@ -41,7 +41,7 @@ export const compiled: CompiledCard = {
               controllerDefault: "opponent",
               kind: ["Digimon"],
             },
-            raw: "your opponent has no Digimon with more digivolution cards than this Digimon",
+            raw: "your opponent has no Digimon with as many or more digivolution cards as this Digimon",
           },
         },
       ],

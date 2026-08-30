@@ -7,7 +7,7 @@ import "./BT3-070.js";
 import "./BT3-071.js";
 import "./BT3-106.js";
 
-describe("BT3-106 Final Zubagon Punch", () => {
+describe("BT3-106 Beast Cyclone", () => {
   it("gives Security Attack +1 to all Digimon with Blocker or Reboot", async () => {
     const s = setupEngine({
       0: {

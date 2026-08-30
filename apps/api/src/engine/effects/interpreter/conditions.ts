@@ -2,7 +2,7 @@
 
 import { attackedWithDigimonThisTurn } from "../../turnActivity.js";
 import type { EffectContext } from "../EffectContext.js";
-import { COLOR_MAP } from "./maps.js";
+import { COLOR_MAP, KIND_MAP } from "./maps.js";
 import { definitionMatches, matchNameOrTrait } from "./matching/definition.js";
 import {
   compareNumber,
@@ -109,6 +109,18 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
         })
       );
     }
+    case "lastTargetPlayCostAtMost": {
+      const ids = ctx.lastResolvedPermanentIds ?? [];
+      const maximum = cond.value ?? Infinity;
+      return (
+        ids.length > 0 &&
+        ids.every((id) => {
+          const permanent = ctx.game.permanentById(id);
+          if (permanent?.topCard === undefined) return false;
+          return ctx.game.definitionOf(permanent.topCard).playCost <= maximum;
+        })
+      );
+    }
     case "triggerRevealedFromDeck":
       return (ctx.lastRevealedCards ?? []).some((card) => card.cardId === ctx.source.cardId);
     case "triggerRevealedMatchesFilter":
@@ -136,13 +148,29 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     case "triggerAttackBy":
       return ctx.trigger.attackMechanic === cond.keyword;
     case "allYoursMatchFilter":
-      return ctx.game
-        .player(mine)
-        .battleArea.every(
-          (permanent) =>
-            cond.filter === undefined ||
-            permanentMatchesFilter(ctx, permanent, { ...cond.filter, controller: "mine" }, ctx.source),
+      {
+        // Preserve the legacy no-filter predicate exactly: an omitted filter is a
+        // structural/vacuous gate and remains true even with an empty battle area.
+        if (cond.filter === undefined) return true;
+        const filter = { ...cond.filter, controller: "mine" as const };
+        // "All of your Digimon and Tamers" quantifies only those card kinds and is not
+        // vacuously true when the battle area has none (KB BT19-100 Q3176-Q3178). This
+        // also leaves unrelated battle-area Options outside the quantified domain.
+        const quantified = ctx.game.player(mine).battleArea.filter((permanent) => {
+          if (filter.kind === undefined || filter.kind.length === 0) return true;
+          if (permanent.topCard === undefined) return false;
+          const definition = ctx.game.definitionOf(permanent.topCard);
+          const effectiveKinds = ctx.game.effectiveKinds?.(permanent.permanentId, definition.kinds) ?? definition.kinds;
+          return filter.kind.some((kind) => {
+            const mapped = KIND_MAP[kind];
+            return mapped !== undefined && effectiveKinds.includes(mapped);
+          });
+        });
+        return (
+          quantified.length > 0 &&
+          quantified.every((permanent) => permanentMatchesFilter(ctx, permanent, filter, ctx.source))
         );
+      }
     case "breedingAreaEmpty":
       return ctx.game.player(mine).breeding === undefined;
     case "digivolutionCountCompare": {
@@ -225,6 +253,7 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     case "noFaceUpSecurity":
       return ctx.game.player(mine).security.every((card) => card.faceUp !== true);
     case "ifOpponentDeclined":
+    case "opponentDeclinedTrash":
       return ctx.lastOpponentDeclined === true;
     case "opponentHasNone":
       return cond.filter ? countMatching(ctx, { controller: "opponent", ...cond.filter }) === 0 : false;
@@ -443,11 +472,16 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       );
     }
     case "selfHasName": {
-      // "This Digimon is [X]" — exact current top-card name check.
+      // "This Digimon is [X]" — exact effective name check, including dynamic aliases from
+      // lower-level cards in the current digivolution stack (BT17-102).
       const def = sourceTopDefinition(ctx);
       if (def === undefined) return false;
-      const topName = (def.nameEn ?? "").toLowerCase();
-      return (cond.names ?? []).some((name) => topName === name.toLowerCase());
+      const self = ctx.source.permanent();
+      const names =
+        self?.topCard === undefined
+          ? [def.nameEn ?? ""]
+          : (ctx.game.effectiveNames?.(self) ?? [def.nameEn ?? ""]);
+      return (cond.names ?? []).some((name) => names.some((actual) => actual.toLowerCase() === name.toLowerCase()));
     }
     case "selfColorCount": {
       // "This Digimon has N or more colors" — use the deleted HOST's effective-color

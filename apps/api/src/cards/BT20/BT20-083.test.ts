@@ -45,7 +45,7 @@ describe("BT20-083 Omekamon", () => {
     });
     expect(watcher.actions[0]).toMatchObject({
       kind: "PlayWithoutCost",
-      from: ["digivolutionCards"],
+      fromOwnDigivolutionStack: true,
       payCost: false,
       cost: { kind: "suspend", target: { isSelf: true } },
     });

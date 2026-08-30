@@ -23,4 +23,22 @@ describe("BT6-047 Morphomon", () => {
     );
     expect(s.state.players[0]!.deck).toHaveLength(3);
   });
+
+  it("adds whichever named card is available when only one match is revealed", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT6-047", as: "morphomon" }],
+          deck: [{ card: "BT6-092", as: "menoa" }, "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+
+    await advance(s.engine).verb.deletePermanent([s.perm("morphomon").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.hand.length === 1);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("menoa").instanceId);
+    expect(s.state.players[0]!.deck).toHaveLength(4);
+  });
 });

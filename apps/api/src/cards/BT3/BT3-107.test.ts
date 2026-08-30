@@ -37,6 +37,22 @@ describe("BT3-107 Looking Back on the Good Times", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
+  it("does not delete a selected Digimon whose post-De-Digivolve cost remains above 4", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: ["BT3-059"], hand: [{ card: "BT3-107", as: "option" }] },
+        1: { battleArea: [{ card: "BT3-050", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT3-050"));
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
   it("adds itself to its owner's hand from security", async () => {
     const s = setupEngine({ 0: { security: [{ card: "BT3-107", as: "securityOption", faceUp: true }] } });
     const id = s.inst("securityOption").instanceId;

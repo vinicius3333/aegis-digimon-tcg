@@ -138,4 +138,31 @@ describe("BT1-053 Darcmon", () => {
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
   });
+
+  it("does not trigger when Darcmon is digivolved onto a suspended yellow level 3", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-050", as: "base", suspended: true }],
+        hand: [{ card: "BT1-053", as: "darcmon" }],
+        deck: [
+          { card: "BT1-010", as: "evolutionDraw" },
+          { card: "BT1-011", as: "mustStayInDeck" },
+        ],
+      },
+    });
+    s.state.memory = 2;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("darcmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("darcmon").instanceId);
+
+    expect(s.perm("base").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("evolutionDraw").instanceId);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(s.inst("mustStayInDeck").instanceId);
+  });
 });

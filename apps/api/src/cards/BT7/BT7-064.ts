@@ -6,14 +6,12 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",
-      isInherited: true,
       actions: [
         {
           kind: "PlaceUnder",
           target: {
             filter: {
               controller: "mine",
-              kind: ["Digimon"],
               colors: ["Black"],
               nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }],
             },

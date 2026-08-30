@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
@@ -124,7 +124,7 @@ describe("BT23-009 Coachmon", () => {
     expect(s.state.memory).toBe(3);
     expect(s.perm("host").currentDP).toBe(baseDp + 3000 + 4000);
 
-    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("host"));
+    await advance(s.engine).runTurn(0);
     await settle(() => observe(s.engine).hasAttackedThisTurn(s.perm("host")));
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
@@ -138,7 +138,7 @@ describe("BT23-009 Coachmon", () => {
       { autoDeclineOptional: true },
     );
 
-    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("host"));
+    await advance(s.engine).runTurn(0);
     await settle();
 
     expect(s.perm("host").isSuspended).toBe(false);

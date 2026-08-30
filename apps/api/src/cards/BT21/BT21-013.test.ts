@@ -26,6 +26,7 @@ describe("BT21-013 Agunimon — alternate digivolution conditions", () => {
     const req = matchingAlternateDigivolutionRequirement("BT21-013", "BT12-013"); // BurningGreymon
     expect(req).toBeDefined();
     expect(req?.cost).toBe(0);
+    expect(req?.namesExact).toEqual(["BurningGreymon"]);
   });
 
   it("may NOT digivolve from a non-red Tamer", () => {

@@ -1,8 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT8-051.js";
 import "./BT8-051.js";
 
 describe("BT8-051 Digmon", () => {
+  it("uses only the catalog's green level-3 evolution requirement", () => {
+    expect(compiled).not.toHaveProperty("digivolutionRequirement");
+  });
+
   it("gives an opposing suspended Digimon -3000 DP when attacking", async () => {
     const s = setupEngine(
       {
@@ -24,7 +29,7 @@ describe("BT8-051 Digmon", () => {
     expect(s.perm("target").currentDP).toBe(before - 3000);
   });
 
-  it("digivolves from Armadillomon for 2 and Armor Purges after losing a battle", async () => {
+  it("uses its cost-2 Armor path from Armadillomon and Armor Purges after losing a battle", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT8-033", as: "armadillomon" }], hand: [{ card: "BT8-051", as: "digmon" }] },
@@ -32,7 +37,7 @@ describe("BT8-051 Digmon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 4;
+    s.state.memory = 5;
     const armadillomonId = s.perm("armadillomon").topCard.instanceId;
 
     expect(
@@ -43,7 +48,7 @@ describe("BT8-051 Digmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle();
-    expect(s.state.memory).toBe(2);
+    expect(s.state.memory).toBe(3);
 
     expect(
       s.engine.applyIntent(0, {

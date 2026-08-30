@@ -170,6 +170,17 @@ describe("A3 BT23-069 — delete-outcome gate: continue if it deleted, end if it
     expect(bt23069.residual).toEqual([]);
   });
 
+  it("models self-deletion as an optional By processing condition before the opponent deletion", () => {
+    const effect = bt23069.effects.find((entry) => entry.trigger === "AllTurns") as any;
+    const watcher = effect.actions[0];
+    expect(watcher.actions[0]).toMatchObject({
+      kind: "Delete",
+      target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+      abortOnDecline: true,
+    });
+    expect(watcher.actions[0].optional).toBe(true);
+  });
+
   it("exposes Execute through the live keyword seam", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT23-069", as: "necromon" }] } });
     await s.ready();
@@ -231,6 +242,37 @@ describe("A3 BT23-069 — delete-outcome gate: continue if it deleted, end if it
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT23-069")).toBe(false);
     expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+
+  it("may decline self-deletion, leaving both Digimon in play while the attack proceeds", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-069", as: "necromon" },
+            { card: "BT23-061", as: "attacker" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT23-068", as: "target" }],
+          security: ["BT1-028", "BT1-028"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const selfId = s.perm("necromon").permanentId;
+    const targetId = s.perm("target").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === selfId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
   it("the effect deletes the opponent's Lv.<=6 Digimon (count 1) => the attack CONTINUES (no endAttack)", async () => {

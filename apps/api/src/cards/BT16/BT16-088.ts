@@ -27,10 +27,19 @@ const compiled: CompiledCard = {
           from: ["hand"],
           payCost: false,
           optional: true,
+          abortOnDecline: true,
+          bindResultAs: "playedArmadillomonOrPatamon",
         },
         {
           kind: "SubTrigger",
           event: "endOfOpponentTurn",
+          once: true,
+          on: {
+            filter: {
+              boundRef: "playedArmadillomonOrPatamon",
+            },
+            count: 1,
+          },
           actions: [
             {
               kind: "Return",

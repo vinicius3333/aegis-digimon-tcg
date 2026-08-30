@@ -41,7 +41,6 @@ export const compiled: CompiledCard = {
           target: { filter: opponentDigimonOrTamer, count: 1 },
           restriction: "unsuspend",
           duration: "untilOpponentTurnEnd",
-          condition: { kind: "ifThisEffectActed" },
         },
       ],
     })),

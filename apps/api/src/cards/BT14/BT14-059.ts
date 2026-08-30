@@ -9,7 +9,23 @@ export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnDeletion",
-      actions: [],
+      actions: [
+        {
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          underFilter: {
+            controller: "mine",
+            kind: ["Tamer"],
+          },
+          optional: true,
+        },
+      ],
       keywords: [
         {
           keyword: "Retaliation",

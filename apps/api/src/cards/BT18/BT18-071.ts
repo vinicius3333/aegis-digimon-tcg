@@ -111,8 +111,9 @@ export const compiled: CompiledCard = {
       isAlternate: true,
     },
     {
-      names: ["Sephirothmon"],
-      traits: ["Mercurymon"],
+      namesExact: ["Sephirothmon"],
+      minNameStackCount: 1,
+      minNameStackNames: ["Mercurymon"],
       cost: 4,
       isAlternate: true,
     },

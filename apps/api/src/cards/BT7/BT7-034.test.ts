@@ -11,8 +11,9 @@ describe("BT7-034 Filmon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT7-034", under: ["BT1-001", "BT1-002"], as: "filmon" },
-            { card: "BT1-010", as: "ally" },
+            // Legal yellow stack: L2 egg -> L3 Herissmon -> L4 Filmon.
+            { card: "BT7-034", under: ["BT1-005", "BT7-031"], as: "filmon" },
+            { card: "BT7-032", under: ["BT1-005"], as: "ally" },
           ],
         },
         1: { battleArea: [{ card: "BT6-049", as: "target" }] },
@@ -38,6 +39,6 @@ describe("BT7-034 Filmon", () => {
     );
 
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
-    expect(s.perm("ally").topCard).toBeDefined();
+    expect(s.perm("ally").stack).toHaveLength(1);
   });
 });

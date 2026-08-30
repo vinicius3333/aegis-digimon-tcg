@@ -33,6 +33,7 @@ export interface Condition {
     | "lastTargetDpAtMostSelf" // every permanent the preceding action selected has DP <= this Digimon
     | "lastTargetDpGreaterThanSelf" // every permanent the preceding action selected has DP > this Digimon
     | "lastTargetCanTrashDigivolution" // the previous target still has stack cards and is not level 3 (EX5-055)
+    | "lastTargetPlayCostAtMost" // the preceding target's current printed play cost (BT3-107)
     | "triggerRevealedFromDeck" // the source card is among the cards this effect revealed from a deck
     | "triggerRevealedMatchesFilter" // any card in the current reveal window matches `filter`
     | "triggerAllRevealedMatchFilter"
@@ -71,6 +72,7 @@ export interface Condition {
     | "ifThisEffectActed" // the prior branch moved >=1 card; a declined optional selection leaves it false (BT16-094)
     | "ifThisEffectDidNotAct" // complement of ifThisEffectActed (EX4-070; KB Q3514)
     | "ifOpponentDeclined"
+    | "opponentDeclinedTrash" // legacy alias used by the prose compiler (BT3-102/BT13-102)
     // SubTrigger fire-time payload gates; only meaningful inside a watcher body.
     | "triggerSecurityIsYours"
     | "triggerSecurityIsOpponents"

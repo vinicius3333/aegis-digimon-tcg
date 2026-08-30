@@ -1,10 +1,19 @@
 import { describe, expect, it } from "vitest";
 import type { PlayerState } from "@aegis/shared";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT7-088.js";
 
 describe("BT7-088 Zoe Orimoto", () => {
+  it("uses trait-substring matching for the security search", () => {
+    expect(runtimeCompiledCard("BT7-088")?.effects[0]?.actions[0]).toMatchObject({
+      selectionFilter: {
+        nameOrTrait: [{ tokens: ["Hybrid", "Ten Warriors"], match: "traitContains" }],
+      },
+    });
+  });
+
   it("gives Security Digimon +3000 DP from a host's sources on the opponent's turn", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT7-038", as: "host", under: ["BT7-088"] }] },

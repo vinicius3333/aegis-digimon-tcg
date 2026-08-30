@@ -40,6 +40,27 @@ describe("BT23-098 Unique Emblem: Soul Banquet", () => {
     expect(s.state.memory).toBe(0);
   });
 
+  it("does not pay Delay when the only hand evolution is Ghost without LIBERATOR", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-098", as: "option" },
+            { card: "BT23-087", as: "violet", suspended: true },
+            { card: "BT23-061", as: "ghost" },
+          ],
+          hand: [{ card: "BT11-078", as: "ghostOnly" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const optionId = s.perm("option").topCard!.instanceId;
+    await s.ready();
+    await advance(s.engine).fireSubTrigger("whenSuspended", { subjectPermanentId: s.perm("violet").permanentId });
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
+    expect(s.perm("ghost").topCard?.cardId).toBe("BT23-061");
+  });
+
   it("places itself after the optional Ghostmon/Violet Inboots play", () => {
     const main = compiled.effects.find((effect) => effect.trigger === "Main") as any;
     expect(main.actions[0]).toMatchObject({ kind: "PlayWithoutCost", from: ["hand", "trash"], optional: true });
@@ -53,9 +74,9 @@ describe("BT23-098 Unique Emblem: Soul Banquet", () => {
     expect(turn.actions[0]).toMatchObject({ kind: "SubTrigger", event: "whenSuspended" });
     expect(turn.keywords).toEqual([{ keyword: "Delay", raw: "＜Delay＞" }]);
     expect(digivolve).toMatchObject({ kind: "Digivolve", reduceCost: 3, from: ["hand"], optional: true });
-    expect(digivolve.into.allNameOrTraits).toEqual([
-      { tokens: ["Ghost"], match: "trait" },
-      { tokens: ["LIBERATOR"], match: "trait" },
+    expect(digivolve.into.and).toEqual([
+      { nameOrTrait: [{ tokens: ["Ghost"], match: "trait" }] },
+      { nameOrTrait: [{ tokens: ["LIBERATOR"], match: "trait" }] },
     ]);
   });
 

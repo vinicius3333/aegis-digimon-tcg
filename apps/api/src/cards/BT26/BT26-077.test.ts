@@ -142,6 +142,7 @@ describe("BT26-077 compiled behavior", () => {
               as: "otherStack",
               under: [{ card: "BT1-003", as: "otherFaceDown", faceUp: false }],
             },
+            { card: "BT26-040", as: "otherVer3" },
           ],
           trash: [
             { card: "BT26-055", as: "cost7Ver3" },
@@ -153,6 +154,7 @@ describe("BT26-077 compiled behavior", () => {
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("cost7Ver3").instanceId);
+    preferred.push(s.perm("otherVer3").permanentId);
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("reapermon"));

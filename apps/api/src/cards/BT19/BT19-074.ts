@@ -120,6 +120,7 @@ const compiled: CompiledCard = {
                 kind: ["Digimon", "Tamer", "Option"],
               },
               count: 10,
+              to: "deckTop",
             },
             raw: "By returning 10 non-Digi-Egg cards from your trash to the top of the deck",
           },

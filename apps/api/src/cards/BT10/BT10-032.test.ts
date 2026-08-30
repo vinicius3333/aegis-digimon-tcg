@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../ST1/ST1-13.js";
 import "../ST1/ST1-14.js";
+import "../BT1/BT1-102.js";
 import "../BT2/BT2-099.js";
 import "../BT17/BT17-035.js";
 import "../BT24/index.js";
@@ -272,7 +273,7 @@ describe("BT10-032 Renamon", () => {
             { card: "BT1-009", as: "host", under: ["BT10-032"] },
             { card: "BT17-035", as: "taomon" },
           ],
-          hand: [{ card: "ST1-14", as: "option" }],
+          hand: [{ card: "BT1-102", as: "option" }],
         },
         1: { battleArea: [{ card: "BT1-084", as: "target" }] },
       },

@@ -62,4 +62,50 @@ describe("BT1-023 SkullGreymon", () => {
 
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-070")).toBe(true);
   });
+
+  it("does nothing when the opponent has no Blocker", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT1-023", as: "skullGreymon" }] },
+        1: { battleArea: [{ card: "BT1-070", as: "nonBlocker", dp: 4000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 7;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("skullGreymon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+
+    expect(s.state.players[1]!.battleArea[0]!.topCard?.cardId).toBe("BT1-070");
+  });
+
+  it("does not activate its On Play effect when digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-014", as: "base" }],
+          hand: [{ card: "BT1-023", as: "skullGreymon" }],
+          deck: [{ card: "BT1-024", as: "drawn" }, { card: "BT1-025", as: "remaining" }],
+        },
+        1: { battleArea: [{ card: "BT1-070", as: "nonBlocker", dp: 4000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("skullGreymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("skullGreymon").instanceId);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.hand[0]!.instanceId).toBe(s.inst("drawn").instanceId);
+    expect(s.state.players[0]!.deck[0]!.instanceId).toBe(s.inst("remaining").instanceId);
+  });
 });

@@ -102,7 +102,7 @@ describe("BT24-089 Unique Emblem: Blazing Conductor", () => {
         sourceInstanceId: s.inst("option").instanceId,
         effectKey: delayEffectKey(s),
       }),
-    ).toEqual({ ok: true });
+    ).toEqual({ ok: false, reason: "illegal-target" });
     await settle();
 
     expect(s.perm("base").topCard.cardId).toBe("BT24-008");

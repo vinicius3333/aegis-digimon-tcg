@@ -5,7 +5,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT6-081.js";
 import "./BT6-108.js";
 
-describe("BT6-108 Glaive Memory Boost!", () => {
+describe("BT6-108 Underworld's Call", () => {
   it("activates its Main effect from security", async () => {
     const s = setupEngine(
       {
@@ -57,6 +57,28 @@ describe("BT6-108 Glaive Memory Boost!", () => {
 
     expect(player.trash.some((card) => card.instanceId === discardedId)).toBe(true);
     expect(player.deck).toHaveLength(0);
+  });
+
+  it("does not draw when an opponent's effect trashes this card from hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT6-108", as: "discard" }],
+          deck: [{ card: "BT1-001", as: "notDrawn" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const player = s.state.players[0]!;
+    const discardedId = s.inst("discard").instanceId;
+    const notDrawnId = s.inst("notDrawn").instanceId;
+
+    await advance(s.engine).verb.trash([discardedId], 1);
+    await settle();
+
+    expect(player.trash.some((card) => card.instanceId === discardedId)).toBe(true);
+    expect(player.hand.some((card) => card.instanceId === notDrawnId)).toBe(false);
+    expect(player.deck.some((card) => card.instanceId === notDrawnId)).toBe(true);
   });
 
   it("may play a purple level 4 or lower Digimon from trash for free", async () => {

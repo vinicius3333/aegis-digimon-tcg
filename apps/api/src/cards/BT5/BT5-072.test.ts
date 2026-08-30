@@ -8,7 +8,7 @@ describe("BT5-072 Fake Agumon Expert", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT5-072", as: "expert" }],
+          battleArea: [{ card: "BT5-072", as: "expert", under: ["BT5-006"] }],
           trash: [
             { card: "BT5-071", as: "target" },
             { card: "BT5-071", as: "otherTarget" },

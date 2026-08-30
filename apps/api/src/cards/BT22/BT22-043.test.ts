@@ -44,7 +44,14 @@ describe("BT22-043 Terriermon", () => {
     expect(inherited?.actions[0]).toMatchObject({
       kind: "Draw",
       amount: 1,
-      cost: { kind: "place", target: { filter: { controllerDefault: "mine", kind: ["Digimon"] }, count: 1 } },
+      cost: {
+        kind: "place",
+        target: {
+          filter: { isSelfRef: true, controllerDefault: "mine", kind: ["Digimon"] },
+          count: 1,
+          isSelf: true,
+        },
+      },
     });
   });
 

@@ -40,7 +40,7 @@ export const compiled: CompiledCard = {
       trigger: "AllTurns",
       actions: [
         {
-          kind: "GrantStatic",
+          kind: "Aura",
           target: {
             filter: {
               controller: "opponent",
@@ -48,9 +48,11 @@ export const compiled: CompiledCard = {
             },
             count: "all",
           },
-          grant: "effect",
-          tokens: ["[On Play] effects don't activate"],
-          condition: {
+          effect: {
+            kind: "restriction",
+            restriction: "activateOnPlay",
+          },
+          while: {
             kind: "youHave",
             filter: {
               controllerDefault: "mine",
@@ -91,6 +93,7 @@ export const compiled: CompiledCard = {
                   filter: {
                     controller: "mine",
                     excludeSelf: true,
+                    excludeLeavingSubject: true,
                     nameOrTrait: [
                       {
                         tokens: ["Eosmon"],

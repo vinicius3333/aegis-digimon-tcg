@@ -64,6 +64,7 @@ const compiled: CompiledCard = {
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],
+            byEffect: true,
           },
           actions: [
             {

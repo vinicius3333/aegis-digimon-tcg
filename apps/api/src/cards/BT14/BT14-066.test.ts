@@ -42,4 +42,61 @@ describe("BT14-066", () => {
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT14-058")).toBe(true);
     expect(s.state.memory).toBe(2);
   });
+
+  it("naturally resolves the When Digivolving cost and memory gain", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-063", as: "base" }],
+          hand: [
+            { card: "BT14-066", as: "evolving" },
+            { card: "BT14-058", as: "numemon" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.memory === 2 && s.state.players[0]!.trash.some((card) => card.cardId === "BT14-058"));
+
+    expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("BT14-066");
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT14-058")).toBe(true);
+    expect(s.state.memory).toBe(2);
+  });
+
+  it("naturally plays a level-five-or-lower Numemon from hand after battle deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-066", as: "source", suspended: true }],
+          hand: [{ card: "BT14-058", as: "numemon" }],
+        },
+        1: { battleArea: [{ card: "BT14-042", as: "attacker", dp: 12000 }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("source").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT14-058"));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT14-058")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT14-066")).toBe(true);
+  });
 });

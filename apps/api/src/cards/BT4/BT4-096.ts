@@ -15,7 +15,7 @@ export const compiled: CompiledCard = {
           kind: "RevealAdd",
           revealCount: 3,
           add: [],
-          rest: "deckTopAnyOrder",
+          rest: "deckTop",
         },
         {
           kind: "GainMemory",

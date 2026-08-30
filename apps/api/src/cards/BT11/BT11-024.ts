@@ -26,6 +26,7 @@ export const compiled: CompiledCard = {
               count: 1,
               from: ["hand"],
             },
+            position: "bottom",
             raw: "By placing 1 qualifying Digimon from your hand under this Digimon",
           },
           optional: true,

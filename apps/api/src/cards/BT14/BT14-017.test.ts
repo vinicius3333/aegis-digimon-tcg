@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -34,7 +34,7 @@ describe("BT14-017", () => {
         {
           kind: "RestrictPlay",
           seat: "opponent",
-          filter: { dpAtMost: 6000 },
+          filter: { dpAtMost: 6000, allowTokens: true },
           condition: { kind: "memoryAtLeast", controller: "opponent", value: 1 },
         },
       ],
@@ -116,18 +116,25 @@ describe("BT14-017", () => {
       {
         0: { battleArea: [{ card: "BT14-017", as: "dino" }] },
         1: {
-          battleArea: [{ card: "BT14-018", as: "goldramon" }],
-          hand: [{ card: "BT14-007", as: "effectCandidate" }],
+          hand: [
+            { card: "BT14-018", as: "goldramon" },
+            { card: "BT14-007", as: "effectCandidate" },
+          ],
         },
       },
       { autoSelectCards: true },
     );
     s.state.turnSeat = 1;
-    s.state.memory = 1;
+    s.state.memory = 13;
     await s.ready();
+    // Natural hand play drives Goldramon's own On Play effect, proving the token restriction
+    // through the same entry path used by the game rather than manually injecting On Play.
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("goldramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT14-018"));
     await advance(s.engine).verb.playInstances([s.inst("effectCandidate").instanceId], "BT14-018");
     expect(s.state.players[1]!.hand.some((card) => card.cardId === "BT14-007")).toBe(true);
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("goldramon"));
     expect(
       s.state.players[1]!.battleArea.filter((permanent) =>
         ["TOKEN-AMON-OF-CRIMSON-FLAME", "TOKEN-UMON-OF-BLUE-THUNDER"].includes(permanent.topCard?.cardId ?? ""),

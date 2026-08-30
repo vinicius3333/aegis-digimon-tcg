@@ -70,6 +70,31 @@ describe("BT25-036 Craftmon", () => {
 
   it("uses the four-name App Fusion pool as a two-distinct-name requirement", () => {
     expect(BT25_036.appFusionRequirement).toEqual([{ names: ["Kabemon", "Gomimon", "Ecomon", "Puzzlemon"], cost: 0 }]);
+    expect(BT25_036.linkRequirement).toEqual([{ traits: ["Appmon"], cost: 2 }]);
+    expect(BT25_036.effects?.find((entry) => entry.trigger === "WhenLinking")).toMatchObject({
+      trigger: "WhenLinking",
+      isLinked: true,
+      actions: [
+        {
+          kind: "Draw",
+          controller: "mine",
+          amount: 2,
+          optional: true,
+          abortOnDecline: true,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "hand",
+                nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }],
+              },
+              count: 1,
+            },
+          },
+        },
+      ],
+    });
     expect(BT25_036.effects?.find((entry) => entry.trigger === "Security")?.actions?.[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenSecurityBattleEnded",
@@ -198,6 +223,122 @@ describe("BT25-036 Craftmon", () => {
     expect(denied).toBeUndefined();
     expect(illegal.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(
       illegal.inst("craftmon").instanceId,
+    );
+  });
+
+  it("links for 2, trashes one Appmon from hand, and draws two", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-009", as: "host" }],
+          hand: [
+            { card: "BT25-036", as: "craftmon" },
+            { card: "BT21-041", as: "appmonCost" },
+          ],
+          deck: [{ card: "BT1-009", as: "drawA" }, { card: "BT1-010", as: "drawB" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("craftmon").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("appmonCost").instanceId));
+
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("appmonCost").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("drawA").instanceId, s.inst("drawB").instanceId]),
+    );
+    expect(s.perm("host").linked.map((card) => card.instanceId)).toContain(s.inst("craftmon").instanceId);
+  });
+
+  it("may decline the linked processing cost without trashing or drawing", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-009", as: "host" }],
+          hand: [
+            { card: "BT25-036", as: "craftmon" },
+            { card: "BT21-041", as: "appmonCost" },
+          ],
+          deck: [{ card: "BT1-009", as: "drawA" }, { card: "BT1-010", as: "drawB" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("craftmon").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.some((card) => card.instanceId === s.inst("craftmon").instanceId));
+
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("appmonCost").instanceId]),
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toEqual(
+      expect.arrayContaining([s.inst("drawA").instanceId, s.inst("drawB").instanceId]),
+    );
+  });
+
+  it("requires an Appmon host and never trashes a non-Appmon processing card", async () => {
+    const illegal = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "nonAppmonHost" }],
+        hand: [{ card: "BT25-036", as: "craftmon" }],
+      },
+    });
+    illegal.state.memory = 5;
+    expect(
+      illegal.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: illegal.inst("craftmon").instanceId,
+        targetPermanentId: illegal.perm("nonAppmonHost").permanentId,
+      }),
+    ).not.toEqual({ ok: true });
+
+    const nonMatchingCost = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-009", as: "host" }],
+          hand: [
+            { card: "BT25-036", as: "craftmon" },
+            { card: "BT1-009", as: "nonAppmonCost" },
+          ],
+          deck: [{ card: "BT1-010", as: "drawA" }, { card: "BT1-011", as: "drawB" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    nonMatchingCost.state.memory = 5;
+    expect(
+      nonMatchingCost.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: nonMatchingCost.inst("craftmon").instanceId,
+        targetPermanentId: nonMatchingCost.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => nonMatchingCost.perm("host").linked.some((card) => card.instanceId === nonMatchingCost.inst("craftmon").instanceId));
+
+    expect(nonMatchingCost.state.players[0]!.trash).toHaveLength(0);
+    expect(nonMatchingCost.state.players[0]!.hand.map((card) => card.instanceId)).toContain(
+      nonMatchingCost.inst("nonAppmonCost").instanceId,
+    );
+    expect(nonMatchingCost.state.players[0]!.hand.map((card) => card.instanceId)).not.toEqual(
+      expect.arrayContaining([nonMatchingCost.inst("drawA").instanceId, nonMatchingCost.inst("drawB").instanceId]),
     );
   });
 });

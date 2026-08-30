@@ -29,7 +29,7 @@ describe("BT19-074", () => {
             controller: "opponent",
             cost: {
               kind: "return",
-              target: { filter: { zone: "trash", kind: ["Digimon", "Tamer", "Option"] }, count: 10 },
+              target: { filter: { zone: "trash", kind: ["Digimon", "Tamer", "Option"] }, count: 10, to: "deckTop" },
             },
             optional: true,
             abortOnDecline: true,

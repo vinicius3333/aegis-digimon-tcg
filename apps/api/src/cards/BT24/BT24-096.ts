@@ -15,6 +15,7 @@ export const compiled: CompiledCard = {
           event: "whenOneOfYoursDigivolves",
           sourceFilter: {
             controllerDefault: "mine",
+            kind: ["Digimon"],
             nameOrTrait: [
               {
                 tokens: ["Creepymon (X Antibody)"],

@@ -52,7 +52,11 @@ describe("BT23-008 Greymon", () => {
               from: ["hand"],
               payCost: true,
               reduceCostBy: 2,
-              cost: { kind: "place", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
+              cost: {
+                kind: "place",
+                optional: true,
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              },
               optional: true,
               abortOnDecline: true,
             },

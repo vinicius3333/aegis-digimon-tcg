@@ -11,7 +11,7 @@ describe("BT1-088 Izzy Izumi", () => {
         0: {
           battleArea: [
             { card: "BT1-088", as: "izzy" },
-            { card: "BT1-078", as: "green" },
+            { card: "BT1-078", as: "green", under: ["BT1-073"] },
           ],
           deck: [{ card: "BT1-077", as: "revealed" }],
         },

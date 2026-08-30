@@ -185,9 +185,15 @@ export const onDeletion = (opts: BuilderOptions): Effect =>
       // A non-inherited effect only exists while its card is the top card of a
       // Digimon. The deletion window carries the stack-card subset captured
       // before movement, so do not collect ordinary effects from cards that
-      // were merely underneath the deleted top card.
-      if (opts.isInherited !== true && ctx.trigger.deletedWasStackInstanceIds?.includes(ctx.source.instanceId))
-        return false;
+      // were merely underneath the deleted top card. The narrow exception is a
+      // buried effect the deleted host had already gained through GrantStatic
+      // (BT12-072 Q2214); the conferral and deletion snapshots prove that role.
+      if (opts.isInherited !== true && ctx.trigger.deletedWasStackInstanceIds?.includes(ctx.source.instanceId)) {
+        const conferredFromDeletedHost =
+          ctx.conferredToPermanentId !== undefined &&
+          ctx.trigger.deletedPermanentIds?.includes(ctx.conferredToPermanentId) === true;
+        if (!conferredFromDeletedHost) return false;
+      }
       if (!opts.isLinked) return true;
 
       const hostInstanceId = ctx.trigger.deletedLinkHostInstanceByLinkedInstanceId?.[ctx.source.instanceId];
@@ -226,6 +232,9 @@ export const whenBlocked = (opts: BuilderOptions): Effect =>
 
 /** start/end/your-turn windows (source rule implementation, rule implementation, ...). */
 export const turnTiming = (opts: BuilderOptions): Effect => build(opts, {});
+
+/** A [Hand][Counter] effect activates from the defending player's hand. */
+export const handCounter = (opts: BuilderOptions): Effect => build(opts, { baseGuard: inHandZone });
 
 /** "When Moving" effects trigger only for the permanent that actually moved. */
 export const whenMoving = (opts: BuilderOptions): Effect =>

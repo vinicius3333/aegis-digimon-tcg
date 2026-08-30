@@ -56,4 +56,85 @@ describe("BT16-025", () => {
     expect(observe(s.engine).isRestricted(s.perm("oneSource"), "unsuspend")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("twoSources"), "unsuspend")).toBe(true);
   });
+
+  it("Q2622 naturally suspends by stack-count on a non-DNA digivolution without the DNA-only lock", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT16-018", as: "base" }],
+          hand: [{ card: "BT16-025", as: "paildramon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "noSources" },
+            { card: "BT1-010", as: "oneSource", under: ["BT1-011"] },
+            { card: "BT1-011", as: "twoSources", under: ["BT1-009", "BT1-010"] },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("paildramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "BT16-025");
+
+    expect(s.perm("noSources").isSuspended).toBe(true);
+    expect(s.perm("oneSource").isSuspended).toBe(true);
+    expect(s.perm("twoSources").isSuspended).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("noSources"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("oneSource"), "unsuspend")).toBe(false);
+  });
+
+  it("naturally suspends an opposing target when attacking once per turn", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT16-025", as: "paildramon" }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("paildramon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").isSuspended);
+
+    expect(s.perm("target").isSuspended).toBe(true);
+  });
+
+  it("naturally unsuspends itself when its once-per-turn attack effect cannot suspend", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT16-025", as: "paildramon" }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("paildramon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("paildramon").isSuspended === false);
+
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.perm("paildramon").isSuspended).toBe(false);
+  });
 });

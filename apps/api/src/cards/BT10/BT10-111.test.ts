@@ -1,11 +1,28 @@
 import { describe, expect, it } from "vitest";
-import type { PlayerState } from "@aegis/shared";
+import { digiXrosRequirementFor, type PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT10-111.js";
+import { compiled } from "./BT10-111.js";
 
 describe("BT10-111 Shoutmon (King Version)", () => {
+  it("registers one Xros Heart DigiXros material for a two-memory reduction", () => {
+    const requirement = [{ materials: [{ traits: ["Xros Heart"] }], count: 2 }];
+    expect(compiled.digiXrosRequirement).toEqual(requirement);
+    expect(digiXrosRequirementFor("BT10-111")).toEqual(requirement);
+  });
+
+  it("does not invent a Security effect absent from the catalog", () => {
+    expect(compiled.effects.some((effect) => effect.trigger === "Security")).toBe(false);
+  });
+
+  it("limits DigiXros substitution to the current turn", () => {
+    const substitution = compiled.effects
+      .find((effect) => effect.trigger === "OnPlay")
+      ?.actions.find((action) => action.kind === "GainKeyword");
+    expect(substitution).toMatchObject({ kind: "GainKeyword", duration: "forTheTurn" });
+  });
+
   it("Material Saves one matching Xros Heart material under a Tamer when deleted", async () => {
     const s = setupEngine(
       {

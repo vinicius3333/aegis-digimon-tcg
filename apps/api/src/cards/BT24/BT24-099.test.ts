@@ -74,7 +74,7 @@ describe("BT24-099 Super Hacking", () => {
       0: {
         battleArea: ["BT21-009"],
         hand: [{ card: "BT24-099", as: "option" }],
-        deck: ["BT1-001", "BT1-002"],
+        deck: ["BT4-022", "BT4-022"],
       },
     });
     s.state.memory = 3;
@@ -111,7 +111,7 @@ describe("BT24-099 Super Hacking", () => {
         sourceInstanceId: s.inst("option").instanceId,
         effectKey: delayEffectKey(s),
       }),
-    ).toEqual({ ok: true });
+    ).toEqual({ ok: false, reason: "illegal-target" });
     await settle();
 
     expect(s.perm("host").linked).toHaveLength(0);
@@ -126,6 +126,7 @@ describe("BT24-099 Super Hacking", () => {
           battleArea: [
             { card: "BT24-099", as: "option" },
             { card: "BT21-009", as: "host" },
+            { card: "BT1-009", as: "deletedTarget" },
           ],
           trash: [
             { card: "BT24-071", as: "deletedAppmon" },
@@ -138,9 +139,8 @@ describe("BT24-099 Super Hacking", () => {
     preferred.push(s.inst("deletedAppmon").instanceId);
     await s.ready();
     s.perm("option").enterFieldTurnCount = s.state.turnCount - 1;
-    await advance(s.engine).fireSubTrigger("onDeletionOf", {
-      subjectPermanentId: s.perm("host").permanentId,
-    });
+    s.perm("option").placedByEffect = true;
+    await advance(s.engine).verb.deletePermanent([s.perm("deletedTarget").permanentId]);
 
     expect(
       s.engine.applyIntent(0, {

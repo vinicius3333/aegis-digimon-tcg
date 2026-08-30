@@ -18,7 +18,6 @@ const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: 1,
-            sameTarget: true,
           },
         },
         {
@@ -29,7 +28,6 @@ const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: 1,
-            sameTarget: true,
           },
           restriction: "unsuspend",
           duration: "untilOpponentTurnEnd",

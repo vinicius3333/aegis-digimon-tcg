@@ -15,6 +15,7 @@ const compiled: CompiledCard = {
               kind: ["Digimon", "Tamer"],
             },
             count: 1,
+            bindResultAs: "samadhiSuspended",
           },
           cost: {
             kind: "suspend",
@@ -38,6 +39,9 @@ const compiled: CompiledCard = {
               suspended: true,
             },
             count: 1,
+          },
+          condition: {
+            kind: "ifThisEffectActed",
           },
           restriction: "unsuspend",
           duration: "untilOpponentTurnEnd",

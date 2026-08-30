@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectDuration, EffectTiming, Phase } from "@aegis/shared";
+import { EffectDuration, Phase, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -7,6 +7,19 @@ import "../index.js";
 import { compiled } from "./BT15-027.js";
 
 describe("BT15-027", () => {
+  it("matches the immutable catalog identity and blue level-4 evolution route", () => {
+    expect(getCardDefinition("BT15-027")).toMatchObject({
+      nameEn: "Scorpiomon",
+      colors: ["Blue"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 6,
+      dp: 6000,
+      evoCosts: [{ color: "Blue", level: 4, memoryCost: 3 }],
+      types: ["Ancient Crustacean"],
+    });
+  });
+
   it("reveals four to add up to two level 6 or higher cards", () =>
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "OnPlay",
@@ -31,7 +44,7 @@ describe("BT15-027", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT15-027", as: "scorpiomon" }],
+          hand: [{ card: "BT15-027", as: "scorpiomon" }],
           deck: [
             { card: "BT15-031", as: "hitOne" },
             { card: "BT15-052", as: "hitTwo" },
@@ -43,7 +56,8 @@ describe("BT15-027", () => {
       { autoSelectCards: true, autoOrderCards: true },
     );
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("scorpiomon"));
+    s.state.memory = 6;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("scorpiomon").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.length === 2);
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
@@ -58,7 +72,7 @@ describe("BT15-027", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT15-027", as: "scorpiomon" }],
+          hand: [{ card: "BT15-027", as: "scorpiomon" }],
           deck: [
             { card: "BT15-031", as: "onlyHit" },
             "BT15-025",
@@ -70,7 +84,8 @@ describe("BT15-027", () => {
       { autoSelectCards: true, autoOrderCards: true },
     );
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("scorpiomon"));
+    s.state.memory = 6;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("scorpiomon").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.length === 1);
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("onlyHit").instanceId]);
@@ -86,24 +101,27 @@ describe("BT15-027", () => {
             { card: "BT15-027", as: "scorpiomon" },
           ],
           hand: [{ card: "BT15-031", as: "metalSeadramon" }],
+          deck: ["BT1-001"],
         },
         1: {
           battleArea: [{ card: "BT15-025", as: "onPlayTarget" }],
           security: ["BT1-001"],
+          deck: ["BT1-001"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.turnCount = 1;
+    s.state.turnSeat = 0;
     const sacrificeId = s.perm("sacrifice").permanentId;
+    const onPlayTargetId = s.perm("onPlayTarget").permanentId;
 
-    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("scorpiomon"));
+    await advance(s.engine).runTurn(0);
     await settle(() => s.state.players[0]!.breeding?.topCard.cardId === "BT15-031");
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("sacrifice").instanceId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === sacrificeId)).toBe(false);
-    expect(s.perm("onPlayTarget").permanentId).toBeDefined();
-    expect(s.state.players[0]!.breeding?.enterFieldTurnCount).toBe(1);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === onPlayTargetId)).toBe(true);
 
     s.state.phase = Phase.Breeding;
     expect(
@@ -134,10 +152,12 @@ describe("BT15-027", () => {
             { card: "BT15-027", as: "scorpiomon" },
           ],
           hand: [{ card: "BT15-031", as: "metalSeadramon" }],
+          deck: ["BT1-001"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.turnSeat = 0;
     advance(s.engine).ledgers.continuous.addPlayProhibition(
       0,
       1,
@@ -148,7 +168,7 @@ describe("BT15-027", () => {
     );
     const sacrificeId = s.perm("sacrifice").permanentId;
 
-    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("scorpiomon"));
+    await advance(s.engine).runTurn(0);
 
     expect(s.state.players[0]!.breeding).toBeUndefined();
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("metalSeadramon").instanceId);
@@ -159,7 +179,9 @@ describe("BT15-027", () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 5000 }], security: ["BT1-001"] },
       1: {
-        battleArea: [{ card: "BT15-025", as: "host", under: ["BT15-027"], dp: 6000 }],
+        battleArea: [
+          { card: "BT15-031", as: "host", under: ["BT15-025", "BT15-027"], dp: 11000 },
+        ],
         security: ["BT1-001"],
       },
     });

@@ -27,6 +27,7 @@ describe("BT16-067", () => {
   });
 
   it("trashes a hand card to boost an own Digimon on play", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -37,9 +38,11 @@ describe("BT16-067", () => {
           battleArea: [{ card: "BT1-009", as: "ally", dp: 3000 }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.perm("ally").permanentId);
     s.state.memory = 3;
+    await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lopmon").instanceId })).toEqual({
       ok: true,
@@ -48,5 +51,31 @@ describe("BT16-067", () => {
 
     expect(s.perm("ally").currentDP).toBe(6000);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("payment").instanceId)).toBe(true);
+  });
+
+  it("draws when a peer effect naturally plays another Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-044", as: "launcher", under: ["BT1-040", "BT1-036", "BT16-067"] }],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("launcher").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.deck.length === 0 && s.state.players[0]!.hand.length === 1);
+
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-036")).toBe(true);
   });
 });

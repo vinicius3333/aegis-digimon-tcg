@@ -28,6 +28,7 @@ const compiled: CompiledCard = {
               controller: "mine",
               kind: ["Digimon"],
               multicolor: true,
+              colorCount: 2,
               colors: ["Red", "Purple"],
               levelComparison: {
                 op: "lte",
@@ -64,6 +65,7 @@ const compiled: CompiledCard = {
               controller: "mine",
               kind: ["Digimon"],
               multicolor: true,
+              colorCount: 2,
               colors: ["Red", "Purple"],
               levelComparison: {
                 op: "lte",

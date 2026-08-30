@@ -36,16 +36,6 @@ const compiled: CompiledCard = {
           consumeBindAs: "digivolvedWithMegaDigimonFusion",
           onConsume: [
             {
-              kind: "TrashDigivolution",
-              target: {
-                filter: {},
-                count: 1,
-                fromSelectionRef: "digivolvedWithMegaDigimonFusion",
-              },
-              amount: 99,
-              raw: "Trash all of the digivolution cards of that Digimon.",
-            },
-            {
               kind: "Return",
               target: {
                 filter: {},

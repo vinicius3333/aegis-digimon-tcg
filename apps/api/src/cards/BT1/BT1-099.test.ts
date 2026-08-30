@@ -7,16 +7,16 @@ describe("BT1-099 Hearts Attack", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-028", as: "ownLoaded", under: ["BT1-001"] }],
+          battleArea: [{ card: "BT1-028", as: "ownLoaded", under: ["BT1-003"] }],
           hand: [{ card: "BT1-099", as: "option" }],
         },
         1: {
           battleArea: [
-            { card: "BT2-047", as: "emptyTarget" },
+            { card: "BT1-021", as: "emptyTarget" },
             {
-              card: "BT2-047",
+              card: "BT1-021",
               as: "loadedTarget",
-              under: ["BT1-001", "BT1-002", "BT1-003"],
+              under: ["BT1-001", "BT1-010", "BT1-014"],
             },
           ],
         },
@@ -75,11 +75,11 @@ describe("BT1-099 Hearts Attack", () => {
         },
         1: {
           battleArea: [
-            { card: "BT2-047", as: "emptyTarget" },
+            { card: "BT1-021", as: "emptyTarget" },
             {
-              card: "BT2-047",
+              card: "BT1-021",
               as: "loadedTarget",
-              under: ["BT1-001", "BT1-002", "BT1-003"],
+              under: ["BT1-001", "BT1-010", "BT1-014"],
             },
           ],
         },

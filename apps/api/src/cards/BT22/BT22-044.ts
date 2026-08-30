@@ -34,6 +34,7 @@ export const compiled: CompiledCard = {
             kind: "place",
             target: {
               filter: {
+                isSelfRef: true,
                 controllerDefault: "mine",
                 kind: ["Digimon"],
                 nameOrTrait: [
@@ -44,6 +45,7 @@ export const compiled: CompiledCard = {
                 ],
               },
               count: 1,
+              isSelf: true,
             },
             raw: "By placing this [CS] trait Digimon's top stacked card as its bottom digivolution card",
           },

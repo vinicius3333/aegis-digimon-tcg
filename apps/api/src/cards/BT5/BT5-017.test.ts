@@ -44,7 +44,7 @@ describe("BT5-017 ZeigGreymon", () => {
 
   it("lets a Blitz host attack an opposing unsuspended Digimon", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT5-019", as: "host", under: ["BT5-017"] }] },
+      0: { battleArea: [{ card: "BT1-084", as: "host", under: ["BT5-017"] }] },
       1: { battleArea: [{ card: "BT5-071", as: "unsuspended" }] },
     });
     (s.engine as any).primitives.grantKeyword(s.perm("host").permanentId, "Blitz", EffectDuration.UntilEachTurnEnd);
@@ -57,6 +57,22 @@ describe("BT5-017 ZeigGreymon", () => {
         target: { kind: "permanent", permanentId: s.perm("unsuspended").permanentId },
       }),
     ).toEqual({ ok: true });
+  });
+
+  it("does not allow an unsuspended-target attack without Blitz", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-084", as: "host", under: ["BT5-017"] }] },
+      1: { battleArea: [{ card: "BT5-071", as: "unsuspended" }] },
+    });
+    await s.engine.recomputeContinuousEffects();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("unsuspended").permanentId },
+      }).ok,
+    ).toBe(false);
   });
 
   it("uses the actual digivolution-granted Blitz while the opponent has memory", async () => {
@@ -103,7 +119,7 @@ describe("BT5-017 ZeigGreymon", () => {
 
   it("only allows the inherited unsuspended-target attack during your turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT5-019", as: "host", under: ["BT5-017"] }] },
+      0: { battleArea: [{ card: "BT1-084", as: "host", under: ["BT5-017"] }] },
       1: { battleArea: [{ card: "BT5-071", as: "unsuspended" }] },
     });
     s.state.turnSeat = 1;

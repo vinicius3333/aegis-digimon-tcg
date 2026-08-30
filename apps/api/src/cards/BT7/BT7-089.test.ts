@@ -90,8 +90,8 @@ describe("BT7-089 J.P. Shibayama", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("hybrid").topCard.instanceId === s.inst("rhino").instanceId);
 
-    // J.P.'s -1 applies only when the Tamer itself digivolves and must not remain
-    // active from the inherited stack; Rhino pays its printed cost.
-    expect(s.state.memory).toBe(0);
+    // J.P.'s -1 no longer applies from the inherited stack. Rhino's own hand-resident
+    // reducer still sees the Tamer card in the stack, so its printed cost 3 becomes 1.
+    expect(s.state.memory).toBe(2);
   });
 });

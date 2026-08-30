@@ -1,6 +1,7 @@
 // Revealing and searching deck, hand, trash, and security.
 
 import type { Filter, Target } from "../filters/filter.js";
+import type { Scaling } from "../predicates/scaling.js";
 import type { Controller, ZoneRef } from "../filters/zones.js";
 import type { ActionBase } from "./base.js";
 
@@ -13,7 +14,11 @@ export interface HandRevealAddAction extends ActionBase {
 
 export interface RevealAddAction extends ActionBase {
   kind: "RevealAdd";
+  /** Whose deck is revealed; omitted means the source owner's deck. */
+  controller?: Controller;
   revealCount: number;
+  /** Multiply the base reveal count by a live board-derived scale factor. */
+  revealScaling?: Scaling;
   /**
    * A "digivolve into 1 revealed card" branch that runs before the add dispositions. When
    * declined or unavailable, an add slot marked `ifDigivolveDeclined` resolves as the printed
@@ -133,7 +138,8 @@ export interface SearchAction extends ActionBase {
   controller: Controller;
   filter: Filter;
   count: number | "all";
-  to?: "hand";
+  /** Add the selected cards to hand, or expose the full matching search set to a following action. */
+  to?: "hand" | "revealed";
   /** Play the selected cards instead of adding them to hand. */
   then?: {
     kind: "PlayWithoutCost";

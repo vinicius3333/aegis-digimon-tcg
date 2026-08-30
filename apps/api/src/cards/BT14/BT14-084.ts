@@ -30,13 +30,7 @@ export const compiled: CompiledCard = {
           from: ["hand"],
           toTop: false,
           cost: {
-            kind: "return",
-            target: {
-              filter: {
-                controller: "mine",
-              },
-              count: 1,
-            },
+            kind: "securityToHand",
             raw: "By returning the top card of your security stack to the hand",
           },
           optional: true,

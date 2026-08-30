@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT11-032.js";
+import "./BT11-090.js";
+import "./BT11-112.js";
 
 describe("BT11-032 UlforceVeedramon", () => {
   it("matches the catalog and carries every complete printed contract", () => {
@@ -148,7 +150,7 @@ describe("BT11-032 UlforceVeedramon", () => {
         },
         1: { battleArea: [{ card: "BT11-028", as: "level5" }] },
       },
-      { autoSelectCards: true },
+      { autoDeclineOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
     const targetId = s.perm("level5").topCard!.instanceId;
@@ -179,7 +181,7 @@ describe("BT11-032 UlforceVeedramon", () => {
           },
           1: { battleArea: [{ card: targetCard, as: "target" }] },
         },
-        { autoSelectCards: true },
+        { autoDeclineOptional: true, autoSelectCards: true },
       );
       await advance(s.engine).verb.unsuspend([s.perm("ulforce").permanentId]);
       await settle(() => s.perm("ulforce").isSuspended === false);

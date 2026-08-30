@@ -1,5 +1,14 @@
 # BT26 Audit Ledger
 
+> **Historical ledger — superseded for current status.** This file records an
+> earlier audit/execution pass. Its 10/10 labels, PASS results, and closeout
+> language are not the current BT26 audit status. The authoritative 2026-08-29
+> static campaign ledger is `BT26-STATIC-AUDIT.md`, supported by the 11 reports
+> under `internal-docs/audits/BT26/`: 104/104 cards have provisional static
+> coverage, the subtotal is 765/1040, 59 cards are below 8/10, two net semantic
+> corrections were integrated, and Executed delivery gates remain 0/2 for every
+> card. No current collection-complete claim is made.
+
 Cards are audited independently in ascending card-ID order. A card receives 10/10 only when its complete catalog and local knowledge-base contract maps to compiled IR, all relevant shared semantics are traced, and observable behavioral tests prove every applicable boundary.
 
 ## BT26-001 — Yokomon — 10/10

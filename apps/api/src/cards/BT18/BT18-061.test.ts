@@ -124,6 +124,29 @@ describe("BT18-061 Trailmon", () => {
     assertNoLoudGap(s);
   });
 
+  it("resolves the end-of-opponent-turn play from a natural completed turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT18-061", as: "trailmon", under: ["BT18-088"] }],
+        },
+        1: { deck: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    // The turn machine needs a positive entry gauge to open seat 1's Main phase; the
+    // end-of-opponent-turn timing still fires when that natural turn subsequently ends.
+    s.state.memory = 4;
+    await s.ready();
+
+    await advance(s.engine).runTurn(1);
+
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT18-088")).toBe(true);
+    expect(s.perm("trailmon").stack).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
   it("grants inherited Collision only to a Machine host during its controller's turn", async () => {
     const s = setupEngine({
       0: {

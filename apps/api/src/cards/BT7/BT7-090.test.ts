@@ -1,9 +1,16 @@
 import { describe, expect, it } from "vitest";
 import type { PlayerState } from "@aegis/shared";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT7-090.js";
 
 describe("BT7-090 Kota Domoto", () => {
+  it("uses trait-substring matching for X Antibody", () => {
+    expect(runtimeCompiledCard("BT7-090")?.effects[1]?.actions[0]).toMatchObject({
+      add: [{ filter: { nameOrTrait: [{ tokens: ["X-Antibody"], match: "traitContains" }] } }],
+    });
+  });
+
   it("adds an X-Antibody card from the revealed cards", async () => {
     const s = setupEngine(
       {

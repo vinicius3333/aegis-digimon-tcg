@@ -34,7 +34,8 @@ export const compiled: CompiledCard = {
             ],
           },
           from: ["trash"],
-          reduceCostBy: 4,
+          payCost: true,
+          reduceCost: 4,
           optional: true,
         },
         {
@@ -44,64 +45,47 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "AllTurns",
-      actions: [
-        {
-          kind: "Replacement",
-          event: "wouldLeavePlay",
-          sourceFilter: {
-            controller: "mine",
-            nameOrTrait: [
-              {
-                tokens: ["DexDorugoramon"],
-                match: "name",
-              },
-            ],
-          },
-          actions: [
-            {
-              kind: "GainKeyword",
-              target: {
-                filter: {
-                  isSelfRef: true,
-                },
-                count: 1,
-                isSelf: true,
-              },
-              keyword: {
-                keyword: "Delay",
-                raw: "＜Delay＞",
-              },
-              duration: "permanent",
-            },
-          ],
-        },
-      ],
-    },
-    {
-      trigger: "Main",
       keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
       actions: [
         {
-          requiresDelayArmed: true,
-          kind: "PlayWithoutCost",
-          target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["DeathXmon"], match: "name" }] }, count: 1 },
-          from: ["trash"],
-          payCost: false,
-          cost: {
-            kind: "return",
-            target: {
-              sourceRef: "triggerSubject",
-              filter: {
-                controller: "mine",
-                zone: "digivolutionCards",
-                nameOrTrait: [{ tokens: ["Dorumon"], match: "name" }],
-              },
-              count: 1,
-            },
-            raw: "By returning 1 [Dorumon] from those Digimon's digivolution cards to the hand",
+          kind: "SubTrigger",
+          event: "whenDigimonWouldLeave",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["DexDorugoramon"], match: "nameExact" }],
           },
-          optional: true,
-          abortOnDecline: true,
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["DeathXmon"], match: "nameExact" }],
+                },
+                count: 1,
+              },
+              from: ["trash"],
+              payCost: false,
+              cost: {
+                kind: "return",
+                target: {
+                  filter: {
+                    controller: "mine",
+                    kind: ["Digimon"],
+                    zone: "digivolutionCards",
+                    hostFilter: { isTriggerSource: true },
+                    nameOrTrait: [{ tokens: ["Dorumon"], match: "nameExact" }],
+                  },
+                  count: 1,
+                },
+                raw: "By returning 1 [Dorumon] from those Digimon's digivolution cards to the hand",
+              },
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
         },
       ],
     },
@@ -113,10 +97,11 @@ export const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
+              kind: ["Digimon"],
               nameOrTrait: [
                 {
                   tokens: ["Dorumon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },

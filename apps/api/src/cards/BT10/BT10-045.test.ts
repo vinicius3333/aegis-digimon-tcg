@@ -18,7 +18,7 @@ describe("BT10-045 Kokuwamon", () => {
 
   it("gains 1 memory from its host's real battle deletion", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT10-054", as: "host", under: ["BT10-045"] }] },
+      0: { battleArea: [{ card: "BT10-054", as: "host", under: ["BT10-045"] }, "BT1-085"] },
       1: { battleArea: [{ card: "BT10-043", as: "target", suspended: true }] },
     });
     await s.ready();

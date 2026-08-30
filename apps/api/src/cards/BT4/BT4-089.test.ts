@@ -8,7 +8,7 @@ describe("BT4-089 Plutomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT10-012", as: "base" }],
+          battleArea: [{ card: "BT4-085", as: "base", under: ["BT4-081"] }],
           hand: [
             { card: "BT4-089", as: "evolving" },
             { card: "BT4-111", as: "option" },
@@ -40,7 +40,7 @@ describe("BT4-089 Plutomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT10-012", as: "base" }],
+          battleArea: [{ card: "BT4-085", as: "base", under: ["BT4-081"] }],
           hand: [
             { card: "BT4-089", as: "evolving" },
             { card: "BT4-098", as: "redOption" },

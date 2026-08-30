@@ -8,6 +8,7 @@ describe("BT22-077 Dianamon", () => {
     expect(effect?.actions[0]).toMatchObject({
       kind: "TrashDigivolution",
       amount: 4,
+      scope: "acrossDigimon",
       condition: { kind: "stackHasSameLevelCards", minCount: 2 },
     });
     expect(effect?.actions[1]).toMatchObject({

@@ -1,10 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
+import { getCardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-047.js";
 import "./index.js";
 
 describe("BT17-047 Parrotmon", () => {
+  it("matches the catalog identity and evolution route", () => {
+    expect(getCardDefinition("BT17-047")).toMatchObject({
+      cardId: "BT17-047",
+      colors: ["Green"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
+      evoCosts: [{ color: "Green", level: 4, memoryCost: 3 }],
+    });
+  });
+
   it("plays itself from security at battle end only when you have no Digimon", () => {
     expect(compiled.effects.find((entry) => entry.trigger === "Security")?.actions[0]).toMatchObject({
       kind: "PlayWithoutCost",
@@ -78,13 +89,18 @@ describe("BT17-047 Parrotmon", () => {
       },
       { autoAcceptOptional: true },
     );
-    const targetId = s.perm("target").permanentId;
     await s.ready();
 
-    s.perm("host").isSuspended = true;
-    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", { subjectPermanentId: s.perm("host").permanentId });
-    await settle(() => !s.perm("host").isSuspended);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-020"));
 
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-020")).toBe(false);
     expect(s.perm("host").isSuspended).toBe(false);
   });
 });

@@ -41,9 +41,15 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "EndOfYourTurn",
+      optional: true,
       actions: [
         {
           kind: "Attack",
+          attacker: {
+            filter: { isSelfRef: true },
+            count: 1,
+            isSelf: true,
+          },
           target: {
             filter: {
               controller: "opponent",
@@ -52,6 +58,7 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           attackPlayer: false,
+          mandatory: true,
         },
       ],
     },

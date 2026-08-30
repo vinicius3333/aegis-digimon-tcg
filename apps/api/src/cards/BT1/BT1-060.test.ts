@@ -69,4 +69,32 @@ describe("BT1-060 MagnaAngemon", () => {
 
     expect(s.perm("host").currentDP).toBe(6000);
   });
+
+  it("does not recover when MagnaAngemon is digivolved", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-056", as: "base" }],
+        hand: [{ card: "BT1-060", as: "magnaAngemon" }],
+        deck: [
+          { card: "BT1-010", as: "evolutionDraw" },
+          { card: "BT1-049", as: "mustStayInDeck" },
+        ],
+        security: [{ card: "BT1-050", as: "existing" }],
+      },
+    });
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("magnaAngemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("magnaAngemon").instanceId);
+
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("existing").instanceId);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(s.inst("mustStayInDeck").instanceId);
+  });
 });

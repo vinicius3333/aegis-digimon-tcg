@@ -47,6 +47,28 @@ describe("BT23-097 Seventh Penetration", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === survivorId)).toBe(true);
   });
 
+  it("treats the printed By return as optional and aborts the Main tail when declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-070", as: "belphemon" }],
+          trash: [{ card: "BT23-097", as: "option" }],
+          hand: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: { battleArea: [{ card: "BT23-010", as: "target" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const optionId = s.inst("option").instanceId;
+    const targetId = s.perm("target").permanentId;
+    await s.ready();
+    await advance(s.engine).fireSubTrigger("whenOneOfYoursDigivolves", {
+      subjectPermanentId: s.perm("belphemon").permanentId,
+    });
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(true);
+  });
+
   it("returns itself to the bottom of the deck before activating Main", () => {
     const trigger = compiled.effects.find((effect) => effect.trigger === "YourTurn") as any;
     const action = trigger.actions[0].actions[0];

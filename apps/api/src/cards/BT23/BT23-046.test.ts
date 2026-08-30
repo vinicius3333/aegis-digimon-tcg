@@ -26,7 +26,7 @@ describe("BT23-046 Rosemon", () => {
     expect(compiled.residual).toEqual([]);
   });
 
-  it("may suspend an opponent's Digimon as the cost and locks it from unsuspending", async () => {
+  it("accepts the optional By condition and suspends an opponent's Digimon as the cost", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT23-046", as: "rose", suspended: true }] },
@@ -43,6 +43,25 @@ describe("BT23-046 Rosemon", () => {
 
     expect(s.perm("costCandidate").isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("costCandidate"), "unsuspend")).toBe(true);
+  });
+
+  it("may decline the optional By condition without paying or restricting", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-046", as: "rose" },
+            { card: "BT1-009", as: "costCandidate" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT22-083", as: "target", suspended: true }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("rose"));
+
+    expect(s.perm("costCandidate").isSuspended).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(false);
   });
 
   it("redirects an opponent's player attack to a suspended qualifying Digimon", async () => {

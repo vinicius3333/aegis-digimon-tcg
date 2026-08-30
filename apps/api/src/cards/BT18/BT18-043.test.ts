@@ -1,6 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
-import { EffectTiming } from "@aegis/shared";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
@@ -13,7 +11,6 @@ describe("BT18-043 Tinkermon", () => {
     await s.ready();
     s.state.memory = 10;
     const initialMemory = s.state.memory;
-    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("tinkermon"));
 
     expect(
       s.engine.applyIntent(0, {

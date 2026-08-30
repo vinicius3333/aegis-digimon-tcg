@@ -54,6 +54,12 @@ export const compiled: CompiledCard = {
               target: {
                 filter: {
                   isSelfRef: true,
+                  nameOrTrait: [
+                    {
+                      tokens: ["Demon", "Titan"],
+                      match: "trait",
+                    },
+                  ],
                 },
                 count: 1,
                 isSelf: true,

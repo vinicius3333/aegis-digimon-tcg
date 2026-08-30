@@ -48,4 +48,23 @@ describe("BT8-018 Marsmon", () => {
     expect(s.perm("marsmon").isSuspended).toBe(false);
     expect(s.state.players[1]!.battleArea).toHaveLength(2);
   });
+
+  it("digivolves from a red level-5 Digimon for 3 memory", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-020", as: "base" }], hand: [{ card: "BT8-018", as: "marsmon" }] },
+    });
+    s.state.memory = 4;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("marsmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT8-018");
+
+    expect(s.perm("base").topCard.cardId).toBe("BT8-018");
+    expect(s.state.memory).toBe(1);
+  });
 });

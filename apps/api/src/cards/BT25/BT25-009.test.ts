@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -6,6 +6,21 @@ import { compiled as BT25_009 } from "./BT25-009.js";
 import "../index.js";
 
 describe("BT25-009 Bearmon", () => {
+  it("matches the catalog identity and Iliad TS traits", () => {
+    expect(getCardDefinition("BT25-009")).toMatchObject({
+      cardId: "BT25-009",
+      nameEn: "Bearmon",
+      colors: ["Red"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 1000,
+      forms: ["Rookie"],
+      attributes: ["Vaccine"],
+      types: ["Beast", "Iliad", "TS"],
+    });
+  });
+
   it("offers the free hand digivolution only at 4 or less memory", () => {
     const effect = BT25_009.effects?.find((entry) => entry.trigger === "StartOfYourMainPhase");
     expect(effect?.actions?.[0]).toMatchObject({

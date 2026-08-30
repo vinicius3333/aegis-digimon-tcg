@@ -28,13 +28,24 @@ describe("BT17-101 Fenriloogamon: Takemikazuchi — [When Attacking] security tr
         levels: [6],
         nameOrTrait: [{ tokens: ["Pulsemon"], match: "text" }],
       },
-      actions: [{ kind: "DnaDigivolve", materials: { count: 2 }, optional: true }],
+      actions: [
+        {
+          kind: "DnaDigivolve",
+          materials: { count: 2 },
+          into: { controllerDefault: "mine", zone: "trash", isSelfRef: true },
+          optional: true,
+        },
+      ],
     });
   });
 
   it("keeps the Tamer recovery branch independent from the DNA condition", () => {
     const effect = compiled.effects.find((entry) => entry.trigger === "WhenDigivolving");
-    expect(effect?.actions[1]).toMatchObject({ kind: "SetMemory", condition: { kind: "isDnaDigivolving" } });
+    expect(effect?.actions[1]).toMatchObject({
+      kind: "SetMemory",
+      controller: "opponent",
+      condition: { kind: "isDnaDigivolving" },
+    });
     expect(effect?.actions[2]).toMatchObject({
       kind: "GainMemory",
       condition: { kind: "selfDigivolutionStackMatchesFilter", filter: { kind: ["Tamer"] } },
@@ -42,10 +53,10 @@ describe("BT17-101 Fenriloogamon: Takemikazuchi — [When Attacking] security tr
     expect(effect?.actions[3]).toMatchObject({ kind: "GainKeyword", keyword: { keyword: "Recovery", amount: 1 } });
   });
 
-  it("retains the handwritten opponent-memory assignment", () => {
+  it("retains the opponent-seat memory assignment", () => {
     const runtime = runtimeCompiledCard(FENRILOOGAMON)!;
     const whenDigivolving = runtime.effects.find((effect) => effect.trigger === "WhenDigivolving");
-    expect(whenDigivolving?.actions[1]).toMatchObject({ kind: "SetMemory", value: 3 });
+    expect(whenDigivolving?.actions[1]).toMatchObject({ kind: "SetMemory", value: 3, controller: "opponent" });
   });
 
   it("[When Attacking] trashes own top security to trash opponent's top security", async () => {

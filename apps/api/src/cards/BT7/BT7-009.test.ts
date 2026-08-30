@@ -8,7 +8,7 @@ describe("BT7-009 Huckmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-010", under: ["BT7-009"], as: "host" }],
+          battleArea: [{ card: "BT7-010", under: ["BT7-001", "BT7-009"], as: "host" }],
           deck: [
             { card: "BT6-082", as: "sister1" },
             { card: "BT6-084", as: "sister2" },
@@ -40,7 +40,7 @@ describe("BT7-009 Huckmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-010", under: ["BT7-009"], as: "host" }],
+          battleArea: [{ card: "BT7-010", under: ["BT7-001", "BT7-009"], as: "host" }],
           deck: [
             { card: "BT6-082", as: "firstSister" },
             { card: "BT6-084", as: "secondSister" },

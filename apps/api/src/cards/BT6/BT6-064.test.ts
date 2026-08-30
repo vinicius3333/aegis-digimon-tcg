@@ -9,7 +9,12 @@ describe("BT6-064 Mamemon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT6-064", as: "mamemon" }] },
-        1: { battleArea: [{ card: "BT6-051", as: "target" }] },
+        1: {
+          battleArea: [
+            { card: "BT6-063", as: "targetAtSeven" },
+            { card: "BT6-078", as: "targetAtEight" },
+          ],
+        },
       },
       { autoSelectCards: true },
     );
@@ -17,8 +22,8 @@ describe("BT6-064 Mamemon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("mamemon"), "Decoy")).toBe(true);
 
     await advance(s.engine).verb.deletePermanent([s.perm("mamemon").permanentId], "byEffect");
-    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
 
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea[0]?.topCard?.cardId).toBe("BT6-078");
   });
 });

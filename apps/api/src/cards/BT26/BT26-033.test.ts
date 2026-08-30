@@ -76,7 +76,7 @@ describe("BT26-033 compiled fidelity", () => {
       {
         0: {
           battleArea: [
-            { card: "BT26-033", as: "jupitermon", under: [{ card: "BT1-009", as: "base" }] },
+            { card: "BT26-033", as: "jupitermon", under: [{ card: "BT26-030", as: "base" }] },
             { card: "BT26-013", as: "firstProtected" },
             { card: "BT26-030", as: "secondProtected" },
           ],

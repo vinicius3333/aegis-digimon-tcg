@@ -83,6 +83,24 @@ describe("BT14-022", () => {
     assertNoLoudGap(s);
   });
 
+  it("evolves legally from a blue level 3 for cost 2", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT14-020", as: "base" }], hand: [{ card: "BT14-022", as: "gesomon" }] },
+    });
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gesomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT14-022");
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT14-020"]);
+    expect(s.state.memory).toBe(2);
+    assertNoLoudGap(s);
+  });
+
   it("re-evaluates after trashing and can return that newly source-less Digimon", async () => {
     const s = setupEngine(
       {

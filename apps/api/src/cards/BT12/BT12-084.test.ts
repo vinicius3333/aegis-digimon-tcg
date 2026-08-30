@@ -42,6 +42,22 @@ it("applies both Blocker and return restriction when Sparrowmon is in its stack"
   expect(JSON.stringify(compiled.effects)).not.toContain('"kind":"Modal"');
 });
 
+it("keeps the Sparrowmon follow-up when the optional placement has no candidate", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "BT12-084", as: "jet", under: ["BT10-060"] },
+          { card: "BT1-009", as: "ally" },
+        ],
+      },
+    },
+    { autoDeclineOptional: true },
+  );
+  await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("jet"));
+  expect(observe(s.engine).hasKeyword(s.perm("ally"), "Blocker")).toBe(true);
+});
+
 it("keeps the protection after resolution against hand and deck returns", async () => {
   const s = setupEngine(
     {

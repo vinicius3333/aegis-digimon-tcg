@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-003.js";
 import "../index.js";
 
@@ -48,6 +48,28 @@ describe("BT21-003 Yokomon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT21-003", "BT21-033"]);
     expect(s.perm("host").topCard.cardId).toBe("BT21-034");
+  });
+
+  it("draws when a WG Digimon is played through the public play action", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-034", as: "host", under: ["BT21-003", "BT21-033"] }],
+          hand: [{ card: "BT21-034", as: "playedWG" }],
+          deck: [{ card: "BT1-001", as: "drawn" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("playedWG").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
   });
 
   it.each([

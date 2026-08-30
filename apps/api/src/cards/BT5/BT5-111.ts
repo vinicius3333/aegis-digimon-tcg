@@ -74,6 +74,7 @@ const compiled: CompiledCard = {
       names: ["Omnimon"],
       cost: 3,
       isAlternate: true,
+      battleAreaOnly: true,
     },
   ],
 };

@@ -1,13 +1,29 @@
 import { describe, expect, it } from "vitest";
 import { compiled as agumonExpert } from "./BT1-011.js";
 import { compiled as biyomon } from "./BT1-012.js";
+import muchomon from "./BT1-013.js";
+import kokatorimon from "./BT1-014.js";
 import { compiled as greymon } from "./BT1-015.js";
+import tyrannomon from "./BT1-016.js";
 import { compiled as birdramon } from "./BT1-017.js";
 import { compiled as flarerizamon } from "./BT1-018.js";
+import darkTyrannomon from "./BT1-019.js";
+import groundramon from "./BT1-020.js";
 
-describe("BT1-011 through BT1-018 IR coverage", () => {
+describe("BT1-011 through BT1-020 IR coverage", () => {
   it("registers each pending module with complete IR", () => {
-    for (const card of [agumonExpert, biyomon, greymon, birdramon, flarerizamon]) {
+    for (const card of [
+      agumonExpert,
+      biyomon,
+      muchomon,
+      kokatorimon,
+      greymon,
+      tyrannomon,
+      birdramon,
+      flarerizamon,
+      darkTyrannomon,
+      groundramon,
+    ]) {
       expect(card).toMatchObject({ coverage: "full", residual: [] });
     }
   });
@@ -21,5 +37,17 @@ describe("BT1-011 through BT1-018 IR coverage", () => {
       keyword: { keyword: "SecurityAttack", amount: 1 },
     });
     expect(flarerizamon.effects[0]?.actions[0]?.condition).toMatchObject({ kind: "memoryAtLeast", value: 3 });
+  });
+
+  it("retains the printed no-effect and keyword-only contracts", () => {
+    expect(muchomon.effects).toEqual([]);
+    expect(kokatorimon.effects).toEqual([]);
+    expect(tyrannomon.effects[0]).toMatchObject({
+      trigger: "Static",
+      actions: [],
+      keywords: [{ keyword: "Jamming" }],
+    });
+    expect(darkTyrannomon.effects).toEqual([]);
+    expect(groundramon.effects).toEqual([]);
   });
 });

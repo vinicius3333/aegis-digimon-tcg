@@ -30,7 +30,13 @@ describe("BT22-069 Lunamon", () => {
           optional: true,
           cost: {
             kind: "place",
-            target: { filter: { nameOrTrait: [{ tokens: ["Night Claw", "Light Fang"], match: "trait" }] } },
+            target: {
+              filter: {
+                isSelfRef: true,
+                nameOrTrait: [{ tokens: ["Night Claw", "Light Fang"], match: "trait" }],
+              },
+              isSelf: true,
+            },
           },
         },
       ],

@@ -32,6 +32,11 @@ describe("BT9-012 Greymon (X Antibody)", () => {
               mode: "prevent",
               leaveCause: "byEffect",
               optional: true,
+              sourceFilter: { isSelfRef: true },
+              condition: {
+                kind: "selfHasNameContaining",
+                names: ["Greymon", "Omnimon"],
+              },
               cost: {
                 kind: "trash",
                 target: { filter: { zone: "digivolutionCards", isSelfRef: true, sameLevelPair: true }, count: 2 },
@@ -121,6 +126,28 @@ describe("BT9-012 Greymon (X Antibody)", () => {
       expect(s.state.players[0]!.battleArea).toHaveLength(1);
       expect(s.state.players[0]!.trash).toHaveLength(2);
     }
+  });
+
+  it("does not let one inherited replacement protect a neighboring matching Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT9-015", as: "protected", under: ["BT9-012", "BT1-016"] },
+            { card: "BT1-021", as: "neighbor", under: ["BT1-016", "BT1-016"] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).verb.deletePermanent(
+      [s.perm("protected").permanentId, s.perm("neighbor").permanentId],
+      "byEffect",
+    );
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      s.perm("protected").permanentId,
+    ]);
+    expect(s.state.players[0]!.trash).toHaveLength(5);
   });
 
   it("does not prevent rule deletion even when the same-level cost is available", async () => {

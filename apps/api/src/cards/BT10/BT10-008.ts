@@ -3,7 +3,7 @@
 // RevealAdd Digimon filter: added [Xros Heart] trait requirement.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnPlay",
@@ -56,6 +56,10 @@ const compiled: CompiledCard = {
             },
             count: 1,
             isSelf: true,
+          },
+          underFilter: {
+            controller: "mine",
+            kind: ["Tamer"],
           },
           optional: true,
         },

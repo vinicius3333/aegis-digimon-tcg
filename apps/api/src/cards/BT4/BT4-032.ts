@@ -6,40 +6,14 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 //
-// Action order: TrashDigivolution (trash "that Digimon"'s digivolution cards, paying
-// Digi-Burst 2 cost) → Return (same target to hand via usePreviousTarget).
-// TrashDigivolution must precede Return so the digivolution stack is still accessible.
+// BT6-002 Q1399: the printed source-trash sentence explains the returned stack's
+// rule teardown. Canonical Return moves the attachments without emitting a
+// whenDigivolutionTrashed event.
 const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Main",
       actions: [
-        {
-          kind: "TrashDigivolution",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              levelComparison: {
-                op: "lte",
-                value: 4,
-              },
-            },
-            count: 1,
-          },
-          amount: "all",
-          cost: {
-            kind: "trash",
-            target: {
-              filter: {
-                isSelfRef: true,
-                zone: "digivolutionCards",
-              },
-              count: 2,
-            },
-            raw: "＜Digi-Burst 2＞",
-          },
-        },
         {
           kind: "Return",
           target: {
@@ -52,7 +26,17 @@ const compiled: CompiledCard = {
               },
             },
             count: 1,
-            sameTarget: true,
+          },
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                isSelfRef: true,
+                zone: "digivolutionCards",
+              },
+              count: 2,
+            },
+            raw: "＜Digi-Burst 2＞",
           },
           to: "hand",
         },

@@ -1,9 +1,31 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT18-036.js";
+import { compiled } from "./BT18-036.js";
+import "./BT18-019.js";
 
 describe("BT18-036 Wizardmon", () => {
+  it("limits inherited prevention to opponent effects and the yellow Data/Witchelny filter", () => {
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+    expect(compiled.effects[1]).toMatchObject({
+      trigger: "AllTurns",
+      isInherited: true,
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          leaveCause: "byOpponentEffect",
+          sourceFilter: {
+            colors: ["Yellow"],
+            nameOrTrait: [{ tokens: ["Data", "Witchelny"], match: "trait" }],
+          },
+        },
+      ],
+    });
+  });
+
   it("trashes the exact top security card, draws, and gains 1 memory when digivolving", async () => {
     const s = setupEngine(
       {
@@ -79,6 +101,32 @@ describe("BT18-036 Wizardmon", () => {
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([s.inst("security").instanceId]);
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("notDrawn").instanceId)).toBe(false);
+    assertNoLoudGap(s);
+  });
+
+  it("prevents a natural opponent-effect deletion by trashing the top security card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT18-036", as: "host", under: ["BT18-036"] }],
+          security: ["BT1-009", "BT1-010"],
+        },
+        1: { hand: [{ card: "BT18-019", as: "opponentRemover" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 20;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentRemover").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.length === 1);
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT18-036")).toBe(true);
+    expect(s.state.players[0]!.trash).toHaveLength(1);
+    expect(s.state.players[0]!.security).toHaveLength(1);
     assertNoLoudGap(s);
   });
 

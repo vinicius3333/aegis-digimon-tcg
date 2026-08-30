@@ -21,6 +21,7 @@ export const compiled: CompiledCard = {
               },
               count: 1,
               to: "hand",
+              upTo: true,
             },
             {
               filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }] },

@@ -24,6 +24,7 @@ describe("BT16-075", () => {
         {
           kind: "SubTrigger",
           event: "whenPlayed",
+          sourceFilter: { byEffect: true },
           actions: [{ kind: "GainKeyword", keyword: { keyword: "Rush" }, duration: "forTheTurn" }],
         },
       ],

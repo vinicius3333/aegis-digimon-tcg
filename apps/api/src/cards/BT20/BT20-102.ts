@@ -60,8 +60,12 @@ export const compiled: CompiledCard = {
             filter: {
               nameOrTrait: [
                 {
-                  tokens: ["Omnimon", "X Antibody"],
-                  match: "name",
+                  tokens: ["Omnimon"],
+                  match: "nameExact",
+                },
+                {
+                  tokens: ["X Antibody"],
+                  match: "trait",
                 },
               ],
             },
@@ -104,8 +108,12 @@ export const compiled: CompiledCard = {
             filter: {
               nameOrTrait: [
                 {
-                  tokens: ["Omnimon", "X Antibody"],
-                  match: "name",
+                  tokens: ["Omnimon"],
+                  match: "nameExact",
+                },
+                {
+                  tokens: ["X Antibody"],
+                  match: "trait",
                 },
               ],
             },
@@ -166,7 +174,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Omnimon"],
+      namesExact: ["Omnimon"],
       cost: 2,
       isAlternate: true,
     },

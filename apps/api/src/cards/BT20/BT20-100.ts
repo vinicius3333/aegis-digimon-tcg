@@ -33,7 +33,7 @@ export const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Cool Boy"],
-                    match: "name",
+                    match: "nameExact",
                   },
                 ],
               },
@@ -86,7 +86,15 @@ export const compiled: CompiledCard = {
           },
           target: {
             filter: {
-              useTriggerSource: true,
+              controller: "mine",
+              kind: ["Digimon"],
+              isTriggerSource: true,
+              nameOrTrait: [
+                {
+                  tokens: ["Omnimon"],
+                  match: "name",
+                },
+              ],
             },
             count: 1,
           },
@@ -105,7 +113,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Omekamon", "Cool Boy"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },

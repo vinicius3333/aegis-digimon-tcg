@@ -38,7 +38,7 @@ describe("BT2-112 BlackWarGreymon", () => {
     expect(s.state.memory).toBe(-6);
   });
 
-  it("unsuspends when attacking an opponent's highest-DP Digimon", async () => {
+  it("unsuspends when attacking either opponent Digimon tied for highest DP", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT2-112", as: "blackwar" }] },
       1: {
@@ -54,7 +54,7 @@ describe("BT2-112 BlackWarGreymon", () => {
       s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("blackwar").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("highest").permanentId },
+        target: { kind: "permanent", permanentId: s.perm("tiedHighest").permanentId },
       }),
     ).toEqual({ ok: true });
     await settle(() => !s.perm("blackwar").isSuspended);

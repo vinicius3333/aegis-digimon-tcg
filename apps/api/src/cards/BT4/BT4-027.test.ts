@@ -25,6 +25,22 @@ describe("BT4-027 KendoGarurumon", () => {
     expect(s.perm("tamer").topCard?.cardId).toBe("BT4-027");
   });
 
+  it("cannot use a non-blue Tamer as its alternate digivolution base", () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-085", as: "tamer" }], hand: [{ card: "BT4-027", as: "kendo" }] },
+    });
+    s.state.memory = 4;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("tamer").permanentId,
+        instanceId: s.inst("kendo").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("tamer").topCard?.cardId).toBe("BT1-085");
+  });
+
   it("returns a level 3 Digimon and trashes all of that Digimon's sources when attacking", async () => {
     const s = setupEngine(
       {

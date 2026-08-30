@@ -13,6 +13,19 @@ const VANILLA_CARD = "AD1-001"; // no keywords
 const RUSH_CARD = "AD1-002"; // printed <Rush>
 
 describe("Permanent.summoningSick projection", () => {
+  it("flags a Digimon that enters during turn zero", async () => {
+    const s = setup();
+    const p0 = s.state.players[0] as PlayerState;
+    const fresh = digimon(0, 5000, VANILLA_CARD);
+    fresh.enterFieldTurnCount = s.state.turnCount;
+    p0.battleArea.push(fresh);
+
+    await s.engine.recomputeContinuousEffects();
+
+    expect(s.state.turnCount).toBe(0);
+    expect(fresh.summoningSick).toBe(true);
+  });
+
   it("flags a Digimon that entered this turn and clears it once the turn moves on", async () => {
     const s = setup();
     const p0 = s.state.players[0] as PlayerState;

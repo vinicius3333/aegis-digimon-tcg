@@ -5,7 +5,8 @@
 //  1. digivolutionRequirement: the printed "Digivolve: 3 from [Alphamon] w/[Ouryumon]
 //     digivolution card" gates on BOTH the base's name AND a digivolution-stack NAME
 //     gate (the base must already have a card named Ouryumon stacked under it), not
-//     name alone. Uses the new minNameStackCount/minNameStackNames fields (the NAME-based
+//     name alone. Uses the exact namesExact base gate and the new minNameStackCount/
+//     minNameStackNames fields (the NAME-based
 //     sibling of the existing minTraitStackCount/minTraitStackTraits gate), enforced in
 //     apps/api/src/engine/actions/digivolve.ts.
 //  2. [End of Your Turn]: the Return of up to 7 [X Antibody] cards from THIS Digimon's
@@ -83,7 +84,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Alphamon"],
+      namesExact: ["Alphamon"],
       cost: 3,
       isAlternate: true,
       minNameStackCount: 1,

@@ -35,7 +35,7 @@ export const compiled: CompiledCard = {
               scaling: { per: 1, filter: { controller: "mine", excludeSelf: true, kind: ["Tamer"] }, unit: "cards" },
             },
           },
-          underFilter: { controllerDefault: "mine", kind: ["Tamer"] },
+          underFilter: { isSelfRef: true },
           optional: true,
         },
       ],
@@ -61,6 +61,13 @@ export const compiled: CompiledCard = {
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           attackPlayer: true,
           mandatory: false,
+          condition: {
+            kind: "selfHasTrait",
+            filter: {
+              nameOrTrait: [{ tokens: ["Hybrid", "Ten Warriors"], match: "trait" }],
+            },
+            raw: "this Digimon has the [Hybrid] or [Ten Warriors] trait",
+          },
         },
       ],
     },

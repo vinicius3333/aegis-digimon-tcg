@@ -1,10 +1,23 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
+import { definitionOf } from "../../engine/cards/cardData.js";
+import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT13-008.js";
+import { compiled } from "./BT13-008.js";
 
 describe("BT13-008 Agumon", () => {
+  it("keeps the bracketed Marcus Damon reference exact", () => {
+    const target = compiled.effects[0]!.actions[0] as unknown as {
+      target: { filter: { nameOrTrait: [{ tokens: string[]; match: string }] } };
+    };
+    const reference = target.target.filter.nameOrTrait[0]!;
+
+    expect(reference).toEqual({ tokens: ["Marcus Damon"], match: "nameExact" });
+    expect(matchNameOrTrait(definitionOf("BT12-092"), reference as never)).toBe(true);
+    expect(matchNameOrTrait(definitionOf("AD1-021"), reference as never)).toBe(false);
+  });
+
   it("digivolves from Koromon for 0 memory through its alternate requirement", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT11-005", as: "koromon" }], hand: [{ card: "BT13-008", as: "agumon" }] },

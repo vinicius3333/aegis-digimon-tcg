@@ -43,7 +43,7 @@ describe("BT23-035 Dynasmon", () => {
           hand: [{ card: "BT1-019", as: "future" }],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 20;
     const currentPermanentId = s.perm("current").permanentId;
@@ -119,9 +119,29 @@ describe("BT23-035 Dynasmon", () => {
           target: { filter: { controller: "mine", zone: "security", position: "top" }, count: 1 },
         },
       });
-      expect(action.optional).toBeUndefined();
-      expect(action.abortOnDecline).toBeUndefined();
+      expect(action.optional).toBe(true);
+      expect(action.abortOnDecline).toBe(true);
     }
+  });
+
+  it("may decline the top-security processing condition before trashing or reducing DP", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT23-035", as: "dynasmon" }],
+          security: [{ card: "BT1-009", as: "cost" }],
+        },
+        1: { battleArea: [{ card: "BT1-020", as: "target" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dynasmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT23-035"));
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
+    expect(s.perm("target").currentDP).toBe(6000);
   });
 
   it("gains Security Attack +1 and conditionally recovers at end of the security-removal trigger", () => {

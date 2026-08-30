@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-004.js";
 import "../index.js";
 
@@ -45,6 +45,42 @@ describe("BT21-004 Koromon", () => {
     });
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT21-004"]);
+  });
+
+  it("draws through the natural Haru suspension caused by a public link", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-009", as: "host", under: ["BT21-004"] },
+            { card: "BT21-084", as: "haru" },
+          ],
+          hand: [{ card: "BT21-009", as: "link" }],
+          deck: [
+            { card: "BT1-001", as: "haruDrawn" },
+            { card: "BT1-002", as: "koromonDrawn" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length === 2);
+
+    expect(s.perm("haru").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("haruDrawn").instanceId, s.inst("koromonDrawn").instanceId]),
+    );
+    expect(s.state.memory).toBe(4);
   });
 
   it.each([

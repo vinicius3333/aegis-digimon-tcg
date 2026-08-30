@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -5,6 +6,17 @@ import { compiled } from "./BT24-010.js";
 import "../index.js";
 
 describe("BT24-010 Greymon", () => {
+  it("matches the catalog identity", () => {
+    expect(getCardDefinition("BT24-010")).toMatchObject({
+      cardId: "BT24-010",
+      nameEn: "Greymon",
+      colors: ["Red", "Black"],
+      kinds: ["Digimon"],
+      level: 4,
+      types: ["Dinosaur", "Titan", "TS"],
+    });
+  });
+
   it("grants Blocker and De-Digivolves one opponent Digimon on deletion", () => {
     expect(compiled.effects[0]?.keywords?.[0]?.keyword).toBe("Blocker");
     const deletion = compiled.effects.find((effect) => effect.trigger === "OnDeletion")?.actions?.[0] as any;

@@ -145,11 +145,16 @@ describe("BT25-028 Dianamon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 20;
+    await s.ready();
     const victimStackIds = s.perm("victim").stack.map((card) => card.instanceId);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-103"));
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-103") &&
+        s.state.players[1]!.trash.length >= victimStackIds.length,
+    );
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(expect.arrayContaining(victimStackIds));
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-103")).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT25-103")).toBe(false);
@@ -176,8 +181,13 @@ describe("BT25-028 Dianamon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 20;
+    await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("diana").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-028"));
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-028") &&
+        s.perm("victim").stack.length === 0,
+    );
     expect(s.perm("victim").stack).toHaveLength(0);
   });
 

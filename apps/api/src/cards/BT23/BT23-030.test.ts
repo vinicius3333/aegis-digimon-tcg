@@ -1,7 +1,7 @@
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-030.js";
@@ -61,6 +61,7 @@ describe("BT23-030 Etemon", () => {
     expect(effect.actions[0]).toMatchObject({
       kind: "CostGatedBlock",
       cost: { kind: "payMemory", memory: 1 },
+      optional: true,
       abortOnDecline: true,
       actions: [
         {
@@ -105,15 +106,46 @@ describe("BT23-030 Etemon", () => {
   });
 
   it("may decline the play only after paying 1 and still grants both mandatory keywords, per Q5273-Q5274", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT23-030", as: "etemon" }], hand: [{ card: "BT23-049", as: "eligible" }] },
+    });
+    s.state.memory = 5;
+    const resolution = advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("etemon"));
+    await settle(() => s.decisions.filter(({ req }) => req.kind === "optional").length >= 1);
+    const costPrompt = s.decisions.filter(({ req }) => req.kind === "optional")[0]!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: costPrompt.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.filter(({ req }) => req.kind === "optional").length >= 2);
+    const playPrompt = s.decisions.filter(({ req }) => req.kind === "optional")[1]!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: playPrompt.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await resolution;
+    expect(s.state.memory).toBe(4);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("eligible").instanceId);
+    expect(observe(s.engine).hasKeyword(s.perm("etemon"), "Reboot")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("etemon"), "Blocker")).toBe(true);
+  });
+
+  it("may decline the By payment before spending memory or granting the dependent keywords", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "BT23-030", as: "etemon" }], hand: [{ card: "BT23-049", as: "eligible" }] } },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
     await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("etemon"));
-    expect(s.state.memory).toBe(4);
+    expect(s.state.memory).toBe(5);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("eligible").instanceId);
-    expect(observe(s.engine).hasKeyword(s.perm("etemon"), "Reboot")).toBe(true);
-    expect(observe(s.engine).hasKeyword(s.perm("etemon"), "Blocker")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("etemon"), "Reboot")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("etemon"), "Blocker")).toBe(false);
   });
 });

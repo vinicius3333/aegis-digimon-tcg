@@ -57,23 +57,6 @@ const compiled: CompiledCard = {
             upTo: false,
           },
         },
-        {
-          kind: "PlaceUnder",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
-          underFilter: {
-            filter: {
-              kind: ["Digimon"],
-              controller: "mine",
-            },
-            count: 1,
-          },
-        },
       ],
       keywords: [
         {
@@ -140,6 +123,7 @@ const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
+              kind: ["Tamer"],
               nameOrTrait: [
                 {
                   tokens: ["Hacker Judge"],
@@ -149,7 +133,7 @@ const compiled: CompiledCard = {
             },
             count: 1,
           },
-          from: ["digivolutionCards"],
+          fromOwnDigivolutionStack: true,
           payCost: false,
           optional: true,
         },

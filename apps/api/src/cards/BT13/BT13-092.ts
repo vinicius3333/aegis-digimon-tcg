@@ -5,17 +5,6 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
-      trigger: "EndOfYourTurn",
-      actions: [
-        {
-          kind: "TrashDigivolution",
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          amount: 1,
-          position: "top",
-        },
-      ],
-    },
-    {
       trigger: "WhenDigivolving",
       actions: [
         {
@@ -47,11 +36,13 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
+              sameNameAsSelection: "returnedDigimon",
             },
             count: "all",
           },
           cost: {
             kind: "return",
+            bindResultAs: "returnedDigimon",
             target: {
               filter: {
                 zone: "trash",
@@ -72,7 +63,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Ravemon"],
+      namesExact: ["Ravemon"],
       cost: 0,
       isAlternate: true,
       burstDigivolve: { returnTamerNamesExact: ["Keenan Crier"] },

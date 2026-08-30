@@ -336,8 +336,8 @@ describe("BT26-084 compiled behavior", () => {
       {
         0: {
           battleArea: [
-            { card: "BT26-084", as: "copipemon" },
             { card: "BT26-010", as: "host" },
+            { card: "BT26-084", as: "copipemon" },
           ],
           hand: [
             { card: "BT26-019", as: "mailmon" },
@@ -348,7 +348,8 @@ describe("BT26-084 compiled behavior", () => {
             { card: "BT26-037", as: "material2" },
             { card: "BT26-051", as: "material3" },
             { card: "BT26-063", as: "material4" },
-            { card: "BT26-028", as: "material5" },
+            { card: "BT26-019", as: "material5" },
+            { card: "BT26-084", as: "material6" },
           ],
           deck: ["BT26-102", "BT1-001", "BT1-002", { card: "BT1-003", as: "drawn" }],
         },
@@ -370,15 +371,12 @@ describe("BT26-084 compiled behavior", () => {
       },
     );
     preferred.push(
-      s.perm("host").permanentId,
-      s.perm("deleteTarget").permanentId,
-      s.inst("copipemon").instanceId,
-      s.inst("mailmon").instanceId,
       s.inst("material1").instanceId,
       s.inst("material2").instanceId,
       s.inst("material3").instanceId,
       s.inst("material4").instanceId,
       s.inst("material5").instanceId,
+      s.inst("material6").instanceId,
     );
     s.state.memory = 7;
     await s.ready();

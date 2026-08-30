@@ -55,6 +55,25 @@ describe("BT19-031 Starmons", () => {
     expect(shooting.stack.map((card) => card.cardId)).toEqual(["BT19-031"]);
   });
 
+  it("places the trash sources under the ShootingStarmon played by this effect", async () => {
+    const s = setupEngine({ 0: {
+      battleArea: [
+        { card: "BT19-031", as: "stars" },
+        { card: "BT19-083", as: "tamer", under: ["BT19-035"] },
+        { card: "BT19-035", as: "existing" },
+      ],
+      trash: ["BT10-003", "BT19-031"],
+    } }, { autoAcceptOptional: true, autoSelectCards: true });
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("stars").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.battleArea.filter((p) => p.topCard?.cardId === "BT19-035").length === 2);
+    const played = s.state.players[0]!.battleArea.find(
+      (p) => p.topCard?.cardId === "BT19-035" && p.permanentId !== s.perm("existing").permanentId,
+    )!;
+    expect(played.stack.map((card) => card.cardId)).toEqual(["BT10-003", "BT19-031"]);
+    expect(s.perm("existing").stack).toHaveLength(0);
+  });
+
   it("inherited When Attacking reduces one opponent by 2000 only for an Xros Heart host and once per turn", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT19-033", as: "host", under: ["BT19-031"] }] },

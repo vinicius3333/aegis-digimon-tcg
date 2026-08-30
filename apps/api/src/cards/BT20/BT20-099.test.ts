@@ -39,4 +39,10 @@ describe("BT20-099 Singularity of Chaos", () => {
       actions: [{ kind: "GainMemory", amount: 1 }, { kind: "AddToHandSelf" }],
     });
   });
+
+  it("keeps the end-of-opponent-turn Chaosmon clause inherited rather than Security-only", () => {
+    const inherited = compiled.effects.find((entry) => entry.trigger === "EndOfOpponentsTurn");
+    expect(inherited).toMatchObject({ isInherited: true });
+    expect(inherited?.isSecurity).not.toBe(true);
+  });
 });

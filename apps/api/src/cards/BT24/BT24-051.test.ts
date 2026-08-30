@@ -46,6 +46,33 @@ describe("BT24-051 Merukimon", () => {
     expect(s.state.memory).toBe(3);
   });
 
+  it("naturally plays, buffs, and attacks with the Q5641 sequence", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT24-051", as: "merukimon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "first", dp: 2000 },
+            { card: "BT1-009", as: "second", dp: 2000 },
+            { card: "BT1-009", as: "third", dp: 2000 },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("merukimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 2);
+
+    expect(s.perm("merukimon").currentDP).toBe(17000);
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[1]!.battleArea.filter((permanent) => permanent.isSuspended)).toHaveLength(1);
+  });
+
   it.each([
     ["normal green/blue requirement", false, 4],
     ["alternate Beastkin/TS requirement", true, 3],

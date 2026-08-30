@@ -21,7 +21,7 @@ describe("BT21-046 compiled implementation", () => {
   });
 
   it("preserves the zero-cost Dracomon alternate Digivolution requirement", () => {
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Dracomon"], cost: 0, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Dracomon"], cost: 0, isAlternate: true }]);
   });
 
   it("optionally digivolves itself into a Coredramon from hand for free at both timings", () => {
@@ -32,13 +32,33 @@ describe("BT21-046 compiled implementation", () => {
         {
           kind: "Digivolve",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          into: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Coredramon"], match: "name" }] },
+          into: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Coredramon"], match: "nameExact" }] },
           payCost: false,
           from: ["hand"],
           optional: true,
         },
       ]);
     }
+  });
+
+  it("does not treat Dracomon (X Antibody) as the standalone Dracomon alternate", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-046", as: "nearDracomon" }],
+        hand: [{ card: "BT21-046", as: "dracomonX" }],
+      },
+    });
+    s.state.memory = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("nearDracomon").permanentId,
+        instanceId: s.inst("dracomonX").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 
   it("preserves the inherited end-of-turn DNA Digivolution from two of your Digimon", () => {

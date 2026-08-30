@@ -40,4 +40,29 @@ describe("BT14-074", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-003");
     expect(s.state.memory).toBe(4);
   });
+
+  it("gains memory from the inherited watcher when a matching card is publicly played", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "host", under: ["BT14-074"] }],
+          hand: [
+            { card: "BT14-072", as: "fangmon" },
+            { card: "BT1-002", as: "discard" },
+          ],
+          trash: [{ card: "BT14-071", as: "darkAnimal" }],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("fangmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.memory === 7 && s.state.players[0]!.trash.some((card) => card.cardId === "BT1-002"));
+    expect(s.state.memory).toBe(7);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT14-071")).toBe(true);
+  });
 });

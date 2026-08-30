@@ -1,9 +1,24 @@
 import { describe, expect, it } from "vitest";
 import type { PlayerState } from "@aegis/shared";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT7-081.js";
 
 describe("BT7-081 Bokomon", () => {
+  it("uses trait-substring matching for the Hybrid or Ten Warriors search", () => {
+    expect(runtimeCompiledCard("BT7-081")?.effects[0]?.actions[0]).toMatchObject({
+      kind: "RevealAdd",
+      add: [
+        {
+          filter: {
+            nameOrTrait: [{ tokens: ["Hybrid", "Ten Warriors"], match: "traitContains" }],
+          },
+        },
+        { filter: { kind: ["Tamer"] } },
+      ],
+    });
+  });
+
   it("adds one Hybrid card and one Tamer from the top five cards", async () => {
     const s = setupEngine(
       {

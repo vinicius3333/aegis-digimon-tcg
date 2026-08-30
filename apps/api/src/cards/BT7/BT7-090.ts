@@ -34,7 +34,7 @@ const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["X-Antibody"],
-                    match: "trait",
+                    match: "traitContains",
                   },
                 ],
               },

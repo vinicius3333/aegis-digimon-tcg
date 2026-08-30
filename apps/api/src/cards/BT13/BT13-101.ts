@@ -41,7 +41,7 @@ export const compiled: CompiledCard = {
             controllerDefault: "mine",
             kind: ["Digimon"],
             multicolor: true,
-            colors: ["Yellow", "Black"],
+            colorsAll: ["Yellow", "Black"],
           },
           actions: [
             {
@@ -58,6 +58,7 @@ export const compiled: CompiledCard = {
                   isSelf: true,
                 },
                 raw: "by suspending this Tamer",
+                optional: true,
               },
               abortOnDecline: true,
             },

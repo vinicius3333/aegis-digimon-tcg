@@ -33,6 +33,7 @@ const compiled: CompiledCard = {
               },
             ],
           },
+          notSimultaneous: true,
           actions: [
             {
               kind: "RevealAdd",

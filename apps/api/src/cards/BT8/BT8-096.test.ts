@@ -2,9 +2,33 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT8-096.js";
+import { compiled } from "./BT8-096.js";
 
 describe("BT8-096 Top Gun", () => {
+  it("keeps one-card multicolor stack semantics and the exclusive DP branches in executable IR", () => {
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            { kind: "Delete", condition: { kind: "anyOf" }, target: { filter: { dp: { op: "lte", value: 7000 } } } },
+            { kind: "Delete", condition: { kind: "not", condition: { kind: "anyOf" } }, target: { filter: { dp: { op: "lte", value: 4000 } } } },
+          ],
+        },
+        {
+          trigger: "Security",
+          isSecurity: true,
+          actions: [
+            { kind: "Delete", condition: { kind: "anyOf" }, target: { filter: { dp: { op: "lte", value: 7000 } } } },
+            { kind: "Delete", condition: { kind: "not", condition: { kind: "anyOf" } }, target: { filter: { dp: { op: "lte", value: 4000 } } } },
+          ],
+        },
+      ],
+    });
+  });
+
   it("offers only opposing Digimon at 4000 DP or less without a multicolor condition", async () => {
     const s = setupEngine({
       0: {
@@ -37,7 +61,7 @@ describe("BT8-096 Top Gun", () => {
   it("does not combine differently colored monocolor digivolution cards for the 7000 DP cap", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT8-007", under: ["BT1-009", "BT1-029"] }, "BT8-013"],
+        battleArea: [{ card: "BT8-060", under: ["BT1-001", "BT17-019", "BT1-032"] }, "BT8-013"],
         hand: [{ card: "BT8-096", as: "option" }],
       },
       1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5_000 }] },
@@ -62,7 +86,7 @@ describe("BT8-096 Top Gun", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT8-007", under: ["BT8-039"] }, "BT8-013"],
+          battleArea: [{ card: "BT8-084", under: ["BT8-046", "BT8-039"] }, "BT8-013"],
           hand: [{ card: "BT8-096", as: "option" }],
         },
         1: {

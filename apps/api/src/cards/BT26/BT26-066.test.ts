@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, Zone } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-066.js";
@@ -136,7 +136,7 @@ describe("BT26-066 Salamon", () => {
     const titan = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-074", as: "host", under: ["BT26-066"] }],
+          battleArea: [{ card: "BT26-074", as: "host", under: ["BT26-066", "BT26-068"] }],
           trash: [{ card: "P-209", as: "titamon" }],
         },
       },
@@ -151,7 +151,7 @@ describe("BT26-066 Salamon", () => {
     const nonTitan = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT10-080", as: "host", under: ["BT26-066"] }],
+          battleArea: [{ card: "BT26-067", as: "host", under: ["BT26-066"] }],
           trash: [{ card: "P-209", as: "titamon" }],
         },
       },
@@ -160,7 +160,7 @@ describe("BT26-066 Salamon", () => {
     nonTitan.state.memory = 10;
     await nonTitan.ready();
     await advance(nonTitan.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 0, byEffectSeat: 0 });
-    expect(nonTitan.perm("host").topCard.cardId).toBe("BT10-080");
+    expect(nonTitan.perm("host").topCard.cardId).toBe("BT26-067");
     expect(nonTitan.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("P-209");
   });
 
@@ -168,7 +168,7 @@ describe("BT26-066 Salamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-074", as: "host", under: ["BT26-066"] }],
+          battleArea: [{ card: "BT26-074", as: "host", under: ["BT26-066", "BT26-068"] }],
           trash: [{ card: "P-209", as: "titamon" }],
         },
       },
@@ -187,11 +187,8 @@ describe("BT26-066 Salamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT25-069", as: "host", under: ["BT26-066"] }],
-          trash: [
-            { card: "BT26-074", as: "firstEvolution" },
-            { card: "P-209", as: "secondEvolution" },
-          ],
+          battleArea: [{ card: "BT26-021", as: "host", under: ["BT26-066"] }],
+          trash: [{ card: "BT26-074", as: "firstEvolution" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -200,6 +197,8 @@ describe("BT26-066 Salamon", () => {
     await s.ready();
 
     await advance(s.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 0, byEffectSeat: 0 });
+    expect(s.perm("host").topCard.cardId).toBe("BT26-074");
+    s.give(0, Zone.Trash, { card: "P-209", as: "secondEvolution" });
     await advance(s.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 0, byEffectSeat: 0 });
 
     expect(s.perm("host").topCard.cardId).toBe("BT26-074");
@@ -217,7 +216,7 @@ describe("BT26-066 Salamon", () => {
             {
               card: "BT24-075",
               as: "attacker",
-              under: ["BT26-066", "BT26-064"],
+              under: ["BT26-066", "BT26-068"],
             },
             { card: "BT1-009", as: "alliancePartner" },
           ],

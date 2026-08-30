@@ -11,6 +11,9 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "onAddDigivolutionCards",
+          // The printed trigger is effect-only; the position flag alone must not make
+          // ordinary/manual top-to-bottom movement activate this inherited effect.
+          sourceFilter: { byEffect: true },
           triggerFilter: { isSelfRef: true },
           addedDigivolutionCardsPosition: "bottom",
           requirePlacedOwnTopAtStackBottom: true,

@@ -46,4 +46,28 @@ describe("BT14-078", () => {
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT14-071")).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
+  it("deletes, draws, and returns Loogamon through the natural end-of-turn path", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-078", as: "source" }],
+          hand: ["BT14-072", "BT14-074", "BT14-079"],
+          trash: [{ card: "BT14-071", as: "loogamon" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.isFirstPlayersFirstTurn = true;
+    await advance(s.engine).runTurn(0);
+    await settle(
+      () =>
+        !s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-078") &&
+        s.state.players[0]!.hand.some((card) => card.cardId === "BT14-071") &&
+        s.state.players[0]!.deck.length === 0,
+    );
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-078")).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT14-071")).toBe(true);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+  });
 });

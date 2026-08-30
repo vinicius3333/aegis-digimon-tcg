@@ -458,11 +458,10 @@ export function validateDigivolve(
   const evoCost = deps.colorWaived?.(state, found.instance)
     ? matchingEvoCostIgnoringColor(definition, baseDef)
     : matchingEvoCost(definition, baseDef, derivedBaseColors);
-  const matchedAlternateRequirement = matchingAlternateDigivolutionRequirement(
-    definition,
-    baseDef,
-    intent.alternateRequirementIndex === undefined ? undefined : { requirementIndex: intent.alternateRequirementIndex },
-  );
+  const matchedAlternateRequirement = matchingAlternateDigivolutionRequirement(definition, baseDef, {
+    ...(intent.alternateRequirementIndex === undefined ? {} : { requirementIndex: intent.alternateRequirementIndex }),
+    isBlastDigivolve: intent.useBlastDigivolve === true,
+  });
   const altRequirement =
     matchedAlternateRequirement !== undefined &&
     alternateRequirementAvailable(state, seat, permanent, matchedAlternateRequirement)

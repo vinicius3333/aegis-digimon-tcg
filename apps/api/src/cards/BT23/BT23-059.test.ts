@@ -45,11 +45,12 @@ describe("BT23-059 Justimon: Blitz Arm", () => {
           ],
         },
       },
-      { autoDeclineOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.perm("option").placedByEffect = true;
     const optionId = s.perm("option").topCard!.instanceId;
     const lowId = s.perm("low").permanentId;
+    await s.ready();
     await s.engine.recomputeContinuousEffects();
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === optionId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(false);
@@ -63,8 +64,6 @@ describe("BT23-059 Justimon: Blitz Arm", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === lowId)).toBe(false);
     expect(s.perm("justimon").isSuspended).toBe(false);
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("examon"));
-    expect(s.perm("justimon").isSuspended).toBe(false);
   });
 
   it("exposes Blocker through the live keyword seam", async () => {
@@ -75,16 +74,41 @@ describe("BT23-059 Justimon: Blitz Arm", () => {
   });
 
   it("does not delete when no battle-area Option can pay the cost", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT23-059", as: "justimon" }] },
-      1: { battleArea: [{ card: "BT1-009", as: "low" }] },
-    });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT23-059", as: "justimon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "low" }] },
+      },
+      { autoDeclineOptional: true },
+    );
     const lowId = s.perm("low").permanentId;
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("justimon"));
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowId)).toBe(true);
   });
 
-  it("mandatorily trashes any Option in the battle area to delete the opponent's lowest-play-cost Digimon", () => {
+  it("allows declining the processing condition before trashing an Option", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-059", as: "justimon" },
+            { card: "BT23-100", as: "option" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "low" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.perm("option").placedByEffect = true;
+    const optionId = s.perm("option").topCard!.instanceId;
+    const lowId = s.perm("low").permanentId;
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("justimon"));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowId)).toBe(true);
+  });
+
+  it("optionally processes the cost to trash an Option and delete the opponent's lowest-play-cost Digimon", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving", "WhenAttacking"]) {
       const effect = compiled.effects.find((entry) => entry.trigger === trigger) as any;
       const action = effect.actions[0];
@@ -92,10 +116,16 @@ describe("BT23-059 Justimon: Blitz Arm", () => {
       expect(action).toMatchObject({
         kind: "Delete",
         target: { filter: { controller: "opponent", superlative: "lowestPlayCost" }, count: 1 },
-        cost: { kind: "trash", target: { filter: { zone: "battleArea", kind: ["Option"] }, count: 1 } },
+        cost: {
+          kind: "trash",
+          target: {
+            filter: { zone: "battleArea", kind: ["Option"], placedInBattleAreaByEffect: true },
+            count: 1,
+          },
+        },
         abortOnDecline: true,
       });
-      expect(action.optional).toBeUndefined();
+      expect(action.optional).toBe(true);
     }
   });
 

@@ -11,24 +11,24 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          kind: "SelectBind",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          bindAs: "chosenDigimon",
+        },
+        {
           kind: "Return",
           target: {
             filter: {
               controller: "opponent",
               suspended: true,
               kind: ["Digimon"],
-              dp: {
-                lte: {
-                  kind: "dpOfChosen",
-                  chosenBy: {
-                    filter: {
-                      controller: "mine",
-                      kind: ["Digimon"],
-                    },
-                    count: 1,
-                  },
-                },
-              },
+              relativeTo: { attr: "dp", op: "lte", selectionRef: "chosenDigimon" },
             },
             count: 1,
           },
@@ -48,19 +48,17 @@ export const compiled: CompiledCard = {
             target: {
               filter: {
                 controller: "mine",
-                zone: "digivolutionCards",
-                nameOrTrait: [
-                  {
-                    tokens: ["Leopardmon: Leopard Mode"],
-                    match: "name",
-                  },
-                ],
+                zone: "battleArea",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Leopardmon: Leopard Mode"], match: "nameExact" }],
               },
               count: 1,
               topCardOnly: true,
             },
             raw: "by returning the top card of one of your [Leopardmon: Leopard Mode] to the hand",
+            optional: true,
           },
+          abortOnDecline: true,
         },
       ],
     },

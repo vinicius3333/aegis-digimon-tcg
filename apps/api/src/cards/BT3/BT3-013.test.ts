@@ -5,7 +5,9 @@ import "./BT3-013.js";
 
 describe("BT3-013 Duramon", () => {
   it("gives Security Attack +1 to its level 7 host on its turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-084", as: "host", under: ["BT3-013"] }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT3-112", as: "host", under: ["AD1-001", "BT3-013", "BT3-016"] }] },
+    });
 
     await s.engine.recomputeContinuousEffects();
 
@@ -13,11 +15,15 @@ describe("BT3-013 Duramon", () => {
   });
 
   it("does not grant Security Attack +1 to a level 6 host or during the opponent's turn", async () => {
-    const lower = setupEngine({ 0: { battleArea: [{ card: "BT3-111", as: "host", under: ["BT3-013"] }] } });
+    const lower = setupEngine({
+      0: { battleArea: [{ card: "BT3-016", as: "host", under: ["AD1-001", "BT3-013"] }] },
+    });
     await lower.engine.recomputeContinuousEffects();
     expect(observe(lower.engine).keywordAmount(lower.perm("host"), "SecurityAttack")).toBe(0);
 
-    const opponentTurn = setupEngine({ 0: { battleArea: [{ card: "BT1-084", as: "host", under: ["BT3-013"] }] } });
+    const opponentTurn = setupEngine({
+      0: { battleArea: [{ card: "BT3-112", as: "host", under: ["AD1-001", "BT3-013", "BT3-016"] }] },
+    });
     opponentTurn.state.turnSeat = 1;
     await opponentTurn.engine.recomputeContinuousEffects();
     expect(observe(opponentTurn.engine).keywordAmount(opponentTurn.perm("host"), "SecurityAttack")).toBe(0);

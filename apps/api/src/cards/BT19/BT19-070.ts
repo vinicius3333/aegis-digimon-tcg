@@ -186,8 +186,8 @@ const compiled: CompiledCard = {
           differentCardNumbers: true,
         },
       ],
-      count: 3,
-      costReduction: 1,
+      count: 1,
+      maxMaterials: 3,
     },
   ],
 };

@@ -83,17 +83,20 @@ describe("AD1-023 J.P., Koji, & Koichi", () => {
   });
 
   it("gains 2 memory from four existing Hybrid cards without placing another", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          {
-            card: CARD_ID,
-            as: "tamer",
-            under: ["AD1-002", "BT12-024", "AD1-002", "BT12-024"],
-          },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: CARD_ID,
+              as: "tamer",
+              under: ["AD1-002", "BT12-024", "AD1-002", "BT12-024"],
+            },
+          ],
+        },
       },
-    });
+      { autoDeclineOptional: true },
+    );
     await s.ready();
     s.state.memory = 0;
 
@@ -144,7 +147,10 @@ describe("AD1-023 J.P., Koji, & Koichi", () => {
   });
 
   it("plays itself from security without paying the cost", async () => {
-    const s = setupEngine({ 0: { security: [{ card: CARD_ID, as: "tamer", faceUp: true }] } });
+    const s = setupEngine(
+      { 0: { security: [{ card: CARD_ID, as: "tamer", faceUp: true }] } },
+      { autoDeclineOptional: true },
+    );
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("tamer"));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === CARD_ID)).toBe(true);
   });

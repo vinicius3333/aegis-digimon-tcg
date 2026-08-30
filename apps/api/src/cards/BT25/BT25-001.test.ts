@@ -1,10 +1,24 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("BT25-001 Tokomon", () => {
+  it("matches the catalog identity and TS traits", () => {
+    expect(getCardDefinition("BT25-001")).toMatchObject({
+      cardId: "BT25-001",
+      nameEn: "Tokomon",
+      colors: ["Red"],
+      kinds: ["DigiEgg"],
+      level: 2,
+      playCost: -1,
+      forms: ["In-Training"],
+      types: ["Lesser", "Iliad", "TS"],
+    });
+  });
+
   it("draws only once per turn when its TS evolution host attacks", async () => {
     const s = setupEngine({
       0: {
