@@ -7,6 +7,7 @@ import {
   isTamer,
   type CardDefinition,
   type CardInstance,
+  type EffectTrigger,
   type Permanent,
 } from "@aegis/shared";
 import { cardHasTrait } from "../../engine/cards/cardData.js";
@@ -236,6 +237,7 @@ function lowestLevel(ctx: EffectContext, source: CardSource): Permanent[] {
 export function lateBt12Module(cardId: string): EffectModule {
   return {
     cardId,
+    declaredTriggers: lateBt12DeclaredTriggers[cardId] ?? [],
     effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
       switch (cardId) {
         case "BT12-082": {
@@ -1215,3 +1217,11 @@ export function lateBt12Module(cardId: string): EffectModule {
     },
   };
 }
+
+const lateBt12DeclaredTriggers: Record<string, readonly EffectTrigger[]> = {
+  "BT12-086": ["OnPlay", "OnDeletion", "YourTurn"],
+  "BT12-089": ["StartOfYourTurn", "Main", "Security"],
+  "BT12-092": ["StartOfYourMainPhase", "YourTurn", "Security"],
+  "BT12-095": ["OnPlay", "StartOfYourMainPhase", "YourTurn", "Security"],
+  "BT12-109": ["Main", "Security"],
+};

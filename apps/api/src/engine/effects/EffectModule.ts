@@ -1,4 +1,4 @@
-import type { EffectTiming } from "@aegis/shared";
+import type { EffectTiming, EffectTrigger } from "@aegis/shared";
 import type { CardSource } from "./CardSource.js";
 import type { Effect } from "./Effect.js";
 import type { EffectContext } from "./EffectContext.js";
@@ -9,6 +9,8 @@ import type { EffectContext } from "./EffectContext.js";
 export interface EffectModule {
   /** Card id this module implements, e.g. "BT7-089". */
   readonly cardId: string;
+  /** Trigger tags represented by a handwritten module when no compiled IR effects exist. */
+  readonly declaredTriggers?: readonly EffectTrigger[];
   /**
    * Return the effects this card contributes at the given timing window for this
    * source. Branch on `timing`, push one Effect per clause (use the builders).
