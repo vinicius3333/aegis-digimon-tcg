@@ -9,7 +9,12 @@ const CARD_ID = "BT25-100";
 
 describe("BT25-100 Iron Slash", () => {
   it("maps the TS Use Req. to a battle-area Digimon or Tamer", () => {
-    expect(compiled.effects.find((effect) => effect.trigger === "Static")).toMatchObject({
+    expect(
+      compiled.effects.find(
+        (effect) =>
+          effect.trigger === "Static" && effect.actions?.some((action) => action.kind === "WaiveColorRequirement"),
+      ),
+    ).toMatchObject({
       actions: [
         {
           kind: "WaiveColorRequirement",
@@ -107,7 +112,11 @@ describe("BT25-100 Iron Slash", () => {
       s.state.memory = 3;
       await s.ready();
       expect(
-        s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId, useAs: "option" } as never),
+        s.engine.applyIntent(0, {
+          type: "playCard",
+          instanceId: s.inst("option").instanceId,
+          useAs: "option",
+        } as never),
       ).toEqual({ ok: false, reason: "color-requirement-unmet" });
       expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain(CARD_ID);
     }

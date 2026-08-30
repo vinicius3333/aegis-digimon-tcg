@@ -32,7 +32,7 @@ describe("BT25-027 MachGaogamon", () => {
         0: {
           battleArea: [
             { card: "BT25-023", as: "base", suspended: true },
-            { card: "BT25-087", as: "tamer", under: [{ card: "BT1-001", as: "cost", faceUp: false }] },
+            { card: "BT1-085", as: "tamer", under: [{ card: "BT1-001", as: "cost", faceUp: false }] },
           ],
           hand: [{ card: "BT25-027", as: "mach" }],
         },
@@ -53,13 +53,19 @@ describe("BT25-027 MachGaogamon", () => {
     await settle(
       () =>
         s.perm("base").topCard.cardId === "BT25-027" &&
-        s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("target").instanceId),
+        s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("target").instanceId) &&
+        s.state.pendingDecision === undefined &&
+        s.perm("tamer").stack.length === 0 &&
+        !s.perm("base").isSuspended,
     );
-
-    expect(s.state.players[1]!.hand).toContainEqual(expect.objectContaining({ instanceId: s.inst("target").instanceId }));
+    expect(s.state.players[1]!.hand).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("target").instanceId }),
+    );
     expect(s.perm("base").isSuspended).toBe(false);
     expect(s.perm("tamer").stack).toHaveLength(0);
-    expect(s.state.players[0]!.trash).toContainEqual(expect.objectContaining({ instanceId: s.inst("cost").instanceId }));
+    expect(s.state.players[0]!.trash).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("cost").instanceId }),
+    );
     expect(s.state.memory).toBe(0);
   });
 
@@ -69,7 +75,7 @@ describe("BT25-027 MachGaogamon", () => {
         0: {
           battleArea: [
             { card: "BT25-023", as: "base", suspended: true },
-            { card: "BT25-087", as: "tamer", under: [{ card: "BT1-001", as: "cost", faceUp: false }] },
+            { card: "BT1-085", as: "tamer", under: [{ card: "BT1-001", as: "cost", faceUp: false }] },
           ],
           hand: [{ card: "BT25-027", as: "mach" }],
         },
@@ -99,8 +105,7 @@ describe("BT25-027 MachGaogamon", () => {
     ).toEqual({ ok: true });
     await settle(
       () =>
-        s.state.pendingDecision?.kind === "optional" &&
-        s.state.pendingDecision.decisionId !== firstDecision.decisionId,
+        s.state.pendingDecision?.kind === "optional" && s.state.pendingDecision.decisionId !== firstDecision.decisionId,
     );
     const secondDecision = s.state.pendingDecision!;
     expect(secondDecision.kind).toBe("optional");
@@ -117,8 +122,9 @@ describe("BT25-027 MachGaogamon", () => {
         s.state.pendingDecision === undefined &&
         s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("target").instanceId),
     );
-
-    expect(s.state.players[1]!.hand).toContainEqual(expect.objectContaining({ instanceId: s.inst("target").instanceId }));
+    expect(s.state.players[1]!.hand).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("target").instanceId }),
+    );
     expect(s.perm("base").isSuspended).toBe(true);
     expect(s.perm("tamer").stack).toHaveLength(1);
     expect(s.state.players[0]!.trash).not.toContainEqual(

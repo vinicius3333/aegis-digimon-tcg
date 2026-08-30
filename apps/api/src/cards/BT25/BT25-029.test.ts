@@ -33,7 +33,7 @@ describe("BT25-029 MirageGaogamon", () => {
         0: {
           battleArea: [
             { card: "BT25-027", as: "base", suspended: true },
-            { card: "BT25-087", as: "tamer", under: [{ card: "BT1-001", as: "cost", faceUp: false }] },
+            { card: "BT1-085", as: "tamer", under: [{ card: "BT1-001", as: "cost", faceUp: false }] },
           ],
           hand: [{ card: "BT25-029", as: "mirage" }],
         },
@@ -54,23 +54,24 @@ describe("BT25-029 MirageGaogamon", () => {
         type: "digivolve",
         permanentId: s.perm("base").permanentId,
         instanceId: s.inst("mirage").instanceId,
+        alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
     await settle(
       () =>
         s.perm("base").topCard.cardId === "BT25-029" &&
         s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("firstTarget").instanceId) &&
-        s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("secondTarget").instanceId),
+        s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("secondTarget").instanceId) &&
+        s.state.pendingDecision === undefined &&
+        s.perm("tamer").stack.length === 0,
     );
-
-    expect(s.state.players[1]!.hand).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ instanceId: s.inst("firstTarget").instanceId }),
-        expect.objectContaining({ instanceId: s.inst("secondTarget").instanceId }),
-      ]),
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("firstTarget").instanceId, s.inst("secondTarget").instanceId]),
     );
     expect(s.perm("tamer").stack).toHaveLength(0);
-    expect(s.state.players[0]!.trash).toContainEqual(expect.objectContaining({ instanceId: s.inst("cost").instanceId }));
+    expect(s.state.players[0]!.trash).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("cost").instanceId }),
+    );
     expect(s.state.memory).toBe(0);
   });
 
@@ -80,7 +81,7 @@ describe("BT25-029 MirageGaogamon", () => {
         0: {
           battleArea: [
             { card: "BT25-027", as: "base", suspended: true },
-            { card: "BT25-087", as: "tamer", under: [{ card: "BT1-001", as: "cost", faceUp: false }] },
+            { card: "BT1-085", as: "tamer", under: [{ card: "BT1-001", as: "cost", faceUp: false }] },
           ],
           hand: [{ card: "BT25-029", as: "mirage" }],
         },
@@ -101,6 +102,7 @@ describe("BT25-029 MirageGaogamon", () => {
         type: "digivolve",
         permanentId: s.perm("base").permanentId,
         instanceId: s.inst("mirage").instanceId,
+        alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
@@ -115,8 +117,7 @@ describe("BT25-029 MirageGaogamon", () => {
     ).toEqual({ ok: true });
     await settle(
       () =>
-        s.state.pendingDecision?.kind === "optional" &&
-        s.state.pendingDecision.decisionId !== firstDecision.decisionId,
+        s.state.pendingDecision?.kind === "optional" && s.state.pendingDecision.decisionId !== firstDecision.decisionId,
     );
     const secondDecision = s.state.pendingDecision!;
     expect(secondDecision.kind).toBe("optional");
@@ -133,14 +134,11 @@ describe("BT25-029 MirageGaogamon", () => {
         s.state.pendingDecision === undefined &&
         s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("firstTarget").instanceId),
     );
-
     expect(s.state.players[1]!.hand).toContainEqual(
       expect.objectContaining({ instanceId: s.inst("firstTarget").instanceId }),
     );
-    expect(s.state.players[1]!.battleArea).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ topCard: expect.objectContaining({ instanceId: s.inst("secondTarget").instanceId }) }),
-      ]),
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toContain(
+      s.inst("secondTarget").instanceId,
     );
     expect(s.perm("tamer").stack).toHaveLength(1);
     expect(s.state.players[0]!.trash).not.toContainEqual(

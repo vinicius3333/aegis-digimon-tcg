@@ -55,7 +55,7 @@ describe("BT25-103 GraceNovamon", () => {
         },
         1: { battleArea: [{ card: "BT24-014", under: ["BT24-009"], as: "target" }] },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     const targetId = s.perm("target").topCard!.instanceId;
     s.state.memory = 5;
@@ -68,11 +68,13 @@ describe("BT25-103 GraceNovamon", () => {
         instanceId: s.inst("grace").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard.cardId === "BT25-103");
+    await settle(
+      () =>
+        s.perm("base").topCard.cardId === "BT25-103" &&
+        s.state.players[1]!.deck.some((card) => card.instanceId === targetId),
+    );
 
-    expect(
-      s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === targetId),
-    ).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === targetId)).toBe(false);
     expect(s.state.players[1]!.deck.some((card) => card.instanceId === targetId)).toBe(true);
   });
 
@@ -109,7 +111,7 @@ describe("BT25-103 GraceNovamon", () => {
         0: { battleArea: [{ card: "BT25-103", under: ["BT24-009", "BT24-010"], as: "grace" }] },
         1: { battleArea: [{ card: "BT24-014", under: ["BT24-009"], as: "target" }] },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     const targetId = s.perm("target").topCard!.instanceId;
 
@@ -133,7 +135,7 @@ describe("BT25-103 GraceNovamon", () => {
           ],
         },
       },
-      { autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("equal").permanentId);
     const returnedId = s.perm("equal").topCard.instanceId;

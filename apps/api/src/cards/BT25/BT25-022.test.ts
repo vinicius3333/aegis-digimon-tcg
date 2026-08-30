@@ -28,9 +28,9 @@ describe("BT25-022 Lunamon", () => {
         0: {
           hand: [{ card: "BT25-022", as: "lunamon" }],
           deck: [
-            { card: "BT24-002", as: "iliad" },
+            { card: "BT24-011", as: "iliad" },
             { card: "BT25-086", as: "ts" },
-            { card: "BT1-001", as: "rest" },
+            { card: "BT1-009", as: "rest" },
           ],
         },
       },
@@ -45,18 +45,14 @@ describe("BT25-022 Lunamon", () => {
     await settle(
       () =>
         s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("iliad").instanceId) &&
-        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("ts").instanceId),
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("ts").instanceId) &&
+        s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("rest").instanceId),
     );
 
-    expect(s.state.players[0]!.hand).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ instanceId: s.inst("iliad").instanceId }),
-        expect.objectContaining({ instanceId: s.inst("ts").instanceId }),
-      ]),
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("iliad").instanceId, s.inst("ts").instanceId]),
     );
-    expect(s.state.players[0]!.deck).toEqual([
-      expect.objectContaining({ instanceId: s.inst("rest").instanceId }),
-    ]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("rest").instanceId]);
   });
 
   it("preserves inherited Jamming", () => {

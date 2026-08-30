@@ -51,8 +51,11 @@ describe("BT25-104 ShineGreymon: Burst Mode", () => {
         alternateRequirementIndex: 1,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard.cardId === "BT25-104");
-    expect(s.perm("target").currentDP).toBe(5000);
+    await settle(() => s.perm("base").topCard.cardId === "BT25-104" && s.perm("target").currentDP === 2000);
+    // Final Shining Burst applies -15000, then the replayed Marcus suspends and applies
+    // its own -3000 reaction. Prove the completed nested chain rather than its 5000-DP
+    // intermediate state.
+    expect(s.perm("target").currentDP).toBe(2000);
     // The Burst cost returns Marcus, then this card's mandatory When Digivolving
     // activates its Option-side Main. With auto-selection enabled, that optional Main
     // replays Marcus; his On Play suspension gains 1 memory while a Greymon is present.

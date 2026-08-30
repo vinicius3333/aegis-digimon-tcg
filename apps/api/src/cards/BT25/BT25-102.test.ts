@@ -90,6 +90,7 @@ describe("BT25-102 Factorial Area", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.turnSeat = 1;
     await s.ready();
 
     expect(
@@ -100,11 +101,15 @@ describe("BT25-102 Factorial Area", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() =>
-      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("eligible").instanceId),
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("eligible").instanceId,
+      ),
     );
 
     expect(
-      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("eligible").instanceId),
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("eligible").instanceId,
+      ),
     ).toBe(true);
   });
 

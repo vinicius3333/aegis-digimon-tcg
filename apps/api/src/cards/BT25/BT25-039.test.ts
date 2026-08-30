@@ -196,6 +196,7 @@ describe("BT25-039 Sirenmon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.turnSeat = 1;
+    await s.ready();
 
     expect(
       s.engine.applyIntent(1, {
@@ -282,7 +283,7 @@ describe("BT25-039 Sirenmon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT25-059", as: "host", under: [{ card: "BT25-039" }] },
+            { card: "BT1-009", as: "host", under: [{ card: "BT25-039" }] },
             { card: "BT1-009", as: "redirect", suspended: true, dp: 12_000 },
           ],
           security: ["BT1-009"],
@@ -300,8 +301,9 @@ describe("BT25-039 Sirenmon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.security.length === 0);
-
+    await settle(
+      () => s.state.players[0]!.security.length === 0 && s.events.some((event) => event.kind === "combatResolved"),
+    );
     expect(
       s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("attacker").permanentId),
     ).toBe(true);

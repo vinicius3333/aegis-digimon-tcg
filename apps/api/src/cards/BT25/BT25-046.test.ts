@@ -33,7 +33,7 @@ describe("BT25-046 Gekkomon", () => {
           deck: [
             { card: "BT25-041", as: "glowing" },
             { card: "BT25-046", as: "beatbreak" },
-            { card: "BT1-001", as: "rest" },
+            { card: "BT1-009", as: "rest" },
           ],
         },
       },
@@ -48,15 +48,13 @@ describe("BT25-046 Gekkomon", () => {
     await settle(
       () =>
         s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("glowing").instanceId) &&
-        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("beatbreak").instanceId),
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("beatbreak").instanceId) &&
+        s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("rest").instanceId),
     );
 
-    expect(s.state.players[0]!.hand).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ instanceId: s.inst("glowing").instanceId }),
-        expect.objectContaining({ instanceId: s.inst("beatbreak").instanceId }),
-      ]),
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("glowing").instanceId, s.inst("beatbreak").instanceId]),
     );
-    expect(s.state.players[0]!.deck).toEqual([expect.objectContaining({ instanceId: s.inst("rest").instanceId })]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("rest").instanceId]);
   });
 });
