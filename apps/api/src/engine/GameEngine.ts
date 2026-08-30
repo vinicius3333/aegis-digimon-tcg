@@ -3301,6 +3301,12 @@ export class GameEngine {
     if (entryPermanentId !== undefined) {
       this.materializePlayerCustomEffects(this.access.permanentById(entryPermanentId));
     }
+    // The played card is already in the battle area when its play event happens, so its
+    // resident `whenPlayed` watchers are eligible to trigger on that same event (BT25-028;
+    // BT22-039 Q4893). Install those entry-state subscriptions before taking the event
+    // snapshot. Effects gained later while [On Play] resolves remain excluded by
+    // `onlyInitiallyArmed`, preserving the trigger-time snapshot rule (BT13-013 Q2272).
+    await this.recomputeContinuousEffects();
     await this.withPendingSubTriggers(
       ["whenPlayed", "onEnterFieldAnyone"],
       { ...this.playedTrigger(entryPermanentId), entryCause: "play" },

@@ -157,6 +157,28 @@ describe("BT25-067 Sealsdramon", () => {
       opponentTurn.inst("tank").instanceId,
     );
 
+    const opponentTurnSelfPlay = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: CARD_ID, as: "seals" },
+            { card: "BT25-074", as: "tank" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    opponentTurnSelfPlay.state.turnSeat = 1;
+    await opponentTurnSelfPlay.ready();
+    await advance(opponentTurnSelfPlay.engine).verb.playInstances(
+      [opponentTurnSelfPlay.inst("seals").instanceId],
+      CARD_ID,
+    );
+    expect(opponentTurnSelfPlay.state.players[0]!.battleArea[0]?.topCard?.cardId).toBe(CARD_ID);
+    expect(opponentTurnSelfPlay.state.players[0]!.hand.map((card) => card.instanceId)).toContain(
+      opponentTurnSelfPlay.inst("tank").instanceId,
+    );
+
     const declined = setupEngine(
       {
         0: {
