@@ -38,7 +38,7 @@ describe("BT14-080", () => {
         },
         1: { deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"], trash: Array(10).fill("BT1-006") },
       },
-      { memory: 10, autoSelectCards: true, autoAcceptOptional: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.turnSeat = 0;
     s.state.memory = 10;

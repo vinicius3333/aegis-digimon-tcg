@@ -19,16 +19,26 @@ describe("BT15-087", () => {
 
   it("uses compiled IR for its security, memory, and Mind Link clauses", () => {
     expect(compiled.effects?.[0]).toMatchObject({ trigger: "Security", isSecurity: true });
-    expect(compiled.effects?.[1]).toMatchObject({ trigger: "StartOfYourTurn", actions: [{ kind: "SetMemory", value: 3 }] });
+    expect(compiled.effects?.[1]).toMatchObject({
+      trigger: "StartOfYourTurn",
+      actions: [{ kind: "SetMemory", value: 3 }],
+    });
     expect(compiled.effects?.[2]).toMatchObject({ trigger: "Main", actions: [{ kind: "MindLink" }] });
   });
   it("gives qualifying inherited hosts Alliance and Reboot, then can play Shuu Yulin", () => {
-    expect(compiled.effects?.[3]).toMatchObject({ trigger: "AllTurns", isInherited: true, actions: [{ kind: "Aura" }, { kind: "Aura" }] });
-    expect(compiled.effects?.[3]?.actions[0]?.effect).toMatchObject({
-      kind: "keyword",
-      keyword: { keyword: "Alliance" },
+    expect(compiled.effects?.[3]).toMatchObject({
+      trigger: "AllTurns",
+      isInherited: true,
+      actions: [{ kind: "Aura" }, { kind: "Aura" }],
     });
-    expect(compiled.effects?.[4]).toMatchObject({ trigger: "EndOfAllTurns", isInherited: true, actions: [{ kind: "PlayWithoutCost", fromOwnDigivolutionStack: true, payCost: false }] });
+    expect(compiled.effects?.[3]?.actions[0]).toMatchObject({
+      effect: { kind: "keyword", keyword: { keyword: "Alliance" } },
+    });
+    expect(compiled.effects?.[4]).toMatchObject({
+      trigger: "EndOfAllTurns",
+      isInherited: true,
+      actions: [{ kind: "PlayWithoutCost", fromOwnDigivolutionStack: true, payCost: false }],
+    });
   });
 
   it("naturally Mind Links Shuu to a matching Digimon through the public Main intent", async () => {

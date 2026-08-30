@@ -45,7 +45,7 @@ describe("BT14-071", () => {
         },
         1: {},
       },
-      { memory: 10, turnPlayer: 0, autoSelectCards: true, autoAcceptOptional: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
     await s.ready();
     s.state.turnSeat = 0;

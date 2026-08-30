@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, Zone } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-066.js";
@@ -198,7 +198,7 @@ describe("BT26-066 Salamon", () => {
 
     await advance(s.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 0, byEffectSeat: 0 });
     expect(s.perm("host").topCard.cardId).toBe("BT26-074");
-    s.give(0, "trash", { card: "P-209", as: "secondEvolution" });
+    s.give(0, Zone.Trash, { card: "P-209", as: "secondEvolution" });
     await advance(s.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 0, byEffectSeat: 0 });
 
     expect(s.perm("host").topCard.cardId).toBe("BT26-074");

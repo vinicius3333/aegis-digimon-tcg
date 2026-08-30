@@ -106,14 +106,14 @@ it("prompts for the Shoutmon X7 target when more than one is present", async () 
       ({ req }) =>
         req.sourceCardId === "BT12-100" &&
         req.kind === "chooseTargets" &&
-        req.options?.candidateInstanceIds.length === 1,
+        req.options?.candidateInstanceIds?.length === 1,
     ),
   );
   const deletionChoice = s.decisions.find(
     ({ req }) =>
       req.sourceCardId === "BT12-100" &&
       req.kind === "chooseTargets" &&
-      req.options?.candidateInstanceIds.length === 1,
+      req.options?.candidateInstanceIds?.length === 1,
   )!.req;
   expect(
     s.engine.applyIntent(0, {
@@ -122,19 +122,20 @@ it("prompts for the Shoutmon X7 target when more than one is present", async () 
       response: { kind: "chooseTargets", instanceIds: [s.perm("target").permanentId] },
     }),
   ).toEqual({ ok: true });
-  await settle(
-    () =>
-      s.decisions.some(
-        ({ req }) =>
-          req.sourceCardId === "BT12-100" &&
-          req.kind === "chooseTargets" &&
-          req.options?.candidateInstanceIds.length === 2,
-      ),
+  await settle(() =>
+    s.decisions.some(
+      ({ req }) =>
+        req.sourceCardId === "BT12-100" &&
+        req.kind === "chooseTargets" &&
+        req.options?.candidateInstanceIds?.length === 2,
+    ),
   );
 
   const choice = s.decisions.find(
     ({ req }) =>
-      req.sourceCardId === "BT12-100" && req.kind === "chooseTargets" && req.options?.candidateInstanceIds.length === 2,
+      req.sourceCardId === "BT12-100" &&
+      req.kind === "chooseTargets" &&
+      req.options?.candidateInstanceIds?.length === 2,
   )!.req;
   expect(choice.options?.candidateInstanceIds).toEqual([
     s.perm("firstShoutmon").permanentId,

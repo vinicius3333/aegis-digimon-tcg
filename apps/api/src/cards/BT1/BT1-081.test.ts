@@ -9,7 +9,7 @@ describe("BT1-081 HerculesKabuterimon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-081", as: "attacker", under: [{ card: "BT1-076", under: ["BT1-073"] }] }],
+          battleArea: [{ card: "BT1-081", as: "attacker", under: ["BT1-073", "BT1-076"] }],
         },
         1: {
           battleArea: [{ card: "BT1-010", as: "defender", dp: 1000, suspended: true }],

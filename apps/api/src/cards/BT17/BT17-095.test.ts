@@ -134,7 +134,10 @@ describe("BT17-095 Miraculous Mega Knight", () => {
 
     // The activated Main/Delay affordance is shown only to the current turn player.
     s.state.turnSeat = 0;
-    await settle(() => observe(s.engine).activatableEffects(option).length > 0);
+    await settle(() => {
+      const activatable = observe(s.engine).activatableEffects(option);
+      return Array.isArray(activatable) && activatable.length > 0;
+    });
   });
 
   it("naturally plays a Tai/Matt card from Security, then adds itself to hand", async () => {

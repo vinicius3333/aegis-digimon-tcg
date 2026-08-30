@@ -16,8 +16,8 @@ describe("BT14-096", () => {
       duration: "untilOpponentTurnEnd",
       condition: { kind: "youHave" },
     });
-    expect(compiled.effects?.[0]?.actions[0]?.target).not.toHaveProperty("sameTarget");
-    expect(compiled.effects?.[0]?.actions[1]?.target).not.toHaveProperty("sameTarget");
+    expect(compiled.effects?.[0]?.actions[0]).not.toHaveProperty("target.sameTarget");
+    expect(compiled.effects?.[0]?.actions[1]).not.toHaveProperty("target.sameTarget");
   });
   it("activates main and returns itself from security", () =>
     expect(compiled.effects?.[1]).toMatchObject({
@@ -44,7 +44,9 @@ describe("BT14-096", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const suspendDecision = s.state.pendingDecision;
     if (suspendDecision?.kind !== "chooseTargets") throw new Error("suspend target decision did not open");

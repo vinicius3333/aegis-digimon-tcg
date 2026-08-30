@@ -49,13 +49,25 @@ describe("BT16-028", () => {
       kind: "SubTrigger",
       event: "whenOneOfYoursDigivolves",
     });
-    expect(compiled.effects?.[1]?.actions?.[0]?.actions?.[0]?.condition).toMatchObject({
-      kind: "allOf",
-      conditions: [{ kind: "youHave" }, { kind: "triggerPlayedOrDigivolvedByEffect" }],
+    expect(compiled.effects?.[1]?.actions?.[0]).toMatchObject({
+      actions: [
+        {
+          condition: {
+            kind: "allOf",
+            conditions: [{ kind: "youHave" }, { kind: "triggerPlayedOrDigivolvedByEffect" }],
+          },
+        },
+      ],
     });
-    expect(compiled.effects?.[1]?.actions?.[1]?.actions?.[0]?.condition).toMatchObject({
-      kind: "allOf",
-      conditions: [{ kind: "youHave" }, { kind: "triggerPlayedOrDigivolvedByEffect" }],
+    expect(compiled.effects?.[1]?.actions?.[1]).toMatchObject({
+      actions: [
+        {
+          condition: {
+            kind: "allOf",
+            conditions: [{ kind: "youHave" }, { kind: "triggerPlayedOrDigivolvedByEffect" }],
+          },
+        },
+      ],
     });
   });
 

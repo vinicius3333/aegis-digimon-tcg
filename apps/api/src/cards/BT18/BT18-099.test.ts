@@ -128,9 +128,13 @@ describe("BT18-099 Fist of Athena", () => {
       }),
     ).toEqual({ ok: true });
     s.state.turnSeat = 1;
-    await settle(() => observe(s.engine).activatableEffects(s.perm("option")).length > 0);
+    await settle(() => {
+      const activatable = observe(s.engine).activatableEffects(s.perm("option"));
+      return Array.isArray(activatable) && activatable.length > 0;
+    });
 
-    const delay = observe(s.engine).activatableEffects(s.perm("option"))[0] as { effectKey: string } | undefined;
+    const activatable = observe(s.engine).activatableEffects(s.perm("option"));
+    const delay = Array.isArray(activatable) ? (activatable[0] as { effectKey: string } | undefined) : undefined;
     expect(delay?.effectKey).toBeDefined();
     const optionInstanceId = s.perm("option").topCard!.instanceId;
     expect(
