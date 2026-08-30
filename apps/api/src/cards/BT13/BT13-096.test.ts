@@ -89,7 +89,10 @@ describe("BT13-096 Homer Yushima", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played-blue").instanceId })).toEqual({ ok: true });
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played-blue").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("homer").isSuspended && s.perm("played-blue").stack.length === 1);
     expect(s.perm("homer").isSuspended).toBe(true);
     expect(s.perm("played-blue").stack.at(-1)?.instanceId).toBe(s.inst("placed-blue").instanceId);
@@ -109,8 +112,15 @@ describe("BT13-096 Homer Yushima", () => {
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played-blue").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("played-blue").instanceId));
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played-blue").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("played-blue").instanceId,
+      ),
+    );
     expect(s.perm("homer").isSuspended).toBe(false);
     expect(s.perm("played-blue").stack).toHaveLength(0);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("placed-blue").instanceId)).toBe(true);
@@ -130,21 +140,28 @@ describe("BT13-096 Homer Yushima", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played-blue").instanceId })).toEqual({ ok: true });
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played-blue").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.pendingDecision?.kind === "optional");
     const costDecision = s.state.pendingDecision!;
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: costDecision.decisionId,
-      response: { kind: "optional", accept: true },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: costDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.decisions.filter(({ req }) => req.kind === "optional").length >= 2);
     const placementDecision = s.state.pendingDecision!;
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: placementDecision.decisionId,
-      response: { kind: "optional", accept: false },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: placementDecision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("homer").isSuspended);
     expect(s.perm("homer").isSuspended).toBe(true);
     expect(s.perm("played-blue").stack).toHaveLength(0);

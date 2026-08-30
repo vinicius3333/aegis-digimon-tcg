@@ -29,9 +29,8 @@ describe("BT13-077 Craniamon", () => {
     }
   });
 
-  it("optionally makes an opponent Digimon attack the player at end of turn", () => {
+  it("mandatorily makes an opponent Digimon attack the player at end of turn", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "EndOfOpponentsTurn")).toMatchObject({
-      optional: true,
       actions: [
         {
           kind: "Attack",
@@ -73,12 +72,18 @@ describe("BT13-077 Craniamon", () => {
     s.state.turnSeat = 1;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.EndOfOpponentsTurn, s.perm("craniamon"));
+    // Craniamon itself has Blocker, so the forced player attack legitimately opens
+    // the production block window. Resolve that protocol window before asserting the
+    // attack result; autoSelectCards only answers card/target decisions.
+    const firing = advance(s.engine).fire(EffectTiming.EndOfOpponentsTurn, s.perm("craniamon"));
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
+    await firing;
 
     expect(observe(s.engine).hasAttackedThisTurn(s.perm("attacker"))).toBe(true);
   });
 
-  it("allows declining the optional end-of-opponent-turn forced attack", async () => {
+  it("does not let an optional-effect auto-decline suppress the mandatory forced attack", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT13-077", as: "craniamon" }] },
@@ -89,9 +94,12 @@ describe("BT13-077 Craniamon", () => {
     s.state.turnSeat = 1;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.EndOfOpponentsTurn, s.perm("craniamon"));
+    const firing = advance(s.engine).fire(EffectTiming.EndOfOpponentsTurn, s.perm("craniamon"));
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
+    await firing;
 
-    expect(observe(s.engine).hasAttackedThisTurn(s.perm("attacker"))).toBe(false);
+    expect(observe(s.engine).hasAttackedThisTurn(s.perm("attacker"))).toBe(true);
   });
 
   it("keeps When Digivolving immunity against a real opposing Digimon effect", async () => {

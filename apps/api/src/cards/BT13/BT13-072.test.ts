@@ -77,9 +77,12 @@ describe("BT13-072 DoruGreymon", () => {
   });
 
   it("places an X Antibody Digimon from hand under the inherited host at turn end", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT13-072"] }], hand: ["BT9-055"] },
-    });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT13-072"] }], hand: ["BT9-055"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
 
     await advance(s.engine).fireForPermanent(EffectTiming.OnEndTurn, s.perm("host"));

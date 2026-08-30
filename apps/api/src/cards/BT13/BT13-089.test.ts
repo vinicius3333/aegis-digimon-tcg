@@ -67,7 +67,7 @@ describe("BT13-089 BT13-089", () => {
 
   it("naturally deletes an eligible Ravemon at own end and plays one from trash next opponent end", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT13-089", under: ["BT13-085"], as: "source" }] } },
+      { 0: { battleArea: [{ card: "BT13-089", under: ["BT13-082"], as: "source" }] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
@@ -96,7 +96,10 @@ describe("BT13-089 BT13-089", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT13-089", as: "base" }, { card: "BT13-102", as: "keenantamer" }],
+          battleArea: [
+            { card: "BT13-089", as: "base" },
+            { card: "BT13-102", as: "keenantamer" },
+          ],
           hand: [{ card: "BT13-092", as: "burst" }],
         },
         1: { hand: ["BT1-001"] },
@@ -115,14 +118,15 @@ describe("BT13-089 BT13-089", () => {
     await settle(() => s.perm("base").topCard?.cardId === "BT13-092");
     s.state.turnSeat = 0;
     await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
-    await settle(() => s.perm("base").topCard?.cardId === "BT13-089");
-    expect(s.perm("base").topCard?.cardId).toBe("BT13-089");
+    await settle(() => s.perm("base").stack.length === 0);
+    expect(s.perm("base").topCard?.cardId).toBe("BT13-092");
     expect(s.perm("base").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT13-089");
 
     s.state.turnSeat = 1;
     await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
-    expect(s.perm("base").topCard?.cardId).toBe("BT13-089");
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).not.toContain("BT13-089");
+    expect(s.perm("base").topCard?.cardId).toBe("BT13-092");
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT13-089");
   });
 });

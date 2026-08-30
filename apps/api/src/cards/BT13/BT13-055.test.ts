@@ -20,7 +20,11 @@ describe("BT13-055 Lamortmon", () => {
       isFromHand: true,
       condition: {
         kind: "youHave",
-        filter: { controllerDefault: "mine", kind: ["Tamer"], nameOrTrait: [{ match: "nameExact", tokens: ["Ruli Tsukiyono"] }] },
+        filter: {
+          controllerDefault: "mine",
+          kind: ["Tamer"],
+          nameOrTrait: [{ match: "nameExact", tokens: ["Ruli Tsukiyono"] }],
+        },
       },
       actions: [
         {
@@ -30,7 +34,11 @@ describe("BT13-055 Lamortmon", () => {
           costOverride: 3,
           ignoreRequirements: true,
           target: {
-            filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ match: "nameExact", tokens: ["Angoramon"] }] },
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ match: "nameExact", tokens: ["Angoramon"] }],
+            },
             count: 1,
             fromSelectionRef: "lamortHost",
           },
@@ -41,7 +49,11 @@ describe("BT13-055 Lamortmon", () => {
             host: "target",
             destination: "digivolutionStack",
             bindHostAs: "lamortHost",
-            underFilter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ match: "nameExact", tokens: ["Angoramon"] }] },
+            underFilter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ match: "nameExact", tokens: ["Angoramon"] }],
+            },
           },
         },
       ],
@@ -67,7 +79,9 @@ describe("BT13-055 Lamortmon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", {});
+    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", {
+      subjectPermanentId: s.perm("host").permanentId,
+    });
     await settle(() => s.state.players[1]!.security.length === 0, 3000);
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
@@ -76,8 +90,14 @@ describe("BT13-055 Lamortmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT13-047", as: "angora" }, { card: "BT10-091", as: "ruli" }],
-          hand: [{ card: "BT13-055", as: "lamort" }, { card: "BT13-052", as: "symbare" }],
+          battleArea: [
+            { card: "BT13-047", as: "angora" },
+            { card: "BT10-091", as: "ruli" },
+          ],
+          hand: [
+            { card: "BT13-055", as: "lamort" },
+            { card: "BT13-052", as: "symbare" },
+          ],
           deck: ["BT1-001"],
         },
       },
@@ -86,11 +106,13 @@ describe("BT13-055 Lamortmon", () => {
     s.state.memory = 5;
     await s.ready();
     expect(s.inst("lamort").activatableEffectsJson).not.toBe("");
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.inst("lamort").instanceId,
-      effectKey: handMainEffectKey(s),
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("lamort").instanceId,
+        effectKey: handMainEffectKey(s),
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("angora").topCard.cardId === "BT13-055");
     expect(s.perm("angora").stack[0]!.cardId).toBe("BT13-052");
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-001"]);
@@ -98,24 +120,26 @@ describe("BT13-055 Lamortmon", () => {
   });
 
   it("cannot activate without its own Ruli or without hand SymbareAngoramon", async () => {
-    for (const [ownRuli, symbare] of [[false, true], [true, false]] as const) {
+    for (const [ownRuli, symbare] of [
+      [false, true],
+      [true, false],
+    ] as const) {
       const s = setupEngine({
         0: {
-          battleArea: [
-            { card: "BT13-047", as: "angora" },
-            ...(ownRuli ? [{ card: "BT10-091", as: "ruli" }] : []),
-          ],
+          battleArea: [{ card: "BT13-047", as: "angora" }, ...(ownRuli ? [{ card: "BT10-091", as: "ruli" }] : [])],
           hand: [{ card: "BT13-055", as: "lamort" }, ...(symbare ? ["BT13-052"] : [])],
         },
         1: { battleArea: ownRuli ? [] : [{ card: "BT10-091", as: "opponent-ruli" }] },
       });
       await s.ready();
       expect(s.inst("lamort").activatableEffectsJson).toBe("");
-      expect(s.engine.applyIntent(0, {
-        type: "activateEffect",
-        sourceInstanceId: s.inst("lamort").instanceId,
-        effectKey: handMainEffectKey(s),
-      }).ok).toBe(false);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "activateEffect",
+          sourceInstanceId: s.inst("lamort").instanceId,
+          effectKey: handMainEffectKey(s),
+        }).ok,
+      ).toBe(false);
       expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT13-055")).toBe(true);
     }
   });
@@ -123,7 +147,10 @@ describe("BT13-055 Lamortmon", () => {
   it("does not treat SymbareAngoramon as an exact Angoramon host", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT13-052", as: "symbareHost" }, { card: "BT10-091", as: "ruli" }],
+        battleArea: [
+          { card: "BT13-052", as: "symbareHost" },
+          { card: "BT10-091", as: "ruli" },
+        ],
         hand: [{ card: "BT13-055", as: "lamort" }, "BT13-052"],
       },
     });
@@ -158,22 +185,27 @@ describe("BT13-055 Lamortmon", () => {
       0: { battleArea: [{ card: "EX1-038", as: "host", under: ["BT13-055"] }] },
       1: {
         battleArea: [{ card: "BT13-049", as: "target", suspended: true }],
-        security: [{ card: "BT1-001", as: "first" }, { card: "BT1-002", as: "second" }],
+        security: [
+          { card: "BT1-001", as: "first" },
+          { card: "BT1-002", as: "second" },
+        ],
       },
     });
     await s.ready();
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("host").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("target").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0, 3000);
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
       expect.arrayContaining([s.inst("first").instanceId, s.inst("second").instanceId]),
     );
-    expect(s.state.players[1]!.trash.findIndex(({ instanceId }) => instanceId === s.inst("first").instanceId)).toBeLessThan(
-      s.state.players[1]!.trash.findIndex(({ instanceId }) => instanceId === s.inst("second").instanceId),
-    );
+    expect(
+      s.state.players[1]!.trash.findIndex(({ instanceId }) => instanceId === s.inst("first").instanceId),
+    ).toBeLessThan(s.state.players[1]!.trash.findIndex(({ instanceId }) => instanceId === s.inst("second").instanceId));
   });
 
   it("normally digivolves from a green level 4 for exactly 3 memory", async () => {
@@ -181,11 +213,13 @@ describe("BT13-055 Lamortmon", () => {
       0: { battleArea: [{ card: "BT13-051", as: "base" }], hand: [{ card: "BT13-055", as: "lamort" }] },
     });
     s.state.memory = 4;
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("lamort").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("lamort").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT13-055");
     expect(s.state.memory).toBe(1);
   });
