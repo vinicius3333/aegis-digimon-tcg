@@ -88,7 +88,7 @@ describe("BT22-024 MarineBullmon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT21-031", as: "sangomon" },
+            { card: "BT4-022", as: "sangomon" },
             { card: "BT22-086", as: "yao" },
           ],
           hand: [{ card: "BT22-024", as: "marineBullmon" }],
@@ -114,7 +114,7 @@ describe("BT22-024 MarineBullmon", () => {
 
     expect(s.state.memory).toBe(2);
     expect(s.perm("sangomon").topCard?.cardId).toBe("BT22-024");
-    expect(s.perm("sangomon").stack.map((card) => card.cardId)).toEqual(["BT22-021", "BT21-031"]);
+    expect(s.perm("sangomon").stack.map((card) => card.cardId)).toEqual(["BT22-021", "BT4-022"]);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("invalid").instanceId]);
   });
 
@@ -177,14 +177,14 @@ describe("BT22-024 MarineBullmon", () => {
 
   it("executes Decode from its own stack on a non-battle leave", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT22-024", under: ["BT22-024"], as: "host" }] } },
+      { 0: { battleArea: [{ card: "BT22-024", under: ["BT22-021"], as: "host" }] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
     expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-024"));
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-021"));
 
-    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT22-024"]);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT22-021"]);
   });
 });

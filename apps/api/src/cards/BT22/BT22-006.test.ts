@@ -36,6 +36,7 @@ describe("BT22-006 Moonmon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    await s.ready();
     const host = s.perm("host");
     const source = (s.engine as any).cardSourceOf(host.stack.find((card) => card.cardId === "BT22-043")!);
     const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
