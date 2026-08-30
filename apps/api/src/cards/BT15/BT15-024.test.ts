@@ -136,8 +136,10 @@ describe("BT15-024", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT15-024"));
 
     expect(s.state.memory).toBe(3);
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-086"]);
-    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "BT1-086")).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-086", "BT1-001"]);
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "BT1-086")).toHaveLength(
+      0,
+    );
   });
 
   it("draws only once from two real attacks by a host carrying the inherited effect", async () => {

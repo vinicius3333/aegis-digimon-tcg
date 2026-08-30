@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT15-004.js";

@@ -100,9 +100,9 @@ describe("BT15-041 [End of Opponent's Turn] delete self to play Rosemon/Jijimon,
     expect(s.state.players[0]?.battleArea.some((p) => p.topCard?.cardId === PLAYED_CARD)).toBe(true);
     // Its [When Digivolving] effect re-fired exactly once.
     expect(fired).toBe(1);
-    // The owner is seat 0 while seat 1's turn is ending, so gaining one memory
-    // for seat 0 moves the turn-relative gauge from 5 to 4.
-    expect(s.state.memory).toBe(4);
+    // Public turn completion first transfers the positive gauge to seat 0's side (-5),
+    // then the re-fired effect gains 1 memory for seat 0 and moves it to -4.
+    expect(s.state.memory).toBe(-4);
   });
 
   it("digivolves legally from a level-5 green Digimon and preserves the source stack", async () => {

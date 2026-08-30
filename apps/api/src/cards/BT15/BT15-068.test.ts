@@ -53,6 +53,7 @@ describe("A3 BT15-068 — granted '[On Deletion] Lose 1 memory.'", () => {
     );
     s.state.turnSeat = 0;
     s.state.memory = 0;
+    await s.ready();
 
     expect(
       s.engine.applyIntent(0, {
@@ -63,7 +64,7 @@ describe("A3 BT15-068 — granted '[On Deletion] Lose 1 memory.'", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.memory === 1);
 
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("playedByEffect").instanceId)).toBe(
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("playedByEffect").instanceId)).toBe(
       true,
     );
   });

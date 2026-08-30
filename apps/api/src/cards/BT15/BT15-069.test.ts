@@ -21,7 +21,7 @@ describe("BT15-069", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT15-069", as: "candlemon", dp: 2000 }],
+          battleArea: [{ card: "BT15-069", as: "candlemon", dp: 2000, suspended: true }],
           deck: [{ card: "BT1-001", as: "drawn" }],
         },
         1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 3000 }] },
@@ -41,6 +41,6 @@ describe("BT15-069", () => {
     await settle(() => !s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("candlemon").permanentId));
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
-    expect(s.state.memory).toBe(2);
+    expect(s.state.memory).toBe(0);
   });
 });

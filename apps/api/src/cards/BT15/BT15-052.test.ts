@@ -101,7 +101,7 @@ describe("BT15-052", () => {
       0: {
         battleArea: [{ card: "BT15-052", as: "puppetmon" }],
         hand: [
-          { card: "BT1-084", as: "whiteOmnimon" },
+          { card: "BT15-102", as: "whiteApocalymon" },
           { card: "BT13-033", as: "blueBurstMode" },
         ],
       },
@@ -109,7 +109,7 @@ describe("BT15-052", () => {
 
     s.state.memory = 10;
     await s.ready();
-    expect(s.inst("whiteOmnimon").digivolveTargetPermanentIds).toContain(s.perm("puppetmon").permanentId);
+    expect(s.inst("whiteApocalymon").digivolveTargetPermanentIds).toContain(s.perm("puppetmon").permanentId);
     expect(s.inst("blueBurstMode").digivolveTargetPermanentIds).not.toContain(s.perm("puppetmon").permanentId);
     expect(
       s.engine.applyIntent(0, {
@@ -138,7 +138,9 @@ describe("BT15-052", () => {
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT15-052"));
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard!.cardId)).toContain("BT15-052");
-    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("metalSeadramon").instanceId);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("metalSeadramon").instanceId,
+    );
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });
 });

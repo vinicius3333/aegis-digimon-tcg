@@ -49,7 +49,7 @@ describe("BT15-057", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT15-056", as: "base" }],
+          battleArea: [{ card: "BT15-056", as: "base", suspended: true }],
           hand: [{ card: "BT15-057", as: "numemonX" }],
           trash: [{ card: "BT2-056", as: "fromTrash" }],
         },

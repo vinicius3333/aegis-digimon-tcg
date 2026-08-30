@@ -34,7 +34,10 @@ describe("BT15-089", () => {
   it("naturally applies the opposing-security-scaled DP ceiling on Main", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "BT15-089", as: "meteor" }] },
+        0: {
+          battleArea: [{ card: "BT1-012", as: "redSource" }],
+          hand: [{ card: "BT15-089", as: "meteor" }],
+        },
         1: {
           battleArea: [
             { card: "BT1-009", as: "atCap", dp: 9000 },
@@ -48,44 +51,52 @@ describe("BT15-089", () => {
     s.state.turnSeat = 0;
     s.state.memory = 10;
     await s.ready();
+    const atCapId = s.perm("atCap").permanentId;
+    const aboveCapId = s.perm("aboveCap").permanentId;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("meteor").instanceId })).toEqual({ ok: true });
-    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("atCap").permanentId));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("meteor").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === atCapId));
 
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("aboveCap").permanentId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === aboveCapId)).toBe(true);
     expect(s.state.memory).toBe(6);
   });
 
   it("naturally activates Main from security during an attack", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-009", as: "attacker" }],
           security: [{ card: "BT15-089", as: "meteor" }],
         },
         1: {
           battleArea: [
             { card: "BT1-009", as: "atCap", dp: 13000 },
             { card: "BT1-009", as: "aboveCap", dp: 14000 },
+            { card: "BT1-009", as: "attacker" },
           ],
           security: ["BT1-001"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds: preferred },
     );
-    s.state.turnSeat = 0;
+    const atCapId = s.perm("atCap").permanentId;
+    const aboveCapId = s.perm("aboveCap").permanentId;
+    preferred.push(s.perm("atCap").topCard.instanceId);
+    s.state.turnSeat = 1;
     await s.ready();
 
     expect(
-      s.engine.applyIntent(0, {
+      s.engine.applyIntent(1, {
         type: "attack",
         attackerPermanentId: s.perm("attacker").permanentId,
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("atCap").permanentId));
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === atCapId));
 
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("aboveCap").permanentId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === aboveCapId)).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(0);
   });
 });

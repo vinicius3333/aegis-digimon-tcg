@@ -73,9 +73,7 @@ describe("BT15-029", () => {
       s.state.players[1]!.deck.some(({ instanceId }) => instanceId === s.inst("eligibleLevelFour").instanceId),
     );
 
-    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(
-      placedPermanentId,
-    );
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(placedPermanentId);
     expect(s.state.players[1]!.deck.at(-1)?.instanceId).toBe(s.inst("eligibleLevelFour").instanceId);
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(
       s.perm("ineligibleLevelFive").permanentId,
@@ -99,7 +97,7 @@ describe("BT15-029", () => {
             { card: "BT15-025", as: "secondCost" },
           ],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "defender" }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-009", as: "defender", suspended: true }], security: ["BT1-001"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
