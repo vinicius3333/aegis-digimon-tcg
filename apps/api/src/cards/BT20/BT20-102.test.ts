@@ -51,20 +51,16 @@ describe("BT20-102 — [When Digivolving] mass-delete spares the chosen survivor
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
       const entryEffect = compiled.effects.find((entry) => entry.trigger === trigger);
 
-      expect(entryEffect).toMatchObject({
-        actions: [
-          {
-            condition: {
-              kind: "selfDigivolutionStackHasTrait",
-              filter: {
-                nameOrTrait: [
-                  { tokens: ["Omnimon"], match: "nameExact" },
-                  { tokens: ["X Antibody"], match: "trait" },
-                ],
-              },
-            },
+      expect(entryEffect?.actions[0]).toMatchObject({
+        condition: {
+          kind: "selfDigivolutionStackHasTrait",
+          filter: {
+            nameOrTrait: [
+              { tokens: ["Omnimon"], match: "nameExact" },
+              { tokens: ["X Antibody"], match: "trait" },
+            ],
           },
-        ],
+        },
       });
     }
 

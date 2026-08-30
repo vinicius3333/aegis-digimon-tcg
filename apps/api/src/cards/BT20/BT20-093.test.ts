@@ -33,7 +33,23 @@ describe("BT20-093 Unleash the Dragon Gene", () => {
       actions: [{ kind: "DnaDigivolve", into: { nameOrTrait: [{ tokens: ["Examon"], match: "nameExact" }] } }],
     });
     expect(compiled.effects.find((entry) => entry.trigger === "Security")).toMatchObject({
-      actions: [{ target: { filter: { nameOrTrait: [{ tokens: ["Dracomon"], match: "name" }] } } }],
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Dracomon"], match: "name" }],
+            },
+            count: 1,
+          },
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
+        },
+        { kind: "PlaceInBattleAreaSelf" },
+      ],
     });
   });
 });

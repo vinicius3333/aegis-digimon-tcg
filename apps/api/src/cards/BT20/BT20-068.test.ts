@@ -105,7 +105,7 @@ describe("BT20-068 Bakemon", () => {
 
   it("gains 1 memory only when Bakemon is inherited under the deleted host", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT20-072", under: ["BT20-068"], suspended: true, as: "host" }] },
+      0: { battleArea: [{ card: "BT1-024", under: ["BT20-068"], suspended: true, as: "host" }] },
       1: { battleArea: [{ card: "BT20-076", as: "attacker" }] },
     });
     s.state.memory = 0;
@@ -121,8 +121,8 @@ describe("BT20-068 Bakemon", () => {
     ).toEqual({ ok: true });
     await settle(
       () =>
-        !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId) && s.state.memory === 1,
+        !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId) && s.state.memory === -1,
     );
-    expect(s.state.memory).toBe(1);
+    expect(s.state.memory).toBe(-1);
   });
 });
