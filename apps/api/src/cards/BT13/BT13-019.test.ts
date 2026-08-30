@@ -20,6 +20,7 @@ describe("BT13-019 Gankoomon", () => {
         from: ["trash", "digivolutionCards"],
         target: {
           filter: {
+            controller: "mine",
             excludeNameOrTrait: [{ tokens: ["Omnimon", "Gankoomon"], match: "nameExact" }],
           },
         },
@@ -38,6 +39,22 @@ describe("BT13-019 Gankoomon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT10-085")).toBe(true);
   });
 
+  it("does not play an eligible Sistermon from the opponent's trash", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT13-019", as: "gankoomon" }] },
+        1: { trash: [{ card: "BT10-085", as: "opponent-ciel" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await fireOnPlay(s);
+
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("opponent-ciel").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
   it("offers the same free Sistermon play when it digivolves", async () => {
     const s = setupEngine(
       {
@@ -51,11 +68,13 @@ describe("BT13-019 Gankoomon", () => {
     );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("gankoomon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gankoomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT10-085"));
     expect(s.state.memory).toBe(5);
   });
@@ -92,7 +111,9 @@ describe("BT13-019 Gankoomon", () => {
     );
     const omnimonXId = s.inst("omnimonX").instanceId;
     await fireOnPlay(s);
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === omnimonXId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === omnimonXId),
+    );
 
     expect(s.perm("drasil").stack.some((card) => card.instanceId === omnimonXId)).toBe(false);
   });

@@ -33,7 +33,7 @@ describe("BT13-043 LoaderLeomon", () => {
       },
     });
     await s.ready();
-    const deletion = advance(s.engine).verb.deletePermanent([s.perm("loader").permanentId]);
+    const deletion = advance(s.engine).verb.deletePermanent([s.perm("loader").permanentId], "byBattle");
     await settle(() => s.events.some(({ kind }) => kind === "barrierPrompt"));
     expect(
       s.engine.applyIntent(0, { type: "respondBarrier", permanentId: s.perm("loader").permanentId, accept: true }),
@@ -50,7 +50,7 @@ describe("BT13-043 LoaderLeomon", () => {
       0: { battleArea: [{ card: "BT13-043", as: "loader" }], security: ["BT1-001"] },
     });
     await s.ready();
-    const deletion = advance(s.engine).verb.deletePermanent([s.perm("loader").permanentId]);
+    const deletion = advance(s.engine).verb.deletePermanent([s.perm("loader").permanentId], "byBattle");
     await settle(() => s.events.some(({ kind }) => kind === "barrierPrompt"));
     expect(
       s.engine.applyIntent(0, { type: "respondBarrier", permanentId: s.perm("loader").permanentId, accept: false }),
@@ -69,7 +69,7 @@ describe("BT13-043 LoaderLeomon", () => {
     });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Barrier")).toBe(true);
-    const deletion = advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
+    const deletion = advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byBattle");
     await settle(() => s.events.some(({ kind }) => kind === "barrierPrompt"));
     expect(
       s.engine.applyIntent(0, { type: "respondBarrier", permanentId: s.perm("host").permanentId, accept: true }),
@@ -82,7 +82,7 @@ describe("BT13-043 LoaderLeomon", () => {
   it("with no security, Barrier cannot prevent deletion", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT13-043", as: "loader" }] } });
     await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("loader").permanentId]);
+    await advance(s.engine).verb.deletePermanent([s.perm("loader").permanentId], "byBattle");
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.events.some(({ kind }) => kind === "barrierPrompt")).toBe(false);
   });

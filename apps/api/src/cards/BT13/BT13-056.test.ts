@@ -27,6 +27,7 @@ describe("BT13-056 Leopardmon", () => {
             kind: "PlayWithoutCost",
             from: ["hand"],
             payCost: true,
+            reduceCostBy: 4,
             optional: true,
             target: {
               filter: {
@@ -38,12 +39,6 @@ describe("BT13-056 Leopardmon", () => {
               },
               count: 1,
             },
-          },
-          {
-            kind: "Replacement",
-            event: "wouldBePlayed",
-            sourceFilter: { isSelfRef: true },
-            actions: [{ mode: "reduceCost", amount: 4 }],
           },
         ],
       });
@@ -111,7 +106,7 @@ describe("BT13-056 Leopardmon", () => {
       {
         0: {
           battleArea: [{ card: "BT13-056", as: "leo" }],
-          hand: [{ card: "BT13-040", as: "royal" }],
+          hand: [{ card: "BT13-056", as: "royal" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -126,9 +121,11 @@ describe("BT13-056 Leopardmon", () => {
         effectKey: mainEffectKey(s),
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("royal").topCard?.cardId === "BT13-040");
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("royal").instanceId),
+    );
 
-    expect(s.state.memory).toBe(7);
+    expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("royal").instanceId)).toBe(false);
   });
 
@@ -137,7 +134,10 @@ describe("BT13-056 Leopardmon", () => {
       {
         0: {
           battleArea: [{ card: "BT13-056", as: "leo" }],
-          hand: [{ card: "BT13-052", as: "green" }, { card: "BT13-040", as: "royal" }],
+          hand: [
+            { card: "BT13-052", as: "green" },
+            { card: "BT13-040", as: "royal" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -162,14 +162,21 @@ describe("BT13-056 Leopardmon", () => {
   it("grants Blocker to existing and newly played green Digimon through the opponent's turn (Q2301)", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT13-056", as: "leo" }, { card: "BT13-051", as: "existing" }],
+        battleArea: [
+          { card: "BT13-056", as: "leo" },
+          { card: "BT13-051", as: "existing" },
+        ],
         hand: [{ card: "BT13-051", as: "played" }],
       },
     });
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("played").instanceId));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("played").instanceId),
+    );
     const played = s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === s.inst("played").instanceId)!;
     expect(observe(s.engine).hasKeyword(s.perm("existing"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(played, "Blocker")).toBe(true);

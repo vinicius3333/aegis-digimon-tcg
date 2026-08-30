@@ -8,9 +8,7 @@ import "./BT13-015.js";
 
 describe("BT13-015 RizeGreymon", () => {
   it("uses exact bracketed names for its GeoGreymon evolution and Marcus Damon references", () => {
-    expect(compiled.digivolutionRequirement).toEqual([
-      { namesExact: ["GeoGreymon"], cost: 3, isAlternate: true },
-    ]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["GeoGreymon"], cost: 3, isAlternate: true }]);
     expect(compiled.effects[0]).toMatchObject({
       trigger: "WhenDigivolving",
       actions: [{ target: { filter: { nameOrTrait: [{ tokens: ["Marcus Damon"], match: "nameExact" }] } } }],
@@ -21,7 +19,7 @@ describe("BT13-015 RizeGreymon", () => {
         {
           actions: [
             {
-              actions: [{ source: { filter: { nameOrTrait: [{ tokens: ["Marcus Damon"], match: "nameExact" }] } } }],
+              source: { filter: { nameOrTrait: [{ tokens: ["Marcus Damon"], match: "nameExact" }] } },
             },
           ],
         },
@@ -34,7 +32,7 @@ describe("BT13-015 RizeGreymon", () => {
         {
           actions: [
             {
-              actions: [{ source: { filter: { nameOrTrait: [{ tokens: ["Marcus Damon"], match: "nameExact" }] } } }],
+              source: { filter: { nameOrTrait: [{ tokens: ["Marcus Damon"], match: "nameExact" }] } },
             },
           ],
         },
@@ -98,7 +96,9 @@ describe("BT13-015 RizeGreymon", () => {
     await settle();
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("nearMarcus").instanceId)).toBe(true);
-    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "AD1-021")).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "AD1-021")).toHaveLength(
+      0,
+    );
   });
 
   it("may decline to play Marcus Damon when digivolving", async () => {

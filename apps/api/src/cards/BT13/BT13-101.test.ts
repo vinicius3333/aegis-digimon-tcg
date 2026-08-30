@@ -89,7 +89,7 @@ describe("BT13-101 Miki Kurosaki & Megumi Shirakawa", () => {
         0: {
           battleArea: [{ card: "BT13-101", as: "tamers" }],
           hand: [{ card: "BT10-009", as: "shoutmon" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

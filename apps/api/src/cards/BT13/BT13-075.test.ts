@@ -147,10 +147,13 @@ describe("BT13-075 BT13-075", () => {
   });
 
   it("returns a qualifying source to the deck and prevents an opposing effect removal", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT13-075", as: "alphamon", under: ["BT9-055"] }] },
-      1: { deck: ["BT1-001"] },
-    });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT13-075", as: "alphamon", under: ["BT9-055"] }] },
+        1: { deck: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     const hostId = s.perm("alphamon").permanentId;
 
@@ -166,10 +169,13 @@ describe("BT13-075 BT13-075", () => {
   });
 
   it("also prevents an own-effect removal but not a battle deletion", async () => {
-    const ownEffect = setupEngine({
-      0: { battleArea: [{ card: "BT13-075", as: "alphamon", under: ["BT9-055"] }] },
-      1: { deck: ["BT1-001"] },
-    });
+    const ownEffect = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT13-075", as: "alphamon", under: ["BT9-055"] }] },
+        1: { deck: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await ownEffect.ready();
     const ownHostId = ownEffect.perm("alphamon").permanentId;
     advance(ownEffect.engine).verb.enterEffectResolution(0, ["Digimon"]);

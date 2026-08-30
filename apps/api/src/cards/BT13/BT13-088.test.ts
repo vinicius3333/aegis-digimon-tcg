@@ -46,6 +46,7 @@ describe("BT13-088 Belphemon: Sleep Mode", () => {
     expect((effect?.actions?.[0] as { actions?: unknown[] }).actions?.[0]).toMatchObject({
       kind: "RedirectAttack",
       mode: "endAttack",
+      allowCostWithoutTarget: true,
       optional: true,
       abortOnDecline: true,
       cost: { kind: "trash", target: { filter: { zone: "hand", controller: "mine" }, count: 2 } },
@@ -98,7 +99,12 @@ describe("BT13-088 Belphemon: Sleep Mode", () => {
           battleArea: [{ card: "BT13-088", as: "sleep" }],
           hand: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
         },
-        1: { battleArea: [{ card: "BT13-081", as: "attackerOne" }, { card: "BT13-082", as: "attackerTwo" }] },
+        1: {
+          battleArea: [
+            { card: "BT13-081", as: "attackerOne" },
+            { card: "BT13-082", as: "attackerTwo" },
+          ],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
