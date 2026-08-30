@@ -168,7 +168,9 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
               grantDuration,
               (permanentId) => {
                 const permanent = ctx.game.permanentById(permanentId);
-                return permanent !== undefined && permanentMatchesFilter(ctx, permanent, action.target.filter, ctx.source);
+                return (
+                  permanent !== undefined && permanentMatchesFilter(ctx, permanent, action.target.filter, ctx.source)
+                );
               },
             );
           }
@@ -221,6 +223,7 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
           const sources = action.topmostOnly === true ? matches.slice(-1) : matches;
           for (const stackCard of sources) {
             ctx.fx.conferStackEffects(permanentId, stackCard.instanceId, duration, {
+              excludeInherited: action.excludeInherited === true,
               granterInstanceId: ctx.source.instanceId,
             });
           }
