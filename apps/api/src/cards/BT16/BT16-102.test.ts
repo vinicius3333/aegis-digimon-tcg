@@ -87,7 +87,6 @@ describe("BT16-102", () => {
         type: "digivolve",
         permanentId: s.perm("base").permanentId,
         instanceId: s.inst("magna").instanceId,
-        useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.cardId === "BT16-102");
@@ -97,11 +96,11 @@ describe("BT16-102", () => {
     expect(s.perm("base").isSuspended).toBe(false);
   });
 
-  it("naturally evolves from Magnamon without the stack condition and only unsuspends", async () => {
+  it("naturally evolves from a level 5 without the stack condition and only unsuspends", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT13-040", as: "base", suspended: true }],
+          battleArea: [{ card: "BT1-038", as: "base", suspended: true }],
           hand: [{ card: "BT16-102", as: "magna" }],
         },
       },

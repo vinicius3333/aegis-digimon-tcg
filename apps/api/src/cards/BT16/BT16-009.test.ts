@@ -79,20 +79,28 @@ describe("BT16-009", () => {
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === highestId)).toBe(false);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowerId)).toBe(true);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("attacker").permanentId)).toBe(
-      true,
-    );
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("attacker").permanentId),
+    ).toBe(true);
   });
 
   it("uses Armor Purge to survive a natural losing battle by promoting its source", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT16-009", as: "lynxmon", dp: 1000, under: [{ card: "BT1-009", as: "source" }] }],
+          battleArea: [
+            {
+              card: "BT16-009",
+              as: "lynxmon",
+              dp: 1000,
+              suspended: true,
+              under: [{ card: "BT1-009", as: "source" }],
+            },
+          ],
         },
         1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 2000 }] },
       },
-      { autoAcceptOptional: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.turnSeat = 1;
     await s.ready();

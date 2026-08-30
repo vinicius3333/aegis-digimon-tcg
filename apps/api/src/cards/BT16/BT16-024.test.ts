@@ -42,12 +42,14 @@ describe("BT16-024", () => {
   it("grants Blocker to your Angel-family Digimon during the opponent's turn", async () => {
     const s = setupEngine({
       0: {
+        deck: ["BT1-009", "BT1-010"],
         battleArea: [
           { card: "BT1-009", as: "source", under: ["BT16-024"] },
           { card: "BT16-019", as: "angel" },
           { card: "BT1-009", as: "other" },
         ],
       },
+      1: { deck: ["BT1-009", "BT1-010"] },
     });
     await s.ready();
     await advance(s.engine).runTurn(0);
@@ -70,7 +72,10 @@ describe("BT16-024", () => {
       {
         0: {
           hand: [{ card: "BT16-024", as: "magna" }],
-          security: [{ card: "BT2-040", as: "ophanimon" }, { card: "BT1-001", as: "other" }],
+          security: [
+            { card: "BT2-040", as: "ophanimon" },
+            { card: "BT1-001", as: "other" },
+          ],
           deck: ["BT1-002"],
         },
       },

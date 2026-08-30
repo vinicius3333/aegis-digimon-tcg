@@ -55,7 +55,7 @@ describe("BT16-080 Shroudmon", () => {
           battleArea: [{ card: "BT16-080", as: "shroud" }],
           security: ["BT1-001", "BT1-001", "BT1-001"],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 10000 }], security: [] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 10000 }], security: ["BT1-090"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -89,7 +89,9 @@ describe("BT16-080 Shroudmon", () => {
     s.state.memory = 12;
     await s.ready();
 
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("removal").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("removal").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.security.length === 2);
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-080")).toBe(true);

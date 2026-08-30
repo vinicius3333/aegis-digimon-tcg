@@ -80,6 +80,7 @@ describe("BT16-028", () => {
         instanceId: s.inst("dragonMode").instanceId,
       }),
     ).toEqual({ ok: true });
+    await settle(() => !s.perm("source").isSuspended && s.perm("opponent").isSuspended);
 
     expect(s.perm("source").isSuspended).toBe(false);
     expect(s.perm("opponent").isSuspended).toBe(true);
@@ -90,7 +91,10 @@ describe("BT16-028", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT16-028", as: "source" }, { card: "BT1-087", as: "tamer" }],
+          battleArea: [
+            { card: "BT16-028", as: "source" },
+            { card: "BT1-087", as: "tamer" },
+          ],
           hand: [{ card: "BT16-027", as: "fighterMode" }],
         },
         1: {
@@ -119,7 +123,10 @@ describe("BT16-028", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT16-028", as: "source" }, { card: "BT1-087", as: "tamer" }],
+          battleArea: [
+            { card: "BT16-028", as: "source" },
+            { card: "BT1-087", as: "tamer" },
+          ],
           hand: [{ card: "BT16-027", as: "fighterMode" }],
         },
         1: {

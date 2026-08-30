@@ -15,7 +15,7 @@ describe("BT16-006", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT16-007", as: "host", under: ["BT16-006"] }],
+          battleArea: [{ card: "BT16-007", as: "host", under: ["BT16-006"], suspended: true }],
           hand: [{ card: "BT1-009", as: "costCard" }],
         },
         1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 3000 }] },
@@ -24,6 +24,7 @@ describe("BT16-006", () => {
     );
     s.state.turnSeat = 1;
     s.state.memory = 0;
+    await s.ready();
     const hostInstanceId = s.perm("host").topCard.instanceId;
 
     expect(
@@ -35,7 +36,7 @@ describe("BT16-006", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("costCard").instanceId));
 
-    expect(s.state.memory).toBe(1);
+    expect(s.state.memory).toBe(-1);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === hostInstanceId)).toBe(true);
     expect(s.state.players[0]!.trash.filter((card) => card.instanceId === s.inst("costCard").instanceId)).toHaveLength(
       1,
@@ -44,11 +45,12 @@ describe("BT16-006", () => {
 
   it("does not gain memory when the natural deletion has no hand card to pay the cost", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT16-007", as: "host", under: ["BT16-006"] }] },
+      0: { battleArea: [{ card: "BT16-007", as: "host", under: ["BT16-006"], suspended: true }] },
       1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 3000 }] },
     });
     s.state.turnSeat = 1;
     s.state.memory = 0;
+    await s.ready();
 
     expect(
       s.engine.applyIntent(1, {

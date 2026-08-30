@@ -1,4 +1,4 @@
-import { EffectTiming, Phase } from "@aegis/shared";
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -33,11 +33,18 @@ describe("BT16-090 Lui Ohwada", () => {
   });
 
   it("sets memory to 3 through natural turn progression", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT16-090", as: "lui" }] } });
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT16-090", as: "lui" }],
+        hand: ["BT1-009"],
+        deck: ["BT1-010"],
+      },
+    });
     await s.ready();
+    s.state.isFirstPlayersFirstTurn = true;
     s.state.memory = 2;
     const turn = s.engine.runOneTurn();
-    await settle(() => s.state.phase === Phase.Main && s.state.memory === 3);
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.state.memory).toBe(3);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await turn;

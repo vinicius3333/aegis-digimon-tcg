@@ -42,6 +42,7 @@ describe("BT16-069", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 5;
+    await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("geso").instanceId })).toEqual({ ok: true });
     await settle(() => observe(s.engine).isRestricted(s.perm("opponent"), "suspend"));
@@ -63,6 +64,7 @@ describe("BT16-069", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 0;
+    await s.ready();
 
     expect(
       s.engine.applyIntent(0, {
@@ -87,16 +89,14 @@ describe("BT16-069", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT1-044", as: "launcher", under: ["BT1-040", "BT1-036"] },
-            { card: "BT16-069", as: "geso" },
-          ],
+          battleArea: [{ card: "BT1-044", as: "launcher", under: ["BT1-040", "BT1-036", "BT16-069"] }],
           deck: ["BT1-009"],
           hand: [{ card: "BT1-010", as: "discard" }],
         },
       },
       { autoSelectCards: true },
     );
+    await s.ready();
 
     expect(
       s.engine.applyIntent(0, {

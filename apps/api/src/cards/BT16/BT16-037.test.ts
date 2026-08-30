@@ -42,12 +42,7 @@ describe("BT16-037", () => {
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT16-037"));
 
     expect(s.state.players[0]!.hand.filter((card) => card.cardId === "BT16-037")).toHaveLength(1);
-    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual([
-      "BT1-012",
-      "BT1-009",
-      "BT1-010",
-      "BT1-011",
-    ]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-012", "BT1-009", "BT1-010", "BT1-011"]);
   });
 
   it("bottoms all four revealed cards when no Insectoid is found", async () => {
@@ -79,10 +74,16 @@ describe("BT16-037", () => {
 
   it("naturally evolves from Minomon and gains the inherited bonus after attacking", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT16-004", as: "minomon" }], hand: [{ card: "BT16-037", as: "kokabuterimon" }] },
+      0: {
+        battleArea: [{ card: "BT16-004", as: "minomon" }],
+        hand: [
+          { card: "BT16-037", as: "kokabuterimon" },
+          { card: "BT1-071", as: "vegiemon" },
+        ],
+      },
       1: { security: ["BT1-090"] },
     });
-    s.state.memory = 0;
+    s.state.memory = 2;
     await s.ready();
 
     expect(
@@ -97,6 +98,16 @@ describe("BT16-037", () => {
 
     expect(
       s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("minomon").permanentId,
+        instanceId: s.inst("vegiemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("minomon").topCard?.cardId === "BT1-071");
+    expect(s.perm("minomon").currentDP).toBe(6000);
+
+    expect(
+      s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("minomon").permanentId,
         target: { kind: "player" },
@@ -104,6 +115,6 @@ describe("BT16-037", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("minomon").isSuspended);
 
-    expect(s.perm("minomon").currentDP).toBe(2000);
+    expect(s.perm("minomon").currentDP).toBe(7000);
   });
 });

@@ -81,17 +81,24 @@ describe("BT16-046", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT16-045", as: "base" }], hand: [{ card: "BT16-046", as: "gran" }] },
-        1: { battleArea: [{ card: "BT1-009", as: "opponentDigimon" }, { card: "BT16-085", as: "opponentTamer" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "opponentDigimon" },
+            { card: "BT16-085", as: "opponentTamer" },
+          ],
+        },
       },
       { autoSelectCards: true },
     );
     s.state.memory = 4;
+    await s.ready();
 
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
         permanentId: s.perm("base").permanentId,
         instanceId: s.inst("gran").instanceId,
+        alternateRequirementIndex: 1,
       }),
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-085"));
@@ -103,9 +110,10 @@ describe("BT16-046", () => {
 
   it("gains Security Attack +1 only when the host itself becomes suspended", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT18-101", as: "host", under: ["BT16-046"] }] },
+      0: { battleArea: [{ card: "BT16-046", as: "host" }] },
       1: { security: ["BT1-001", "BT1-001", "BT1-001"] },
     });
+    await s.ready();
 
     expect(
       s.engine.applyIntent(0, {
@@ -122,14 +130,20 @@ describe("BT16-046", () => {
   it("does not gain Security Attack when another Digimon becomes suspended", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT18-101", as: "host", under: ["BT16-046"] }], hand: [{ card: "BT16-041", as: "played" }] },
+        0: {
+          battleArea: [{ card: "BT18-101", as: "host", under: ["BT16-046"] }],
+          hand: [{ card: "BT16-041", as: "played" }],
+        },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
       },
       { autoSelectCards: true },
     );
     s.state.memory = 4;
+    await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("opponent").isSuspended);
 
     expect(s.perm("opponent").isSuspended).toBe(true);

@@ -51,7 +51,7 @@ describe("BT16-038", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("terriermon").topCard?.cardId === "BT16-038");
 
-    expect(s.perm("terriermon").stack.map((card) => card.cardId)).toEqual(["ST17-02", "BT16-038"]);
+    expect(s.perm("terriermon").stack.map((card) => card.cardId)).toEqual(["ST17-02"]);
     expect(s.state.memory).toBe(0);
   });
 

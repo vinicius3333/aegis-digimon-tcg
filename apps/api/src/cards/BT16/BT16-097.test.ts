@@ -64,7 +64,10 @@ describe("BT16-097", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT16-008", as: "redMaterial" }],
+          battleArea: [
+            { card: "BT16-008", as: "redMaterial" },
+            { card: "BT16-088", as: "colorSource" },
+          ],
           hand: [
             { card: "BT16-097", as: "option" },
             { card: "BT16-019", as: "angemon" },

@@ -44,6 +44,7 @@ describe("BT16-066", () => {
       { autoDeclineOptional: true },
     );
     s.state.memory = 0;
+    await s.ready();
 
     expect(
       s.engine.applyIntent(0, {
@@ -55,20 +56,23 @@ describe("BT16-066", () => {
     await settle(() => s.perm("source").topCard?.cardId === "BT16-066");
 
     expect(s.state.memory).toBe(1);
-    expect(s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("opponentDigimon").instanceId)).toBe(true);
+    expect(s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("opponentDigimon").instanceId)).toBe(
+      true,
+    );
   });
 
   it("draws and trashes a card through the inherited effect on a natural attack", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT16-066", as: "host", under: ["BT7-006"] }],
+          battleArea: [{ card: "BT1-009", as: "host", under: ["BT16-066"] }],
           deck: ["BT1-009"],
           hand: [{ card: "BT1-010", as: "discard" }],
         },
       },
       { autoSelectCards: true },
     );
+    await s.ready();
 
     expect(
       s.engine.applyIntent(0, {
