@@ -52,7 +52,7 @@ describe("BT21-004 Koromon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT21-011", as: "host", under: ["BT21-004"] },
+            { card: "BT21-009", as: "host", under: ["BT21-004"] },
             { card: "BT21-084", as: "haru" },
           ],
           hand: [{ card: "BT21-009", as: "link" }],

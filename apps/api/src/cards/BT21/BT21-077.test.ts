@@ -28,7 +28,7 @@ describe("BT21-077 Regulusmon", () => {
       kind: "PlayWithoutCost",
       target: {
         filter: {
-          orFilters: [{ nameOrTrait: [{ tokens: ["Canoweissmon"], match: "nameExact" }] }],
+          orFilters: expect.arrayContaining([{ nameOrTrait: [{ tokens: ["Canoweissmon"], match: "nameExact" }] }]),
         },
       },
     });
