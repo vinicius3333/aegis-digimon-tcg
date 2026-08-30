@@ -39,14 +39,15 @@ scenario("target-decision", () => {
     vi.stubEnv("VITE_AEGIS_API_URL", server.endpoint);
     const { GameScreen } = await import("../src/game/GameScreen");
 
-    // Seed 952: seat 0 (protagonist) goes first and its dealt opening hand
-    // includes BT1-095 alongside three Monodramon (BT1-009, cost 2) — found by
-    // exhaustively searching seeds for the swapped RED_DECK, mirroring
-    // mulligan.scenario.test.tsx's seed-4 search.
+    // Seed 750: seat 0 (protagonist) goes first and its dealt opening hand
+    // includes BT1-095 alongside two Monodramon (BT1-009, cost 2). The first two
+    // opposing security checks are a 1000 DP Digimon and an Option, so both 3000 DP
+    // Monodramon survive to become legal suspended targets. Found by exhaustively
+    // searching seeds for the swapped RED_DECK, mirroring mulligan's seed search.
     const joinOptions: AegisJoinOptions & { seed?: number } = {
       displayName: "Protagonist",
       deck: { mainDeck: PROTAGONIST_DECK.mainDeck, eggDeck: PROTAGONIST_DECK.eggDeck },
-      seed: 952,
+      seed: 750,
     };
 
     render(<GameScreen joinOptions={joinOptions} identityColor="Red" startMode="casual" onExit={() => {}} />);
@@ -74,6 +75,7 @@ scenario("target-decision", () => {
     fireEvent.click(await screen.findByRole("button", { name: /keep hand/i }, { timeout: 10_000 }));
 
     const yourBattleArea = () => document.querySelector('[data-drop="battle-you"]') as HTMLElement;
+    const oppSecurity = () => document.querySelector('[data-drop="opp-security"]') as HTMLElement;
 
     // Turn 1: the memory gauge starts at 0 (no pass-turn bonus yet), and playing
     // ANY nonzero-cost card immediately crosses it to the opponent's side, ending
@@ -105,8 +107,41 @@ scenario("target-decision", () => {
       );
     }
 
-    // Turn 3 (memory +3 again): skip breeding, play Brave Shield (cost 5).
+    // Turn 3 (memory +3 again): both Monodramon have cleared summoning sickness.
+    // Attack security with each one so Brave Shield has two legal *suspended*
+    // Unsuspend candidates; an active Digimon is intentionally not a legal target.
     await endBreedingStep();
+    await vi.waitFor(() => expect(opponent.room.state.phase).toBe("Main"), { timeout: 10_000 });
+
+    for (let attacked = 0; attacked < 2; attacked += 1) {
+      const activeMonodramon = within(yourBattleArea())
+        .getAllByRole("img", { name: /monodramon/i })
+        .map((image) => image.closest('[data-drop="perm-you"]') as HTMLElement)
+        .find((permanent) => permanent.querySelector('[data-state="active"]') !== null);
+      expect(activeMonodramon).toBeDefined();
+      tap(activeMonodramon!);
+      fireEvent.click(await screen.findByRole("button", { name: /^attack$/i }, { timeout: 10_000 }));
+      fireEvent.click(oppSecurity());
+      await vi.waitFor(
+        () => {
+          const monodramon = opponent.room.state.players[0]!.battleArea.filter(
+            (permanent) => permanent.topCard?.cardId === "BT1-009",
+          );
+          expect(monodramon).toHaveLength(2);
+          expect(monodramon.filter((permanent) => permanent.isSuspended)).toHaveLength(attacked + 1);
+        },
+        { timeout: 10_000 },
+      );
+      await vi.waitFor(() => expect(document.querySelector(".game-input-lock")).toBeNull(), { timeout: 10_000 });
+    }
+
+    // Both legal targets are now visibly suspended before the Option is used.
+    expect(
+      within(yourBattleArea())
+        .getAllByRole("img", { name: /monodramon/i })
+        .map((image) => image.closest('[data-drop="perm-you"]'))
+        .filter((permanent) => permanent?.querySelector('[data-state="suspended"]') !== null),
+    ).toHaveLength(2);
 
     const [braveShieldImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /brave shield/i });
     tap(braveShieldImg!);
@@ -131,12 +166,23 @@ scenario("target-decision", () => {
       { timeout: 10_000 },
     );
 
-    // Every target decision resolved and no dialog remains — the protagonist's
-    // Digimon are still on the field (nothing was deleted or moved), proving each
-    // chosen target was accepted and the effect completed.
+    // Every target decision resolved and no dialog remains. Exactly one Monodramon
+    // became active while the other stayed suspended, proving the chosen target was
+    // accepted and the Unsuspend effect completed.
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(within(yourBattleArea()).getAllByRole("img", { name: /monodramon/i })).toHaveLength(2);
+    expect(
+      opponent.room.state.players[0]!.battleArea.filter(
+        (permanent) => permanent.topCard?.cardId === "BT1-009" && permanent.isSuspended,
+      ),
+    ).toHaveLength(1);
+    expect(
+      within(yourBattleArea())
+        .getAllByRole("img", { name: /monodramon/i })
+        .map((image) => image.closest('[data-drop="perm-you"]'))
+        .filter((permanent) => permanent?.querySelector('[data-state="active"]') !== null),
+    ).toHaveLength(1);
 
     await opponent.leave();
-  }, 20_000);
+  }, 30_000);
 });
