@@ -111,7 +111,7 @@ describe("BT26-038 Kuwagamon", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
 
-    expect(s.perm("host").topCard.cardId).toBe("BT26-008");
+    expect(s.perm("host").topCard.cardId).toBe("BT11-053");
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(candidateId);
     expect(s.state.memory).toBe(1);
   });

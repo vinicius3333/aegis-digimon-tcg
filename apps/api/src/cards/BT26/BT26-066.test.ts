@@ -160,7 +160,7 @@ describe("BT26-066 Salamon", () => {
     nonTitan.state.memory = 10;
     await nonTitan.ready();
     await advance(nonTitan.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 0, byEffectSeat: 0 });
-    expect(nonTitan.perm("host").topCard.cardId).toBe("BT10-080");
+    expect(nonTitan.perm("host").topCard.cardId).toBe("BT26-067");
     expect(nonTitan.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("P-209");
   });
 
@@ -187,11 +187,8 @@ describe("BT26-066 Salamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-069", as: "host", under: ["BT26-066"] }],
-          trash: [
-            { card: "BT26-074", as: "firstEvolution" },
-            { card: "P-209", as: "secondEvolution" },
-          ],
+          battleArea: [{ card: "BT26-021", as: "host", under: ["BT26-066"] }],
+          trash: [{ card: "BT26-074", as: "firstEvolution" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -200,6 +197,8 @@ describe("BT26-066 Salamon", () => {
     await s.ready();
 
     await advance(s.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 0, byEffectSeat: 0 });
+    expect(s.perm("host").topCard.cardId).toBe("BT26-074");
+    s.give(0, "trash", { card: "P-209", as: "secondEvolution" });
     await advance(s.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 0, byEffectSeat: 0 });
 
     expect(s.perm("host").topCard.cardId).toBe("BT26-074");

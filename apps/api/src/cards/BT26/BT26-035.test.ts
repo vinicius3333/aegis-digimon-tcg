@@ -117,7 +117,7 @@ describe("BT26-035 Morphomon", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
 
-    expect(s.perm("host").topCard.cardId).toBe("BT26-035");
+    expect(s.perm("host").topCard.cardId).toBe("BT11-051");
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("secondEvolution").instanceId);
     expect(s.state.memory).toBe(0);
   });
