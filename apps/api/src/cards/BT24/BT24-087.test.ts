@@ -168,12 +168,10 @@ describe("BT24-087 Rei Katsura public behavior", () => {
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.state.players[0]!.hand.map((instance) => instance.instanceId)).toContain(s.inst("drawn").instanceId);
     expect(s.state.players[0]!.trash.map((instance) => instance.instanceId)).toContain(s.inst("discard").instanceId);
-    // Biomon's own [When Digivolving] then free-links Docmon from the new stack; its
-    // one-card link capacity trashes the previous Medicmon link. CR §4-9-5: linking onto a
-    // Digimon already at its limit trashes the EXISTING link card, never the one that just
-    // arrived — so the freshly linked Docmon stays and Medicmon goes.
+    // Biomon's own [When Digivolving] then free-links Docmon from the new stack. Biomon's
+    // printed ＜Link +1＞ raises its capacity, so the existing Medicmon link remains attached.
     expect(s.perm("fuser").linked.map((instance) => instance.cardId)).toContain(DOCMON);
-    expect(s.state.players[0]!.trash.map((instance) => instance.cardId)).toContain(MEDICMON);
+    expect(s.perm("fuser").linked.map((instance) => instance.cardId)).toContain(MEDICMON);
   });
 
   it("does not trigger when an opponent's Digimon gets linked", async () => {

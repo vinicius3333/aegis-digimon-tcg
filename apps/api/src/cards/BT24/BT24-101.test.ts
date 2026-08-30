@@ -39,12 +39,12 @@ describe("BT24-101 Jupitermon", () => {
         0: {
           hand: [{ card: "BT24-101", as: "jupitermon" }],
           security: [
-            { card: "BT1-001", as: "payment" },
-            { card: "BT1-002", as: "remaining" },
+            { card: "BT4-022", as: "payment" },
+            { card: "BT4-023", as: "remaining" },
           ],
           deck: [
-            { card: "BT1-003", as: "recovery1" },
-            { card: "BT1-004", as: "recovery2" },
+            { card: "BT4-024", as: "recovery1" },
+            { card: "BT4-025", as: "recovery2" },
           ],
         },
         1: { battleArea: [{ card: "BT1-080", as: "target", dp: 13000 }] },
@@ -78,12 +78,12 @@ describe("BT24-101 Jupitermon", () => {
           battleArea: [{ card: "BT24-014", as: "base" }],
           hand: [{ card: "BT24-101", as: "jupitermon" }],
           security: [
-            { card: "BT1-001", as: "payment" },
-            { card: "BT1-002", as: "remaining" },
+            { card: "BT4-022", as: "payment" },
+            { card: "BT4-023", as: "remaining" },
           ],
           deck: [
-            { card: "BT1-003", as: "recovery1" },
-            { card: "BT1-004", as: "recovery2" },
+            { card: "BT4-024", as: "recovery1" },
+            { card: "BT4-025", as: "recovery2" },
           ],
         },
         1: { battleArea: [{ card: "BT1-080", as: "target", dp: 13000 }] },
@@ -105,7 +105,11 @@ describe("BT24-101 Jupitermon", () => {
     expect(s.perm("base").topCard.cardId).toBe("BT24-101");
     expect(s.state.memory).toBe(8);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("payment").instanceId);
-    expect(s.state.players[0]!.security).toHaveLength(3);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("remaining").instanceId, s.inst("recovery2").instanceId]),
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("recovery1").instanceId);
   });
 
   it("trashes opponent security once per turn only for removal from its controller's security", async () => {
@@ -125,15 +129,15 @@ describe("BT24-101 Jupitermon", () => {
       0: {
         battleArea: [{ card: "BT24-101", as: "jupitermon" }],
         security: [
-          { card: "BT1-001", as: "ownTop" },
-          { card: "BT1-002", as: "ownRemaining" },
+          { card: "BT4-022", as: "ownTop" },
+          { card: "BT4-023", as: "ownRemaining" },
         ],
       },
       1: {
         battleArea: [{ card: "BT1-009", as: "attacker" }],
         security: [
-          { card: "BT1-003", as: "opponentTop" },
-          { card: "BT1-004", as: "opponentRemaining" },
+          { card: "BT4-024", as: "opponentTop" },
+          { card: "BT4-025", as: "opponentRemaining" },
         ],
       },
     });
@@ -226,8 +230,8 @@ describe("BT24-101 Jupitermon", () => {
           0: {
             battleArea: [{ card: "BT24-101", as: "jupitermon" }],
             deck: [
-              { card: "BT1-001", as: "recovery1" },
-              { card: "BT1-002", as: "recovery2" },
+              { card: "BT4-022", as: "recovery1" },
+              { card: "BT4-023", as: "recovery2" },
             ],
           },
           1: { battleArea: [{ card: "BT1-080", as: "target", dp: 13000 }] },
@@ -259,11 +263,11 @@ describe("BT24-101 Jupitermon", () => {
             { card: "BT24-088", as: "tamer" },
           ],
           security: [
-            { card: "BT1-001", as: "payment" },
-            { card: "BT1-002", as: "remaining" },
+            { card: "BT4-022", as: "payment" },
+            { card: "BT4-023", as: "remaining" },
           ],
         },
-        1: { security: ["BT1-003", "BT1-004"] },
+        1: { security: ["BT4-024", "BT4-025"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -287,11 +291,11 @@ describe("BT24-101 Jupitermon", () => {
         0: {
           battleArea: [
             { card: "BT24-101", as: "jupitermon" },
-            { card: "BT24-009", as: "tsTarget" },
+            { card: "BT24-009", as: "tsTarget", suspended: true },
           ],
           security: [
-            { card: "BT1-001", as: "payment" },
-            { card: "BT1-002", as: "remaining" },
+            { card: "BT4-022", as: "payment" },
+            { card: "BT4-023", as: "remaining" },
           ],
         },
         1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 13000 }] },

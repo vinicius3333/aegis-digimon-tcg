@@ -107,7 +107,7 @@ describe("BT24-086 The Crossroad Witch", () => {
 
   it("plays itself from its host's digivolution cards at end of all turns (Q5674)", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT13-063", as: "host", under: [{ card: "BT24-086", as: "witch" }] }] } },
+      { 0: { battleArea: [{ card: "BT13-063", as: "host", under: [{ card: "BT15-087", as: "witch" }] }] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();

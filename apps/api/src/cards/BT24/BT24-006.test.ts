@@ -13,7 +13,7 @@ describe("BT24-006 Tapmon", () => {
       colors: ["Purple"],
       kinds: ["DigiEgg"],
       level: 2,
-      types: ["Appmon", "System", "Tap"],
+      types: ["Tap"],
     });
   });
 

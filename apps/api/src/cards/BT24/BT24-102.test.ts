@@ -72,6 +72,7 @@ describe("BT24-102 Homeros", () => {
 
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.state.memory === 5 && s.perm("source").isSuspended);
 
     expect(s.state.memory).toBe(5);
     expect(s.perm("source").isSuspended).toBe(true);
@@ -124,7 +125,7 @@ describe("BT24-102 Homeros", () => {
             { card: "BT24-102", as: "source" },
             { card: "BT24-101", as: "jupitermon" },
           ],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT4-022", "BT4-023", "BT4-024"],
         },
         1: { battleArea: [{ card: "BT1-080", as: "target", dp: 13000 }] },
       },
@@ -148,7 +149,7 @@ describe("BT24-102 Homeros", () => {
             { card: "BT24-101", as: "jupitermon" },
           ],
           hand: [{ card: "BT1-009", as: "playable" }],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT4-022", "BT4-023", "BT4-024"],
         },
         1: { battleArea: [{ card: "BT1-080", as: "target", dp: 13000 }] },
       },
@@ -159,6 +160,7 @@ describe("BT24-102 Homeros", () => {
 
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.state.memory === 2);
     expect(s.state.memory).toBe(2);
     expect(s.perm("source").isSuspended).toBe(false);
 
@@ -178,7 +180,7 @@ describe("BT24-102 Homeros", () => {
             { card: "BT24-102", as: "source", suspended: true },
             { card: "BT24-101", as: "jupitermon" },
           ],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT4-022", "BT4-023", "BT4-024"],
         },
         1: { battleArea: [{ card: "BT1-080", as: "target", dp: 13000 }] },
       },
@@ -228,8 +230,8 @@ describe("BT24-102 Homeros", () => {
             { card: "BT24-102", as: "source" },
             { card: "BT26-103", as: "wrathMode" },
           ],
-          security: ["BT1-001", "BT1-002"],
-          deck: ["BT1-003", "BT1-004", "BT1-005", "BT1-006"],
+          security: ["BT4-022", "BT4-023"],
+          deck: ["BT4-024", "BT4-025", "BT4-026", "BT4-027"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
