@@ -53,7 +53,7 @@ describe("BT26-103 compiled fidelity", () => {
       0: {
         battleArea: [{ card: "BT26-103", as: "wrathMode" }],
         security: ["BT1-001"],
-        deck: ["BT1-002", "BT1-003"],
+        deck: ["BT1-010", "BT1-011"],
       },
     });
 
@@ -67,7 +67,7 @@ describe("BT26-103 compiled fidelity", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT26-103", as: "wrathMode" }],
-        deck: ["BT1-002", "BT1-003"],
+        deck: ["BT1-010", "BT1-011"],
       },
     });
 
@@ -83,7 +83,7 @@ describe("BT26-103 compiled fidelity", () => {
       1: {
         battleArea: [{ card: "BT26-103", as: "wrathMode" }],
         security: ["BT1-001"],
-        deck: ["BT1-002", "BT1-003", "BT1-004", "BT1-005"],
+        deck: ["BT1-010", "BT1-011", "BT1-012", "BT1-013"],
       },
     });
 

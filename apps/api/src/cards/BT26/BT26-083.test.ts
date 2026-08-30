@@ -76,7 +76,7 @@ describe("BT26-083 compiled fidelity", () => {
         0: {
           battleArea: [{ card: baseCard, as: "base" }],
           hand: [{ card: "BT26-083", as: "hysteric" }],
-          deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+          deck: ["BT1-010", "BT1-011", "BT1-012", "BT1-013"],
         },
       });
       s.state.memory = 4;
@@ -102,7 +102,7 @@ describe("BT26-083 compiled fidelity", () => {
       0: {
         hand: [{ card: "BT26-083", as: "hysteric" }],
         trash: [{ card: "BT25-044", as: "junomon" }],
-        deck: ["BT1-001", "BT1-002", "BT1-003"],
+        deck: ["BT1-010", "BT1-011", "BT1-012"],
       },
     });
     s.state.memory = 10;
@@ -125,7 +125,7 @@ describe("BT26-083 compiled fidelity", () => {
 
   it("recovers three even when it has no security to trash (Q7124)", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT26-083", as: "junomon" }], deck: ["BT1-001", "BT1-002", "BT1-003"] },
+      0: { battleArea: [{ card: "BT26-083", as: "junomon" }], deck: ["BT1-010", "BT1-011", "BT1-012"] },
     });
 
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("junomon"));
@@ -151,7 +151,7 @@ describe("BT26-083 compiled fidelity", () => {
         0: {
           battleArea: [{ card: "BT26-083", as: "junomon" }],
           security: ["BT1-001", "BT1-002"],
-          deck: ["BT1-003", "BT1-004", "BT1-005"],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
         },
         1: {
           battleArea: [
@@ -175,7 +175,7 @@ describe("BT26-083 compiled fidelity", () => {
       {
         0: {
           hand: [{ card: "BT26-083", as: "hysteric" }],
-          deck: ["BT1-001", "BT1-002", "BT1-003"],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
         },
         1: {
           battleArea: [{ card: "BT1-009", as: "defender", dp: 1000, suspended: true }],

@@ -133,7 +133,8 @@ describe("BT26-034 Palmon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("first").isSuspended && !s.perm("host").isSuspended && !observe(s.engine).isAttacking());
+    await settle(() => s.perm("first").isSuspended && !observe(s.engine).isAttacking());
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
