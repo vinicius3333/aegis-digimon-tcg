@@ -85,6 +85,10 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         ctx.boundPlayed ??= new Map();
         ctx.boundPlayed.set(action.bindResultAs, new Set(suspendedIds));
       }
+      if (ids.length > 0 && action.target.bindAs !== undefined) {
+        ctx.selections ??= new Map();
+        ctx.selections.set(action.target.bindAs, ids[0]!);
+      }
       // When `trackCount` is present, store the actual suspended count so a subsequent
       // RepeatPerCount action can loop that many times (BT2-041, KB Q1014).
       if (action.trackCount !== undefined) {
@@ -94,7 +98,12 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       return action.abortOnDecline === true && suspendedIds.length === 0;
     }
     case "Unsuspend": {
-      const ids = await resolvePermanentTargets(ctx, action.target);
+      // "Unsuspend 1" can only act on a suspended permanent. Excluding already-active
+      // candidates before the prompt prevents an automatic or human selection from
+      // wasting the effect on a card whose orientation cannot change (BT15-063).
+      const ids = await resolvePermanentTargets(ctx, action.target, {
+        eligible: (permanentId) => ctx.game.permanentById(permanentId)?.isSuspended === true,
+      });
       if (ids.length > 0) {
         await ctx.fx.unsuspend(ids);
         if (action.target.bindAs !== undefined) {
@@ -319,7 +328,9 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
           matches: (subCtx) => {
             const id = subCtx.trigger.subjectPermanentId;
             const permanent = id === undefined ? undefined : subCtx.game.permanentById(id);
-            return permanent !== undefined && permanentMatchesFilter(subCtx, permanent, action.target.filter, subCtx.source);
+            return (
+              permanent !== undefined && permanentMatchesFilter(subCtx, permanent, action.target.filter, subCtx.source)
+            );
           },
           run: async (subCtx) => {
             const id = subCtx.trigger.subjectPermanentId;

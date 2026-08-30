@@ -1137,6 +1137,18 @@ export async function payCost(
           const chosen = await ctx.ask.selectCards(ctx, { candidates: candidateIds, min: allowZero ? 0 : 1, max: cap });
           if (chosen.length < 1) return false;
           const moved = await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
+          ctx.lastTrashedCards = moved.map((card) => ({
+            instanceId: card.instanceId,
+            cardId: card.cardId,
+            dp: ctx.game.definitionOf(card).dp ?? 0,
+          }));
+          if (cost.storeAs !== undefined && moved.length > 0) {
+            const level = ctx.game.definitionOf(moved[0]!).level;
+            if (level !== undefined && level > 0) {
+              ctx.namedCounts ??= new Map();
+              ctx.namedCounts.set(cost.storeAs, level);
+            }
+          }
           if (out) out.paidCount = moved.length;
           if (moved.length >= 1)
             bindLooseCostSelection(
@@ -1152,6 +1164,18 @@ export async function payCost(
         const chosen = await pickLoose(ctx, { ...handTarget, count: want }, candidates);
         if (chosen.length < want) return false;
         const moved = await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
+        ctx.lastTrashedCards = moved.map((card) => ({
+          instanceId: card.instanceId,
+          cardId: card.cardId,
+          dp: ctx.game.definitionOf(card).dp ?? 0,
+        }));
+        if (cost.storeAs !== undefined && moved.length > 0) {
+          const level = ctx.game.definitionOf(moved[0]!).level;
+          if (level !== undefined && level > 0) {
+            ctx.namedCounts ??= new Map();
+            ctx.namedCounts.set(cost.storeAs, level);
+          }
+        }
         if (out) out.paidCount = moved.length;
         if (moved.length === want)
           bindLooseCostSelection(

@@ -868,6 +868,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // BEFORE removal, so the whenPlayed fire can set playedFromZone for the
     // `fromDigivolution` sourceFilter gate (BT20-028 KB Q4321).
     const originByInstance = new Map(instanceIds.map((id) => [id, looseZoneOfInstance(state, id)]));
+    const securityOriginSeats = new Set<Seat>();
     for (const instanceId of instanceIds) {
       const owner = ownerSeatOfLoose(state, instanceId);
       if (owner === undefined) continue;
@@ -910,6 +911,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       if (instance === undefined) continue;
       instance.faceUp = true;
       const permanent = placePermanent(engine, ownerPlayer, instance, definition, opts?.suspended ?? false);
+      if (originByInstance.get(instanceId) === "security") securityOriginSeats.add(ownerPlayer.seat);
       // Breeding: relocate permanent from battle area to breeding slot
       if (opts?.breeding) {
         const idx = ownerPlayer.battleArea.findIndex((p) => p.permanentId === permanent.permanentId);
@@ -992,6 +994,17 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
             },
           );
         }
+      }
+      // Generic PlayWithoutCost can source permanents directly from security. That move is
+      // still an effect-driven security removal, just like playFromSecurity above. Publish
+      // the buses after On Play has installed live watchers so the entering card can observe
+      // its own same-time removal (BT15-037 / KB Q2519).
+      for (const seat of securityOriginSeats) {
+        await engine.fireSubTrigger?.("whenEffectRemovesFromSecurity", { removedFromSecuritySeat: seat });
+        await engine.fireSubTrigger?.("whenSecurityRemoved", {
+          removedFromSecuritySeat: seat,
+          securityRemovedByEffect: true,
+        });
       }
       // An EFFECT just played one or more Digimon (Q3665: "when an effect plays one of your Digimon").
       // Fire the whenPlayed bus ONCE for the play event (KB Q3664: a single effect that plays 2+ at
