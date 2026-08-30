@@ -36,7 +36,7 @@ describe("BT25-021 Gaomon", () => {
           deck: [
             { card: "BT25-087", as: "thomas" },
             { card: "BT11-025", as: "gaogamon" },
-            { card: "BT1-001", as: "rest" },
+            { card: "BT1-009", as: "rest" },
           ],
         },
       },
@@ -51,18 +51,14 @@ describe("BT25-021 Gaomon", () => {
     await settle(
       () =>
         s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("thomas").instanceId) &&
-        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("gaogamon").instanceId),
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("gaogamon").instanceId) &&
+        s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("rest").instanceId),
     );
 
-    expect(s.state.players[0]!.hand).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ instanceId: s.inst("thomas").instanceId }),
-        expect.objectContaining({ instanceId: s.inst("gaogamon").instanceId }),
-      ]),
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("thomas").instanceId, s.inst("gaogamon").instanceId]),
     );
-    expect(s.state.players[0]!.deck).toEqual([
-      expect.objectContaining({ instanceId: s.inst("rest").instanceId }),
-    ]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("rest").instanceId]);
   });
 
   it("draws one for both players once per turn when attacking", () => {

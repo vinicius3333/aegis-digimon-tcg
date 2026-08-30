@@ -40,7 +40,7 @@ describe("BT25-011 Aquilamon", () => {
             { card: "BT16-012", as: "silphymon" },
           ],
         },
-        1: { battleArea: [{ card: "BT1-010", as: "target" }] },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 12000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

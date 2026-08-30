@@ -54,7 +54,9 @@ describe("BT25-015 Garudamon", () => {
   it("trashes security after the inherited host wins a battle and does not repeat this turn", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT25-015", as: "source", dp: 7000 }] },
+        0: {
+          battleArea: [{ card: "BT1-010", as: "host", dp: 7000, under: [{ card: "BT25-015", as: "source" }] }],
+        },
         1: {
           battleArea: [{ card: "BT1-010", as: "target", dp: 6000, suspended: true }],
           security: ["BT1-001", "BT1-002"],
@@ -67,7 +69,7 @@ describe("BT25-015 Garudamon", () => {
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
-        attackerPermanentId: s.perm("source").permanentId,
+        attackerPermanentId: s.perm("host").permanentId,
         target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: true });

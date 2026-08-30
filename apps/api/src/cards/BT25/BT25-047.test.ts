@@ -37,7 +37,7 @@ describe("BT25-047 Floramon", () => {
           deck: [
             { card: "BT1-065", as: "vegetation" },
             { card: "BT25-034", as: "ts" },
-            { card: "BT1-001", as: "rest" },
+            { card: "BT1-009", as: "rest" },
           ],
         },
       },
@@ -52,15 +52,13 @@ describe("BT25-047 Floramon", () => {
     await settle(
       () =>
         s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("vegetation").instanceId) &&
-        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("ts").instanceId),
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("ts").instanceId) &&
+        s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("rest").instanceId),
     );
 
-    expect(s.state.players[0]!.hand).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ instanceId: s.inst("vegetation").instanceId }),
-        expect.objectContaining({ instanceId: s.inst("ts").instanceId }),
-      ]),
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("vegetation").instanceId, s.inst("ts").instanceId]),
     );
-    expect(s.state.players[0]!.deck).toEqual([expect.objectContaining({ instanceId: s.inst("rest").instanceId })]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("rest").instanceId]);
   });
 });

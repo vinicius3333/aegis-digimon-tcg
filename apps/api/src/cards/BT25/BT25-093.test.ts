@@ -41,7 +41,7 @@ describe("BT25-093 Ignition Flare", () => {
     for (const players of [
       {
         0: {
-          breeding: { card: "BT25-008", as: "breedingTs" },
+          breeding: { card: "BT25-034", as: "breedingTs" },
           hand: [{ card: CARD_ID, as: "flare" }],
         },
       },
@@ -55,7 +55,9 @@ describe("BT25-093 Ignition Flare", () => {
       const s = setupEngine(players);
       s.state.memory = 5;
       await s.ready();
-      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("flare").instanceId, useAs: "option" } as never)).toEqual({
+      expect(
+        s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("flare").instanceId, useAs: "option" } as never),
+      ).toEqual({
         ok: false,
         reason: "color-requirement-unmet",
       });

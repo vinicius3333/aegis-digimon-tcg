@@ -51,7 +51,7 @@ describe("BT25-005 Pagumon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT25-083", as: "host", under: ["BT25-005"] }],
+          battleArea: [{ card: "BT25-015", as: "host", under: ["BT25-005"] }],
           hand: [
             { card: "BT25-085", as: "target" },
             { card: "BT25-085", as: "added" },
@@ -67,7 +67,7 @@ describe("BT25-005 Pagumon", () => {
     await settle(() => host.topCard?.cardId === "BT25-085");
 
     expect(host.topCard?.cardId).toBe("BT25-085");
-    expect(s.state.memory).toBe(1);
+    expect(s.state.memory).toBe(4);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT25-081"]);
   });
 });
