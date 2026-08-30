@@ -295,11 +295,18 @@ describe("floating chrome keeps clear of the hand and the memory band", () => {
   // band of its own, and neither may grow out of it.
   it("gives the notice stack and the side panels separate bands in portrait", () => {
     expect(phonePortraitRules).toBeDefined();
+    // Each band scrolls rather than clipping: a fixed 7rem clip cut a long
+    // effect clause mid-sentence with no way to read the rest. The stack takes
+    // its own pointer events so the scroll gesture lands on it.
     expect(phonePortraitRules).toMatch(
-      /\.match-notice-stack,\s*\.side-panel-stack \{[^}]*max-height:\s*7rem[^}]*overflow:\s*hidden/,
+      /\.match-notice-stack,\s*\.side-panel-stack \{[^}]*max-height:\s*max\(7rem, calc\(50dvh - 14rem\)\)[^}]*overflow:\s*hidden auto[^}]*pointer-events:\s*auto/,
     );
     // The card panels take the deeper of the two bands: a thumbnail plus a heading.
-    expect(phonePortraitRules).toMatch(/\.side-panel-stack \{[^}]*max-height:\s*9rem/);
+    expect(phonePortraitRules).toMatch(
+      /\.side-panel-stack \{[^}]*max-height:\s*max\(9rem, calc\(50dvh - 17\.25rem\)\)/,
+    );
+    // One scroll container per band: the notice text gives up its own scrollbar.
+    expect(phonePortraitRules).toMatch(/\.match-notice__text \{[^}]*max-height:\s*none[^}]*overflow-y:\s*visible/);
     expect(phonePortraitRules).toMatch(/\.side-panel-stack\[data-side="opp"\] \{[^}]*top:\s*calc\(17rem/);
     expect(phonePortraitRules).toMatch(/\.side-panel-stack\[data-side="you"\] \{[^}]*bottom:\s*calc\(17rem/);
     // The notices keep the corner they already had.
