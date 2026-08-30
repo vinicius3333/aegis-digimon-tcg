@@ -14,6 +14,7 @@ describe("BT4-074 Darkdramon", () => {
           trash: [
             { card: "BT3-059", as: "commandramon" },
             { card: "BT4-063", as: "commandramonBt4" },
+            { card: "BT4-080", as: "unrelated" },
           ],
         },
       },
@@ -30,7 +31,8 @@ describe("BT4-074 Darkdramon", () => {
       () => returnedIds.every((id) => player.deck.some((card) => card.instanceId === id)) && s.state.memory === 4,
     );
 
-    expect(player.trash).toHaveLength(0);
+    expect(player.trash).toHaveLength(1);
+    expect(player.trash[0]?.instanceId).toBe(s.inst("unrelated").instanceId);
     expect(player.deck.slice(0, 2).map((card) => card.instanceId)).toEqual(expect.arrayContaining(returnedIds));
     expect(player.deck[2]?.instanceId).toBe(s.inst("existingTop").instanceId);
     expect(s.state.memory).toBe(4);

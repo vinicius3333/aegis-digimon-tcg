@@ -1,13 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { setupEngine } from "./testkit/harness.js";
+import { setupEngine, settle } from "./testkit/harness.js";
 // Self-register every compiled-IR card module so BT22-079's real IR is looked up.
 import "../cards/index.js";
-import { advance } from "./testkit/advance.js";
 
 /**
  * A3 for the breeding-resident firing seam: a `[Breeding]` resident effect on a card in the
- * raising/breeding area fires at its seam (it CONTRIBUTES during the continuous recompute
- * while the card sits in breeding), not only when the card is on the battle area.
+ * raising/breeding area fires at its pay-time seam while the card sits in breeding, not only
+ * when the card is on the battle area.
  *
  * source the breeding-resident effects gate on the effect runtime.IsExistOnBreedingArea(card)
  * (documented behavior — a [Breeding][Opponent's Turn] ESS firing while in breeding). The
@@ -16,13 +15,13 @@ import { advance } from "./testkit/advance.js";
  * breeding. The fix routes a `Breeding`-trigger effect through a breeding-aware builder whose
  * base guard is `isOnBreedingArea`.
  *
- * Vehicle — BT22-079: its `[Breeding]` resident effect installs a `wouldBePlayed` reduceCost
- * replacement (-1) for [Eater] Digimon, observable on the SubTrigger registry. With the card in
- * the BREEDING area, the continuous recompute must install that replacement.
+ * Vehicle — BT22-079: its `[Breeding]` resident effect applies a `wouldBePlayed` reduceCost
+ * replacement (-1) for [Eater] Digimon. With the card in the BREEDING area, a natural play must
+ * pay exactly 1 less than the same play without that resident source.
  *
  * FAILS-WHEN-REVERTED: route the `Breeding` trigger back through the `onField`-guarded
- * staticModifier builder => the breeding-area card's [Breeding] effect does not fire =>
- * costReductionFor("wouldBePlayed", …) stays 0 and the assertion goes RED.
+ * staticModifier builder => the breeding-area card's [Breeding] effect does not fire and the
+ * natural play pays the full printed cost, making the exact memory assertion go RED.
  */
 
 const BREEDING_RESIDENT = "BT22-079"; // [Breeding] inherited reduceCost replacement
@@ -33,24 +32,34 @@ describe("breeding-resident firing seam — a [Breeding] effect fires while the 
     // as an INHERITED digivolution-stack card — its [Breeding] effect fires while in breeding.
     // BT22-079's [Breeding] effect is inherited (isInherited: true), so it must sit in the
     // digivolution stack (not the top) to pass the inherited-effect placement guard.
-    const s = setupEngine({
-      0: { breeding: { card: "BT1-009", as: "bred", under: [BREEDING_RESIDENT] } },
-    });
-    const bred = s.perm("bred");
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT1-009", under: [BREEDING_RESIDENT] },
+          hand: [{ card: "BT22-079", as: "eater" }],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
 
-    // Drive the REAL continuous recompute (the seam every [Breeding]/static resident fires at).
-    await s.engine.recomputeContinuousEffects();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("eater").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT22-079"));
 
-    // FAILS-WHEN-REVERTED: with the breeding builder guarded by onField, a breeding-area card's
-    // [Breeding] effect never fires, so the replacement is never installed and this is 0.
-    const reduction = advance(s.engine).ledgers.subTriggers.costReductionFor("wouldBePlayed", bred.permanentId);
-    expect(reduction).toBe(1);
+    // Printed cost 3, reduced by exactly 1 from the breeding resident.
+    expect(s.state.memory).toBe(1);
   });
 
-  it("control — the same card with NO breeding permanent installs nothing (delta 0)", async () => {
-    const s = setupEngine();
-    // No BT22-079 in play at all.
-    await s.engine.recomputeContinuousEffects();
-    expect(advance(s.engine).ledgers.subTriggers.costReductionFor("wouldBePlayed", "nope")).toBe(0);
+  it("control — the same play with no breeding resident pays the full printed cost", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "BT22-079", as: "eater" }], deck: ["BT1-001"] } });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("eater").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT22-079"));
+
+    expect(s.state.memory).toBe(0);
   });
 });

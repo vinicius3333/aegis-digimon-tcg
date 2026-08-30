@@ -45,11 +45,21 @@ describe("BT22-101 Kyoko Kuremi", () => {
 
   it("digivolves itself into Alphamon only when it unsuspends and no Alphamon is present", () => {
     const watcher = compiled.effects.find((entry) => entry.trigger === "YourTurn")?.actions[0] as any;
-    expect(watcher).toMatchObject({ kind: "SubTrigger", event: "whenUnsuspended", sourceFilter: { isSelfRef: true } });
+    expect(watcher).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenUnsuspended",
+      sourceFilter: { isSelfRef: true },
+      fireCondition: { kind: "zoneCount", seat: "mine", zone: "security", op: "lte", value: 3 },
+    });
     expect(watcher.actions[0]).toMatchObject({
       kind: "Digivolve",
       target: { filter: { isSelfRef: true }, isSelf: true, count: 1 },
-      into: { nameOrTrait: [{ tokens: ["Alphamon"], match: "name" }] },
+      into: {
+        controllerDefault: "mine",
+        kind: ["Digimon"],
+        cardId: "BT22-063",
+        nameOrTrait: [{ tokens: ["Alphamon"], match: "name" }],
+      },
       from: ["hand"],
       reduceCost: 2,
       payCost: true,
@@ -95,5 +105,66 @@ describe("BT22-101 Kyoko Kuremi", () => {
 
     expect(s.state.memory).toBe(2);
     expect(s.perm("kyoko").stack.at(-1)?.cardId).toBe("BT22-101");
+  });
+
+  it("reaches the evolution through the real turn-start unsuspend flow", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-101", as: "kyoko", suspended: true }],
+          deck: ["BT1-001"],
+          hand: [{ card: "BT22-063", as: "alphamon" }],
+          security: 3,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    await advance(s.engine).runTurn(0);
+
+    expect(s.perm("kyoko").topCard?.cardId).toBe("BT22-063");
+    expect(s.perm("kyoko").stack.at(-1)?.cardId).toBe("BT22-101");
+  });
+
+  it("does not attempt Alphamon when Kyoko's alternate requirement is unavailable", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-101", as: "kyoko", suspended: true }],
+          hand: [{ card: "BT22-063", as: "alphamon" }],
+          security: 4,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    await advance(s.engine).runTurn(0);
+
+    expect(s.perm("kyoko").topCard?.cardId).toBe("BT22-101");
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT22-063")).toBe(true);
+  });
+
+  it("does not offer an Alphamon with no Kyoko Kuremi digivolution route", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-101", as: "kyoko", suspended: true }],
+          hand: [{ card: "BT6-111", as: "otherAlphamon" }],
+          security: 3,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    await advance(s.engine).runTurn(0);
+
+    expect(s.perm("kyoko").topCard?.cardId).toBe("BT22-101");
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT6-111")).toBe(true);
   });
 });

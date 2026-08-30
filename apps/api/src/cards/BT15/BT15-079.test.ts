@@ -15,6 +15,18 @@ describe("BT15-079", () => {
     });
     expect(compiled.effects?.[1]).toMatchObject({ trigger: "WhenAttacking", actions: [{ kind: "Delete" }] });
   });
+  it("restricts this Digimon to white digivolution targets during its owner's turn", () => {
+    expect(compiled.effects?.[2]).toMatchObject({
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "RestrictDigivolveInto",
+          target: { filter: { isSelfRef: true }, isSelf: true },
+          into: { colors: ["White"] },
+        },
+      ],
+    });
+  });
   it("deletes itself at opponent end to play a non-Piedmon Dark Masters and unsuspends as inherited", () => {
     expect(compiled.effects?.[3]).toMatchObject({
       trigger: "EndOfOpponentsTurn",

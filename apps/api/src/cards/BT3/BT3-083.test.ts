@@ -3,7 +3,7 @@ import { setupEngine } from "../../engine/testkit/harness.js";
 
 describe("BT3-083 Meramon", () => {
   it("has no card effects", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT3-083", as: "meramon" }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT3-083", as: "meramon", under: ["BT3-076"] }] } });
     await s.engine.recomputeContinuousEffects();
     expect(s.perm("meramon").currentDP).toBe(s.perm("meramon").baseDP);
   });

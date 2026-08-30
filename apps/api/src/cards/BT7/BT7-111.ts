@@ -88,7 +88,9 @@ const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Lucemon"],
+      // The printed [Lucemon] reference is an exact card-name gate, not a
+      // substring/name-family search. The shared override uses the same rule.
+      namesExact: ["Lucemon"],
       cost: 7,
       isAlternate: true,
       sourceZones: ["hand"],

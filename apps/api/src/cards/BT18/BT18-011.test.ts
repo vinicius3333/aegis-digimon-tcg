@@ -1,6 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-011.js";
 
@@ -29,11 +27,26 @@ describe("BT18-011 Agunimon", () => {
       ],
     });
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT18-011", as: "agunimon" }], trash: ["BT12-009"] } },
+      {
+        0: {
+          battleArea: [{ card: "BT12-013", as: "burning" }],
+          hand: [{ card: "BT18-011", as: "agunimon" }],
+          trash: ["BT12-009"],
+          deck: ["BT1-001"],
+        },
+      },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
-    await s.ready();
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("agunimon"));
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("burning").permanentId,
+        instanceId: s.inst("agunimon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("burning").topCard?.cardId === "BT18-011");
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT12-009")).toBe(true);
   });
 
@@ -41,28 +54,54 @@ describe("BT18-011 Agunimon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT18-011", as: "agunimon" }],
+          battleArea: [{ card: "BT12-013", as: "burning" }],
+          hand: [{ card: "BT18-011", as: "agunimon" }],
           trash: [
             { card: "BT18-087", as: "plainTamer" },
             { card: "BT18-088", as: "inheritedTamer" },
           ],
+          deck: ["BT1-001"],
         },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("agunimon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("burning").permanentId,
+        instanceId: s.inst("agunimon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("burning").topCard?.cardId === "BT18-011");
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("inheritedTamer").instanceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("plainTamer").instanceId);
   });
 
   it("may decline the trash return", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT18-011", as: "agunimon" }], trash: [{ card: "BT12-009", as: "hybrid" }] } },
+      {
+        0: {
+          battleArea: [{ card: "BT12-013", as: "burning" }],
+          hand: [{ card: "BT18-011", as: "agunimon" }],
+          trash: [{ card: "BT12-009", as: "hybrid" }],
+          deck: ["BT1-001"],
+        },
+      },
       { autoSelectCards: true, autoAcceptOptional: false },
     );
+    s.state.memory = 10;
     await s.ready();
-    const resolution = advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("agunimon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("burning").permanentId,
+        instanceId: s.inst("agunimon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
     expect(
       s.engine.applyIntent(0, {
@@ -71,7 +110,7 @@ describe("BT18-011 Agunimon", () => {
         response: { kind: "optional", accept: false },
       }),
     ).toEqual({ ok: true });
-    await resolution;
+    await settle(() => s.state.pendingDecision === undefined);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("hybrid").instanceId);
   });
 

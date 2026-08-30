@@ -220,7 +220,7 @@ describe("BT26-067 Wizardmon", () => {
   it("grants executable inherited Retaliation in battle", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-068", as: "host", under: ["BT26-067"] }] },
+        0: { battleArea: [{ card: "BT24-075", as: "host", under: ["BT26-067"] }] },
         1: { battleArea: [{ card: "BT26-060", as: "defender", suspended: true }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

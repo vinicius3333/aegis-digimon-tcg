@@ -13,7 +13,21 @@ describe("BT10-016 Jesmon (X Antibody)", () => {
         expect.objectContaining({ kind: "PlayWithoutCost", from: ["hand", "trash"], optional: true }),
         expect.objectContaining({ kind: "ModifyDP", amount: 2000, duration: "untilOpponentTurnEnd" }),
         expect.objectContaining({ kind: "GrantCanAttackUnsuspended", duration: "untilOpponentTurnEnd" }),
-        expect.objectContaining({ kind: "SubTrigger", event: "whenPlayed", playerScoped: true }),
+        expect.objectContaining({
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          playerScoped: true,
+          actions: [
+            expect.objectContaining({
+              kind: "ModifyDP",
+              target: expect.objectContaining({ sourceRef: "triggerSubject", count: "all" }),
+            }),
+            expect.objectContaining({
+              kind: "GrantCanAttackUnsuspended",
+              target: expect.objectContaining({ sourceRef: "triggerSubject", count: "all" }),
+            }),
+          ],
+        }),
       ]),
     );
   });

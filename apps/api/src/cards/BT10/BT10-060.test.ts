@@ -22,6 +22,9 @@ describe("BT10-060 Sparrowmon", () => {
       ["OnDeletion", undefined],
       ["OpponentsTurn", true],
     ]);
+    expect(compiled.effects.find((effect) => effect.trigger === "OnDeletion")).toMatchObject({
+      actions: [{ kind: "PlaceUnder", underFilter: { controller: "mine", kind: ["Tamer"] } }],
+    });
   });
 
   it("digivolves from an Xros Heart level 2 for 0", async () => {
@@ -105,6 +108,35 @@ describe("BT10-060 Sparrowmon", () => {
     await settle(() => s.perm("taiki").stack.some(({ instanceId }) => instanceId === sparrowmonId));
 
     expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === sparrowmonId)).toBe(false);
+    assertNoLoudGap(s);
+  });
+
+  it("cannot Save itself under a Digimon when a Tamer and Digimon are both present", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-060", as: "sparrowmon" },
+            { card: "BT10-087", as: "taiki" },
+            { card: "BT10-054", as: "wrongHost" },
+          ],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        preferInstanceIds: preferred,
+      },
+    );
+    const sparrowmonId = s.perm("sparrowmon").topCard.instanceId;
+    preferred.push(s.perm("wrongHost").permanentId);
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("sparrowmon").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.perm("taiki").stack.some(({ instanceId }) => instanceId === sparrowmonId));
+
+    expect(s.perm("taiki").stack.some(({ instanceId }) => instanceId === sparrowmonId)).toBe(true);
+    expect(s.perm("wrongHost").stack.some(({ instanceId }) => instanceId === sparrowmonId)).toBe(false);
     assertNoLoudGap(s);
   });
 

@@ -21,17 +21,20 @@ describe("BT19-039 SkullBaluchimon", () => {
     },
   );
 
-  it("may decline the security cost and then neither deletes nor gains memory", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT19-039", as: "skull" }], security: ["BT19-030"] },
-      1: { battleArea: [{ card: "BT19-020", as: "target" }] },
-    }, { autoDeclineOptional: true, autoSelectCards: true });
-    s.state.memory = 0;
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("skull"));
-    expect(s.state.players[0]!.security).toHaveLength(1);
-    expect(s.state.players[1]!.battleArea).toHaveLength(1);
-    expect(s.state.memory).toBe(0);
-  });
+  it.each([EffectTiming.OnPlay, EffectTiming.WhenDigivolving])(
+    "%s may decline the security cost and then neither deletes nor gains memory",
+    async (timing) => {
+      const s = setupEngine({
+        0: { battleArea: [{ card: "BT19-039", as: "skull" }], security: ["BT19-030"] },
+        1: { battleArea: [{ card: "BT19-020", as: "target" }] },
+      }, { autoDeclineOptional: true, autoSelectCards: true });
+      s.state.memory = 0;
+      await advance(s.engine).fireForPermanent(timing, s.perm("skull"));
+      expect(s.state.players[0]!.security).toHaveLength(1);
+      expect(s.state.players[1]!.battleArea).toHaveLength(1);
+      expect(s.state.memory).toBe(0);
+    },
+  );
 
   it("On Deletion recovers exactly the top deck card", async () => {
     const s = setupEngine({ 0: {

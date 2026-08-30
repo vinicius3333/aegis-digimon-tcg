@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT7-108.js";
-describe("BT7-108 Trump Sword", () => {
+describe("BT7-108 Schwarz Lehrsatz", () => {
   it("deletes opposing level 5 or lower Digimon", async () => {
     const s = setupEngine(
       {

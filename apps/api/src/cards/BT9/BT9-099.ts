@@ -35,7 +35,6 @@ export const compiled: CompiledCard = {
           },
           amount: -3000,
           duration: "forTheTurn",
-          optional: true,
           scaling: {
             per: 1,
             filter: {

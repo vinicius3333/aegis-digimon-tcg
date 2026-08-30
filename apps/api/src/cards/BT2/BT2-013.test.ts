@@ -6,7 +6,9 @@ describe("BT2-013 Growlmon", () => {
   it("deletes exactly 1 opposing Digimon at the 2000 DP boundary when attacking", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT2-016", as: "attacker", under: ["BT2-013"] }] },
+        0: {
+          battleArea: [{ card: "BT2-016", as: "attacker", under: ["BT1-009", "BT2-013"] }],
+        },
         1: {
           battleArea: [
             { card: "BT1-010", as: "target", dp: 2000 },
@@ -32,7 +34,9 @@ describe("BT2-013 Growlmon", () => {
   it("does not delete an opposing 3000 DP Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT2-016", as: "attacker", under: ["BT2-013"] }] },
+        0: {
+          battleArea: [{ card: "BT2-016", as: "attacker", under: ["BT1-009", "BT2-013"] }],
+        },
         1: { battleArea: [{ card: "BT1-010", as: "target", dp: 3000 }], security: ["BT1-011"] },
       },
       { autoSelectCards: true },
@@ -51,7 +55,9 @@ describe("BT2-013 Growlmon", () => {
   it("allows the attack to resolve when there is no deletion target", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT2-016", as: "attacker", under: ["BT2-013"] }] },
+        0: {
+          battleArea: [{ card: "BT2-016", as: "attacker", under: ["BT1-009", "BT2-013"] }],
+        },
         1: { security: ["BT1-011"] },
       },
       { autoSelectCards: true },

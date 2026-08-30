@@ -8,8 +8,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // without paying the cost. Then, 1 of your level 3 or higher Digimon gains
 // <Reboot> and <Blocker> until your opponent's turn ends.
 //
-// KB Q5273/Q5274: Cannot skip the "by" condition; cannot process the "then" part
-// without paying 1 cost first.
+// KB Q5273/Q5274: Once this optional "by" condition is accepted, the "then" part
+// cannot be processed without paying 1 cost first.
 //
 // Fix: GainKeyword actions must NOT be optional — they are mandatory once cost is paid.
 // PlayWithoutCost is optional (player may decline whole effect) with abortOnDecline.
@@ -35,6 +35,7 @@ export const compiled: CompiledCard = {
             memory: 1,
             raw: "By paying 1 cost",
           },
+          optional: true,
           abortOnDecline: true,
           actions: [
             {

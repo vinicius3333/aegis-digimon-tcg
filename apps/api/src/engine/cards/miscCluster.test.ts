@@ -191,7 +191,7 @@ describe("A3 misc cluster — BT7-004 [When Attacking] reveal-and-reorder", () =
 
     const module = getEffectModule("BT7-004");
     expect(module).toBeDefined();
-    const effects = module!.effectsForTiming(EffectTiming.OnAllyAttack, ctx.source);
+    const effects = module!.effectsForTiming(EffectTiming.OnUseAttack, ctx.source);
     expect(effects.length).toBeGreaterThan(0);
     for (const effect of effects) await effect.resolve(ctx);
 

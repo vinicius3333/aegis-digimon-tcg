@@ -13,7 +13,11 @@ const main = [
   {
     kind: "GainKeyword",
     target: {
-      filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Rasenmon"], match: "name" }] },
+      filter: {
+        controller: "mine",
+        kind: ["Digimon"],
+        nameOrTrait: [{ tokens: ["Rasenmon"], match: "nameExact" }],
+      },
       count: 1,
     },
     keyword: { keyword: "SecurityAttack", amount: 1 },
@@ -35,7 +39,7 @@ export const compiled: CompiledCard = {
           handResident: true,
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           duration: "permanent",
-          scaling: { per: 1, unit: "security", floor: 1, filter: { controller: "mine" } },
+          scaling: { per: 1, unit: "security", filter: { controller: "mine" } },
         },
       ],
     },

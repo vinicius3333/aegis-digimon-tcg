@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -10,8 +9,8 @@ describe("BT18-047 Arbormon", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
     expect(compiled.effects).toMatchObject([
-      { trigger: "OnPlay", actions: [{ kind: "Suspend", optional: true, abortOnDecline: true }] },
-      { trigger: "WhenDigivolving", actions: [{ kind: "Suspend", optional: true, abortOnDecline: true }] },
+      { trigger: "OnPlay", actions: [{ kind: "Suspend" }] },
+      { trigger: "WhenDigivolving", actions: [{ kind: "Suspend" }] },
       { trigger: "Rule", actions: [{ kind: "GrantStatic", grant: "trait", tokens: ["Vegetation"] }] },
       { trigger: "WhenAttacking", isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "Suspend" }] },
     ]);
@@ -21,23 +20,23 @@ describe("BT18-047 Arbormon", () => {
         0: { hand: [{ card: "BT18-047", as: "arbormon" }], battleArea: [{ card: "BT18-045", as: "greenCost" }] },
         1: { battleArea: [{ card: "BT1-030", as: "opponentTarget" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredInstanceIds },
+      { autoSelectCards: true, preferInstanceIds: preferredInstanceIds },
     );
     preferredInstanceIds.push(s.perm("greenCost").topCard!.instanceId, s.perm("opponentTarget").topCard!.instanceId);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("arbormon").instanceId })).toEqual({
       ok: true,
     });
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.state.players[0]!.battleArea[1]!);
+    await settle(() => s.perm("opponentTarget").isSuspended);
 
     expect(s.perm("greenCost").isSuspended).toBe(true);
     expect(s.perm("opponentTarget").isSuspended).toBe(true);
     assertNoLoudGap(s);
   });
 
-  it("does nothing when the optional suspension cost is declined", async () => {
+  it("can pay the mandatory suspension cost by suspending itself when no other green Digimon exists", async () => {
     const s = setupEngine({
-      0: { hand: [{ card: "BT18-047", as: "arbormon" }], battleArea: [{ card: "BT18-045", as: "greenCost" }] },
+      0: { hand: [{ card: "BT18-047", as: "arbormon" }] },
       1: { battleArea: [{ card: "BT1-087", as: "opponentTamer" }] },
     });
     s.state.memory = 10;
@@ -45,10 +44,10 @@ describe("BT18-047 Arbormon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("arbormon").instanceId })).toEqual({
       ok: true,
     });
-    await settle();
+    await settle(() => s.perm("arbormon").topCard?.cardId === "BT18-047");
 
-    expect(s.perm("greenCost").isSuspended).toBe(false);
-    expect(s.perm("opponentTamer").isSuspended).toBe(false);
+    expect(s.perm("arbormon").isSuspended).toBe(true);
+    expect(s.perm("opponentTamer").isSuspended).toBe(true);
     assertNoLoudGap(s);
   });
 
@@ -66,7 +65,7 @@ describe("BT18-047 Arbormon", () => {
         },
         1: { battleArea: [{ card: "BT1-087", as: "opponentTamer" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredInstanceIds },
+      { autoSelectCards: true, preferInstanceIds: preferredInstanceIds },
     );
     preferredInstanceIds.push(s.perm("greenCost").topCard!.instanceId, s.perm("opponentTamer").topCard!.instanceId);
     s.state.memory = 5;
@@ -80,7 +79,7 @@ describe("BT18-047 Arbormon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("petaldramon").topCard?.cardId === "BT18-047");
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("petaldramon"));
+    await settle(() => s.perm("opponentTamer").isSuspended);
 
     expect(s.state.memory).toBe(5);
     expect(s.perm("petaldramon").stack.at(-1)?.cardId).toBe("BT18-050");

@@ -25,32 +25,46 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
-          kind: "Suspend",
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          // The printed "by suspending ... and trashing ..." is one indivisible
+          // processing condition. Keeping both payments in one compound cost lets
+          // canPayCost reject a suspended Asuna before any Option is trashed.
+          kind: "CostGatedBlock",
           cost: {
-            kind: "trash",
-            target: {
-              filter: {
-                controller: "mine",
-                kind: ["Option"],
-                hostFilter: { controller: "mine", kind: ["Digimon"] },
+            kind: "compound",
+            costs: [
+              {
+                kind: "suspend",
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
               },
-              orFilters: [{ controller: "mine", kind: ["Option"], zone: "hand" }],
-              from: ["hand", "digivolutionCards"],
-              count: 1,
-            },
+              {
+                kind: "trash",
+                target: {
+                  filter: {
+                    controller: "mine",
+                    kind: ["Option"],
+                    hostFilter: { controller: "mine", kind: ["Digimon"] },
+                  },
+                  orFilters: [{ controller: "mine", kind: ["Option"], zone: "hand" }],
+                  from: ["hand", "digivolutionCards"],
+                  count: 1,
+                },
+              },
+            ],
           },
-          abortOnDecline: true,
-        },
-        {
-          kind: "Digivolve",
-          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
-          into: { controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: textOrTs },
-          from: ["hand", "trash"],
-          reduceCost: 1,
-          payCost: true,
           optional: true,
           abortOnDecline: true,
+          actions: [
+            {
+              kind: "Digivolve",
+              target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+              into: { controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: textOrTs },
+              from: ["hand", "trash"],
+              reduceCost: 1,
+              payCost: true,
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
         },
       ],
     },

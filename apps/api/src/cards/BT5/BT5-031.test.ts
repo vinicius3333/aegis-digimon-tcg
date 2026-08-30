@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
-import type { PlayerState } from "@aegis/shared";
+import { EffectTiming, type PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT5-031.js";
 import "../BT15/BT15-068.js";
+import "../BT6/BT6-002.js";
 
 describe("BT5-031 MetalGarurumon", () => {
   it("bottom-decks an On Deletion Digimon and trashes its sources when Garurumon is in its stack", async () => {
@@ -28,6 +29,46 @@ describe("BT5-031 MetalGarurumon", () => {
 
     expect(opponent.deck.at(-1)?.cardId).toBe("AD1-002");
     expect(opponent.trash.some((card) => card.instanceId === s.inst("source").instanceId)).toBe(true);
+  });
+
+  it("does not fire source-trash inherited effects during return teardown (Q1399)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-040", as: "base" },
+            { card: "BT5-020", as: "watcher", under: ["BT6-002"] },
+          ],
+          deck: [
+            { card: "BT1-012", as: "evolutionDraw" },
+            { card: "BT1-010", as: "notDrawn" },
+          ],
+          hand: [{ card: "BT5-031", as: "evolving" }],
+        },
+        1: {
+          deck: ["BT1-009"],
+          battleArea: [{ card: "AD1-002", as: "target", under: [{ card: "BT1-011", as: "source" }] }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("watcher"));
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("evolutionDraw").instanceId)).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("source").instanceId)).toBe(true);
+    expect(s.state.players[1]!.deck.some((card) => card.instanceId === s.inst("target").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("notDrawn").instanceId)).toBe(false);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(s.inst("notDrawn").instanceId);
   });
 
   it("gains 1 memory only once per turn when its host attacks", async () => {

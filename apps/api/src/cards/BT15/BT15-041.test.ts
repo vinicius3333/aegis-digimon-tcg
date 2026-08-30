@@ -1,5 +1,6 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
 import { whenDigivolving } from "../../engine/effects/builders.js";
 import { registerCard, unregisterCard } from "../../engine/effects/registry.js";
@@ -80,6 +81,7 @@ describe("BT15-041 [End of Opponent's Turn] delete self to play Rosemon/Jijimon,
           battleArea: [{ card: "BT15-041", dp: 8000, as: "babamon" }],
           hand: [{ card: PLAYED_CARD, as: "rosemon" }],
         },
+        1: { deck: ["BT1-001"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -87,11 +89,8 @@ describe("BT15-041 [End of Opponent's Turn] delete self to play Rosemon/Jijimon,
     s.state.memory = 5;
     const babamonId = s.perm("babamon").permanentId;
 
-    await (
-      s.engine as unknown as {
-        fireTiming(t: EffectTiming, trigger?: Record<string, unknown>): Promise<void>;
-      }
-    ).fireTiming(EffectTiming.OnEndTurn, {});
+    // Use the production turn machine so this proof reaches EndOfOpponent's Turn naturally.
+    await advance(s.engine).runTurn(1);
 
     await settle(() => fired > 0, 400);
 
@@ -101,8 +100,33 @@ describe("BT15-041 [End of Opponent's Turn] delete self to play Rosemon/Jijimon,
     expect(s.state.players[0]?.battleArea.some((p) => p.topCard?.cardId === PLAYED_CARD)).toBe(true);
     // Its [When Digivolving] effect re-fired exactly once.
     expect(fired).toBe(1);
-    // The owner is seat 0 while seat 1's turn is ending, so gaining one memory
-    // for seat 0 moves the turn-relative gauge from 5 to 4.
-    expect(s.state.memory).toBe(4);
+    // Public turn completion first transfers the positive gauge to seat 0's side (-5),
+    // then the re-fired effect gains 1 memory for seat 0 and moves it to -4.
+    expect(s.state.memory).toBe(-4);
+  });
+
+  it("digivolves legally from a level-5 green Digimon and preserves the source stack", async () => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [{ card: "BT1-078", as: "greenBase" }],
+          hand: [{ card: "BT15-041", as: "babamon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("greenBase").permanentId,
+        instanceId: s.inst("babamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("greenBase").topCard?.cardId === "BT15-041");
+
+    expect(s.perm("greenBase").topCard?.cardId).toBe("BT15-041");
+    expect(s.perm("greenBase").stack.map((card) => card.cardId)).toEqual(["BT1-078"]);
   });
 });

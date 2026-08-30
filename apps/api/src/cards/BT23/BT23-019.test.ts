@@ -24,6 +24,7 @@ describe("BT23-019 Gekomon", () => {
       expect(action).toMatchObject({
         kind: "TrashDigivolution",
         target: { filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" }, count: 1 },
+        scope: "acrossDigimon",
         amount: 2,
       });
     }

@@ -1,27 +1,52 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT18-038.js";
+import { compiled } from "./BT18-038.js";
+import "./BT18-019.js";
 
 describe("BT18-038 ArkhaiAngemon", () => {
   it("gains the Angel trait and resolves its security placement path", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT18-038", as: "arkhai" }],
-          hand: ["BT1-063"],
+          hand: [
+            { card: "BT18-038", as: "arkhai" },
+            { card: "BT1-063", as: "angel" },
+          ],
           security: ["BT1-001", "BT1-002", "BT1-003"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "OnPlay",
+      actions: [
+        { kind: "SecurityManipulation", op: "placeAsSecurity", from: ["hand"], toTop: false, optional: true },
+        {
+          kind: "SecurityManipulation",
+          op: "toHand",
+          amount: 1,
+          optional: false,
+          condition: { kind: "securityAtLeast", value: 4 },
+        },
+      ],
+    });
+    expect(compiled.effects[2]).toMatchObject({
+      trigger: "Rule",
+      actions: [{ kind: "GrantStatic", grant: "trait", tokens: ["Angel"] }],
+    });
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 4, traits: ["Angel"], cost: 3, isAlternate: true }]);
     await s.ready();
 
-    expect(observe(s.engine).hasEffectiveTrait(s.perm("arkhai"), "Angel")).toBe(true);
-    await advance(s.engine).fireForInstance(EffectTiming.OnPlay, s.perm("arkhai").topCard!);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("arkhai").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.length === 3 && s.state.players[0]!.hand.length === 1);
 
+    expect(observe(s.engine).hasEffectiveTrait(s.perm("arkhai"), "Angel")).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(3);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
     expect(s.state.players[0]!.security.some((card) => card.cardId === "BT1-063")).toBe(true);
@@ -32,16 +57,22 @@ describe("BT18-038 ArkhaiAngemon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT18-038", as: "arkhai" }],
-          hand: [{ card: "BT1-063", as: "declinedAngel" }],
+          hand: [
+            { card: "BT18-038", as: "arkhai" },
+            { card: "BT1-063", as: "declinedAngel" },
+          ],
           security: [{ card: "BT1-009", as: "topSecurity" }, "BT1-010", "BT1-011", "BT1-012"],
         },
       },
       { autoDeclineOptional: true },
     );
+    s.state.memory = 10;
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.OnPlay, s.perm("arkhai").topCard!);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("arkhai").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.length === 3);
 
     expect(s.state.players[0]!.security).toHaveLength(3);
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("topSecurity").instanceId)).toBe(
@@ -79,17 +110,29 @@ describe("BT18-038 ArkhaiAngemon", () => {
   });
 
   it("recovers the exact deck card when a host carrying its inherited effect is deleted", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT1-063", as: "host", under: ["BT18-038"] }],
-        security: [{ card: "BT1-009", as: "oldSecurity" }],
-        deck: [{ card: "BT1-010", as: "recovered" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-063", as: "host", under: ["BT18-038"] }],
+          security: [{ card: "BT1-009", as: "oldSecurity" }],
+          deck: [{ card: "BT1-010", as: "recovered" }],
+        },
+        1: { hand: [{ card: "BT18-019", as: "opponentRemover" }] },
       },
-    });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 20;
     await s.ready();
 
-    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId])).toBe(1);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentRemover").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.length === 2);
 
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === s.perm("host").permanentId)).toBe(
+      false,
+    );
     expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("recovered").instanceId);
     expect(s.state.players[0]!.security[1]!.instanceId).toBe(s.inst("oldSecurity").instanceId);
     assertNoLoudGap(s);

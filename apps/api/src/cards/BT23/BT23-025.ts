@@ -29,6 +29,7 @@ const compiled: CompiledCard = {
             raw: "you have a Digimon or Tamer with the [CS] trait",
           },
           cost: { kind: "payMemory", memory: 5, raw: "by paying 5 cost" },
+          optional: true,
           abortOnDecline: true,
           actions: [
             {

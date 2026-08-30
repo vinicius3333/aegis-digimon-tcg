@@ -1,10 +1,24 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT5-088.js";
 
 describe("BT5-088 Sora Takenouchi & Joe Kido", () => {
+  it("allows trashing fewer than 2 bottom digivolution cards", () => {
+    expect(runtimeCompiledCard("BT5-088")?.effects[1]?.actions[0]).toMatchObject({
+      actions: [
+        expect.objectContaining({
+          kind: "TrashDigivolution",
+          amount: 2,
+          upTo: true,
+          fromTop: false,
+        }),
+      ],
+    });
+  });
+
   it("gains 2 memory at turn start when the opponent has a Digimon without sources", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT5-088", as: "tamer" }] },

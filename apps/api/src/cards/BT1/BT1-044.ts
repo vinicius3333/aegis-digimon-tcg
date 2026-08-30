@@ -10,7 +10,16 @@ export const compiled: CompiledCard = {
           kind: "PlayWithoutCost",
           from: ["digivolutionCards"],
           payCost: false,
-          target: { filter: { kind: ["Digimon"], levelComparison: { op: "lte", value: 4 } }, count: 1 },
+          target: {
+            filter: {
+              zone: "digivolutionCards",
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: { op: "lte", value: 4 },
+              hostFilter: { isSelfRef: true },
+            },
+            count: 1,
+          },
         },
       ],
     },

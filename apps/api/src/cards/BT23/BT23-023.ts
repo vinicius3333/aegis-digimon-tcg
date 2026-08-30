@@ -21,6 +21,7 @@ export const compiled: CompiledCard = {
             {
               kind: "PlayWithoutCost",
               target: {
+                source: "thisDigimon",
                 filter: {
                   controller: "mine",
                   kind: ["Digimon"],
@@ -61,6 +62,7 @@ export const compiled: CompiledCard = {
             {
               kind: "PlayWithoutCost",
               target: {
+                source: "thisDigimon",
                 filter: {
                   controller: "mine",
                   kind: ["Digimon"],

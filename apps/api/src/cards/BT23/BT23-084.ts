@@ -23,6 +23,7 @@ export const compiled: CompiledCard = {
           payCost: false,
         },
       ],
+      isSecurity: true,
     },
     {
       trigger: "StartOfYourMainPhase",
@@ -98,6 +99,7 @@ export const compiled: CompiledCard = {
                   },
                   count: 1,
                 },
+                to: "hand",
               },
             ],
             raw: "By suspending this Tamer and returning 1 of your Digimon with the [Hudie] trait to the hand",

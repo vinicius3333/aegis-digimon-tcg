@@ -11,13 +11,14 @@ describe("BT15-009", () => {
       kind: "Delete",
       target: { count: 1, filter: { dp: { op: "lte", relativeToSource: true } } },
       cost: { kind: "payMemory", memory: 2 },
+      allowCostWithoutTarget: true,
     });
   });
 
   it("pays exactly 2 memory and deletes one opposing Digimon at the source's current-DP boundary", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT15-009", as: "meramon", dp: 4000 }] },
+        0: { battleArea: [{ card: "BT15-009", as: "meramon", dp: 4000, under: ["BT1-009"] }] },
         1: {
           battleArea: [
             { card: "BT1-009", as: "equal", dp: 4000 },
@@ -48,9 +49,9 @@ describe("BT15-009", () => {
     expect(observe(s.engine).activatableEffects(s.perm("meramon"))).toHaveLength(0);
   });
 
-  it("does not pay or delete but still spends the activated once-per-turn effect when no target exists", async () => {
+  it("still pays the optional processing condition when no legal delete target exists", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT15-009", as: "meramon", dp: 4000 }] },
+      0: { battleArea: [{ card: "BT15-009", as: "meramon", dp: 4000, under: ["BT1-009"] }] },
       1: { battleArea: [{ card: "BT1-009", as: "above", dp: 5000 }] },
     });
     s.state.memory = 3;
@@ -66,7 +67,7 @@ describe("BT15-009", () => {
     ).toEqual({ ok: true });
     await settle();
 
-    expect(s.state.memory).toBe(3);
+    expect(s.state.memory).toBe(1);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(observe(s.engine).activatableEffects(s.perm("meramon"))).toHaveLength(0);
   });

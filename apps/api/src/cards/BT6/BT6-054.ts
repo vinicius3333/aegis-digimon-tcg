@@ -6,8 +6,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Fixes:
 // 1. Suspend target: text says "without <Blocker>" — excludeKeywords:["Blocker"]
 //    and controller:"opponent" ensure only their non-Blocker Digimon qualify.
-// 2. PlayWithoutCost target: added nameOrTrait for "Hybrid" form filter — text says
-//    "with Hybrid in its form" (Hybrid is a Form trait in card data).
+// 2. PlayWithoutCost target: added forms:["Hybrid"] for the printed "Hybrid in its
+//    form" requirement. A form-qualified clause must not broaden to attributes/types.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -47,12 +47,7 @@ const compiled: CompiledCard = {
                 op: "lte",
                 value: 4,
               },
-              nameOrTrait: [
-                {
-                  tokens: ["Hybrid"],
-                  match: "trait",
-                },
-              ],
+              forms: ["Hybrid"],
             },
             count: 1,
           },

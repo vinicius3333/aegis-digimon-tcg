@@ -64,6 +64,10 @@ export function makeDigimon(seat: Seat, dp: number, cardId = "AD1-001"): Permane
   permanent.inBreeding = false;
   permanent.baseDP = dp;
   permanent.currentDP = dp;
+  // A manually seeded battle-area Digimon is established by default, matching
+  // Board Spec fixtures. Tests for summoning sickness opt in by setting the
+  // entry turn explicitly.
+  permanent.enterFieldTurnCount = ESTABLISHED_TURN;
   return permanent;
 }
 
@@ -331,8 +335,17 @@ export function setupEngine(boardOrOpts?: BoardSpec | SetupEngineOptions, maybeO
         // candidate. Falls back to candidate order.
         const prefer = opts?.preferInstanceIds ?? [];
         const ordered = [...candidates].sort((a, b) => {
-          const pa = prefer.includes(a) ? 0 : 1;
-          const pb = prefer.includes(b) ? 0 : 1;
+          const preferred = (id: string): boolean => {
+            if (prefer.includes(id)) return true;
+            // `selectCards` candidates are exact loose-card identities. Expanding one
+            // through its host would make every sibling in that stack equally preferred.
+            // `chooseTargets` may instead expose a permanent id for a preferred top card.
+            if (req.kind === "selectCards") return false;
+            const permanent = findPermanentForDecisionId(state, id);
+            return permanent?.topCard !== undefined && prefer.includes(permanent.topCard.instanceId);
+          };
+          const pa = preferred(a) ? 0 : 1;
+          const pb = preferred(b) ? 0 : 1;
           return pa - pb;
         });
         // A malformed/NaN `max` (e.g. a compiled action with an unset materials.count) must not

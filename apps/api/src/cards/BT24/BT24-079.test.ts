@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,6 +7,22 @@ import { compiled as BT24_079 } from "./BT24-079.js";
 import "../index.js";
 
 describe("BT24-079 Hadesmon", () => {
+  it("matches the immutable catalog identity", () => {
+    expect(getCardDefinition("BT24-079")).toMatchObject({
+      cardId: "BT24-079",
+      nameEn: "Hadesmon",
+      colors: ["Purple", "White"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 12,
+      dp: 12000,
+      forms: ["God", "Appmon"],
+      attributes: ["God"],
+      types: ["Transmutation"],
+      evoCosts: [{ color: "Purple", level: 5, memoryCost: 4 }],
+    });
+  });
+
   it("links an Appmon card to a separately selected friendly Digimon", () => {
     const main = BT24_079.effects?.find((entry) => entry.trigger === "WhenDigivolving");
     expect(main?.actions?.[1]).toMatchObject({

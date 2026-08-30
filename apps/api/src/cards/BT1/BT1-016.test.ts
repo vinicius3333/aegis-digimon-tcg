@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT1-016.js";
+import "./BT1-020.js";
 
 describe("BT1-016 Tyrannomon", () => {
   it("has Jamming", async () => {
@@ -44,5 +45,16 @@ describe("BT1-016 Tyrannomon", () => {
     await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerId));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(false);
+  });
+
+  it("does not confer Jamming when Tyrannomon is a digivolution card", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-020", as: "host", under: [{ card: "BT1-016", as: "tyrannomon" }] }],
+      },
+    });
+    await s.ready();
+
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Jamming")).toBe(false);
   });
 });

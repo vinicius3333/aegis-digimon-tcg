@@ -5,7 +5,7 @@ import "./BT5-022.js";
 describe("BT5-022 Bulucomon", () => {
   it("gains 1 memory when your effect trashes an opponent's digivolution card", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT4-028", as: "host", under: ["BT5-022"] }] },
+      0: { battleArea: [{ card: "BT4-028", as: "host", under: ["BT5-022", "BT5-023"] }] },
       1: { battleArea: [{ card: "BT4-073", as: "opponent", under: [{ card: "BT1-009", as: "source" }] }] },
     });
     await s.engine.recomputeContinuousEffects();
@@ -21,7 +21,7 @@ describe("BT5-022 Bulucomon", () => {
 
   it("does not gain memory when the opponent trashes their own source", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT4-028", as: "host", under: ["BT5-022"] }] },
+      0: { battleArea: [{ card: "BT4-028", as: "host", under: ["BT5-022", "BT5-023"] }] },
       1: { battleArea: [{ card: "BT4-073", as: "opponent", under: [{ card: "BT1-009", as: "source" }] }] },
     });
     await s.engine.recomputeContinuousEffects();
@@ -37,7 +37,7 @@ describe("BT5-022 Bulucomon", () => {
 
   it("does not gain memory during the opponent's turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT4-028", as: "host", under: ["BT5-022"] }] },
+      0: { battleArea: [{ card: "BT4-028", as: "host", under: ["BT5-022", "BT5-023"] }] },
       1: { battleArea: [{ card: "BT4-073", as: "opponent", under: [{ card: "BT1-009", as: "source" }] }] },
     });
     s.state.turnSeat = 1;
@@ -56,7 +56,7 @@ describe("BT5-022 Bulucomon", () => {
 
   it("does not count returning a Digimon to hand as trashing its sources", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT4-028", as: "host", under: ["BT5-022"] }] },
+      0: { battleArea: [{ card: "BT4-028", as: "host", under: ["BT5-022", "BT5-023"] }] },
       1: { battleArea: [{ card: "BT4-073", as: "opponent", under: [{ card: "BT1-009", as: "source" }] }] },
     });
     await s.engine.recomputeContinuousEffects();
@@ -68,7 +68,7 @@ describe("BT5-022 Bulucomon", () => {
 
   it("gains memory only once when sources of two opponent Digimon are trashed", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT4-028", as: "host", under: ["BT5-022"] }] },
+      0: { battleArea: [{ card: "BT4-028", as: "host", under: ["BT5-022", "BT5-023"] }] },
       1: {
         battleArea: [
           { card: "BT4-073", as: "first", under: [{ card: "BT1-009", as: "source-a" }] },

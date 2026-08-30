@@ -14,16 +14,24 @@ describe("BT14-053", () => {
   it("once per turn may unsuspend itself when your effect suspends something", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")).toMatchObject({
       frequency: "OncePerTurn",
-      actions: [{ kind: "SubTrigger", event: "whenEffectSuspends", actions: [{ kind: "Unsuspend" }] }],
+      actions: [{
+        kind: "SubTrigger",
+        event: "whenEffectSuspends",
+        sourceFilter: { kind: ["Digimon", "Tamer"] },
+        actions: [{ kind: "Unsuspend" }],
+      }],
     }));
 
-  it("suspends an opposing Digimon when digivolving", async () => {
+  it("naturally suspends an opposing Tamer and unsuspends itself when that effect resolves", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT14-049", as: "base" }], hand: [{ card: "BT14-053", as: "rosemon" }] },
-        1: { battleArea: [{ card: "BT14-042", as: "target" }] },
+        0: {
+          battleArea: [{ card: "BT14-049", as: "base", suspended: true }],
+          hand: [{ card: "BT14-053", as: "rosemon" }],
+        },
+        1: { battleArea: [{ card: "BT14-086", as: "target" }] },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
     expect(
       s.engine.applyIntent(0, {
@@ -32,7 +40,8 @@ describe("BT14-053", () => {
         instanceId: s.inst("rosemon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.some((p) => p.isSuspended));
-    expect(s.state.players[1]!.battleArea.some((p) => p.isSuspended)).toBe(true);
+    await settle(() => s.perm("target").isSuspended && !s.perm("base").isSuspended);
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.perm("base").isSuspended).toBe(false);
   });
 });

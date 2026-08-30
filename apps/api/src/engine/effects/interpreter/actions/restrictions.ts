@@ -178,6 +178,7 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action, s
       const match = {
         ...(action.filter.kind ? { kinds: action.filter.kind } : {}),
         ...(action.filter.dpAtMost !== undefined ? { dpAtMost: action.filter.dpAtMost } : {}),
+        ...(action.filter.allowTokens === true ? { allowTokens: true } : {}),
         ...(action.filter.zone !== undefined
           ? { fromZones: Array.isArray(action.filter.zone) ? action.filter.zone : [action.filter.zone] }
           : {}),

@@ -36,7 +36,11 @@ import {
   synthesizedOverclockTrait,
   trainingActivatedEffect,
 } from "./keywords.js";
-import { collectWouldBePlayedSelfReducers, collectWouldDigivolveSelfReducers } from "./reducers.js";
+import {
+  collectWouldBePlayedSelfReducers,
+  collectWouldDigivolveSelfReducers,
+  isIntrinsicWouldDigivolveSelfReducerMarker,
+} from "./reducers.js";
 import { normalizeCompiledCard } from "./normalize.js";
 import { compiledEffects, EffectTiming, getCardDefinition, isOption } from "@aegis/shared";
 import type { CardEffect, CompiledCard } from "@aegis/shared";
@@ -107,6 +111,10 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
     // installing this marker as a Static replacement would make the evolved Digimon reduce the
     // NEXT digivolution too (BT3-054 -> BT3-056 regression).
     if (isIntrinsicDigisorptionMarker(effect)) continue;
+    // A hand-resident self digivolution reducer is consumed by the digivolve cost path while the
+    // card is still in hand; retaining its marker as a field Static replacement would discount a
+    // later evolution after the card has entered play (BT17-048).
+    if (isIntrinsicWouldDigivolveSelfReducerMarker(cardId, effect)) continue;
     const isOptionPlayBody = cardIsOption && isPlainMain(effect) && !seenOptionPlayMain;
     if (cardIsOption && isPlainMain(effect)) seenOptionPlayMain = true;
     const timings = timingsForTrigger(effect, isOptionPlayBody);
@@ -181,7 +189,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
                 // The Delay trash is itself valid processing. A condition on the bullet is
                 // checked only after paying it (BT24-098 Q5710), so an armed Delay remains
                 // activatable even when its conditional payload currently does nothing.
-                (hasArmedDelay || canActivateEffect(ctx, effect))
+                (armedDelayAction !== undefined ? hasArmedDelay : canActivateEffect(ctx, effect))
               );
             },
             resolve: async (ctx) => {

@@ -8,7 +8,7 @@ describe("BT21-019 BetelGammamon", () => {
   it("encodes the Gammamon evolution, bounded Hiro play, and inherited turn DP", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual ?? []).toEqual([]);
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Gammamon"], cost: 2, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Gammamon"], cost: 2, isAlternate: true }]);
     expect(compiled.effects).toEqual([
       expect.objectContaining({
         trigger: "WhenDigivolving",
@@ -16,7 +16,7 @@ describe("BT21-019 BetelGammamon", () => {
           expect.objectContaining({
             kind: "PlayWithoutCost",
             target: {
-              filter: { controller: "mine", nameOrTrait: [{ tokens: ["Hiro Amanokawa"], match: "name" }] },
+              filter: { controller: "mine", nameOrTrait: [{ tokens: ["Hiro Amanokawa"], match: "nameExact" }] },
               count: 1,
             },
             from: ["hand"],

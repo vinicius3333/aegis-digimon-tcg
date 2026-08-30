@@ -18,18 +18,36 @@ import "./index.js";
 // (a BLOCKED comment, no timing branch) — a Flame/CS Digimon entering never suspended this
 // Tamer nor re-fired that Digimon's [Main] effect.
 //
-// BT15-009 (a real, cataloged [Flame]-trait Digimon) is overridden with a synthetic [Main]
+// BT22-010 (a real, cataloged [Flame]/[CS]-trait Digimon) is overridden with a synthetic [Main]
 // effect (gain 2 memory) so the assertion is a simple, self-contained memory delta.
 const JIMMY = "BT22-092";
-const FLAME_DIGIMON = "BT15-009"; // Meramon — [Flame] trait
+const FLAME_DIGIMON = "BT22-010"; // BlueMeramon — [Flame]/[CS] traits
 
 it("registers exclusive compiled IR for play and digivolve reactivation", () => {
   const effect = compiled.effects.find((entry) => entry.trigger === "YourTurn");
-  expect(effect).toMatchObject({ timingOverride: "OnEnterFieldAnyone" });
-  expect((effect?.actions[0] as any).actions[0]).toMatchObject({
+  expect(effect?.actions).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({ kind: "SubTrigger", event: "whenPlayed", sourceFilter: expect.any(Object) }),
+      expect.objectContaining({
+        kind: "SubTrigger",
+        event: "whenOneOfYoursDigivolves",
+        sourceFilter: expect.any(Object),
+      }),
+    ]),
+  );
+  const whenPlayed = effect?.actions.find((action) => action.kind === "SubTrigger" && action.event === "whenPlayed");
+  if (whenPlayed?.kind !== "SubTrigger") throw new Error("missing whenPlayed watcher");
+  expect(whenPlayed.actions[0]).toMatchObject({
     kind: "ReactivateEffect",
     fromTrigger: "Main",
     targetSource: "triggerSubject",
+    cost: {
+      kind: "suspend",
+      optional: true,
+      target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+    },
+    optional: true,
+    abortOnDecline: true,
   });
 });
 
@@ -115,13 +133,14 @@ describe("BT22-092 [Your Turn] Flame/CS Digimon enters -> suspend Jimmy, reactiv
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const flameDigi = s.putOnBoard(0, { card: FLAME_DIGIMON, dp: 3000 });
+    await s.ready();
     s.state.memory = 5;
 
     await (
       s.engine as unknown as {
-        fireTiming(t: EffectTiming, trigger?: Record<string, unknown>): Promise<void>;
+        fireSubTrigger(event: string, trigger?: Record<string, unknown>): Promise<void>;
       }
-    ).fireTiming(EffectTiming.OnEnterFieldAnyone, { subjectPermanentId: flameDigi.permanentId });
+    ).fireSubTrigger("whenPlayed", { subjectPermanentId: flameDigi.permanentId });
 
     await settle(() => fired > 0, 400);
 
@@ -140,13 +159,14 @@ describe("BT22-092 [Your Turn] Flame/CS Digimon enters -> suspend Jimmy, reactiv
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     const flameDigi = s.putOnBoard(0, { card: FLAME_DIGIMON, dp: 3000 });
+    await s.ready();
     s.state.memory = 5;
 
     await (
       s.engine as unknown as {
-        fireTiming(t: EffectTiming, trigger?: Record<string, unknown>): Promise<void>;
+        fireSubTrigger(event: string, trigger?: Record<string, unknown>): Promise<void>;
       }
-    ).fireTiming(EffectTiming.OnEnterFieldAnyone, { subjectPermanentId: flameDigi.permanentId });
+    ).fireSubTrigger("whenPlayed", { subjectPermanentId: flameDigi.permanentId });
     await settle(() => false, 60);
 
     expect(s.decisions.some((d) => d.req.kind === "optional")).toBe(true);
@@ -166,9 +186,9 @@ describe("BT22-092 [Your Turn] Flame/CS Digimon enters -> suspend Jimmy, reactiv
 
     await (
       s.engine as unknown as {
-        fireTiming(t: EffectTiming, trigger?: Record<string, unknown>): Promise<void>;
+        fireSubTrigger(event: string, trigger?: Record<string, unknown>): Promise<void>;
       }
-    ).fireTiming(EffectTiming.OnEnterFieldAnyone, { subjectPermanentId: other.permanentId });
+    ).fireSubTrigger("whenPlayed", { subjectPermanentId: other.permanentId });
     await settle(() => false, 60);
 
     expect(s.state.memory).toBe(5);

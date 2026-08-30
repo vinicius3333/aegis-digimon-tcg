@@ -1,7 +1,7 @@
 // Costs paid to perform an action.
 
 import type { Filter, Target } from "../filters/filter.js";
-import type { Controller } from "../filters/zones.js";
+import type { Controller, ZoneRef } from "../filters/zones.js";
 
 /**
  * A cost paid as part of an action ("by trashing 1 card", "by suspending this Tamer"). Modeled
@@ -32,8 +32,15 @@ export interface Cost {
     | "attack" // perform the source Digimon's attack (AD1-020)
     | "digivolveSelf" // digivolve the source into the effect card (BT17-073)
     | "playFromDigivolutionCards" // play a card from a selected Digimon's stack (BT19-102)
+    | "digivolve" // digivolve a live Digimon as an activation cost
     | "raw";
   target?: Target;
+  /** Destination card filter for a nested digivolution cost. */
+  into?: Filter;
+  /** Source zones for a nested digivolution cost; defaults to hand/trash. */
+  from?: ZoneRef[];
+  /** Positive reduction amount applied to the nested digivolution's printed cost. */
+  costReduction?: number;
   /** Distinct targets for a compound named unsuspend cost. */
   targets?: Target[];
   /** The nested costs a `compound` cost pays. */
@@ -115,6 +122,11 @@ export interface Cost {
   /** The place cost relocates a battle-area permanent rather than a loose card. */
   targetIsPermanent?: boolean;
   /**
+   * For a permanent placed into security, move only its visible top card and promote its
+   * top digivolution card instead of moving the whole stack out of the battle area.
+   */
+  detachPermanentTop?: boolean;
+  /**
    * When relocating a permanent as a placement cost, move only its top card to the destination;
    * trash its existing digivolution and linked cards to their respective owners instead of
    * attaching the entire prior stack. Ignored unless `targetIsPermanent` is true.
@@ -123,8 +135,10 @@ export interface Cost {
   /** Store the chosen host permanent id for a downstream `target.fromSelectionRef`. */
   bindHostAs?: string;
   /**
-   * For a `destination:"security"` place cost: store the placed instance ids in
-   * `EffectContext.boundPlayed`, mirroring `Action.bindResultAs` for a cost-side move.
+   * Bind the card(s) actually moved by this cost for a downstream action. Place-to-security
+   * stores every moved instance in `EffectContext.boundPlayed`; a loose-card trash/return also
+   * snapshots the first chosen card in `selections`/`selectionFacts` so relative-level and
+   * same-name target filters can resolve after the payment changes zones.
    */
   bindResultAs?: string;
 }

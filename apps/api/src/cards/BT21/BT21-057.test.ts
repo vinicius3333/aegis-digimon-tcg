@@ -33,7 +33,7 @@ describe("BT21-057 Greymon", () => {
             controllerDefault: "mine",
             kind: ["Tamer"],
             nameOrTrait: [
-              { tokens: ["Tai Kamiya"], match: "name" },
+              { tokens: ["Tai Kamiya"], match: "nameExact" },
               { tokens: ["ADVENTURE"], match: "trait" },
             ],
           },

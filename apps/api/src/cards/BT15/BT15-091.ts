@@ -40,96 +40,98 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
-          kind: "Digivolve",
-          target: {
-            filter: {
-              controllerDefault: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["Gabumon"],
-                  match: "name",
-                },
-              ],
-            },
-            count: 1,
-          },
-          into: {
-            controllerDefault: "mine",
-            nameOrTrait: [
+          kind: "CostGatedBlock",
+          cost: {
+            kind: "compound",
+            costs: [
               {
-                tokens: ["MetalGarurumon"],
-                match: "name",
+                kind: "place",
+                target: {
+                  filter: {
+                    zone: "trash",
+                    controller: "mine",
+                    nameOrTrait: [
+                      {
+                        tokens: ["Garurumon"],
+                        match: "name",
+                      },
+                    ],
+                  },
+                  count: 1,
+                  from: ["trash"],
+                },
+                raw: "By placing 1 [Garurumon] and 1 [WereGarurumon] from your trash as 1 of your [Gabumon]'s bottom digivolution cards",
+                underFilter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [
+                    {
+                      tokens: ["Gabumon"],
+                      match: "name",
+                    },
+                  ],
+                },
+                destination: "digivolutionStack",
+                position: "bottom",
+                host: "target",
+                bindHostAs: "bt15091Gabumon",
+              },
+              {
+                kind: "place",
+                target: {
+                  filter: {
+                    zone: "trash",
+                    controller: "mine",
+                    nameOrTrait: [
+                      {
+                        tokens: ["WereGarurumon"],
+                        match: "name",
+                      },
+                    ],
+                  },
+                  count: 1,
+                  from: ["trash"],
+                },
+                destination: "digivolutionStack",
+                position: "bottom",
+                host: { filter: { boundRef: "bt15091Gabumon" }, count: 1 },
               },
             ],
           },
-          payCost: false,
-          from: ["hand"],
-          ignoreRequirements: true,
           optional: true,
-          cost: {
-            kind: "place",
-            target: {
-              filter: {
-                zone: "trash",
-                controller: "mine",
-                nameOrTrait: [
-                  {
-                    tokens: ["Garurumon"],
-                    match: "name",
-                  },
-                ],
-              },
-              count: 1,
-              from: ["trash"],
-            },
-            raw: "By placing 1 [Garurumon] and 1 [WereGarurumon] from your trash as 1 of your [Gabumon]'s bottom digivolution cards",
-            underFilter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["Gabumon"],
-                  match: "name",
-                },
-              ],
-            },
-            destination: "digivolutionStack",
-            position: "bottom",
-            host: "target",
-          },
-          additionalCost: {
-            kind: "place",
-            target: {
-              filter: {
-                zone: "trash",
-                controller: "mine",
-                nameOrTrait: [
-                  {
-                    tokens: ["WereGarurumon"],
-                    match: "name",
-                  },
-                ],
-              },
-              count: 1,
-              from: ["trash"],
-            },
-            underFilter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["Gabumon"],
-                  match: "name",
-                },
-              ],
-            },
-            destination: "digivolutionStack",
-            position: "bottom",
-            host: "target",
-          },
           abortOnDecline: true,
-          raw: "By placing 1 [Garurumon] and 1 [WereGarurumon] from your trash as 1 of your [Gabumon]ʼs bottom digivolution cards, that Digimon may digivolve into [MetalGarurumon] in your hand, ignoring its digivolution requirements and without paying the cost.",
+          actions: [
+            {
+              kind: "Digivolve",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [
+                    {
+                      tokens: ["Gabumon"],
+                      match: "name",
+                    },
+                  ],
+                },
+                count: 1,
+                fromSelectionRef: "bt15091Gabumon",
+              },
+              into: {
+                controllerDefault: "mine",
+                nameOrTrait: [
+                  {
+                    tokens: ["MetalGarurumon"],
+                    match: "name",
+                  },
+                ],
+              },
+              payCost: false,
+              from: ["hand"],
+              ignoreRequirements: true,
+              optional: true,
+            },
+          ],
         },
       ],
     },

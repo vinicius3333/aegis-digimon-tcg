@@ -40,6 +40,8 @@ export interface PayMemoryUpToAction extends ActionBase {
 export interface SetMemoryAction extends ActionBase {
   kind: "SetMemory";
   value: number;
+  /** Seat whose memory is set from the resolving source's perspective. */
+  controller?: "mine" | "opponent";
 }
 
 /** Raise the opponent-side memory required to end the active turn (BT14-081). */

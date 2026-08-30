@@ -6,6 +6,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import "../index.js";
 import { compiled } from "./BT11-059.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { definitionMatches } from "../../engine/effects/interpreter/matching/definition.js";
 
 /**
  * Drive the REAL digivolve into BT11-059 over `tamerCardIds` green/black Tamers and return
@@ -38,8 +39,31 @@ async function paidToEvolveIntoBT11059(tamerCardIds: string[]) {
 
 describe("A3 BT11-059 — digivolve cost reduced per green/black Tamer (Q2092 dual=1)", () => {
   it("maps catalog facts and both executable clauses", () => {
-    expect(getCardDefinition("BT11-059")).toMatchObject({ cardId: "BT11-059", colors: ["Green", "Black"], level: 6, playCost: 13, dp: 13000 });
+    expect(getCardDefinition("BT11-059")).toMatchObject({
+      cardId: "BT11-059",
+      colors: ["Green", "Black"],
+      level: 6,
+      playCost: 13,
+      dp: 13000,
+    });
     expect(compiled.effects).toHaveLength(2);
+  });
+
+  it("scopes the cost replacement to the BT11-059 card number", () => {
+    const replacement = compiled.effects[0]!.actions[0]!;
+    if (replacement.kind !== "Replacement") throw new Error("BT11-059 cost action is not Replacement");
+    const into = replacement.into;
+    if (!into) throw new Error("BT11-059 replacement has no target filter");
+    const definition = (cardId: string) => {
+      const card = getCardDefinition(cardId);
+      if (!card) throw new Error(`Missing card definition: ${cardId}`);
+      return card;
+    };
+    expect(into).toEqual({ cardId: "BT11-059" });
+    expect(definitionMatches(into, definition("BT11-059"))).toBe(true);
+    expect(definitionMatches(into, definition("BT2-051"))).toBe(false);
+    expect(definitionMatches(into, definition("P-113"))).toBe(false);
+    expect(definitionMatches(into, definition("P-173"))).toBe(false);
   });
 
   it("0 Tamers pays the printed evoCost 5 (revert-equivalent baseline)", async () => {

@@ -55,7 +55,7 @@ describe("BT26-038 Kuwagamon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT26-008", as: "winner", dp: 10000, under: ["BT26-038"] },
+            { card: "BT11-053", as: "winner", dp: 10000, under: ["BT26-038"] },
             { card: "BT1-066", as: "evolutionTarget" },
           ],
           hand: [{ card: "BT26-038", as: "candidate" }],
@@ -88,7 +88,7 @@ describe("BT26-038 Kuwagamon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT26-008", as: "host", under: ["BT26-038"] },
+            { card: "BT11-053", as: "host", under: ["BT26-038"] },
             { card: "BT1-066", as: "ally" },
           ],
           hand: [{ card: "BT26-038", as: "candidate" }],
@@ -111,7 +111,7 @@ describe("BT26-038 Kuwagamon", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
 
-    expect(s.perm("host").topCard.cardId).toBe("BT26-008");
+    expect(s.perm("host").topCard.cardId).toBe("BT11-053");
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(candidateId);
     expect(s.state.memory).toBe(1);
   });
@@ -121,7 +121,7 @@ describe("BT26-038 Kuwagamon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT26-008", as: "winner", dp: 10000, under: ["BT26-038"] },
+            { card: "BT11-053", as: "winner", dp: 10000, under: ["BT26-038"] },
             { card: "BT1-066", as: "evolutionTarget" },
           ],
           hand: [{ card: "BT26-038", as: "candidate" }],

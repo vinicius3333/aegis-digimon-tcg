@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT24_042 } from "./BT24-042.js";
@@ -21,7 +22,10 @@ describe("BT24-042 Goblimon", () => {
     expect((inherited?.actions?.[0] as any).event).toBe("whenHandTrashed");
     expect((inherited?.actions?.[0] as any).sourceFilter).toEqual({ controller: "mine" });
     expect((inherited?.actions?.[0] as any).actions[0].target).toMatchObject({
-      filter: { isSelfRef: true },
+      filter: {
+        isSelfRef: true,
+        nameOrTrait: [{ tokens: ["Demon", "Titan"], match: "trait" }],
+      },
       isSelf: true,
     });
   });
@@ -109,6 +113,22 @@ describe("BT24-042 Goblimon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("ownCost").instanceId);
     expect(s.state.memory).toBe(4);
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Alliance")).toBe(true);
+  });
+
+  it("does not inherited-evolve a non-Demon/Titan host after its owner's hand is trashed", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-046", as: "host", under: ["BT24-042"] }],
+        hand: [{ card: "BT1-009", as: "cost" }],
+        trash: [{ card: "P-209", as: "titamon" }],
+      },
+    });
+    await s.ready();
+
+    await advance(s.engine).verb.trash([s.inst("cost").instanceId], 0);
+
+    expect(s.perm("host").topCard.cardId).toBe("BT24-046");
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("titamon").instanceId);
   });
 
   it.each([

@@ -1,10 +1,38 @@
 import { describe, expect, it } from "vitest";
+import { definitionOf } from "../../engine/cards/cardData.js";
 import { compiled } from "./BT13-040.js";
 import { advance } from "../../engine/testkit/advance.js";
+import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 
 describe("BT13-040 Magnamon", () => {
+  it("keeps both bracketed Veemon references exact", () => {
+    const replacement = compiled.effects[1]!.actions[0] as unknown as {
+      actions: [
+        unknown,
+        {
+          target: {
+            filter: {
+              or: [
+                { nameOrTrait: [{ tokens: string[]; match: string }] },
+                { nameOrTrait: [{ tokens: string[]; match: string }] },
+              ];
+            };
+          };
+        },
+      ];
+    };
+    const branches = replacement.actions[1].target.filter.or;
+    const handReference = branches[0]!.nameOrTrait[0]!;
+    const stackReference = branches[1]!.nameOrTrait[0]!;
+
+    expect(handReference).toEqual({ tokens: ["Veemon"], match: "nameExact" });
+    expect(stackReference).toEqual({ tokens: ["Veemon"], match: "nameExact" });
+    expect(matchNameOrTrait(definitionOf("BT12-021"), handReference as never)).toBe(true);
+    expect(matchNameOrTrait(definitionOf("BT12-022"), handReference as never)).toBe(false);
+  });
+
   it("keeps Blocker and replaces leaving play with draw plus optional Veemon play", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
@@ -30,10 +58,10 @@ describe("BT13-040 Magnamon", () => {
                 filter: {
                   controller: "mine",
                   or: [
-                    { zone: "hand", nameOrTrait: [{ match: "name", tokens: ["Veemon"] }] },
+                    { zone: "hand", nameOrTrait: [{ match: "nameExact", tokens: ["Veemon"] }] },
                     {
                       zone: "digivolutionCards",
-                      nameOrTrait: [{ match: "name", tokens: ["Veemon"] }],
+                      nameOrTrait: [{ match: "nameExact", tokens: ["Veemon"] }],
                       hostFilter: { isSelfRef: true },
                     },
                   ],
@@ -57,8 +85,8 @@ describe("BT13-040 Magnamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT13-040", as: "magna", under: ["BT12-021"] }],
-          hand: ["BT12-021"],
+          battleArea: [{ card: "BT13-040", as: "magna", under: ["BT3-021"] }],
+          hand: ["BT3-021"],
           deck: ["BT1-001"],
         },
       },
@@ -75,7 +103,7 @@ describe("BT13-040 Magnamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT13-040", as: "magna", under: [{ card: "BT12-021", as: "source-veemon" }] }],
+          battleArea: [{ card: "BT13-040", as: "magna", under: [{ card: "BT3-021", as: "source-veemon" }] }],
           deck: [{ card: "BT1-001", as: "drawn" }],
         },
       },
@@ -85,7 +113,7 @@ describe("BT13-040 Magnamon", () => {
     const magnaId = s.perm("magna").topCard.instanceId;
 
     await advance(s.engine).verb.deletePermanent([s.perm("magna").permanentId]);
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT12-021"));
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT3-021"));
 
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("drawn").instanceId)).toBe(true);
     expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === magnaId)).toBe(true);
@@ -99,7 +127,7 @@ describe("BT13-040 Magnamon", () => {
       {
         0: {
           battleArea: [{ card: "BT13-040", as: "magna" }],
-          hand: [{ card: "BT12-021", as: "hand-veemon" }],
+          hand: [{ card: "BT3-021", as: "hand-veemon" }],
           deck: ["BT1-001"],
         },
       },
@@ -107,7 +135,9 @@ describe("BT13-040 Magnamon", () => {
     );
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("magna").permanentId]);
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("hand-veemon").instanceId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("hand-veemon").instanceId),
+    );
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("hand-veemon").instanceId)).toBe(
       true,
     );
@@ -118,17 +148,19 @@ describe("BT13-040 Magnamon", () => {
       {
         0: {
           battleArea: [{ card: "BT13-040", as: "magna" }],
-          deck: [{ card: "BT12-021", as: "drawn-veemon" }],
+          deck: [{ card: "BT3-021", as: "drawn-veemon" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("magna").permanentId]);
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("drawn-veemon").instanceId));
-    expect(
+    await settle(() =>
       s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("drawn-veemon").instanceId),
-    ).toBe(true);
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("drawn-veemon").instanceId)).toBe(
+      true,
+    );
   });
 
   it("does not offer a Veemon from another Digimon's sources", async () => {
@@ -146,9 +178,31 @@ describe("BT13-040 Magnamon", () => {
     );
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("magna").permanentId]);
-    expect(s.perm("other-host").stack.some(({ instanceId }) => instanceId === s.inst("wrong-host-veemon").instanceId)).toBe(
+    expect(
+      s.perm("other-host").stack.some(({ instanceId }) => instanceId === s.inst("wrong-host-veemon").instanceId),
+    ).toBe(true);
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
+  });
+
+  it("does not offer or play ExVeemon from hand or this stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-040", as: "magna", under: [{ card: "BT12-022", as: "stack-exveemon" }] }],
+          hand: [{ card: "BT12-022", as: "hand-exveemon" }],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("magna").permanentId]);
+
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("hand-exveemon").instanceId)).toBe(
       true,
     );
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT12-022")).toBe(false);
     expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
   });
 
@@ -157,7 +211,7 @@ describe("BT13-040 Magnamon", () => {
       {
         0: {
           battleArea: [{ card: "BT13-040", as: "magna" }],
-          hand: [{ card: "BT12-021", as: "veemon" }],
+          hand: [{ card: "BT3-021", as: "veemon" }],
           deck: [{ card: "BT1-001", as: "drawn" }],
         },
       },
@@ -190,6 +244,21 @@ describe("BT13-040 Magnamon", () => {
       await settle(() => s.perm("base").topCard.cardId === "BT13-040");
       expect(s.state.memory).toBe(expectedMemory);
     }
+  });
+
+  it("requires the exact Veemon name for its alternate evolution", () => {
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Veemon"], cost: 3, isAlternate: true }]);
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT12-022", as: "exveemon" }], hand: [{ card: "BT13-040", as: "magna" }] },
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("exveemon").permanentId,
+        instanceId: s.inst("magna").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toMatchObject({ ok: false });
   });
 
   it("rejects the alternate evolution from a non-Veemon", () => {

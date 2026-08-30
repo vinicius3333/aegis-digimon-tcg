@@ -2,10 +2,26 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT18-033.js";
+import { compiled } from "./BT18-033.js";
 
 describe("BT18-033 Patamon", () => {
   it("reveals it from hand, pays the Three Great Angels return cost, and plays this exact card in empty breeding", async () => {
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "Main",
+      isFromHand: true,
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          breeding: true,
+          requiresEmpty: "breedingArea",
+          payCost: false,
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
+    });
     const s = setupEngine(
       {
         0: {

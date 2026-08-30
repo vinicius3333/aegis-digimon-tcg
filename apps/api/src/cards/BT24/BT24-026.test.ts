@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import type { Primitives } from "../../engine/effects/EffectContext.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -12,6 +12,25 @@ function primitivesOf(setup: EngineSetup): Primitives {
 }
 
 describe("BT24-026 Hyogamon", () => {
+  it("matches the immutable catalog identity", () => {
+    expect(getCardDefinition("BT24-026")).toMatchObject({
+      cardId: "BT24-026",
+      nameEn: "Hyogamon",
+      colors: ["Blue", "Purple"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 4,
+      dp: 4000,
+      forms: ["Champion"],
+      attributes: ["Virus"],
+      types: ["Ice-Snow", "Titan", "TS", "Demon"],
+      evoCosts: [
+        { color: "Blue", level: 3, memoryCost: 3 },
+        { color: "Purple", level: 3, memoryCost: 3 },
+      ],
+    });
+  });
+
   it("requires the hand-trash cost before granting Jamming and Blocker", () => {
     for (const trigger of ["OnPlay", "WhenAttacking"]) {
       const actions = compiled.effects.find((effect) => effect.trigger === trigger)?.actions as any[];

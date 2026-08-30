@@ -48,6 +48,31 @@ describe("BT10-102 Pyon Dump", () => {
     expect(observe(s.engine).hasPierce(s.perm("attacker"))).toBe(true);
   });
 
+  it("does not recognize Angoramon under a Tamer as a Digimon source", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-043", as: "attacker" },
+            { card: "BT1-089", under: ["BT10-044"] },
+          ],
+          hand: [{ card: "BT10-102", as: "option" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT10-102"));
+
+    expect(observe(s.engine).hasPierce(s.perm("attacker"))).toBe(true);
+    expect(s.perm("target").isSuspended).toBe(false);
+  });
+
   it("does not suspend without Angoramon but still grants Piercing", async () => {
     const s = setupEngine(
       {

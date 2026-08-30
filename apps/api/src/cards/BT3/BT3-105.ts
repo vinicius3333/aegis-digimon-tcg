@@ -15,6 +15,7 @@ const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: 1,
+            bindAs: "breathTarget",
           },
           keyword: {
             keyword: "Reboot",
@@ -24,25 +25,13 @@ const compiled: CompiledCard = {
         },
         {
           kind: "Restrict",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-            },
-            count: 1,
-          },
+          target: { filter: {}, count: 1, fromSelectionRef: "breathTarget" },
           restriction: "dpImmune",
           duration: "untilOpponentTurnEnd",
         },
         {
           kind: "Restrict",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-            },
-            count: 1,
-          },
+          target: { filter: {}, count: 1, fromSelectionRef: "breathTarget" },
           restriction: "beReturned",
           duration: "untilOpponentTurnEnd",
         },

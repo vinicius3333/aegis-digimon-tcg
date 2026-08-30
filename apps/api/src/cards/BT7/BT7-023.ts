@@ -5,6 +5,25 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   effects: [
     {
+      trigger: "Static",
+      actions: [
+        {
+          kind: "Digivolve",
+          onto: {
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
+              colors: ["Blue"],
+            },
+            count: 1,
+          },
+          asLevel: 3,
+          from: "hand",
+          optional: true,
+        },
+      ],
+    },
+    {
       trigger: "WhenDigivolving",
       actions: [
         {
@@ -17,32 +36,7 @@ const compiled: CompiledCard = {
             },
             count: 1,
           },
-          restriction: "attack",
-          duration: "untilOpponentTurnEnd",
-          condition: {
-            kind: "selfDigivolutionStackHasTrait",
-            filter: {
-              nameOrTrait: [
-                {
-                  tokens: ["Hybrid"],
-                  match: "trait",
-                },
-                {
-                  tokens: ["Tommy Himi"],
-                  match: "name",
-                },
-              ],
-            },
-            raw: "a card with [Hybrid] in its traits or [Tommy Himi] is in this Digimon's digivolution cards",
-          },
-        },
-        {
-          kind: "Restrict",
-          target: {
-            filter: { digivolutionCards: "none", controller: "opponent", kind: ["Digimon"] },
-            count: 1,
-          },
-          restriction: "block",
+          restriction: "attackOrBlock",
           duration: "untilOpponentTurnEnd",
           condition: {
             kind: "selfDigivolutionStackHasTrait",
@@ -52,6 +46,7 @@ const compiled: CompiledCard = {
                 { tokens: ["Tommy Himi"], match: "name" },
               ],
             },
+            raw: "a card with [Hybrid] in its traits or [Tommy Himi] is in this Digimon's digivolution cards",
           },
         },
       ],

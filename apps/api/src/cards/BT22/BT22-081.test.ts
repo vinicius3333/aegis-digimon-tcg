@@ -32,6 +32,7 @@ describe("BT22-081 Eater Eve", () => {
         {
           event: "wouldLeavePlay",
           sourceFilter: { isSelfRef: true },
+          optional: true,
           actions: [{ kind: "PlayWithoutCost", from: ["digivolutionCards"], optional: true }],
         },
       ],

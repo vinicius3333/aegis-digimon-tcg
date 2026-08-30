@@ -2,6 +2,10 @@ import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
+const requestedTestMaxThreads = Number(process.env.TEST_MAX_THREADS ?? 4);
+const testMaxThreads =
+  Number.isInteger(requestedTestMaxThreads) && requestedTestMaxThreads > 0 ? requestedTestMaxThreads : 4;
+
 export default defineConfig({
   plugins: [react()],
   resolve: {
@@ -32,7 +36,10 @@ export default defineConfig({
     poolOptions: {
       threads: {
         minThreads: 1,
-        maxThreads: 4,
+        // Keep low-memory gates on the thread pool: forcing `forks` makes
+        // Colyseus's non-plain log payloads cross IPC and crash Vitest's
+        // serializer. Override only the thread count when RAM is constrained.
+        maxThreads: testMaxThreads,
       },
     },
   },

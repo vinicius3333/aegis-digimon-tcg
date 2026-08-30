@@ -174,7 +174,6 @@ export const compiled: CompiledCard = {
             per: 2,
             filter: {
               controllerDefault: "mine",
-              kind: ["Digimon"],
               nameOrTrait: [
                 {
                   tokens: ["Royal Knight"],

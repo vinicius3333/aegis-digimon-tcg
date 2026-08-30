@@ -21,6 +21,7 @@ describe("BT21-014 BurningGreymon", () => {
   });
 
   it("grants Piercing and +3000 DP on play or digivolution, and may evolve into a reduced-cost level 5 Hybrid", () => {
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Agunimon"], cost: 1, isAlternate: true }]);
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       expect(compiled.effects).toContainEqual(
         expect.objectContaining({

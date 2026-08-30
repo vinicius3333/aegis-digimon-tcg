@@ -116,10 +116,30 @@ describe("BT10-101 LxF3nkhē Adistakto", () => {
     });
   });
 
+  it("does not waive its color requirement when Pulsemon is under a Tamer", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-089", under: ["BT10-031"] }],
+        hand: [{ card: "BT10-101", as: "option" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+      }).ok,
+    ).toBe(false);
+  });
+
   it("Security activates the same Main effect", async () => {
     const s = setupEngine(
       {
-        0: { security: ["BT1-001", "BT1-002", "BT1-003", { card: "BT10-101", as: "option", faceUp: true }] },
+        0: {
+          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", { card: "BT10-101", as: "option", faceUp: true }],
+        },
         1: { battleArea: [{ card: "BT1-009", as: "target" }] },
       },
       { autoSelectCards: true, autoOrderTriggers: true },

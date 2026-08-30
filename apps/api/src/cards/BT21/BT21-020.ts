@@ -32,7 +32,7 @@ export const compiled: CompiledCard = {
           ],
           condition: {
             kind: "selfDigivolutionStackMatchesFilter",
-            filter: { nameOrTrait: [{ tokens: ["Agunimon", "BurningGreymon"], match: "name" }] },
+            filter: { nameOrTrait: [{ tokens: ["Agunimon", "BurningGreymon"], match: "nameExact" }] },
           },
         },
       ],

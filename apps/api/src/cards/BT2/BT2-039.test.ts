@@ -55,7 +55,7 @@ describe("BT2-039 Magnadramon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT2-039", as: "magnadramon" }],
+          battleArea: [{ card: "BT2-039", as: "magnadramon", under: ["BT2-037"] }],
           hand: [{ card: "BT1-048", as: "played" }],
         },
       },
@@ -70,7 +70,7 @@ describe("BT2-039 Magnadramon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT2-039", as: "magnadramon" }],
+          battleArea: [{ card: "BT2-039", as: "magnadramon", under: ["BT2-037"] }],
           hand: [{ card: "BT1-048", as: "candidate" }],
         },
       },
@@ -97,7 +97,7 @@ describe("BT2-039 Magnadramon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT2-039", as: "magnadramon" }],
+          battleArea: [{ card: "BT2-039", as: "magnadramon", under: ["BT2-037"] }],
           hand: [{ card: "BT1-048", as: "patamon" }],
           deck: ["BT1-087", "BT1-010", "BT1-011", "BT1-012"],
         },

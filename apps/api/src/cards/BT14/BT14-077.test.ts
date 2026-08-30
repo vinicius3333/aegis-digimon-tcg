@@ -24,20 +24,23 @@ describe("BT14-077", () => {
         },
       ],
     }));
-  it("trashes the top two cards from both decks on play", async () => {
+  it("trashes the top two cards from both decks on play and gains memory from the opponent mill", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "BT14-077", as: "machinedramon" }], deck: ["BT1-001", "BT1-002", "BT1-003"] },
+        0: { hand: [{ card: "BT14-077", as: "skullsatamon" }], deck: ["BT1-001", "BT1-002", "BT1-003"] },
         1: { deck: ["BT1-004", "BT1-005", "BT1-006"] },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("machinedramon").instanceId })).toEqual({
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("skullsatamon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.trash.length >= 2 && s.state.players[1]!.trash.length >= 2);
+    await settle(() =>
+      s.state.players[0]!.trash.length >= 2 && s.state.players[1]!.trash.length >= 2 && s.state.memory === 4,
+    );
     expect(s.state.players[0]!.trash.slice(-2).map((card) => card.cardId)).toEqual(["BT1-001", "BT1-002"]);
     expect(s.state.players[1]!.trash.slice(-2).map((card) => card.cardId)).toEqual(["BT1-004", "BT1-005"]);
+    expect(s.state.memory).toBe(4);
   });
 });

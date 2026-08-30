@@ -14,8 +14,9 @@ const compiled: CompiledCard = {
         },
         {
           kind: "Recover",
-          amount: 3,
-          scaling: { per: 1, bonus: -1, unit: "security", filter: { controller: "mine" } },
+          amount: 1,
+          untilSecurityCount: 3,
+          optional: true,
           condition: { kind: "zoneCount", seat: "mine", zone: "security", op: "lte", value: 2 },
         },
       ],

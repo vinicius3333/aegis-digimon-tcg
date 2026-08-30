@@ -43,7 +43,7 @@ describe("BT23-014 Gallantmon", () => {
           per: 1,
           amount: 2000,
           unit: "cards",
-          filter: { controller: "opponent", kind: ["Digimon", "Tamer"] },
+          filter: { controller: "opponent", kind: ["Digimon", "Tamer"], zone: "battleArea" },
         },
       });
     }

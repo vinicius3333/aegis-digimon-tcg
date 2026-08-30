@@ -11,6 +11,17 @@ const CARD_ID = "BT25-093";
 describe("BT25-093 Ignition Flare", () => {
   it("maps the printed TS use requirement, placed-Option ruling, and Link requirement", () => {
     expect(compiled.linkRequirement).toEqual([{ traits: ["TS"], cost: 3 }]);
+    expect(compiled.effects.find((effect) => effect.trigger === "Static")).toMatchObject({
+      actions: [
+        {
+          kind: "WaiveColorRequirement",
+          condition: {
+            kind: "youHave",
+            filter: { zone: "battleArea", kind: ["Digimon", "Tamer"] },
+          },
+        },
+      ],
+    });
     const trash = compiled.effects
       ?.find((effect) => effect.trigger === "Main")
       ?.actions.find((action) => action.kind === "Trash");
@@ -24,6 +35,34 @@ describe("BT25-093 Ignition Flare", () => {
         },
       },
     });
+  });
+
+  it("does not treat a breeding TS Digimon or a TS Option as the field Use Req.", async () => {
+    for (const players of [
+      {
+        0: {
+          breeding: { card: "BT25-034", as: "breedingTs" },
+          hand: [{ card: CARD_ID, as: "flare" }],
+        },
+      },
+      {
+        0: {
+          battleArea: [{ card: "BT25-094", as: "tsOption" }],
+          hand: [{ card: CARD_ID, as: "flare" }],
+        },
+      },
+    ]) {
+      const s = setupEngine(players);
+      s.state.memory = 5;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("flare").instanceId, useAs: "option" } as never),
+      ).toEqual({
+        ok: false,
+        reason: "color-requirement-unmet",
+      });
+      expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain(CARD_ID);
+    }
   });
 
   it("cannot be used without the printed color requirement or an effective TS permanent", async () => {

@@ -64,8 +64,8 @@ describe("BT20-066 Stingmon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT20-074", as: "dinobeemon" },
-            { card: "BT20-016", as: "paildramon" },
+            { card: "BT20-074", under: ["BT20-069"], as: "dinobeemon" },
+            { card: "BT20-016", under: ["BT20-066"], as: "paildramon" },
           ],
           hand: [
             { card: "BT20-066", as: "stingmon" },
@@ -97,7 +97,7 @@ describe("BT20-066 Stingmon", () => {
       0: {
         battleArea: [
           { card: "BT20-061", as: "base" },
-          { card: "BT20-074", as: "material" },
+          { card: "BT20-074", under: ["BT20-069"], as: "material" },
         ],
         hand: [
           { card: "BT20-066", as: "stingmon" },

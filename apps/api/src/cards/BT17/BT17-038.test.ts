@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../EX2/EX2-066.js";
 import { compiled } from "./BT17-038.js";
 import "./index.js";
 
@@ -18,11 +19,12 @@ describe("BT17-038 Sakuyamon", () => {
       kind: "UseOptionWithoutCost",
       optional: true,
       filter: {
-        orFilters: [
-          { kind: ["Option"], controller: "mine", zone: "hand", nameOrTrait: [{ tokens: ["Plug-In"], match: "name" }] },
-          { kind: ["Option"], color: "yellow", playCost: { max: 5 }, controller: "mine", zone: "hand" },
-        ],
+        controller: "mine",
+        kind: ["Option"],
+        playCostLte: 99,
+        or: [{ nameOrTrait: [{ tokens: ["Plug-In"], match: "name" }] }, { colors: ["Yellow"], playCostLte: 5 }],
       },
+      allowMultiColor: true,
     });
   });
 
@@ -87,5 +89,68 @@ describe("BT17-038 Sakuyamon", () => {
     await advance(s.engine).fireSubTrigger("whenOptionUsed", { usedOptionCost: 2, subjectPermanentId: "used-option" });
 
     expect(observe(s.engine).isRestricted(s.perm("sakuyamon"), "beReturned")).toBe(true);
+  });
+
+  it("uses a red Plug-In when a red board source meets its color requirement", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT17-035", as: "base" },
+            { card: "EX2-008", as: "redSource" },
+          ],
+          hand: [
+            { card: "BT17-038", as: "sakuyamon" },
+            { card: "EX2-066", as: "plugIn" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    const plugInId = s.inst("plugIn").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("sakuyamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === plugInId));
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(plugInId);
+  });
+
+  it("does not use an unrelated or color-illegal Option", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-035", as: "base" }],
+          hand: [
+            { card: "BT17-038", as: "sakuyamon" },
+            { card: "BT5-102", as: "unrelated" },
+            { card: "EX2-066", as: "colorIllegalPlugIn" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    const unrelatedId = s.inst("unrelated").instanceId;
+    const illegalId = s.inst("colorIllegalPlugIn").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("sakuyamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await s.ready();
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([unrelatedId, illegalId]),
+    );
   });
 });

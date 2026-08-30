@@ -112,6 +112,7 @@ export const compiled: CompiledCard = {
                       match: "trait",
                     },
                   ],
+                  hostFilter: { isSelfRef: true },
                 },
                 count: 1,
               },

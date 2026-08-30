@@ -5,7 +5,7 @@ import "./BT6-055.js";
 
 describe("BT6-055 Junkmon", () => {
   it("gains 1 memory when its host is deleted", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-010", under: ["BT6-055"], as: "host" }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-062", under: ["BT6-055"], as: "host" }] } });
     s.state.memory = 0;
 
     await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");

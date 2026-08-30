@@ -16,53 +16,12 @@ export const compiled: CompiledCard = {
           kind: "Replacement",
           event: "wouldBeDeleted",
           mode: "prevent",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["Dorugamon"],
-                  match: "name",
-                },
-              ],
-            },
-            count: 1,
-          },
-          actions: [
-            {
-              kind: "Digivolve",
-              target: {
-                filter: {},
-                count: 1,
-                sourceRef: "triggerSubject",
-              },
-              into: {
-                controller: "mine",
-                zone: "trash",
-                isSelfRef: true,
-                kind: ["Digimon"],
-                nameOrTrait: [
-                  {
-                    tokens: ["DexDorugamon"],
-                    match: "name",
-                  },
-                ],
-              },
-              from: ["trash"],
-              payCost: false,
-              bindResultAs: "digivolvedToPreventDeletion",
-            },
-            {
-              kind: "Prevent",
-              condition: {
-                kind: "bindingExists",
-                ref: "digivolvedToPreventDeletion",
-                raw: "digivolved that Dorugamon into this DexDorugamon",
-              },
-            },
-          ],
+          sourceFilter: { zone: "trash", controller: "mine" },
+          target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["Dorugamon"], match: "name" }] }, count: 1 },
+          leaveCause: "any",
+          digivolveFromTrash: true,
           optional: true,
+          abortOnDecline: true,
           raw: "When one of your [Dorugamon] would be deleted, by digivolving it into this card without paying the cost, prevent that deletion.",
         },
       ],
@@ -145,24 +104,9 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "Static",
-      actions: [
-        {
-          kind: "GainKeyword",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
-          keyword: {
-            keyword: "Reboot",
-          },
-          duration: "permanent",
-        },
-      ],
+      actions: [],
       isInherited: true,
-      keywords: [],
+      keywords: [{ keyword: "Reboot", raw: "＜Reboot＞" }],
     },
   ],
   coverage: "full",

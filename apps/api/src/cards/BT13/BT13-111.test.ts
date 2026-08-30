@@ -1,16 +1,24 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { wouldBePlayedSelfReducersFor } from "../../engine/effects/interpreter.js";
 import { compiled } from "./BT13-111.js";
 
 describe("BT13-111 Gallantmon", () => {
   it("plays for the combined-trash reduction only while its controller has no Digimon", async () => {
+    expect(wouldBePlayedSelfReducersFor("BT13-111")).toHaveLength(1);
     const s = setupEngine({
-      0: { hand: [{ card: "BT13-111", as: "gallantmon" }], trash: Array.from({ length: 12 }, () => "BT1-009") },
+      0: {
+        hand: [{ card: "BT13-111", as: "gallantmon" }],
+        // Breeding is not the unspecified-area default, so this must not block the reduction.
+        breeding: { card: "BT1-009", as: "breedingOnly" },
+        trash: Array.from({ length: 12 }, () => "BT1-009"),
+      },
       1: { trash: Array.from({ length: 8 }, () => "BT1-009") },
     });
-    s.state.memory = 13;
-    await s.engine.recomputeContinuousEffects();
+    // 20 trash cards grant -8, making the 13-cost play affordable from 5 memory.
+    s.state.memory = 5;
+    await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gallantmon").instanceId })).toEqual({
       ok: true,
     });
@@ -29,7 +37,7 @@ describe("BT13-111 Gallantmon", () => {
       },
     });
     blocked.state.memory = 12;
-    await blocked.engine.recomputeContinuousEffects();
+    await blocked.ready();
     expect(
       blocked.engine.applyIntent(0, { type: "playCard", instanceId: blocked.inst("gallantmon").instanceId }),
     ).toEqual({ ok: true });
@@ -52,7 +60,10 @@ describe("BT13-111 Gallantmon", () => {
       kind: "Replacement",
       mode: "reduceCost",
       amount: 2,
-      condition: { kind: "youHaveNone", filter: { controllerDefault: "mine", kind: ["Digimon"] } },
+      condition: {
+        kind: "youHaveNone",
+        filter: { controllerDefault: "mine", zone: "battleArea", kind: ["Digimon"] },
+      },
     });
   });
 

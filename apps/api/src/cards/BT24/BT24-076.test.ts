@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -6,6 +6,22 @@ import { compiled as BT24_076 } from "./BT24-076.js";
 import "../index.js";
 
 describe("BT24-076 WarGrowlmon", () => {
+  it("matches the immutable catalog identity", () => {
+    expect(getCardDefinition("BT24-076")).toMatchObject({
+      cardId: "BT24-076",
+      nameEn: "WarGrowlmon",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
+      forms: ["Ultimate"],
+      attributes: ["Virus"],
+      types: ["Cyborg", "Dark Dragon"],
+      evoCosts: [{ color: "Purple", level: 4, memoryCost: 3 }],
+    });
+  });
+
   it("keeps the trash Main cost reduction and level restrictions", () => {
     const trash = BT24_076.effects?.find((entry) => entry.trigger === "Main");
     expect(trash).toMatchObject({

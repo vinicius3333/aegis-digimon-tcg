@@ -49,4 +49,28 @@ describe("BT16-062", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-015")).toBe(true);
   });
+
+  it("executes a copied Gammamon inherited effect on a natural attack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT16-062", as: "zan", under: ["BT10-078"] }] },
+        1: { battleArea: [{ card: "BT1-009", as: "victim", suspended: true, dp: 9000 }] },
+      },
+      { autoSelectCards: true },
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("zan").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("victim").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.players[1]!.battleArea.length === 0);
+
+    // BT10-078 is a legal level-4 Gammamon source and contributes inherited Retaliation;
+    // the natural losing battle proves that the copied inherited keyword is executable.
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
 });

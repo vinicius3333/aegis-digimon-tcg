@@ -2,6 +2,7 @@ import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../index.js";
 import { compiled } from "./BT18-057.js";
 
 describe("BT18-057 KoKabuterimon", () => {
@@ -44,11 +45,12 @@ describe("BT18-057 KoKabuterimon", () => {
       0: {
         battleArea: [
           { card: "BT18-057", as: "koKabuterimon" },
-          { card: "BT18-091", as: "jp" },
+          { card: "BT18-091", as: "jpA" },
+          { card: "BT18-091", as: "jpB" },
         ],
         hand: [
-          { card: "BT11-040", as: "sukamon" },
-          { card: "BT18-063", as: "beetle" },
+          { card: "BT18-063", as: "beetleA" },
+          { card: "BT18-063", as: "beetleB" },
         ],
         deck: ["BT1-001", "BT1-002"],
       },
@@ -56,27 +58,28 @@ describe("BT18-057 KoKabuterimon", () => {
     s.state.memory = 5;
     await s.ready();
 
-    expect(observe(s.engine).costReduction("wouldDigivolve", s.perm("jp"), getCardDefinition("BT18-063"))).toBe(1);
+    expect(observe(s.engine).costReduction("wouldDigivolve", s.perm("jpA"), getCardDefinition("BT18-063"))).toBe(1);
 
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
-        permanentId: s.perm("koKabuterimon").permanentId,
-        instanceId: s.inst("sukamon").instanceId,
+        permanentId: s.perm("jpA").permanentId,
+        instanceId: s.inst("beetleA").instanceId,
+        useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("koKabuterimon").topCard?.cardId === "BT11-040");
+    await settle(() => s.perm("jpA").topCard?.cardId === "BT18-063");
     expect(s.state.memory).toBe(4);
 
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
-        permanentId: s.perm("jp").permanentId,
-        instanceId: s.inst("beetle").instanceId,
+        permanentId: s.perm("jpB").permanentId,
+        instanceId: s.inst("beetleB").instanceId,
         useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("jp").topCard?.cardId === "BT18-063");
+    await settle(() => s.perm("jpB").topCard?.cardId === "BT18-063");
     expect(s.state.memory).toBe(2);
     assertNoLoudGap(s);
   });
@@ -86,7 +89,7 @@ describe("BT18-057 KoKabuterimon", () => {
       0: {
         battleArea: [
           { card: "BT18-057", as: "koKabuterimon" },
-          { card: "BT11-036", as: "other" },
+          { card: "BT1-045", as: "other" },
         ],
         hand: [{ card: "BT11-040", as: "sukamon" }],
       },
@@ -101,7 +104,7 @@ describe("BT18-057 KoKabuterimon", () => {
         instanceId: s.inst("sukamon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("other").topCard?.cardId === "BT11-040");
+    await settle(() => s.perm("other").topCard?.cardId === "BT11-040" && s.state.memory === 8);
 
     expect(s.state.memory).toBe(8);
     assertNoLoudGap(s);

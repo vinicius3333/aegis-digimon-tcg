@@ -1,7 +1,8 @@
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT9-037.js";
 
 describe("BT9-037 Nefertimon", () => {
@@ -29,6 +30,33 @@ describe("BT9-037 Nefertimon", () => {
       { autoSelectCards: true },
     );
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("nefertimon"));
+    expect(s.perm("target").currentDP).toBe(1000);
+  });
+
+  it("uses the zero-cost Gatomon alternate evolution and retains Armor Purge", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT2-036", as: "base" }],
+          hand: [{ card: "BT9-037", as: "evolving" }],
+        },
+        1: { battleArea: [{ card: "BT1-028", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("evolving").instanceId);
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT2-036"]);
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Armor Purge")).toBe(true);
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("base"));
     expect(s.perm("target").currentDP).toBe(1000);
   });
 });

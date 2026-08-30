@@ -49,7 +49,7 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
-          amount: 99,
+          amount: "all",
         },
         {
           kind: "Restrict",
@@ -91,7 +91,7 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
-          amount: 99,
+          amount: "all",
         },
         {
           kind: "Restrict",

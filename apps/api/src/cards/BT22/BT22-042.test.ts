@@ -4,6 +4,21 @@ import { compiled } from "./BT22-042.js";
 import "./index.js";
 
 describe("BT22-042 Nyabootmon", () => {
+  it("requires Chaperomon and a controlled Arisa Kinosaki for the alternate evolution", () => {
+    expect(compiled.digivolutionRequirement).toEqual([
+      {
+        namesExact: ["Chaperomon"],
+        cost: 6,
+        controllerControls: {
+          kind: ["Tamer"],
+          namesExact: ["Arisa Kinosaki"],
+          min: 1,
+        },
+        isAlternate: true,
+      },
+    ]);
+  });
+
   it("plays a level 4-or-lower Puppet and scales the mandatory DP reduction", () => {
     const digivolving = compiled.effects.find((entry) => entry.trigger === "WhenDigivolving");
     expect(digivolving?.actions[0]).toMatchObject({

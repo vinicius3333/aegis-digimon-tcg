@@ -9,7 +9,7 @@ describe("BT2-032 UlforceVeedramon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT2-032", as: "ulforce", suspended: true },
+          { card: "BT2-032", as: "ulforce", under: ["BT2-027"], suspended: true },
           { card: "BT1-086", as: "tamer" },
         ],
       },
@@ -22,7 +22,7 @@ describe("BT2-032 UlforceVeedramon", () => {
 
   it("gains 1 memory when it actually becomes unsuspended during its controller's main phase", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT2-032", as: "ulforce", suspended: true }] },
+      0: { battleArea: [{ card: "BT2-032", as: "ulforce", under: ["BT2-027"], suspended: true }] },
     });
     s.state.memory = 0;
 
@@ -35,7 +35,7 @@ describe("BT2-032 UlforceVeedramon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT2-032", as: "ulforce", suspended: true },
+          { card: "BT2-032", as: "ulforce", under: ["BT2-027"], suspended: true },
           { card: "BT1-085", as: "redTamer" },
         ],
       },
@@ -49,7 +49,9 @@ describe("BT2-032 UlforceVeedramon", () => {
   });
 
   it("Q1008 gains no memory when an already active copy is targeted by unsuspend", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT2-032", as: "ulforce" }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT2-032", as: "ulforce", under: ["BT2-027"] }] },
+    });
     s.state.memory = 0;
 
     await advance(s.engine).verb.unsuspend([s.perm("ulforce").permanentId]);
@@ -58,7 +60,9 @@ describe("BT2-032 UlforceVeedramon", () => {
   });
 
   it("gains memory only once per turn even if it becomes unsuspended twice", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT2-032", as: "ulforce", suspended: true }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT2-032", as: "ulforce", under: ["BT2-027"], suspended: true }] },
+    });
     s.state.memory = 0;
 
     await advance(s.engine).verb.unsuspend([s.perm("ulforce").permanentId]);
@@ -70,7 +74,7 @@ describe("BT2-032 UlforceVeedramon", () => {
 
   it("gains no memory when unsuspended outside its controller's main phase", async () => {
     const activePhase = setupEngine({
-      0: { battleArea: [{ card: "BT2-032", as: "ulforce", suspended: true }] },
+      0: { battleArea: [{ card: "BT2-032", as: "ulforce", under: ["BT2-027"], suspended: true }] },
     });
     activePhase.state.memory = 0;
     activePhase.state.phase = Phase.Active;
@@ -78,7 +82,7 @@ describe("BT2-032 UlforceVeedramon", () => {
     expect(activePhase.state.memory).toBe(0);
 
     const opponentTurn = setupEngine({
-      0: { battleArea: [{ card: "BT2-032", as: "ulforce", suspended: true }] },
+      0: { battleArea: [{ card: "BT2-032", as: "ulforce", under: ["BT2-027"], suspended: true }] },
     });
     opponentTurn.state.memory = 0;
     opponentTurn.state.turnSeat = 1;

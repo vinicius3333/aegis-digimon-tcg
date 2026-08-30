@@ -93,4 +93,35 @@ describe("BT13-069 KingSukamon", () => {
     expect(s.state.players[0]!.battleArea).toContain(s.perm("host"));
     expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === opponentSukamonId)).toBe(false);
   });
+
+  it("alternately digivolves from a level-4 Sukamon for 3 memory", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT11-040", as: "sukamon" }], hand: [{ card: "BT13-069", as: "king" }] },
+    });
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("sukamon").permanentId,
+        instanceId: s.inst("king").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("sukamon").topCard?.cardId === "BT13-069");
+    expect(s.state.memory).toBe(2);
+  });
+
+  it("rejects the alternate evolution from a non-Sukamon level 4", () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT13-066", as: "dorugamon" }], hand: [{ card: "BT13-069", as: "king" }] },
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("dorugamon").permanentId,
+        instanceId: s.inst("king").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toMatchObject({ ok: false });
+  });
 });

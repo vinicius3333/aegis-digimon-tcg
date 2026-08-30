@@ -100,6 +100,29 @@ describe("BT6-088 Matt Ishida", () => {
     ).toEqual({ ok: false, reason: "illegal-target" });
   });
 
+  it("requires exact Gabumon and does not activate for Gabumon X", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT9-020", as: "gabumonX" },
+          { card: "BT6-088", as: "matt" },
+        ],
+        hand: [{ card: "BT6-030", as: "bond" }],
+        security: ["BT1-001", "BT1-002"],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("matt").topCard.instanceId,
+        effectKey: "BT6-088/main-digivolve-bond-of-friendship",
+      }),
+    ).toEqual({ ok: false, reason: "illegal-target" });
+  });
+
   it("excludes Gabumon X, exposes duplicate Bonds, and keeps the delayed deletion after Matt leaves", async () => {
     const s = setupEngine({
       0: {

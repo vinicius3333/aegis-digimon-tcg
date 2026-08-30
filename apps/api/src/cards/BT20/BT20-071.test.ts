@@ -30,7 +30,7 @@ describe("BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP",
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
     expect(compiled.effects.find((effect) => effect.trigger === "OnPlay")?.actions).toMatchObject([
-      { kind: "Trash", target: { filter: { zone: "hand" }, count: 1 } },
+      { kind: "Trash", target: { filter: { zone: "hand" }, count: 1 }, optional: true, abortOnDecline: true },
       { kind: "ModifyDP", amount: 3000 },
       { kind: "GainKeyword", keyword: { keyword: "Raid" } },
     ]);
@@ -101,6 +101,33 @@ describe("BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP",
     const boosted = bulkmonPerm.currentDP > initialBulkmonDP ? bulkmonPerm : koromonPerm;
     expect(observe(s.engine).hasKeyword(boosted, "Raid")).toBe(true);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
+  });
+
+  it("does not grant Raid or DP when the optional By-trashing condition is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: BULKMON, as: "base" }, { card: KOROMON, dp: 1000, as: "ally" }],
+          hand: [{ card: SOLOOGARMON, as: "soloogarmon" }, { card: AGUMON, as: "cost" }],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    const base = s.perm("base");
+    const ally = s.perm("ally");
+    const initialDP = ally.currentDP;
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: base.permanentId,
+        instanceId: s.inst("soloogarmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => base.topCard.cardId === SOLOOGARMON);
+    expect(ally.currentDP).toBe(initialDP);
+    expect(observe(s.engine).hasKeyword(ally, "Raid")).toBe(false);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("cost").instanceId);
   });
 
   it("publishes stats and both exact cost-3 alternate evolution routes", async () => {

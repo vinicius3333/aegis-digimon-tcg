@@ -23,7 +23,9 @@ export const compiled: CompiledCard = {
             {
               kind: "DnaDigivolve",
               materials: { filter: { controller: "mine", kind: ["Digimon"] }, count: 2 },
-              into: { controllerDefault: "mine" },
+              // The source card is this card's loose instance in Trash, not a fresh copy from
+              // hand. `isSelfRef` keeps the result anchored to the card whose Trash watcher ran.
+              into: { controllerDefault: "mine", zone: "trash", isSelfRef: true, kind: ["Digimon"] },
               payCost: true,
               optional: true,
             },
@@ -44,6 +46,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SetMemory",
           value: 3,
+          controller: "opponent",
           condition: { kind: "isDnaDigivolving", raw: "DNA digivolving" },
           optional: true,
         },

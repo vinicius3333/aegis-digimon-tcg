@@ -5,53 +5,6 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
-      trigger: "Static",
-      actions: [
-        {
-          kind: "Digivolve",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
-          into: {
-            name: "Rosemon",
-          },
-          payCost: false,
-          reduceCost: 0,
-        },
-        {
-          kind: "Return",
-          target: {
-            filter: {
-              controllerDefault: "mine",
-              nameOrTrait: [
-                {
-                  tokens: ["Yoshino Fujieda"],
-                  match: "name",
-                },
-              ],
-            },
-            count: 1,
-          },
-          to: "hand",
-        },
-      ],
-    },
-    {
-      trigger: "EndOfYourTurn",
-      actions: [
-        {
-          kind: "TrashDigivolution",
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          amount: 1,
-          position: "top",
-        },
-      ],
-    },
-    {
       trigger: "WhenDigivolving",
       actions: [
         { kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } },
@@ -76,6 +29,7 @@ export const compiled: CompiledCard = {
             per: 2,
             filter: {
               controller: "opponent",
+              zone: "battleArea",
               suspended: true,
               kind: ["Digimon", "Tamer"],
             },
@@ -89,9 +43,10 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Rosemon", "Yoshino Fujieda"],
+      namesExact: ["Rosemon"],
       cost: 0,
       isAlternate: true,
+      burstDigivolve: { returnTamerNamesExact: ["Yoshino Fujieda"] },
     },
   ],
 };

@@ -68,4 +68,28 @@ describe("BT1-011 Agumon Expert", () => {
       expect.arrayContaining([s.inst("agumonTamer").instanceId, s.inst("otherDigimon").instanceId]),
     );
   });
+
+  it("does not fire its On Play effect when Agumon Expert is digivolved", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-001", as: "base" }],
+        hand: [{ card: "BT1-011", as: "expert" }],
+        trash: [{ card: "BT1-010", as: "agumon" }],
+        deck: [{ card: "BT1-013", as: "drawn" }],
+      },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("expert").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("expert").instanceId);
+
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(s.inst("base").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("agumon").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("agumon").instanceId);
+  });
 });

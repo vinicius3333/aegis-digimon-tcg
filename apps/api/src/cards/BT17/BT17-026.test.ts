@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-026.js";
+import "./index.js";
 
 describe("BT17-026", () => {
   it("digivolves a Koji Tamer by placing Lobomon and KendoGarurumon from trash for cost 3", () => {
@@ -12,10 +13,14 @@ describe("BT17-026", () => {
       actions: [
         {
           kind: "Digivolve",
-          target: { filter: { nameOrTrait: [{ tokens: ["Koji Minamoto"], match: "name" }] } },
+          target: {
+            filter: { kind: ["Tamer"], nameOrTrait: [{ tokens: ["Koji Minamoto"], match: "name" }] },
+            fromSelectionRef: "beowolfHost",
+          },
           costOverride: 3,
           asLevel: 4,
           asColors: ["Blue"],
+          virtualBase: { level: 4, colors: ["Blue"] },
           additionalCosts: [{ kind: "place" }],
         },
       ],
@@ -33,7 +38,10 @@ describe("BT17-026", () => {
           duration: "untilOpponentTurnEnd",
           optional: true,
           abortOnDecline: true,
-          cost: { kind: "return" },
+          cost: {
+            kind: "return",
+            target: { filter: { zone: "digivolutionCards", hostFilter: { sourceRef: "triggerSubject" } } },
+          },
         },
       ],
     });
@@ -54,8 +62,53 @@ describe("BT17-026", () => {
       1: { battleArea: [{ card: "BT1-009", as: "target" }] },
     });
     const targetInstanceId = s.perm("target").topCard!.instanceId;
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === targetInstanceId));
     expect(s.state.players[1]!.hand.some((card) => card.instanceId === targetInstanceId)).toBe(true);
+  });
+
+  it("places both Hybrid materials under the same Koji and digivolves it for exactly 3", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT7-087", as: "koji" }],
+          hand: [{ card: "BT17-026", as: "beowolf" }],
+          trash: [
+            { card: "BT17-022", as: "lobomon" },
+            { card: "BT17-023", as: "kendo" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    const effect = JSON.parse(s.inst("beowolf").activatableEffectsJson) as Array<{ effectKey: string }>;
+    expect(effect).toHaveLength(1);
+    const lobomonId = s.inst("lobomon").instanceId;
+    const kendoId = s.inst("kendo").instanceId;
+    const kojiId = s.inst("koji").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("beowolf").instanceId,
+        effectKey: effect[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("koji").topCard?.cardId === "BT17-026");
+
+    expect(s.perm("koji").topCard?.cardId).toBe("BT17-026");
+    expect(s.perm("koji").stack.map((card) => card.instanceId)).toEqual([kendoId, lobomonId, kojiId]);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === lobomonId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === kendoId)).toBe(false);
+    expect(s.state.memory).toBe(1);
+    expect(observe(s.engine).activatableEffects(s.perm("koji"))).toEqual([]);
   });
 });

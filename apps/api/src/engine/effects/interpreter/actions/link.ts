@@ -58,6 +58,23 @@ export function canAttemptLink(ctx: EffectContext, action: Extract<Action, { kin
   );
 }
 
+/** Whether a declared Mind Link currently has a legal source Tamer and recipient Digimon. */
+export function canAttemptMindLink(ctx: EffectContext, action: Extract<Action, { kind: "MindLink" }>): boolean {
+  const tamer = ctx.source.permanent();
+  if (tamer === undefined || !isTamer(ctx.source.definition)) return false;
+  const filter: Filter = {
+    controller: "mine",
+    kind: ["Digimon"],
+    excludeToken: true,
+    ...action.target.filter,
+  };
+  const matches = (permanent: Permanent, candidateFilter: Filter): boolean =>
+    permanentMatchesFilter(ctx, permanent, candidateFilter, ctx.source);
+  return candidatePermanents(ctx, { ...action.target, filter }).some((permanent) =>
+    digimonEligibleForMindLink(permanent, filter, matches, ctx.game.definitionOf),
+  );
+}
+
 /**
  * "Link N [X] from your hand or this Digimon's digivolution cards to this Digimon".
  * The cards to link are loose cards matching the target filter; they join the SOURCE

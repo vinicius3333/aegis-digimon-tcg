@@ -19,18 +19,19 @@ const compiled: CompiledCard = {
                   match: "name",
                 },
               ],
-              orFilters: [
-                {
-                  kind: ["Digimon"],
-                  nameOrTrait: [
-                    {
-                      tokens: ["Royal Knight"],
-                      match: "trait",
-                    },
-                  ],
-                },
-              ],
             },
+            orFilters: [
+              {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
+                  {
+                    tokens: ["Royal Knight"],
+                    match: "trait",
+                  },
+                ],
+              },
+            ],
             count: 1,
           },
           duration: "forTheTurn",

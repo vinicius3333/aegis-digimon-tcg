@@ -16,29 +16,41 @@ export const compiled: CompiledCard = {
               filter: {
                 controllerDefault: "mine",
                 kind: ["Tamer"],
-                colors: ["Red", "Blue", "Yellow", "Green", "Black", "Purple"],
+                excludeColors: ["White"],
               },
               count: 1,
               to: "hand",
             },
           ],
           rest: "deckBottom",
+          optional: true,
         },
       ],
     },
     {
       trigger: "OpponentsTurn",
-      attackScope: "opponent",
       actions: [
         {
-          kind: "MovePermanent",
-          direction: "toBattle",
-          target: {
-            filter: { controller: "mine", kind: ["Digimon"], location: "breedingArea", dp: { op: "gt", value: 0 } },
-            count: 1,
-            cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1 } },
-            optional: true,
+          kind: "SubTrigger",
+          event: "whenOpponentAttacks",
+          triggerFilter: {
+            controller: "opponent",
+            kind: ["Digimon"],
+            levelComparison: { op: "gte", value: 5 },
           },
+          actions: [
+            {
+              kind: "MovePermanent",
+              direction: "toBattle",
+              target: {
+                filter: { controller: "mine", kind: ["Digimon"], location: "breedingArea", dp: { op: "gt", value: 0 } },
+                count: 1,
+              },
+              cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1 } },
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
         },
       ],
     },

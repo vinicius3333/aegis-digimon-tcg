@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, type PlayerState } from "@aegis/shared";
+import type { PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -20,7 +20,14 @@ describe("BT19-001 Pickmons", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("tamer").stack.some((card) => card.cardId === "BT19-016"));
 
     expect(s.perm("tamer").stack.some((card) => card.cardId === "BT19-016")).toBe(true);
@@ -30,7 +37,14 @@ describe("BT19-001 Pickmons", () => {
 
     const stackAfterFirstAttack = s.perm("tamer").stack.length;
     const handAfterFirstAttack = (s.state.players[0] as PlayerState).hand.length;
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => false, 20);
 
     expect(s.perm("tamer").stack).toHaveLength(stackAfterFirstAttack);
@@ -52,7 +66,14 @@ describe("BT19-001 Pickmons", () => {
       { autoDeclineOptional: true, autoSelectCards: true },
     );
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => false, 20);
 
     expect(s.perm("tamer").stack).toHaveLength(0);

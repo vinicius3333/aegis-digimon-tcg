@@ -42,14 +42,14 @@ describe("BT1-115 Veedramon", () => {
   it("Q992 gives only +1000 DP while 2 blue Tamers are in play", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-032", as: "host", dp: 5000, under: ["BT1-115"] }, "BT1-086", "BT1-086"],
+        battleArea: [{ card: "BT1-040", as: "host", dp: 7000, under: ["BT1-115"] }, "BT1-086", "BT1-086"],
       },
     });
     await s.engine.recomputeContinuousEffects();
-    expect(s.perm("host").currentDP).toBe(6000);
+    expect(s.perm("host").currentDP).toBe(8000);
 
     s.state.turnSeat = 1;
     await s.engine.recomputeContinuousEffects();
-    expect(s.perm("host").currentDP).toBe(6000);
+    expect(s.perm("host").currentDP).toBe(8000);
   });
 });

@@ -44,9 +44,39 @@ const compiled: CompiledCard = {
         },
       ],
     },
+    {
+      trigger: "Rule",
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          grant: "name",
+          tokens: ["Sistermon Noir"],
+        },
+        {
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          grant: "trait",
+          tokens: ["Virus"],
+        },
+      ],
+    },
   ],
   coverage: "full",
   residual: [],
+  ruleText: ["Name: Also treated as [Sistermon Noir].", "Trait: Has [Virus] type."],
 };
 
 registerIrCard("BT6-084", compiled);

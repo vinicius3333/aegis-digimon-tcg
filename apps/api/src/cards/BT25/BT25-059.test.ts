@@ -35,11 +35,7 @@ describe("BT25-059 Ceresmon", () => {
     expect(BT25_059.digivolutionRequirement).toEqual([
       { level: 5, traits: ["Vegetation", "TS"], cost: 3, isAlternate: true },
     ]);
-    expect(BT25_059.effects?.slice(0, 3)).toEqual([
-      expect.objectContaining({ keywords: [{ keyword: "Reboot", raw: "＜Reboot＞" }] }),
-      expect.objectContaining({ keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }] }),
-      expect.objectContaining({ keywords: [{ keyword: "Fortitude", raw: "＜Fortitude＞" }] }),
-    ]);
+    expect(BT25_059.effects?.flatMap((effect) => effect.keywords ?? [])).toEqual([]);
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
       const effect = BT25_059.effects?.find((entry) => entry.trigger === trigger);
       expect(effect?.actions?.[0]).toMatchObject({
@@ -141,9 +137,9 @@ describe("BT25-059 Ceresmon", () => {
     expect(s.perm("opponent").isSuspended).toBe(true);
     expect(observe(s.engine).hasRestriction(s.perm("ownTs"), "beAffected", "Digimon")).toBe(true);
     expect(observe(s.engine).hasRestriction(s.perm("ownOther"), "beAffected", "Digimon")).toBe(false);
-    expect(observe(s.engine).hasKeyword(playedPermanent(), "Reboot")).toBe(true);
-    expect(observe(s.engine).hasKeyword(playedPermanent(), "Blocker")).toBe(true);
-    expect(observe(s.engine).hasKeyword(playedPermanent(), "Fortitude")).toBe(true);
+    expect(observe(s.engine).hasKeyword(playedPermanent(), "Reboot")).toBe(false);
+    expect(observe(s.engine).hasKeyword(playedPermanent(), "Blocker")).toBe(false);
+    expect(observe(s.engine).hasKeyword(playedPermanent(), "Fortitude")).toBe(false);
   });
 
   it("When Digivolving grants the same protection even when the optional suspend is declined", async () => {

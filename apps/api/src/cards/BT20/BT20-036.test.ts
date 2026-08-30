@@ -22,8 +22,14 @@ describe("BT20-036 BanchoLeomon", () => {
           materials: { count: 2, includeRef: "self" },
           into: { nameOrTrait: [{ tokens: ["Chaosmon"], match: "name" }] },
           optional: true,
+          bindResultAs: "dnaDigivolvedByThisEffect",
         },
-        { kind: "Attack", optional: true, condition: { kind: "ifThisEffectActed" } },
+        {
+          kind: "Attack",
+          optional: true,
+          target: { filter: { boundRef: "dnaDigivolvedByThisEffect" } },
+          condition: { kind: "bindingExists", ref: "dnaDigivolvedByThisEffect" },
+        },
       ],
     });
     expect(compiled.effects.find((entry) => entry.isInherited)).toMatchObject({

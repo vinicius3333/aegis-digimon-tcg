@@ -1,5 +1,20 @@
 [
   {
+    "cardId": "BT26-005",
+    "field": "inheritedEffectText",
+    "reason": "The vendored community-DB snapshot duplicates the word 'trait' in '[DATA SQUAD] trait trait card'. The committed text removes that scrape typo and matches the executable filter and direct card proof."
+  },
+  {
+    "cardId": "BT26-018",
+    "field": "effectText",
+    "reason": "The snapshot's specialDigivolve header is field-shifted ('Lv.0 w/[2] trait: Cost DS'). Its structured digivolveCondition correctly records blue Lv.2, cost 0; the committed '[DS] trait' header preserves those internally consistent values."
+  },
+  {
+    "cardId": "BT26-020",
+    "field": "effectText",
+    "reason": "The snapshot's specialDigivolve header is field-shifted ('Lv.2 w/[3] trait: Cost DS'). Its structured digivolveCondition correctly records blue Lv.3, cost 2; the committed '[DS] trait' header preserves those internally consistent values."
+  },
+  {
     "cardId": "BT26-083",
     "field": "effectText",
     "reason": "Junomon: Hysteric Mode — committed text carries the <Recovery +3> reminder clause '(Place the top 3 cards of your deck as your top security card.)' present in the source at import time; the current community-DB snapshot has since trimmed that reminder. Wording-only community-DB drift, not an import defect."

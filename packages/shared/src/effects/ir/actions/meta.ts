@@ -35,6 +35,22 @@ export interface ReactivateEffectAction extends ActionBase {
 }
 
 /**
+ * Narrow rules overrides for a specific borrowed CardEffect. These are carried on the
+ * ActivateForeignEffect action rather than changing the lender's compiled effect, so the
+ * ordinary card effect and every other borrower retain their normal processing.
+ */
+export interface ActivateForeignEffectOverrides {
+  /** Only this borrowed lender card receives the override. */
+  sourceCardId: string;
+  /** Only this borrowed timing receives the override. */
+  trigger: EffectTrigger;
+  /** Q5331: force only optional borrowed actions that carry a processing cost. */
+  forceCostProcessing?: true;
+  /** Q5331: for a combined hand/trash place cost, use eligible trash before hand. */
+  preferTrashCostSource?: true;
+}
+
+/**
  * "Activate 1 [On Play] / [When Digivolving] effect of ANOTHER card as an effect of this Digimon"
  * — BT23-060 borrows a face-up [Zaxon] security card's [On Play], BT24-102 an [Olympos XII]
  * Digimon's, EX8-054 a [Justimon] digivolution card's [When Digivolving].
@@ -62,6 +78,11 @@ export interface ActivateForeignEffectAction extends ActionBase {
   lastPlacedOnly?: boolean;
   /** Run the borrowed effect with the chosen battle-area card as its own source. */
   useLenderAsSource?: boolean;
+  /**
+   * Context-specific rules applied only while this action resolves its borrowed CardEffect.
+   * The override is deliberately typed and absent from ordinary ActivateForeignEffect actions.
+   */
+  borrowedEffectOverrides?: ActivateForeignEffectOverrides;
 }
 
 /**

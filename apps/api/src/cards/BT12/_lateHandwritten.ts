@@ -7,6 +7,7 @@ import {
   isTamer,
   type CardDefinition,
   type CardInstance,
+  type EffectTrigger,
   type Permanent,
 } from "@aegis/shared";
 import { cardHasTrait } from "../../engine/cards/cardData.js";
@@ -236,6 +237,7 @@ function lowestLevel(ctx: EffectContext, source: CardSource): Permanent[] {
 export function lateBt12Module(cardId: string): EffectModule {
   return {
     cardId,
+    declaredTriggers: lateBt12DeclaredTriggers[cardId] ?? [],
     effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
       switch (cardId) {
         case "BT12-082": {
@@ -328,7 +330,6 @@ export function lateBt12Module(cardId: string): EffectModule {
                 effectKey: `${cardId}/add-xros-heart`,
                 description:
                   "Place a Xros Heart Digimon under this Digimon; Sparrowmon grants team protection and Blocker.",
-                optional: true,
                 resolve: async (ctx) => {
                   const self = source.permanent();
                   if (!self) return;
@@ -711,11 +712,14 @@ export function lateBt12Module(cardId: string): EffectModule {
           const resolve = async (ctx: EffectContext) => {
             const target = await choosePermanent(ctx, opposingDigimon(ctx, source));
             if (target) await ctx.fx.deletePermanent([target], "byEffect");
-            const shoutmon = myPermanents(ctx, source, (d) => d.nameEn.includes("Shoutmon X7: Superior Mode"))[0];
+            const shoutmon = await choosePermanent(
+              ctx,
+              myPermanents(ctx, source, (d) => d.nameEn === "Shoutmon X7: Superior Mode"),
+            );
             if (shoutmon) {
-              await ctx.fx.unsuspend([shoutmon.permanentId]);
+              await ctx.fx.unsuspend([shoutmon]);
               if (await ctx.ask.optional(ctx, "Attack a player with this Digimon?"))
-                await ctx.fx.forceAttack(shoutmon.permanentId, { attackPlayer: true, attackPlayerOnly: true });
+                await ctx.fx.forceAttack(shoutmon, { attackPlayer: true, attackPlayerOnly: true });
             }
           };
           if (timing === EffectTiming.OnUseOption)
@@ -795,7 +799,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                     blue.filter(({ permanentId }) => permanentId !== moved),
                   );
                   if (!destination) return;
-                  if (ctx.fx.relocatePermanent(destination, moved)) {
+                  if (ctx.fx.relocatePermanent(destination, moved, { shedOwnCards: true })) {
                     ctx.playCostDelta = (ctx.playCostDelta ?? 0) + 3;
                   }
                 },
@@ -1213,3 +1217,11 @@ export function lateBt12Module(cardId: string): EffectModule {
     },
   };
 }
+
+const lateBt12DeclaredTriggers: Record<string, readonly EffectTrigger[]> = {
+  "BT12-086": ["OnPlay", "OnDeletion", "YourTurn"],
+  "BT12-089": ["StartOfYourTurn", "Main", "Security"],
+  "BT12-092": ["StartOfYourMainPhase", "YourTurn", "Security"],
+  "BT12-095": ["OnPlay", "StartOfYourMainPhase", "YourTurn", "Security"],
+  "BT12-109": ["Main", "Security"],
+};

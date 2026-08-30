@@ -44,4 +44,38 @@ describe("BT1-046 Kudamon", () => {
     expect(s.state.players[0]!.hand).toHaveLength(5);
     expect(s.state.players[0]!.deck[0]!.instanceId).toBe(s.inst("notDrawn").instanceId);
   });
+
+  it("retains its hand threshold after evolving from a yellow level 2", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-006", as: "base" }],
+        hand: [{ card: "BT1-046", as: "evolving" }],
+        deck: [{ card: "BT1-010", as: "evolutionDraw" }, { card: "BT1-011", as: "attackDraw" }],
+      },
+      1: { security: ["BT1-015"] },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("evolving").instanceId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length === 2);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
+      s.inst("evolutionDraw").instanceId,
+      s.inst("attackDraw").instanceId,
+    ]);
+  });
 });

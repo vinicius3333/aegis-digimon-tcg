@@ -4,6 +4,8 @@ import type { Permanent } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, GameAccess, Primitives, DecisionApi } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import "./BT12-083.js";
 
@@ -126,10 +128,33 @@ describe("BT12-083 Arresterdramon: Superior Mode [End of Your Turn]", () => {
     const { runtimeCompiledCard } = await import("../../engine/effects/interpreter/compiledCards.js");
     const card = runtimeCompiledCard("BT12-083")!;
     const whenDigivolving = card.effects.find((effect) => effect.trigger === "WhenDigivolving");
-    expect(whenDigivolving?.actions[1]).toMatchObject({
-      kind: "CostModifier",
-      scaling: { per: 1, unit: "colors" },
+    expect(whenDigivolving?.actions[0]).toMatchObject({
+      kind: "PlaceUnder",
+      targetIsPermanent: true,
+      shedOwnCards: true,
+      scaling: { per: 1, unit: "colors", levelCeilingAdd: 1 },
     });
+  });
+
+  it("raises the placed Digimon level ceiling for each distinct Tamer color", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT12-083", as: "arrester" },
+          { card: "BT12-087", as: "tamer" },
+        ],
+      },
+      1: {
+        battleArea: [
+          { card: "BT12-087", as: "destination" },
+          { card: "BT12-010", as: "target", under: ["BT12-009"] },
+        ],
+      },
+    }, { autoSelectCards: true });
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("arrester"));
+    expect(s.perm("destination").stack.map(({ cardId }) => cardId)).toContain("BT12-010");
+    expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-010")).toBe(false);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT12-009");
   });
 
   it("limits the Save alternate evolution to red, black, or purple level 4 cards", () => {
@@ -181,5 +206,21 @@ describe("BT12-083 Arresterdramon: Superior Mode [End of Your Turn]", () => {
     const effects = mod!.effectsForTiming(EffectTiming.OnUseAttack, makeSource());
     expect(effects.length).toBeGreaterThan(0);
     expect(effects[0]!.isInherited).toBe(true);
+  });
+
+  it("draws from the inherited Save attack effect only on a Save-text host", async () => {
+    const save = setupEngine({
+      0: { battleArea: [{ card: "BT12-077", as: "host", under: ["BT12-083"] }], deck: ["BT1-010"] },
+    });
+    await save.ready();
+    await advance(save.engine).fire(EffectTiming.OnUseAttack, save.perm("host"));
+    expect(save.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-010");
+
+    const plain = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT12-083"] }], deck: ["BT1-010"] },
+    });
+    await plain.ready();
+    await advance(plain.engine).fire(EffectTiming.OnUseAttack, plain.perm("host"));
+    expect(plain.state.players[0]!.hand.map(({ cardId }) => cardId)).not.toContain("BT1-010");
   });
 });

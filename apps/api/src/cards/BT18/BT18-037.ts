@@ -20,7 +20,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // adds one optionally, triggers Recovery +1 (Deck) if added, then shuffles the security.
 // Recovery +1 is a GainKeyword action (fires the verb immediately per interpreter).
 // The security stack shuffle is a SecurityManipulation with op:"shuffle".
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",

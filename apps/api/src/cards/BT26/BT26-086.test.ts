@@ -187,7 +187,19 @@ describe("BT26-086 compiled behavior", () => {
       {
         0: {
           battleArea: [
-            { card: "BT26-086", as: "dantemon", under: [{ card: "BT26-010", as: "ownSource" }] },
+            {
+              card: "BT26-086",
+              as: "dantemon",
+              under: [
+                { card: "BT26-010", as: "ownSource" },
+                { card: "BT26-019", as: "ownMail" },
+                { card: "BT26-028", as: "ownMedic" },
+                { card: "BT26-037", as: "ownWeather" },
+                { card: "BT26-051", as: "ownGomi" },
+                { card: "BT26-063", as: "ownTeller" },
+                { card: "BT26-084", as: "ownCopipe" },
+              ],
+            },
             { card: "BT1-084", as: "neighbor", under: [{ card: "BT26-019", as: "otherSource" }] },
           ],
         },
@@ -199,10 +211,15 @@ describe("BT26-086 compiled behavior", () => {
 
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("dantemon"));
 
-    expect(s.perm("dantemon").linked.map(({ cardId }) => cardId)).toEqual(["BT26-010"]);
+    expect(s.perm("dantemon").linked.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT26-010", "BT26-019", "BT26-028", "BT26-037", "BT26-051", "BT26-063", "BT26-084"]),
+    );
+    expect(s.perm("dantemon").linked).toHaveLength(7);
     expect(s.perm("neighbor").stack.map(({ cardId }) => cardId)).toEqual(["BT26-019"]);
     expect(s.perm("dantemon").isSuspended).toBe(false);
-    expect(s.state.players[1]!.security).toHaveLength(2);
+    // The seven-link Dantemon attack checks one security, then its linked reaction returns
+    // the top security card to deck bottom, leaving one of the original three.
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
   it("publishes Rush, Reboot, Blocker, and enough Link capacity for seven cards", async () => {

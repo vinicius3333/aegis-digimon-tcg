@@ -37,6 +37,7 @@ describe("BT20-009 Veemon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    await s.ready();
     s.state.memory = 5;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("purple").instanceId })).toEqual({
       ok: true,

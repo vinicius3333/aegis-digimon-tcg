@@ -48,9 +48,10 @@ const compiled: CompiledCard = {
               {
                 kind: "youHave",
                 filter: {
-                  zone: "digivolutionCards",
+                  zone: "battleArea",
                   controllerDefault: "mine",
-                  nameOrTrait: [{ tokens: ["Angoramon"], match: "name" }],
+                  kind: ["Digimon"],
+                  digivolutionStackNameOrTrait: [{ tokens: ["Angoramon"], match: "nameExact" }],
                 },
               },
             ],

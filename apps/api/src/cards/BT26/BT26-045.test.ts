@@ -86,8 +86,8 @@ describe("BT26-045 GranKuwagamon", () => {
         0: {
           battleArea: [{ card: "BT26-045", as: "granKuwagamon" }],
           hand: [
-            { card: "BT26-038", as: "first" },
-            { card: "BT26-040", as: "second" },
+            { card: "BT1-066", as: "first" },
+            { card: "BT1-066", as: "second" },
           ],
         },
         1: { security: ["BT1-001", "BT1-002"] },

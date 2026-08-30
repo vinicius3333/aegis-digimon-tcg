@@ -42,10 +42,11 @@ export class Permanent extends Schema {
   // True while the current top card entered this permanent by an effect. Used by cards whose
   // later effects condition on having been played/digivolved by an effect (BT25-080).
   @type("boolean") enteredByEffect = false;
-  // Set when an effect peels a Digimon stack down to a non-Digimon/non-DigiEgg card. The
-  // position was a Digimon immediately before the move, so the promoted no-DP card is an
-  // invalid Digimon remnant to trash at the next rule check; an ordinarily played Tamer must
-  // remain legal and therefore cannot be inferred from its current top kind alone.
+  // Set when an effect peels a Digimon stack down to an invalid no-DP remnant. The position was
+  // a Digimon immediately before the move, so a promoted non-Digimon/non-DigiEgg or ordinary
+  // no-DP Digi-Egg is trashed at the next rule check; a DP-bearing Digi-Egg remains legal. An
+  // ordinarily played Tamer must remain legal and therefore cannot be inferred from its current
+  // top kind alone.
   @type("boolean") invalidNoDpStackTop = false;
   // JSON array of {instanceId,effectKey,description} — populated server-side for the
   // turn player's battle-area permanents during Main phase; empty string otherwise.

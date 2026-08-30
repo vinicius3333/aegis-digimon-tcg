@@ -16,7 +16,7 @@ export const compiled: CompiledCard = {
           sourceFilter: {
             controller: "mine",
             byEffect: true,
-            orFilters: [
+            or: [
               { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Terriermon", "Lopmon"], match: "name" }] },
               { kind: ["Tamer"], colors: ["Green"] },
             ],

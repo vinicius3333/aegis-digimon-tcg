@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT7-109.js";
-describe("BT7-109 Trump Sword", () => {
+describe("BT7-109 Dead or Alive", () => {
   it("plays a purple level 5 from trash", async () => {
     const s = setupEngine(
       { 0: { battleArea: ["BT7-067"], hand: [{ card: "BT7-109", as: "option" }], trash: ["BT7-074"] } },

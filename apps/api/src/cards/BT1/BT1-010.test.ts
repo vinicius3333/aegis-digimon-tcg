@@ -50,6 +50,57 @@ describe("BT1-010 Agumon", () => {
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("rest").instanceId]);
   });
 
+  it("places all revealed cards at the bottom when no Tamer is revealed", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT1-010", as: "agumon" }],
+          deck: ["BT1-009", "BT1-012", "BT1-013", "BT1-014", "BT1-015"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("agumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT1-010"));
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual([
+      "BT1-009",
+      "BT1-012",
+      "BT1-013",
+      "BT1-014",
+      "BT1-015",
+    ]);
+  });
+
+  it("digivolves from a red level 2 without firing its On Play effect", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-001", as: "base" }],
+        hand: [{ card: "BT1-010", as: "agumon" }],
+        deck: [{ card: "BT1-009", as: "drawn" }, "BT1-086"],
+      },
+    });
+
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("agumon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("agumon").instanceId);
+
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-086"]);
+  });
+
   it("lets the player order the remaining revealed cards at the deck bottom", async () => {
     const s = setupEngine(
       {

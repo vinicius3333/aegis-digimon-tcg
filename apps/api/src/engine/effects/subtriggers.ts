@@ -227,6 +227,7 @@ export interface ReplacementSubscriptionReduceCost extends ReplacementSubscripti
     target: Permanent,
     into: CardDefinition,
     evolvingInstanceId?: string,
+    materials?: readonly Permanent[],
   ) => Promise<boolean | number>;
   /** Remove this replacement after its first successful activation. */
   consumeOnActivate?: boolean;
@@ -507,19 +508,18 @@ export class SubTriggerRegistry {
       if (sub.matches !== undefined && !sub.matches(ctx)) continue;
       this.markFired(sub, windowToken, turnLedger);
       announce?.(sub, ctx);
-      // A linked card's triggered watcher remains an effect of its host Digimon,
-      // including when the physical linked card is an Option (BT25-100/101, KB Q6471/Q6476).
-      if (sub.isLinkedSource === true) {
-        const sourceKinds = [CardKind.Digimon];
-        ctx.effectSourceKinds = sourceKinds;
-        ctx.fx.enterEffectResolution?.(ctx.source.ownerSeat, sourceKinds);
-        try {
-          await sub.run(ctx);
-        } finally {
-          ctx.fx.leaveEffectResolution?.();
-        }
-      } else {
+      // Every triggered watcher is an effect resolution. Keep the resolving seat/kinds on
+      // the same stack used by ordinary timing effects so nested verbs retain effect
+      // provenance (for example, a Tamer's PlaceUnder must publish byEffectSeat). A linked
+      // card's watcher remains an effect of its host Digimon even when the linked card itself
+      // is an Option (BT25-100/101, KB Q6471/Q6476).
+      const sourceKinds = sub.isLinkedSource === true ? [CardKind.Digimon] : [...(ctx.source?.definition?.kinds ?? [])];
+      ctx.effectSourceKinds = sourceKinds;
+      ctx.fx?.enterEffectResolution?.(ctx.source.ownerSeat, sourceKinds);
+      try {
         await sub.run(ctx);
+      } finally {
+        ctx.fx?.leaveEffectResolution?.();
       }
       if (sub.oncePerTurnKey !== undefined && ctx.oncePerTurnActivationDeclined === true) {
         turnLedger?.unmarkFired?.(sub.oncePerTurnKey);

@@ -1,6 +1,7 @@
 import { compiledEffects, digiXrosRequirementFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
+import { universalNameAliasesFor } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT11-030.js";
@@ -28,7 +29,7 @@ describe("BT11-030 MetalGreymon + Cyber Launcher", () => {
     ]);
     expect(compiled).toMatchObject({
       effects: [
-        { trigger: "Static", keywords: [{ keyword: "Armor Purge" }] },
+        { trigger: "Rule", keywords: [{ keyword: "Armor Purge" }] },
         { trigger: "OnPlay", actions: [{ kind: "PlaceUnder" }, { kind: "Return" }, { kind: "Return" }] },
         { trigger: "WhenDigivolving", actions: [{ kind: "PlaceUnder" }, { kind: "Return" }, { kind: "Return" }] },
       ],
@@ -41,6 +42,21 @@ describe("BT11-030 MetalGreymon + Cyber Launcher", () => {
       actions: [],
       keywords: [{ keyword: "Armor Purge", raw: "＜Armor Purge＞" }],
     });
+  });
+
+  it("publishes universal aliases for DigiXros material matching and places sources at the bottom", () => {
+    expect(universalNameAliasesFor("BT11-030")).toEqual(["MetalGreymon", "Cyberdramon"]);
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "Rule",
+      actions: [
+        {
+          kind: "GrantStatic",
+          grant: "name",
+          tokens: ["MetalGreymon", "Cyberdramon"],
+        },
+      ],
+    });
+    expect(compiled.effects[1]?.actions[0]).toMatchObject({ kind: "PlaceUnder", position: "bottom" });
   });
 
   it("supports both evolution routes and their exact costs", async () => {
@@ -86,6 +102,31 @@ describe("BT11-030 MetalGreymon + Cyber Launcher", () => {
     expect(s.state.memory).toBe(4);
     expect(s.state.players[0]!.battleArea[0]!.stack).toHaveLength(2);
   });
+  it("accepts BT11-030 copies from hand through their universal name aliases", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "BT11-030", as: "launcher" },
+          { card: "BT11-030", as: "metalAlias" },
+          { card: "BT11-030", as: "cyberAlias" },
+        ],
+      },
+    });
+    s.state.memory = 8;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("launcher").instanceId,
+        digiXros: {
+          materialInstanceIds: [s.inst("metalAlias").instanceId, s.inst("cyberAlias").instanceId],
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    expect(s.state.memory).toBe(4);
+    expect(s.state.players[0]!.battleArea[0]!.stack).toHaveLength(2);
+  });
+
   it("is also treated as MetalGreymon and Cyberdramon and has Armor Purge", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT11-030", as: "launcher" }] } });
     await s.ready();

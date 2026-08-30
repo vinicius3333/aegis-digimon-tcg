@@ -1,9 +1,21 @@
 import { describe, expect, it } from "vitest";
 import type { PlayerState } from "@aegis/shared";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT7-111.js";
 
 describe("BT7-111 Lucemon: Chaos Mode", () => {
+  it("uses an exact Lucemon source for the alternate hand evolution", () => {
+    expect(runtimeCompiledCard("BT7-111")?.digivolutionRequirement).toEqual([
+      {
+        namesExact: ["Lucemon"],
+        cost: 7,
+        isAlternate: true,
+        sourceZones: ["hand"],
+      },
+    ]);
+  });
+
   it("deletes an opponent Tamer on play", async () => {
     const s = setupEngine(
       {

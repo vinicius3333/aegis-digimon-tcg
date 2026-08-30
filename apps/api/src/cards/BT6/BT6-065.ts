@@ -29,6 +29,7 @@ const compiled: CompiledCard = {
               count: 1,
               to: "useOption",
               payCost: false,
+              optional: true,
             },
           ],
           rest: "trash",

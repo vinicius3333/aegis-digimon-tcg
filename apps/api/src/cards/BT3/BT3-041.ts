@@ -24,6 +24,7 @@ const compiled: CompiledCard = {
           },
           from: ["trash"],
           toTop: true,
+          revealChosen: true,
           condition: {
             kind: "zoneCount",
             seat: "mine",

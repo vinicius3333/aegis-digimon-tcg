@@ -4,7 +4,7 @@
 // AllTurns: added SecurityAttack +1 Aura (per Royal Knight in digivolution cards).
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",
@@ -195,7 +195,7 @@ const compiled: CompiledCard = {
       level: 6,
       traits: ["Royal Knight"],
       cost: 5,
-      isAlternate: false,
+      isAlternate: true,
     },
   ],
 };

@@ -14,7 +14,7 @@ const compiled: CompiledCard = {
             {
               filter: {
                 controllerDefault: "mine",
-                nameOrTrait: [{ tokens: ["Hybrid", "Ten Warriors"], match: "trait" }],
+                nameOrTrait: [{ tokens: ["Hybrid", "Ten Warriors"], match: "traitContains" }],
               },
               count: 1,
               to: "hand",

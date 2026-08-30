@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
@@ -6,6 +6,17 @@ import { compiled } from "./BT24-002.js";
 import "../index.js";
 
 describe("BT24-002 Bukamon", () => {
+  it("matches the catalog identity", () => {
+    expect(getCardDefinition("BT24-002")).toMatchObject({
+      cardId: "BT24-002",
+      nameEn: "Bukamon",
+      colors: ["Blue"],
+      kinds: ["DigiEgg"],
+      level: 2,
+      types: ["Lesser", "Iliad", "TS"],
+    });
+  });
+
   it("unsuspends this Digimon, not an arbitrary blue TS Digimon", () => {
     const inherited = compiled.effects.find((effect) => effect.isInherited) as any;
     const action = inherited.actions[0];

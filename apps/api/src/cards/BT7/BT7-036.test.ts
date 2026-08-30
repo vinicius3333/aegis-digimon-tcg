@@ -7,7 +7,9 @@ describe("BT7-036 Zephyrmon", () => {
   it("gives all of your Security Digimon +3000 DP through the opponent's next turn", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT7-035", as: "base" }],
+        // This is a legal frontier stack created by Kazemon's Tamer-onto route:
+        // Zoe Orimoto -> L4 Hybrid Kazemon -> L4 Zephyrmon.
+        battleArea: [{ card: "BT7-035", under: ["BT7-088"], as: "base" }],
         hand: [{ card: "BT7-036", as: "evolving" }],
         security: [{ card: "BT1-048", as: "security" }],
       },
@@ -23,5 +25,6 @@ describe("BT7-036 Zephyrmon", () => {
     ).toEqual({ ok: true });
     await settle(() => observe(s.engine).securityDp(0) === 3000);
     expect(observe(s.engine).securityDp(0)).toBe(3000);
+    expect(s.perm("base").currentDP).toBe(6000);
   });
 });

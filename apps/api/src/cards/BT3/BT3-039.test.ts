@@ -30,7 +30,7 @@ describe("BT3-039 Angewomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT3-040", as: "host", under: ["BT3-039"] }],
+          battleArea: [{ card: "BT3-041", as: "host", under: ["BT3-039"] }],
           hand: [{ card: "BT3-032", as: "rookie" }],
           security: ["BT1-001", "BT1-002", "BT1-003"],
         },
@@ -45,7 +45,7 @@ describe("BT3-039 Angewomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT3-040", as: "host", under: ["BT3-039"] }],
+          battleArea: [{ card: "BT3-041", as: "host", under: ["BT3-039"] }],
           hand: [{ card: "BT3-032", as: "rookie" }],
           security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
         },

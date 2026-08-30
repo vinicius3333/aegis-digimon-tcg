@@ -72,6 +72,43 @@ describe("BT2-038 RizeGreymon", () => {
     expect(s.events.some((event) => event.kind === "effectActivated" && event.sourceCardId === "BT1-087")).toBe(false);
   });
 
+  it("allows declining the optional Tamer play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT2-035", as: "base" }],
+          hand: [
+            { card: "BT2-038", as: "evolving" },
+            { card: "BT1-087", as: "candidate" },
+          ],
+        },
+      },
+      { autoAcceptOptional: false },
+    );
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("evolving").instanceId);
+
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("candidate").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+  });
+
   it("grants Security Attack +1 to its host while its owner has 3 yellow Tamers", async () => {
     const s = setupEngine({
       0: {

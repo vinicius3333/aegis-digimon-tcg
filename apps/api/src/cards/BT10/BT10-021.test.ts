@@ -24,6 +24,20 @@ describe("BT10-021 MailBirdramon", () => {
         ],
       }),
     ]);
+    const onPlay = compiled.effects.find((effect) => effect.trigger === "OnPlay");
+    expect(onPlay?.actions).toEqual([
+      expect.objectContaining({
+        condition: expect.objectContaining({ filter: expect.objectContaining({ zone: "battleArea" }) }),
+      }),
+      expect.objectContaining({
+        condition: expect.objectContaining({ filter: expect.objectContaining({ zone: "battleArea" }) }),
+      }),
+    ]);
+    const attacking = compiled.effects.find((effect) => effect.trigger === "WhenAttacking");
+    const conditions = (attacking?.actions ?? []).map(
+      (action) => (action.condition as { conditions?: Array<{ filter?: { zone?: string } }> } | undefined)?.conditions,
+    );
+    expect(conditions.every((nested) => nested?.[1]?.filter?.zone === "battleArea")).toBe(true);
   });
 
   it("plays Kiriha Aonuma from hand when none is in play", async () => {
@@ -141,6 +155,25 @@ describe("BT10-021 MailBirdramon", () => {
 
     expect(observe(s.engine).isRestricted(s.perm("onlyOpponent"), "attack")).toBe(false);
     expect(observe(s.engine).isRestricted(s.perm("onlyOpponent"), "block")).toBe(false);
+  });
+
+  it("does not count a Digimon in the breeding area as being in play", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT10-019", as: "attacker", under: ["BT10-021"] }] },
+        1: {
+          battleArea: [{ card: "BT1-010", as: "battleOpponent" }],
+          breeding: { card: "BT1-011", as: "breedingOpponent" },
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("attacker"));
+    await settle();
+
+    expect(observe(s.engine).isRestricted(s.perm("battleOpponent"), "attack")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("battleOpponent"), "block")).toBe(false);
   });
 
   it("may Save itself under a friendly Tamer on deletion", async () => {

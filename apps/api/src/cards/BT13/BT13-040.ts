@@ -40,11 +40,11 @@ export const compiled: CompiledCard = {
                   or: [
                     {
                       zone: "hand",
-                      nameOrTrait: [{ tokens: ["Veemon"], match: "name" }],
+                      nameOrTrait: [{ tokens: ["Veemon"], match: "nameExact" }],
                     },
                     {
                       zone: "digivolutionCards",
-                      nameOrTrait: [{ tokens: ["Veemon"], match: "name" }],
+                      nameOrTrait: [{ tokens: ["Veemon"], match: "nameExact" }],
                       hostFilter: { isSelfRef: true },
                     },
                   ],
@@ -64,7 +64,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Veemon"],
+      namesExact: ["Veemon"],
       cost: 3,
       isAlternate: true,
     },

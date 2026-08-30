@@ -5,7 +5,9 @@ import "./BT3-016.js";
 
 describe("BT3-016 Durandamon", () => {
   it("grants Piercing to its host", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-084", as: "host", under: ["BT3-016"] }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT3-112", as: "host", under: ["AD1-001", "BT3-013", "BT3-016"] }] },
+    });
 
     await s.engine.recomputeContinuousEffects();
 

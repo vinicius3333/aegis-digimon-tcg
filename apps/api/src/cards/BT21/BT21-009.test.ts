@@ -30,6 +30,13 @@ describe("BT21-009 Gatchmon", () => {
             actions: [
               expect.objectContaining({
                 kind: "PlayWithoutCost",
+                target: {
+                  filter: {
+                    controller: "mine",
+                    nameOrTrait: [{ tokens: ["Haru Shinkai"], match: "nameExact" }],
+                  },
+                  count: 1,
+                },
                 from: ["hand"],
                 payCost: false,
                 optional: true,
@@ -64,6 +71,35 @@ describe("BT21-009 Gatchmon", () => {
     await s.ready();
     await advance(s.engine).fireSubTrigger("whenLinked", { subjectPermanentId: s.perm("gatchmon").permanentId });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-084"));
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("plays Haru from a naturally linked Gatchmon stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-009", as: "gatchmon", under: ["BT21-005"] }],
+          hand: [
+            { card: "BT21-009", as: "link" },
+            { card: "BT21-084", as: "haru" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("gatchmon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-084"));
+
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.memory).toBe(3);
   });

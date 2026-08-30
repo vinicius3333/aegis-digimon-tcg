@@ -999,6 +999,7 @@ export class GameEngine {
           traits,
           (key) => this.tracker.count(`link-cost/${key}`, "replacement") > 0,
         ),
+      (permanent, printedName) => effectiveNames(this.continuous, permanent, printedName),
     );
     return this.gameAccess;
   }
@@ -1284,13 +1285,13 @@ export class GameEngine {
    * `UntilOpponentTurnEnd` buff clears on the opponent's. The recompute that follows
    * re-applies the still-valid persistent effects from the post-sweep board.
    *
-   * `ownerTurnStart` / `ownerActivePhaseEnd` carry no modifier expiry of their own
-   * (the active-phase unsuspend is handled separately); they only trigger a recompute
-   * so a new turn re-derives its `[Your Turn]` / `[Opponent's Turn]` persistent tier.
+   * `ownerTurnStart` carries no modifier expiry of its own. `ownerActivePhaseEnd`
+   * sweeps phase-scoped entries after the active-phase unsuspend, including the
+   * `UntilNextUntap` window used by "during the next unsuspend phase" effects.
    */
   private async sweepDurations(boundary: TurnBoundary): Promise<void> {
     const seat = this.state.turnSeat;
-    const sweep = (b: "ownerTurnEnd" | "opponentTurnEnd" | "eachTurnEnd"): void => {
+    const sweep = (b: "ownerTurnEnd" | "opponentTurnEnd" | "eachTurnEnd" | "ownerActivePhase" | "nextUntap"): void => {
       this.modifiers.sweep(this.state, b, seat);
       this.continuous.sweep(this.state, b, seat);
     };
@@ -1310,8 +1311,13 @@ export class GameEngine {
         this.securityDp.sweepTurnEnd(seat);
         break;
       case "ownerTurnStart":
+        break; // the recompute below refreshes the persistent tier for the new turn
       case "ownerActivePhaseEnd":
-        break; // no modifier expiry; the recompute below refreshes the persistent tier
+        // Active-phase unsuspend runs before this boundary. A restriction with
+        // UntilNextUntap must therefore block that unsuspend, then expire here.
+        sweep("ownerActivePhase");
+        sweep("nextUntap");
+        break;
     }
     // Re-derive the persistent tier from the post-sweep board.
     await this.recomputeContinuousEffects();
@@ -2450,18 +2456,23 @@ export class GameEngine {
     events: readonly SubTriggerEventName[],
     payload: TriggerInfo | undefined,
     fireWindows: () => Promise<void>,
-    opts: { busTrigger?: () => TriggerInfo | undefined } = {},
+    opts: { busTrigger?: () => TriggerInfo | undefined; onlyInitiallyArmed?: boolean } = {},
   ): Promise<void> {
-    const busFire = async (): Promise<void> => {
-      const trigger = opts.busTrigger === undefined ? payload : opts.busTrigger();
-      if (trigger === undefined) return;
-      for (const event of events) await this.fireSubTrigger(event, trigger);
-    };
     // A rule sweep parks watchers wholesale (see fireSubTrigger); leave that path alone.
     const armed =
       this.ruleProcessing || payload === undefined
         ? []
         : events.flatMap((event) => this.armedSubTriggers(this.subTriggers.subscriptionsFor(event), payload));
+    const busFire = async (): Promise<void> => {
+      if (opts.onlyInitiallyArmed === true) {
+        const remaining = armed.filter((item) => !this.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub)));
+        await this.withTriggeredMutations(() => this.runSubTriggersInChosenOrder(remaining));
+        return;
+      }
+      const trigger = opts.busTrigger === undefined ? payload : opts.busTrigger();
+      if (trigger === undefined) return;
+      for (const event of events) await this.fireSubTrigger(event, trigger);
+    };
     if (armed.length === 0) {
       await fireWindows();
       await busFire();
@@ -2476,8 +2487,10 @@ export class GameEngine {
       this.pendingWindowSubTriggers = enclosing;
       this.subTriggerWindowDepth -= 1;
     }
-    // The bus still runs: it resolves the armed watchers the windows did not reach AND any
-    // watcher armed while they were resolving, both under the ordinary ordering rules.
+    // The bus still runs: normally it resolves the armed watchers the windows did not reach
+    // and any watcher armed while they were resolving. Entry windows opt into the trigger-time
+    // snapshot because an inherited effect acquired during this very play event did not exist
+    // when the event happened and cannot retroactively trigger (BT13-013, Q2272).
     await busFire();
     if (this.subTriggerWindowDepth === 0) this.consumedSubTriggerKeys.clear();
   }
@@ -3270,9 +3283,8 @@ export class GameEngine {
    * identically. Only `OnPlay` carries the board-wide half; any other timing just fires scoped.
    *
    * The pool is snapshotted from the board as it is when the card ENTERS, which is when those
-   * triggers are determined; the trailing bus fire (inside `withPendingSubTriggers`) re-reads the
-   * played permanent afterwards, exactly as this seam always did, so a watcher the windows did
-   * not reach still sees the post-window board.
+   * triggers are determined. The trailing bus resolves only that snapshot: a watcher gained
+   * during this play's windows did not exist when the event happened (BT13-013, Q2272).
    */
   private async firePlayEntryWindows(
     timing: EffectTiming,
@@ -3284,6 +3296,15 @@ export class GameEngine {
       return;
     }
     const entryPermanentId = this.findInstance(sourceInstanceId)?.permanent?.permanentId;
+    if (entryPermanentId !== undefined) {
+      this.materializePlayerCustomEffects(this.access.permanentById(entryPermanentId));
+    }
+    // The played card is already in the battle area when its play event happens, so its
+    // resident `whenPlayed` watchers are eligible to trigger on that same event (BT25-028;
+    // BT22-039 Q4893). Install those entry-state subscriptions before taking the event
+    // snapshot. Effects gained later while [On Play] resolves remain excluded by
+    // `onlyInitiallyArmed`, preserving the trigger-time snapshot rule (BT13-013 Q2272).
+    await this.recomputeContinuousEffects();
     await this.withPendingSubTriggers(
       ["whenPlayed", "onEnterFieldAnyone"],
       { ...this.playedTrigger(entryPermanentId), entryCause: "play" },
@@ -3296,12 +3317,22 @@ export class GameEngine {
         });
       },
       {
+        onlyInitiallyArmed: true,
         busTrigger: () => ({
           ...this.playedTrigger(this.findInstance(sourceInstanceId)?.permanent?.permanentId),
           entryCause: "play",
         }),
       },
     );
+  }
+
+  /** Materialize filtered player-scoped named grants before a new permanent's On Play window. */
+  private materializePlayerCustomEffects(permanent: Permanent | undefined): void {
+    const top = permanent?.topCard;
+    if (permanent === undefined || top === undefined) return;
+    for (const grant of this.continuous.playerCustomEffectsFor(permanent.permanentId, permanent.controllerSeat)) {
+      this.continuous.addCustomEffectGrant(top.instanceId, top.ownerSeat, grant.token, grant.duration);
+    }
   }
 
   /** The `whenPlayed` payload for a played permanent: its subject id plus its printed level/cost. */
@@ -3341,6 +3372,7 @@ export class GameEngine {
     const attackerPermanentId = this.combat?.currentAttackerId;
     const subjectPermanent = this.findInstance(instanceId)?.permanent;
     if (subjectPermanent !== undefined) subjectPermanent.enteredByEffect = true;
+    if (timing === EffectTiming.OnPlay) this.materializePlayerCustomEffects(subjectPermanent);
     // Effect-driven digivolutions are genuine digivolutions for "digivolved this turn"
     // conditions (BT1-007 Q871). As with the manual action seam, breeding-area evolutions
     // remain excluded unless card text explicitly references that area (Q870).
@@ -3387,10 +3419,12 @@ export class GameEngine {
       await this.fireSubTrigger("whenOneOfYoursDigivolves", {
         subjectPermanentId,
         enteredByEffect: ownerSeat,
+        ...(opts?.digivolvedFromZone !== undefined ? { digivolvedFromZone: opts.digivolvedFromZone } : {}),
       });
       await this.fireSubTrigger("whenAnyDigivolves", {
         subjectPermanentId,
         enteredByEffect: ownerSeat,
+        ...(opts?.digivolvedFromZone !== undefined ? { digivolvedFromZone: opts.digivolvedFromZone } : {}),
       });
     }
   }
@@ -4125,7 +4159,7 @@ export class GameEngine {
     return this.state.players.some((p) => p?.lost === true) && !this.state.gameOver;
   }
 
-  /** A Digimon stack peeled by an effect until its new top has no Digimon DP (BT26-060 Q7082). */
+  /** A Digimon stack peeled by an effect until its new top is an invalid no-DP remnant (BT26-060 Q7082). */
   private anyInvalidNoDpStackTop(): boolean {
     return this.battleAreaPermanents().some((permanent) => permanent.invalidNoDpStackTop);
   }
@@ -5470,7 +5504,13 @@ export class GameEngine {
       return { ok: false, reason: check.reason };
     }
     this.continueMainVerb(
-      () => applyActivateEffect(this.state, seat, intent, deps),
+      async () => {
+        const outcome = await applyActivateEffect(this.state, seat, intent, deps);
+        // Direct [Main] activations do not pass through a timing-window resolver, so
+        // perform the post-effect rule check here (e.g. a stack peel exposing a 0-DP card).
+        await this.ruleProcess();
+        return outcome;
+      },
       (outcome) => {
         if (outcome.ok) {
           this.hooks.emit({
@@ -5592,8 +5632,9 @@ export class GameEngine {
    * List `seat`'s currently-activatable [Counter] effects (§11-3-1), one entry per
    * (source instance, effect) pair. Mirrors `syncActivatableEffects` but scoped to
    * one (defending) seat and `EffectTiming.OnCounterTiming` rather than the turn
-   * player and `ACTIVATE_TIMING`. Bound into `CombatController`'s `counterEligible`
-   * hook so `runCounterWindow` can skip the round trip when nothing is eligible.
+   * player and `ACTIVATE_TIMING`. Both battle-area Counter effects and explicit
+   * `[Hand][Counter]` effects are eligible. Bound into `CombatController`'s
+   * `counterEligible` hook so `runCounterWindow` can skip the round trip when nothing is eligible.
    */
   private counterEligibleSources(seat: Seat): { instanceId: string; effectKey: string; description: string }[] {
     const player = this.state.players[seat];
@@ -5614,6 +5655,19 @@ export class GameEngine {
               description: effect.description,
             });
           }
+        }
+      }
+    }
+    for (const instance of player.hand) {
+      const source = this.cardSourceOf(instance);
+      for (const effect of effectsOf(EffectTiming.OnCounterTiming, source)) {
+        const ctx = this.buildEffectContext(source, {});
+        if (canTrigger(effect, ctx, this.tracker) && canActivate(effect, ctx, this.tracker)) {
+          entries.push({
+            instanceId: instance.instanceId,
+            effectKey: effect.effectKey,
+            description: effect.description,
+          });
         }
       }
     }
@@ -5656,6 +5710,8 @@ export class GameEngine {
         return ctx;
       },
       tracker: this.tracker,
+      enterEffectResolution: (seat, sourceKinds) => this.primitives.enterEffectResolution?.(seat, sourceKinds),
+      leaveEffectResolution: () => this.primitives.leaveEffectResolution?.(),
     };
   }
 

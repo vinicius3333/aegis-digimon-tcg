@@ -61,8 +61,6 @@ const compiled: CompiledCard = {
             position: "bottom",
             faceDown: false,
           },
-          optional: true,
-          abortOnDecline: true,
         },
       ],
     },

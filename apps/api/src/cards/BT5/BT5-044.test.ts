@@ -8,7 +8,7 @@ import "./BT5-044.js";
 describe("BT5-044 Sakuyamon", () => {
   it("gives an opposing Digimon Security Attack -3 when it moves from breeding", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT5-044", as: "sakuya" }] },
+      0: { battleArea: [{ card: "BT5-044", as: "sakuya", under: ["BT5-042"] }] },
       1: { breeding: { card: "BT1-009", as: "mover" }, battleArea: [{ card: "BT1-010", as: "other" }] },
     });
     s.state.phase = Phase.Breeding;

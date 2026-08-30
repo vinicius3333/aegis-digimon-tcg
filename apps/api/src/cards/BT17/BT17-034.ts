@@ -26,8 +26,8 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "SubTrigger",
-          event: "whenSecurityRemoved",
-          sourceFilter: { isSelfRef: true },
+          event: "whenCardTrashedFromSecurity",
+          sourceFilter: { controller: "mine" },
           actions: [
             {
               kind: "SecurityManipulation",

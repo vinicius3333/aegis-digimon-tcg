@@ -52,6 +52,28 @@ describe("BT18-021 Penguinmon", () => {
     expect(s.state.memory).toBe(3);
   });
 
+  it("does not reduce an evolution into a monocolor blue Digimon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT18-021", as: "penguinmon" }],
+        hand: [{ card: "BT18-023", as: "lanamon" }],
+      },
+    });
+    await s.ready();
+    s.state.memory = 5;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("penguinmon").permanentId,
+        instanceId: s.inst("lanamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("penguinmon").topCard.cardId === "BT18-023");
+
+    expect(s.state.memory).toBe(3);
+  });
+
   it("reduces only the first qualifying Tamer evolution each turn", async () => {
     const s = setupEngine({
       0: {

@@ -54,6 +54,27 @@ describe("BT23-045 TigerVespamon ACE", () => {
     expect(s.state.players[1]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
   });
 
+  it("allows declining the ordinary On Play processing condition before paying", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-045", as: "tiger" }],
+          hand: [{ card: "BT23-015", as: "zaxon" }],
+          security: [{ card: "BT1-010", as: "oldSecurity" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const targetId = s.perm("target").permanentId;
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("tiger"));
+
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT23-015")).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((card) => card.permanentId === targetId)).toBe(true);
+  });
+
   it("flips the top face-up security card face down to unsuspend after this Digimon suspends", async () => {
     const s = setupEngine(
       {
@@ -71,6 +92,25 @@ describe("BT23-045 TigerVespamon ACE", () => {
 
     expect(s.perm("tiger").isSuspended).toBe(false);
     expect(s.state.players[0]!.security[0]).toMatchObject({ faceUp: false });
+  });
+
+  it("may decline the optional security flip without unsuspending", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-045", as: "tiger", suspended: true }],
+          security: [{ card: "BT23-015", as: "topSecurity", faceUp: true }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fireSubTrigger("whenSuspended", {
+      subjectPermanentId: s.perm("tiger").permanentId,
+    });
+
+    expect(s.perm("tiger").isSuspended).toBe(true);
+    expect(s.state.players[0]!.security[0]).toMatchObject({ faceUp: true });
   });
 
   it("pays the placement from trash and cannot return a higher-DP opponent", async () => {
@@ -131,9 +171,9 @@ describe("BT23-045 TigerVespamon ACE", () => {
           position: "bottom",
           faceDown: false,
         },
-        optional: true,
         abortOnDecline: true,
       });
+      expect(action.optional).toBe(true);
     }
   });
 
@@ -156,8 +196,8 @@ describe("BT23-045 TigerVespamon ACE", () => {
         },
         raw: "by flipping your top face-up security card face down",
       },
-      optional: true,
       abortOnDecline: true,
+      optional: true,
     });
   });
 

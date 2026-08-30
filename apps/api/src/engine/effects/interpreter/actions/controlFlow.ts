@@ -24,8 +24,6 @@ export async function runControlFlowAction(ctx: EffectContext, action: Action): 
       return false;
     }
     case "DelayedEffect": {
-      const self = ctx.source.permanent();
-      if (self === undefined) return false;
       // The delayed body runs in a FRESH context a turn later, so the effect-result bindings it
       // names ("return THAT Digimon to the hand" — BT17-069, LM-013) have to be carried across
       // explicitly. Snapshot them at arm time: nothing else survives the gap, and without this
@@ -37,7 +35,10 @@ export async function runControlFlowAction(ctx: EffectContext, action: Action): 
       };
       ctx.fx.subscribeSubTrigger({
         event: "endOfTurn",
-        sourcePermanentId: self.permanentId,
+        // A delayed effect has already activated before its printed cost can move/delete
+        // the source. Keep the armed body on its live activation context so removing the
+        // source does not tear the pending effect down with the permanent's ledgers.
+        activationContext: ctx,
         once: true,
         expiresOnTurnEndOf: ctx.game.opponentOf(ctx.source.ownerSeat),
         matches: (subCtx) => !subCtx.source.isOwnersTurn(),

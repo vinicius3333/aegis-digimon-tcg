@@ -14,7 +14,7 @@ describe("BT9-041 RizeGreymon (X Antibody)", () => {
     expect(compiled).toMatchObject({
       coverage: "full", residual: [], digivolutionRequirement: [{ names: ["RizeGreymon"], cost: 1, isAlternate: true }],
       effects: [
-        { trigger: "WhenDigivolving", actions: [{ kind: "PlayWithoutCost", from: ["hand"], payCost: false, optional: true }, { kind: "ModifyDP", amount: -2000, scaling: { unit: "cards" } }] },
+        { trigger: "WhenDigivolving", actions: [{ kind: "PlayWithoutCost", from: ["hand"], payCost: false, optional: true }, { kind: "ModifyDP", amount: -2000, optional: false, scaling: { unit: "cards" } }] },
         { trigger: "YourTurn", actions: [{ kind: "ModifyDP", amount: 1000, scaling: { unit: "cards" } }] },
       ],
     });

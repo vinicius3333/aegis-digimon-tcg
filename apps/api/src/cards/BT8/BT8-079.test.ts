@@ -11,6 +11,7 @@ describe("BT8-079 SkullSatamon", () => {
         0: {
           battleArea: [{ card: "BT10-074", as: "base" }],
           hand: [{ card: "BT8-079", as: "evolving" }],
+          trash: [{ card: "BT1-009", as: "nonDemonLord" }],
           deck: ["BT1-009", { card: "BT2-111", as: "demonLord" }, "BT1-010"],
         },
       },
@@ -27,7 +28,8 @@ describe("BT8-079 SkullSatamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT8-079"));
     expect(mine.hand.some((card) => card.instanceId === s.inst("demonLord").instanceId)).toBe(true);
-    expect(mine.trash).toHaveLength(1);
+    expect(mine.trash).toHaveLength(2);
+    expect(mine.trash.some((card) => card.instanceId === s.inst("nonDemonLord").instanceId)).toBe(true);
   });
 
   it("inherits once-per-turn memory when its deck is trashed", async () => {

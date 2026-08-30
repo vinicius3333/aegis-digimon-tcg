@@ -31,6 +31,24 @@ describe("BT6-078 SkullGreymon", () => {
     ]);
   });
 
+  it("does not place itself when an opponent's effect trashes it from the hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT6-068", as: "purple" }],
+          hand: [{ card: "BT6-078", as: "skullgreymon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).verb.trash([s.inst("skullgreymon").instanceId], 1);
+    await settle();
+
+    expect(s.perm("purple").stack.some((card) => card.instanceId === s.inst("skullgreymon").instanceId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("skullgreymon").instanceId)).toBe(true);
+  });
+
   it("trashes a hand card for +3000 DP when attacking", async () => {
     const s = setupEngine(
       {
@@ -59,7 +77,7 @@ describe("BT6-078 SkullGreymon", () => {
   });
 
   it("grants Retaliation to its host as an inherited effect", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-010", under: ["BT6-078"], as: "host" }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT6-080", under: ["BT6-078"], as: "host" }] } });
     await s.ready();
 
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Retaliation")).toBe(true);

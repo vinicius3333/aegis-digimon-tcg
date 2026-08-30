@@ -20,13 +20,15 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Lucemon: Larva"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
             count: 1,
           },
+          from: ["trash"],
           breeding: true,
+          requiresEmpty: "breedingArea",
           payCost: false,
           optional: true,
           abortOnDecline: true,
@@ -39,6 +41,10 @@ export const compiled: CompiledCard = {
               kind: ["Digimon", "Tamer"],
             },
             count: 1,
+          },
+          condition: {
+            kind: "ifThisEffectActed",
+            raw: "by playing 1 [Lucemon: Larva] from your trash to your empty breeding area without paying the cost",
           },
         },
       ],
@@ -97,7 +103,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Lucemon: Chaos Mode"],
+      namesExact: ["Lucemon: Chaos Mode"],
       cost: 6,
       isAlternate: true,
     },

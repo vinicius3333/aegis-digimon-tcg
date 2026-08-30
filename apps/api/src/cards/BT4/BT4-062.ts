@@ -43,18 +43,7 @@ const compiled: CompiledCard = {
             count: "all",
           },
           to: "deckBottom",
-        },
-        {
-          kind: "TrashDigivolution",
-          target: {
-            filter: {
-              controller: "opponent",
-              suspended: true,
-              kind: ["Digimon"],
-            },
-            count: "all",
-          },
-          amount: 99,
+          order: "any",
         },
       ],
       keywords: [

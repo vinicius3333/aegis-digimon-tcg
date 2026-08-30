@@ -32,9 +32,12 @@ describe("BT24-086 The Crossroad Witch", () => {
       from: ["digivolutionCards"],
       fromOwnDigivolutionStack: true,
       target: {
-        filter: { nameOrTrait: [{ tokens: ["Shuu Yulin", "The Crossroad Witch"], match: "nameExact" }] },
+        filter: { nameOrTrait: [{ tokens: ["Shuu Yulin"], match: "nameExact" }] },
       },
     });
+    expect((inherited?.actions?.[0] as any)?.target?.filter?.nameOrTrait).toEqual([
+      { tokens: ["Shuu Yulin"], match: "nameExact" },
+    ]);
   });
 
   it("self-scopes both inherited keywords to a qualifying host", () => {
@@ -104,7 +107,7 @@ describe("BT24-086 The Crossroad Witch", () => {
 
   it("plays itself from its host's digivolution cards at end of all turns (Q5674)", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT13-063", as: "host", under: [{ card: "BT24-086", as: "witch" }] }] } },
+      { 0: { battleArea: [{ card: "BT13-063", as: "host", under: [{ card: "BT15-087", as: "witch" }] }] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();

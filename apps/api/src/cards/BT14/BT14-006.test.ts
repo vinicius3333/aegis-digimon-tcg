@@ -47,6 +47,28 @@ describe("BT14-006", () => {
     assertNoLoudGap(s);
   });
 
+  it("reacts to a real hand-trash effect and evolves into the card that was trashed", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-071", as: "host", under: ["BT14-006"] }],
+          hand: [{ card: "BT14-072", as: "fifteen" }],
+          trash: [{ card: "BT14-074", as: "trigger" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("fifteen").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "BT14-074");
+
+    expect(s.perm("host").topCard.cardId).toBe("BT14-074");
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT14-006", "BT14-071"]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
   it("does not evolve a breeding host or bypass the triggering card's level requirement", async () => {
     const breeding = setupEngine(
       {

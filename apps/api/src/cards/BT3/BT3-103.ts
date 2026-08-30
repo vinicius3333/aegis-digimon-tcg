@@ -11,18 +11,15 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
-          kind: "CostModifier",
-          mode: "reduce",
-          costType: "digivolve",
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          mode: "reduceCost",
           amount: 5,
-          target: {
-            filter: {
-              zone: "battleArea",
-              controller: "mine",
-              kind: ["Digimon"],
-              colors: ["Green"],
-            },
-            count: 1,
+          sourceFilter: {
+            zone: "battleArea",
+            controller: "mine",
+            kind: ["Digimon"],
+            colors: ["Green"],
           },
           cost: {
             kind: "suspend",
@@ -36,9 +33,8 @@ const compiled: CompiledCard = {
             raw: "you may suspend 1 of your Digimon to reduce the memory cost of the digivolution by 5",
           },
           optional: true,
-          once: true,
           duration: "forTheTurn",
-          restriction: "next time one of your green Digimon digivolves this turn",
+          raw: "The next time one of your green Digimon digivolves this turn, you may suspend 1 of your Digimon to reduce the memory cost of the digivolution by 5",
         },
       ],
     },

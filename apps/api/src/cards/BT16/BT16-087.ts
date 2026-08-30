@@ -52,16 +52,6 @@ const compiled: CompiledCard = {
             upTo: false,
           },
         },
-        {
-          kind: "PlaceUnder",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
-        },
       ],
       keywords: [
         {
@@ -138,6 +128,7 @@ const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
+              kind: ["Tamer"],
               nameOrTrait: [
                 {
                   tokens: ["Kosuke Kisakata"],
@@ -147,7 +138,7 @@ const compiled: CompiledCard = {
             },
             count: 1,
           },
-          from: ["digivolutionCards"],
+          fromOwnDigivolutionStack: true,
           payCost: false,
           optional: true,
         },

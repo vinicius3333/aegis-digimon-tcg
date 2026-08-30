@@ -25,4 +25,17 @@ describe("BT4-039 Growlmon", () => {
 
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
   });
+
+  it("does not give DP to its host during the opponent's turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT4-047", as: "host", under: ["BT4-039"] }],
+        security: ["BT1-001", "BT1-002", "BT1-003"],
+      },
+    });
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+
+    expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
+  });
 });

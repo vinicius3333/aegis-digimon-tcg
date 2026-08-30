@@ -281,9 +281,38 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           return false;
         }
         const cap = action.target.count === "all" ? matching.length : Math.min(action.target.count, matching.length);
-        // KB Q4860: play 3 (or as many as possible up to the cap) — a mandatory as-many-as-possible
-        // selection, NOT an "up to" partial. Take the first `cap` matching stack cards.
-        const chosenOwn = matching.slice(0, cap).map((c) => c.instanceId);
+        // Named own-stack targets need the same exact-name semantics as loose-card targeting.
+        // This matters for BT7-063: its On Play target is up-to by name, while its deletion
+        // replacement requires both names when both are present (Q1623).
+        const requiredNamesExact = action.target.requiredNamesExact ?? [];
+        const requiredNamesExactUpTo = action.target.requiredNamesExactUpTo ?? [];
+        const namedSelection = (names: string[], requireAll: boolean) => {
+          const selected: typeof matching = [];
+          const used = new Set<string>();
+          for (const requiredName of names) {
+            const candidate = matching.find((card) => {
+              if (used.has(card.instanceId)) return false;
+              const definition = ctx.game.definitionOf({ cardId: card.cardId } as never);
+              return definition.nameEn === requiredName;
+            });
+            if (candidate === undefined) {
+              if (requireAll) return [];
+              continue;
+            }
+            used.add(candidate.instanceId);
+            selected.push(candidate);
+          }
+          return selected;
+        };
+        // A required exact set is all-or-none; an up-to set takes one of each available name.
+        // With neither field, preserve the normal mandatory as-many-as-possible selection.
+        const selectedNamed =
+          requiredNamesExact.length > 0
+            ? namedSelection(requiredNamesExact, true)
+            : requiredNamesExactUpTo.length > 0
+              ? namedSelection(requiredNamesExactUpTo, false)
+              : undefined;
+        const chosenOwn = (selectedNamed ?? matching.slice(0, cap)).slice(0, cap).map((c) => c.instanceId);
         if (chosenOwn.length > 0) {
           const played = await ctx.fx.playInstances(chosenOwn, {
             payCost: action.payCost,
@@ -641,6 +670,9 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
                 effectSourceCardId: ctx.source.cardId,
                 ...(action.playedByDecode === true ? { playedByDecode: true } : {}),
                 ...(costReduction !== undefined ? { costDelta: costReduction } : {}),
+                ...((action as typeof action & { costOverride?: number }).costOverride !== undefined
+                  ? { costOverride: (action as typeof action & { costOverride?: number }).costOverride }
+                  : {}),
                 ...(digiXrosMaterialInstanceIds.length > 0 ? { digiXrosMaterialInstanceIds } : {}),
                 ...(action.suppressOnPlayEffects === true ? { suppressOnPlayEffects: true } : {}),
                 hostPermanentIds,
@@ -707,7 +739,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           const chosenCard = pfzCandidates.find((card) => card.instanceId === pfzChosen[0]);
           const requirement = chosenCard === undefined ? undefined : digiXrosRequirementFor(chosenCard.cardId)?.[0];
           if (requirement !== undefined) {
-            const materialCandidates = action.digiXrosMaterialsFrom
+            const allMaterialCandidates = action.digiXrosMaterialsFrom
               .flatMap((zone) =>
                 zone === "battleArea"
                   ? Array.from(ctx.game.player(ctx.source.ownerSeat).battleArea).flatMap((permanent) =>
@@ -725,17 +757,30 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
                   : looseCardsInZone(ctx, ctx.source.ownerSeat, zone),
               )
               .filter((card) => card.instanceId !== pfzChosen[0]);
+            // Keep the selection prompt faithful to the chosen DigiXros recipe.  The normal
+            // hand-play path filters each candidate before prompting; cards assembled from
+            // another loose zone need the same guard or an auto-selection can consume invalid
+            // cards and silently fall back to a non-DigiXros play.
+            const materialDefinition = (candidate: (typeof allMaterialCandidates)[number]) => {
+              const definition = ctx.game.definitionOf({ cardId: candidate.cardId } as never);
+              return candidate.instanceId === ctx.source.instanceId && action.digiXrosSourceMaterialName !== undefined
+                ? { ...definition, nameEn: action.digiXrosSourceMaterialName }
+                : definition;
+            };
+            const materialCandidates = allMaterialCandidates.filter((candidate) =>
+              materialsSatisfyRecipe([materialDefinition(candidate)], requirement.materials),
+            );
+            const materialCap =
+              requirement.maxMaterials ??
+              (requirement.materials.length === 1 ? materialCandidates.length : requirement.materials.length);
             const selected = await ctx.ask.selectCards(ctx, {
               candidates: materialCandidates.map((card) => card.instanceId),
               min: 0,
-              max: requirement.materials.length,
+              max: materialCap,
             });
-            const selectedDefinitions = selected.map((id) => {
-              const definition = ctx.game.definitionOf(materialCandidates.find((card) => card.instanceId === id)!);
-              return id === ctx.source.instanceId && action.digiXrosSourceMaterialName !== undefined
-                ? { ...definition, nameEn: action.digiXrosSourceMaterialName }
-                : definition;
-            });
+            const selectedDefinitions = selected.map((id) =>
+              materialDefinition(materialCandidates.find((card) => card.instanceId === id)!),
+            );
             if (materialsSatisfyRecipe(selectedDefinitions, requirement.materials))
               digiXrosMaterialInstanceIds = selected;
           }

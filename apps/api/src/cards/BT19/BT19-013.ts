@@ -75,6 +75,18 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digiXrosRequirement: [
+    {
+      materials: [
+        { names: ["Shoutmon"] },
+        { names: ["Ballistamon"] },
+        { names: ["Dorulumon"] },
+        { names: ["Starmons"] },
+        { names: ["Sparrowmon"] },
+      ],
+      count: 2,
+    },
+  ],
 };
 
 registerIrCard("BT19-013", compiled);

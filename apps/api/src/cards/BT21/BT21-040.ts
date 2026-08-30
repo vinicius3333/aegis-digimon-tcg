@@ -21,10 +21,11 @@ export const compiled: CompiledCard = {
           },
           into: {
             controllerDefault: "mine",
+            kind: ["Digimon"],
             nameOrTrait: [
               {
                 tokens: ["ShineGreymon"],
-                match: "name",
+                match: "nameExact",
               },
             ],
           },
@@ -94,7 +95,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Koromon"],
+      namesExact: ["Koromon"],
       cost: 0,
       isAlternate: true,
     },

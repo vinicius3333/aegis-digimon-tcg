@@ -116,3 +116,28 @@ it("does not offer or pay the exact-three cost when only two matching cards are 
   expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT14-056", "BT14-060", "BT14-057"]);
   assertNoLoudGap(s);
 });
+
+it("may decline the exact-three cost without moving trash cards or gaining DP", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "BT14-007", as: "host", under: ["BT14-005"] }],
+        trash: ["BT14-056", "BT14-058", "BT14-060"],
+      },
+      1: { security: ["BT1-001"] },
+    },
+    { autoDeclineOptional: true, autoSelectCards: true },
+  );
+  const host = s.perm("host");
+  const before = host.currentDP;
+  const trashBefore = s.state.players[0]!.trash.map((card) => card.instanceId);
+
+  expect(
+    s.engine.applyIntent(0, { type: "attack", attackerPermanentId: host.permanentId, target: { kind: "player" } }),
+  ).toEqual({ ok: true });
+  await settle();
+
+  expect(host.currentDP).toBe(before);
+  expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(trashBefore);
+  assertNoLoudGap(s);
+});

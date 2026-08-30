@@ -21,5 +21,12 @@ describe("BT3-065 Gururumon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === instanceId), 5000);
 
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === instanceId)).toBe(true);
+    const checkIndex = s.events.findIndex(
+      (event) => event.kind === "securityChecked" && event.revealedCardId === "BT3-065",
+    );
+    const playIndex = s.events.findIndex(
+      (event) => event.kind === "cardsMoved" && event.to === "battleArea" && event.instanceIds.includes(instanceId),
+    );
+    expect(playIndex).toBeGreaterThan(checkIndex);
   });
 });

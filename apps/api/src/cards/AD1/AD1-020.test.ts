@@ -90,7 +90,10 @@ describe("AD1-020 Tommy, Takuya, & Zoe", () => {
   });
 
   it("plays itself from security without paying the cost", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "AD1-020", as: "tamer", faceUp: true }] } });
+    const s = setupEngine(
+      { 0: { security: [{ card: "AD1-020", as: "tamer", faceUp: true }] } },
+      { autoDeclineOptional: true },
+    );
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("tamer"));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "AD1-020")).toBe(true);
   });

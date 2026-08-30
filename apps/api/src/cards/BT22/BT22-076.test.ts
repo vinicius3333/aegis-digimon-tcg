@@ -4,11 +4,21 @@ import { compiled } from "./BT22-076.js";
 
 describe("BT22-076 ShinMonzaemon", () => {
   it("reduces only Ver.1 digivolutions into ShinMonzaemon", () => {
-    const replacement = compiled.effects.find((entry) => entry.trigger === "Static")?.actions[0] as any;
-    expect(replacement).toMatchObject({
-      event: "wouldDigivolve",
-      into: { nameOrTrait: [{ tokens: ["ShinMonzaemon"], match: "name" }] },
-      actions: [{ mode: "reduceCost", amount: 2 }],
+    const modifier = compiled.effects.find((entry) => entry.trigger === "Static")?.actions[0] as any;
+    expect(modifier).toMatchObject({
+      kind: "CostModifier",
+      costType: "digivolve",
+      mode: "delta",
+      amount: -2,
+      handResident: true,
+      target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+      sourceFilter: {
+        controller: "mine",
+        kind: ["Digimon"],
+        nameOrTrait: [{ tokens: ["Ver.1"], match: "trait" }],
+      },
+      into: { cardId: "BT22-076" },
+      duration: "permanent",
     });
     expect(compiled.digivolutionRequirement).toContainEqual({ level: 5, traits: ["DM"], cost: 5, isAlternate: true });
   });

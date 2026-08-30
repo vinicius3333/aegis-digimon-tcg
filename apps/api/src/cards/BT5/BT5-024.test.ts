@@ -22,7 +22,7 @@ describe("BT5-024 Garurumon", () => {
   });
 
   it("grants its Garurumon or Omnimon host +1000 DP as an inherited effect", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-086", as: "host", under: ["BT5-024"] }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-040", as: "host", under: ["BT5-024"] }] } });
 
     await s.engine.recomputeContinuousEffects();
 
@@ -62,7 +62,7 @@ describe("BT5-024 Garurumon", () => {
   });
 
   it("does not grant the inherited bonus to an unrelated name", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT4-113", as: "host", under: ["BT5-024"] }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT4-028", as: "host", under: ["BT5-024"] }] } });
 
     await s.ready();
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);

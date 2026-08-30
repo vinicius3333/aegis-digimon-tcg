@@ -2,11 +2,20 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT25-087.js";
 import "../index.js";
 
 const CARD_ID = "BT25-087";
 
 describe("BT25-087 Thomas H. Norstein", () => {
+  it("keeps the DATA SQUAD cost replacement in the printed Your Turn window", () => {
+    const replacement = compiled.effects.find((effect) =>
+      effect.actions?.some((action) => action.kind === "Replacement" && action.event === "wouldDigivolve"),
+    );
+    expect(replacement?.trigger).toBe("YourTurn");
+    expect(replacement?.frequency).toBe("OncePerTurn");
+  });
+
   it("sets low memory to 3 at Start Turn but never lowers higher memory", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: CARD_ID, as: "thomas" }] } });
     await s.ready();

@@ -100,6 +100,7 @@ const compiled: CompiledCard = {
             isSelf: true,
           },
           withoutSuspending: false,
+          drainTimingWindowDuringAttack: true,
           optional: true,
         },
       ],

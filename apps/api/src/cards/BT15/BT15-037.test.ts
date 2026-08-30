@@ -28,6 +28,32 @@ describe("BT15-037 Gatomon", () => {
     assertNoLoudGap(s);
   });
 
+  it("counts a card played from security as its same-time security removal", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-045", as: "yellowSource" }],
+          hand: [{ card: "BT15-092", as: "revelation" }],
+          security: [{ card: "BT15-037", as: "gatomon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("revelation").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT15-037"));
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT15-037")).toBe(true);
+    // Revelation costs 4; Gatomon's newly installed watcher gains 1 for its own
+    // effect-driven removal from security.
+    expect(s.state.memory).toBe(-3);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
   it("gains exactly 1 memory when another effect removes a card from its security", async () => {
     const s = setupEngine({
       0: {
@@ -114,9 +140,9 @@ describe("BT15-037 Gatomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 0);
 
-    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === s.perm("gatomon").permanentId)).toBe(
-      true,
-    );
+    expect(
+      s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === s.perm("gatomon").permanentId),
+    ).toBe(true);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("barrierCost").instanceId);
   });
 });

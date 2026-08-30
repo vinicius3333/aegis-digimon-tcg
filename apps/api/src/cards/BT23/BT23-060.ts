@@ -7,8 +7,9 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // The [When Attacking] clause had no activate-foreign verb, so the runtime record emitted
 // RawUnparsed. It is now the structured `ActivateForeignEffect` action (interpreter case
 // "ActivateForeignEffect"): borrow a face-up [Zaxon] trait security card's [On Play] effect
-// and run it as this Digimon's effect. KB Q5331 — the borrowed [On Play]'s "by" condition
-// must be processed (runEffect resolves the whole borrowed CardEffect, so it is).
+// and run it as this Digimon's effect. KB Q5331 — this borrowed activation forces the
+// cost-bearing processing condition and consumes an eligible trash card before a hand fallback;
+// ordinary BT23-045 resolution remains optional and keeps its combined hand/trash source pool.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -132,6 +133,12 @@ export const compiled: CompiledCard = {
           },
           count: 1,
           optional: false,
+          borrowedEffectOverrides: {
+            sourceCardId: "BT23-045",
+            trigger: "OnPlay",
+            forceCostProcessing: true,
+            preferTrashCostSource: true,
+          },
         },
       ],
       frequency: "OncePerTurn",

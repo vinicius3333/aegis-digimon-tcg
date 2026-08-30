@@ -1,9 +1,23 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("BT25-003 Frimon", () => {
+  it("matches the catalog identity and Glowing Dawn traits", () => {
+    expect(getCardDefinition("BT25-003")).toMatchObject({
+      cardId: "BT25-003",
+      nameEn: "Frimon",
+      colors: ["Yellow"],
+      kinds: ["DigiEgg"],
+      level: 2,
+      playCost: -1,
+      forms: ["In-Training"],
+      types: ["Lesser", "Glowing Dawn", "BEATBREAK"],
+    });
+  });
+
   it("trashes the top security and digivolves into a Glowing Dawn card for 1 less", async () => {
     const preferred: string[] = [];
     const s = setupEngine(

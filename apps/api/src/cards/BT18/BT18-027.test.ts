@@ -37,6 +37,7 @@ describe("BT18-027 Mermaimon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 2);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === candidate)).toBe(true);
+    expect(s.state.memory).toBe(0);
   });
 
   it("does not play a near-matching non-blue level 3 Digimon", async () => {

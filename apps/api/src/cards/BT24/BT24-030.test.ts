@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -6,6 +6,25 @@ import { compiled } from "./BT24-030.js";
 import "../index.js";
 
 describe("BT24-030 Neptunemon", () => {
+  it("matches the immutable catalog identity", () => {
+    expect(getCardDefinition("BT24-030")).toMatchObject({
+      cardId: "BT24-030",
+      nameEn: "Neptunemon",
+      colors: ["Blue", "Black"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 12,
+      dp: 12000,
+      forms: ["Mega"],
+      attributes: ["Vaccine"],
+      types: ["Shaman", "Olympos XII", "Iliad", "TS", "Aquatic"],
+      evoCosts: [
+        { color: "Blue", level: 5, memoryCost: 4 },
+        { color: "Black", level: 5, memoryCost: 4 },
+      ],
+    });
+  });
+
   it("reduces its play cost when the opponent has at least two Digimon", () => {
     const replacement = compiled.effects.find((effect) => effect.trigger === "Static")?.actions?.[0] as any;
     const reduction = replacement.actions[0];

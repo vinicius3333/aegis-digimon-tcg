@@ -7,8 +7,8 @@ import { setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT12-098.js";
 
-describe("BT12-098 handwritten module", () => {
-  it("registers its printed OnPlay effect without declarative effect record", () => {
+describe("BT12-098 compiled IR module", () => {
+  it("registers its printed OnPlay effect through the compiled IR record", () => {
     const module = getEffectModule("BT12-098");
     expect(module?.cardId).toBe("BT12-098");
     const source = {

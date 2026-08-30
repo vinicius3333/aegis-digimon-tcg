@@ -2,9 +2,10 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
+// Hand-audited IR: Decode is represented by executable would-leave replacements as well as
+// the visible keyword markers. Each printed Decode clause gets a distinct replacement, so
+// both legal color-pair pools remain available together when Omnimon leaves play other than
+// by battle (Q4870).
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -34,6 +35,68 @@ export const compiled: CompiledCard = {
         {
           keyword: "Decode",
           raw: "＜Decode (Blue/Yellow Lv.3)＞",
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          sourceFilter: {
+            isSelfRef: true,
+          },
+          leaveCause: "otherThanBattle",
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  levels: [3],
+                  colors: ["Red", "Black"],
+                },
+                count: 1,
+              },
+              from: ["digivolutionCards"],
+              payCost: false,
+              optional: true,
+              playedByDecode: true,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          sourceFilter: {
+            isSelfRef: true,
+          },
+          leaveCause: "otherThanBattle",
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  levels: [3],
+                  colors: ["Blue", "Yellow"],
+                },
+                count: 1,
+              },
+              from: ["digivolutionCards"],
+              payCost: false,
+              optional: true,
+              playedByDecode: true,
+            },
+          ],
         },
       ],
     },

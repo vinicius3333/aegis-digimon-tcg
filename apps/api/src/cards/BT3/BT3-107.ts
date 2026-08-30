@@ -29,6 +29,11 @@ const compiled: CompiledCard = {
             count: 1,
             sameTarget: true,
           },
+          condition: {
+            kind: "lastTargetPlayCostAtMost",
+            value: 4,
+            raw: "that Digimon's play cost is 4 or less",
+          },
         },
       ],
     },

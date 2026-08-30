@@ -39,7 +39,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Vemmon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -62,11 +62,12 @@ export const compiled: CompiledCard = {
               kind: "PlayWithoutCost",
               target: {
                 filter: {
+                  isSelfRef: true,
                   controller: "mine",
                   nameOrTrait: [
                     {
                       tokens: ["Vemmon"],
-                      match: "name",
+                      match: "nameExact",
                     },
                   ],
                 },
@@ -93,18 +94,20 @@ export const compiled: CompiledCard = {
                 kind: "return",
                 target: {
                   filter: {
+                    isSelfRef: true,
                     controller: "mine",
                     zone: "digivolutionCards",
                     kind: ["Digimon"],
                     nameOrTrait: [
                       {
                         tokens: ["Vemmon"],
-                        match: "name",
+                        match: "nameExact",
                       },
                     ],
                   },
                   count: 2,
                 },
+                to: "deckBottom",
                 raw: "by returning 2 [Vemmon] from this Digimon's digivolution cards to the bottom of the deck",
               },
               optional: true,
@@ -121,7 +124,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Vemmon"],
+      namesExact: ["Vemmon"],
       cost: 6,
       isAlternate: true,
     },
