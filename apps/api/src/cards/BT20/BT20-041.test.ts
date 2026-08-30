@@ -29,7 +29,10 @@ describe("BT20-041 Crowmon", () => {
   it("on play suspends the opponent, gains +3000 DP, and takes the optional attack", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "BT20-041", as: "crowmon" }] },
+        0: {
+          battleArea: [{ card: "BT20-010", dp: 6000, as: "attacker" }],
+          hand: [{ card: "BT20-041", as: "crowmon" }],
+        },
         1: { battleArea: [{ card: "BT20-010", dp: 6000, as: "target" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -38,9 +41,10 @@ describe("BT20-041 Crowmon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("crowmon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[1]!.battleArea.length === 0);
-    expect(s.perm("crowmon").isSuspended).toBe(true);
-    expect(s.perm("crowmon").currentDP).toBe(9000);
+    await settle(() => s.perm("attacker").isSuspended && s.perm("target").isSuspended);
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.perm("attacker").isSuspended).toBe(true);
+    expect(s.perm("attacker").currentDP).toBe(9000);
   });
 
   it("inherits a once-per-turn -4000 DP When Attacking effect", async () => {

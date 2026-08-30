@@ -20,10 +20,19 @@ describe("BT20-100 The Last Guardian", () => {
     expect(compiled.effects.find((entry) => entry.trigger === "Security")).toMatchObject({
       actions: [
         {
+          kind: "PlayWithoutCost",
           target: {
-            filter: { nameOrTrait: [{ tokens: ["Omekamon", "Cool Boy"], match: "nameExact" }] },
+            filter: {
+              controller: "mine",
+              nameOrTrait: [{ tokens: ["Omekamon", "Cool Boy"], match: "nameExact" }],
+            },
+            count: 1,
           },
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
         },
+        { kind: "PlaceInBattleAreaSelf" },
       ],
     });
   });

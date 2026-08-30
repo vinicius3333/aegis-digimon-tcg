@@ -52,7 +52,23 @@ describe("BT20-097 The Apostle of Doom Descends!", () => {
       ],
     });
     expect(compiled.effects.find((entry) => entry.trigger === "Security")).toMatchObject({
-      actions: [{ target: { filter: { nameOrTrait: [{ tokens: ["Dorumon"], match: "nameExact" }] } } }],
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Dorumon"], match: "nameExact" }],
+            },
+            count: 1,
+          },
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
+        },
+        { kind: "AddToHandSelf" },
+      ],
     });
   });
 });

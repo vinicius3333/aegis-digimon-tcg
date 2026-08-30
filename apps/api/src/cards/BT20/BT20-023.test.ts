@@ -54,6 +54,7 @@ describe("BT20-023 Coredramon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    await s.ready();
     s.state.memory = 7;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("greenTextMatch").instanceId })).toEqual({
       ok: true,

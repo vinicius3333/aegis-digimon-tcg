@@ -63,7 +63,7 @@ describe("BT20-058 Raidenmon", () => {
           },
           1: {
             battleArea: [
-              { card: "BT20-054", as: "cost7" },
+              { card: "BT1-024", as: "cost7" },
               { card: "BT10-025", as: "cost8" },
             ],
           },
