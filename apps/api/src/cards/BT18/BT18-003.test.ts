@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-003.js";
 
@@ -52,7 +53,7 @@ describe("BT18-003 Wanyamon", () => {
     expect(s.perm("target").currentDP).toBe(baseDP - 2000);
     expect(s.perm("secondTarget").currentDP).toBe(baseDP);
 
-    await settle(() => !s.perm("host").isSuspended);
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",

@@ -63,7 +63,7 @@ describe("BT18-101 Lucemon: Satan Mode", () => {
         },
         1: { battleArea: [{ card: "BT1-009", as: "target" }] },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 10;
 
@@ -74,7 +74,7 @@ describe("BT18-101 Lucemon: Satan Mode", () => {
         instanceId: s.inst("satanMode").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("satanMode").topCard?.cardId === "BT18-101");
+    await settle(() => s.perm("chaosMode").topCard?.cardId === "BT18-101");
     await settle(() => s.state.players[0]!.breeding?.topCard?.instanceId === s.inst("larva").instanceId);
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("larva").instanceId)).toBe(false);
@@ -103,12 +103,14 @@ describe("BT18-101 Lucemon: Satan Mode", () => {
         instanceId: s.inst("satanMode").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("satanMode").topCard?.cardId === "BT18-101");
+    await settle(() => s.perm("chaosMode").topCard?.cardId === "BT18-101");
     await settle();
 
     expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("larva").instanceId)).toBe(true);
-    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([s.perm("target").permanentId]);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
+      s.perm("target").permanentId,
+    ]);
   });
 
   it("does not delete when the natural digivolution cannot play Larva into an occupied breeding area", async () => {
@@ -122,7 +124,7 @@ describe("BT18-101 Lucemon: Satan Mode", () => {
         },
         1: { battleArea: [{ card: "BT1-009", as: "target" }] },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
     const targetId = s.perm("target").permanentId;
     s.state.memory = 10;
@@ -134,7 +136,7 @@ describe("BT18-101 Lucemon: Satan Mode", () => {
         instanceId: s.inst("satanMode").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("satanMode").topCard?.cardId === "BT18-101");
+    await settle(() => s.perm("chaosMode").topCard?.cardId === "BT18-101");
 
     expect(s.perm("occupied").topCard?.cardId).toBe("BT1-001");
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(targetId);
@@ -179,14 +181,21 @@ describe("BT18-101 Lucemon: Satan Mode", () => {
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("opponentSecurity").instanceId)).toBe(
       true,
     );
-    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([s.perm("target").permanentId]);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
+      s.perm("target").permanentId,
+    ]);
   });
 
   it("naturally deletes one opposing Digimon and one Tamer when the opponent has no security", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT18-101", as: "satanMode" }], deck: ["BT1-001"] },
-        1: { battleArea: [{ card: "BT1-009", as: "targetDigimon" }, { card: "BT1-085", as: "targetTamer" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "targetDigimon" },
+            { card: "BT1-085", as: "targetTamer" },
+          ],
+        },
       },
       { autoSelectCards: true },
     );
@@ -194,6 +203,8 @@ describe("BT18-101 Lucemon: Satan Mode", () => {
     await advance(s.engine).runTurn(0);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-009", "BT1-085"]));
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT1-009", "BT1-085"]),
+    );
   });
 });

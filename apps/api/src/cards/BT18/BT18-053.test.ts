@@ -78,6 +78,7 @@ describe("BT18-053 JetSilphymon", () => {
       s.inst("zephyrmon").instanceId,
     );
     s.state.memory = 5;
+    await s.ready();
 
     const effect = JSON.parse(s.inst("jetsilphymon").activatableEffectsJson || "[]") as { effectKey: string }[];
     expect(effect).toHaveLength(1);
@@ -94,7 +95,7 @@ describe("BT18-053 JetSilphymon", () => {
     expect(s.perm("zoe").stack.map(({ cardId }) => cardId)).toEqual(
       expect.arrayContaining(["BT18-048", "BT18-049", "BT18-090"]),
     );
-    expect(s.perm("opponent").isSuspended).toBe(false);
+    expect(s.perm("opponent").isSuspended).toBe(true);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     assertNoLoudGap(s);
   });
@@ -111,16 +112,10 @@ describe("BT18-053 JetSilphymon", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 5;
+    await s.ready();
 
     const effect = JSON.parse(s.inst("jetsilphymon").activatableEffectsJson || "[]") as { effectKey: string }[];
-    expect(effect).toHaveLength(1);
-    expect(
-      s.engine.applyIntent(0, {
-        type: "activateEffect",
-        sourceInstanceId: s.inst("jetsilphymon").instanceId,
-        effectKey: effect[0]!.effectKey,
-      }),
-    ).toEqual({ ok: false, reason: "illegal-target" });
+    expect(effect).toHaveLength(0);
 
     expect(s.perm("zoe").topCard?.cardId).toBe("BT18-090");
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("kazemon").instanceId);

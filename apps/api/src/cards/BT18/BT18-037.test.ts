@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./BT18-037.js";
 
 describe("BT18-037 Lobomon", () => {
@@ -24,7 +25,8 @@ describe("BT18-037 Lobomon", () => {
           battleArea: [{ card: "BT7-087", as: "koji" }],
           hand: [{ card: "BT18-037", as: "lobomon" }],
           security: [{ card: "BT12-009", as: "hybrid", faceUp: true }, "BT1-001"],
-          deck: ["BT1-002"],
+          // Digivolution draws the first card; Recovery should take the next.
+          deck: ["BT1-003", "BT1-002"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -42,11 +44,12 @@ describe("BT18-037 Lobomon", () => {
     await settle(
       () =>
         s.perm("koji").topCard?.instanceId === s.inst("lobomon").instanceId &&
-        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("hybrid").instanceId),
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("hybrid").instanceId) &&
+        s.state.memory === 4,
     );
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("hybrid").instanceId)).toBe(true);
-    expect(s.state.memory).toBe(3);
+    expect(s.state.memory).toBe(4);
     expect(s.state.players[0]!.security).toHaveLength(2);
     expect(s.state.players[0]!.security.some((card) => card.cardId === "BT1-002")).toBe(true);
     assertNoLoudGap(s);
@@ -86,10 +89,11 @@ describe("BT18-037 Lobomon", () => {
       () =>
         s.perm("koji").topCard?.instanceId === s.inst("lobomon").instanceId &&
         s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("hybridSecurity").instanceId) &&
-        s.state.players[0]!.security.some(({ instanceId }) => instanceId === s.inst("recoveryCard").instanceId),
+        s.state.players[0]!.security.some(({ instanceId }) => instanceId === s.inst("recoveryCard").instanceId) &&
+        s.state.memory === 5,
     );
 
-    expect(s.state.memory).toBe(3);
+    expect(s.state.memory).toBe(5);
     expect(s.perm("koji").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("koji").instanceId]);
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("evolutionDraw").instanceId)).toBe(
       true,
@@ -124,10 +128,11 @@ describe("BT18-037 Lobomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("koji").topCard?.instanceId === s.inst("lobomon").instanceId);
 
-    expect(s.state.players[0]!.hand).toHaveLength(0);
+    // Declining the optional add does not suppress the normal evolution draw.
+    expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.security).toHaveLength(2);
-    expect(s.state.players[0]!.deck.some(({ instanceId }) => instanceId === s.inst("recoveryCard").instanceId)).toBe(
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("recoveryCard").instanceId)).toBe(
       true,
     );
     assertNoLoudGap(s);

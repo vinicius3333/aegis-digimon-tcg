@@ -135,7 +135,9 @@ describe("BT18-061 Trailmon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.turnSeat = 1;
-    s.state.memory = -4;
+    // The turn machine needs a positive entry gauge to open seat 1's Main phase; the
+    // end-of-opponent-turn timing still fires when that natural turn subsequently ends.
+    s.state.memory = 4;
     await s.ready();
 
     await advance(s.engine).runTurn(1);

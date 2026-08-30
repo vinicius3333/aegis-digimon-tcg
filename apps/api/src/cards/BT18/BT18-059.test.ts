@@ -29,7 +29,7 @@ describe("BT18-059 Zenimon", () => {
 
   it("lapses immediately when Zenimon leaves play", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT18-059", as: "zenimon" }] },
+      0: { battleArea: [{ card: "BT18-059", suspended: true, as: "zenimon" }] },
       1: { battleArea: [{ card: "EX3-045", as: "attacker" }] },
     });
     s.state.turnSeat = 1;
@@ -91,9 +91,9 @@ describe("BT18-059 Zenimon", () => {
     tamer.state.memory = 0;
     await tamer.ready();
     await advance(tamer.engine).runTurn(1);
-    expect(tamer.events.some((event) => event.kind === "memoryChanged" && event.reason === "gainMemory" && event.to === -1)).toBe(
-      true,
-    );
+    expect(
+      tamer.events.some((event) => event.kind === "memoryChanged" && event.reason === "gainMemory" && event.to === 1),
+    ).toBe(true);
     assertNoLoudGap(blocked);
     assertNoLoudGap(allowed);
     assertNoLoudGap(tamer);

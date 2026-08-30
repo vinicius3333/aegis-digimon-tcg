@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../BT11/BT11-070.js";
 import "./BT18-065.js";
 import { compiled } from "./BT18-065.js";
 
@@ -156,7 +157,9 @@ describe("BT18-065 Snatchmon", () => {
     await accepted.ready();
     await advance(accepted.engine).runTurn(0);
     expect(accepted.perm("qualified").topCard?.instanceId).toBe(accepted.inst("destromon").instanceId);
-    expect(accepted.state.memory).toBe(3);
+    // runTurn closes the turn after the effect resolves: the outgoing gauge is reframed
+    // for the next player, so the post-payment +3 is observed as -8 here.
+    expect(accepted.state.memory).toBe(-8);
 
     const refused = setupEngine(
       {
@@ -171,7 +174,8 @@ describe("BT18-065 Snatchmon", () => {
     await refused.ready();
     await advance(refused.engine).runTurn(0);
     expect(refused.perm("qualified").topCard?.cardId).toBe("BT18-065");
-    expect(refused.state.memory).toBe(8);
+    // Refusing leaves the outgoing turn's pass marker at -3 in the next-player frame.
+    expect(refused.state.memory).toBe(-3);
     assertNoLoudGap(accepted);
     assertNoLoudGap(refused);
   });

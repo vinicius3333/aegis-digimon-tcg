@@ -111,8 +111,8 @@ describe("BT18-056 TigerVespamon", () => {
         },
         1: {
           battleArea: [
-            { card: "BT1-030", as: "firstOpponent" },
-            { card: "BT1-030", as: "secondOpponent" },
+            { card: "BT1-030", suspended: true, as: "firstOpponent" },
+            { card: "BT1-030", suspended: true, as: "secondOpponent" },
           ],
         },
       },
@@ -156,7 +156,7 @@ describe("BT18-056 TigerVespamon", () => {
       { autoAcceptOptional: true },
     );
     s.state.turnSeat = 1;
-    s.state.memory = -10;
+    s.state.memory = 10;
     await s.ready();
 
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("deletingGoblimon").instanceId })).toEqual({

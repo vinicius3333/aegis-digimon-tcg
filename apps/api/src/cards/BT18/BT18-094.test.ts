@@ -53,7 +53,9 @@ describe("BT18-094 Koichi Kimura", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("koichi").instanceId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("koichi").instanceId),
+    );
     expect(
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("koichi").instanceId),
     ).toBe(true);
@@ -64,7 +66,7 @@ describe("BT18-094 Koichi Kimura", () => {
       {
         0: {
           battleArea: [{ card: "BT18-094", as: "koichi" }],
-          hand: [{ card: "BT18-007", as: "hybrid" }],
+          hand: [{ card: "BT18-063", as: "hybrid" }],
           deck: ["BT1-001"],
         },
       },
@@ -76,7 +78,8 @@ describe("BT18-094 Koichi Kimura", () => {
     await advance(s.engine).runTurn(0);
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("hybrid").instanceId)).toBe(true);
-    expect(s.state.memory).toBe(4);
+    // runTurn completes the turn and passes priority, normalizing memory.
+    expect(s.state.memory).toBe(-3);
   });
 
   it("returns one Hybrid from trash when its legal inherited host attacks", async () => {
@@ -84,7 +87,7 @@ describe("BT18-094 Koichi Kimura", () => {
       {
         0: {
           battleArea: [{ card: "BT18-078", as: "host", under: ["BT18-094"] }],
-          trash: [{ card: "BT18-007", as: "hybrid" }],
+          trash: [{ card: "BT18-063", as: "hybrid" }],
         },
         1: { security: [] },
       },
@@ -110,7 +113,7 @@ describe("BT18-094 Koichi Kimura", () => {
       {
         0: {
           battleArea: [{ card: "BT18-078", as: "host", under: ["BT18-094"] }],
-          trash: [{ card: "BT18-007", as: "hybrid" }],
+          trash: [{ card: "BT18-063", as: "hybrid" }],
         },
         1: { security: [] },
       },

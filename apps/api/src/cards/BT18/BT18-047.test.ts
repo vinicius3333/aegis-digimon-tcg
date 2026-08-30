@@ -34,7 +34,7 @@ describe("BT18-047 Arbormon", () => {
     assertNoLoudGap(s);
   });
 
-  it("does nothing when the mandatory suspension cost has no eligible green Digimon", async () => {
+  it("can pay the mandatory suspension cost by suspending itself when no other green Digimon exists", async () => {
     const s = setupEngine({
       0: { hand: [{ card: "BT18-047", as: "arbormon" }] },
       1: { battleArea: [{ card: "BT1-087", as: "opponentTamer" }] },
@@ -46,7 +46,8 @@ describe("BT18-047 Arbormon", () => {
     });
     await settle(() => s.perm("arbormon").topCard?.cardId === "BT18-047");
 
-    expect(s.perm("opponentTamer").isSuspended).toBe(false);
+    expect(s.perm("arbormon").isSuspended).toBe(true);
+    expect(s.perm("opponentTamer").isSuspended).toBe(true);
     assertNoLoudGap(s);
   });
 

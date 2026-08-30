@@ -78,6 +78,12 @@ describe("BT18-102 Susanoomon", () => {
           },
           trackCount: "placedTamers",
         },
+        {
+          kind: "SecurityManipulation",
+          op: "trashTop",
+          controller: "opponent",
+          amountFromNamedCount: { base: 0, countSource: "placedTamers", per: 1 },
+        },
       ],
     });
   });
@@ -104,7 +110,7 @@ describe("BT18-102 Susanoomon", () => {
   it("requires ten Hybrid cards under Takuya/Koji and excludes that alternate path from Blast Digivolve", () => {
     expect(compiled.digivolutionRequirement).toEqual([
       {
-        namesExact: ["Takuya Kanbara", "Koji Minamoto"],
+        namesExact: ["Takuya Kanbara", "Koji Minamoto", "Takuya Kanbara & Koji Minamoto"],
         cost: 6,
         isAlternate: true,
         requiredDigivolutionCardCount: { trait: "Hybrid", min: 10 },
@@ -159,9 +165,7 @@ describe("BT18-102 Susanoomon", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 10;
-    expect(observe(s.engine).effectiveNames(s.perm("takuyaKoji"))).toEqual(
-      expect.arrayContaining(["takuya kanbara & koji minamoto", "takuya kanbara", "koji minamoto"]),
-    );
+    expect(observe(s.engine).effectiveNames(s.perm("takuyaKoji"))).toEqual(["takuya kanbara & koji minamoto"]);
 
     expect(
       s.engine.applyIntent(0, {
@@ -173,7 +177,7 @@ describe("BT18-102 Susanoomon", () => {
     await settle(() => s.perm("takuyaKoji").topCard?.cardId === "BT18-102");
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
-    expect(s.perm("takuyaKoji").stack).toHaveLength(16);
+    expect(s.perm("takuyaKoji").stack).toHaveLength(17);
     expect(observe(s.engine).hasEffectiveTrait(s.perm("takuyaKoji"), "Hybrid")).toBe(true);
     expect(s.state.memory).toBe(4);
   });
@@ -213,9 +217,9 @@ describe("BT18-102 Susanoomon", () => {
     );
     expect(placedTamerIds).toHaveLength(5);
     expect(
-      s.perm("susanoomon").stack.filter((card) =>
-        s.state.players[0]!.security.every(({ instanceId }) => instanceId !== card.instanceId),
-      ),
+      s
+        .perm("susanoomon")
+        .stack.filter((card) => s.state.players[0]!.security.every(({ instanceId }) => instanceId !== card.instanceId)),
     ).toHaveLength(11);
     expect(s.perm("susanoomon").isSuspended).toBe(true);
   });

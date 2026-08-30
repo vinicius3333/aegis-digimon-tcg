@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { assertNoLoudGap, setupEngine } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT18-069.js";
 
@@ -41,10 +41,14 @@ describe("BT18-069 Knightmon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.turnSeat = 1;
-    s.state.memory = -4;
+    // Keep the active seat's entry gauge above the automatic pass threshold so Main opens.
+    s.state.memory = 4;
     await s.ready();
 
-    await advance(s.engine).runTurn(1);
+    const turn = advance(s.engine).runTurn(1);
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
+    await turn;
 
     expect(observe(s.engine).hasAttackedThisTurn(s.perm("attacker"))).toBe(true);
     assertNoLoudGap(s);

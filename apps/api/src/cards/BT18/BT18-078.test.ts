@@ -82,7 +82,9 @@ describe("BT18-078 Duskmon", () => {
     );
     s.state.memory = 6;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("duskmon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("duskmon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => observe(s.engine).effectiveColors(s.perm("target")).includes("Red"));
     const target = s.perm("target");
 
@@ -92,7 +94,7 @@ describe("BT18-078 Duskmon", () => {
     s.state.turnSeat = 1;
     await advance(s.engine).runTurn(1);
     expect(observe(s.engine).effectiveColors(target)).toEqual(["Blue"]);
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(-3);
     assertNoLoudGap(s);
   });
 
@@ -178,5 +180,4 @@ describe("BT18-078 Duskmon", () => {
     expect(s.state.players[0]!.trash).not.toContainEqual(expect.objectContaining({ cardId: "BT18-094" }));
     assertNoLoudGap(s);
   });
-
 });

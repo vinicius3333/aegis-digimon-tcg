@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT18-068.js";
 import "./BT18-068.js";
@@ -35,10 +35,12 @@ describe("BT18-068 Wisemon", () => {
     ).toEqual({ ok: true });
 
     await settle(
-      () => s.state.pendingDecision?.kind === "chooseOption" && s.state.pendingDecision.decisionId !== deckChoice.decisionId,
+      () =>
+        s.state.pendingDecision?.kind === "chooseOption" &&
+        s.state.pendingDecision.decisionId !== deckChoice.decisionId,
     );
     const destinationChoice = s.state.pendingDecision!;
-    expect(JSON.parse(destinationChoice.payloadJson)).toMatchObject({ choices: ["top", "bottom"] });
+    expect(JSON.parse(destinationChoice.payloadJson)).toMatchObject({ choices: ["Top of deck", "Bottom of deck"] });
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",

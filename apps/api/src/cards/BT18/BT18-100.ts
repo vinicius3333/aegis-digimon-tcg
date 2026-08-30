@@ -13,7 +13,6 @@ export const compiled: CompiledCard = {
             filter: {
               zone: "breedingArea",
               controller: "mine",
-              kind: ["Digimon"],
             },
             count: 1,
             targetBreeding: true,

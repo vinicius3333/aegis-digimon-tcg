@@ -144,7 +144,10 @@ describe("BT18-062 Gladimon", () => {
       {
         0: {
           battleArea: [{ card: "BT1-030", as: "target" }],
-          hand: [{ card: "BT18-062", as: "gladimon" }, { card: "BT18-099", as: "cost" }],
+          hand: [
+            { card: "BT18-062", as: "gladimon" },
+            { card: "BT18-099", as: "cost" },
+          ],
         },
         1: { deck: ["BT1-001"] },
       },
@@ -157,7 +160,8 @@ describe("BT18-062 Gladimon", () => {
     await settle(() => observe(s.engine).isRestricted(s.perm("target"), "beDeleted"));
 
     s.state.turnSeat = 1;
-    s.state.memory = -4;
+    // Keep the active seat's entry gauge above the automatic pass threshold so Main opens.
+    s.state.memory = 4;
     await advance(s.engine).runTurn(1);
 
     expect(observe(s.engine).isRestricted(s.perm("target"), "beDeleted")).toBe(false);

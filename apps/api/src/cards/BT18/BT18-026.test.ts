@@ -3,6 +3,7 @@ import { EffectTiming, Phase } from "@aegis/shared";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "./BT18-026.js";
 
 describe("BT18-026 DaiPenmon", () => {
   it("pays both named trash placements and 3 memory for its hand Main evolution", async () => {
@@ -30,9 +31,11 @@ describe("BT18-026 DaiPenmon", () => {
     s.state.phase = Phase.Main;
     await s.engine.recomputeContinuousEffects();
 
-    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey })).toEqual({
-      ok: true,
-    });
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey })).toEqual(
+      {
+        ok: true,
+      },
+    );
     await settle(() => s.perm("tommy").topCard.cardId === "BT18-026");
 
     expect(s.state.memory).toBe(2);
@@ -62,10 +65,12 @@ describe("BT18-026 DaiPenmon", () => {
     s.state.phase = Phase.Main;
     await s.engine.recomputeContinuousEffects();
 
-    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey })).toEqual({
-      ok: false,
-      reason: "illegal-target",
-    });
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey })).toEqual(
+      {
+        ok: false,
+        reason: "illegal-target",
+      },
+    );
 
     expect(s.perm("tommy").topCard.cardId).toBe("BT18-089");
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT18-022");

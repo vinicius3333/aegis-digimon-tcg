@@ -49,6 +49,7 @@ describe("BT18-075 Liollmon", () => {
       },
     });
     s.state.memory = 3;
+    await s.ready();
 
     expect(
       s.engine.applyIntent(0, {
@@ -59,27 +60,31 @@ describe("BT18-075 Liollmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("source").topCard?.cardId === "BT18-076");
 
-    expect(s.state.memory).toBe(2);
+    expect(s.state.memory).toBe(1);
     expect(s.perm("source").stack.map(({ cardId }) => cardId)).toContain("BT18-075");
     assertNoLoudGap(s);
   });
 
   it("naturally reduces one own Tamer's alternate evolution, but not a second one in the same turn", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT18-075", as: "source" },
-          { card: "BT7-091", as: "firstKoichi" },
-          { card: "BT7-091", as: "secondKoichi" },
-        ],
-        hand: [
-          { card: "BT1-010", as: "discard" },
-          { card: "BT18-076", as: "firstTarget" },
-          { card: "BT18-077", as: "secondTarget" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT18-075", as: "source" },
+            { card: "BT7-091", as: "firstKoichi" },
+            { card: "BT7-091", as: "secondKoichi" },
+          ],
+          hand: [
+            { card: "BT1-010", as: "discard" },
+            { card: "BT18-076", as: "firstTarget" },
+            { card: "BT18-077", as: "secondTarget" },
+          ],
+        },
       },
-    });
+      { autoSelectCards: true },
+    );
     s.state.memory = 10;
+    await s.ready();
 
     expect(
       s.engine.applyIntent(0, {
@@ -87,7 +92,7 @@ describe("BT18-075 Liollmon", () => {
         permanentId: s.perm("firstKoichi").permanentId,
         instanceId: s.inst("firstTarget").instanceId,
         useAlternateCost: true,
-        alternateRequirementIndex: 0,
+        alternateRequirementIndex: 1,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("firstKoichi").topCard?.cardId === "BT18-076");
@@ -99,7 +104,7 @@ describe("BT18-075 Liollmon", () => {
         permanentId: s.perm("secondKoichi").permanentId,
         instanceId: s.inst("secondTarget").instanceId,
         useAlternateCost: true,
-        alternateRequirementIndex: 0,
+        alternateRequirementIndex: 1,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("secondKoichi").topCard?.cardId === "BT18-077");

@@ -12,18 +12,21 @@ describe("BT18-006 Frimon", () => {
       isInherited: true,
       actions: [{ kind: "Trash", scaling: { per: 1, unit: "colors" } }],
     });
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT3-078", dp: 4000, as: "host", under: ["BT18-006"] }],
-        deck: [{ card: "BT1-001" }, { card: "BT1-002" }, { card: "BT1-003" }, { card: "BT1-004" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT3-078", dp: 4000, suspended: true, as: "host", under: ["BT18-006"] }],
+          deck: [{ card: "BT1-001" }, { card: "BT1-002" }, { card: "BT1-003" }, { card: "BT1-004" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT11-018", dp: 12000, as: "attacker" },
+            { card: "BT12-092", as: "tamer" },
+          ],
+        },
       },
-      1: {
-        battleArea: [
-          { card: "BT11-018", dp: 12000, suspended: true, as: "attacker" },
-          { card: "BT12-092", as: "tamer" },
-        ],
-      },
-    });
+      { autoDeclineOptional: true },
+    );
     await s.ready();
     s.state.turnSeat = 1;
     expect(

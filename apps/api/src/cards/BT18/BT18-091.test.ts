@@ -70,6 +70,8 @@ describe("BT18-091 J.P. Shibayama", () => {
     );
     s.state.memory = 5;
     await s.ready();
+    const defenderOneId = s.perm("defenderOne").permanentId;
+    const defenderTwoId = s.perm("defenderTwo").permanentId;
 
     expect(
       s.engine.applyIntent(0, {
@@ -89,12 +91,14 @@ describe("BT18-091 J.P. Shibayama", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("tamerOne").instanceId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("tamerOne").instanceId),
+    );
 
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("tamerOne").instanceId)).toBe(
       true,
     );
-    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("defenderOne").permanentId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === defenderOneId)).toBe(false);
 
     expect(
       s.engine.applyIntent(0, {
@@ -103,7 +107,7 @@ describe("BT18-091 J.P. Shibayama", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.every((p) => p.permanentId !== s.perm("defenderTwo").permanentId));
+    await settle(() => s.state.players[1]!.battleArea.every((p) => p.permanentId !== defenderTwoId));
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tamerTwo").instanceId)).toBe(true);
   });
@@ -112,8 +116,14 @@ describe("BT18-091 J.P. Shibayama", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT18-091", as: "jp" }, { card: "BT18-013", as: "raid" }],
-          hand: [{ card: "BT18-063", as: "beetlemon" }, { card: "BT18-094", as: "tamer" }],
+          battleArea: [
+            { card: "BT18-091", as: "jp" },
+            { card: "BT18-013", as: "raid" },
+          ],
+          hand: [
+            { card: "BT18-063", as: "beetlemon" },
+            { card: "BT18-094", as: "tamer" },
+          ],
           deck: ["BT1-001"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "defender", dp: 1000 }], security: ["BT1-001"] },
@@ -140,11 +150,16 @@ describe("BT18-091 J.P. Shibayama", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("raid").permanentId && p.isSuspended));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("raid").permanentId && p.isSuspended),
+    );
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tamer").instanceId)).toBe(true);
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("tamer").instanceId)).toBe(false);
-    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("tamer").instanceId)).toBe(
+      false,
+    );
+    // Raid redirects the attack to the opposing Digimon, so no security check occurs.
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
   it("plays from Security without cost through a real opponent attack and security check", async () => {
@@ -161,7 +176,9 @@ describe("BT18-091 J.P. Shibayama", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("jp").instanceId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("jp").instanceId),
+    );
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("jp").instanceId)).toBe(
       true,
     );

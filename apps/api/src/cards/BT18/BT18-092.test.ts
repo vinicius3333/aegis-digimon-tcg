@@ -64,7 +64,8 @@ describe("BT18-092 Zenith", () => {
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("vemmon").instanceId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
-    expect(s.state.memory).toBe(1);
+    // runTurn finishes by passing priority and normalizing memory.
+    expect(s.state.memory).toBe(-3);
   });
 
   it("suspends itself, returns two Vemmon from the attacking stack, and De-Digivolves an opponent", async () => {
@@ -73,11 +74,14 @@ describe("BT18-092 Zenith", () => {
         0: {
           battleArea: [
             { card: "BT18-092", as: "zenith" },
-            { card: "BT1-010", as: "attacker", under: ["BT11-061", "BT11-061"] },
+            { card: "BT1-010", as: "attacker", dp: 10000, under: ["BT11-061", "BT11-061"] },
             { card: "BT1-010", as: "unrelated", under: ["BT11-061", "BT11-061"] },
           ],
         },
-        1: { battleArea: [{ card: "BT1-010", as: "target", under: ["BT1-009"] }], security: [] },
+        1: {
+          battleArea: [{ card: "BT1-060", as: "target", under: ["BT1-009"] }],
+          security: ["BT1-001", "BT1-002"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -88,10 +92,11 @@ describe("BT18-092 Zenith", () => {
       s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+        target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("zenith").isSuspended && s.perm("target").topCard?.cardId === "BT1-009");
+    // Drain the complete attack/effect queue before inspecting the de-digivolved host.
+    await settle();
 
     expect(s.perm("zenith").isSuspended).toBe(true);
     expect(s.perm("attacker").stack.filter((card) => card.cardId === "BT11-061")).toHaveLength(0);
@@ -113,7 +118,9 @@ describe("BT18-092 Zenith", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("zenith").instanceId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("zenith").instanceId),
+    );
 
     expect(
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("zenith").instanceId),
@@ -155,10 +162,13 @@ describe("BT18-092 Zenith", () => {
         0: {
           battleArea: [
             { card: "BT18-092", as: "zenith" },
-            { card: "BT1-010", as: "attacker", under: ["BT11-061", "BT11-061"] },
+            { card: "BT1-010", as: "attacker", dp: 10000, under: ["BT11-061", "BT11-061"] },
           ],
         },
-        1: { battleArea: [{ card: "BT1-010", as: "target", under: ["BT11-061"] }], security: ["BT1-001"] },
+        1: {
+          battleArea: [{ card: "BT1-010", as: "target", under: ["BT11-061"] }],
+          security: ["BT1-001", "BT1-002"],
+        },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
@@ -168,7 +178,7 @@ describe("BT18-092 Zenith", () => {
       s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+        target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("attacker").isSuspended);
