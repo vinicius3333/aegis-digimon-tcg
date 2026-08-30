@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-101.js";
 import "../index.js";
@@ -82,6 +82,7 @@ describe("BT21-101 Gaiamon", () => {
         targetPermanentId: s.perm("gaiamon").permanentId,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.perm("gaiamon").linked.length === 1);
     expect(s.perm("gaiamon").isSuspended).toBe(false);
     expect(s.state.players[1]!.security).toHaveLength(1);
 

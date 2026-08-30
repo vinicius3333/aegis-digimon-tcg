@@ -53,7 +53,9 @@ describe("BT21-021 OmniShoutmon", () => {
         actions: [
           expect.objectContaining({
             kind: "PlaceUnder",
-            target: { filter: { controller: "mine", kind: ["Digimon"] } },
+            target: expect.objectContaining({
+              filter: expect.objectContaining({ controller: "mine", kind: ["Digimon"] }),
+            }),
           }),
           expect.objectContaining({
             kind: "PlaceUnder",

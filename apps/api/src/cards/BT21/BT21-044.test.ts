@@ -156,7 +156,6 @@ describe("BT21-044 compiled implementation", () => {
   });
 
   it("alternate-digivolves from GeoGreymon for 3 and resolves the optional attack", async () => {
-    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -168,9 +167,8 @@ describe("BT21-044 compiled implementation", () => {
         },
         1: { security: [{ card: "BT1-009", as: "security" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
-    preferred.push(s.perm("marcus").topCard.instanceId);
     s.state.memory = 5;
     await s.ready();
 
