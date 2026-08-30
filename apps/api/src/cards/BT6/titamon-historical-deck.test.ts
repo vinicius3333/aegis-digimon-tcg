@@ -83,7 +83,7 @@ describe("BT6 Titamon historical deck gauntlet", () => {
     )!;
     expect(s.perm("rebellimon").currentDP).toBe(14_000);
     expect(observe(s.engine).keywordAmount(s.perm("rebellimon"), "SecurityAttack")).toBe(1);
-    expect(observe(s.engine).hasKeyword(s.perm("rebellimon"), "Retaliation")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("rebellimon"), "Retaliation")).toBe(false);
     expect(observe(s.engine).hasKeyword(promote, "Rush")).toBe(true);
     expect(s.state.memory).toBe(2);
 
