@@ -22,6 +22,7 @@ export const compiled: CompiledCard = {
                 nameOrTrait: [{ tokens: ["SoC"], match: "trait" }],
               },
               from: ["trash"],
+              payCost: true,
               optional: true,
             },
           ],

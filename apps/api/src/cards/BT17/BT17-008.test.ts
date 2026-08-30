@@ -9,7 +9,14 @@ describe("BT17-008", () => {
     expect(compiled.effects).toHaveLength(2);
     expect(compiled.effects?.[0]).toMatchObject({ trigger: "YourTurn", frequency: "OncePerTurn" });
     expect(compiled.effects?.[0]).toMatchObject({
-      actions: [{ sourceFilter: { kind: ["Digimon"], orFilters: [{ kind: ["Tamer"] }] } }],
+      actions: [
+        {
+          sourceFilter: {
+            controller: "mine",
+            or: [{ kind: ["Digimon"] }, { kind: ["Tamer"] }],
+          },
+        },
+      ],
     });
     expect(compiled.effects?.[1]).toMatchObject({
       trigger: "AllTurns",
@@ -33,7 +40,9 @@ describe("BT17-008", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("takato").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("takato").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
@@ -48,14 +57,16 @@ describe("BT17-008", () => {
           hand: [{ card: "BT17-080", as: "takato" }],
           deck: [{ card: "BT1-001", as: "drawn" }],
         },
-        1: { battleArea: [{ card: "BT1-010", as: "highTarget" }] },
+        1: { battleArea: [{ card: "BT1-010", as: "highTarget", dp: 4000 }] },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("takato").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("takato").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.memory === 8);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);

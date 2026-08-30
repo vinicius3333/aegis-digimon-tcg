@@ -12,17 +12,17 @@ describe("BT17-073 DexDorugoramon", () => {
       expect.objectContaining({
         kind: "Replacement",
         event: "wouldBeDeleted",
-        sourceFilter: expect.objectContaining({
-          controller: "mine",
-          nameOrTrait: [{ tokens: ["Dorugoramon"], match: "name" }],
-        }),
-        actions: [
-          expect.objectContaining({
-            kind: "Prevent",
-            cost: expect.objectContaining({ kind: "digivolveSelf" }),
-            optional: true,
+        sourceFilter: { zone: "trash", controller: "mine" },
+        target: {
+          filter: expect.objectContaining({
+            controller: "mine",
+            nameOrTrait: [{ tokens: ["Dorugoramon"], match: "name" }],
           }),
-        ],
+        },
+        mode: "prevent",
+        digivolveFromTrash: true,
+        optional: true,
+        abortOnDecline: true,
       }),
     ]);
   });
@@ -58,7 +58,7 @@ describe("BT17-073 DexDorugoramon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT17-073", suspended: true, as: "dexDorugoramon" }] },
-        1: { battleArea: [{ card: "BT17-063", dp: 1000, as: "opposingDigimon" }] },
+        1: { battleArea: [{ card: "BT17-064", dp: 1000, as: "opposingDigimon" }] },
       },
       { autoAcceptOptional: true },
     );
@@ -81,7 +81,7 @@ describe("BT17-073 DexDorugoramon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT16-064", dp: 10000, as: "dorugoramon" }],
+          battleArea: [{ card: "BT16-064", dp: 10000, suspended: true, as: "dorugoramon" }],
           trash: [{ card: "BT17-073", as: "dexDorugoramon" }],
         },
         1: { battleArea: [{ card: "BT17-072", dp: 13000, as: "attacker" }] },
@@ -98,11 +98,7 @@ describe("BT17-073 DexDorugoramon", () => {
         target: { kind: "permanent", permanentId: s.perm("dorugoramon").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(
-      () =>
-        s.perm("dorugoramon").topCard.cardId === "BT17-073" &&
-        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("attacker").permanentId),
-    );
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT17-073"));
 
     expect(s.perm("dorugoramon").topCard.cardId).toBe("BT17-073");
     expect(s.perm("dorugoramon").stack.some((card) => card.cardId === "BT16-064")).toBe(true);

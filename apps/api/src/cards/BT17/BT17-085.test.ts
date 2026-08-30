@@ -51,7 +51,7 @@ describe("BT17-085 Rika Nonaka", () => {
             {
               kind: "Digivolve",
               target: { fromSelectionRef: "rikaTarget" },
-              into: { nameOrTrait: [{ tokens: ["Sakuyamon"], match: "name" }] },
+              into: { nameOrTrait: [{ tokens: ["Sakuyamon"], match: "nameExact" }] },
               from: ["hand"],
               payCost: true,
               costOverride: 4,
@@ -80,7 +80,7 @@ describe("BT17-085 Rika Nonaka", () => {
     await s.ready();
     await advance(s.engine).runTurn(0);
 
-    expect(s.state.memory).toBe(1);
+    expect(s.events).toContainEqual(expect.objectContaining({ kind: "memoryChanged", from: 0, to: 1 }));
     assertNoLoudGap(s);
   });
 
@@ -88,7 +88,10 @@ describe("BT17-085 Rika Nonaka", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: RIKA, as: "rika" }, { card: "BT17-031", as: "renamon" }],
+          battleArea: [
+            { card: RIKA, as: "rika" },
+            { card: "BT17-031", as: "renamon" },
+          ],
           hand: [{ card: "BT17-038", as: "sakuyamon" }],
           trash: [
             { card: "BT17-032", as: "kyubimon" },
@@ -123,9 +126,15 @@ describe("BT17-085 Rika Nonaka", () => {
   it("honors declining the optional Sakuyamon evolution after paying and placing all materials", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: RIKA, as: "rika" }, { card: "BT17-031", as: "renamon" }],
+        battleArea: [
+          { card: RIKA, as: "rika" },
+          { card: "BT17-031", as: "renamon" },
+        ],
         hand: [{ card: "BT17-038", as: "sakuyamon" }],
-        trash: [{ card: "BT17-032", as: "kyubimon" }, { card: "BT17-035", as: "taomon" }],
+        trash: [
+          { card: "BT17-032", as: "kyubimon" },
+          { card: "BT17-035", as: "taomon" },
+        ],
       },
     });
     s.state.memory = 4;
@@ -167,23 +176,37 @@ describe("BT17-085 Rika Nonaka", () => {
     assertNoLoudGap(s);
   });
 
-  it("does not treat Kuzuhamon as Sakuyamon for the named evolution", async () => {
+  it("does not treat an unrelated Digimon as Sakuyamon for the named evolution", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: RIKA, as: "rika" }, { card: "BT17-031", as: "renamon" }],
-        hand: [{ card: "EX4-030", as: "kuzuhamon" }],
-        trash: [{ card: "BT17-032", as: "kyubimon" }, { card: "BT17-035", as: "taomon" }],
+        battleArea: [
+          { card: RIKA, as: "rika" },
+          { card: "BT17-031", as: "renamon" },
+        ],
+        hand: [{ card: "BT17-016", as: "unrelated" }],
+        trash: [
+          { card: "BT17-032", as: "kyubimon" },
+          { card: "BT17-035", as: "taomon" },
+        ],
       },
     });
     s.state.memory = 4;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.perm("rika").topCard.instanceId,
-      effectKey: mainEffectKey(s),
-    }).ok).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("rika").topCard.instanceId,
+        effectKey: mainEffectKey(s),
+      }).ok,
+    ).toBe(true);
+    expect(s.perm("renamon").topCard.cardId).toBe("BT17-031");
     expect(s.perm("renamon").stack).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === RIKA)).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT17-032", "BT17-035"]),
+    );
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT17-016")).toBe(true);
     assertNoLoudGap(s);
   });
 
@@ -205,7 +228,9 @@ describe("BT17-085 Rika Nonaka", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === instanceId));
+    await settle(() =>
+      s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === instanceId),
+    );
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === instanceId)).toBe(true);
     expect(s.state.players[1]!.security.some((card) => card.instanceId === instanceId)).toBe(false);

@@ -11,11 +11,15 @@ describe("BT17-001 Gigimon", () => {
         actions: [
           expect.objectContaining({
             kind: "Delete",
-            cost: { kind: "payMemory", memory: 1 },
+            cost: expect.objectContaining({ kind: "payMemory", memory: 1 }),
             target: {
               filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 3000 } },
               count: 1,
             },
+            condition: expect.objectContaining({
+              kind: "opponentHas",
+              filter: { zone: "battleArea", controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 3000 } },
+            }),
           }),
         ],
       }),
@@ -33,6 +37,7 @@ describe("BT17-001 Gigimon", () => {
       },
     });
     s.state.memory = 2;
+    await s.ready();
     const effectTargetInstanceId = s.perm("effectTarget").topCard!.instanceId;
     const battleTargetPermanentId = s.perm("battleTarget").permanentId;
 
@@ -57,6 +62,7 @@ describe("BT17-001 Gigimon", () => {
       1: { battleArea: [{ card: "BT1-014", as: "target" }], security: ["BT1-009"] },
     });
     s.state.memory = 2;
+    await s.ready();
     const targetInstanceId = s.perm("target").topCard!.instanceId;
 
     expect(

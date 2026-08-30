@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "../../cards/BT5/BT5-110.js";
+import "../BT15/BT15-097.js";
 import { compiled } from "./BT17-037.js";
 import "./index.js";
 
@@ -104,28 +104,34 @@ describe("BT17-037 RizeGreymon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT17-037", as: "rize" },
-            { card: "BT5-086", as: "omnimon", under: ["BT5-014"] },
-            { card: "BT5-059", as: "purpleSource" },
+            { card: "BT17-034", as: "inheritedHost", under: ["BT17-037"] },
             { card: "BT1-087", as: "yellowTamer" },
           ],
-          hand: [{ card: "BT5-110", as: "allDelete" }],
           trash: [{ card: "BT12-092", as: "marcus" }],
           security: ["BT1-001"],
         },
+        1: {
+          battleArea: ["BT15-055"],
+          hand: [
+            { card: "BT15-097", as: "slicer" },
+            { card: "BT15-055", as: "machineCost" },
+          ],
+        },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     const marcusId = s.inst("marcus").instanceId;
+    s.state.turnSeat = 1;
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("allDelete").instanceId })).toEqual({
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("slicer").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === marcusId));
 
-    expect(s.state.players[0]!.security[0]?.instanceId).toBe(marcusId);
-    expect(s.state.players[0]!.security[0]?.faceUp).toBe(false);
+    const securedMarcus = s.state.players[0]!.security.find((card) => card.instanceId === marcusId);
+    expect(securedMarcus).toBeDefined();
+    expect(securedMarcus?.faceUp).toBe(false);
   });
 });

@@ -22,6 +22,7 @@ const compiled: CompiledCard = {
           payCost: false,
         },
       ],
+      isSecurity: true,
     },
     {
       trigger: "StartOfYourTurn",

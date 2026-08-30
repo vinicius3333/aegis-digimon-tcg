@@ -104,7 +104,7 @@ export const compiled: CompiledCard = {
               },
               into: {
                 controllerDefault: "mine",
-                nameOrTrait: [{ tokens: ["Sakuyamon"], match: "name" }],
+                nameOrTrait: [{ tokens: ["Sakuyamon"], match: "nameExact" }],
               },
               payCost: true,
               from: ["hand"],

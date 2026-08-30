@@ -22,9 +22,10 @@ export const compiled: CompiledCard = {
               event: "wouldBePlayed",
               mode: "reduceCost",
               amount: 1,
+              amountFromPaidCost: true,
               raw: "reduce the cost by 1",
               cost: {
-                kind: "place",
+                kind: "return",
                 target: {
                   filter: {
                     zone: "trash",
@@ -45,6 +46,7 @@ export const compiled: CompiledCard = {
                   upTo: true,
                   from: ["trash"],
                 },
+                to: "deckBottom",
                 raw: "by placing up to 13 cards with the [Unidentified] trait or [Diaboromon] in its text from your trash at the bottom of your deck",
               },
               optional: true,

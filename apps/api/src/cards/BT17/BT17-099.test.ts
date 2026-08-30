@@ -81,7 +81,9 @@ describe("BT17-099 Awakening of the Sun", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(
       () =>
         s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-099") &&
@@ -111,6 +113,10 @@ describe("BT17-099 Awakening of the Sun", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.perm("option").placedByEffect = true;
+    const option = s.perm("option");
+    const optionPermanentId = option.permanentId;
+    const optionInstanceId = option.topCard.instanceId;
     await s.ready();
     s.state.turnCount += 1;
     s.state.turnSeat = 1;
@@ -126,11 +132,11 @@ describe("BT17-099 Awakening of the Sun", () => {
     await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-087"));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-087")).toBe(false);
-    expect(observe(s.engine).hasKeyword(s.perm("option"), "Delay")).toBe(true);
+    expect(observe(s.engine).hasKeyword(optionPermanentId, "Delay")).toBe(true);
 
     s.state.turnCount += 1;
     s.state.turnSeat = 0;
-    const effects = observe(s.engine).activatableEffects(s.perm("option")) as Array<{
+    const effects = observe(s.engine).activatableEffects(option) as Array<{
       effectKey: string;
       description?: string;
     }>;
@@ -140,14 +146,14 @@ describe("BT17-099 Awakening of the Sun", () => {
     expect(
       s.engine.applyIntent(0, {
         type: "activateEffect",
-        sourceInstanceId: s.inst("option").instanceId,
+        sourceInstanceId: optionInstanceId,
         effectKey: delay!.effectKey,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("rize").topCard?.cardId === "BT17-039");
 
     expect(s.perm("rize").topCard?.cardId).toBe("BT17-039");
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionInstanceId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("shine").instanceId)).toBe(false);
   });
 
@@ -169,6 +175,9 @@ describe("BT17-099 Awakening of the Sun", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.perm("option").placedByEffect = true;
+    const option = s.perm("option");
+    const optionPermanentId = option.permanentId;
     await s.ready();
     s.state.turnCount += 1;
     s.state.turnSeat = 1;
@@ -184,11 +193,11 @@ describe("BT17-099 Awakening of the Sun", () => {
     await settle(
       () =>
         s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("marcus").instanceId) &&
-        observe(s.engine).hasKeyword(s.perm("option"), "Delay"),
+        observe(s.engine).hasKeyword(optionPermanentId, "Delay"),
     );
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("marcus").instanceId)).toBe(true);
-    expect(observe(s.engine).hasKeyword(s.perm("option"), "Delay")).toBe(true);
+    expect(observe(s.engine).hasKeyword(optionPermanentId, "Delay")).toBe(true);
   });
 
   it("naturally plays Marcus Damon from Security, then places itself in the battle area", async () => {

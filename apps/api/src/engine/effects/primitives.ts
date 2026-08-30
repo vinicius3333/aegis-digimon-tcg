@@ -710,8 +710,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     controllerSeat: Seat,
     explicitReduction = 0,
     useAsOption = false,
+    explicitOverride?: number,
   ): Promise<number> => {
-    const adjusted = ledger.playCostFor({ def: definition, controllerSeat }, normalizeCost(definition.playCost));
+    const printed = normalizeCost(definition.playCost);
+    const overrideBlocked =
+      continuous.blocksCostReduction(controllerSeat, "play") && (explicitOverride ?? printed) < printed;
+    const baseCost = overrideBlocked ? printed : (explicitOverride ?? printed);
+    const adjusted = ledger.playCostFor({ def: definition, controllerSeat }, Math.max(0, baseCost));
     const allowedReduction = continuous.blocksCostReduction(controllerSeat, "play")
       ? 0
       : Math.max(0, explicitReduction);
@@ -855,6 +860,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       suspended?: boolean;
       breeding?: boolean;
       costDelta?: number;
+      costOverride?: number;
       suppressOnPlayEffects?: boolean;
       effectSourceCardId?: string;
       playedByDecode?: boolean;
@@ -897,6 +903,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
           definition,
           ownerPlayer.seat,
           (opts.costDelta ?? 0) + digiXrosReduction,
+          false,
+          opts.costOverride,
         );
         if (engine.memory.maxCostFor(ownerPlayer.seat) < cost) continue;
         if (cost > 0) engine.memory.pay(ownerPlayer.seat, cost, "playCard");

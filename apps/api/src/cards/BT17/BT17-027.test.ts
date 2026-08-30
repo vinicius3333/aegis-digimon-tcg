@@ -25,7 +25,16 @@ describe("BT17-027", () => {
         choose: 1,
         options: [
           [{ kind: "Restrict", restriction: "suspend" }],
-          [{ kind: "Digivolve", from: ["hand"], payCost: false, ignoreRequirements: true, optional: true }],
+          [
+            {
+              kind: "Digivolve",
+              from: ["hand"],
+              payCost: false,
+              ignoreRequirements: true,
+              optional: true,
+              allowNoTarget: true,
+            },
+          ],
         ],
       });
     }
@@ -42,9 +51,15 @@ describe("BT17-027", () => {
 
   it("unsuspends an Omnimon host when it attacks", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT17-078", as: "host", under: ["BT17-027"] }] } },
-      { autoDeclineOptional: true },
+      {
+        0: { battleArea: [{ card: "BT17-078", as: "host", under: ["BT17-027"] }] },
+        // A non-empty security stack prevents the player-directed attack from
+        // ending the match before the inherited unsuspend settles.
+        1: { security: ["BT1-011"] },
+      },
+      { autoAcceptOptional: true },
     );
+    await s.ready();
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -52,7 +67,9 @@ describe("BT17-027", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+    await settle(() => !s.perm("host").isSuspended);
     expect(s.perm("host").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(0);
   });
 
   it("reduces its play cost with Matt and restricts one opposing Digimon on play", async () => {
@@ -68,12 +85,14 @@ describe("BT17-027", () => {
     );
     s.state.memory = 8;
     const opponentId = s.perm("opponent").permanentId;
+    const metalId = s.inst("metal").instanceId;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("metal").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.perm("metal").topCard?.cardId === "BT17-027");
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === metalId));
 
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === metalId)).toBe(true);
     expect(s.state.memory).toBe(0);
     expect(observe(s.engine).isRestricted(opponentId, "suspend")).toBe(true);
   });
@@ -83,7 +102,10 @@ describe("BT17-027", () => {
       {
         0: {
           battleArea: [{ card: "BT17-029", as: "agumon" }],
-          hand: [{ card: "BT17-027", as: "metal" }, { card: "BT17-015", as: "wargreymon" }],
+          hand: [
+            { card: "BT17-027", as: "metal" },
+            { card: "BT17-015", as: "wargreymon" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoChooseOption: true, preferOptionIndex: 1, autoSelectCards: true },

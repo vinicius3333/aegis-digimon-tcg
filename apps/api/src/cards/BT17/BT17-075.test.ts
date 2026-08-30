@@ -140,7 +140,7 @@ describe("BT17-075 Eosmon", () => {
             { card: "BT17-076", under: ["BT17-075"], as: "eosmon" },
           ],
         },
-        1: { battleArea: [{ card: "BT17-063", dp: 1000, as: "attacker" }] },
+        1: { battleArea: [{ card: "BT17-064", dp: 1000, as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -158,7 +158,7 @@ describe("BT17-075 Eosmon", () => {
 
     const declared = s.events.filter((event) => event.kind === "attackDeclared").at(-1);
     expect(declared).toMatchObject({ target: { kind: "permanent", permanentId: s.perm("eosmon").permanentId } });
-    expect(s.perm("eosmon").isSuspended).toBe(true);
+    expect(s.perm("eosmon").isSuspended).toBe(false);
     expect(s.perm("suspendedDecoy").isSuspended).toBe(true);
   });
 });

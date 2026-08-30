@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { revealedDefinition } from "../../engine/effects/interpreter/actions/reveal.js";
 import { getCardDefinition } from "@aegis/shared";
 import { compiled } from "./BT17-068.js";
+import "../BT3/BT3-051.js";
 import "./index.js";
 
 const MEPHISTOMON = "BT17-068";
@@ -22,7 +23,7 @@ describe("BT17-068 Mephistomon — [On Deletion] play Gulfmon from hand", () => 
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: MEPHISTOMON, dp: 7000, as: "meph" }],
+          battleArea: [{ card: MEPHISTOMON, dp: 7000, suspended: true, as: "meph" }],
           hand: [{ card: GULFMON, as: "gulfmon" }],
         },
         1: {},
@@ -50,7 +51,7 @@ describe("BT17-068 Mephistomon — [On Deletion] play Gulfmon from hand", () => 
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: MEPHISTOMON, dp: 7000, as: "meph" }],
+          battleArea: [{ card: MEPHISTOMON, dp: 7000, suspended: true, as: "meph" }],
           hand: [{ card: GULFMON, as: "gulfmon" }],
         },
         1: { battleArea: [{ card: "BT1-019", dp: 13000, as: "attacker" }] },
@@ -120,7 +121,10 @@ describe("BT17-068 Mephistomon — revealed level", () => {
       {
         0: {
           hand: [{ card: "BT3-051", as: "dokugumon" }],
-          deck: [{ card: MEPHISTOMON, as: "meph" }, { card: "BT17-068", as: "otherMeph" }],
+          deck: [
+            { card: MEPHISTOMON, as: "meph" },
+            { card: "BT17-068", as: "otherMeph" },
+          ],
         },
       },
       { autoSelectCards: true },

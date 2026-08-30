@@ -48,6 +48,7 @@ const compiled: CompiledCard = {
           kind: "PlayWithoutCost",
           target: {
             filter: {
+              zone: "hand",
               hasInheritedEffects: true,
               controller: "mine",
               kind: ["Tamer"],

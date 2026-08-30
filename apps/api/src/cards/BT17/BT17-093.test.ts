@@ -31,7 +31,10 @@ describe("BT17-093 Tai Kamiya & Kari Kamiya — hatch trigger", () => {
         0: {
           battleArea: [{ card: "BT17-093", as: "source" }],
           hand: [{ card: "BT17-093", as: "replacement" }],
-          deck: [{ card: "BT1-001", as: "turnDraw" }, { card: "BT1-002", as: "effectDraw" }],
+          deck: [
+            { card: "BT1-001", as: "turnDraw" },
+            { card: "BT1-002", as: "effectDraw" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -40,10 +43,14 @@ describe("BT17-093 Tai Kamiya & Kari Kamiya — hatch trigger", () => {
     await s.ready();
 
     await advance(s.engine).runTurn(0);
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("replacement").instanceId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("replacement").instanceId,
+      ),
+    );
 
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(s.inst("source").instanceId);
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("effectDraw").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("turnDraw").instanceId);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toContain(
       s.inst("replacement").instanceId,
     );

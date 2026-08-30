@@ -12,7 +12,7 @@ describe("BT17-089 Rhythm", () => {
       colors: ["Green", "Yellow"],
       kinds: ["Tamer"],
       playCost: 4,
-      effectText: expect.stringContaining("when an effect suspends"),
+      effectText: expect.stringContaining("When an effect suspends"),
       securityEffectText: "[Security] Play this card without paying the cost.",
     });
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
@@ -90,7 +90,9 @@ describe("BT17-089 Rhythm", () => {
     const drawnId = s.inst("drawn").instanceId;
 
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("suspender").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("suspender").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === drawnId));
 
     expect(s.perm("suspendedByCost").isSuspended).toBe(true);
@@ -119,7 +121,9 @@ describe("BT17-089 Rhythm", () => {
     s.state.memory = 10;
 
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("suspender").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("suspender").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("rhythm").isSuspended);
 
     expect(s.state.memory).toBe(8);
@@ -144,7 +148,9 @@ describe("BT17-089 Rhythm", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === instanceId));
+    await settle(() =>
+      s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === instanceId),
+    );
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === instanceId)).toBe(true);
     expect(s.state.players[1]!.security.some((card) => card.instanceId === instanceId)).toBe(false);

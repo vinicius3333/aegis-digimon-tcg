@@ -69,7 +69,9 @@ describe("BT17-096 Crimson Savior", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(
       () =>
         s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-096") &&
@@ -85,24 +87,32 @@ describe("BT17-096 Crimson Savior", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
+          battleArea: [{ card: "BT17-013", as: "warGrowlmon" }],
+          hand: [
             { card: "BT17-096", as: "option" },
-            { card: "BT17-013", as: "warGrowlmon" },
+            { card: "BT17-016", as: "gallantmon" },
           ],
-          hand: [{ card: "BT17-016", as: "gallantmon" }],
         },
         1: {
           hand: [{ card: "BT17-013", as: "opponentLevel5" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      // Do not auto-answer the Delay activation while checking that the event watcher
+      // granted it. The activation is accepted explicitly below.
+      { autoSelectCards: true },
     );
+    const optionId = s.inst("option").instanceId;
     await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId));
     s.state.turnCount += 1;
     s.state.turnSeat = 1;
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentLevel5").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentLevel5").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => observe(s.engine).hasKeyword(s.perm("option"), "Delay"));
 
     expect(observe(s.engine).hasKeyword(s.perm("option"), "Delay")).toBe(true);
@@ -114,11 +124,22 @@ describe("BT17-096 Crimson Savior", () => {
     const delay = effects.find((effect) => String(effect.description).toLowerCase().includes("delay"));
     expect(delay).toBeDefined();
 
+    const decisionCount = s.decisions.length;
     expect(
       s.engine.applyIntent(0, {
         type: "activateEffect",
         sourceInstanceId: s.inst("option").instanceId,
         effectKey: delay!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.length > decisionCount);
+    const delayPrompt = s.decisions.at(-1)?.req;
+    expect(delayPrompt?.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: delayPrompt!.decisionId,
+        response: { kind: "optional", accept: true },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("warGrowlmon").topCard?.cardId === "BT17-016");

@@ -154,11 +154,16 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   // afterwards because a nested action (a branch, a repeat) resolves its own
   // targets and must not inherit the outer action's fate.
   const outerFate = ctx.activeTargetFate;
+  const outerDelayArmedConsumed = ctx.delayArmedConsumed;
   ctx.activeTargetFate = targetFateOf(action);
   try {
     return await runActionInner(ctx, action);
   } finally {
     ctx.activeTargetFate = outerFate;
+    // `requiresDelayArmed` is scoped to this action resolution. Some focused
+    // contexts are intentionally reused across timing windows; leaking the
+    // consumed flag would let the same payload run again without a new grant.
+    ctx.delayArmedConsumed = outerDelayArmedConsumed;
   }
 }
 
@@ -194,7 +199,14 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   // grant here for action kinds whose specialized handlers do not own that gate. The intrinsic
   // Main Delay wrapper passes delayArmedConsumed after consuming its grant, while Play,
   // Replacement, and SubTrigger handlers can safely observe the same flag without double use.
-  if (action.kind !== "RawUnparsed" && action.requiresDelayArmed === true && ctx.delayArmedConsumed !== true) {
+  const ownsDelayGate =
+    action.kind === "PlayWithoutCost" || action.kind === "Replacement" || action.kind === "SubTrigger";
+  if (
+    action.kind !== "RawUnparsed" &&
+    !ownsDelayGate &&
+    action.requiresDelayArmed === true &&
+    ctx.delayArmedConsumed !== true
+  ) {
     const self = ctx.source.permanent();
     if (self === undefined) return false;
     const hasDelay = (ctx.fx.grantedKeywords?.(self.permanentId) ?? []).some((grant) => grant.keyword === "Delay");

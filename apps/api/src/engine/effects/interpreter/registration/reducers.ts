@@ -72,6 +72,9 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "EX8-074", // suspend 2 Digimon -> -4
   "EX10-048", // delete 1 own Myotismon-text Digimon -> -4 (Q5130/Q5131)
   "BT17-068", // return 1 [Apocalymon] from trash -> -3
+  "BT17-015", // Tai Kamiya in play -> self play cost -3
+  "BT17-027", // Matt Ishida in play -> self play cost -3
+  "BT17-060", // return up to 13 Unidentified/Diaboromon-text cards -> -1 each
   "BT18-073", // delete 1 own [Composite] Digimon -> -4
   "EX9-011", // trash 1 [Cyborg]/[Ver.1] from hand -> -2
   "EX9-018", // trash 1 [Cyborg]/[Ver.x] from hand -> -2
@@ -206,6 +209,7 @@ function captureReducer(
     raw?: string;
     condition?: unknown;
     target?: unknown;
+    amountFromPaidCost?: boolean;
   },
   scaling: Scaling | undefined,
   fallbackRaw: string,
@@ -220,7 +224,12 @@ function captureReducer(
   if (a.cost !== undefined) {
     if (condition !== undefined) return;
     if (!STRUCTURED_REDUCER_COSTS.has(a.cost.kind)) return;
-    out.push({ cost: a.cost, amount, raw });
+    out.push({
+      cost: a.cost,
+      amount: a.amountFromPaidCost === true ? 0 : amount,
+      raw,
+      ...(a.amountFromPaidCost === true ? { amountPerPaid: amount } : {}),
+    });
     return;
   }
   if (costActionsRaw.length > 0) {
@@ -611,8 +620,11 @@ export async function applyWouldBePlayedSelfReducer(
       ctx.playCostDelta = (ctx.playCostDelta ?? 0) + placedCount * reducer.amountPerPaid;
       return;
     }
-    if (await payCost(ctx, reducer.cost)) {
-      ctx.playCostDelta = (ctx.playCostDelta ?? 0) + Math.max(0, reducer.amount);
+    const receipt = { paidCount: 0 };
+    if (await payCost(ctx, reducer.cost, receipt)) {
+      const reduction =
+        reducer.amountPerPaid === undefined ? reducer.amount : reducer.amountPerPaid * receipt.paidCount;
+      ctx.playCostDelta = (ctx.playCostDelta ?? 0) + Math.max(0, reduction);
     }
     return;
   }

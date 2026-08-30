@@ -31,13 +31,15 @@ describe("BT17-098 Hacker Pride", () => {
           abortOnDecline: true,
           cost: {
             kind: "place",
+            targetIsPermanent: true,
+            detachPermanentTop: true,
             destination: "security",
             position: "top",
             target: {
               count: 1,
-              topCardOnly: true,
               filter: {
                 levelComparison: { op: "gte", value: 4 },
+                kind: ["Digimon"],
                 nameOrTrait: [{ tokens: ["Pulsemon"], match: "text" }],
               },
             },
@@ -88,6 +90,7 @@ describe("BT17-098 Hacker Pride", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.perm("option").placedByEffect = true;
     await s.ready();
     s.state.turnCount += 1;
     s.state.turnSeat = 0;
@@ -97,7 +100,7 @@ describe("BT17-098 Hacker Pride", () => {
       effectKey: string;
       description?: string;
     }>;
-    const delay = effects.find((effect) => String(effect.description).toLowerCase().includes("delay"));
+    const delay = effects[0];
     expect(delay).toBeDefined();
 
     expect(

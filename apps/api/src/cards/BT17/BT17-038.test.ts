@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "../../cards/EX2/EX2-066.js";
+import "../EX2/EX2-066.js";
 import { compiled } from "./BT17-038.js";
 import "./index.js";
 
@@ -22,10 +22,7 @@ describe("BT17-038 Sakuyamon", () => {
         controller: "mine",
         kind: ["Option"],
         playCostLte: 99,
-        or: [
-          { nameOrTrait: [{ tokens: ["Plug-In"], match: "name" }] },
-          { colors: ["Yellow"], playCostLte: 5 },
-        ],
+        or: [{ nameOrTrait: [{ tokens: ["Plug-In"], match: "name" }] }, { colors: ["Yellow"], playCostLte: 5 }],
       },
       allowMultiColor: true,
     });

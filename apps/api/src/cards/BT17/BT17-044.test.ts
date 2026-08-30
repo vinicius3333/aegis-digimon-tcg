@@ -58,21 +58,25 @@ describe("BT17-044 Morphomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT17-044", as: "morphomon" }],
-          hand: [{ card: "BT17-074", as: "playedEosmon" }, { card: "BT17-074", as: "evolvedEosmon" }],
+          battleArea: [{ card: "BT17-074", under: ["BT17-044"], as: "morphomonHost" }],
+          hand: [
+            { card: "BT17-074", as: "playedEosmon" },
+            { card: "BT17-075", as: "evolvedEosmon" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 4;
     const evolvedEosmonId = s.inst("evolvedEosmon").instanceId;
+    await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("playedEosmon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.perm("morphomon").topCard?.instanceId === evolvedEosmonId);
+    await settle(() => s.perm("morphomonHost").topCard?.instanceId === evolvedEosmonId);
 
-    expect(s.perm("morphomon").topCard?.cardId).toBe("BT17-074");
+    expect(s.perm("morphomonHost").topCard?.cardId).toBe("BT17-075");
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === evolvedEosmonId)).toBe(false);
     expect(s.state.memory).toBe(0);
   });

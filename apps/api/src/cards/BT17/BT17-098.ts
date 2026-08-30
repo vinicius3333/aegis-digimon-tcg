@@ -43,23 +43,16 @@ export const compiled: CompiledCard = {
           amount: 2,
           cost: {
             kind: "place",
+            targetIsPermanent: true,
+            detachPermanentTop: true,
             target: {
               filter: {
                 controller: "mine",
                 kind: ["Digimon"],
-                levelComparison: {
-                  op: "gte",
-                  value: 4,
-                },
-                nameOrTrait: [
-                  {
-                    tokens: ["Pulsemon"],
-                    match: "text",
-                  },
-                ],
+                levelComparison: { op: "gte", value: 4 },
+                nameOrTrait: [{ tokens: ["Pulsemon"], match: "text" }],
               },
               count: 1,
-              topCardOnly: true,
             },
             destination: "security",
             position: "top",

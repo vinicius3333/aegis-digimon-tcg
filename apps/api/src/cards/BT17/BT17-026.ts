@@ -16,6 +16,7 @@ const compiled: CompiledCard = {
             filter: {
               zone: "battleArea",
               controller: "mine",
+              kind: ["Tamer"],
               nameOrTrait: [
                 {
                   tokens: ["Koji Minamoto"],
@@ -112,6 +113,8 @@ const compiled: CompiledCard = {
             target: {
               filter: {
                 controller: "mine",
+                zone: "digivolutionCards",
+                hostFilter: { sourceRef: "triggerSubject" },
                 nameOrTrait: [
                   {
                     tokens: ["Hybrid"],

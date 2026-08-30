@@ -68,7 +68,7 @@ describe("BT17-095 Miraculous Mega Knight", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: ["BT17-069"],
+          battleArea: ["BT17-069", "BT17-019"],
           hand: [{ card: "BT17-095", as: "option" }],
           trash: [{ card: "BT17-007", as: "agumon" }],
         },
@@ -76,8 +76,11 @@ describe("BT17-095 Miraculous Mega Knight", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
+    await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(
       () =>
         s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-095") &&
@@ -93,32 +96,45 @@ describe("BT17-095 Miraculous Mega Knight", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT17-095", as: "option" },
-            { card: "BT4-113", as: "leavingGreymon" },
-          ],
+          battleArea: [{ card: "BT4-113", as: "leavingGreymon" }, "BT17-069", "BT17-019"],
+          hand: [{ card: "BT17-095", as: "option" }],
         },
         1: {
           battleArea: ["BT17-019"],
           hand: [{ card: "BT10-098", as: "returner" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      // Keep the armed Option on the field while the watcher is observed. Delay is
+      // activated explicitly in its own Main window; auto-accepting every optional
+      // prompt can consume that card before the grant assertion runs.
+      { autoSelectCards: true },
     );
+    const optionId = s.inst("option").instanceId;
     await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId));
+    const option = s.perm("option");
+    const optionPermanentId = option.permanentId;
     s.state.turnCount += 1;
     s.state.turnSeat = 1;
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("returner").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("returner").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(
       () =>
         s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("leavingGreymon").instanceId) &&
-        observe(s.engine).hasKeyword(s.perm("option"), "Delay"),
+        observe(s.engine).hasKeyword(optionPermanentId, "Delay"),
     );
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("leavingGreymon").instanceId)).toBe(true);
-    expect(observe(s.engine).hasKeyword(s.perm("option"), "Delay")).toBe(true);
+    expect(observe(s.engine).hasKeyword(optionPermanentId, "Delay")).toBe(true);
+
+    // The activated Main/Delay affordance is shown only to the current turn player.
+    s.state.turnSeat = 0;
+    await settle(() => observe(s.engine).activatableEffects(option).length > 0);
   });
 
   it("naturally plays a Tai/Matt card from Security, then adds itself to hand", async () => {

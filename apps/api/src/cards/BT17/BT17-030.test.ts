@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -58,7 +58,10 @@ describe("BT17-030", () => {
       {
         0: {
           battleArea: [{ card: "BT17-030", as: "pulsemon" }],
-          hand: [{ card: "BT17-086", as: "leon" }, { card: "BT17-029", as: "mainAction" }],
+          hand: [
+            { card: "BT17-086", as: "leon" },
+            { card: "BT17-029", as: "mainAction" },
+          ],
           deck: ["BT1-011"],
           security: 3,
         },
@@ -69,7 +72,9 @@ describe("BT17-030", () => {
     const leonId = s.inst("leon").instanceId;
 
     await s.ready();
-    await advance(s.engine).runTurn(0);
+    // Inspect the start-of-main window itself. A complete runTurn intentionally passes
+    // the gauge to the next player and reframes memory to -3 after the effect resolves.
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("pulsemon"));
 
     expect(s.state.memory).toBe(4);
     expect(s.perm("pulsemon").stack.map((card) => card.instanceId)).toEqual([leonId]);
@@ -80,7 +85,10 @@ describe("BT17-030", () => {
       {
         0: {
           battleArea: [{ card: "BT17-030", as: "pulsemon" }],
-          hand: [{ card: "BT17-086", as: "leon" }, { card: "BT17-029", as: "mainAction" }],
+          hand: [
+            { card: "BT17-086", as: "leon" },
+            { card: "BT17-029", as: "mainAction" },
+          ],
           deck: [{ card: "BT1-011", as: "recovered" }],
           security: 2,
         },
@@ -91,11 +99,12 @@ describe("BT17-030", () => {
 
     s.state.memory = 3;
     await s.ready();
-    await advance(s.engine).runTurn(0);
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("pulsemon"));
     await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === recoveredId));
 
     expect(s.state.players[0]!.security).toHaveLength(3);
     expect(s.perm("pulsemon").stack.at(0)?.cardId).toBe("BT17-086");
+    expect(s.state.memory).toBe(3);
   });
 
   it("grants inherited DP only when the host text mentions Pulsemon", async () => {

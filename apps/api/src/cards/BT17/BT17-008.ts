@@ -12,10 +12,9 @@ export const compiled: CompiledCard = {
           event: "whenPlayed",
           sourceFilter: {
             controller: "mine",
-            kind: ["Digimon"],
-            nameOrTrait: [{ tokens: ["Calumon"], match: "name" }],
-            orFilters: [
-              { controller: "mine", kind: ["Tamer"], nameOrTrait: [{ tokens: ["Takato Matsuki"], match: "name" }] },
+            or: [
+              { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Calumon"], match: "name" }] },
+              { kind: ["Tamer"], nameOrTrait: [{ tokens: ["Takato Matsuki"], match: "name" }] },
             ],
           },
           actions: [

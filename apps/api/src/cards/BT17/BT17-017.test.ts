@@ -27,6 +27,15 @@ describe("BT17-017", () => {
     });
   });
 
+  it("keeps the DigiXros recipe as exact Agunimon/BurningGreymon aliases with -3", () => {
+    expect(compiled.digiXrosRequirement).toEqual([
+      {
+        count: 3,
+        materials: [{ names: ["Agunimon"] }, { names: ["BurningGreymon"] }],
+      },
+    ]);
+  });
+
   it("deletes an opposing Digimon at or below its DP through natural play", async () => {
     const s = setupEngine(
       {
@@ -41,7 +50,7 @@ describe("BT17-017", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ancient").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.perm("ancient").topCard.cardId === "BT17-017");
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT17-017"));
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(observe(s.engine).hasKeyword(s.perm("ancient"), "SecurityAttack")).toBe(true);
@@ -100,7 +109,7 @@ describe("BT17-017", () => {
         },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("ancient").topCard.cardId === "BT17-017");
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT17-017"));
 
     expect(s.state.memory).toBe(0);
     expect(s.perm("ancient").stack.map(({ cardId }) => cardId)).toEqual(
@@ -114,7 +123,10 @@ describe("BT17-017", () => {
       {
         0: {
           battleArea: [{ card: "BT17-017", as: "ancient", suspended: true }],
-          trash: [{ card: "BT17-081", as: "tamer" }, { card: "BT17-011", as: "hybrid" }],
+          trash: [
+            { card: "BT17-081", as: "tamer" },
+            { card: "BT17-011", as: "hybrid" },
+          ],
           hand: [{ card: "BT17-083", as: "playable" }],
         },
         1: { battleArea: [{ card: "BT1-015", as: "attacker", dp: 13000 }] },

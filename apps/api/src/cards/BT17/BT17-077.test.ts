@@ -67,26 +67,36 @@ describe("BT17-077 Imperialdramon: Paladin Mode", () => {
     });
   });
 
-  it("deletes one opposing Digimon after a natural non-DNA play", async () => {
+  it("trashes every opposing digivolution card after a natural non-DNA play", async () => {
     const s = setupEngine(
       {
         0: { hand: [{ card: "BT17-077", as: "paladin" }] },
         1: {
           battleArea: [
-            { card: "BT17-063", as: "firstTarget" },
-            { card: "BT17-063", as: "survivor" },
+            { card: "BT17-063", under: [{ card: "BT1-009", as: "firstSource" }], as: "firstTarget" },
+            { card: "BT17-063", under: [{ card: "BT1-010", as: "secondSource" }], as: "survivor" },
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 9;
+    const firstSourceId = s.inst("firstSource").instanceId;
+    const secondSourceId = s.inst("secondSource").instanceId;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("paladin").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("firstTarget").instanceId));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("paladin").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === secondSourceId));
 
-    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("firstTarget").instanceId)).toBe(true);
-    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("survivor").instanceId)).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === firstSourceId)).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === secondSourceId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("firstTarget").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("survivor").instanceId)).toBe(
+      true,
+    );
   });
 
   it("unsuspends after a natural attack returns a bare opposing Digimon", async () => {
