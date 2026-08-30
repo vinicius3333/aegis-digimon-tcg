@@ -64,6 +64,10 @@ export function makeDigimon(seat: Seat, dp: number, cardId = "AD1-001"): Permane
   permanent.inBreeding = false;
   permanent.baseDP = dp;
   permanent.currentDP = dp;
+  // A manually seeded battle-area Digimon is established by default, matching
+  // Board Spec fixtures. Tests for summoning sickness opt in by setting the
+  // entry turn explicitly.
+  permanent.enterFieldTurnCount = ESTABLISHED_TURN;
   return permanent;
 }
 

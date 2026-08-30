@@ -109,14 +109,15 @@ export async function runStaticAction(ctx: EffectContext, action: Action): Promi
           const permanent = ctx.game.permanentById(id);
           const top = permanent?.topCard;
           if (top === undefined) continue;
-          ctx.fx.grantCustomEffect?.(top.instanceId, top.ownerSeat, action.effectText, grantDuration);
+          ctx.fx.grantCustomEffect?.(top.instanceId, ctx.source.ownerSeat, action.effectText, grantDuration);
           grantedInstanceIds.add(top.instanceId);
         }
         // "All of their Digimon gain ... until the end of their turn" is a timed player-wide
         // grant, not a snapshot of the board. Keep the existing targets and apply the same
         // token to a matching opponent Digimon that enters before the duration expires.
         if (action.includeLaterEntrants === true) {
-          const target = action.target ??
+          const target =
+            action.target ??
             ({ filter: action.filter ?? { kind: ["Digimon"], controller: "opponent" }, count: "all" } as Target);
           ctx.fx.subscribeSubTrigger({
             description: "opponent-turn entrant granted effect",
@@ -130,11 +131,9 @@ export async function runStaticAction(ctx: EffectContext, action: Action): Promi
             matches: (subCtx) => {
               const id = subCtx.trigger.subjectPermanentId;
               const permanent = id === undefined ? undefined : subCtx.game.permanentById(id);
-              return permanent !== undefined && permanentMatchesFilter(
-                subCtx,
-                permanent,
-                { ...target.filter, controller: "opponent" },
-                subCtx.source,
+              return (
+                permanent !== undefined &&
+                permanentMatchesFilter(subCtx, permanent, { ...target.filter, controller: "opponent" }, subCtx.source)
               );
             },
             run: async (subCtx) => {
@@ -145,7 +144,12 @@ export async function runStaticAction(ctx: EffectContext, action: Action): Promi
                 // This exact entry may be visible through several entry producers
                 // in one window. The grant ledger is token/idempotence-aware, but
                 // only invoke it once per watcher/event subject here as well.
-                subCtx.fx.grantCustomEffect?.(top.instanceId, top.ownerSeat, action.effectText!, grantDuration);
+                subCtx.fx.grantCustomEffect?.(
+                  top.instanceId,
+                  subCtx.source.ownerSeat,
+                  action.effectText!,
+                  grantDuration,
+                );
                 grantedInstanceIds.add(top.instanceId);
               }
             },

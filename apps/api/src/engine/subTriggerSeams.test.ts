@@ -132,7 +132,9 @@ function watchBattleEntry(s: ReturnType<typeof setupEngine>, sourcePermanentId: 
     description: "test: observe broad battle-area entry",
     run: async (ctx) => {
       const subject =
-        ctx.trigger.subjectPermanentId === undefined ? undefined : ctx.game.permanentById(ctx.trigger.subjectPermanentId);
+        ctx.trigger.subjectPermanentId === undefined
+          ? undefined
+          : ctx.game.permanentById(ctx.trigger.subjectPermanentId);
       entries.push({
         subjectPermanentId: ctx.trigger.subjectPermanentId,
         entryCause: ctx.trigger.entryCause,
@@ -205,39 +207,83 @@ describe("whenLinkTrashed SubTrigger event — a genuine link-card trash fires i
 
 describe("OnEnterFieldAnyone broad battle-entry seam", () => {
   it("fires once with the entered subject, controller, and cause for normal and effect plays", async () => {
-    const normal = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "watcher" }], hand: [{ card: "BT1-010", as: "played" }] } });
+    const normal = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "watcher" }], hand: [{ card: "BT1-010", as: "played" }] },
+    });
     normal.state.memory = 10;
     const normalEntries = watchBattleEntry(normal, normal.perm("watcher").permanentId);
-    expect(normal.engine.applyIntent(0, { type: "playCard", instanceId: normal.inst("played").instanceId })).toEqual({ ok: true });
+    expect(normal.engine.applyIntent(0, { type: "playCard", instanceId: normal.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => normalEntries.length === 1);
-    expect(normalEntries).toEqual([{ subjectPermanentId: normal.perm("played").permanentId, entryCause: "play", controllerSeat: 0 }]);
+    expect(normalEntries).toEqual([
+      { subjectPermanentId: normal.perm("played").permanentId, entryCause: "play", controllerSeat: 0 },
+    ]);
 
-    const effect = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "watcher" }], trash: [{ card: "BT1-010", as: "played" }] } });
+    const effect = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "watcher" }], trash: [{ card: "BT1-010", as: "played" }] },
+    });
     const effectEntries = watchBattleEntry(effect, effect.perm("watcher").permanentId);
     await advance(effect.engine).verb.playInstances([effect.inst("played").instanceId], "test-effect-play");
-    expect(effectEntries).toEqual([{ subjectPermanentId: effect.perm("played").permanentId, entryCause: "play", controllerSeat: 0 }]);
+    expect(effectEntries).toEqual([
+      { subjectPermanentId: effect.perm("played").permanentId, entryCause: "play", controllerSeat: 0 },
+    ]);
   });
 
   it("fires once for manual and effect-driven digivolution", async () => {
     const manual = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "base" }, { card: "BT1-010", as: "watcher" }], hand: [{ card: "BT1-015", as: "into" }] },
+      0: {
+        battleArea: [
+          { card: "BT1-009", as: "base" },
+          { card: "BT1-010", as: "watcher" },
+        ],
+        hand: [{ card: "BT1-015", as: "into" }],
+      },
     });
     manual.state.memory = 10;
     const manualEntries = watchBattleEntry(manual, manual.perm("watcher").permanentId);
-    expect(manual.engine.applyIntent(0, { type: "digivolve", permanentId: manual.perm("base").permanentId, instanceId: manual.inst("into").instanceId })).toEqual({ ok: true });
+    expect(
+      manual.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: manual.perm("base").permanentId,
+        instanceId: manual.inst("into").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => manualEntries.length === 1);
-    expect(manualEntries).toEqual([{ subjectPermanentId: manual.perm("base").permanentId, entryCause: "digivolve", controllerSeat: 0 }]);
+    expect(manualEntries).toEqual([
+      { subjectPermanentId: manual.perm("base").permanentId, entryCause: "digivolve", controllerSeat: 0 },
+    ]);
 
     const effect = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "base" }, { card: "BT1-010", as: "watcher" }], hand: [{ card: "BT1-015", as: "into" }] },
+      0: {
+        battleArea: [
+          { card: "BT1-009", as: "base" },
+          { card: "BT1-010", as: "watcher" },
+        ],
+        hand: [{ card: "BT1-015", as: "into" }],
+      },
     });
     const effectEntries = watchBattleEntry(effect, effect.perm("watcher").permanentId);
-    await advance(effect.engine).verb.digivolveFromInstance(effect.perm("base").permanentId, effect.inst("into").instanceId, { ignoreRequirements: true });
-    expect(effectEntries).toEqual([{ subjectPermanentId: effect.perm("base").permanentId, entryCause: "digivolve", controllerSeat: 0 }]);
+    await advance(effect.engine).verb.digivolveFromInstance(
+      effect.perm("base").permanentId,
+      effect.inst("into").instanceId,
+      { ignoreRequirements: true },
+    );
+    expect(effectEntries).toEqual([
+      { subjectPermanentId: effect.perm("base").permanentId, entryCause: "digivolve", controllerSeat: 0 },
+    ]);
   });
 
   it("covers breeding movement, leaves existing breeding watchers ordered, and excludes non-entry movement", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "watcher" }, { card: "BT1-010", as: "returned" }], breeding: { card: "BT1-011", as: "bred" } } });
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-009", as: "watcher" },
+          { card: "BT1-010", as: "returned" },
+        ],
+        breeding: { card: "BT1-011", as: "bred" },
+      },
+    });
     s.state.phase = Phase.Breeding;
     const entries = watchBattleEntry(s, s.perm("watcher").permanentId);
     let breedingWatcherFires = 0;
@@ -250,9 +296,13 @@ describe("OnEnterFieldAnyone broad battle-entry seam", () => {
         breedingWatcherFires += 1;
       },
     });
-    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("bred").permanentId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("bred").permanentId })).toEqual({
+      ok: true,
+    });
     await settle(() => entries.length === 1 && breedingWatcherFires === 1);
-    expect(entries).toEqual([{ subjectPermanentId: s.perm("bred").permanentId, entryCause: "move", controllerSeat: 0 }]);
+    expect(entries).toEqual([
+      { subjectPermanentId: s.perm("bred").permanentId, entryCause: "move", controllerSeat: 0 },
+    ]);
     await advance(s.engine).verb.returnToHand([s.inst("returned").instanceId]);
     expect(entries).toHaveLength(1);
   });
@@ -935,7 +985,15 @@ describe("loose-anchored SubTrigger location check (CR §15-4-4-3)", () => {
     let fireCount = 0;
     primitivesOf(s).subscribeSubTrigger({
       event: EVENT,
-      activationContext: { trigger: {}, fx: primitivesOf(s) } as unknown as EffectContext,
+      activationContext: {
+        source: {
+          instanceId: card.instanceId,
+          cardId: card.cardId,
+          ownerSeat: 0,
+        },
+        trigger: {},
+        fx: primitivesOf(s),
+      } as unknown as EffectContext,
       once: false,
       run: async () => {
         fireCount += 1;

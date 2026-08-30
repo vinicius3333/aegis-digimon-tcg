@@ -2392,10 +2392,11 @@ describe("v2 IR actions dispatch to real primitives", () => {
     expect(subs).toHaveLength(1);
     expect(subs[0]!.args[0]).toMatchObject({
       event: "endOfTurn",
-      sourcePermanentId: "SELF",
       once: true,
       expiresOnTurnEndOf: 1,
     });
+    expect(subs[0]!.args[0].sourcePermanentId).toBeUndefined();
+    expect(subs[0]!.args[0].activationContext).toBeDefined();
   });
 
   it("grants a continuous keyword (non-Piercing) via fx.grantKeyword", async () => {
