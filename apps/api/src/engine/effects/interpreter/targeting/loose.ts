@@ -238,6 +238,11 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
   const primaryFilters =
     nestedOr && nestedOr.length > 0 ? nestedOr.map((branch) => ({ ...commonFilter, ...branch })) : [target.filter];
   const allFilters = [...primaryFilters, ...(target.orFilters ?? []), ...(target.filter.orFilters ?? [])];
+  const branchSpecificHostFilters = new Set(
+    [...(nestedOr ?? []), ...(target.orFilters ?? []), ...(target.filter.orFilters ?? [])]
+      .map((filter) => filter.hostFilter)
+      .filter((filter): filter is NonNullable<Filter["hostFilter"]> => filter !== undefined),
+  );
   const seatSet = new Set<Seat>();
   for (const f of allFilters) for (const s of seatsForController(ctx, f)) seatSet.add(s);
   const seats = [...seatSet];
@@ -273,10 +278,17 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
           const branchZones =
             filter.zone === undefined ? undefined : Array.isArray(filter.zone) ? filter.zone : [filter.zone];
           if (branchZones !== undefined && !branchZones.includes(zone)) return false;
-          // A union branch qualified by its host can only match a hosted-card zone. Without
-          // this gate, BT13-019's Royal Knight-from-breeding branch also admitted Royal
-          // Knights from trash merely because definitionMatches ignores hostFilter.
-          if (filter.hostFilter !== undefined && zone !== "digivolutionCards" && zone !== "linked") return false;
+          // A hostFilter on the common target constrains only hosted candidates; the same
+          // target may explicitly pool loose trash/hand cards (BT24-077/079). A hostFilter
+          // declared by one OR branch is different: it qualifies that branch itself, so a
+          // loose candidate cannot satisfy it (BT13-019's breeding-only Royal Knight branch).
+          if (
+            filter.hostFilter !== undefined &&
+            zone !== "digivolutionCards" &&
+            zone !== "linked" &&
+            branchSpecificHostFilters.has(filter.hostFilter)
+          )
+            return false;
           // LM-023 Q5516: an Option's "use cost" can be reduced while it is
           // in hand. This ceiling deliberately queries the shared cost ledger
           // instead of the card's printed play cost.

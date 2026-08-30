@@ -5372,6 +5372,67 @@ describe("candidateLooseInstances — hostFilter gating", () => {
     expect(result).toHaveLength(2);
   });
 
+  it("applies a common hostFilter only to hosted cards in a mixed loose/stack pool", () => {
+    const source = makeSource();
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({
+      source,
+      recorder,
+      definitionOf: (cardId) => makeFakeDefinition({ cardId, kinds: [CardKind.Digimon] }),
+    });
+    ctx.game.player(0).trash.push({
+      instanceId: "loose-trash",
+      cardId: "LOOSE",
+      ownerSeat: 0 as Seat,
+      faceUp: true,
+    } as never);
+
+    expect(
+      candidateLooseInstances(
+        ctx,
+        {
+          filter: { controller: "mine", kind: ["Digimon"], hostFilter: { isSelfRef: true } },
+          count: 1,
+        } as never,
+        ["trash", "digivolutionCards"],
+      ).map(({ instanceId }) => instanceId),
+    ).toEqual(["loose-trash"]);
+  });
+
+  it("does not let a loose card satisfy an OR branch qualified by a hostFilter", () => {
+    const source = makeSource();
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({
+      source,
+      recorder,
+      definitionOf: (cardId) =>
+        makeFakeDefinition({ cardId, kinds: [CardKind.Digimon], nameEn: "Royal", types: ["Royal Knight"] }),
+    });
+    ctx.game.player(0).trash.push({
+      instanceId: "loose-royal",
+      cardId: "ROYAL",
+      ownerSeat: 0 as Seat,
+      faceUp: true,
+    } as never);
+
+    expect(
+      candidateLooseInstances(
+        ctx,
+        {
+          filter: {
+            controller: "mine",
+            or: [
+              { nameOrTrait: [{ tokens: ["Sistermon"], match: "name" }] },
+              { trait: "Royal Knight", hostFilter: { zone: "breeding" } },
+            ],
+          },
+          count: 1,
+        } as never,
+        ["trash", "digivolutionCards"],
+      ),
+    ).toEqual([]);
+  });
+
   it("FAILS-WHEN-REVERTED: removing hostFilter check returns both cards", () => {
     const source = makeSource();
     const recorder: Recorder = { calls: [] };
