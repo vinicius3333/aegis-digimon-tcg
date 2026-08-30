@@ -28,46 +28,6 @@ const compiled: CompiledCard = {
       ],
     },
     {
-      // The card's own play is part of the printed "any of your [Xros Heart]
-      // Digimon" event. The persistent watcher below is installed by the
-      // continuous pass after entry, so it cannot observe this initial event;
-      // model this self-play case directly at OnPlay.
-      trigger: "OnPlay",
-      frequency: "OncePerTurn",
-      sharedUseKey: xrosHeartPlayedUseKey,
-      actions: [
-        {
-          kind: "GainKeyword",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-            },
-            count: 1,
-          },
-          keyword: {
-            keyword: "SecurityAttack",
-            amount: -1,
-            raw: "＜Security Attack -1＞",
-          },
-          duration: "untilOpponentTurnEnd",
-        },
-        {
-          kind: "ModifyDP",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-            },
-            count: 1,
-            sameTarget: true,
-          },
-          amount: -3000,
-          duration: "untilOpponentTurnEnd",
-        },
-      ],
-    },
-    {
       trigger: "AllTurns",
       actions: [
         {
