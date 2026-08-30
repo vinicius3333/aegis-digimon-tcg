@@ -28,6 +28,7 @@ const compiled: CompiledCard = {
             memory: 2,
             raw: "By paying 2 cost",
           },
+          allowCostWithoutTarget: true,
         },
       ],
       frequency: "OncePerTurn",
