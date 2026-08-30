@@ -1638,7 +1638,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     setTopCard(permanent, newTop);
     unshiftOnStack(permanent, oldTop); // bottom of the digivolution cards
     const def = requireCardDefinition(newTop.cardId);
-    permanent.baseDP = def.kinds.includes(CardKind.Digimon) ? def.dp : 0;
+    permanent.baseDP = def.kinds.includes(CardKind.Digimon) || def.kinds.includes(CardKind.DigiEgg) ? def.dp : 0;
+    permanent.invalidNoDpStackTop = promotedTopNeedsInvalidRuleTrash(def);
     ledger.recomputeDP(state, permanent.permanentId);
     engine.emit({
       kind: "cardsMoved",

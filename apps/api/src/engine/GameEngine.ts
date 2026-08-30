@@ -3415,10 +3415,12 @@ export class GameEngine {
       await this.fireSubTrigger("whenOneOfYoursDigivolves", {
         subjectPermanentId,
         enteredByEffect: ownerSeat,
+        ...(opts?.digivolvedFromZone !== undefined ? { digivolvedFromZone: opts.digivolvedFromZone } : {}),
       });
       await this.fireSubTrigger("whenAnyDigivolves", {
         subjectPermanentId,
         enteredByEffect: ownerSeat,
+        ...(opts?.digivolvedFromZone !== undefined ? { digivolvedFromZone: opts.digivolvedFromZone } : {}),
       });
     }
   }
@@ -5489,7 +5491,13 @@ export class GameEngine {
       return { ok: false, reason: check.reason };
     }
     this.continueMainVerb(
-      () => applyActivateEffect(this.state, seat, intent, deps),
+      async () => {
+        const outcome = await applyActivateEffect(this.state, seat, intent, deps);
+        // Direct [Main] activations do not pass through a timing-window resolver, so
+        // perform the post-effect rule check here (e.g. a stack peel exposing a 0-DP card).
+        await this.ruleProcess();
+        return outcome;
+      },
       (outcome) => {
         if (outcome.ok) {
           this.hooks.emit({
