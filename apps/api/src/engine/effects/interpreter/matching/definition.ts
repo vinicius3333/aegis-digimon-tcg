@@ -270,9 +270,7 @@ function definitionHasKeyword(def: DefinitionFacts, keyword: string | { keyword?
     const compiled = runtimeCompiledCard(def.cardId);
     if (compiled !== undefined) {
       return compiled.effects.some((effect) =>
-        (effect.keywords ?? []).some(
-          (entry) => entry.keyword.replace(/[^a-z0-9]/gi, "").toLowerCase() === requested,
-        ),
+        (effect.keywords ?? []).some((entry) => entry.keyword.replace(/[^a-z0-9]/gi, "").toLowerCase() === requested),
       );
     }
   }
@@ -309,6 +307,7 @@ export function matchNameOrTrait(
     linkRequirement?: string;
     dualEffect?: string;
     optionEffect?: string;
+    nameAliases?: string[];
   },
   ref: {
     tokens: string[];

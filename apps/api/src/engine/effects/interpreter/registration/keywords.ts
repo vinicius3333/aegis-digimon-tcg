@@ -283,14 +283,11 @@ export function registerTamerOntoFromEffects(cardId: string, effects: readonly C
     for (const action of effect.actions ?? []) {
       if (action.kind !== "Digivolve" || typeof action.asLevel !== "number") continue;
       const onto = action.onto as
-        | { filter?: { kind?: unknown; colors?: readonly string[] } }
-        | { kind?: unknown; colors?: readonly string[] }
+        | { filter?: { kind?: unknown; colors?: readonly string[] }; kind?: unknown; colors?: readonly string[] }
         | undefined;
-      const ontoKind = (onto as { filter?: { kind?: unknown } })?.filter
-        ? (onto as { filter: { kind?: unknown } }).filter.kind
-        : (onto as { kind?: unknown })?.kind;
+      const ontoFilter = onto?.filter ?? onto;
+      const ontoKind = ontoFilter?.kind;
       if (Array.isArray(ontoKind) && ontoKind.includes("Tamer")) {
-        const ontoFilter = (onto as { filter?: { colors?: readonly string[] } } | undefined)?.filter ?? onto;
         registerTamerOntoDigivolve(cardId, action.asLevel, ontoFilter?.colors);
         return;
       }

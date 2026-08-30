@@ -29,6 +29,10 @@ import { runStaticAction } from "./statics.js";
 import type { Action, Cost, Target, ZoneRef } from "@aegis/shared";
 
 function isCostBearingAction(action: Action): boolean {
+  // RawUnparsedAction is the sole Action variant that is not based on ActionBase.
+  // Narrow before reading the common cost fields so this guard remains sound as the
+  // closed union gains more action kinds.
+  if (action.kind === "RawUnparsed") return false;
   return (
     action.cost !== undefined ||
     action.additionalCost !== undefined ||
@@ -51,9 +55,10 @@ function borrowedProcessingCost(ctx: EffectContext, cost: Cost): Cost {
   ) {
     return cost;
   }
-  const sourceZones = cost.target.from;
+  const sourceZones = (Array.isArray(cost.target.from) ? cost.target.from : [cost.target.from]).filter(
+    (zone): zone is ZoneRef => typeof zone === "string",
+  );
   if (
-    sourceZones === undefined ||
     sourceZones.length !== 2 ||
     !sourceZones.includes("hand") ||
     !sourceZones.includes("trash")

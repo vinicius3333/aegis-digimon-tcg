@@ -287,6 +287,7 @@ export interface MemoryPort {
   gainMemory(amount: number, reason?: string): void;
   addMemoryForSeat(seat: Seat, amount: number, reason?: string, opts?: { isTamerEffect?: boolean }): void;
   setMemory(value: number, reason?: string): void;
+  setMemoryForSeat(seat: Seat, value: number, reason?: string): void;
   setTurnEndMinMemory?(seat: Seat, minimum: number): void;
   pay(seat: Seat, cost: number, reason?: string): number;
   maxCostFor(seat: Seat): number;
