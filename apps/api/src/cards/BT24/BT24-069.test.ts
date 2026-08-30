@@ -95,11 +95,21 @@ describe("BT24-069 Vilemon", () => {
           ],
         },
       },
-      { autoDeclineOptional: true, autoSelectCards: true },
+      { autoDeclineOptional: true },
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenMoving, s.perm("vilemon"));
+    const resolving = advance(s.engine).fire(EffectTiming.WhenMoving, s.perm("vilemon"));
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const discardChoice = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: discardChoice.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await resolving;
 
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("ownCard").instanceId);
     expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("opponentCard").instanceId);

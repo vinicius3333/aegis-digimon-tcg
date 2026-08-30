@@ -2,6 +2,7 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT24-096.js";
 import "../index.js";
 
 describe("BT24-096 Seventh Graviton", () => {

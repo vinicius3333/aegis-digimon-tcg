@@ -70,7 +70,7 @@ describe("BT24-051 Merukimon", () => {
 
     expect(s.perm("merukimon").currentDP).toBe(17000);
     expect(s.state.memory).toBe(3);
-    expect(s.state.players[1]!.battleArea.every((permanent) => permanent.isSuspended)).toBe(true);
+    expect(s.state.players[1]!.battleArea.filter((permanent) => permanent.isSuspended)).toHaveLength(1);
   });
 
   it.each([

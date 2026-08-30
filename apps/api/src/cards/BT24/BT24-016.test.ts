@@ -89,12 +89,13 @@ describe("BT24-016 Lamiamon", () => {
       {
         0: { battleArea: [{ card: "BT24-016", as: "lamiamon" }] },
         1: {
-          hand: [{ card: "BT1-001", as: "placed" }],
-          security: [{ card: "BT1-002", as: "trashed" }],
+          hand: [{ card: "BT4-022", as: "placed" }],
+          security: [{ card: "BT4-022", as: "trashed" }],
         },
       },
       { autoSelectCards: true },
     );
+    await s.ready();
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("lamiamon"));
 
@@ -109,14 +110,15 @@ describe("BT24-016 Lamiamon", () => {
         0: { battleArea: [{ card: "BT24-016", as: "lamiamon" }] },
         1: {
           hand: [
-            { card: "BT1-001", as: "first" },
-            { card: "BT1-002", as: "second" },
+            { card: "BT4-022", as: "first" },
+            { card: "BT4-022", as: "second" },
           ],
-          security: ["BT1-003", "BT1-004"],
+          security: ["BT4-022", "BT4-022"],
         },
       },
       { autoSelectCards: true },
     );
+    await s.ready();
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("lamiamon"));
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("lamiamon"));

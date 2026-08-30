@@ -150,7 +150,10 @@ describe("BT24-049 Parrotmon", () => {
     );
     s.state.memory = 10;
     await s.ready();
+    s.perm("option").placedByEffect = true;
     s.perm("option").enterFieldTurnCount = s.state.turnCount - 1;
+    const optionInstanceId = s.inst("option").instanceId;
+    const effectKey = delayEffectKey(s);
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("titan").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-042"));
@@ -159,8 +162,8 @@ describe("BT24-049 Parrotmon", () => {
     expect(
       s.engine.applyIntent(0, {
         type: "activateEffect",
-        sourceInstanceId: s.inst("option").instanceId,
-        effectKey: delayEffectKey(s),
+        sourceInstanceId: optionInstanceId,
+        effectKey,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-049"));
