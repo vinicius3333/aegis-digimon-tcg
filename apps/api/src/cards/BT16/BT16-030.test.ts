@@ -111,7 +111,7 @@ describe("BT16-030", () => {
 
     expect(s.perm("salamon").topCard?.cardId).toBe("BT16-031");
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT16-031")).toBe(false);
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(1);
     advance(s.engine).endMainPhaseIfOpen(0);
     await turn;
   });

@@ -117,6 +117,7 @@ describe("BT16-027", () => {
             { card: "BT1-009", as: "firstTarget", suspended: true },
             { card: "BT1-010", as: "secondTarget", suspended: true },
           ],
+          security: ["BT1-090"],
         },
       },
       { autoSelectCards: true },

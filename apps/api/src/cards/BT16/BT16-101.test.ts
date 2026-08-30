@@ -58,14 +58,17 @@ describe("BT16-101", () => {
           kind: "SubTrigger",
           event: "onDeletionOf",
           actions: [
-            { kind: "GainMemory", amount: 2, condition: { kind: "triggerRemovalCause", removalCause: "byBattle" } },
-          ],
-        },
-        {
-          kind: "SubTrigger",
-          event: "onDeletionOf",
-          actions: [
-            { kind: "GainMemory", amount: 2, condition: { kind: "triggerDeletedByDpZero" } },
+            {
+              kind: "GainMemory",
+              amount: 2,
+              condition: {
+                kind: "anyOf",
+                conditions: [
+                  { kind: "triggerRemovalCause", removalCause: "byBattle" },
+                  { kind: "triggerDeletedByDpZero" },
+                ],
+              },
+            },
           ],
         },
       ],
@@ -118,7 +121,9 @@ describe("BT16-101", () => {
     s.state.memory = 20;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("rapidmonX").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("rapidmonX").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("rapidmonX").topCard?.cardId === "BT16-101");
 
     expect(s.perm("rapidmonX").stack).toHaveLength(0);
@@ -139,7 +144,7 @@ describe("BT16-101", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 0;
+    s.state.memory = 4;
     s.state.turnSeat = 1;
     await s.ready();
 
@@ -150,7 +155,9 @@ describe("BT16-101", () => {
         target: { kind: "permanent", permanentId: s.perm("rapidmon").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("firstAttacker").instanceId));
+    await settle(() =>
+      s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("firstAttacker").instanceId),
+    );
     expect(s.state.memory).toBe(2);
 
     expect(
@@ -160,7 +167,9 @@ describe("BT16-101", () => {
         target: { kind: "permanent", permanentId: s.perm("rapidmon").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("secondAttacker").instanceId));
+    await settle(() =>
+      s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("secondAttacker").instanceId),
+    );
     expect(s.state.memory).toBe(2);
   });
 
@@ -168,7 +177,7 @@ describe("BT16-101", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT16-101", as: "rapidmon", under: ["BT8-039"] }], security: ["BT1-001"] },
-        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 3000 }] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 4000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -185,7 +194,7 @@ describe("BT16-101", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("attacker").instanceId));
 
-    expect(s.state.memory).toBe(2);
+    expect(s.state.memory).toBe(-2);
     expect(s.state.players[0]!.security).toHaveLength(1);
   });
 

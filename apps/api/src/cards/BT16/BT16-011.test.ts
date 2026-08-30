@@ -43,27 +43,35 @@ describe("BT16-011", () => {
     });
   });
 
-  it("plays naturally, optionally returns a red Digimon, and deletes an opponent at or below its DP", async () => {
+  it("digivolves naturally, optionally returns a red Digimon, and deletes an opponent at or below its DP", async () => {
     const s = setupEngine(
       {
         0: {
+          battleArea: [{ card: "BT1-022", as: "base" }],
           hand: [{ card: "BT16-011", as: "host" }],
           trash: [{ card: "BT1-009", as: "redCard" }],
         },
         1: {
           battleArea: [
-            { card: "BT1-009", as: "atLimit", dp: 9000 },
+            { card: "BT1-009", as: "atLimit", dp: 8000 },
             { card: "BT1-009", as: "aboveLimit", dp: 10000 },
           ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 8;
+    s.state.memory = 0;
     const atLimitId = s.perm("atLimit").permanentId;
     const aboveLimitId = s.perm("aboveLimit").permanentId;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("host").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("host").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("redCard").instanceId));
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("redCard").instanceId)).toBe(true);

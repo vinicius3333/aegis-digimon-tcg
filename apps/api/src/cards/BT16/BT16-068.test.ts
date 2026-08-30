@@ -26,13 +26,16 @@ describe("BT16-068", () => {
   });
 
   it("grants Blocker to an own Digimon on play live", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: { hand: [{ card: "BT16-068", as: "dober" }], battleArea: [{ card: "BT1-009", as: "ally" }] },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.perm("ally").permanentId);
     s.state.memory = 4;
+    await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dober").instanceId })).toEqual({ ok: true });
     await settle(() => observe(s.engine).hasKeyword(s.perm("ally"), "Blocker"));
@@ -44,15 +47,13 @@ describe("BT16-068", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT1-044", as: "launcher", under: ["BT1-040", "BT1-036"] },
-            { card: "BT16-068", as: "dober" },
-          ],
+          battleArea: [{ card: "BT1-044", as: "launcher", under: ["BT1-040", "BT1-036", "BT16-068"] }],
           deck: ["BT1-009"],
         },
       },
       { autoSelectCards: true },
     );
+    await s.ready();
 
     expect(
       s.engine.applyIntent(0, {

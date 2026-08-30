@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT16-015.js";
 import "../BT13/BT13-014.js";
 import "../BT2/BT2-019.js";
@@ -40,7 +41,9 @@ describe("BT16-015", () => {
     });
     expect(compiled.effects?.[1]).toMatchObject({
       trigger: "YourTurn",
-      actions: [{ kind: "GrantStatic", grant: { keyword: "EndOfAttack", targetFilter: { keyword: "OnDeletion" } }, condition }],
+      actions: [
+        { kind: "GrantStatic", grant: { keyword: "EndOfAttack", targetFilter: { keyword: "OnDeletion" } }, condition },
+      ],
     });
     expect(compiled.effects?.[2]?.actions[0]).toMatchObject({
       kind: "PlayWithoutCost",
@@ -61,7 +64,9 @@ describe("BT16-015", () => {
     });
     expect(compiled.effects?.[2]?.actions[1]).toMatchObject({
       kind: "Delete",
-      target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { valueFrom: "playedDigimon", valueField: "dp" } } },
+      target: {
+        filter: { controller: "opponent", kind: ["Digimon"], dp: { valueFrom: "playedDigimon", valueField: "dp" } },
+      },
     });
   });
 
@@ -72,7 +77,7 @@ describe("BT16-015", () => {
           battleArea: [{ card: "BT2-019", as: "base", under: ["BT13-014"] }],
           hand: [{ card: "BT16-015", as: "phoenixmonX" }],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "prey", dp: 6000 }] },
+        1: { battleArea: [{ card: "BT1-009", as: "prey", dp: 6000 }], security: ["BT1-090"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -107,13 +112,14 @@ describe("BT16-015", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT16-015", as: "phoenixmonX", dp: 7000, under: ["BT13-014", "BT2-019"] },
-          ],
+          battleArea: [{ card: "BT16-015", as: "phoenixmonX", dp: 7000, under: ["BT13-014", "BT2-019"] }],
+          deck: ["BT1-090", "BT1-090"],
         },
         1: {
           hand: [{ card: "BT16-062", as: "zanmetsumon" }],
-          battleArea: [{ card: "BT1-009", as: "prey", dp: 6000 }],
+          battleArea: [{ card: "BT1-010", as: "prey", dp: 6000 }],
+          deck: ["BT1-090", "BT1-090"],
+          security: ["BT1-090"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -122,13 +128,21 @@ describe("BT16-015", () => {
     s.state.memory = 8;
     await s.ready();
 
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("zanmetsumon").instanceId })).toEqual({ ok: true });
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("zanmetsumon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("phoenixmonX").stack.every((card) => card.cardId !== "BT2-019"));
     expect(s.perm("phoenixmonX").stack).toHaveLength(1);
 
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
-    await settle(() => s.state.turnSeat === 0);
-    await s.ready();
+    await opponentTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
 
     const preyId = s.perm("prey").permanentId;
     expect(
@@ -141,6 +155,8 @@ describe("BT16-015", () => {
     await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === preyId)).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await ownerTurn;
   });
 
   it("does not project inherited effects when no Phoenixmon or X Antibody source is present", async () => {
@@ -189,7 +205,9 @@ describe("BT16-015", () => {
     const withinId = s.perm("withinPlayedDP").permanentId;
     const aboveId = s.perm("abovePlayedDP").permanentId;
 
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaiaForce").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaiaForce").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-008"));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-008")).toBe(true);

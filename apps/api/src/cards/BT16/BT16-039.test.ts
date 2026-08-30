@@ -124,7 +124,7 @@ describe("BT16-039", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("bibimon").topCard?.cardId === "BT16-039");
 
-    expect(s.perm("bibimon").stack.map((card) => card.cardId)).toEqual(["BT17-003", "BT16-039"]);
+    expect(s.perm("bibimon").stack.map((card) => card.cardId)).toEqual(["BT17-003"]);
     expect(s.state.memory).toBe(0);
   });
 

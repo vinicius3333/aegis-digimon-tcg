@@ -15,7 +15,7 @@ describe("BT16-040", () => {
           kind: "Digivolve",
           target: { filter: { controller: "mine", kind: ["Digimon"] } },
           into: {
-            controllerDefault: "mine",
+            controller: "mine",
             zone: "trash",
             kind: ["Digimon"],
             levels: [4],
@@ -65,7 +65,7 @@ describe("BT16-040", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("minomon").topCard?.cardId === "BT16-040");
 
-    expect(s.perm("minomon").stack.map((card) => card.cardId)).toEqual(["BT16-004", "BT16-040"]);
+    expect(s.perm("minomon").stack.map((card) => card.cardId)).toEqual(["BT16-004"]);
     expect(s.state.memory).toBe(0);
   });
 
@@ -188,14 +188,16 @@ describe("BT16-040", () => {
     advance(s.engine).endMainPhaseIfOpen(0);
     await firstTurn;
 
+    s.state.turnSeat = 1;
     s.state.memory = 3;
     const opponentTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(1);
-    expect(s.perm("wormmon").isSuspended).toBe(false);
+    expect(s.perm("wormmon").isSuspended).toBe(true);
     advance(s.engine).endMainPhaseIfOpen(1);
     await opponentTurn;
 
     preferred.splice(0, preferred.length, s.perm("second").permanentId);
+    s.state.turnSeat = 0;
     s.state.memory = 3;
     const nextTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
@@ -208,7 +210,7 @@ describe("BT16-040", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("second").isSuspended && !observe(s.engine).isAttacking());
 
-    expect(s.perm("first").isSuspended).toBe(true);
+    expect(s.perm("first").isSuspended).toBe(false);
     expect(s.perm("second").isSuspended).toBe(true);
     advance(s.engine).endMainPhaseIfOpen(0);
     await nextTurn;

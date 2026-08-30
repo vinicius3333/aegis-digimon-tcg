@@ -62,8 +62,12 @@ describe("BT16-088", () => {
   it("returns the Digimon played by the start-phase effect through public turn progression", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT16-088", as: "tamer" }], hand: [{ card: "BT1-027", as: "armadillomon" }] },
-        1: { deck: ["BT1-001"] },
+        0: {
+          battleArea: [{ card: "BT16-088", as: "tamer" }],
+          hand: [{ card: "BT1-027", as: "armadillomon" }],
+          deck: ["BT1-090", "BT1-090"],
+        },
+        1: { deck: ["BT1-090", "BT1-090"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -74,6 +78,7 @@ describe("BT16-088", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-027")).toBe(true);
 
     s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
     await advance(s.engine).runTurn(1);
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-027")).toBe(false);

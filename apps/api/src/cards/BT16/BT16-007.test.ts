@@ -25,16 +25,16 @@ describe("BT16-007", () => {
   it("gains memory from a natural qualifying Free play", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [
-          { card: "BT16-007", as: "host" },
-        ],
+        battleArea: [{ card: "BT16-007", as: "host" }],
         hand: [{ card: "BT8-053", as: "freeSubject" }],
       },
     });
     await s.ready();
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("freeSubject").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("freeSubject").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT8-053"));
 
     expect(s.state.memory).toBe(1);
@@ -84,7 +84,9 @@ describe("BT16-007", () => {
     await s.ready();
     s.state.memory = 2;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("subject").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("subject").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-009"));
 
     expect(s.state.memory).toBe(0);
@@ -115,7 +117,7 @@ describe("BT16-007", () => {
   it("digivolves through the Poromon alternate requirement for zero memory", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-010", as: "base", under: ["BT16-001"] }],
+        breeding: { card: "BT16-001", as: "base" },
         hand: [{ card: "BT16-007", as: "evolving" }],
       },
     });
@@ -132,6 +134,6 @@ describe("BT16-007", () => {
     await settle(() => s.perm("base").topCard?.cardId === "BT16-007");
 
     expect(s.state.memory).toBe(0);
-    expect(s.perm("base").stack.some((card) => card.cardId === "BT16-001")).toBe(true);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT16-001"]);
   });
 });

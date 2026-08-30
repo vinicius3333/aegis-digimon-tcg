@@ -72,6 +72,7 @@ describe("BT16-089", () => {
   });
 
   it("revives a Myotismon-text Digimon from trash and deletes it at the next opponent turn end", async () => {
+    const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -82,10 +83,11 @@ describe("BT16-089", () => {
           hand: [{ card: "BT16-081", as: "malo" }],
           trash: [{ card: "BT15-070", as: "revived" }],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }], deck: ["BT1-090", "BT1-090"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds },
     );
+    preferInstanceIds.push(s.perm("sacrifice").permanentId, s.perm("sacrifice").topCard.instanceId);
     s.state.turnSeat = 0;
     s.state.memory = 10;
     await s.ready();
@@ -97,9 +99,7 @@ describe("BT16-089", () => {
         instanceId: s.inst("malo").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT15-070"),
-    );
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT15-070"));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT15-070")).toBe(true);
 
     s.state.turnSeat = 1;

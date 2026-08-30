@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-005.js";
 import "../index.js";
-import "../../BT1/BT1-036.js";
-import "../../BT5/BT5-062.js";
+import "../BT1/BT1-036.js";
+import "../BT5/BT5-062.js";
 
 describe("BT16-005", () => {
   it("once per turn gains memory when another Blocker Digimon is deleted", () =>
@@ -39,7 +39,7 @@ describe("BT16-005", () => {
     );
     const firstBlockerInstanceId = s.perm("firstBlocker").topCard.instanceId;
     const secondBlockerInstanceId = s.perm("secondBlocker").topCard.instanceId;
-    s.state.memory = 10;
+    s.state.memory = 9;
 
     expect(
       s.engine.applyIntent(0, {
@@ -49,9 +49,11 @@ describe("BT16-005", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === firstBlockerInstanceId));
-    expect(s.state.memory).toBe(11);
+    expect(s.state.memory).toBe(10);
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("garurumon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("garurumon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("host").isSuspended === false);
     const memoryBeforeSecondBattle = s.state.memory;
 
@@ -66,12 +68,15 @@ describe("BT16-005", () => {
     expect(s.state.memory).toBe(memoryBeforeSecondBattle);
   });
 
-  it("does not gain memory when its host and the Blocker lose the same battle", async () => {
+  it("still gains memory when its host and the other Blocker are deleted simultaneously", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT16-010", as: "host", dp: 6000, under: ["BT16-005"] }] },
       1: { battleArea: [{ card: "BT5-062", as: "blocker", dp: 6000, suspended: true }] },
     });
-    const hostInstanceIds = s.perm("host").stack.map((card) => card.instanceId).concat(s.perm("host").topCard!.instanceId);
+    const hostInstanceIds = s
+      .perm("host")
+      .stack.map((card) => card.instanceId)
+      .concat(s.perm("host").topCard!.instanceId);
     const blockerInstanceId = s.perm("blocker").topCard.instanceId;
     s.state.memory = 0;
 
@@ -89,7 +94,7 @@ describe("BT16-005", () => {
         s.state.players[1]!.trash.some((card) => card.instanceId === blockerInstanceId),
     );
 
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(expect.arrayContaining(hostInstanceIds));
   });
 });

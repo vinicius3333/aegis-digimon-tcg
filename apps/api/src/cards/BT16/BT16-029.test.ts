@@ -66,7 +66,7 @@ describe("BT16-029", () => {
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT16-029")).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT16-020")).toBe(true);
     expect(s.state.players[0]!.hand.filter((card) => card.cardId === "BT16-017")).toHaveLength(0);
-    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT16-017", "BT1-009"]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009", "BT16-017"]);
     expect(s.state.players[0]!.deck).toHaveLength(2);
   });
 

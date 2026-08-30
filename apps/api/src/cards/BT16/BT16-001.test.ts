@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-001.js";
 import "../index.js";
-import "../../BT1/BT1-036.js";
+import "../BT1/BT1-036.js";
 
 describe("BT16-001", () => {
   it("once per turn deletes an opposing Digimon at 2000 DP or less when this has two colors", () =>
@@ -101,7 +101,9 @@ describe("BT16-001", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("garurumon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("garurumon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("host").isSuspended === false);
 
     expect(

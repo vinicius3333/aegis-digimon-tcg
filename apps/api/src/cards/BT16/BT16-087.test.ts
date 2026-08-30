@@ -1,3 +1,4 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -96,7 +97,7 @@ describe("BT16-087", () => {
     s.state.turnSeat = 0;
     await s.ready();
 
-    expect(observe(s.engine).hasKeyword(s.perm("dorumon"), "Piercing")).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("dorumon"))).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("dorumon"), "Blocker")).toBe(true);
     await advance(s.engine).runTurn(0);
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT16-087"));

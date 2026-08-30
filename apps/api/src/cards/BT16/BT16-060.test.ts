@@ -55,6 +55,7 @@ describe("BT16-060 Tankdramon IR", () => {
     );
     preferred.push(s.perm("reducedTarget").permanentId);
     s.state.memory = 7;
+    await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tank").instanceId })).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT1-020"));
@@ -71,7 +72,7 @@ describe("BT16-060 Tankdramon IR", () => {
       {
         0: {
           hand: [{ card: "BT16-050", as: "command" }],
-          battleArea: [{ card: "BT16-060", as: "tank", under: ["BT1-009"] }],
+          battleArea: [{ card: "BT1-009", as: "tank", under: ["BT16-060"] }],
         },
         1: {
           battleArea: [{ card: "BT1-020", as: "target", under: ["BT1-009"] }],
@@ -80,8 +81,11 @@ describe("BT16-060 Tankdramon IR", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 3;
+    await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("command").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("command").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("target").topCard.cardId === "BT1-009");
 
     expect(s.perm("target").topCard.cardId).toBe("BT1-009");

@@ -52,7 +52,7 @@ describe("BT16-042", () => {
   it("boosts the evolving Digimon when digivolving", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT16-041", as: "base", dp: 4000 }], hand: [{ card: "BT16-042", as: "blade" }] },
+        0: { battleArea: [{ card: "BT16-037", as: "base" }], hand: [{ card: "BT16-042", as: "blade" }] },
       },
       { autoSelectCards: true },
     );
