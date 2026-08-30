@@ -443,8 +443,7 @@ export const GRANTED_EFFECT_LIBRARY: Record<string, CardEffect | readonly CardEf
           actions: [
             {
               kind: "SelectBind",
-              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-              bindAs: "grantSource",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true, bindAs: "grantSource" },
             } as Action,
             {
               kind: "Delete",
