@@ -368,7 +368,12 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   // activation cost is payable only when the attack can actually be redirected. Preflight
   // candidates before the optional prompt and generic cost path; otherwise a card such as
   // BT26-092 can return its Tamer even though no eligible TS Digimon exists to receive the attack.
-  if (action.kind === "RedirectAttack" && action.includePlayer !== true && action.allowCostWithoutTarget !== true) {
+  if (
+    action.kind === "RedirectAttack" &&
+    action.mode !== "endAttack" &&
+    action.includePlayer !== true &&
+    action.allowCostWithoutTarget !== true
+  ) {
     const target =
       action.chooser === "opponent"
         ? { ...action.target, filter: { ...action.target.filter, controller: "opponent" as const } }

@@ -85,6 +85,15 @@ export async function runReplacement(
     return;
   }
   if (action.condition !== undefined && !evaluateCondition(ctx, action.condition)) return;
+  // A self-scoped replacement explicitly restricted to the battle area is inactive while
+  // its source is in breeding. Other sourceFilter shapes describe the event subject and must
+  // remain deferred to the replacement's appliesTo predicate.
+  if (
+    action.sourceFilter?.isSelfRef === true &&
+    action.sourceFilter.zone === "battleArea" &&
+    !ctx.source.isOnBattleArea()
+  )
+    return;
   const self = ctx.source.permanent();
   const activationIdentity =
     ctx.activeEffectKey === undefined
