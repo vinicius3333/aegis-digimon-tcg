@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT14-065.js";
 
 describe("BT14-065", () => {
@@ -48,7 +49,7 @@ describe("BT14-065", () => {
           battleArea: [{ card: "BT14-061", as: "base" }],
         },
         1: {
-          deck: ["BT14-055", "BT1-001", "BT1-002"],
+          deck: ["BT14-055", "BT14-082", "BT14-089"],
           battleArea: [{ card: "BT14-067", as: "target", under: ["BT14-064"] }],
         },
       },
@@ -69,6 +70,6 @@ describe("BT14-065", () => {
     expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("BT14-065");
     expect(s.state.players[1]!.battleArea[0]!.topCard.cardId).toBe("BT14-064");
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT14-067"]);
-    expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT14-055", "BT1-001", "BT1-002"]);
+    expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT14-055", "BT14-082", "BT14-089"]);
   });
 });

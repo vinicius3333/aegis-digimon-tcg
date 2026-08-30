@@ -25,7 +25,7 @@ describe("BT14-051 runtime suspend cost", () => {
         0: {
           battleArea: [{ card: "BT14-048", as: "base" }],
           hand: [{ card: "BT14-051", as: "okuwamon" }],
-          deck: ["BT14-044", "BT14-044", "BT1-001", "BT1-002", "BT1-003"],
+          deck: ["BT14-044", "BT14-044", "BT14-044", "BT14-082", "BT14-089"],
         },
         1: { deck: ["BT1-001"] },
       },

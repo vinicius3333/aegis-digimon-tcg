@@ -23,6 +23,7 @@ describe("BT14-070", () => {
       },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
+    await s.ready();
     s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
       ok: true,
@@ -32,6 +33,7 @@ describe("BT14-070", () => {
   });
 
   it("gains memory only once when two natural effect resolutions trash hand cards in the same turn", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -44,9 +46,11 @@ describe("BT14-070", () => {
           ],
         },
       },
-      { autoSelectCards: true, autoAcceptOptional: true },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferred },
     );
-    s.state.memory = 20;
+    preferred.push(s.inst("numemonA").instanceId, s.inst("numemonB").instanceId);
+    await s.ready();
+    s.state.memory = 10;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sourceA").instanceId })).toEqual({
       ok: true,
@@ -55,7 +59,7 @@ describe("BT14-070", () => {
       () =>
         s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT14-066") &&
         s.state.players[0]!.trash.filter((card) => card.cardId === "BT14-058").length === 1 &&
-        s.state.memory === 13,
+        s.state.memory === 3,
     );
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sourceB").instanceId })).toEqual({
       ok: true,
@@ -63,6 +67,6 @@ describe("BT14-070", () => {
     await settle(() => s.state.players[0]!.trash.filter((card) => card.cardId === "BT14-058").length === 2);
 
     expect(s.state.players[0]!.trash.filter((card) => card.cardId === "BT14-058")).toHaveLength(2);
-    expect(s.state.memory).toBe(5);
+    expect(s.state.memory).toBe(-5);
   });
 });

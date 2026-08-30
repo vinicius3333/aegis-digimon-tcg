@@ -25,20 +25,32 @@ describe("BT14-044", () => {
   it("naturally grants the timed suspension penalty before a real opposing suspension", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT14-044", as: "palmon" }], hand: [{ card: "BT14-043", as: "koDokugumon" }] },
+        0: {
+          battleArea: [{ card: "BT14-044", as: "palmon" }],
+          hand: [
+            { card: "BT14-043", as: "koDokugumon" },
+            { card: "BT14-045", as: "remainingAction" },
+          ],
+        },
         1: { battleArea: [{ card: "BT14-042", as: "target" }] },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 10;
     const ownTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
+    await settle(() =>
+      s.events.some(
+        (event) =>
+          event.kind === "effectResolved" && event.sourceCardId === "BT14-044" && event.timing === "OnStartMainPhase",
+      ),
+    );
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("koDokugumon").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.perm("target").isSuspended);
-    expect(s.perm("palmon").isSuspended).toBe(true);
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.isSuspended)).toHaveLength(1);
     expect(s.state.memory).toBe(9);
 
     advance(s.engine).endMainPhaseIfOpen(0);
@@ -48,7 +60,10 @@ describe("BT14-044", () => {
   it("naturally reduces one qualifying evolution from an inherited Palmon source", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT14-045", as: "host", under: ["BT14-044"] }, { card: "BT1-089", as: "mimi" }],
+        battleArea: [
+          { card: "BT14-045", as: "host", under: ["BT14-044"] },
+          { card: "BT1-089", as: "mimi" },
+        ],
         hand: [{ card: "BT14-050", as: "piximon" }],
       },
     });

@@ -18,7 +18,7 @@ describe("BT14-081", () => {
   it("once per turn unsuspends by deleting an opposing low-level Digimon", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenAttacking")).toMatchObject({
       frequency: "OncePerTurn",
-      actions: [{ kind: "Unsuspend", cost: { kind: "delete" } }],
+      actions: [{ kind: "Unsuspend", cost: { kind: "deleteOwn" } }],
     }));
 
   it("naturally digivolves, plays from trash, and unsuspends after deleting a low-level attacker target", async () => {
@@ -83,10 +83,14 @@ describe("BT14-081", () => {
     await settle(
       () =>
         s.perm("base").topCard?.cardId === "BT14-081" &&
-        s.state.players[0]!.battleArea.filter((perm) => ["BT14-074", "BT14-071", "BT14-072"].includes(perm.topCard?.cardId ?? "")).length === 3,
+        s.state.players[0]!.battleArea.filter((perm) =>
+          ["BT14-074", "BT14-071", "BT14-072"].includes(perm.topCard?.cardId ?? ""),
+        ).length === 3,
     );
     expect(
-      s.state.players[0]!.battleArea.filter((perm) => ["BT14-074", "BT14-071", "BT14-072"].includes(perm.topCard?.cardId ?? "")),
+      s.state.players[0]!.battleArea.filter((perm) =>
+        ["BT14-074", "BT14-071", "BT14-072"].includes(perm.topCard?.cardId ?? ""),
+      ),
     ).toHaveLength(3);
   });
 
@@ -95,7 +99,10 @@ describe("BT14-081", () => {
       {
         0: {
           battleArea: [{ card: "BT14-081", as: "fenriloogamon" }],
-          hand: [{ card: "BT14-069", as: "firstPlay" }, { card: "BT14-070", as: "secondPlay" }],
+          hand: [
+            { card: "BT14-069", as: "firstPlay" },
+            { card: "BT14-070", as: "secondPlay" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -104,10 +111,14 @@ describe("BT14-081", () => {
     s.state.memory = 2;
     const turn = s.engine.runOneTurn();
     await settle(() => s.state.phase === Phase.Main);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstPlay").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstPlay").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-069"));
     expect(s.state.phase).toBe(Phase.Main);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondPlay").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondPlay").instanceId })).toEqual({
+      ok: true,
+    });
     await turn;
     expect(s.events).toContainEqual(expect.objectContaining({ kind: "turnEnded", endingSeat: 0 }));
   });

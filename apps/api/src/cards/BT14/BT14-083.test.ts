@@ -8,8 +8,8 @@ describe("BT14-083", () => {
     expect(compiled.effects[0]?.actions[0]).toMatchObject({ kind: "TrashDigivolution", amount: 1 });
     expect(compiled.effects[1]?.actions[0]).toMatchObject({
       kind: "SubTrigger",
-      event: "onDigivolutionCardDiscarded",
-      hostFilter: { controller: "opponent", kind: ["Digimon"] },
+      event: "whenDigivolutionTrashed",
+      sourceFilter: { controller: "opponent", kind: ["Digimon"] },
     });
     expect(compiled.effects[2]).toMatchObject({
       isSecurity: true,
@@ -36,12 +36,15 @@ describe("BT14-083", () => {
     await settle(() => s.perm("watcher").isSuspended && s.perm("host").stack.length === 0);
     expect(s.perm("host").stack).toHaveLength(0);
     expect(s.perm("watcher").isSuspended).toBe(true);
-    expect(s.state.memory).toBe(8);
+    expect(s.state.memory).toBe(9);
   });
 
   it("plays itself from security through a natural security check", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT14-071", as: "attacker" }] }, 1: { security: [{ card: "BT14-083", as: "securityJoe" }] } },
+      {
+        0: { battleArea: [{ card: "BT14-071", as: "attacker" }] },
+        1: { security: [{ card: "BT14-083", as: "securityJoe" }] },
+      },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
     expect(

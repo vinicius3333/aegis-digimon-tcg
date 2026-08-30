@@ -21,7 +21,7 @@ describe("BT14-067", () => {
       {
         0: { hand: [{ card: "BT14-067", as: "source" }] },
         1: {
-          deck: ["BT14-039", "BT14-001", "BT1-001"],
+          deck: ["BT14-039", "BT14-082", "BT14-089"],
           battleArea: [
             { card: "BT14-058", as: "cheap" },
             { card: "BT14-039", as: "expensive" },
@@ -37,7 +37,7 @@ describe("BT14-067", () => {
     await settle(() => s.state.players[1]!.battleArea.every((perm) => perm.topCard?.cardId !== "BT14-058"));
     expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-058")).toBe(false);
     expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-039")).toBe(true);
-    expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT14-039", "BT14-001", "BT1-001"]);
+    expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT14-039", "BT14-082", "BT14-089"]);
   });
 
   it("naturally resolves the When Digivolving budget from a public evolution", async () => {
@@ -48,11 +48,11 @@ describe("BT14-067", () => {
           hand: [{ card: "BT14-067", as: "evolving" }],
         },
         1: {
-          deck: ["BT14-039", "BT14-001", "BT1-001"],
+          deck: ["BT14-039", "BT14-082", "BT14-089"],
           battleArea: [{ card: "BT14-058", as: "cheap" }],
         },
       },
-      { autoSelectCards: true, autoChooseOption: true },
+      { autoSelectCards: true, autoChooseOption: true, autoAcceptOptional: true },
     );
     s.state.memory = 3;
     await s.ready();
@@ -68,6 +68,6 @@ describe("BT14-067", () => {
 
     expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("BT14-067");
     expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-058")).toBe(false);
-    expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT14-039", "BT14-001", "BT1-001"]);
+    expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT14-039", "BT14-082", "BT14-089"]);
   });
 });

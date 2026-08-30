@@ -22,11 +22,17 @@ describe("BT14-046", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT14-046", as: "togemon" }, { card: "BT14-045", as: "other" }],
-          hand: [{ card: "BT1-089", as: "firstMimi" }, { card: "BT1-089", as: "secondMimi" }],
+          battleArea: [
+            { card: "BT14-046", as: "togemon" },
+            { card: "BT14-045", as: "other" },
+          ],
+          hand: [
+            { card: "BT1-089", as: "firstMimi" },
+            { card: "BT1-089", as: "secondMimi" },
+          ],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
     await s.ready();
     s.state.memory = 10;
@@ -34,14 +40,22 @@ describe("BT14-046", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstMimi").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("firstMimi").instanceId));
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("firstMimi").instanceId) &&
+        s.state.memory === 9,
+    );
     expect(s.state.memory).toBe(9);
     expect(s.perm("togemon").isSuspended).toBe(true);
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondMimi").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("secondMimi").instanceId));
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("secondMimi").instanceId) &&
+        s.state.memory === 5,
+    );
     expect(s.state.memory).toBe(5);
     expect(s.perm("other").isSuspended).toBe(false);
   });
@@ -49,7 +63,10 @@ describe("BT14-046", () => {
   it("naturally reduces an inherited host's evolution when a green Tamer is present", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT14-045", as: "host", under: ["BT14-046"] }, { card: "BT1-089", as: "mimi" }],
+        battleArea: [
+          { card: "BT14-045", as: "host", under: ["BT14-046"] },
+          { card: "BT1-089", as: "mimi" },
+        ],
         hand: [{ card: "BT14-050", as: "piximon" }],
       },
     });

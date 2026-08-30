@@ -42,6 +42,7 @@ describe("BT14-049", () => {
   });
 
   it("naturally exposes Counter timing and Blast Digivolves to resolve the inherited effect", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -56,11 +57,12 @@ describe("BT14-049", () => {
           security: ["BT1-001"],
         },
       },
-      { autoSelectCards: true, autoAcceptOptional: true },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferred },
     );
     s.state.turnSeat = 1;
     s.state.memory = 0;
     const targetId = s.perm("target").permanentId;
+    preferred.push(targetId);
 
     expect(
       s.engine.applyIntent(1, {

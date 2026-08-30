@@ -13,7 +13,9 @@ describe("BT14-054", () => {
   it("attacks an opposing Digimon at end of your turn", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "EndOfYourTurn")).toMatchObject({
       optional: true,
-      actions: [{ kind: "Attack", attackPlayer: false, mandatory: true, target: { filter: { controller: "opponent" } } }],
+      actions: [
+        { kind: "Attack", attackPlayer: false, mandatory: true, target: { filter: { controller: "opponent" } } },
+      ],
     }));
 
   it("unsuspends itself as cost and suspends an opposing Digimon", async () => {
@@ -51,6 +53,8 @@ describe("BT14-054", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -58,9 +62,9 @@ describe("BT14-054", () => {
         instanceId: s.inst("saber").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard?.cardId === "BT14-054");
-    await s.ready();
-    await advance(s.engine).runTurn(0);
+    await settle(() => s.perm("base").topCard?.cardId === "BT14-054" && s.perm("target").isSuspended);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.perm("base").isSuspended).toBe(true);
   });

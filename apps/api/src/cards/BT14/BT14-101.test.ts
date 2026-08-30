@@ -70,7 +70,10 @@ describe("BT14-101", () => {
       s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: handCard.instanceId, effectKey: effectKey! }),
     ).toEqual({ ok: true });
 
-    await settle(() => s.perm("agumon").topCard?.cardId === WARGREYMON && !observe(s.engine).isAttacking());
+    await settle(
+      () =>
+        s.perm("agumon").topCard?.cardId === WARGREYMON && s.events.some((event) => event.kind === "combatResolved"),
+    );
 
     // A bare Lv.3 Agumon is deliberately used here: ignoreRequirements waives the normal Lv.5
     // Greymon evolution requirement while the separate costOverride still pays 4 memory.
@@ -81,7 +84,9 @@ describe("BT14-101", () => {
     // The forced attack begins as a player attack, then the real Raid keyword switches it to
     // the highest-DP unsuspended Digimon. The lower-DP Digimon remains in play.
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === highestId)).toBe(false);
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("lower").permanentId)).toBe(true);
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("lower").permanentId),
+    ).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("agumon"), "Raid")).toBe(true);
     expect(observe(s.engine).keywordAmount(s.perm("agumon"), "SecurityAttack")).toBe(1);
     expect(observe(s.engine).hasPierce(s.perm("agumon"))).toBe(true);
