@@ -5044,6 +5044,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     attackerPermanentId: string,
     opts?: {
       withoutSuspending?: boolean;
+      ignoreSummoningSickness?: boolean;
       attackPlayer?: boolean;
       attackPlayerOnly?: boolean;
       attackMechanic?: string;
@@ -5057,7 +5058,17 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const attacker = access.permanentById(attackerPermanentId);
     if (attacker === undefined) return;
     const controllerSeat = attacker.controllerSeat;
-    if (canAttackerDeclare(access, controllerSeat, attacker, continuous, false, opts?.withoutSuspending) !== null) {
+    if (
+      canAttackerDeclare(
+        access,
+        controllerSeat,
+        attacker,
+        continuous,
+        false,
+        opts?.withoutSuspending,
+        opts?.ignoreSummoningSickness,
+      ) !== null
+    ) {
       return;
     }
     const opponentSeat = access.opponentOf(controllerSeat);

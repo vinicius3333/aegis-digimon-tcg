@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from "vitest";
+import { describe, it, expect, beforeAll, beforeEach } from "vitest";
 import { ArraySchema } from "@colyseus/schema";
 import {
   GameState,
@@ -8,6 +8,7 @@ import {
   CardInstance,
   Phase,
   CardColor,
+  CardKind,
   EffectTiming,
   type CardDefinition,
   type Seat,
@@ -36,6 +37,9 @@ const TEST_CARD_ID = "TEST-ACTIVATE";
 const EFFECT_KEY = `${TEST_CARD_ID}/main-draw`;
 
 let activations = 0;
+let linkedMode = false;
+let throwOnActivation = false;
+let activatedSourceKinds: readonly string[] | undefined;
 
 beforeAll(() => {
   registerCard({
@@ -47,8 +51,11 @@ beforeAll(() => {
           source,
           effectKey: EFFECT_KEY,
           description: "[Main] Draw 1.",
+          isLinked: linkedMode,
           maxPerTurn: 1, // Once Per Turn
-          resolve: async () => {
+          resolve: async (ctx) => {
+            activatedSourceKinds = ctx.effectSourceKinds;
+            if (throwOnActivation) throw new Error("synthetic activation failure");
             activations += 1;
           },
         }),
@@ -61,7 +68,7 @@ const fakeDefinition: CardDefinition = {
   cardId: TEST_CARD_ID,
   set: "TEST",
   nameEn: "Test Activate",
-  kinds: [],
+  kinds: [CardKind.Option],
   colors: [CardColor.Red],
   playCost: 0,
   dp: 0,
@@ -120,6 +127,12 @@ function makeDeps(
 }
 
 describe("activateEffect", () => {
+  beforeEach(() => {
+    linkedMode = false;
+    throwOnActivation = false;
+    activatedSourceKinds = undefined;
+  });
+
   it("the synthetic module surfaces its activated ability at the activation timing", () => {
     expect(ACTIVATE_TIMING).toBe(EffectTiming.OnDeclaration);
   });
@@ -128,14 +141,41 @@ describe("activateEffect", () => {
     activations = 0;
     const { state, permanent, instance } = makeState(0);
     const deps = makeDeps(state, permanent, instance, new UseTracker());
+    const resolutionCalls: string[] = [];
+    deps.enterEffectResolution = (seat, sourceKinds) => resolutionCalls.push(`enter:${seat}:${sourceKinds?.join(",")}`);
+    deps.leaveEffectResolution = () => resolutionCalls.push("leave");
 
     const check = validateActivateEffect(state, 0, { sourceInstanceId: "inst-1", effectKey: EFFECT_KEY }, deps);
     expect(check.ok).toBe(true);
 
     const result = await applyActivateEffect(state, 0, { sourceInstanceId: "inst-1", effectKey: EFFECT_KEY }, deps);
-    expect(result.ok).toBe(true);
-    if (result.ok) expect(result.outcome.effectKey).toBe(EFFECT_KEY);
+    expect(result).toMatchObject({ ok: true, outcome: { effectKey: EFFECT_KEY } });
     expect(activations).toBe(1);
+    expect(activatedSourceKinds).toEqual(["Option"]);
+    expect(resolutionCalls).toEqual(["enter:0:Option", "leave"]);
+  });
+
+  it("treats a linked direct activation as a Digimon effect and unwinds provenance on failure", async () => {
+    linkedMode = true;
+    throwOnActivation = true;
+    const { state, permanent, instance } = makeState(0);
+    const host = new CardInstance();
+    host.instanceId = "host-inst";
+    host.cardId = "AD1-001";
+    host.ownerSeat = 0;
+    host.faceUp = true;
+    permanent.topCard = host;
+    permanent.linked.push(instance);
+    const deps = makeDeps(state, permanent, instance, new UseTracker());
+    const resolutionCalls: string[] = [];
+    deps.enterEffectResolution = (seat, sourceKinds) => resolutionCalls.push(`enter:${seat}:${sourceKinds?.join(",")}`);
+    deps.leaveEffectResolution = () => resolutionCalls.push("leave");
+
+    await expect(
+      applyActivateEffect(state, 0, { sourceInstanceId: "inst-1", effectKey: EFFECT_KEY }, deps),
+    ).rejects.toThrow("synthetic activation failure");
+    expect(activatedSourceKinds).toEqual(["Digimon"]);
+    expect(resolutionCalls).toEqual(["enter:0:Digimon", "leave"]);
   });
 
   it("rejects when it is not the sender's turn", () => {

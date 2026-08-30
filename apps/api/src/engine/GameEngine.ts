@@ -5689,6 +5689,8 @@ export class GameEngine {
         return ctx;
       },
       tracker: this.tracker,
+      enterEffectResolution: (seat, sourceKinds) => this.primitives.enterEffectResolution?.(seat, sourceKinds),
+      leaveEffectResolution: () => this.primitives.leaveEffectResolution?.(),
     };
   }
 

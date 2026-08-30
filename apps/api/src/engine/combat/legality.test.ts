@@ -62,6 +62,17 @@ describe("canAttackerDeclare", () => {
     expect(canAttackerDeclare(access, 0, attacker)).toBeNull();
   });
 
+  it("lets an explicit effect-driven attack bypass summoning sickness without relaxing ordinary attacks", () => {
+    const { state, access } = makeState();
+    state.turnCount = 1;
+    const attacker = digimonPermanent(0, DIGIMON_A);
+    attacker.enterFieldTurnCount = state.turnCount;
+    state.players[0]?.battleArea.push(attacker);
+
+    expect(canAttackerDeclare(access, 0, attacker)).toBe("illegal-target");
+    expect(canAttackerDeclare(access, 0, attacker, undefined, false, false, true)).toBeNull();
+  });
+
   it("rejects a suspended attacker", () => {
     const { state, access } = makeState();
     const attacker = digimonPermanent(0, DIGIMON_A, { suspended: true });
