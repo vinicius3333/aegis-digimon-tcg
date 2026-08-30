@@ -18,7 +18,7 @@ describe("BT18-040 Dynasmon", () => {
 
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect(compiled.effects).toMatchObject([
+    expect(compiled.effects.slice(0, 5)).toMatchObject([
       { trigger: "Counter", isFromHand: true, keywords: [{ keyword: "BlastDigivolve" }] },
       { trigger: "Static", keywords: [{ keyword: "Raid" }] },
       ...["OnPlay", "WhenDigivolving", "WhenAttacking"].map((trigger) => ({

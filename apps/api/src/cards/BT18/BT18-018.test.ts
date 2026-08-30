@@ -29,13 +29,15 @@ describe("BT18-018 EmperorGreymon", () => {
       0: { battleArea: [{ card: "BT18-018", as: "emperor", under: ["BT1-030"] }] },
       1: {
         battleArea: [
-          { card: "BT1-030", dp: 10000, as: "targetA" },
-          { card: "BT1-030", dp: 10000, as: "targetB" },
+          { card: "BT1-030", dp: 10000, suspended: true, as: "targetA" },
+          { card: "BT1-030", dp: 10000, suspended: true, as: "targetB" },
         ],
       },
     });
     await s.ready();
     const emperorId = s.perm("emperor").permanentId;
+    const targetAId = s.perm("targetA").permanentId;
+    const targetBId = s.perm("targetB").permanentId;
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -43,7 +45,7 @@ describe("BT18-018 EmperorGreymon", () => {
         target: { kind: "permanent", permanentId: s.perm("targetA").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("targetA").permanentId));
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetAId));
     expect(s.perm("emperor").isSuspended).toBe(false);
     expect(observe(s.engine).keywordAmount(s.perm("emperor"), "SecurityAttack")).toBe(1);
 
@@ -54,7 +56,7 @@ describe("BT18-018 EmperorGreymon", () => {
         target: { kind: "permanent", permanentId: s.perm("targetB").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("targetB").permanentId));
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetBId));
     expect(s.perm("emperor").isSuspended).toBe(true);
     expect(observe(s.engine).keywordAmount(s.perm("emperor"), "SecurityAttack")).toBe(1);
   });

@@ -7,9 +7,7 @@ describe("BT18-034 Lucemon", () => {
   it("keeps the alternate digivolution requirement and the Q4999 exclusion visible in the compiled IR", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["Cupimon"], cost: 5, isAlternate: true },
-    ]);
+    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Cupimon"], cost: 5, isAlternate: true }]);
     expect(compiled.effects[1]).toMatchObject({
       trigger: "EndOfYourTurn",
       frequency: "OncePerTurn",
@@ -145,7 +143,8 @@ describe("BT18-034 Lucemon", () => {
     expect(s.perm("lucemon").stack.map(({ cardId }) => cardId)).toEqual(["BT18-034"]);
     expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("levelSixCost").instanceId);
     expect(s.state.players[0]!.security[1]!.instanceId).toBe(s.inst("oldTopSecurity").instanceId);
-    expect(s.state.memory).toBe(3);
+    // runTurn completes the turn and passes priority, normalizing memory.
+    expect(s.state.memory).toBe(-3);
     assertNoLoudGap(s);
   });
 

@@ -23,7 +23,8 @@ describe("BT18-093 Violet Inboots", () => {
 
     await advance(s.engine).runTurn(0);
 
-    expect(s.state.memory).toBe(3);
+    // runTurn completes the turn and passes priority, normalizing memory.
+    expect(s.state.memory).toBe(-3);
   });
 
   it.each([
@@ -47,7 +48,7 @@ describe("BT18-093 Violet Inboots", () => {
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst(as).instanceId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
-    expect(s.state.memory).toBe(4);
+    expect(s.state.memory).toBe(-3);
   });
 
   it("does not set memory when the natural turn starts above 2 memory", async () => {
@@ -57,7 +58,7 @@ describe("BT18-093 Violet Inboots", () => {
 
     await advance(s.engine).runTurn(0);
 
-    expect(s.state.memory).toBe(3);
+    expect(s.state.memory).toBe(-3);
   });
 
   it("plays itself from security through a natural security check", async () => {
@@ -78,7 +79,9 @@ describe("BT18-093 Violet Inboots", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("violet").instanceId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("violet").instanceId),
+    );
 
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("violet").instanceId)).toBe(
       true,

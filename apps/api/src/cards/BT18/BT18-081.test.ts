@@ -83,22 +83,20 @@ describe("BT18-081 Rhihimon", () => {
     await s.ready();
     const effect = JSON.parse(s.inst("rhihimon").activatableEffectsJson) as Array<{ effectKey: string }>;
 
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.inst("rhihimon").instanceId,
-      effectKey: effect[0]!.effectKey,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("rhihimon").instanceId,
+        effectKey: effect[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("yellowTamer").topCard?.cardId === "BT18-081");
 
-    expect(s.perm("yellowTamer").stack.map((card) => card.cardId)).toEqual([
-      "BT1-087",
-      "BT18-076",
-      "BT18-077",
-      "BT18-081",
-    ]);
-    expect(s.perm("purpleTamer").stack).toHaveLength(1);
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("inheritedTamer").instanceId)).toBe(
-      true,
-    );
+    expect(s.perm("yellowTamer").stack.map((card) => card.cardId)).toEqual(["BT18-077", "BT18-076", "BT1-087"]);
+    expect(s.perm("purpleTamer").stack).toHaveLength(0);
+    expect(s.perm("purpleTamer").topCard?.cardId).toBe("BT10-093");
+    expect(
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("inheritedTamer").instanceId),
+    ).toBe(true);
   });
 });

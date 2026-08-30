@@ -84,6 +84,7 @@ describe("BT18-098 Dragon's Roar", () => {
   });
 
   it("naturally fires the security-trash trigger from Main, then applies the Main DP reduction", async () => {
+    const preferredInstanceIds: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -94,24 +95,32 @@ describe("BT18-098 Dragon's Roar", () => {
         1: {
           battleArea: [
             { card: "BT1-010", as: "triggerTarget", dp: 5000 },
-            { card: "BT1-009", as: "survivor", dp: 12000 },
+            // The Main -6000 must leave this Digimon above the Security effect's
+            // 6000-DP ceiling, so the two naturally resolving target choices do
+            // not become ambiguous after the security card is trashed.
+            { card: "BT1-009", as: "survivor", dp: 12500 },
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredInstanceIds },
     );
+    preferredInstanceIds.push(s.perm("survivor").topCard!.instanceId);
     s.state.memory = 5;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mainOption").instanceId })).toEqual({ ok: true });
-    await settle(() => s.perm("survivor").currentDP === 6000);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mainOption").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("survivor").currentDP === 6500);
 
-    expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("triggerTarget").instanceId)).toBe(
-      false,
-    );
-    expect(s.perm("survivor").currentDP).toBe(6000);
+    expect(
+      s.state.players[1]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("triggerTarget").instanceId),
+    ).toBe(false);
+    expect(s.perm("survivor").currentDP).toBe(6500);
     expect(s.state.players[0]!.security.at(-1)?.instanceId).toBe(s.inst("mainOption").instanceId);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("triggeredOption").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("triggeredOption").instanceId)).toBe(
+      true,
+    );
   });
 
   it("naturally resolves Security by deleting the attacking Digimon and recovering from an empty stack", async () => {
@@ -133,9 +142,9 @@ describe("BT18-098 Dragon's Roar", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === s.inst("recovery").instanceId));
 
-    expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("attacker").instanceId)).toBe(
-      false,
-    );
+    expect(
+      s.state.players[1]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("attacker").instanceId),
+    ).toBe(false);
     expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("recovery").instanceId)).toBe(true);
   });
 });

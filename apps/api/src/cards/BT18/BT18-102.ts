@@ -128,7 +128,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      namesExact: ["Takuya Kanbara", "Koji Minamoto"],
+      namesExact: ["Takuya Kanbara", "Koji Minamoto", "Takuya Kanbara & Koji Minamoto"],
       cost: 6,
       isAlternate: true,
       requiredDigivolutionCardCount: { trait: "Hybrid", min: 10 },

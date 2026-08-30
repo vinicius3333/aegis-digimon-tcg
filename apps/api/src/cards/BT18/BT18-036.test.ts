@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-036.js";
+import "./BT18-019.js";
 
 describe("BT18-036 Wizardmon", () => {
   it("limits inherited prevention to opponent effects and the yellow Data/Witchelny filter", () => {
@@ -118,9 +119,9 @@ describe("BT18-036 Wizardmon", () => {
     s.state.memory = 20;
     await s.ready();
 
-    expect(
-      s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentRemover").instanceId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentRemover").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.security.length === 1);
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT18-036")).toBe(true);

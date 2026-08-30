@@ -42,13 +42,13 @@ describe("BT18-028 AncientMegatheriummon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ancient").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => observe(s.engine).isRestricted(emptyId, "suspend"));
+    await settle(() => observe(s.engine).isRestricted(emptyId, "beSuspended"));
     expect(s.perm("stacked").stack).toHaveLength(1);
-    expect(observe(s.engine).isRestricted(emptyId, "suspend")).toBe(true);
-    expect(observe(s.engine).isRestricted(stackedId, "suspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(emptyId, "beSuspended")).toBe(true);
+    expect(observe(s.engine).isRestricted(stackedId, "beSuspended")).toBe(false);
 
     s.perm("empty").stack.push(makeInstance("BT1-010", 1, true));
-    expect(observe(s.engine).isRestricted(emptyId, "suspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(emptyId, "beSuspended")).toBe(false);
   });
 
   it("plays a qualifying level 4 source when it would leave the battle area", async () => {
@@ -92,11 +92,11 @@ describe("BT18-028 AncientMegatheriummon", () => {
         instanceId: s.inst("ancient").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => observe(s.engine).isRestricted(emptyId, "suspend"));
+    await settle(() => observe(s.engine).isRestricted(emptyId, "beSuspended"));
 
     expect(s.perm("stacked").stack).toHaveLength(1);
-    expect(observe(s.engine).isRestricted(emptyId, "suspend")).toBe(true);
-    expect(observe(s.engine).isRestricted(stackedId, "suspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(emptyId, "beSuspended")).toBe(true);
+    expect(observe(s.engine).isRestricted(stackedId, "beSuspended")).toBe(false);
   });
 
   it("DigiXroses with one Kumamon and one Korikakumon for 2 less each", async () => {

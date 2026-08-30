@@ -27,7 +27,10 @@ describe("BT18-076 Loweemon", () => {
       effects: [
         {
           trigger: "WhenDigivolving",
-          actions: [{ kind: "Draw", amount: 1 }, { kind: "Trash", target: { filter: { zone: "hand" }, count: 1 } }],
+          actions: [
+            { kind: "Draw", amount: 1 },
+            { kind: "Trash", target: { filter: { zone: "hand" }, count: 1 } },
+          ],
         },
         {
           trigger: "WhenAttacking",
@@ -115,7 +118,7 @@ describe("BT18-076 Loweemon", () => {
         permanentId: s.perm("koichi").permanentId,
         instanceId: s.inst("lowee").instanceId,
         useAlternateCost: true,
-        alternateRequirementIndex: 0,
+        alternateRequirementIndex: 1,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("koichi").topCard?.cardId === "BT18-076");

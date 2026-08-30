@@ -30,11 +30,11 @@ describe("BT18-035 Piddomon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() =>
-      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("piddomon").instanceId),
+      s.state.players[1]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("piddomon").instanceId),
     );
 
     expect(
-      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("piddomon").instanceId),
+      s.state.players[1]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("piddomon").instanceId),
     ).toBe(true);
     expect(s.state.players[1]!.security.some((card) => card.instanceId === s.inst("piddomon").instanceId)).toBe(false);
     expect(s.state.memory).toBe(10);

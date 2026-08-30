@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT18-038.js";
+import "./BT18-019.js";
 
 describe("BT18-038 ArkhaiAngemon", () => {
   it("gains the Angel trait and resolves its security placement path", async () => {
@@ -36,9 +37,7 @@ describe("BT18-038 ArkhaiAngemon", () => {
       trigger: "Rule",
       actions: [{ kind: "GrantStatic", grant: "trait", tokens: ["Angel"] }],
     });
-    expect(compiled.digivolutionRequirement).toEqual([
-      { level: 4, traits: ["Angel"], cost: 3, isAlternate: true },
-    ]);
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 4, traits: ["Angel"], cost: 3, isAlternate: true }]);
     await s.ready();
 
     s.state.memory = 10;
@@ -126,9 +125,9 @@ describe("BT18-038 ArkhaiAngemon", () => {
     s.state.memory = 20;
     await s.ready();
 
-    expect(
-      s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentRemover").instanceId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentRemover").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.security.length === 2);
 
     expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === s.perm("host").permanentId)).toBe(

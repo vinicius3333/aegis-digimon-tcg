@@ -28,7 +28,7 @@ describe("BT18-051 Entmon", () => {
           deck: ["BT1-001"],
         },
       },
-      { autoAcceptOptional: false, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
     s.state.memory = 10;

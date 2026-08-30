@@ -82,7 +82,9 @@ describe("BT18-071 ShadowSeraphimon", () => {
     s.state.memory = 10;
     preferredInstanceIds.push(s.perm("target").topCard!.instanceId);
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shadow").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shadow").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("target").stack.length === 0);
 
     expect(s.perm("target").topCard!.cardId).toBe("BT1-030");
@@ -114,7 +116,9 @@ describe("BT18-071 ShadowSeraphimon", () => {
         alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("seraphimon").topCard?.cardId === "BT18-071");
+    await settle(
+      () => s.perm("seraphimon").topCard?.cardId === "BT18-071" && s.perm("target").topCard?.cardId === "BT1-030",
+    );
 
     expect(s.state.memory).toBe(2);
     expect(s.perm("seraphimon").stack.map(({ cardId }) => cardId)).toContain("BT1-063");
@@ -130,7 +134,7 @@ describe("BT18-071 ShadowSeraphimon", () => {
           battleArea: [{ card: "BT18-066", as: "sephirothmon", under: ["BT18-064"] }],
           hand: [{ card: "BT18-071", as: "shadow" }],
         },
-        1: { battleArea: [{ card: "BT1-060", as: "target", under: ["BT1-030", "BT1-032", "BT1-009"] }] },
+        1: { battleArea: [{ card: "BT1-063", as: "target", under: ["BT1-009", "BT18-064", "BT1-038"] }] },
       },
       { autoSelectCards: true },
     );
@@ -145,7 +149,7 @@ describe("BT18-071 ShadowSeraphimon", () => {
         alternateRequirementIndex: 1,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("sephirothmon").topCard?.cardId === "BT18-071");
+    await settle(() => s.perm("sephirothmon").topCard?.cardId === "BT18-071" && s.perm("target").stack.length === 0);
 
     expect(s.state.memory).toBe(0);
     expect(s.perm("sephirothmon").stack.map(({ cardId }) => cardId)).toEqual(["BT18-064", "BT18-066"]);
@@ -182,7 +186,7 @@ describe("BT18-071 ShadowSeraphimon", () => {
           battleArea: [{ card: "BT1-063", as: "seraphimon" }],
           hand: [{ card: "BT18-071", as: "shadow" }],
         },
-        1: { battleArea: [{ card: "BT1-010", as: "attacker", under: ["BT1-001"] }] },
+        1: { battleArea: [{ card: "BT1-060", as: "attacker", under: ["BT1-038"] }] },
       },
       { autoSelectCards: true },
     );
@@ -208,9 +212,11 @@ describe("BT18-071 ShadowSeraphimon", () => {
         effectKey: eligible!.effectKey,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("seraphimon").topCard?.cardId === "BT18-071");
+    await settle(
+      () => s.perm("seraphimon").topCard?.cardId === "BT18-071" && s.perm("attacker").topCard?.cardId === "BT1-038",
+    );
 
-    expect(s.perm("attacker").topCard!.cardId).toBe("BT1-001");
+    expect(s.perm("attacker").topCard!.cardId).toBe("BT1-038");
     expect(observe(s.engine).hasKeyword(s.perm("seraphimon"), "Blocker")).toBe(true);
     assertNoLoudGap(s);
   });
@@ -227,7 +233,7 @@ describe("BT18-071 ShadowSeraphimon", () => {
         },
         1: {
           battleArea: [
-            { card: "BT1-009", as: "initialTarget", dp: 10000 },
+            { card: "BT1-009", as: "initialTarget", dp: 10000, suspended: true },
             { card: "BT1-010", as: "highestTarget", dp: 20000 },
           ],
         },

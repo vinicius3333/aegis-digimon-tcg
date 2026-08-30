@@ -201,7 +201,7 @@ describe("BT18-015 Kimeramon", () => {
         1: {
           battleArea: [
             { card: "BT1-030", dp: 1000, as: "effectTarget" },
-            { card: "BT1-030", dp: 15000, as: "defender" },
+            { card: "BT1-030", dp: 15000, suspended: true, as: "defender" },
           ],
         },
       },

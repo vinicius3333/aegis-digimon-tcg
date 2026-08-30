@@ -23,7 +23,7 @@ describe("BT18-073 Machinedramon", () => {
       attributes: ["Virus"],
       types: ["Machine", "Composite"],
       inheritedEffectText:
-        "[Opponent's Turn] [Once Per Turn] When any of your opponent's Digimon attack, you may change the attack target to 1 of your Digimon with the [Composite]/[Wicked God] trait.",
+        "[Opponent's Turn] [Once Per Turn] When any of your opponent's Digimon attack, you may change the attack target to 1 of your Digimon with the [Composite]/[Wicked God]\u00a0trait.",
     });
     expect(compiled).toMatchObject({
       effects: [
@@ -98,11 +98,13 @@ describe("BT18-073 Machinedramon", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("machine").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("machine").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("first").stack.length === 0 && s.perm("second").stack.length === 0);
 
     expect(s.perm("first").stack).toHaveLength(0);
@@ -135,7 +137,7 @@ describe("BT18-073 Machinedramon", () => {
         alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard?.cardId === "BT18-073");
+    await settle(() => s.perm("base").topCard?.cardId === "BT18-073" && s.perm("target").stack.length === 0);
 
     expect(s.state.memory).toBe(2);
     expect(s.perm("base").stack.map(({ cardId }) => cardId)).toContain("BT18-015");
@@ -199,11 +201,16 @@ describe("BT18-073 Machinedramon", () => {
     ).toEqual({ ok: true });
     await settle(() =>
       s.events.some(
-        (event) => event.kind === "attackDeclared" && event.target.kind === "permanent" && event.target.permanentId === redirectId,
+        (event) =>
+          event.kind === "attackDeclared" &&
+          event.target.kind === "permanent" &&
+          event.target.permanentId === redirectId,
       ),
     );
 
-    expect(s.events).toContainEqual(expect.objectContaining({ kind: "attackDeclared", target: { kind: "permanent", permanentId: redirectId } }));
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "attackDeclared", target: { kind: "permanent", permanentId: redirectId } }),
+    );
     assertNoLoudGap(s);
   });
 });

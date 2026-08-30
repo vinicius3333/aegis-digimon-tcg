@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./BT18-017.js";
 
 describe("BT18-017 AncientVolcanomon", () => {
@@ -76,7 +77,7 @@ describe("BT18-017 AncientVolcanomon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT18-017", as: "ancient", under: ["BT18-011"], dp: 12000 }] },
-        1: { battleArea: [{ card: "BT1-030", as: "defender", dp: 13000 }] },
+        1: { battleArea: [{ card: "BT1-030", as: "defender", dp: 15000, suspended: true }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
@@ -90,6 +91,7 @@ describe("BT18-017 AncientVolcanomon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === materialId));
+    await settle();
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === materialId)).toBe(true);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
@@ -99,7 +101,7 @@ describe("BT18-017 AncientVolcanomon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT18-017", as: "ancient", under: ["BT18-011"], dp: 12000 }] },
-        1: { battleArea: [{ card: "BT1-030", as: "defender", dp: 13000 }] },
+        1: { battleArea: [{ card: "BT1-030", as: "defender", dp: 15000, suspended: true }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1 },
     );
@@ -115,10 +117,9 @@ describe("BT18-017 AncientVolcanomon", () => {
     await settle(() =>
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === materialId),
     );
+    await settle();
 
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === materialId)).toBe(
-      true,
-    );
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === materialId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === materialId)).toBe(false);
   });
 

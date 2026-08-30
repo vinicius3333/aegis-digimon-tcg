@@ -2,6 +2,7 @@ import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../index.js";
 import { compiled } from "./BT18-057.js";
 
 describe("BT18-057 KoKabuterimon", () => {
@@ -88,7 +89,7 @@ describe("BT18-057 KoKabuterimon", () => {
       0: {
         battleArea: [
           { card: "BT18-057", as: "koKabuterimon" },
-          { card: "BT11-036", as: "other" },
+          { card: "BT1-045", as: "other" },
         ],
         hand: [{ card: "BT11-040", as: "sukamon" }],
       },
@@ -103,7 +104,7 @@ describe("BT18-057 KoKabuterimon", () => {
         instanceId: s.inst("sukamon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("other").topCard?.cardId === "BT11-040");
+    await settle(() => s.perm("other").topCard?.cardId === "BT11-040" && s.state.memory === 8);
 
     expect(s.state.memory).toBe(8);
     assertNoLoudGap(s);

@@ -46,18 +46,13 @@ export const compiled: CompiledCard = {
               },
             ],
           },
-          actions: [
-            {
-              kind: "Prevent",
-              mode: "leavePlay",
-              cost: {
-                kind: "moveToBattleArea",
-                raw: "by moving this Digimon to battle area",
-              },
-              optional: true,
-              abortOnDecline: true,
-            },
-          ],
+          // Moving the breeding card is itself the replacement payload. Encoding it
+          // directly lets the replacement resolve while the leaving Satan Mode still
+          // occupies the battle area (the generic moveToBattleArea cost gate checks
+          // that area before the replaced event has removed its source).
+          mode: "prevent",
+          actions: [{ kind: "MovePermanent", direction: "toBattle" }],
+          optional: true,
         },
       ],
       isBreeding: true,

@@ -25,20 +25,20 @@ describe("BT18-055 AncientTroymon", () => {
       0: {
         battleArea: [
           { card: "BT18-055", as: "ancientTroymon" },
-          { card: "EX3-045", as: "target", dp: 13000 },
+          { card: "EX3-045", as: "target", dp: 13000, suspended: true },
         ],
-        security: ["BT1-010", "BT1-011"],
       },
       1: {
         battleArea: [
           { card: "BT1-030", as: "firstAttacker" },
           { card: "BT1-030", as: "secondAttacker" },
         ],
+        security: ["BT1-010", "BT1-011"],
       },
     });
     s.state.turnSeat = 1;
     await s.ready();
-    const top = s.state.players[0]!.security[0]!.instanceId;
+    const top = s.state.players[1]!.security[0]!.instanceId;
 
     expect(
       s.engine.applyIntent(1, {
@@ -47,10 +47,10 @@ describe("BT18-055 AncientTroymon", () => {
         target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !s.state.players[0]!.security.some((card) => card.instanceId === top));
+    await settle(() => !s.state.players[1]!.security.some((card) => card.instanceId === top));
 
-    expect(s.state.players[0]!.security).toHaveLength(1);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === top)).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === top)).toBe(true);
 
     expect(
       s.engine.applyIntent(1, {
@@ -60,7 +60,7 @@ describe("BT18-055 AncientTroymon", () => {
       }),
     ).toEqual({ ok: true });
     await settle();
-    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
     assertNoLoudGap(s);
   });
 
@@ -70,7 +70,7 @@ describe("BT18-055 AncientTroymon", () => {
   ] as const)("may choose leave-play option %i to move an eligible stack card to %s", async (optionIndex, zone) => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT18-055", as: "ancient", under: ["BT18-047"] }] },
+        0: { battleArea: [{ card: "BT18-055", as: "ancient", under: ["BT18-047"], suspended: true }] },
         1: { battleArea: [{ card: "EX3-045", as: "attacker", dp: 13000 }] },
       },
       {
@@ -109,7 +109,7 @@ describe("BT18-055 AncientTroymon", () => {
   it("allows the leave-play effect to be refused without opening nested prompts", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT18-055", as: "ancient", under: ["BT18-047"] }] },
+        0: { battleArea: [{ card: "BT18-055", as: "ancient", under: ["BT18-047"], suspended: true }] },
         1: { battleArea: [{ card: "EX3-045", as: "attacker", dp: 13000 }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
@@ -168,7 +168,7 @@ describe("BT18-055 AncientTroymon", () => {
         ],
       },
       1: {
-        battleArea: [{ card: "EX3-045", as: "opponentTarget", dp: 13000 }],
+        battleArea: [{ card: "EX3-045", as: "opponentTarget", dp: 13000, suspended: true }],
         security: ["BT1-010", "BT1-011"],
       },
     });
@@ -217,7 +217,7 @@ describe("BT18-055 AncientTroymon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT18-055", as: "ancient", under: ["BT1-078", "BT1-030", "BT18-047"] }],
+          battleArea: [{ card: "BT18-055", as: "ancient", under: ["BT1-078", "BT1-030", "BT18-047"], suspended: true }],
         },
         1: { battleArea: [{ card: "EX3-045", as: "attacker", dp: 13000 }] },
       },
@@ -257,7 +257,7 @@ describe("BT18-055 AncientTroymon", () => {
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 0 },
     );
     bounce.state.turnSeat = 1;
-    bounce.state.memory = -20;
+    bounce.state.memory = 10;
     await bounce.ready();
     const eligibleId = bounce.perm("ancient").stack[0]!.instanceId;
     expect(bounce.engine.applyIntent(1, { type: "playCard", instanceId: bounce.inst("bouncer").instanceId })).toEqual({
@@ -268,7 +268,7 @@ describe("BT18-055 AncientTroymon", () => {
 
     const unavailable = setupEngine(
       {
-        0: { battleArea: [{ card: "BT18-055", as: "ancient", under: ["BT1-078", "BT1-030"] }] },
+        0: { battleArea: [{ card: "BT18-055", as: "ancient", under: ["BT1-078", "BT1-030"], suspended: true }] },
         1: { battleArea: [{ card: "EX3-045", as: "attacker", dp: 13000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },

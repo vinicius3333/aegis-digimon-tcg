@@ -55,7 +55,8 @@ describe("BT18-100 Gospel of the Fallen Angel", () => {
     const s = setupEngine(
       {
         0: {
-          breeding: { card: "BT1-006", as: "egg" },
+          breeding: { card: "BT1-006", as: "base" },
+          battleArea: ["BT10-071"],
           hand: [{ card: "BT18-100", as: "option" }],
           trash: [{ card: "BT18-034", as: "lucemon" }],
         },
@@ -65,19 +66,22 @@ describe("BT18-100 Gospel of the Fallen Angel", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.breeding?.topCard?.instanceId === s.inst("lucemon").instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === "BT18-034");
 
-    expect(s.state.players[0]!.breeding?.topCard?.instanceId).toBe(s.inst("lucemon").instanceId);
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("option").instanceId)).toBe(true);
-    expect(s.state.memory).toBe(10);
+    expect(s.state.players[0]!.breeding?.topCard?.cardId).toBe("BT18-034");
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT18-100")).toBe(true);
+    expect(s.state.memory).toBe(5);
   });
 
   it("does not treat a Lucemon variant as the exact breeding-area Main destination", async () => {
     const s = setupEngine(
       {
         0: {
-          breeding: { card: "BT1-006", as: "egg" },
+          breeding: { card: "BT1-006", as: "base" },
+          battleArea: ["BT10-071"],
           hand: [{ card: "BT18-100", as: "option" }],
           trash: [{ card: "BT18-082", as: "lucemonVariant" }],
         },
@@ -87,18 +91,26 @@ describe("BT18-100 Gospel of the Fallen Angel", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("option").instanceId));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT18-100"));
 
     expect(s.state.players[0]!.breeding?.topCard?.cardId).toBe("BT1-006");
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("lucemonVariant").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT18-100")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("lucemonVariant").instanceId)).toBe(
+      true,
+    );
   });
 
   it("naturally pays Delay by digivolving a Lucemon-name Digimon from trash, then trashes any opponent battle-area Option", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT18-082", as: "base" }, { card: "BT18-100", as: "option" }],
+          battleArea: [
+            { card: "BT18-082", as: "base" },
+            { card: "BT18-100", as: "option" },
+          ],
           trash: [{ card: "BT19-043", as: "destination" }],
           deck: ["BT1-001"],
         },
@@ -106,6 +118,7 @@ describe("BT18-100 Gospel of the Fallen Angel", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.perm("option").placedByEffect = true;
     s.state.memory = 10;
     await s.ready();
 
@@ -118,7 +131,7 @@ describe("BT18-100 Gospel of the Fallen Angel", () => {
     expect(
       s.engine.applyIntent(0, {
         type: "activateEffect",
-        permanentId: s.perm("option").permanentId,
+        sourceInstanceId: s.perm("option").topCard!.instanceId,
         effectKey: delay!.effectKey,
       }),
     ).toEqual({ ok: true });
@@ -129,7 +142,9 @@ describe("BT18-100 Gospel of the Fallen Angel", () => {
     );
 
     expect(s.perm("base").topCard?.instanceId).toBe(s.inst("destination").instanceId);
-    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("opponentOption").instanceId)).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("opponentOption").instanceId)).toBe(
+      true,
+    );
     expect(s.state.memory).toBe(7);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
   });
@@ -138,7 +153,10 @@ describe("BT18-100 Gospel of the Fallen Angel", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT18-082", as: "base" }, { card: "BT18-100", as: "option" }],
+          battleArea: [
+            { card: "BT18-082", as: "base" },
+            { card: "BT18-100", as: "option" },
+          ],
           trash: [{ card: "BT19-043", as: "destination" }],
           deck: ["BT1-001"],
         },
@@ -146,6 +164,7 @@ describe("BT18-100 Gospel of the Fallen Angel", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.perm("option").placedByEffect = true;
     s.state.memory = 10;
     await s.ready();
 
@@ -158,15 +177,19 @@ describe("BT18-100 Gospel of the Fallen Angel", () => {
     expect(
       s.engine.applyIntent(0, {
         type: "activateEffect",
-        permanentId: s.perm("option").permanentId,
+        sourceInstanceId: s.perm("option").topCard!.instanceId,
         effectKey: delay!.effectKey,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.instanceId === s.inst("destination").instanceId);
 
     expect(s.perm("base").topCard?.instanceId).toBe(s.inst("destination").instanceId);
-    expect(s.state.players[1]!.battleArea.some((perm) => perm.permanentId === s.perm("opponentDigimon").permanentId)).toBe(true);
-    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("opponentDigimon").instanceId)).toBe(false);
+    expect(
+      s.state.players[1]!.battleArea.some((perm) => perm.permanentId === s.perm("opponentDigimon").permanentId),
+    ).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("opponentDigimon").instanceId)).toBe(
+      false,
+    );
   });
 
   it("naturally places itself from Security", async () => {
@@ -186,8 +209,12 @@ describe("BT18-100 Gospel of the Fallen Angel", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("option").instanceId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("option").instanceId),
+    );
 
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("option").instanceId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("option").instanceId),
+    ).toBe(true);
   });
 });

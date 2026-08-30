@@ -26,7 +26,9 @@ describe("BT18-074 AncientWisemon", () => {
             {
               kind: "RevealAdd",
               revealCount: 3,
-              add: [{ count: 1, to: "play", filter: { colors: ["Black"], kind: ["Digimon", "Tamer"], playCostLte: 7 } }],
+              add: [
+                { count: 1, to: "play", filter: { colors: ["Black"], kind: ["Digimon", "Tamer"], playCostLte: 7 } },
+              ],
               rest: "trash",
               optional: true,
             },
@@ -89,7 +91,9 @@ describe("BT18-074 AncientWisemon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT11-093"));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT11-093")).toBe(true);
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["BT18-064", "BT1-028"]));
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT18-064", "BT1-028"]),
+    );
     expect(s.state.players[0]!.deck).toHaveLength(0);
     assertNoLoudGap(s);
   });
@@ -106,7 +110,9 @@ describe("BT18-074 AncientWisemon", () => {
     );
     s.state.memory = 20;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ancient").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ancient").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT11-105"));
 
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
@@ -124,7 +130,8 @@ describe("BT18-074 AncientWisemon", () => {
         0: {
           battleArea: [{ card: "BT18-068", as: "base" }],
           hand: [{ card: "BT18-074", as: "ancient" }],
-          deck: ["BT18-064", "BT11-093", "BT1-028"],
+          // The normal digivolution draw consumes the first card before the reveal window.
+          deck: ["BT1-028", "BT18-064", "BT1-028", "BT1-028"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -138,12 +145,12 @@ describe("BT18-074 AncientWisemon", () => {
         instanceId: s.inst("ancient").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard?.cardId === "BT18-074");
+    await settle(() => s.perm("base").topCard?.cardId === "BT18-074" && s.state.players[0]!.deck.length === 0);
 
     expect(s.state.memory).toBe(1);
     expect(s.perm("base").stack.map(({ cardId }) => cardId)).toContain("BT18-068");
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT18-064")).toBe(true);
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["BT11-093", "BT1-028"]));
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-028", "BT1-028"]);
     assertNoLoudGap(s);
   });
 
@@ -170,7 +177,12 @@ describe("BT18-074 AncientWisemon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT18-074"));
 
-    expect(s.perm("ancient").stack.map(({ cardId }) => cardId).sort()).toEqual(["BT18-064", "BT18-066"].sort());
+    expect(
+      s
+        .perm("ancient")
+        .stack.map(({ cardId }) => cardId)
+        .sort(),
+    ).toEqual(["BT18-064", "BT18-066"].sort());
     expect(s.state.memory).toBe(2);
     assertNoLoudGap(s);
   });

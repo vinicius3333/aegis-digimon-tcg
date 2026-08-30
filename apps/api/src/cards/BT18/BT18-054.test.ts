@@ -78,7 +78,7 @@ describe("BT18-054 AncientKazemon", () => {
   it("plays an eligible level-4 Hybrid from its own stack when leaving", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT18-054", as: "ancient", under: ["BT1-030", "BT18-048"] }] },
+        0: { battleArea: [{ card: "BT18-054", as: "ancient", under: ["BT1-030", "BT18-048"], suspended: true }] },
         1: { battleArea: [{ card: "EX3-045", as: "attacker", dp: 13000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

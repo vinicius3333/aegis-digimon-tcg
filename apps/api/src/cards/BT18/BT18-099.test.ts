@@ -81,52 +81,66 @@ describe("BT18-099 Fist of Athena", () => {
   it("naturally places itself from Main", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "BT18-099", as: "option" }] },
+        0: { battleArea: ["BT2-052", "BT2-067"], hand: [{ card: "BT18-099", as: "option" }] },
         1: { battleArea: [{ card: "BT1-009", as: "target", dp: 12000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
     s.state.memory = 10;
+    const optionInstanceId = s.inst("option").instanceId;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("option").instanceId));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    // During Option resolution the card is intentionally held in the transient
+    // resolving slot, so lookup by alias is unavailable until placement finishes.
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === optionInstanceId));
 
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("option").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === optionInstanceId)).toBe(true);
   });
 
   it("arms Delay after a natural target switch and applies both delayed keywords to one Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT18-099", as: "option" }, { card: "BT1-009", as: "defender" }] },
-        1: { battleArea: [{ card: "BT18-013", as: "raid" }] },
+        0: { battleArea: [{ card: "AD1-004", as: "raid" }], security: ["BT1-001"] },
+        1: {
+          battleArea: [
+            { card: "BT18-099", as: "option" },
+            { card: "BT1-009", as: "defender" },
+          ],
+          security: ["BT1-001"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.perm("defender").baseDP = 15000;
+    s.perm("defender").currentDP = 15000;
+    s.perm("option").placedByEffect = true;
     await s.ready();
-    s.state.turnSeat = 1;
 
     expect(observe(s.engine).activatableEffects(s.perm("option"))).toEqual([]);
     expect(
-      s.engine.applyIntent(1, {
+      s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("raid").permanentId,
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+    s.state.turnSeat = 1;
     await settle(() => observe(s.engine).activatableEffects(s.perm("option")).length > 0);
 
     const delay = observe(s.engine).activatableEffects(s.perm("option"))[0] as { effectKey: string } | undefined;
     expect(delay?.effectKey).toBeDefined();
-    s.state.turnSeat = 0;
+    const optionInstanceId = s.perm("option").topCard!.instanceId;
     expect(
-      s.engine.applyIntent(0, {
+      s.engine.applyIntent(1, {
         type: "activateEffect",
-        permanentId: s.perm("option").permanentId,
+        sourceInstanceId: optionInstanceId,
         effectKey: delay!.effectKey,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.every((perm) => perm.topCard?.instanceId !== s.inst("option").instanceId));
+    await settle(() => s.state.players[1]!.battleArea.every((perm) => perm.topCard?.instanceId !== optionInstanceId));
 
     expect(observe(s.engine).hasPierce(s.perm("defender"))).toBe(true);
     expect(observe(s.engine).keywordAmount(s.perm("defender"), "SecurityAttack")).toBe(1);
@@ -152,11 +166,15 @@ describe("BT18-099 Fist of Athena", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("option").instanceId));
-
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("knightmonText").instanceId)).toBe(
-      true,
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("option").instanceId),
     );
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("option").instanceId)).toBe(true);
+
+    expect(
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("knightmonText").instanceId),
+    ).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("option").instanceId),
+    ).toBe(true);
   });
 });

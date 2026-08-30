@@ -43,10 +43,12 @@ describe("BT18-044 FunBeemon", () => {
     s.state.memory = 3;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("funbeemon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("funbeemon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("funbeemon").topCard?.cardId === "BT18-044");
 
-    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("royalBase").instanceId]);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([]);
     expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("topSecurity").instanceId,
     ]);

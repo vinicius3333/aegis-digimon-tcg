@@ -10,7 +10,12 @@ describe("BT18-070 RhinoKabuterimon", () => {
   it("uses its hand Main effect to place Beetlemon and MetalKabuterimon under a Tamer and digivolve it", async () => {
     expect(compiled.effects[0]).toMatchObject({
       trigger: "Main",
-      actions: [{ kind: "DigivolveViaPlacement", placeCost: { target: { count: 2, requiredNamesExact: ["Beetlemon", "MetalKabuterimon"] } } }],
+      actions: [
+        {
+          kind: "DigivolveViaPlacement",
+          placeCost: { target: { count: 2, requiredNamesExact: ["Beetlemon", "MetalKabuterimon"] } },
+        },
+      ],
     });
     const s = setupEngine(
       {
@@ -44,7 +49,9 @@ describe("BT18-070 RhinoKabuterimon", () => {
     await s.ready();
 
     expect(s.perm("tamer").topCard?.cardId).toBe("BT18-070");
-    expect(s.perm("tamer").stack.map((card) => card.cardId)).toEqual(["BT18-063", "BT18-067", "BT18-091"]);
+    // Stack arrays are bottom-to-top; the primitive inserts each bottom placement in order,
+    // so the later selected material is the lower card.
+    expect(s.perm("tamer").stack.map((card) => card.cardId)).toEqual(["BT18-067", "BT18-063", "BT18-091"]);
     expect(observe(s.engine).hasKeyword(s.perm("tamer"), "Collision")).toBe(true);
   });
 

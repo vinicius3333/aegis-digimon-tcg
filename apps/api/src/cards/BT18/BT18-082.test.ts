@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-082.js";
+import "./BT18-019.js";
 
 describe("BT18-082 Lucemon: Chaos Mode", () => {
   it("covers opponent target choice, recovery fallback, and once-per-turn replacement", () => {
@@ -79,12 +80,10 @@ describe("BT18-082 Lucemon: Chaos Mode", () => {
   });
 
   it("naturally resolves only the opponent deletion branch when that choice deletes a permanent", async () => {
-    const s = setupEngine(
-      {
-        0: { hand: [{ card: "BT18-082", as: "chaos" }], deck: ["BT1-001"], security: ["BT1-002"] },
-        1: { battleArea: [{ card: "BT1-009", as: "victim" }], security: ["BT1-003"] },
-      },
-    );
+    const s = setupEngine({
+      0: { hand: [{ card: "BT18-082", as: "chaos" }], deck: ["BT1-001"], security: ["BT1-002"] },
+      1: { battleArea: [{ card: "BT1-009", as: "victim" }], security: ["BT1-003"] },
+    });
     s.state.memory = 13;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("chaos").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
@@ -109,17 +108,20 @@ describe("BT18-082 Lucemon: Chaos Mode", () => {
       0: {
         battleArea: [{ card: "BT18-034", as: "lucemon" }],
         hand: [{ card: "BT18-082", as: "chaos" }],
-        deck: ["BT1-001"],
+        // Digivolution draws the first card; the fallback Recovery card is next.
+        deck: ["BT1-003", "BT1-001"],
         security: ["BT1-002"],
       },
       1: { battleArea: [{ card: "BT1-009", as: "victim" }], security: ["BT1-003"] },
     });
     s.state.memory = 6;
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("lucemon").permanentId,
-      instanceId: s.inst("chaos").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("lucemon").permanentId,
+        instanceId: s.inst("chaos").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const pending = s.state.pendingDecision!;
     expect(pending.seat).toBe(1);
@@ -169,7 +171,9 @@ describe("BT18-082 Lucemon: Chaos Mode", () => {
     s.state.turnSeat = 1;
     s.state.memory = 14;
     await s.ready();
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("millenniummon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("millenniummon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.security.length === 1);
 
     expect(s.perm("chaos")).toBeDefined();

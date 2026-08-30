@@ -129,7 +129,7 @@ describe("BT18-019 Millenniummon", () => {
           battleArea: [{ card: "BT18-019", as: "millennium", under: ["BT18-015", "BT11-072"] }],
           trash: [{ card: "BT18-019", as: "replacement" }],
         },
-        1: { battleArea: [{ card: "BT1-030", dp: 15000, as: "defender" }] },
+        1: { battleArea: [{ card: "BT1-030", dp: 15000, suspended: true, as: "defender" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -158,7 +158,7 @@ describe("BT18-019 Millenniummon", () => {
           battleArea: [{ card: "BT18-019", as: "millennium", under: ["BT18-015"] }],
           trash: [{ card: "BT18-019", as: "replacement" }],
         },
-        1: { battleArea: [{ card: "BT1-030", dp: 15000, as: "defender" }] },
+        1: { battleArea: [{ card: "BT1-030", dp: 15000, suspended: true, as: "defender" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
