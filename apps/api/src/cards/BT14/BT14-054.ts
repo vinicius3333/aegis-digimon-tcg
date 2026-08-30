@@ -45,6 +45,11 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "Attack",
+          attacker: {
+            filter: { isSelfRef: true },
+            count: 1,
+            isSelf: true,
+          },
           target: {
             filter: {
               controller: "opponent",
