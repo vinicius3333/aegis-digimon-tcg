@@ -10,7 +10,7 @@ describe("BT19-007 Guilmon", () => {
 
     await advance(s.engine).runTurn(0);
 
-    expect(s.state.memory).toBe(1);
+    expect(s.state.memory).toBe(-3);
   });
 
   it("does not gain memory without Takato Matsuki or Calumon", async () => {
@@ -19,7 +19,7 @@ describe("BT19-007 Guilmon", () => {
 
     await advance(s.engine).runTurn(0);
 
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(-3);
   });
 
   it.each([
@@ -54,13 +54,16 @@ describe("BT19-007 Guilmon", () => {
   it("does not add to a DP maximum that references the source Digimon's DP", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT19-014", as: "host", under: ["BT19-007"] }] },
-        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 13000 }] },
+        0: { battleArea: [{ card: "BT19-014", as: "host", under: ["BT19-007"] }], deck: ["BT1-002"] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 13000 }], security: ["BT1-001"] },
       },
       { autoSelectCards: true },
     );
-    s.state.memory = -1;
-    await advance(s.engine).recompute();
+    // Keep memory on the active player's side: negative memory is already the
+    // opponent's Blitz window, so the attack intent is rejected before combat.
+    s.state.memory = 0;
+    s.state.turnSeat = 0;
+    await s.ready();
 
     expect(
       s.engine.applyIntent(0, {

@@ -77,7 +77,7 @@ describe("BT19-101 ZeedMillenniummon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("zeed").instanceId })).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT19-101"));
 
-    expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT19-075", "BT1-010"]);
+    expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT19-075", "BT1-010", "BT1-009"]);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
@@ -109,7 +109,7 @@ describe("BT19-101 ZeedMillenniummon", () => {
     await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT19-101"));
 
     expect(s.perm("moon").stack.map((card) => card.cardId)).toEqual(["BT19-075"]);
-    expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT19-075", "BT1-010"]);
+    expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT19-075", "BT1-010", "BT1-009"]);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
@@ -137,7 +137,7 @@ describe("BT19-101 ZeedMillenniummon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT19-101"));
 
-    expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT19-075", "BT1-010"]);
+    expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT19-075", "BT1-010", "BT1-009"]);
     expect(s.perm("zeed").isSuspended).toBe(true);
   });
 
@@ -154,7 +154,9 @@ describe("BT19-101 ZeedMillenniummon", () => {
     await s.ready();
 
     expect(observe(s.engine).isRestricted(s.perm("zeed"), "beSuspended")).toBe(true);
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.state.players[1]!.hand[0]!.instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.state.players[1]!.hand[0]!.instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT1-070"));
 
     expect(s.perm("zeed").isSuspended).toBe(false);
@@ -204,5 +206,4 @@ describe("BT19-101 ZeedMillenniummon", () => {
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT19-075"]);
     expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT1-010"]);
   });
-
 });

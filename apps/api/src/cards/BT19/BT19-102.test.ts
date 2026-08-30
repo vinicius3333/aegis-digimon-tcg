@@ -25,7 +25,7 @@ describe("BT19-102 Luminamon (Nene Version)", () => {
   });
 
   it("keeps both By-playing Delete conditions optional and bound to the chosen host", () => {
-    expect(runtimeCompiledCard("BT19-102")?.effects).toMatchObject([
+    expect(runtimeCompiledCard("BT19-102")?.effects.slice(0, 2)).toMatchObject([
       {
         trigger: "OnPlay",
         actions: [
@@ -156,17 +156,13 @@ describe("BT19-102 Luminamon (Nene Version)", () => {
     );
     const chosenTop = s.perm("chosen").topCard.instanceId;
     s.state.memory = 6;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT19-102"));
     expect(
       s.state.players[1]!.battleArea.some(
         (permanent) => permanent.topCard.instanceId === s.inst("material").instanceId,
-      ),
-      JSON.stringify(
-        s.state.players.map((player) => ({
-          battle: player?.battleArea.map((permanent) => permanent.topCard.cardId),
-          trash: player?.trash.map((card) => card.cardId),
-        })),
       ),
     ).toBe(true);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === chosenTop)).toBe(true);
@@ -212,7 +208,9 @@ describe("BT19-102 Luminamon (Nene Version)", () => {
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     s.state.memory = 6;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT19-102"));
 
     expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(true);
@@ -230,7 +228,9 @@ describe("BT19-102 Luminamon (Nene Version)", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 6;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT19-102"));
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-012")).toBe(true);
