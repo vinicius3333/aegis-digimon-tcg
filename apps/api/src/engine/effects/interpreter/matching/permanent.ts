@@ -85,11 +85,7 @@ export function compareNumber(actual: number, op: Condition["op"] | undefined, e
   }
 }
 
-export function permanentStackHasSameLevelCards(
-  ctx: EffectContext,
-  permanent: Permanent,
-  minCount: number,
-): boolean {
+export function permanentStackHasSameLevelCards(ctx: EffectContext, permanent: Permanent, minCount: number): boolean {
   const levelCounts = new Map<number, number>();
   const cards = [permanent.topCard, ...permanent.stack].filter(
     (card): card is NonNullable<typeof card> => card !== undefined,
@@ -557,10 +553,14 @@ export function permanentMatchesFilter(
     const selectedId = ctx.selections?.get(filter.sameNameAsSelection);
     const selected = selectedId === undefined ? undefined : ctx.game.permanentById(selectedId);
     const selectedTop = selected?.topCard;
-    if (selectedTop === undefined || permanent.topCard === undefined) return false;
-    const selectedName = (ctx.game.definitionOf(selectedTop).nameEn ?? "").toLowerCase();
+    if (permanent.topCard === undefined) return false;
+    const selectedName = (
+      selectedTop === undefined
+        ? ctx.selectionFacts?.get(filter.sameNameAsSelection)?.name
+        : ctx.game.definitionOf(selectedTop).nameEn
+    )?.toLowerCase();
     const candidateName = (def.nameEn ?? "").toLowerCase();
-    if (selectedName === "" || selectedName !== candidateName) return false;
+    if (selectedName === undefined || selectedName === "" || selectedName !== candidateName) return false;
   }
 
   // Comparative digivolution-stack-size filter relative to the effect source ("a Digimon with as

@@ -62,6 +62,28 @@ function permanentTopReturnCostCandidates(ctx: EffectContext, target: Target): P
   return candidatePermanents(ctx, target).filter((permanent) => permanent.stack.length > 0);
 }
 
+/** Snapshot one loose-card payment for a downstream relative/name filter in this resolution. */
+function bindLooseCostSelection(
+  ctx: EffectContext,
+  ref: string | undefined,
+  candidates: readonly LooseCandidate[],
+  chosen: readonly string[],
+): void {
+  if (ref === undefined) return;
+  const selected = candidates.find((candidate) => chosen.includes(candidate.instanceId));
+  if (selected === undefined) return;
+  const definition = ctx.game.definitionOf({ cardId: selected.cardId });
+  ctx.selections ??= new Map();
+  ctx.selections.set(ref, selected.instanceId);
+  ctx.selectionFacts ??= new Map();
+  ctx.selectionFacts.set(ref, {
+    dp: definition.dp,
+    level: definition.level,
+    playCost: definition.playCost,
+    name: definition.nameEn,
+  });
+}
+
 /**
  * Conservative feasibility precheck for an action's cost, used to avoid prompting "you may…"
  * for an optional cost-bearing action the controller cannot actually perform, and (CR
@@ -1116,6 +1138,13 @@ export async function payCost(
           if (chosen.length < 1) return false;
           const moved = await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
           if (out) out.paidCount = moved.length;
+          if (moved.length >= 1)
+            bindLooseCostSelection(
+              ctx,
+              cost.bindResultAs,
+              candidates,
+              moved.map((card) => card.instanceId),
+            );
           return moved.length >= 1;
         }
         const want = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
@@ -1124,6 +1153,13 @@ export async function payCost(
         if (chosen.length < want) return false;
         const moved = await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
         if (out) out.paidCount = moved.length;
+        if (moved.length === want)
+          bindLooseCostSelection(
+            ctx,
+            cost.bindResultAs,
+            candidates,
+            moved.map((card) => card.instanceId),
+          );
         return moved.length === want;
       }
       // A security-/hand-/trash-resident effect can pay "by trashing this card" while its
@@ -1342,6 +1378,7 @@ export async function payCost(
             chosen.push(id);
           }
           await ctx.fx.returnToDeck(chosen, { toTop: await returnToTop() });
+          bindLooseCostSelection(ctx, cost.bindResultAs, candidates, chosen);
           if (out) out.paidCount = chosen.length;
           return true;
         }
@@ -1368,6 +1405,7 @@ export async function payCost(
           }
           const toTop = await returnToTop();
           await ctx.fx.returnToDeck(toTop ? [...chosen].reverse() : chosen, { toTop });
+          bindLooseCostSelection(ctx, cost.bindResultAs, candidates, chosen);
           if (out) out.paidCount = chosen.length;
           return true;
         }
@@ -1398,6 +1436,7 @@ export async function payCost(
         ];
         recordTrackedColors(candidates, chosen);
         await ctx.fx.returnToDeck(chosen, { toTop: await returnToTop() });
+        bindLooseCostSelection(ctx, cost.bindResultAs, candidates, chosen);
         if (out) out.paidCount = chosen.length;
         return true;
       }
