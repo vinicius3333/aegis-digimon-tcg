@@ -1,11 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { ArraySchema, Encoder } from "@colyseus/schema";
-import { GameState, PlayerState, CardInstance, Permanent, PRIVATE_VIEW_TAG, Zone, type Seat } from "@aegis/shared";
-import { cite, markNotTestable } from "./_kb.js";
+import { GameState, PlayerState, CardInstance, Permanent, PRIVATE_VIEW_TAG, type Seat } from "@aegis/shared";
+import { cite } from "./_kb.js";
 import "./not-testable.js";
 import { GameStateAccess } from "../state/access.js";
 import { buildStateView, syncPublicCounts } from "../state/visibility.js";
-import { advance } from "../testkit/advance.js";
 import { settle } from "../testkit/harness.js";
 import {
   setupEngine as setup,
@@ -162,7 +161,7 @@ describe("§3-3 Digi-Egg Deck (comprehensive-0059)", () => {
     new Encoder(state);
     const view = buildStateView(state, 0);
     expect(view.has(state.players[1]!.eggDeck)).toBe(false); // opponent's egg deck hidden
-    expect(view.has(state.players[0]!.eggDeck)).toBe(true); // your own is visible to you
+    expect(view.has(state.players[0]!.eggDeck)).toBe(false); // only its public card count is visible
   });
 });
 

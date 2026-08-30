@@ -370,18 +370,15 @@ describe("Tier-2 A3 — DeletionMaxDpModifier (BT19-007 self-scoped +2000 deleti
 
   it("PRODUCER: the inherited [Static] clause records a self-scoped +2000 deletion-max bonus", async () => {
     // BT19-007's [Static] (isInherited) clause: DeletionMaxDpModifier amount 2000, scope "self",
-    // gated on `youHave [Calumon]/[Takato Matsuki]` AND memory <= 0. The interpreter dispatch
-    // resolves the source permanent and calls addDeletionMaxDp. A friendly [Calumon] satisfies the
-    // youHave gate; the fake state's memory is 0 (<= 0).
+    // gated only on memory <= 0. The interpreter resolves the source permanent and records the
+    // bonus while the fake state's memory is 0.
     const self = makePermanent("bt19-007-self", 0, "BT19-007");
-    const calumon = makePermanent("calumon", 0, "CALUMON");
     const recorder: Recorder = { calls: [] };
     const source = makeSource({ cardId: "BT19-007", permanent: () => self });
     const ctx = makeContext({
       recorder,
       source,
-      ownerBattleArea: [self, calumon],
-      definitionOverrides: new Map([["CALUMON", { nameEn: "Calumon" }]]),
+      ownerBattleArea: [self],
     });
 
     const effects = module!.effectsForTiming(EffectTiming.None, source);
@@ -397,11 +394,9 @@ describe("Tier-2 A3 — DeletionMaxDpModifier (BT19-007 self-scoped +2000 deleti
     expect(dmCalls[0]!.args[1]).toBe(2000);
   });
 
-  it("REVERT-CONFIRM-RED: with NO friendly [Calumon]/[Takato Matsuki] the producer records no bonus", async () => {
-    // The fails-when-reverted lever for the producer gate: the inherited clause's youHave
-    // condition requires a friendly [Calumon] or [Takato Matsuki]. A board without one drops the
-    // DeletionMaxDpModifier entirely -> no addDeletionMaxDp. (Memory is still 0, isolating the
-    // youHave gate as the load-bearing guard.)
+  it("REVERT-CONFIRM-RED: with positive memory the producer records no bonus", async () => {
+    // The inherited clause is gated only by memory <= 0; the Calumon/Takato condition belongs
+    // to BT19-007's separate start-of-main effect. Positive memory disables this modifier.
     const self = makePermanent("bt19-007-self2", 0, "BT19-007");
     const plain = makePermanent("plain", 0, "PLAIN");
     const recorder: Recorder = { calls: [] };
@@ -412,6 +407,7 @@ describe("Tier-2 A3 — DeletionMaxDpModifier (BT19-007 self-scoped +2000 deleti
       ownerBattleArea: [self, plain],
       definitionOverrides: new Map([["PLAIN", { nameEn: "Agumon" }]]),
     });
+    ctx.game.state.memory = 1;
 
     const effects = module!.effectsForTiming(EffectTiming.None, source);
     for (const effect of effects) {
@@ -420,7 +416,7 @@ describe("Tier-2 A3 — DeletionMaxDpModifier (BT19-007 self-scoped +2000 deleti
 
     expect(
       recorder.calls.filter((c) => c.verb === "addDeletionMaxDp"),
-      "no friendly [Calumon]/[Takato Matsuki] -> no deletion-max bonus produced",
+      "positive memory -> no deletion-max bonus produced",
     ).toHaveLength(0);
   });
 

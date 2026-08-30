@@ -63,6 +63,7 @@ describe("deck truth source — every catalogued deck is traceable", () => {
       // A standalone digivolution requirement is not an effect timing. Direct handwritten
       // overrides may intentionally replace the generated record, so only require a timing
       // when the shared compiled record is present and contains an effect clause.
+      if (getCompiledCard(cardId)?.effects.length === 0) return false;
       if (declaredTriggerCount(cardId) > 0) return false;
       return !/^\s*Digivolve\s*:/i.test(definition.effectText ?? "") || definition.inheritedEffectText !== undefined;
     });

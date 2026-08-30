@@ -184,7 +184,7 @@ describe("BT24 deck-specific interaction oracles", () => {
         1: {
           battleArea: [
             { card: "BT1-009", as: "level3" },
-            { card: "BT1-027", as: "level4" },
+            { card: "BT1-015", as: "level4" },
           ],
         },
       },

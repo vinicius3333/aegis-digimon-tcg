@@ -38,6 +38,7 @@ function digimon(seat: Seat, dp: number, cardId = "AD1-001"): Permanent {
   permanent.inBreeding = false;
   permanent.baseDP = dp;
   permanent.currentDP = dp;
+  permanent.enterFieldTurnCount = -1;
   return permanent;
 }
 
@@ -198,6 +199,7 @@ describe("A3 GainKeyword granted-to-other — a mid-game-granted keyword changes
     });
     await settle(() => ledger(s).hasKeyword(grantee.permanentId, "SecurityAttack"));
     const sourcePerm = findPermanent(s, 0, "ST20-04");
+    sourcePerm.enterFieldTurnCount = -1;
 
     expect(
       s.engine.applyIntent(0, {

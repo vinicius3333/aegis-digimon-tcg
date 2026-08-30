@@ -59,7 +59,10 @@ describe("errataCluster — 13 high-use errata'd cards implement the KB 'after' 
       const eff = c.effects.find((e) => e.trigger === "YourTurn");
       expect(eff, "P-123: YourTurn effect present").toBeDefined();
       expect(eff?.frequency).toBe("OncePerTurn");
-      const gain = eff?.actions.find((a) => a.kind === "GainMemory") as { amount?: number } | undefined;
+      const sub = eff?.actions.find((a) => a.kind === "SubTrigger") as
+        | { actions?: Array<{ kind: string; amount?: number }> }
+        | undefined;
+      const gain = sub?.actions?.find((a) => a.kind === "GainMemory");
       // REVERT/DIFF lever: drop the GainMemory(1) action (or its OncePerTurn cap) -> RED.
       expect(gain, "P-123: GainMemory action present").toBeDefined();
       expect(gain?.amount).toBe(1);
@@ -275,11 +278,7 @@ describe("errataCluster — 13 high-use errata'd cards implement the KB 'after' 
       // be deleted BY AN OPPONENT'S EFFECT...)". The added "by an opponent's effect" qualifier is
       // <Decoy> keyword semantics. The IR grants the <Decoy> keyword.
       const c = ir("BT6-059");
-      const decoy = c.effects
-        .flatMap((e) => e.actions)
-        .find(
-          (a) => a.kind === "GainKeyword" && (a as { keyword?: { keyword?: string } }).keyword?.keyword === "Decoy",
-        );
+      const decoy = c.effects.flatMap((e) => e.keywords ?? []).find((keyword) => keyword.keyword === "Decoy");
       // DIFF lever: drop the <Decoy> grant -> RED.
       expect(decoy, "BT6-059: <Decoy> grant present").toBeDefined();
     });
