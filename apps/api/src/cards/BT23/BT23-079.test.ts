@@ -131,6 +131,7 @@ describe("BT23-079 Eri Karan", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").linked.length === 1);
+    await settle(() => s.perm("eri").isSuspended);
 
     expect(s.perm("eri").isSuspended).toBe(true);
     expect(s.perm("host").currentDP).toBe(7000);
@@ -138,6 +139,6 @@ describe("BT23-079 Eri Karan", () => {
     await advance(s.engine).fireSubTrigger("whenLinked", {
       subjectPermanentId: s.perm("opponentHost").permanentId,
     });
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT23-079")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT23-079")).toBe(true);
   });
 });

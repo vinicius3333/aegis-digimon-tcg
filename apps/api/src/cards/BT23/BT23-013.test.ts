@@ -127,7 +127,7 @@ describe("BT23-013 Jesmon", () => {
 
   it("lets the newly played token pay Alliance but does not nest Jesmon's watcher attack, per Q5222-Q5223", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT23-013", as: "jesmon" }] }, 1: { security: 2 } },
+      { 0: { battleArea: [{ card: "BT23-013", as: "jesmon" }] }, 1: { security: 3 } },
       { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
     );
     const combat = (s.engine as unknown as { combat: { hasOpenAllianceDecision: boolean } }).combat;

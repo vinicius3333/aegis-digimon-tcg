@@ -80,10 +80,9 @@ describe("BT23-003 Motimon", () => {
         useAs: "option",
       }),
     ).toEqual({ ok: true });
-    await settle(
-      () => s.perm("motimonHost").isSuspended && !observe(s.engine).isAttacking(),
-    );
+    await settle(() => s.perm("motimonHost").isSuspended && !observe(s.engine).isAttacking());
     await advance(s.engine).verb.unsuspend([s.perm("motimonHost").permanentId]);
+    const secondOptionId = s.inst("secondOption").instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",
@@ -93,10 +92,8 @@ describe("BT23-003 Motimon", () => {
     ).toEqual({ ok: true });
     await settle(
       () =>
-        s.state.players[0]!.battleArea.some(
-          (permanent) => permanent.topCard?.instanceId === s.inst("secondOption").instanceId,
-        ) &&
-        !observe(s.engine).isAttacking(),
+        !observe(s.engine).isAttacking() &&
+        s.state.players[0]!.battleArea.every((permanent) => permanent.topCard?.instanceId !== secondOptionId),
     );
 
     expect(s.perm("motimonHost").isSuspended).toBe(false);
