@@ -4526,16 +4526,29 @@ button.side-panel__name:focus-visible {
     align-content: start;
   }
 
+  /* Each band scrolls instead of decapitating its content: at a fixed 7rem an
+     effect notice lost its bottom third — a realistic clause is ~169px tall.
+     The dvh half is each band's share of the screen with a 0.5rem gap left at
+     their deepest, so the top and bottom bands still cannot meet; the rem floor
+     keeps the old band on phones too short for the split. The stack needs its
+     own pointer events back to take the scroll gesture. */
   .match-notice-stack,
   .side-panel-stack {
-    max-height: 7rem;
-    overflow: hidden;
+    max-height: max(7rem, calc(50dvh - 14rem));
+    overflow: hidden auto;
+    pointer-events: auto;
   }
   /* A card panel is one thumbnail tall plus its heading, so its band has to be
-     deeper than a notice's band of text. 9rem is the most the two bands can each
-     take before they meet in the middle of a tall phone. */
+     deeper than a notice's band of text, and its offsets are 17rem on both
+     sides — hence the deeper subtrahend for the same 0.5rem gap. */
   .side-panel-stack {
-    max-height: 9rem;
+    max-height: max(9rem, calc(50dvh - 17.25rem));
+  }
+  /* The band already scrolls, and a second scrollbar inside one notice would
+     swallow the touch gesture meant for the band. */
+  .match-notice__text {
+    max-height: none;
+    overflow-y: visible;
   }
   .side-panel-stack[data-side="opp"] {
     top: calc(17rem + env(safe-area-inset-top, 0px));
