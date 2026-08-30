@@ -74,7 +74,7 @@ describe("BT24-099 Super Hacking", () => {
       0: {
         battleArea: ["BT21-009"],
         hand: [{ card: "BT24-099", as: "option" }],
-        deck: ["BT1-001", "BT1-002"],
+        deck: ["BT4-022", "BT4-022"],
       },
     });
     s.state.memory = 3;
