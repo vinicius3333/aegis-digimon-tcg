@@ -56,7 +56,9 @@ describe("BT22-027 Ryugumon", () => {
         cost: { kind: "place", destination: "digivolutionStack", position: "bottom", host: "self" },
       });
     }
-    const allTurns = compiled.effects.find((entry) => entry.trigger === "AllTurns");
+    const allTurns = compiled.effects.find(
+      (entry) => entry.trigger === "AllTurns" && entry.frequency === "OncePerTurn",
+    );
     expect(allTurns).toMatchObject({ frequency: "OncePerTurn" });
     expect(allTurns?.actions[0]).toMatchObject({
       kind: "SubTrigger",

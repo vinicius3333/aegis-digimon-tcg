@@ -95,6 +95,7 @@ describe("BT22-093 [Your Turn] CS digivolution chain", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    await s.ready();
 
     const subject = s.perm("subject");
     await (
@@ -122,6 +123,7 @@ describe("BT22-093 [Your Turn] CS digivolution chain", () => {
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
+    await s.ready();
 
     await (
       s.engine as unknown as {
