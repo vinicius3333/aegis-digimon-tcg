@@ -43,6 +43,7 @@ const compiled: CompiledCard = {
           },
           withoutSuspending: false,
           optional: true,
+          drainTimingWindowDuringAttack: true,
         },
       ],
       frequency: "OncePerTurn",
