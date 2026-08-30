@@ -71,23 +71,23 @@ export const compiled: CompiledCard = {
             {
               kind: "GainMemory",
               amount: 1,
+              scaling: {
+                per: 1,
+                filter: {
+                  controller: "mine",
+                  zone: "battleArea",
+                  kind: ["Digimon"],
+                  nameOrTrait: [
+                    {
+                      tokens: ["Royal Knight"],
+                      match: "trait",
+                    },
+                  ],
+                },
+                unit: "cards",
+              },
             },
           ],
-          scaling: {
-            per: 1,
-            filter: {
-              controller: "mine",
-              zone: "battleArea",
-              kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["Royal Knight"],
-                  match: "trait",
-                },
-              ],
-            },
-            unit: "cards",
-          },
         },
       ],
       frequency: "OncePerTurn",

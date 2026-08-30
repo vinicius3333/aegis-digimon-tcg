@@ -123,6 +123,7 @@ export const compiled: CompiledCard = {
             {
               kind: "RedirectAttack",
               mode: "endAttack",
+              allowCostWithoutTarget: true,
               cost: {
                 kind: "trash",
                 target: {
