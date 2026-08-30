@@ -8,10 +8,10 @@ describe("EX1-040 MegaKabuterimon", () => {
   it("can digivolve into an Insectoid or Ancient Insect while attacking", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX1-040", as: "mega" }], hand: [{ card: "BT1-081", as: "evo" }] },
+        0: { battleArea: [{ card: "EX1-040", as: "mega" }], hand: [{ card: "BT1-083", as: "evo" }] },
         1: { security: ["BT1-001", "BT1-001"] },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
     await s.ready();
@@ -22,9 +22,9 @@ describe("EX1-040 MegaKabuterimon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("mega").topCard.cardId === "BT1-081");
+    await settle(() => s.perm("mega").topCard.cardId === "BT1-083");
     expect(s.perm("mega").topCard.instanceId).toBe(s.inst("evo").instanceId);
-    expect(s.state.memory).toBe(2);
+    expect(s.state.memory).toBe(1);
   });
 
   it("gains 1 memory when its host deletes an opponent in battle and survives", async () => {
@@ -38,12 +38,12 @@ describe("EX1-040 MegaKabuterimon", () => {
   it("may decline the can-digivolve action while attacking", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX1-040", as: "mega" }], hand: [{ card: "BT1-081", as: "evo" }] },
+        0: { battleArea: [{ card: "EX1-040", as: "mega" }], hand: [{ card: "BT1-083", as: "evo" }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenAttacking, s.perm("mega"));
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("mega"));
     expect(s.perm("mega").topCard.cardId).toBe("EX1-040");
-    expect(s.inst("evo").zone).toBe("hand");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("evo").instanceId)).toBe(true);
   });
 });
