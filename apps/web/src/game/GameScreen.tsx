@@ -266,6 +266,7 @@ export function GameScreen({
   identityAvatarUrl,
   startMode = "casual",
   roomCode,
+  botDeckId,
   onExit,
   signedIn = false,
   demoConnection,
@@ -276,6 +277,8 @@ export function GameScreen({
   identityAvatarUrl?: string | null;
   startMode?: StartMode;
   roomCode?: string;
+  /** Famous-deck preset the seated bot should play; absent means the server picks at random. */
+  botDeckId?: string;
   onExit: (screen: Screen) => void;
   /** Only shapes what the report dialog says about follow-up questions; reporting needs no account. */
   signedIn?: boolean;
@@ -321,14 +324,14 @@ export function GameScreen({
   useEffect(() => {
     if (!vsBot || botCalledRef.current || !room || status !== "connected") return;
     botCalledRef.current = true;
-    void joinWithBot(room.roomId).catch((botJoinError: unknown) => {
+    void joinWithBot(room.roomId, botDeckId).catch((botJoinError: unknown) => {
       console.error("[BOT_JOIN_CLIENT] failed", {
         roomId: room.roomId,
         error: botJoinError instanceof Error ? botJoinError.message : String(botJoinError),
       });
       setBotError(t("game.botConnectionFailedDetail"));
     });
-  }, [vsBot, room, status, t]);
+  }, [vsBot, room, status, botDeckId, t]);
 
   const [handSel, setHandSel] = useState<string | null>(null); // selected hand instanceId
   const [handPreview, setHandPreview] = useState<string | null>(null); // instanceId shown in the mobile tap preview

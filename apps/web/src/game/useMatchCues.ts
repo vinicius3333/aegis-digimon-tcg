@@ -47,6 +47,7 @@ import {
   pushNotice,
   recoveryNoticeFromEvent,
   rejectionNotice,
+  securityGainNotice,
   type MatchNotice,
 } from "./notices";
 import {
@@ -436,6 +437,16 @@ export function useMatchCues({
   // The same baseline discipline for the projected attack/block restrictions.
   const restrictionsByPermanentRef = useRef<Map<string, FreezeFlags> | null>(null);
   const handCountsRef = useRef<{ you: number; opp: number } | null>(null);
+  // Last read of each seat's security count, so a stack an effect grew can be told
+  // from one a recovery grew — the recovery event owns its own flight and notice.
+  const securityCountsRef = useRef<{ you: number; opp: number } | null>(null);
+  const recoveryFlightSeatsRef = useRef<Set<Seat>>(new Set());
+  const securityGainKeyRef = useRef(0);
+  // Destruction scenes enqueued and not yet finished. A chained effect (Medusamon's
+  // Petrification tokens) trashes one security card per resolution step, so each trash
+  // arrives in its own batch — and each batch's first shield break must NOT take the
+  // centre of the screen off the previous card's still-playing scene.
+  const pendingDestructionsRef = useRef(0);
   // Set when the draw phase is announced and spent by the hand that grows in the
   // same commit, which is what tells a turn-start draw from an effect draw.
   const turnStartDrawRef = useRef({ you: false, opp: false });
@@ -713,6 +724,9 @@ export function useMatchCues({
       for (const event of fresh) {
         if (event.kind !== "securityRecovered") continue;
         const seat = event.seat;
+        // The count watcher below will see this growth too; the flight and notice
+        // are this event's to play, so the growth is claimed here.
+        recoveryFlightSeatsRef.current.add(seat);
         enqueue({
           id: `security-flight-${seat}-${event.amount}`,
           track: `securityFlight-${seat}`,
@@ -1100,12 +1114,15 @@ export function useMatchCues({
         viewerSeat,
       });
       // Only the first card takes the centre of the screen off whatever held it; the rest
-      // queue behind their predecessor on the same track.
+      // queue behind their predecessor on the same track — including a predecessor from an
+      // EARLIER batch: a chained effect delivers one trash per batch, and replacing would
+      // cancel the previous card's scene mid-play.
       enqueue(
         shieldBreakStep(buildSecurityBreakScene({ key, defenderSeat: destruction.seat, viewerSeat }), {
-          replace: index === 0,
+          replace: index === 0 && pendingDestructionsRef.current === 0,
         }),
       );
+      pendingDestructionsRef.current += 1;
       enqueue({
         id: `security-destroyed-${key}`,
         track: CENTER_STAGE_TRACK,
@@ -1121,6 +1138,7 @@ export function useMatchCues({
             releaseSecurityCard(key);
             await context.wait(SECURITY_DESTROY_TOTAL_MS - SECURITY_DESTROY_OUTCOME_AT_MS);
           } finally {
+            pendingDestructionsRef.current = Math.max(0, pendingDestructionsRef.current - 1);
             releaseSecurityCard(key);
             setSecurityClash((current) => (current?.key === key ? null : current));
           }
@@ -1128,6 +1146,14 @@ export function useMatchCues({
       });
       releaseSecurityCardWhenIdle(key);
     });
+    // A destruction step dropped from the queue before it ever ran (a newer check
+    // replacing the track) never reaches its `finally`, so the count is squared with
+    // reality at the latest when nothing is running — same discipline as the held
+    // shield figures above.
+    if (destructions.length > 0)
+      void queue.idle().then(() => {
+        pendingDestructionsRef.current = 0;
+      });
     for (const scene of clashScenes) {
       const impacted: ReadonlySet<string> = new Set(scene.loserPermanentIds);
       enqueue({
@@ -1458,6 +1484,54 @@ export function useMatchCues({
     if (you.handCount > previous.you) launchDrawFlight("you", turnStart.you);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [you?.handCount, opp?.handCount]);
+
+  /** The card lands on the stack: the same shield bounce a recovery plays. */
+  function launchSecurityGainFlight(seat: Seat) {
+    const key = (securityGainKeyRef.current += 1);
+    queue.enqueue({
+      id: `security-gain-flight-${seat}-${key}`,
+      track: `securityFlight-${seat}`,
+      replace: true,
+      async run(context) {
+        if (context.mode !== "live") return;
+        try {
+          setSecurityFlights((seats) => new Set(seats).add(seat));
+          await context.wait(TIMINGS.securityFlight);
+        } finally {
+          setSecurityFlights((seats) => {
+            if (!seats.has(seat)) return seats;
+            const next = new Set(seats);
+            next.delete(seat);
+            return next;
+          });
+        }
+      },
+    });
+  }
+
+  // A security stack that grew outside a recovery was stacked by an effect — a card
+  // placed there from the hand, the deck or the trash. `cardsMoved` names no seat and
+  // the stack is hidden from the opponent's view, so the growth is read off the count
+  // the server publishes for exactly this purpose. The dealt opening stack is only a
+  // baseline, and a growth a `securityRecovered` event claimed is not narrated twice.
+  useEffect(() => {
+    if (you === undefined || opp === undefined) return;
+    const previous = securityCountsRef.current;
+    securityCountsRef.current = { you: you.securityCount, opp: opp.securityCount };
+    if (!previous || mulliganOpen) return;
+    const gains = [
+      { seat: viewerSeat, side: "you" as const, amount: you.securityCount - previous.you },
+      { seat: otherSeat(viewerSeat), side: "opp" as const, amount: opp.securityCount - previous.opp },
+    ];
+    for (const { seat, side, amount } of gains) {
+      if (amount <= 0) continue;
+      if (recoveryFlightSeatsRef.current.delete(seat)) continue;
+      launchSecurityGainFlight(seat);
+      noticeSequenceRef.current += 1;
+      openNotice(securityGainNotice(side, amount, `notice-${noticeSequenceRef.current}`, Date.now()));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [you?.securityCount, opp?.securityCount]);
 
   /**
    * The beat before the reveal: the defender's shield arms, its glass shatters, and the

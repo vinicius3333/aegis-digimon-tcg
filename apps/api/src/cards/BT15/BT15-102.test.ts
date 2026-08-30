@@ -68,11 +68,7 @@ describe("BT15-102", () => {
     );
 
     const apocalymon = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "BT15-102");
-    expect(apocalymon?.stack.map(({ cardId }) => cardId).sort()).toEqual([
-      "BT15-031",
-      "BT15-052",
-      "BT15-066",
-    ]);
+    expect(apocalymon?.stack.map(({ cardId }) => cardId).sort()).toEqual(["BT15-031", "BT15-052", "BT15-066"]);
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT15-066")).toBe(false);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("shedSource").instanceId);
@@ -138,5 +134,41 @@ describe("BT15-102", () => {
     expect(s.perm("apocalymon").stack.map(({ cardId }) => cardId)).toEqual(["BT15-066"]);
     expect(s.state.players[1]!.deck).toHaveLength(3);
     expect(s.state.players[1]!.trash).toHaveLength(0);
+  });
+
+  it("ends the turn automatically when digivolving into it pushes memory across", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-066", as: "base" }],
+          hand: [{ card: "BT15-102", as: "apocalymon" }],
+          deck: ["AD1-001", "AD1-001"],
+        },
+        1: { deck: ["AD1-001", "AD1-001", "AD1-001", "AD1-001", "AD1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    let turnClosed = false;
+    const turn = s.engine.runOneTurn().then(() => {
+      turnClosed = true;
+    });
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 3;
+
+    // Digivolving costs 6, so paying from 3 memory crosses the gauge — the rulebook
+    // turn-pass, with no endPhase intent from the player.
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("apocalymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => turnClosed);
+    expect(turnClosed).toBe(true);
+    await turn;
   });
 });

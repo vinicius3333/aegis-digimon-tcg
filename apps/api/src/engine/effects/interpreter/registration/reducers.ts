@@ -27,8 +27,12 @@ export interface WouldBePlayedSelfReducer {
   /** Cost reduction earned for each card committed by a deferred self-placement cost. */
   amountPerPaid?: number;
   raw: string;
-  /** Hand-written payment hook for costs whose card-selection/movement shape is not representable as Cost. */
-  pay?: (ctx: EffectContext) => Promise<boolean>;
+  /**
+   * Hand-written payment hook for costs whose card-selection/movement shape is not representable as
+   * Cost. Returning a boolean grants `amount` once when true; returning a number reports how many
+   * cards were committed and grants `amountPerPaid` for each (BT15-102's "up to 3, -4 each").
+   */
+  pay?: (ctx: EffectContext) => Promise<boolean | number>;
   cost?: Cost;
   costActions?: Action[];
   condition?: Condition;
@@ -498,7 +502,10 @@ async function runWouldBePlayedCostActions(ctx: EffectContext, actions: readonly
     if (raw.kind === "PlaceUnder" && (raw as { targetIsPermanent?: boolean }).targetIsPermanent === true) {
       const sourceIds = await resolvePermanentTargets(ctx, (raw as Extract<Action, { kind: "PlaceUnder" }>).target);
       if (sourceIds.length === 0) return false;
-      ctx.pendingSelfReducerRelocations = [...(ctx.pendingSelfReducerRelocations ?? []), ...sourceIds];
+      ctx.pendingSelfReducerRelocations = [
+        ...(ctx.pendingSelfReducerRelocations ?? []),
+        ...sourceIds.map((permanentId) => ({ permanentId })),
+      ];
       sawDeferredRelocation = true;
       continue;
     }
@@ -526,8 +533,15 @@ export async function applyWouldBePlayedSelfReducer(
 ): Promise<void> {
   if (reducer.pay !== undefined) {
     if (!(await ctx.ask.optional(ctx, reducer.raw))) return;
-    if (await reducer.pay(ctx)) {
-      ctx.playCostDelta = (ctx.playCostDelta ?? 0) + Math.max(0, reducer.amount);
+    const paid = await reducer.pay(ctx);
+    const reduction =
+      typeof paid === "number"
+        ? Math.max(0, paid) * Math.max(0, reducer.amountPerPaid ?? 0)
+        : paid
+          ? Math.max(0, reducer.amount)
+          : 0;
+    if (reduction > 0) {
+      ctx.playCostDelta = (ctx.playCostDelta ?? 0) + reduction;
     }
     return;
   }

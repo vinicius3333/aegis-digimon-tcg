@@ -40,7 +40,6 @@ export function PlayerMenu({
   }, [query]);
 
   const links: { key: string; label: string; icon: IconComponent; action: () => void }[] = [
-    { key: "tournaments", label: t("nav.tournaments"), icon: Icons.Calendar, action: () => onNav("tournaments") },
     { key: "settings", label: t("menu.settings"), icon: Icons.Settings, action: () => onNav("settings") },
   ];
 

@@ -551,10 +551,7 @@ export class GameEngine {
    * separate maps because this one relocates a whole PERMANENT via `relocatePermanent`, not loose
    * card instances via `placeUnder`).
    */
-  private readonly pendingSelfReducerRelocations = new Map<
-    string,
-    (string | { permanentId: string; shedOwnCards?: boolean })[]
-  >();
+  private readonly pendingSelfReducerRelocations = new Map<string, { permanentId: string; shedOwnCards?: boolean }[]>();
 
   /** The effect verbs (effect-primitives) bound to this match. */
   private readonly primitives: Primitives;
@@ -2549,6 +2546,7 @@ export class GameEngine {
       effectKey: `subtrigger/${sub.id}/${sub.description}`,
       description: subTriggerDescriptionFor(sub, ctx),
       timing: sub.event,
+      ...(sub.isInheritedSource === true ? { isInherited: true } : {}),
       // `securityChecked` closes the check AFTER these bodies have run, so the client needs
       // this to hold the announcement until the checked card's reveal has been shown.
       ...(this.securityCheckDepth > 0 ? { duringSecurityCheck: true } : {}),
@@ -3869,6 +3867,7 @@ export class GameEngine {
           effectKey: collected.effect.effectKey,
           description: collected.effect.description,
           timing: EffectTiming[timing],
+          ...(collected.effect.isInherited ? { isInherited: true } : {}),
           // `securityChecked` closes the check AFTER these effects have resolved, so the
           // client needs this to hold the announcement until the reveal has been shown.
           ...(this.securityCheckDepth > 0 ? { duringSecurityCheck: true } : {}),
@@ -3882,6 +3881,7 @@ export class GameEngine {
           effectKey: collected.effect.effectKey,
           description: collected.effect.description,
           timing: EffectTiming[timing],
+          ...(collected.effect.isInherited ? { isInherited: true } : {}),
         });
       },
     };
@@ -4779,15 +4779,14 @@ export class GameEngine {
         if (relocations !== undefined && relocations.length > 0) {
           this.pendingSelfReducerRelocations.delete(playedInstanceId);
           for (const relocation of relocations) {
-            const sourcePermanentId = typeof relocation === "string" ? relocation : relocation.permanentId;
             const opts = {
               belowTop: true,
-              ...(typeof relocation !== "string" && relocation.shedOwnCards === true ? { shedOwnCards: true } : {}),
+              ...(relocation.shedOwnCards === true ? { shedOwnCards: true } : {}),
             };
             if (this.primitives.relocatePermanentByEffect !== undefined) {
-              await this.primitives.relocatePermanentByEffect(permanentId, sourcePermanentId, opts);
+              await this.primitives.relocatePermanentByEffect(permanentId, relocation.permanentId, opts);
             } else {
-              this.primitives.relocatePermanent(permanentId, sourcePermanentId, opts);
+              this.primitives.relocatePermanent(permanentId, relocation.permanentId, opts);
             }
           }
         }
@@ -4960,6 +4959,14 @@ export class GameEngine {
           intent: "attack",
           reason: err instanceof Error ? err.message : "combat-error",
         });
+        // A combat that died mid-resolution already released the controller's guards
+        // (resolveAttack's finally), but it skipped onCombatComplete — and with it the
+        // turn-end check. If an effect pushed memory across before the throw, no later
+        // verb is legal to re-trigger that check, so the Main phase would hang open
+        // until a manual endPhase (field bug: api.log 2026-08-20, BT21-021).
+        this.syncAttackTargets();
+        this.syncHandAffordances();
+        this.checkTurnEndAfterVerb();
       },
     };
   }
