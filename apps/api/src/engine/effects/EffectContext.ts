@@ -1944,7 +1944,7 @@ export interface EffectContext {
    * permanent's top card and trashes the rest of its stack (BT15-102 places battle-area top cards
    * per KB Q2599); without it the whole permanent moves under the played card (BT12-112).
    */
-  pendingSelfReducerRelocations?: (string | { permanentId: string; shedOwnCards?: boolean })[];
+  pendingSelfReducerRelocations?: { permanentId: string; shedOwnCards?: boolean }[];
   /** Loose card instance ids committed under the card being played once its permanent exists. */
   pendingSelfReducerPlacements?: string[];
   /**

@@ -1,7 +1,7 @@
 import { afterEach, describe, it, expect, vi } from "vitest";
 import type { Client } from "colyseus";
 import { Encoder } from "@colyseus/schema";
-import { EVENT_CHANNEL, type ServerEvent } from "@aegis/shared";
+import { ALL_FAMOUS_DECKS, EVENT_CHANNEL, isFamousDeckAvailable, type ServerEvent } from "@aegis/shared";
 import { AegisRoom } from "./AegisRoom.js";
 import { RED_DECK } from "../engine/testDecks.js";
 import { DEFAULT_MAX_ACTION_DELAY_MS } from "../bot/BotPlayer.js";
@@ -108,6 +108,28 @@ describe("AegisRoom ready-gated match start", () => {
     room.addBot();
 
     expect(broadcastedEvents(room).some((e) => e.kind === "matchStarted")).toBe(true);
+  });
+
+  it("addBot deals the bot the requested famous-deck preset", () => {
+    const requested = ALL_FAMOUS_DECKS.find(isFamousDeckAvailable);
+    expect(requested).toBeDefined();
+    const room = makeRoom({ botRoom: true });
+    // eslint-disable-next-line no-new -- constructing the Encoder wires the state root
+    new Encoder(room.state);
+    const human = fakeClient("session-human-deck");
+    room.clients.push(human);
+    room.onJoin(human, { displayName: "Human", deck: RED_DECK });
+
+    room.addBot(requested!.deckId);
+
+    // The match has started and dealt, so the preset's 50 cards are spread over the
+    // bot's zones; the total is what proves WHICH deck was seated.
+    const bot = room.state.players[1]!;
+    const dealtTotal = bot.deck.length + bot.hand.length + bot.security.length;
+    expect(dealtTotal).toBe(requested!.decklist.mainDeck.length);
+    expect(bot.eggDeck.length).toBe(requested!.decklist.eggDeck.length);
+    const dealtIds = [...bot.deck, ...bot.hand, ...bot.security].map((card) => card.cardId).sort();
+    expect(dealtIds).toEqual([...requested!.decklist.mainDeck].sort());
   });
 
   it("advances past mulligan after the human keeps and the bot answers", async () => {

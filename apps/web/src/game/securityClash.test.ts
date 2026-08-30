@@ -226,6 +226,25 @@ describe("security destroyed by an effect", () => {
     expect(securityDestructionsFromEvents([trashed(["i-unknown"])], lookup)).toEqual([]);
   });
 
+  // The reported bug: the event is broadcast before the state patch that lands the
+  // card in the trash, so the index sometimes cannot name it yet and the scene was
+  // silently dropped. The event now carries the identities itself.
+  it("names the cards from the event before the board index has caught up", () => {
+    const enriched: ServerEvent = {
+      kind: "cardsMoved",
+      instanceIds: ["i-not-indexed-yet", "i-also-pending"],
+      from: "security",
+      to: "trash",
+      cardIds: [DIGIMON_CARD_ID, OPTION_CARD_ID],
+      seat: 0,
+    };
+    const emptyLookup = { cardId: () => undefined, seat: () => undefined };
+    expect(securityDestructionsFromEvents([enriched], emptyLookup)).toEqual([
+      { cardId: DIGIMON_CARD_ID, seat: 0 },
+      { cardId: OPTION_CARD_ID, seat: 0 },
+    ]);
+  });
+
   it("stages the card alone, already spent, on the destruction clock", () => {
     const scene = buildSecurityDestructionScene({
       key: 3,

@@ -67,13 +67,15 @@ export function Lobby({
   onSelectDeck: (id: string) => void;
   onCopyDeck: (deck: DeckListing) => void;
   onNav: (s: Screen) => void;
-  onStart: (mode: StartMode, roomCode?: string) => void;
+  onStart: (mode: StartMode, roomCode?: string, botDeckId?: string) => void;
 }) {
   const { t } = useTranslation();
   const MODES = modesFor(t);
   const [mode, setMode] = useState("casual");
   const [privateSub, setPrivateSub] = useState<"create" | "join">("create");
   const [roomCodeInput, setRoomCodeInput] = useState("");
+  // "" is the random pool; any other value is a famous-deck preset id the bot will play.
+  const [botDeckId, setBotDeckId] = useState("");
   const userDecks = decks;
   const availableDecks = selectableDecks(decks);
   const active = availableDecks.find((d) => d.id === activeDeckId) ?? availableDecks[0];
@@ -403,11 +405,61 @@ export function Lobby({
                 ))}
               </div>
               {vsBot ? (
-                <div className="lobby-launch">
-                  <Button size="lg" full icon={Icons.Bot} disabled={!deckLegal} onClick={() => onStart("bot")}>
-                    {t("lobby.playVsBot")}
-                  </Button>
-                </div>
+                <>
+                  <div style={{ marginBottom: 18 }}>
+                    <label
+                      htmlFor="lobby-bot-deck"
+                      style={{
+                        display: "block",
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: "var(--ds-fg-muted)",
+                        marginBottom: 6,
+                      }}
+                    >
+                      {t("lobby.botDeck")}
+                    </label>
+                    <select
+                      id="lobby-bot-deck"
+                      value={botDeckId}
+                      onChange={(event) => setBotDeckId(event.target.value)}
+                      style={{
+                        width: "100%",
+                        padding: "9px 10px",
+                        borderRadius: 10,
+                        border: "1px solid var(--ds-border-strong)",
+                        background: "var(--ds-background)",
+                        color: "var(--ds-fg)",
+                        fontSize: 13,
+                        fontFamily: "var(--ds-font-sans)",
+                        outline: "none",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <option value="">{t("lobby.botDeckRandom")}</option>
+                      {FAMOUS_DECK_GROUPS.map((group) => (
+                        <optgroup key={group.collection} label={group.collection}>
+                          {group.decks.map((deck) => (
+                            <option key={deck.id} value={deck.id}>
+                              {deck.name}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="lobby-launch">
+                    <Button
+                      size="lg"
+                      full
+                      icon={Icons.Bot}
+                      disabled={!deckLegal}
+                      onClick={() => onStart("bot", undefined, botDeckId || undefined)}
+                    >
+                      {t("lobby.playVsBot")}
+                    </Button>
+                  </div>
+                </>
               ) : (
                 <RankedStart
                   disabled={!deckLegal}

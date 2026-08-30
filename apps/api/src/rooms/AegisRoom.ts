@@ -11,7 +11,7 @@ import {
 import { GameEngine, type SeatJoinOptions } from "../engine/GameEngine.js";
 import type { VisibilityPort } from "../engine/state/index.js";
 import { BotPlayer, type BotOptions } from "../bot/BotPlayer.js";
-import { randomBotDeck } from "../engine/testDecks.js";
+import { botDeckFor } from "../engine/testDecks.js";
 import { accountStore } from "../accounts/runtime.js";
 import type { AccountStore, DeckSnapshot } from "../accounts/AccountStore.js";
 import { seriesStore } from "../tournaments/runtime.js";
@@ -696,7 +696,7 @@ export class AegisRoom extends Room<GameState> {
    * Seat a bot as seat 1 and start the match. The room must have exactly one
    * human player already seated. Idempotent: a second call is a no-op.
    */
-  addBot(): boolean {
+  addBot(botDeckId?: string): boolean {
     // Ordinary casual rooms remain accepted during the expand/contract rollout so
     // a tab with the previous web bundle can still start its bot match. New clients
     // create an isolated bot room and therefore never enter the casual queue.
@@ -724,7 +724,7 @@ export class AegisRoom extends Room<GameState> {
 
     this.engine.seatPlayer(this.BOT_SEAT, "bot", {
       displayName: "Bot",
-      deck: randomBotDeck(),
+      deck: botDeckFor(botDeckId),
     });
 
     // The bot never sends its own `ready` intent (it isn't a Colyseus client, so it
