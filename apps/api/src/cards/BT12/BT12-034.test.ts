@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import "./BT12-034.js";
+import "./BT12-092.js";
 
 describe("BT12-034 Agumon", () => {
   it("has only the printed zero-cost Koromon evolution route", () => {
@@ -50,7 +51,7 @@ describe("BT12-034 Agumon", () => {
         },
         1: { battleArea: [{ card: "BT1-009", as: "target" }] },
       },
-      { autoSelectCards: true },
+      { autoDeclineOptional: true, autoSelectCards: true },
     );
     await s.ready();
     await advance(s.engine).verb.suspend([s.perm("marcus").permanentId]);

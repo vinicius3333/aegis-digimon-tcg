@@ -195,6 +195,8 @@ export interface TriggerInfo {
   deletedPermanentId?: string;
   /** Every permanent in the same simultaneous deletion action, captured before movement. */
   deletedPermanentIds?: string[];
+  /** Controller and top-card facts for every permanent in the simultaneous deletion action. */
+  deletedPermanentSnapshots?: Array<{ permanentId: string; controllerSeat: Seat; topCardId: string }>;
   /** Physical cards that became link cards in the current linking operation. */
   linkedInstanceIds?: string[];
   deletedInstanceIds?: string[];
@@ -1849,7 +1851,10 @@ export interface EffectContext {
    * opponent's Digimon with as much or less DP as it" — BT16-070) still needs those attributes
    * after the permanent has left the board, where `selections` alone resolves to nothing.
    */
-  selectionFacts?: Map<string, { dp?: number; level?: number; playCost?: number; digivolutionCount?: number }>;
+  selectionFacts?: Map<
+    string,
+    { dp?: number; level?: number; playCost?: number; digivolutionCount?: number; name?: string }
+  >;
   /**
    * When set, this effect is conferred from a digivolution-stack card onto
    * `conferredToPermanentId` (GrantStatic grant:"effects").

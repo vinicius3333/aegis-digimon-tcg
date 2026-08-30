@@ -24,23 +24,8 @@ export const compiled: CompiledCard = {
           },
           from: ["hand"],
           payCost: true,
+          reduceCostBy: 4,
           optional: true,
-        },
-        {
-          kind: "Replacement",
-          event: "wouldBePlayed",
-          sourceFilter: {
-            isSelfRef: true,
-          },
-          actions: [
-            {
-              kind: "Replacement",
-              event: "wouldBePlayed",
-              mode: "reduceCost",
-              amount: 4,
-              raw: "reduce the play cost by 4",
-            },
-          ],
         },
       ],
       frequency: "OncePerTurn",
@@ -63,23 +48,8 @@ export const compiled: CompiledCard = {
           },
           from: ["hand"],
           payCost: true,
+          reduceCostBy: 4,
           optional: true,
-        },
-        {
-          kind: "Replacement",
-          event: "wouldBePlayed",
-          sourceFilter: {
-            isSelfRef: true,
-          },
-          actions: [
-            {
-              kind: "Replacement",
-              event: "wouldBePlayed",
-              mode: "reduceCost",
-              amount: 4,
-              raw: "reduce the play cost by 4",
-            },
-          ],
         },
       ],
       frequency: "OncePerTurn",

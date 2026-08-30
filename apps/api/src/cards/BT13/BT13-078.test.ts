@@ -29,6 +29,7 @@ describe("BT13-078 Phascomon", () => {
       { 0: { battleArea: [{ card: "BT13-078", as: "phascomon" }], deck: ["BT1-002"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.turnSeat = 1;
     await s.ready();
 
     await advance(s.engine).verb.deletePermanent([s.perm("phascomon").permanentId]);
@@ -44,6 +45,7 @@ describe("BT13-078 Phascomon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.turnSeat = 1;
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.EndOfOpponentsTurn, s.perm("host"));
@@ -59,6 +61,7 @@ describe("BT13-078 Phascomon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.turnSeat = 1;
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.EndOfOpponentsTurn, s.perm("host"));

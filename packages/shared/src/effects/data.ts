@@ -967,7 +967,7 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
     {
       cost: 0,
       isAlternate: true,
-      names: ["ShineGreymon"],
+      namesExact: ["ShineGreymon"],
       burstDigivolve: { returnTamerNamesExact: ["Marcus Damon"] },
     },
   ],
@@ -975,7 +975,7 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
     {
       cost: 0,
       isAlternate: true,
-      names: ["MirageGaogamon"],
+      namesExact: ["MirageGaogamon"],
       burstDigivolve: { returnTamerNamesExact: ["Thomas H. Norstein"] },
     },
   ],
@@ -988,7 +988,12 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
     },
   ],
   "BT13-092": [
-    { cost: 0, isAlternate: true, names: ["Ravemon"], burstDigivolve: { returnTamerNamesExact: ["Keenan Crier"] } },
+    {
+      cost: 0,
+      isAlternate: true,
+      namesExact: ["Ravemon"],
+      burstDigivolve: { returnTamerNamesExact: ["Keenan Crier"] },
+    },
   ],
   "BT25-104": [
     { cost: 5, isAlternate: true, level: 6, traits: ["DATA SQUAD"] },
@@ -1226,7 +1231,6 @@ export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[
     {
       materials: [
         {
-          kind: ["Digimon"],
           levelComparison: { op: "lte", value: 5 },
           nameOrTrait: [{ tokens: ["Cyborg", "Composite"], match: "trait" }],
           differentCardNumbers: true,
@@ -1397,7 +1401,6 @@ export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[
     {
       materials: [
         {
-          kind: ["Digimon"],
           levelComparison: { op: "eq", value: 4 },
           nameOrTrait: [{ tokens: ["Composite"], match: "trait" }],
           differentCardNumbers: true,

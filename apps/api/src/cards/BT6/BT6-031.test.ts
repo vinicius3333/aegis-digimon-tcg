@@ -23,7 +23,7 @@ describe("BT6-031 Tinkermon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT6-031", as: "tinkermon" }] },
-        1: { battleArea: [{ card: "BT1-010", as: "target" }] },
+        1: { battleArea: [{ card: "BT1-010", as: "target" }], deck: ["BT1-003"] },
       },
       { autoSelectCards: true },
     );

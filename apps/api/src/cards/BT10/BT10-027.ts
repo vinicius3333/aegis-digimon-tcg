@@ -26,14 +26,14 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlayWithoutCost",
-          target: { filter: { controller: "mine", kind: ["Digimon"], level: 3 }, count: 1 },
+          target: { filter: { controller: "mine", kind: ["Digimon"], levels: [3] }, count: 1 },
           from: ["digivolutionCards"],
           fromOwnDigivolutionStack: true,
           payCost: false,
         },
         {
           kind: "PlayWithoutCost",
-          target: { filter: { controller: "mine", kind: ["Digimon"], level: 4 }, count: 1 },
+          target: { filter: { controller: "mine", kind: ["Digimon"], levels: [4] }, count: 1 },
           from: ["digivolutionCards"],
           fromOwnDigivolutionStack: true,
           payCost: false,

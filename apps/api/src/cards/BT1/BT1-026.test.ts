@@ -52,7 +52,7 @@ describe("BT1-026 Breakdramon", () => {
   it("retains Piercing after evolving from a red level 5", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-025", as: "base" }],
+        battleArea: [{ card: "BT1-021", as: "base" }],
         hand: [{ card: "BT1-026", as: "evolving" }],
         deck: [{ card: "BT1-010", as: "drawn" }],
       },

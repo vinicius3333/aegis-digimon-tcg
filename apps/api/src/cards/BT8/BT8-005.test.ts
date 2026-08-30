@@ -15,7 +15,7 @@ describe("BT8-005 Kyokyomon", () => {
           ],
           hand: [{ card: "BT8-060", as: "placed" }],
         },
-        1: { security: ["BT8-033"] },
+        1: { security: ["BT1-093"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -62,11 +62,11 @@ describe("BT8-005 Kyokyomon", () => {
           battleArea: [
             { card: "BT8-092", as: "yuji" },
             { card: "BT8-060", as: "host", under: ["BT8-005"] },
-            { card: "BT8-060", as: "other" },
+            { card: "BT8-063", as: "other" },
           ],
           hand: [{ card: "BT8-060", as: "placed" }],
         },
-        1: { security: ["BT8-033"] },
+        1: { security: ["BT1-093"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

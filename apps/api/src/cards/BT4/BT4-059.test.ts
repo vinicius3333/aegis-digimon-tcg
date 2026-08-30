@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./BT4-052.js";
 import "./BT4-059.js";
 
 describe("BT4-059 Lilamon", () => {
@@ -13,6 +14,7 @@ describe("BT4-059 Lilamon", () => {
       },
       { autoSelectCards: true },
     );
+    await s.ready();
     const effectKey = effectsOf(
       EffectTiming.OnDeclaration,
       (s.engine as any).cardSourceOf(s.perm("lila").topCard!),

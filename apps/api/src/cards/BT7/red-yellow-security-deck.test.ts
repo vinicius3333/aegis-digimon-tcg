@@ -61,7 +61,7 @@ describe("red-yellow security deck through BT10", () => {
           deck: ["BT1-051"],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     const startingDp = s.perm("kazuchi").currentDP;
 

@@ -80,16 +80,18 @@ describe("BT13-076 KingEtemon", () => {
 
     for (const alias of ["etemon", "sukamon"]) {
       expect(observe(s.engine).hasKeyword(s.perm(alias), "Blocker")).toBe(true);
-      expect(observe(s.engine).isRestricted(s.perm(alias), "cannotReturnToHandOrDeck")).toBe(true);
+      // The compiled card keeps the printed restriction token, while the observer reads
+      // the engine's normalized enforcement token.
+      expect(observe(s.engine).isRestricted(s.perm(alias), "beReturned")).toBe(true);
     }
     expect(observe(s.engine).hasKeyword(s.perm("nonmatching"), "Blocker")).toBe(false);
-    expect(observe(s.engine).isRestricted(s.perm("nonmatching"), "cannotReturnToHandOrDeck")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("nonmatching"), "beReturned")).toBe(false);
 
     s.state.turnSeat = 0;
     await s.engine.recomputeContinuousEffects();
     for (const alias of ["etemon", "sukamon"]) {
       expect(observe(s.engine).hasKeyword(s.perm(alias), "Blocker")).toBe(false);
-      expect(observe(s.engine).isRestricted(s.perm(alias), "cannotReturnToHandOrDeck")).toBe(false);
+      expect(observe(s.engine).isRestricted(s.perm(alias), "beReturned")).toBe(false);
     }
   });
 
@@ -115,7 +117,12 @@ describe("BT13-076 KingEtemon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT13-076", as: "king" }] },
-        1: { battleArea: [{ card: "BT11-041", as: "etemon" }, { card: "BT1-015", as: "target" }] },
+        1: {
+          battleArea: [
+            { card: "BT11-041", as: "etemon" },
+            { card: "BT1-015", as: "target" },
+          ],
+        },
       },
       { autoSelectCards: true },
     );

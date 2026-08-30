@@ -80,10 +80,10 @@ describe("BT4-075 Blastmon", () => {
         response: { kind: "selectCards", instanceIds: [] },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision === undefined);
+    await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === redirectId)).toBe(true);
-    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === declaredId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === declaredId)).toBe(false);
     expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(0);
   });
 });

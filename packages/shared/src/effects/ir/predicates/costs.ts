@@ -130,8 +130,10 @@ export interface Cost {
   /** Store the chosen host permanent id for a downstream `target.fromSelectionRef`. */
   bindHostAs?: string;
   /**
-   * For a `destination:"security"` place cost: store the placed instance ids in
-   * `EffectContext.boundPlayed`, mirroring `Action.bindResultAs` for a cost-side move.
+   * Bind the card(s) actually moved by this cost for a downstream action. Place-to-security
+   * stores every moved instance in `EffectContext.boundPlayed`; a loose-card trash/return also
+   * snapshots the first chosen card in `selections`/`selectionFacts` so relative-level and
+   * same-name target filters can resolve after the payment changes zones.
    */
   bindResultAs?: string;
 }

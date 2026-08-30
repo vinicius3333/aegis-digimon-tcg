@@ -1294,9 +1294,7 @@ export class GameEngine {
    */
   private async sweepDurations(boundary: TurnBoundary): Promise<void> {
     const seat = this.state.turnSeat;
-    const sweep = (
-      b: "ownerTurnEnd" | "opponentTurnEnd" | "eachTurnEnd" | "ownerActivePhase" | "nextUntap",
-    ): void => {
+    const sweep = (b: "ownerTurnEnd" | "opponentTurnEnd" | "eachTurnEnd" | "ownerActivePhase" | "nextUntap"): void => {
       this.modifiers.sweep(this.state, b, seat);
       this.continuous.sweep(this.state, b, seat);
     };
@@ -2461,18 +2459,23 @@ export class GameEngine {
     events: readonly SubTriggerEventName[],
     payload: TriggerInfo | undefined,
     fireWindows: () => Promise<void>,
-    opts: { busTrigger?: () => TriggerInfo | undefined } = {},
+    opts: { busTrigger?: () => TriggerInfo | undefined; onlyInitiallyArmed?: boolean } = {},
   ): Promise<void> {
-    const busFire = async (): Promise<void> => {
-      const trigger = opts.busTrigger === undefined ? payload : opts.busTrigger();
-      if (trigger === undefined) return;
-      for (const event of events) await this.fireSubTrigger(event, trigger);
-    };
     // A rule sweep parks watchers wholesale (see fireSubTrigger); leave that path alone.
     const armed =
       this.ruleProcessing || payload === undefined
         ? []
         : events.flatMap((event) => this.armedSubTriggers(this.subTriggers.subscriptionsFor(event), payload));
+    const busFire = async (): Promise<void> => {
+      if (opts.onlyInitiallyArmed === true) {
+        const remaining = armed.filter((item) => !this.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub)));
+        await this.withTriggeredMutations(() => this.runSubTriggersInChosenOrder(remaining));
+        return;
+      }
+      const trigger = opts.busTrigger === undefined ? payload : opts.busTrigger();
+      if (trigger === undefined) return;
+      for (const event of events) await this.fireSubTrigger(event, trigger);
+    };
     if (armed.length === 0) {
       await fireWindows();
       await busFire();
@@ -2487,8 +2490,10 @@ export class GameEngine {
       this.pendingWindowSubTriggers = enclosing;
       this.subTriggerWindowDepth -= 1;
     }
-    // The bus still runs: it resolves the armed watchers the windows did not reach AND any
-    // watcher armed while they were resolving, both under the ordinary ordering rules.
+    // The bus still runs: normally it resolves the armed watchers the windows did not reach
+    // and any watcher armed while they were resolving. Entry windows opt into the trigger-time
+    // snapshot because an inherited effect acquired during this very play event did not exist
+    // when the event happened and cannot retroactively trigger (BT13-013, Q2272).
     await busFire();
     if (this.subTriggerWindowDepth === 0) this.consumedSubTriggerKeys.clear();
   }
@@ -3280,9 +3285,8 @@ export class GameEngine {
    * identically. Only `OnPlay` carries the board-wide half; any other timing just fires scoped.
    *
    * The pool is snapshotted from the board as it is when the card ENTERS, which is when those
-   * triggers are determined; the trailing bus fire (inside `withPendingSubTriggers`) re-reads the
-   * played permanent afterwards, exactly as this seam always did, so a watcher the windows did
-   * not reach still sees the post-window board.
+   * triggers are determined. The trailing bus resolves only that snapshot: a watcher gained
+   * during this play's windows did not exist when the event happened (BT13-013, Q2272).
    */
   private async firePlayEntryWindows(
     timing: EffectTiming,
@@ -3309,6 +3313,7 @@ export class GameEngine {
         });
       },
       {
+        onlyInitiallyArmed: true,
         busTrigger: () => ({
           ...this.playedTrigger(this.findInstance(sourceInstanceId)?.permanent?.permanentId),
           entryCause: "play",

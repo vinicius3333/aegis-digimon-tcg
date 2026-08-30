@@ -20,6 +20,7 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
+              unsuspended: true,
             },
             count: 1,
           },

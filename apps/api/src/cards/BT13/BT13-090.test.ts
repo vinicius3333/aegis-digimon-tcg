@@ -1,7 +1,8 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT13-090.js";
 
 describe("BT13-090 LordKnightmon", () => {
@@ -35,17 +36,22 @@ describe("BT13-090 LordKnightmon", () => {
     expect(watcher).toMatchObject({
       kind: "SubTrigger",
       event: "whenOpponentAttacks",
-      actions: [{ kind: "GainMemory", amount: 1 }],
-      scaling: {
-        per: 1,
-        unit: "cards",
-        filter: {
-          controller: "mine",
-          zone: "battleArea",
-          kind: ["Digimon"],
-          nameOrTrait: [{ match: "trait", tokens: ["Royal Knight"] }],
+      actions: [
+        {
+          kind: "GainMemory",
+          amount: 1,
+          scaling: {
+            per: 1,
+            unit: "cards",
+            filter: {
+              controller: "mine",
+              zone: "battleArea",
+              kind: ["Digimon"],
+              nameOrTrait: [{ match: "trait", tokens: ["Royal Knight"] }],
+            },
+          },
         },
-      },
+      ],
     });
     expect(compiled.effects?.find((entry) => entry.trigger === "OpponentsTurn")).toMatchObject({
       frequency: "OncePerTurn",
@@ -85,13 +91,19 @@ describe("BT13-090 LordKnightmon", () => {
             { card: "BT13-075", as: "royalOne" },
             { card: "BT13-087", as: "royalTwo" },
           ],
+          security: ["BT1-001", "BT1-001"],
         },
-        1: { battleArea: [{ card: "BT13-081", as: "attackerOne" }, { card: "BT13-082", as: "attackerTwo" }] },
+        1: {
+          battleArea: [
+            { card: "BT13-081", as: "attackerOne" },
+            { card: "BT13-082", as: "attackerTwo" },
+          ],
+        },
       },
       { autoSelectCards: true },
     );
     s.state.turnSeat = 1;
-    s.state.memory = 0;
+    s.state.memory = 10;
     await s.ready();
     expect(
       s.engine.applyIntent(1, {
@@ -100,8 +112,8 @@ describe("BT13-090 LordKnightmon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.memory === 3);
-    expect(s.state.memory).toBe(3);
+    await settle(() => s.state.memory === 7 && s.state.phase === Phase.Main && !observe(s.engine).isAttacking());
+    expect(s.state.memory).toBe(7);
 
     expect(
       s.engine.applyIntent(1, {
@@ -111,7 +123,7 @@ describe("BT13-090 LordKnightmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("attackerTwo").isSuspended);
-    expect(s.state.memory).toBe(3);
+    expect(s.state.memory).toBe(7);
   });
 
   it("does not count a Royal Knight that exists only in breeding", async () => {
@@ -120,13 +132,14 @@ describe("BT13-090 LordKnightmon", () => {
         0: {
           battleArea: [{ card: "BT13-090", as: "lord" }],
           breeding: { card: "BT13-087", as: "breedingRoyal" },
+          security: ["BT1-001"],
         },
         1: { battleArea: [{ card: "BT13-081", as: "attacker" }] },
       },
       { autoSelectCards: true },
     );
     s.state.turnSeat = 1;
-    s.state.memory = 0;
+    s.state.memory = 10;
     await s.ready();
     expect(
       s.engine.applyIntent(1, {
@@ -135,7 +148,7 @@ describe("BT13-090 LordKnightmon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.memory === 1);
-    expect(s.state.memory).toBe(1);
+    await settle(() => s.state.memory === 9);
+    expect(s.state.memory).toBe(9);
   });
 });

@@ -1,6 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-084.js";
 
@@ -39,6 +40,7 @@ describe("BT13-084 Astamon", () => {
           actions: [
             {
               kind: "PlayWithoutCost",
+              from: ["trash"],
               optional: true,
               payCost: false,
               target: {
@@ -59,19 +61,26 @@ describe("BT13-084 Astamon", () => {
   });
 
   it("deletes another purple Digimon and digivolves into Belphemon from hand", async () => {
+    const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT13-083", as: "cost" }],
-          hand: [{ card: "BT13-084", as: "astamon" }, { card: "BT13-088", as: "sleep" }],
+          hand: [
+            { card: "BT13-084", as: "astamon" },
+            { card: "BT13-088", as: "sleep" },
+          ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
     );
+    preferInstanceIds.push(s.perm("cost").permanentId);
     s.state.memory = 7;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("astamon").instanceId })).toEqual({ ok: true });
-    await settle(() => s.perm("astamon").topCard?.cardId === "BT13-088");
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("astamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-088"));
     expect(s.perm("astamon").topCard?.cardId).toBe("BT13-088");
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT13-083")).toBe(true);
   });
@@ -109,6 +118,7 @@ describe("BT13-084 Astamon", () => {
     );
     s.state.turnSeat = 1;
     await s.ready();
+    expect(observe(s.engine).subscriptions("whenTrashedFromHand", s.perm("host").permanentId)).toHaveLength(1);
     await advance(s.engine).verb.trash([s.inst("discard").instanceId], 0);
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-080"));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-080")).toBe(true);

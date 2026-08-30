@@ -45,11 +45,16 @@ describe("BT13-079 Falcomon", () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT13-079", as: "falcomon" }, { card: "BT13-080", as: "purpleTarget" }] },
+        0: {
+          battleArea: [
+            { card: "BT13-079", as: "falcomon" },
+            { card: "BT13-080", as: "purpleTarget" },
+          ],
+        },
       },
       { autoSelectCards: true, preferInstanceIds },
     );
-    preferInstanceIds.push(s.perm("purpleTarget").topCard!.instanceId);
+    preferInstanceIds.push(s.perm("purpleTarget").permanentId, s.perm("purpleTarget").topCard!.instanceId);
     await s.ready();
 
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("falcomon"));

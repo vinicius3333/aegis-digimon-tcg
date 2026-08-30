@@ -26,7 +26,7 @@ import { runRestrictionAction } from "./restrictions.js";
 import { runRevealAction } from "./reveal.js";
 import { runSecurityAction } from "./security.js";
 import { runStaticAction } from "./statics.js";
-import type { Action, Cost, ZoneRef } from "@aegis/shared";
+import type { Action, Cost, Target, ZoneRef } from "@aegis/shared";
 
 function isCostBearingAction(action: Action): boolean {
   return (
@@ -44,18 +44,30 @@ function isCostBearingAction(action: Action): boolean {
  * their declared source pool and selection behavior.
  */
 function borrowedProcessingCost(ctx: EffectContext, cost: Cost): Cost {
-  if (ctx.borrowedEffectOverrides?.preferTrashCostSource !== true || cost.kind !== "place" || cost.target === undefined) {
+  if (
+    ctx.borrowedEffectOverrides?.preferTrashCostSource !== true ||
+    cost.kind !== "place" ||
+    cost.target === undefined
+  ) {
     return cost;
   }
   const sourceZones = cost.target.from;
-  if (sourceZones === undefined || sourceZones.length !== 2 || !sourceZones.includes("hand") || !sourceZones.includes("trash")) {
+  if (
+    sourceZones === undefined ||
+    sourceZones.length !== 2 ||
+    !sourceZones.includes("hand") ||
+    !sourceZones.includes("trash")
+  ) {
     return cost;
   }
   const trashCandidates = candidateLooseInstances(ctx, cost.target, ["trash"]);
   const handCandidates = candidateLooseInstances(ctx, cost.target, ["hand"]);
   const preferredZones: ZoneRef[] =
     trashCandidates.length > 0 ? ["trash"] : handCandidates.length > 0 ? ["hand"] : sourceZones;
-  if (preferredZones.length === sourceZones.length && preferredZones.every((zone, index) => zone === sourceZones[index])) {
+  if (
+    preferredZones.length === sourceZones.length &&
+    preferredZones.every((zone, index) => zone === sourceZones[index])
+  ) {
     return cost;
   }
   return {
@@ -65,6 +77,65 @@ function borrowedProcessingCost(ctx: EffectContext, cost: Cost): Cost {
       from: preferredZones,
     },
   };
+}
+
+/**
+ * A loose-card payment can define the following Delete target (same name/relative level).
+ * Prove that at least one payable card/target pair exists before offering or consuming the cost;
+ * the real binding is written by payCost after the player chooses the payment.
+ */
+function looseCostCanProduceDeleteTarget(
+  ctx: EffectContext,
+  action: Extract<Action, { kind: "Delete" }>,
+  cost: Cost,
+): boolean {
+  const ref = cost.bindResultAs;
+  const costTarget = cost.target;
+  if (ref === undefined || costTarget === undefined) return false;
+  const sameName = action.target.filter.sameNameAsSelection === ref;
+  const relative = action.target.filter.relativeTo;
+  if (!sameName && relative?.selectionRef !== ref) return false;
+  const zone = costTarget.filter.zone;
+  const zones = (Array.isArray(zone) ? zone : zone === undefined ? [] : [zone]).filter(
+    (candidate): candidate is ZoneRef => candidate === "hand" || candidate === "trash",
+  );
+  if (zones.length === 0) return false;
+  const costCandidates = candidateLooseInstances(ctx, costTarget, zones);
+  if (costCandidates.length === 0) return false;
+  const { sameNameAsSelection: _sameName, relativeTo: _relative, ...staticFilter } = action.target.filter;
+  const targets = candidatePermanents(ctx, { ...action.target, filter: staticFilter } as Target);
+  return costCandidates.some((candidate) => {
+    const paid = ctx.game.definitionOf({ cardId: candidate.cardId });
+    return targets.some((target) => {
+      if (target.topCard === undefined) return false;
+      const targetDefinition = ctx.game.definitionOf(target.topCard);
+      if (sameName) {
+        const paidName = (paid.nameEn ?? "").toLowerCase();
+        return paidName !== "" && paidName === (targetDefinition.nameEn ?? "").toLowerCase();
+      }
+      if (relative === undefined) return false;
+      const lhs =
+        relative.attr === "dp"
+          ? target.currentDP
+          : relative.attr === "digivolutionCount"
+            ? target.stack.length
+            : relative.attr === "level"
+              ? targetDefinition.level
+              : targetDefinition.playCost;
+      const rhs =
+        relative.attr === "dp"
+          ? paid.dp
+          : relative.attr === "digivolutionCount"
+            ? 0
+            : relative.attr === "level"
+              ? paid.level
+              : paid.playCost;
+      if (lhs === undefined || rhs === undefined) return false;
+      if (relative.op === "lte") return lhs <= rhs;
+      if (relative.op === "gte") return lhs >= rhs;
+      return lhs === rhs;
+    });
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -123,11 +194,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   // grant here for action kinds whose specialized handlers do not own that gate. The intrinsic
   // Main Delay wrapper passes delayArmedConsumed after consuming its grant, while Play,
   // Replacement, and SubTrigger handlers can safely observe the same flag without double use.
-  if (
-    action.kind !== "RawUnparsed" &&
-    action.requiresDelayArmed === true &&
-    ctx.delayArmedConsumed !== true
-  ) {
+  if (action.kind !== "RawUnparsed" && action.requiresDelayArmed === true && ctx.delayArmedConsumed !== true) {
     const self = ctx.source.permanent();
     if (self === undefined) return false;
     const hasDelay = (ctx.fx.grantedKeywords?.(self.permanentId) ?? []).some((grant) => grant.keyword === "Delay");
@@ -223,12 +290,28 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       return card !== undefined && (ctx.game.definitionOf(card).level ?? 0) <= highestCostLevel;
     });
   })();
+  const looseCostDefinesDeleteTarget =
+    action.kind === "Delete" &&
+    payableActionCost !== undefined &&
+    typeof payableActionCost !== "number" &&
+    payableActionCost.bindResultAs !== undefined &&
+    (action.target.filter.sameNameAsSelection === payableActionCost.bindResultAs ||
+      action.target.filter.relativeTo?.selectionRef === payableActionCost.bindResultAs);
+  if (
+    action.kind === "Delete" &&
+    looseCostDefinesDeleteTarget &&
+    typeof payableActionCost !== "number" &&
+    !looseCostCanProduceDeleteTarget(ctx, action, payableActionCost)
+  ) {
+    return action.abortOnDecline === true;
+  }
   if (
     action.kind === "Delete" &&
     action.cost !== undefined &&
     action.allowCostWithoutTarget !== true &&
     !dynamicallyScaledDeleteTarget &&
     !placeCostProducesDeleteTarget &&
+    !looseCostDefinesDeleteTarget &&
     (!deleteTargetBoundByItsCost || !deleteOwnLevelTargetAvailable) &&
     candidatePermanents(ctx, action.target).length === 0
   ) {
@@ -367,6 +450,11 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     // card makes the permission inert in continuous contexts (EX1-071, BT6 Options).
     action.kind !== "WaiveColorRequirement" &&
     action.optional &&
+    // An opponent-directed optional trash is THEIR up-to selection. Let the Trash
+    // resolver ask that opponent and record a zero-card choice as a decline for
+    // the printed "if they don't" tail (BT13-102), instead of opening a separate
+    // source-controller prompt that loses the opponent-decline receipt.
+    (action.kind !== "Trash" || action.chooser !== "opponent") &&
     // RedirectAttack with chooser:"opponent" owns its optional decline at the combat
     // primitive so the defending player, rather than the source controller, decides
     // whether to switch targets (BT4-075 / Q1224-Q1227).
@@ -402,7 +490,24 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       action.fromOwnDigivolutionStack !== true
     ) {
       const zones = action.from && action.from.length > 0 ? action.from : DEFAULT_PLAY_ZONES;
-      const preflightTarget = applyPlayCostCeiling(ctx, action, action.target);
+      const costCeilingTarget = applyPlayCostCeiling(ctx, action, action.target);
+      const preflightTarget =
+        ctx.playLevelCeilingDelta === undefined || ctx.playLevelCeilingDelta === 0
+          ? costCeilingTarget
+          : {
+              ...costCeilingTarget,
+              filter: {
+                ...costCeilingTarget.filter,
+                levelComparison:
+                  costCeilingTarget.filter.levelComparison?.op === "lte" &&
+                  costCeilingTarget.filter.levelComparison.value !== undefined
+                    ? {
+                        ...costCeilingTarget.filter.levelComparison,
+                        value: costCeilingTarget.filter.levelComparison.value + ctx.playLevelCeilingDelta,
+                      }
+                    : costCeilingTarget.filter.levelComparison,
+              },
+            };
       const sameColorAsReturned = preflightTarget.filter.sameColorAsReturned === true;
       const staticPreflightTarget = sameColorAsReturned
         ? { ...preflightTarget, filter: { ...preflightTarget.filter, sameColorAsReturned: undefined } }
