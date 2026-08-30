@@ -28,7 +28,7 @@ describe("BT19-006 Pagumon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT19-067", as: "host", dp: 1000, under: ["BT19-006"] }],
+          battleArea: [{ card: "BT19-067", as: "host", dp: 1000, suspended: true, under: ["BT19-006"] }],
           trash: ["BT10-071"],
         },
         1: {

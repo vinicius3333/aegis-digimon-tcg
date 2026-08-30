@@ -2,6 +2,8 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
+const xrosHeartPlayedUseKey = "bt19-035-xros-heart-played";
+
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
@@ -22,6 +24,46 @@ const compiled: CompiledCard = {
           grant: "name",
           tokens: ["Starmons"],
           digiXrosOnly: true,
+        },
+      ],
+    },
+    {
+      // The card's own play is part of the printed "any of your [Xros Heart]
+      // Digimon" event. The persistent watcher below is installed by the
+      // continuous pass after entry, so it cannot observe this initial event;
+      // model this self-play case directly at OnPlay.
+      trigger: "OnPlay",
+      frequency: "OncePerTurn",
+      sharedUseKey: xrosHeartPlayedUseKey,
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: -1,
+            raw: "＜Security Attack -1＞",
+          },
+          duration: "untilOpponentTurnEnd",
+        },
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+            sameTarget: true,
+          },
+          amount: -3000,
+          duration: "untilOpponentTurnEnd",
         },
       ],
     },
@@ -75,6 +117,7 @@ const compiled: CompiledCard = {
         },
       ],
       frequency: "OncePerTurn",
+      sharedUseKey: xrosHeartPlayedUseKey,
     },
     {
       trigger: "OnDeletion",
