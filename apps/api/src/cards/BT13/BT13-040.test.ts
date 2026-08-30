@@ -9,7 +9,19 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 describe("BT13-040 Magnamon", () => {
   it("keeps both bracketed Veemon references exact", () => {
     const replacement = compiled.effects[1]!.actions[0] as unknown as {
-      actions: [unknown, { target: { filter: { or: [{ nameOrTrait: [{ tokens: string[]; match: string }] }] } } }];
+      actions: [
+        unknown,
+        {
+          target: {
+            filter: {
+              or: [
+                { nameOrTrait: [{ tokens: string[]; match: string }] },
+                { nameOrTrait: [{ tokens: string[]; match: string }] },
+              ];
+            };
+          };
+        },
+      ];
     };
     const branches = replacement.actions[1].target.filter.or;
     const handReference = branches[0]!.nameOrTrait[0]!;

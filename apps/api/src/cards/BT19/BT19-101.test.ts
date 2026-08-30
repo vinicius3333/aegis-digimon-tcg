@@ -132,7 +132,7 @@ describe("BT19-101 ZeedMillenniummon", () => {
       s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("zeed").permanentId,
-        target: { kind: "player", seat: 1 },
+        target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT19-101"));

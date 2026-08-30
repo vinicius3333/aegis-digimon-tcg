@@ -65,25 +65,30 @@ describe("BT14-079", () => {
           deck: ["BT1-001", "BT1-003", "BT1-004"],
         },
       },
-      { memory: 20, autoSelectCards: true, autoAcceptOptional: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("host").permanentId,
-      instanceId: s.inst("source").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("host").topCard?.cardId === "BT14-079" &&
-      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-071"),
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("host").topCard?.cardId === "BT14-079" &&
+        s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-071"),
     );
     expect(s.perm("host").topCard?.cardId).toBe("BT14-079");
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("host").permanentId,
-      instanceId: s.inst("finisher").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("finisher").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard?.cardId === "BT14-080");
     expect(s.perm("host").stack.some((card) => card.cardId === "BT14-079")).toBe(true);
     expect(s.perm("host").isSuspended).toBe(true);
@@ -91,8 +96,8 @@ describe("BT14-079", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("fangmon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() =>
-      !s.perm("host").isSuspended && s.state.players[0]!.trash.some((card) => card.cardId === "BT1-002"),
+    await settle(
+      () => !s.perm("host").isSuspended && s.state.players[0]!.trash.some((card) => card.cardId === "BT1-002"),
     );
     expect(s.perm("host").isSuspended).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-002")).toBe(true);

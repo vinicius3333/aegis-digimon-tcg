@@ -44,16 +44,20 @@ describe("BT14-076", () => {
         },
         1: { battleArea: [{ card: "BT14-069", as: "opponent" }] },
       },
-      { memory: 10, autoSelectCards: true, autoAcceptOptional: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("source").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.trash.some((card) => card.cardId === "BT1-002") &&
-      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "ST1-03"),
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((card) => card.cardId === "BT1-002") &&
+        s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "ST1-03"),
     );
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-002")).toBe(true);
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-076")).toBe(false);

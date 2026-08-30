@@ -1,5 +1,5 @@
+import { Zone } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-097.js";
 import "./index.js";
@@ -135,7 +135,7 @@ describe("BT17-097 Return to the Primogenitor", () => {
     s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId));
-    s.give(0, "hand", { card: "BT12-030", as: "imperialdramon" });
+    s.give(0, Zone.Hand, { card: "BT12-030", as: "imperialdramon" });
     await s.ready();
     s.state.turnCount += 1;
     s.state.turnSeat = 1;

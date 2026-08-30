@@ -21,7 +21,9 @@ describe("BT16-064", () => {
       frequency: "OncePerTurn",
       actions: [{ kind: "SubTrigger", event: "onDeletionOf", actions: [{ kind: "Unsuspend", optional: true }] }],
     });
-    expect(compiled.effects?.[2]?.actions?.[0]?.sourceFilter).toEqual({ excludeSelf: true, kind: ["Digimon"] });
+    expect(compiled.effects?.[2]?.actions?.[0]).toMatchObject({
+      sourceFilter: { excludeSelf: true, kind: ["Digimon"] },
+    });
   });
 
   it("unsuspends after naturally deleting an opponent Digimon in battle", async () => {

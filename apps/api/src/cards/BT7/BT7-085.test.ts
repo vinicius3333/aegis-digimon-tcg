@@ -23,7 +23,8 @@ describe("BT7-085 Takuya Kanbara", () => {
     expect(runtimeCompiledCard("BT7-085")?.effects[1]?.actions[0]).toMatchObject({
       target: { filter: { nameOrTrait: [{ tokens: ["Hybrid"], match: "traitContains" }] } },
     });
-    expect(action?.into).not.toHaveProperty("upTo");
+    if (action?.kind !== "Digivolve") throw new Error("BT7-085 evolution action is not Digivolve");
+    expect(action.into).not.toHaveProperty("upTo");
   });
 
   it("places exactly 5 Hybrid cards from trash and digivolves into EmperorGreymon", async () => {

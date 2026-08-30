@@ -88,7 +88,7 @@ describe("BT21-089 Takato Matsuki", () => {
       {
         0: {
           battleArea: [{ card: "BT21-089", as: "takato" }],
-          hand: [{ card: "BT21-064", as: "hero", dp: 3000 }],
+          hand: [{ card: "BT21-064", as: "hero" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

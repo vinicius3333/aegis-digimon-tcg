@@ -12,10 +12,10 @@ describe("BT13-018 ShineGreymon", () => {
     ]);
     expect(JSON.stringify(compiled)).not.toContain('"tokens":["Marcus Damon"],"match":"name"');
     expect(JSON.stringify(compiled)).toContain('"tokens":["Marcus Damon"],"match":"nameExact"');
-    expect(compiled.effects[0]?.actions[1]?.target).toMatchObject({ sameTarget: true });
-    expect(compiled.effects[0]?.actions[2]?.target).toMatchObject({ sameTarget: true });
-    expect(compiled.effects[1]?.actions[1]?.target).toMatchObject({ sameTarget: true });
-    expect(compiled.effects[1]?.actions[2]?.target).toMatchObject({ sameTarget: true });
+    expect(compiled.effects[0]?.actions[1]).toMatchObject({ target: { sameTarget: true } });
+    expect(compiled.effects[0]?.actions[2]).toMatchObject({ target: { sameTarget: true } });
+    expect(compiled.effects[1]?.actions[1]).toMatchObject({ target: { sameTarget: true } });
+    expect(compiled.effects[1]?.actions[2]).toMatchObject({ target: { sameTarget: true } });
   });
 
   it("at Start of Main makes Marcus a 3000 DP Blocker Digimon that cannot digivolve", async () => {

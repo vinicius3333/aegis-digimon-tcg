@@ -48,7 +48,8 @@ describe("BT18-100 Gospel of the Fallen Angel", () => {
         },
       ],
     });
-    expect(delay?.actions[0]?.target?.filter).not.toHaveProperty("placedByPlaceInBattleAreaEffect");
+    const delayAction = delay?.actions?.[0] as { target?: { filter?: unknown } } | undefined;
+    expect(delayAction?.target?.filter).not.toHaveProperty("placedByPlaceInBattleAreaEffect");
   });
 
   it("naturally digivolves the breeding-area Digimon from trash and places this Option", async () => {
@@ -122,11 +123,19 @@ describe("BT18-100 Gospel of the Fallen Angel", () => {
     s.state.memory = 10;
     await s.ready();
 
-    const delay = observe(s.engine)
-      .activatableEffects(s.perm("option"))
-      .find((entry) => (entry as { description?: string }).description?.includes("Delay")) as
-      | { effectKey: string }
-      | undefined;
+    const activatable = observe(s.engine).activatableEffects(s.perm("option"));
+    const delay = Array.isArray(activatable)
+      ? activatable.find(
+          (entry): entry is { effectKey: string; description?: string } =>
+            typeof entry === "object" &&
+            entry !== null &&
+            "effectKey" in entry &&
+            typeof entry.effectKey === "string" &&
+            "description" in entry &&
+            typeof entry.description === "string" &&
+            entry.description.includes("Delay"),
+        )
+      : undefined;
     expect(delay?.effectKey).toBeDefined();
     expect(
       s.engine.applyIntent(0, {
@@ -168,11 +177,19 @@ describe("BT18-100 Gospel of the Fallen Angel", () => {
     s.state.memory = 10;
     await s.ready();
 
-    const delay = observe(s.engine)
-      .activatableEffects(s.perm("option"))
-      .find((entry) => (entry as { description?: string }).description?.includes("Delay")) as
-      | { effectKey: string }
-      | undefined;
+    const activatable = observe(s.engine).activatableEffects(s.perm("option"));
+    const delay = Array.isArray(activatable)
+      ? activatable.find(
+          (entry): entry is { effectKey: string; description?: string } =>
+            typeof entry === "object" &&
+            entry !== null &&
+            "effectKey" in entry &&
+            typeof entry.effectKey === "string" &&
+            "description" in entry &&
+            typeof entry.description === "string" &&
+            entry.description.includes("Delay"),
+        )
+      : undefined;
     expect(delay?.effectKey).toBeDefined();
     expect(
       s.engine.applyIntent(0, {

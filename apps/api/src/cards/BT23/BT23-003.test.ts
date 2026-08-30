@@ -77,7 +77,6 @@ describe("BT23-003 Motimon", () => {
       s.engine.applyIntent(0, {
         type: "playCard",
         instanceId: s.inst("firstOption").instanceId,
-        useAs: "option",
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("motimonHost").isSuspended && !observe(s.engine).isAttacking());
@@ -87,7 +86,6 @@ describe("BT23-003 Motimon", () => {
       s.engine.applyIntent(0, {
         type: "playCard",
         instanceId: s.inst("secondOption").instanceId,
-        useAs: "option",
       }),
     ).toEqual({ ok: true });
     await settle(

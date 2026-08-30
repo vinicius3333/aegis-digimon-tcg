@@ -11,7 +11,7 @@ describe("EX1-035 Kabuterimon", () => {
         0: { battleArea: [{ card: "EX1-035", as: "kabuterimon" }], hand: [{ card: "BT1-076", as: "evo" }] },
         1: { security: ["BT1-001", "BT1-001"] },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
     await s.ready();
@@ -34,8 +34,8 @@ describe("EX1-035 Kabuterimon", () => {
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenAttacking, s.perm("kabuterimon"));
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("kabuterimon"));
     expect(s.perm("kabuterimon").topCard.cardId).toBe("EX1-035");
-    expect(s.inst("evo").zone).toBe("hand");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("evo").instanceId)).toBe(true);
   });
 });
