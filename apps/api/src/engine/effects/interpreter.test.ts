@@ -5433,6 +5433,41 @@ describe("candidateLooseInstances — hostFilter gating", () => {
     ).toEqual([]);
   });
 
+  it("falls through an invalid hosted OR branch to a later branch that does not require that host", () => {
+    const source = makeSource();
+    const recorder: Recorder = { calls: [] };
+    const digi = makePermWithStack(
+      "digi1",
+      "DIGIMON",
+      ["Digimon"],
+      [{ instanceId: "fallback-stack", cardId: "FALLBACK" }],
+    );
+    const ctx = makeContext({
+      source,
+      recorder,
+      ownBattleArea: [digi],
+      definitionOf: (cardId) =>
+        makeFakeDefinition({ cardId, nameEn: cardId === "FALLBACK" ? "Fallback" : cardId, kinds: [CardKind.Digimon] }),
+    });
+
+    expect(
+      candidateLooseInstances(
+        ctx,
+        {
+          filter: {
+            controller: "mine",
+            or: [
+              { kind: ["Digimon"], hostFilter: { kind: ["Tamer"] } },
+              { nameOrTrait: [{ tokens: ["Fallback"], match: "nameExact" }] },
+            ],
+          },
+          count: 1,
+        } as never,
+        ["digivolutionCards"],
+      ).map(({ instanceId }) => instanceId),
+    ).toEqual(["fallback-stack"]);
+  });
+
   it("FAILS-WHEN-REVERTED: removing hostFilter check returns both cards", () => {
     const source = makeSource();
     const recorder: Recorder = { calls: [] };

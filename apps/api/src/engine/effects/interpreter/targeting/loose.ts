@@ -274,6 +274,29 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
           if (selfPermanentId === undefined || cand.hostPermanentId !== selfPermanentId) continue;
         }
         const def = ctx.game.definitionOf({ cardId: cand.cardId } as never);
+        const hostMatches = (filter: Filter): boolean => {
+          const hostFilter = filter.hostFilter;
+          if (
+            (zone !== "digivolutionCards" && zone !== "linked") ||
+            hostFilter === undefined ||
+            cand.hostPermanentId === undefined
+          )
+            return true;
+          if (hostFilter.sourceRef === "triggerSubject") {
+            const triggerSubjectId =
+              ctx.trigger.subjectPermanentId ?? ctx.trigger.attackerPermanentId ?? ctx.trigger.deletedPermanentId;
+            return cand.hostPermanentId === triggerSubjectId;
+          }
+          if (hostFilter.isSelfRef === true) {
+            return ctx.source.permanent()?.permanentId === cand.hostPermanentId;
+          }
+          const boundRef = (hostFilter as { boundRef?: string }).boundRef;
+          if (boundRef !== undefined) {
+            return ctx.selections?.get(boundRef) === cand.hostPermanentId;
+          }
+          const host = ctx.game.permanentById(cand.hostPermanentId);
+          return host === undefined || permanentMatchesFilter(ctx, host, hostFilter, ctx.source);
+        };
         const branchMatches = (filter: Filter): boolean => {
           const branchZones =
             filter.zone === undefined ? undefined : Array.isArray(filter.zone) ? filter.zone : [filter.zone];
@@ -311,9 +334,11 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
               (filter.dpAtMost ?? 0) + scaleFactor(ctx, filter.dpAtMostScaling) * (filter.dpAtMostScaling.bonus ?? 1);
             if ((def.dp ?? 0) > cap) return false;
             const { dpAtMost: _baseCap, dpAtMostScaling: _scaledCap, ...staticFilter } = filter;
-            return definitionMatches(staticFilter, def) && contextMatches(filter, cand.ownerSeat);
+            return (
+              definitionMatches(staticFilter, def) && contextMatches(filter, cand.ownerSeat) && hostMatches(filter)
+            );
           }
-          return definitionMatches(filter, def) && contextMatches(filter, cand.ownerSeat);
+          return definitionMatches(filter, def) && contextMatches(filter, cand.ownerSeat) && hostMatches(filter);
         };
         if (!allFilters.some(branchMatches)) continue;
         // hostFilter: when sourcing from digivolutionCards, gate on the host permanent's kind
@@ -342,24 +367,6 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
           const security = ctx.game.player(seat).security;
           const positioned = matchedFilter.position === "top" ? security[0] : security.at(-1);
           if (positioned?.instanceId !== cand.instanceId) continue;
-        }
-        const hostFilter = matchedFilter?.hostFilter;
-        if ((zone === "digivolutionCards" || zone === "linked") && hostFilter && cand.hostPermanentId) {
-          if (hostFilter.sourceRef === "triggerSubject") {
-            const triggerSubjectId =
-              ctx.trigger.subjectPermanentId ?? ctx.trigger.attackerPermanentId ?? ctx.trigger.deletedPermanentId;
-            if (cand.hostPermanentId !== triggerSubjectId) continue;
-          } else if (hostFilter.isSelfRef === true) {
-            const self = ctx.source.permanent();
-            if (self === undefined || self.permanentId !== cand.hostPermanentId) continue;
-          } else {
-            const host = ctx.game.permanentById(cand.hostPermanentId);
-            const boundRef = (hostFilter as { boundRef?: string }).boundRef;
-            if (boundRef !== undefined) {
-              const selectedHost = ctx.selections?.get(boundRef);
-              if (selectedHost === undefined || selectedHost !== cand.hostPermanentId) continue;
-            } else if (host && !permanentMatchesFilter(ctx, host, hostFilter, ctx.source)) continue;
-          }
         }
         if (cand.hostPermanentId && target.filter.position === "top") {
           const host = ctx.game.permanentById(cand.hostPermanentId);
