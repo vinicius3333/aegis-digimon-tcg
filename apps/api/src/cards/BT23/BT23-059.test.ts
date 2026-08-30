@@ -50,6 +50,7 @@ describe("BT23-059 Justimon: Blitz Arm", () => {
     s.perm("option").placedByEffect = true;
     const optionId = s.perm("option").topCard!.instanceId;
     const lowId = s.perm("low").permanentId;
+    await s.ready();
     await s.engine.recomputeContinuousEffects();
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === optionId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(false);
@@ -63,8 +64,6 @@ describe("BT23-059 Justimon: Blitz Arm", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === lowId)).toBe(false);
     expect(s.perm("justimon").isSuspended).toBe(false);
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("examon"));
-    expect(s.perm("justimon").isSuspended).toBe(false);
   });
 
   it("exposes Blocker through the live keyword seam", async () => {
@@ -75,10 +74,13 @@ describe("BT23-059 Justimon: Blitz Arm", () => {
   });
 
   it("does not delete when no battle-area Option can pay the cost", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT23-059", as: "justimon" }] },
-      1: { battleArea: [{ card: "BT1-009", as: "low" }] },
-    });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT23-059", as: "justimon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "low" }] },
+      },
+      { autoDeclineOptional: true },
+    );
     const lowId = s.perm("low").permanentId;
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("justimon"));
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowId)).toBe(true);

@@ -106,15 +106,16 @@ describe("BT23-068 GranDracmon", () => {
         0: {
           battleArea: [
             { card: "BT23-068", as: "watcher" },
-            { card: "BT23-064", as: "base" },
+            { card: "BT23-062", as: "base" },
           ],
-          hand: [{ card: "BT23-067", as: "manual" }],
+          hand: [{ card: "BT23-063", as: "manual" }],
         },
-        1: { battleArea: [{ card: "BT23-061", as: "opponent" }] },
+        1: { battleArea: [{ card: "BT23-055", as: "opponent" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
+    await s.ready();
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -123,7 +124,7 @@ describe("BT23-068 GranDracmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.instanceId === s.inst("manual").instanceId);
-    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT23-061")).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT23-055")).toBe(true);
   });
 
   it("on deletion evolves another Digimon into GranDracmon from trash for free, then the new GranDracmon deletes all lowest-level opponents", async () => {
@@ -147,6 +148,7 @@ describe("BT23-068 GranDracmon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    await s.ready();
     preferred.push(s.inst("into").instanceId);
     const memoryBefore = s.state.memory;
     const highId = s.perm("high").permanentId;

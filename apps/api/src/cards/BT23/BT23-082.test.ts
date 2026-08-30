@@ -81,13 +81,14 @@ describe("BT23-082 Makiko Date", () => {
             { card: "BT23-006", as: "subject" },
           ],
           hand: [
-            { card: "BT23-017", as: "level3Cs" },
+            { card: "BT23-026", as: "level3Cs" },
             { card: "BT1-009", as: "ineligible" },
           ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    await s.ready();
     const eligibleId = s.inst("level3Cs").instanceId;
     const ineligibleId = s.inst("ineligible").instanceId;
     await advance(s.engine).fireSubTrigger("whenOneOfYoursDigivolves", {

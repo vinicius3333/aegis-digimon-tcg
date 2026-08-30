@@ -82,8 +82,10 @@ describe("BT23-029 Antylamon", () => {
   });
 
   it("once per turn reacts to any played Beast, Beastkin, or CS card", () => {
+    const direct = compiled.effects.find((entry) => entry.trigger === "OnPlay") as any;
     const effect = compiled.effects.find((entry) => entry.trigger === "AllTurns") as any;
-    expect(effect.frequency).toBe("OncePerTurn");
+    expect(direct).toMatchObject({ frequency: "OncePerTurn", sharedUseKey: "bt23-029/play-watcher" });
+    expect(effect).toMatchObject({ frequency: "OncePerTurn", sharedUseKey: "bt23-029/play-watcher" });
     expect(effect.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenPlayed",
@@ -127,6 +129,7 @@ describe("BT23-029 Antylamon", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 10;
+    await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("peer").instanceId })).toEqual({ ok: true });
     await settle(() => observe(s.engine).isRestricted(s.perm("target"), "cannotActivateWhenDigivolving"));
     expect(observe(s.engine).isRestricted(s.perm("target"), "cannotActivateWhenDigivolving")).toBe(true);
