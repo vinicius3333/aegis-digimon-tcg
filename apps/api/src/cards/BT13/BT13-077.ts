@@ -55,7 +55,6 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "EndOfOpponentsTurn",
-      optional: true,
       actions: [
         {
           kind: "Attack",
