@@ -178,19 +178,12 @@ describe("§18-2 Overwrite Processing (comprehensive-0268)", () => {
   it("NOW MET: with a [Kiriha Aonuma] in play and a [MetalGreymon] in the trash, BT10-019's printed 'instead' clause should let the player return it to hand INSTEAD of the default reveal-top-4 processing", async () => {
     cite(
       "comprehensive-0268",
-      "DIVERGENCE: §18-2-1/18-2-2 overwrite processing ('instead' text) with an OPTIONAL " +
-        "overwrite — the rule's OWN example is BT10-019's exact printed text: '[On Play] Reveal " +
+      "§18-2-1/18-2-2 overwrite processing ('instead' text) with an OPTIONAL overwrite — the " +
+        "rule's own example is BT10-019's exact printed text: '[On Play] Reveal " +
         "the top 4 cards of your deck. Add 2 cards with [Blue Flare]... When you have [Kiriha " +
-        "Aonuma], you may return 1 [MetalGreymon] from your trash to your hand instead.' Worse " +
-        "than merely unreachable: BT10-019.ts's hasKirihaAonuma() reads `p.topCardId` on every " +
-        "battle-area permanent to find its definition, but `Permanent` (packages/shared) has no " +
-        "`topCardId` field (the real field is `topCard.cardId`) — `definitionOf({instanceId: " +
-        "undefined}).cardId` throws 'Unknown cardId: undefined' the instant the owner has ANY " +
-        "battle-area permanent (guaranteed here: Kiriha itself). GameEngine.ts's handlePlayCard " +
-        "catches this at the top-level applyPlayCard.catch, logs it, and emits `actionRejected` " +
-        "— so BOTH branches (reveal-4 AND the 'instead' return) fail to run; the entire [On " +
-        "Play] effect is inert whenever the rule's own precondition (a [Kiriha Aonuma] in play) " +
-        "holds, not just the optional branch.",
+        "Aonuma], you may return 1 [MetalGreymon] from your trash to your hand instead.' The " +
+        "registered Modal IR exposes the eligible return branch and resolves it instead of the " +
+        "default reveal branch when the player chooses that option.",
     );
 
     const kirihaDef = requireCardDefinition("BT10-088"); // real [Kiriha Aonuma] Tamer
@@ -198,7 +191,7 @@ describe("§18-2 Overwrite Processing (comprehensive-0268)", () => {
     const metalDef = requireCardDefinition("BT10-024"); // real [MetalGreymon] Digimon
     expect(metalDef.nameEn).toBe("MetalGreymon");
 
-    const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
+    const s = setup({ autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true });
     const p0 = s.state.players[0] as PlayerState;
     p0.battleArea.push(digimon(0, 0, "BT10-088")); // [Kiriha Aonuma] in play
     const metalInTrash = instance("BT10-024", 0, true);

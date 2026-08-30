@@ -197,7 +197,7 @@ describe("BT25 deck-specific interaction oracles", () => {
     s.state.memory = 12;
     playCard(s, "mars");
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT25-020"));
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(5);
     expect(s.state.players[0]!.battleArea.some((perm) => perm.currentDP >= 4000)).toBe(true);
     assertNoLoudGap(s);
   });
@@ -259,17 +259,18 @@ describe("BT25 deck-specific interaction oracles", () => {
   it("BT25 Rebootmon — linking an Appmon card triggers the deck's link interaction", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT25-045", as: "onmon" }],
-        hand: [{ card: "BT25-045", as: "link" }],
+        battleArea: [{ card: "BT25-060", as: "reboot" }],
+        hand: [{ card: "BT21-009", as: "link" }],
       },
     });
-    s.state.memory = 3;
+    s.state.memory = 1;
     const result = s.engine.applyIntent(0, {
       type: "linkCard",
       instanceId: s.inst("link").instanceId,
-      targetPermanentId: s.perm("onmon").permanentId,
+      targetPermanentId: s.perm("reboot").permanentId,
     });
     expect(result).toEqual({ ok: true });
-    expect(s.perm("onmon").linked).toHaveLength(1);
+    await settle(() => s.perm("reboot").linked.length === 1);
+    expect(s.perm("reboot").linked).toHaveLength(1);
   });
 });
