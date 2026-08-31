@@ -35,3 +35,29 @@ describe("P-213 Aegiochusmon", () => {
     });
   });
 });
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+
+describe("P-213 engine behavior", () => {
+  it("grants Rush and +3000 DP at three security, but not at four", async () => {
+    const s = setupEngine(
+      { 0: { security: 3, battleArea: [{ card: "P-213", as: "aegiomon" }] } },
+      { autoDeclineOptional: true },
+    );
+    const base = s.perm("aegiomon").currentDP;
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("aegiomon"));
+    await settle();
+    expect(s.perm("aegiomon").currentDP).toBe(base + 3000);
+    const high = setupEngine(
+      { 0: { security: 4, battleArea: [{ card: "P-213", as: "aegiomon" }] } },
+      { autoDeclineOptional: true },
+    );
+    const highBase = high.perm("aegiomon").currentDP;
+    await high.ready();
+    await advance(high.engine).fire(EffectTiming.WhenDigivolving, high.perm("aegiomon"));
+    await settle();
+    expect(high.perm("aegiomon").currentDP).toBe(highBase);
+  });
+});

@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming, type CardDefinition, type GameState, type Permanent, type Seat } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import "./P-104.js";
@@ -468,5 +470,15 @@ describe("P-104 (Mental Training)", () => {
     // When the player declines the optional digivolve, digivolveFromInstance must not fire.
     const digivolves = recorder.calls.filter((c) => c.verb === "digivolveFromInstance");
     expect(digivolves).toHaveLength(0);
+  });
+
+  it("places itself in the battle area when revealed as Security", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "P-104", as: "training" }] } });
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("training"));
+    await settle();
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("training").instanceId)).toBe(
+      true,
+    );
   });
 });

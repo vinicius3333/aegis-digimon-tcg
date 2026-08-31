@@ -44,3 +44,25 @@ describe("P-236 Glowing Dawn", () => {
     );
   });
 });
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+
+describe("P-236 engine behavior", () => {
+  it("adds a Glowing Dawn card from the top three and places itself", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "P-236", as: "dawn" }],
+          deck: [{ card: "BT25-032", as: "glowingDawn" }, "BT1-001", "BT1-002"],
+          battleArea: ["BT1-088", "BT25-003"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dawn").instanceId })).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("glowingDawn").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "P-236")).toBe(true);
+  });
+});

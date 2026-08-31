@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-204.js";
 
 describe("P-204 Release of the Sealed Knight!", () => {
@@ -59,5 +60,29 @@ describe("P-204 Release of the Sealed Knight!", () => {
       isSecurity: true,
       actions: [{ kind: "ActivateMain" }],
     });
+  });
+
+  it("draws two after trashing an X Antibody card and places itself", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "P-204", as: "option" },
+            { card: "BT9-109", as: "cost" },
+          ],
+          battleArea: [{ card: "BT19-065", as: "color" }],
+          deck: ["BT1-001", "BT1-002"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length > 0);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
   });
 });

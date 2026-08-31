@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./P-209.js";
 
 describe("P-209 Titamon", () => {
@@ -61,5 +63,11 @@ describe("P-209 Titamon", () => {
         },
       ],
     });
+  });
+
+  it("exposes Alliance on the live Titamon", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "P-209", as: "titamon" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("titamon"), "Alliance")).toBe(true);
   });
 });

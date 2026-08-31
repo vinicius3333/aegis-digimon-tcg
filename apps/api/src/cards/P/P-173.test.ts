@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./P-173.js";
 
 describe("P-173 RustTyrannomon", () => {
@@ -27,5 +29,11 @@ describe("P-173 RustTyrannomon", () => {
         { actions: [{ kind: "Unsuspend" }], fireCondition: { kind: "triggerRemovalCause", removalCause: "byBattle" } },
       ],
     });
+  });
+
+  it("exposes Collision on the live permanent", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "P-173", as: "rust" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("rust"), "Collision")).toBe(true);
   });
 });

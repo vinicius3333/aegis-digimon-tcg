@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import "./P-144.js";
 
 describe("P-144 Gotsumon (X Antibody)", () => {
@@ -38,5 +39,18 @@ describe("P-144 Gotsumon (X Antibody)", () => {
       ]),
     );
     expect(compiled.digivolutionRequirement).toEqual([{ names: ["Gotsumon"], cost: 0, isAlternate: true }]);
+  });
+
+  it("applies the inherited +1000 DP to Blocker Digimon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-009", as: "host", under: ["P-144"] },
+          { card: "P-144", as: "blocker" },
+        ],
+      },
+    });
+    await s.ready();
+    expect(s.perm("blocker").currentDP).toBe(s.perm("blocker").baseDP + 1000);
   });
 });

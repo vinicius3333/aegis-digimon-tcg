@@ -51,3 +51,25 @@ describe("P-215 Icemon", () => {
     ]);
   });
 });
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+
+describe("P-215 engine behavior", () => {
+  it("pays its On Play placement cost by putting an eligible level-4 card underneath", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "P-215", as: "host" },
+            { card: "BT1-032", as: "material" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("host").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("host").stack.some((card) => card.instanceId === s.inst("material").instanceId));
+    expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("material").instanceId)).toBe(true);
+  });
+});

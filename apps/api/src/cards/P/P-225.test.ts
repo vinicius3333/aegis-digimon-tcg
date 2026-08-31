@@ -67,3 +67,23 @@ describe("P-225 DigiLab", () => {
     });
   });
 });
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+
+describe("P-225 engine behavior", () => {
+  it("draws one and places itself in the battle area through Main", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "P-225", as: "lab" }],
+        deck: [{ card: "BT1-001", as: "drawn" }],
+        battleArea: [{ card: "BT22-008", as: "cs" }],
+      },
+    });
+    s.state.memory = 20;
+    await s.ready();
+    const labId = s.inst("lab").instanceId;
+    const drawnId = s.inst("drawn").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: labId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === labId));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === drawnId)).toBe(true);
+  });
+});

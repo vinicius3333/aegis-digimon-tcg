@@ -85,3 +85,35 @@ describe("P-243 Digiseabass", () => {
     );
   });
 });
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+
+describe("P-243 engine behavior", () => {
+  it("trashes a hand card, draws two, and places itself", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "P-243", as: "digiseabass" },
+            { card: "BT1-001", as: "cost" },
+          ],
+          deck: [
+            { card: "BT1-002", as: "drawOne" },
+            { card: "BT1-003", as: "drawTwo" },
+          ],
+          battleArea: [{ card: "P-016", as: "black" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("digiseabass").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("drawOne").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("drawTwo").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((c) => c.instanceId === s.inst("cost").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "P-243")).toBe(true);
+  });
+});

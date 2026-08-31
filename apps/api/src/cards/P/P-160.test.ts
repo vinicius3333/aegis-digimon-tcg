@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { observe } from "../../engine/testkit/observe.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import "./P-160.js";
 
 describe("P-160 Tyrannomon (X Antibody)", () => {
@@ -36,5 +38,11 @@ describe("P-160 Tyrannomon (X Antibody)", () => {
         },
       ],
     });
+  });
+
+  it("exposes Raid on the played Tyrannomon X Antibody", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "P-160", as: "host" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Raid")).toBe(true);
   });
 });

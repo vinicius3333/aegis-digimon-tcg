@@ -3,6 +3,8 @@ import { EffectTiming, type CardDefinition, type GameState, type Permanent, type
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-108.js";
 
 // P-108 (Wisdom Training) — Purple Option card with two [Main] clauses:
@@ -468,5 +470,15 @@ describe("P-108 (Wisdom Training)", () => {
     // When the player declines the optional digivolve, digivolveFromInstance must not fire.
     const digivolves = recorder.calls.filter((c) => c.verb === "digivolveFromInstance");
     expect(digivolves).toHaveLength(0);
+  });
+
+  it("places itself in the battle area from its Security effect", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "P-108", as: "training" }] } });
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("training"));
+    await settle();
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("training").instanceId)).toBe(
+      true,
+    );
   });
 });

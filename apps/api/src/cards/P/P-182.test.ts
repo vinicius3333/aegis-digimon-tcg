@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./P-182.js";
 
 describe("P-182 WarGreymon", () => {
@@ -40,5 +42,12 @@ describe("P-182 WarGreymon", () => {
         },
       ],
     });
+  });
+
+  it("exposes Security Attack +1 and Blocker on the live WarGreymon", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "P-182", as: "wargrey" }] } });
+    await s.ready();
+    expect(observe(s.engine).keywordAmount(s.perm("wargrey"), "SecurityAttack")).toBe(1);
+    expect(observe(s.engine).hasKeyword(s.perm("wargrey"), "Blocker")).toBe(true);
   });
 });

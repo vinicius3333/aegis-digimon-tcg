@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { playEx4Card } from "./livePlayTestHelpers.js";
+import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
 import { compiled } from "./EX4-047.js";
 
 describe("EX4-047 DarkKnightmon", () => {
@@ -33,4 +35,10 @@ describe("EX4-047 DarkKnightmon", () => {
       condition: { filter: { nameOrTrait: [{ match: "nameExact", tokens: ["GreyKnightsmon"] }] } },
     });
   });
+
+  it("plays through the live engine", async () => {
+    const s = await playEx4Card("EX4-047");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("subject").instanceId)).toBe(false);
+  });
+  ex4CardBehaviorTests("EX4-047");
 });

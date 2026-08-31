@@ -46,3 +46,19 @@ describe("P-190 Tweetmon", () => {
     });
   });
 });
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+
+describe("P-190 engine behavior", () => {
+  it("draws the top card when played", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "P-190", as: "demiveemon" }], deck: [{ card: "BT1-001", as: "drawn" }] },
+    });
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("demiveemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
+  });
+});

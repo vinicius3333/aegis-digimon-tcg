@@ -55,3 +55,16 @@ describe("P-241 Yujin Ozora", () => {
     );
   });
 });
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+
+describe("P-241 engine behavior", () => {
+  it("plays itself without cost from Security", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "P-241", as: "yujin" }] } });
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("yujin"));
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("yujin").instanceId));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("yujin").instanceId)).toBe(true);
+  });
+});

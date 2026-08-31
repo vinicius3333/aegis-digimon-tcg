@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./P-208.js";
 
 describe("P-208 Merukimon", () => {
@@ -53,5 +55,11 @@ describe("P-208 Merukimon", () => {
         },
       ],
     });
+  });
+
+  it("exposes Execute on the live Merukimon", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "P-208", as: "meruki" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("meruki"), "Execute")).toBe(true);
   });
 });

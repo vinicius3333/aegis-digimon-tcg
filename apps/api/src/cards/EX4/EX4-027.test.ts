@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX4-027.js";
 
 describe("EX4-027 GoldVeedramon", () => {
@@ -32,5 +33,34 @@ describe("EX4-027 GoldVeedramon", () => {
 
   it("requires the exact Veemon name for its alternate evolution", () => {
     expect(compiled.digivolutionRequirement).toMatchObject([{ namesExact: ["Veemon"], cost: 2 }]);
+  });
+
+  it("applies the DP loss at the 6000-DP restriction boundary after a real evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST8-04", as: "veemon" },
+            { card: "ST21-12", as: "blueTamer" },
+          ],
+          hand: [{ card: "EX4-027", as: "goldVeedramon" }],
+          deck: ["BT1-001"],
+        },
+        1: { battleArea: [{ card: "BT1-019", as: "boundary", dp: 6000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("veemon").permanentId,
+        instanceId: s.inst("goldVeedramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("boundary").currentDP === 4000);
+
+    expect(s.perm("boundary").currentDP).toBe(4000);
+    expect(s.state.memory).toBe(0);
   });
 });

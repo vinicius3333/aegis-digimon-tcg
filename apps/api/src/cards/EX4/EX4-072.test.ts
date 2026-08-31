@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { playEx4Card } from "./livePlayTestHelpers.js";
+import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
 import {
   CardKind,
   EffectTiming,
@@ -111,4 +113,10 @@ describe("EX4-072 Digital Translator", () => {
     const effect = getEffectModule("EX4-072")!.effectsForTiming(EffectTiming.OnUseOption, source)[0]!;
     expect(effect.canActivate({ source, trigger: {}, game, fx: {}, ask: {} } as never)).toBe(true);
   });
+
+  it("plays through the live engine", async () => {
+    const s = await playEx4Card("EX4-072");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("subject").instanceId)).toBe(false);
+  });
+  ex4CardBehaviorTests("EX4-072");
 });

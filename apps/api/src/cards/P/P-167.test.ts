@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-167.js";
 
 describe("P-167 Landramon", () => {
@@ -49,5 +52,22 @@ describe("P-167 Landramon", () => {
         },
       ],
     });
+  });
+
+  it("pays with a Mineral digivolution card and adds a revealed Mineral card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-167", as: "landra", under: ["BT10-062"] }],
+          deck: [{ card: "BT10-062", as: "revealed" }, { card: "BT1-001" }, { card: "BT1-002" }],
+        },
+      },
+      { autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("landra"));
+    await settle();
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT10-062")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("revealed").instanceId)).toBe(true);
   });
 });

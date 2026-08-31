@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./P-178.js";
 
 describe("P-178 Sagittarimon", () => {
@@ -29,5 +31,11 @@ describe("P-178 Sagittarimon", () => {
         },
       ],
     });
+  });
+
+  it("exposes Armor Purge on the live permanent", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "P-178", as: "sagitta" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("sagitta"), "Armor Purge")).toBe(true);
   });
 });

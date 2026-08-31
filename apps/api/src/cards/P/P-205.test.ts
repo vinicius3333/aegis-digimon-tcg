@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-205.js";
 
 describe("P-205 Insane Synthetic Monster", () => {
@@ -51,5 +52,30 @@ describe("P-205 Insane Synthetic Monster", () => {
         },
       ],
     });
+  });
+
+  it("draws two, trashes two cards, and places itself from Main", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "P-205", as: "option" },
+            { card: "BT1-001", as: "trash1" },
+            { card: "BT1-002", as: "trash2" },
+          ],
+          battleArea: [{ card: "BT19-065", as: "color" }],
+          deck: ["BT1-003", "BT1-004"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length > 0);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("trash1").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("trash2").instanceId)).toBe(true);
   });
 });

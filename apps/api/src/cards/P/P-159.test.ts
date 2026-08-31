@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-159.js";
 
 describe("P-159 Rook Device", () => {
@@ -46,5 +49,24 @@ describe("P-159 Rook Device", () => {
         }),
       ]),
     );
+  });
+
+  it("de-digivolves two cards from an opposing Digimon and returns itself from security", async () => {
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "P-159", as: "rook" }] },
+        1: { battleArea: [{ card: "AD1-004", as: "target", under: ["AD1-001", "BT1-020"] }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("rook"));
+    await settle();
+    expect(s.perm("target").topCard.cardId).toBe("AD1-001");
+    expect(s.perm("target").stack).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["AD1-004", "BT1-020"]),
+    );
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("rook").instanceId)).toBe(true);
   });
 });

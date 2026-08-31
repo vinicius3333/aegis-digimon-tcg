@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-146.js";
 
 describe("P-146 Recharge Plug-In Q", () => {
@@ -28,5 +32,19 @@ describe("P-146 Recharge Plug-In Q", () => {
       trigger: "Security",
       actions: [{ kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: -1 }, duration: "forTheTurn" }],
     });
+  });
+
+  it("gives an opposing Digimon Security Attack -1 from its Security effect", async () => {
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "P-146", as: "plug" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("plug"));
+    await settle();
+    expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
   });
 });

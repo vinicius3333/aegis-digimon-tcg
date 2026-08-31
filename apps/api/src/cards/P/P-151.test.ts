@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-151.js";
 
 describe("P-151 Digimon Liberator", () => {
@@ -40,6 +43,24 @@ describe("P-151 Digimon Liberator", () => {
       expect.arrayContaining([
         expect.objectContaining({ trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] }),
       ]),
+    );
+  });
+
+  it("activates Main from security and plays a qualifying Liberator Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "P-151", as: "option" }],
+          deck: [{ card: "BT19-017", as: "liberator" }, { card: "BT1-001" }, { card: "BT1-002" }],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+    await settle();
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("liberator").instanceId)).toBe(
+      true,
     );
   });
 });

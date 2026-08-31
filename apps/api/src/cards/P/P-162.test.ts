@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./P-162.js";
 
 describe("P-162 Coelamon", () => {
@@ -30,5 +35,26 @@ describe("P-162 Coelamon", () => {
       ]),
     );
     expect(compiled.digivolutionRequirement).toEqual([{ level: 3, traits: ["DS"], cost: 2, isAlternate: true }]);
+  });
+
+  it("protects a DS Digimon when Coelamon is played", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-162", as: "coelamon" },
+            { card: "BT26-018", as: "ds" },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("ds").permanentId);
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("coelamon"));
+    await settle();
+    expect(observe(s.engine).isRestricted(s.perm("ds"), "dpImmune")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("ds"), "cantBeDeDigivolved")).toBe(true);
   });
 });

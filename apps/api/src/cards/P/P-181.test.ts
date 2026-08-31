@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-181.js";
 
 describe("P-181 Royal Base", () => {
@@ -53,5 +54,33 @@ describe("P-181 Royal Base", () => {
         },
       ],
     });
+  });
+
+  it("executes its Main security exchange through the public play intent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "P-181", as: "source" }],
+          battleArea: [
+            { card: "BT1-009" },
+            { card: "BT1-037" },
+            { card: "BT1-063" },
+            { card: "BT1-088" },
+            { card: "P-016" },
+            { card: "ST6-03" },
+            { card: "BT1-084" },
+          ],
+          security: ["BT1-005", "BT1-006"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-005")).toBe(true);
   });
 });

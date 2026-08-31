@@ -57,3 +57,29 @@ describe("P-216 WaruMonzaemon", () => {
     });
   });
 });
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+
+describe("P-216 engine behavior", () => {
+  it("plays a Dark Masters Digimon from hand on play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "P-216", as: "waru" },
+            { card: "BT15-031", as: "masters" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("waru").instanceId })).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("masters").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("masters").instanceId)).toBe(
+      true,
+    );
+  });
+});

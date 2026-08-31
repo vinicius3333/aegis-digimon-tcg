@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { getCompiledCard } from "@aegis/shared";
-import { assertNoLoudGap, setupEngine } from "../../engine/testkit/harness.js";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-142.js";
 
 describe("P-142 Falcomon", () => {
@@ -54,5 +56,19 @@ describe("P-142 Falcomon", () => {
         }),
       ]),
     );
+  });
+
+  it("suspends an opposing level-6-or-lower Digimon on play", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "P-142", as: "falcomon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "low", suspended: false }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("falcomon"));
+    await settle();
+    expect(s.perm("low").isSuspended).toBe(true);
   });
 });

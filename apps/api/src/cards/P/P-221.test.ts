@@ -1,5 +1,25 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+
+describe("P-221 engine behavior", () => {
+  it("reduces an opposing Digimon by exactly 10000 DP on When Digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "P-221", as: "chaosmon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 15000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    const base = s.perm("target").currentDP;
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("chaosmon"));
+    await settle();
+    expect(s.perm("target").currentDP).toBe(base - 10000);
+  });
+});
 import "./P-221.js";
 
 describe("P-221 Chaosmon", () => {
@@ -45,5 +65,15 @@ describe("P-221 Chaosmon", () => {
         ],
       });
     }
+  });
+});
+
+describe("P-221 continuous behavior", () => {
+  it("grants Security Attack +1 to a resident Chaosmon", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "P-221", as: "chaosmon" }] } });
+    await s.ready();
+    const ledger = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } })
+      .continuous;
+    expect(ledger.hasKeyword(s.perm("chaosmon").permanentId, "SecurityAttack")).toBe(true);
   });
 });

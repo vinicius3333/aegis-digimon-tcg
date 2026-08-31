@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-180.js";
 
 describe("P-180 Bind Red Trigger", () => {
@@ -57,5 +58,31 @@ describe("P-180 Bind Red Trigger", () => {
         },
       ],
     });
+  });
+
+  it("trashes the opponent's top security and places itself under a Three Musketeers Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "P-180", as: "option" }],
+          battleArea: [{ card: "BT6-112", as: "musketeer" }],
+          security: ["BT1-005"],
+        },
+        1: { security: ["BT1-006", "BT1-007"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 1 &&
+        s.perm("musketeer").stack.some((card) => card.instanceId === s.inst("option").instanceId),
+    );
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.perm("musketeer").stack.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
   });
 });

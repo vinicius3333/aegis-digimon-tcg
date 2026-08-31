@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { playEx4Card } from "./livePlayTestHelpers.js";
+import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
 import { compiled } from "./EX4-048.js";
 
 describe("EX4-048 Gaiomon", () => {
@@ -29,4 +31,10 @@ describe("EX4-048 Gaiomon", () => {
       into: { playCostGte: 13 },
     });
   });
+
+  it("plays through the live engine", async () => {
+    const s = await playEx4Card("EX4-048");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("subject").instanceId)).toBe(false);
+  });
+  ex4CardBehaviorTests("EX4-048");
 });

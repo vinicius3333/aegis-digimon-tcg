@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-149.js";
 
 describe("P-149 Minomon", () => {
@@ -30,5 +31,29 @@ describe("P-149 Minomon", () => {
         }),
       ]),
     );
+  });
+
+  it("trashes a card to delete an opposing level-3 Digimon when the host has two colors", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-152", as: "host", under: ["P-149"] }],
+          hand: [{ card: "BT1-001", as: "cost" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "level3" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
   });
 });

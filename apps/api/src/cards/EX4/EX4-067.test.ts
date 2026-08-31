@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { playEx4Card } from "./livePlayTestHelpers.js";
+import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
 import { compiled } from "./EX4-067.js";
 
 describe("EX4-067 Full Metal Blaze", () => {
@@ -17,4 +19,10 @@ describe("EX4-067 Full Metal Blaze", () => {
       target: { filter: { levelComparison: { op: "gte", value: 6 } } },
     });
   });
+
+  it("plays through the live engine", async () => {
+    const s = await playEx4Card("EX4-067");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("subject").instanceId)).toBe(false);
+  });
+  ex4CardBehaviorTests("EX4-067");
 });
