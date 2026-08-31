@@ -192,7 +192,7 @@ node tools/kb/query.mjs card BT9-007
 rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT9/BT9-007.ts
 pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-007.test.ts --reporter=dot
 pnpm typecheck
-pnpm exec oxfmt --check BT9-AUDIT.md apps/api/src/cards/BT9/BT9-007.ts apps/api/src/cards/BT9/BT9-007.test.ts apps/api/src/cards/BT9/effectlessAudit.testkit.ts apps/api/src/cards/BT9/index.ts
+pnpm exec oxfmt --check docs/audits/BT9-AUDIT.md apps/api/src/cards/BT9/BT9-007.ts apps/api/src/cards/BT9/BT9-007.test.ts apps/api/src/cards/BT9/effectlessAudit.testkit.ts apps/api/src/cards/BT9/index.ts
 git diff --check
 ```
 
@@ -250,7 +250,7 @@ rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT9/BT9-009.ts
 pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-009.test.ts --reporter=dot
 pnpm --filter @aegis/api exec vitest run src/engine/cards/deletionDpCluster.test.ts --reporter=dot
 pnpm typecheck
-pnpm format:files:check BT9-AUDIT.md apps/api/src/cards/BT9/BT9-009.ts apps/api/src/cards/BT9/BT9-009.test.ts
+pnpm format:files:check docs/audits/BT9-AUDIT.md apps/api/src/cards/BT9/BT9-009.ts apps/api/src/cards/BT9/BT9-009.test.ts
 git diff --check
 ```
 
@@ -279,7 +279,7 @@ rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT9/BT9-010.ts
 rg -n 'BT9-010' apps/api/src/cards/BT9/index.ts
 pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-010.test.ts src/cards/BT9/BT9-007.test.ts --reporter=dot
 pnpm typecheck
-pnpm format:files:check BT9-AUDIT.md apps/api/src/cards/BT9/BT9-010.ts apps/api/src/cards/BT9/BT9-010.test.ts apps/api/src/cards/BT9/effectlessAudit.testkit.ts apps/api/src/cards/BT9/index.ts
+pnpm format:files:check docs/audits/BT9-AUDIT.md apps/api/src/cards/BT9/BT9-010.ts apps/api/src/cards/BT9/BT9-010.test.ts apps/api/src/cards/BT9/effectlessAudit.testkit.ts apps/api/src/cards/BT9/index.ts
 git diff --check
 ```
 
@@ -309,7 +309,7 @@ rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT9/BT9-011.ts
 pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-011.test.ts --reporter=dot
 pnpm --filter @aegis/api exec vitest run src/engine/cards/deletionDpCluster.test.ts --reporter=dot
 pnpm typecheck
-pnpm format:files:check BT9-AUDIT.md apps/api/src/cards/BT9/BT9-011.ts apps/api/src/cards/BT9/BT9-011.test.ts
+pnpm format:files:check docs/audits/BT9-AUDIT.md apps/api/src/cards/BT9/BT9-011.ts apps/api/src/cards/BT9/BT9-011.test.ts
 git diff --check
 ```
 
@@ -339,7 +339,7 @@ rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT9/BT9-012.ts
 pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-012.test.ts --reporter=dot
 pnpm --filter @aegis/api exec vitest run src/engine/effects/leavePrevent.test.ts --reporter=dot
 pnpm typecheck
-pnpm format:files:check BT9-AUDIT.md apps/api/src/cards/BT9/BT9-012.ts apps/api/src/cards/BT9/BT9-012.test.ts
+pnpm format:files:check docs/audits/BT9-AUDIT.md apps/api/src/cards/BT9/BT9-012.ts apps/api/src/cards/BT9/BT9-012.test.ts
 git diff --check
 ```
 
@@ -369,7 +369,7 @@ rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT9/BT9-013.ts
 pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-013.test.ts --reporter=dot
 pnpm --filter @aegis/api exec vitest run src/cards/BT8/BT8-013.test.ts --reporter=dot
 pnpm typecheck
-pnpm format:files:check BT9-AUDIT.md apps/api/src/cards/BT9/BT9-013.ts apps/api/src/cards/BT9/BT9-013.test.ts
+pnpm format:files:check docs/audits/BT9-AUDIT.md apps/api/src/cards/BT9/BT9-013.ts apps/api/src/cards/BT9/BT9-013.test.ts
 git diff --check
 ```
 
@@ -398,7 +398,7 @@ rg -n 'Q1807' data/kb/qa.json
 rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT9/BT9-014.ts
 pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-014.test.ts src/cards/BT15/BT15-068.test.ts --reporter=dot
 pnpm typecheck
-pnpm format:files:check BT9-AUDIT.md apps/api/src/cards/BT9/BT9-014.ts apps/api/src/cards/BT9/BT9-014.test.ts apps/api/src/engine/effects/interpreter/actions/statics.ts
+pnpm format:files:check docs/audits/BT9-AUDIT.md apps/api/src/cards/BT9/BT9-014.ts apps/api/src/cards/BT9/BT9-014.test.ts apps/api/src/engine/effects/interpreter/actions/statics.ts
 git diff --check
 ```
 
@@ -428,7 +428,7 @@ rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT9/BT9-015.ts
 pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-015.test.ts --reporter=dot
 pnpm --filter @aegis/api exec vitest run src/cards/BT10/BT10-042.test.ts src/engine/combat/keywords.test.ts src/engine/effects/interpreter.test.ts --reporter=dot
 pnpm typecheck
-pnpm format:files:check BT9-AUDIT.md apps/api/src/cards/BT9/BT9-015.ts apps/api/src/cards/BT9/BT9-015.test.ts apps/api/src/engine/effects/EffectContext.ts apps/api/src/engine/effects/interpreter/duration.ts apps/api/src/engine/effects/interpreter/actions/board.ts apps/api/src/engine/effects/modifiers.ts apps/api/src/engine/effects/primitives.ts packages/shared/src/effects/ir/durations.ts packages/shared/src/schema/enums.ts
+pnpm format:files:check docs/audits/BT9-AUDIT.md apps/api/src/cards/BT9/BT9-015.ts apps/api/src/cards/BT9/BT9-015.test.ts apps/api/src/engine/effects/EffectContext.ts apps/api/src/engine/effects/interpreter/duration.ts apps/api/src/engine/effects/interpreter/actions/board.ts apps/api/src/engine/effects/modifiers.ts apps/api/src/engine/effects/primitives.ts packages/shared/src/effects/ir/durations.ts packages/shared/src/schema/enums.ts
 git diff --check
 ```
 
@@ -458,7 +458,7 @@ rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT9/BT9-016.ts
 pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-016.test.ts --reporter=dot
 pnpm --filter @aegis/api exec vitest run src/engine/effects/subtriggers.test.ts src/engine/security/securityCheck.test.ts --reporter=dot
 pnpm typecheck
-pnpm format:files:check BT9-AUDIT.md apps/api/src/cards/BT9/BT9-016.ts apps/api/src/cards/BT9/BT9-016.test.ts
+pnpm format:files:check docs/audits/BT9-AUDIT.md apps/api/src/cards/BT9/BT9-016.ts apps/api/src/cards/BT9/BT9-016.test.ts
 git diff --check
 ```
 
@@ -488,7 +488,7 @@ rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT9/BT9-017.ts
 pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-017.test.ts --reporter=dot
 pnpm --filter @aegis/api exec vitest run src/engine/effects/restrictionEnforcement.test.ts src/cards/BT12/BT12-016.test.ts --reporter=dot
 pnpm typecheck
-pnpm format:files:check BT9-AUDIT.md apps/api/src/cards/BT9/BT9-017.ts apps/api/src/cards/BT9/BT9-017.test.ts
+pnpm format:files:check docs/audits/BT9-AUDIT.md apps/api/src/cards/BT9/BT9-017.ts apps/api/src/cards/BT9/BT9-017.test.ts
 git diff --check
 ```
 
@@ -518,7 +518,7 @@ rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT9/BT9-018.ts
 pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-018.test.ts --reporter=dot
 pnpm --filter @aegis/api exec vitest run src/engine/effects/subtriggers.test.ts src/engine/effects/primitives.test.ts src/engine/conformance/ch12-blocking.test.ts --reporter=dot
 pnpm typecheck
-pnpm format:files:check BT9-AUDIT.md apps/api/src/cards/BT9/BT9-018.ts apps/api/src/cards/BT9/BT9-018.test.ts
+pnpm format:files:check docs/audits/BT9-AUDIT.md apps/api/src/cards/BT9/BT9-018.ts apps/api/src/cards/BT9/BT9-018.test.ts
 git diff --check
 ```
 
@@ -549,7 +549,7 @@ rg -n 'BT9-019' apps/api/src/cards/BT9/index.ts
 pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-019.test.ts --reporter=dot
 pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-007.test.ts src/cards/BT9/BT9-010.test.ts --reporter=dot
 pnpm typecheck
-pnpm format:files:check BT9-AUDIT.md apps/api/src/cards/BT9/BT9-019.ts apps/api/src/cards/BT9/BT9-019.test.ts apps/api/src/cards/BT9/effectlessAudit.testkit.ts apps/api/src/cards/BT9/index.ts
+pnpm format:files:check docs/audits/BT9-AUDIT.md apps/api/src/cards/BT9/BT9-019.ts apps/api/src/cards/BT9/BT9-019.test.ts apps/api/src/cards/BT9/effectlessAudit.testkit.ts apps/api/src/cards/BT9/index.ts
 git diff --check
 ```
 
@@ -579,7 +579,7 @@ rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT9/BT9-020.ts
 pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-020.test.ts --reporter=dot
 pnpm --filter @aegis/api exec vitest run src/engine/effects/interpreter.test.ts --reporter=dot
 pnpm typecheck
-pnpm format:files:check BT9-AUDIT.md apps/api/src/cards/BT9/BT9-020.ts apps/api/src/cards/BT9/BT9-020.test.ts
+pnpm format:files:check docs/audits/BT9-AUDIT.md apps/api/src/cards/BT9/BT9-020.ts apps/api/src/cards/BT9/BT9-020.test.ts
 git diff --check
 ```
 
