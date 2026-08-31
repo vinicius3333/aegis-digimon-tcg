@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { EffectTiming } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
@@ -30,7 +29,6 @@ describe("EX4 inherited Alliance suspension watchers", () => {
     );
     await s.ready();
     await (s.engine as unknown as { recomputeContinuousEffects: () => Promise<void> }).recomputeContinuousEffects();
-    await advance(s.engine).fireGlobal(EffectTiming.YourTurn);
     s.state.memory = 6;
 
     expect(
