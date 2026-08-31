@@ -548,8 +548,12 @@
   flex-direction: column;
   gap: var(--ds-space-2);
   width: min(19rem, 42vw);
-  max-height: min(28rem, 82%);
+  /* Bounded by the stage alone so the whole clause shows; if a decision's text
+     still outgrows the screen, the rail scrolls rather than losing its
+     actions — they are the decision's only exit. */
+  max-height: 92%;
   padding: var(--ds-space-4);
+  overflow-y: auto;
   color: var(--ds-fg);
   border: 2px solid var(--ds-accent);
   border-radius: var(--ds-radius-lg);
@@ -599,13 +603,9 @@
   font-weight: 700;
   line-height: 1.35;
 }
-/* Only the printed clause scrolls: the prompt and its actions must never be
-   pushed out of the rail, because they are the decision's only exit. */
 .board-prompt__clause {
   margin: 0;
-  max-height: 7rem;
   padding: var(--ds-space-2) var(--ds-space-3);
-  overflow-y: auto;
   color: var(--ds-fg-secondary);
   border-radius: var(--ds-radius-md);
   background: var(--ds-surface-muted);
@@ -2927,8 +2927,6 @@ button.side-panel__name:focus-visible {
 }
 
 .match-notice__text {
-  overflow-y: auto;
-  max-height: 7rem;
   margin: 0;
   font-size: 0.72rem;
   line-height: 1.45;
@@ -3606,7 +3604,7 @@ button.side-panel__name:focus-visible {
    only needs these touch surfaces — sheets, zoom, confirmations — to exist. */
 @media (width < 600px), (height < 520px) and (orientation: landscape) {
   /* The board is the whole screen here, so the rail takes only what the prompt
-     and its actions need; the printed clause keeps its own short scroll. */
+     and its actions need; a clause taller than the rail scrolls with it. */
   .board-prompt {
     width: min(15rem, 46vw);
     max-height: 92%;
@@ -3615,9 +3613,6 @@ button.side-panel__name:focus-visible {
   }
   .board-prompt__text {
     font-size: var(--ds-text-sm);
-  }
-  .board-prompt__clause {
-    max-height: 4.5rem;
   }
   .board-opponent-pill {
     top: 3.5rem;
@@ -4526,15 +4521,11 @@ button.side-panel__name:focus-visible {
     align-content: start;
   }
 
-  /* The stacks are not capped on a phone: every cap tried here — 7rem, then a
-     dvh split — ended up decapitating a notice's clause or a revealed card's
-     art while screen space sat empty next to it. The whole notice and the
-     whole card matter more than the board they briefly cover, and each stack
-     grows from its own screen edge toward the middle either way. */
-  .match-notice__text {
-    max-height: none;
-    overflow-y: visible;
-  }
+  /* The stacks and their text are not capped on a phone: every cap tried here
+     — 7rem, then a dvh split — ended up decapitating a notice's clause or a
+     revealed card's art while screen space sat empty next to it. The whole
+     notice and the whole card matter more than the board they briefly cover,
+     and each stack grows from its own screen edge toward the middle. */
   .side-panel-stack[data-side="opp"] {
     top: calc(17rem + env(safe-area-inset-top, 0px));
   }
@@ -4568,7 +4559,9 @@ button.side-panel__name:focus-visible {
     left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
     z-index: calc(var(--ds-z-dialog) - 3);
     width: auto;
-    max-height: 38dvh;
+    /* All the height between the sheet's resting place and the top of the
+       screen: only a clause that literally outgrows the viewport scrolls. */
+    max-height: calc(100dvh - var(--game-hand-h) - 11.5rem - env(safe-area-inset-bottom, 0px));
     overflow-y: auto;
     translate: none;
     animation-name: battle-board-sheet-in;
