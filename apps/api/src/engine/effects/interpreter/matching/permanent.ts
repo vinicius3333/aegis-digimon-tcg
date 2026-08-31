@@ -149,6 +149,13 @@ function lastDeletedLevelBound(ctx: EffectContext): number | undefined {
   return level !== undefined && level > 0 ? level : undefined;
 }
 
+function lastDeletedDPBound(ctx: EffectContext): number | undefined {
+  if (ctx.lastDeletedDP !== undefined) return ctx.lastDeletedDP;
+  const id = ctx.trigger.deletedPermanentId ?? ctx.trigger.subjectPermanentId;
+  if (id === undefined) return undefined;
+  return ctx.game.permanentById(id)?.currentDP;
+}
+
 export function permanentMatchesFilter(
   ctx: EffectContext,
   permanent: Permanent,
@@ -305,7 +312,9 @@ export function permanentMatchesFilter(
   if (filter.dp) {
     const cmp = filter.dp;
     let bound: number | undefined;
-    if (cmp.relativeToSource) {
+    if (cmp.relativeTo === "lastDeleted") {
+      bound = lastDeletedDPBound(ctx);
+    } else if (cmp.relativeToSource) {
       bound = source.permanent()?.currentDP;
     } else if (cmp.relativeToFilter !== undefined) {
       const referenceDps = seatsForController(ctx, cmp.relativeToFilter).flatMap((seat) =>

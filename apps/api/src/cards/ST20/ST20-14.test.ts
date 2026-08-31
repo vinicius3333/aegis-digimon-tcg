@@ -3,6 +3,8 @@ import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../ST19/ST19-07.js";
+import "../ST19/ST19-10.js";
 import "./ST20-14.js";
 
 describe("ST20-14 Our Courage United", () => {
@@ -64,13 +66,11 @@ describe("ST20-14 Our Courage United", () => {
     await s.ready();
     await advance(s.engine).verb.placeOptionAsPermanent(s.inst("option").instanceId);
     const option = s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === s.inst("option").instanceId)!;
+    const leavingInstanceId = s.perm("level5").topCard.instanceId;
     expect(observe(s.engine).activatableEffects(option)).toHaveLength(0);
-    // Drive the same production leave-event bus used by deletion/bounce while
-    // retaining the source Digimon long enough to observe the armed Delay.
-    await advance(s.engine).fireSubTrigger("whenLeavesPlay", {
-      deletedPermanentId: s.perm("level5").permanentId,
-      deletedControllerSeat: 0,
-    });
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("level5").permanentId], "byEffect")).toBe(1);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === leavingInstanceId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === leavingInstanceId)).toBe(true);
     s.state.turnCount += 1;
     await advance(s.engine).recompute();
     expect(observe(s.engine).activatableEffects(option)).toEqual(
@@ -80,5 +80,26 @@ describe("ST20-14 Our Courage United", () => {
         }),
       ]),
     );
+  });
+
+  it("does not arm Delay when Armor Purge replaces the qualifying leave attempt", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST19-10", under: ["ST19-07"], as: "armoredLevel5" }],
+          hand: [{ card: "ST20-14", as: "option" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.placeOptionAsPermanent(s.inst("option").instanceId);
+    const option = s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === s.inst("option").instanceId)!;
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("armoredLevel5").permanentId], "byEffect")).toBe(0);
+    expect(s.perm("armoredLevel5").topCard.cardId).toBe("ST19-07");
+    s.state.turnCount += 1;
+    await advance(s.engine).recompute();
+    expect(observe(s.engine).activatableEffects(option)).toHaveLength(0);
   });
 });

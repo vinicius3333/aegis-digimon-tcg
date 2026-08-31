@@ -1,5 +1,6 @@
 import { getCardDefinition, Zone } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX3-012.js";
 import "./EX3-018.js";
@@ -99,7 +100,7 @@ describe("EX3-012 Volcanicdramon", () => {
     });
   });
 
-  it("enforces the exact 5000-DP boundary while the opponent-turn restriction is active", async () => {
+  it("enforces the exact 5000-DP boundary and expires through public opponent-turn completion", async () => {
     const s = setupEngine({
       0: {
         hand: [{ card: "EX3-012", as: "volcanicdramon" }],
@@ -113,7 +114,6 @@ describe("EX3-012 Volcanicdramon", () => {
         deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
       },
     });
-    s.state.memory = 10;
     await s.ready();
     s.state.memory = 12;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("volcanicdramon").instanceId })).toEqual({
@@ -122,9 +122,16 @@ describe("EX3-012 Volcanicdramon", () => {
     await settle(
       () =>
         s.state.pendingDecision === undefined &&
-        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX3-012"),
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX3-012") &&
+        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX3-012"),
     );
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(0);
+
     s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
     s.state.memory = 10;
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("atLimit").instanceId })).toEqual({
       ok: false,
@@ -134,6 +141,27 @@ describe("EX3-012 Volcanicdramon", () => {
       ok: true,
     });
     await settle(() => s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT1-071"));
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const nextControllerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextControllerTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const nextOpponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("atLimit").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT1-013"));
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await nextOpponentTurn;
   });
 
   it("trashes one security before its normal check when attacking with a Tamer", async () => {

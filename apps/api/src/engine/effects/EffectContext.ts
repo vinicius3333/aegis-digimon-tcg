@@ -1894,6 +1894,8 @@ export interface EffectContext {
    * Undefined => no Digimon with a level was deleted in this resolution.
    */
   lastDeletedLevel?: number;
+  /** Live DP captured before the most recent deletion, for DP-bounded follow-up targets. */
+  lastDeletedDP?: number;
   lastDigivolveResult?: boolean;
   lastOptionUsed?: boolean;
   lastOptionUsedInstanceId?: string;

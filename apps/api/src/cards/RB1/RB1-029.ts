@@ -17,7 +17,7 @@ export const compiled: CompiledCard = {
               kind: ["Digimon"],
               dp: {
                 op: "lte",
-                compareTo: "deletedSelfDP",
+                relativeTo: "lastDeleted",
               },
             },
             count: 1,
