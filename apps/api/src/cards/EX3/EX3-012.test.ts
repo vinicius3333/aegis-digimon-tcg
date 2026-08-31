@@ -1,6 +1,5 @@
-import { getCardDefinition, Phase, Zone } from "@aegis/shared";
+import { getCardDefinition, Zone } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX3-012.js";
 import "./EX3-018.js";

@@ -164,15 +164,14 @@ describe("EX3-035 Goldramon", () => {
     await settle(
       () => s.state.pendingDecision?.kind === "selectCards" && s.decisions.at(-1)?.req.sourceCardId === "EX3-035",
     );
-    if (s.state.pendingDecision?.kind === "selectCards") {
-      expect(
-        s.engine.applyIntent(0, {
-          type: "respondDecision",
-          decisionId: s.state.pendingDecision.decisionId,
-          response: { kind: "selectCards", instanceIds: [trialId] },
-        }),
-      ).toEqual({ ok: true });
-    }
+    expect(s.state.pendingDecision?.kind).toBe("selectCards");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "selectCards", instanceIds: [trialId] },
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
         s.state.players[0]!.hand.some(({ instanceId }) => instanceId === trialId) &&
