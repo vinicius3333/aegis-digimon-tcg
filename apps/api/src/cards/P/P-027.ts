@@ -21,6 +21,9 @@ const compiled: CompiledCard = {
           from: ["hand"],
           payCost: false,
           optional: true,
+          // Digi-Burst is payable even when the optional Option payload has no
+          // eligible card; paying it still trashes the printed source cards.
+          allowCostWithoutTarget: true,
           cost: {
             kind: "trash",
             target: {

@@ -17,9 +17,10 @@ describe("P-142 Falcomon", () => {
           }),
         }),
         expect.objectContaining({
-          kind: "GrantStatic",
-          grant: { canAttackDigimon: true },
-          duration: "forTheTurn",
+          kind: "Attack",
+          target: expect.objectContaining({
+            filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Ravemon"], match: "name" }] },
+          }),
           optional: true,
           abortOnDecline: true,
           cost: expect.objectContaining({ kind: "place", position: "bottom", destination: "digivolutionStack" }),
