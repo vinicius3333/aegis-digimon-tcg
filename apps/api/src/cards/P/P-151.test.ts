@@ -63,4 +63,28 @@ describe("P-151 Digimon Liberator", () => {
       true,
     );
   });
+
+  it("runs Main from hand: adds a revealed Liberator card and may play it", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "P-151", as: "option" }],
+          battleArea: [{ card: "BT19-017", as: "liberatorSource" }],
+          deck: [{ card: "BT19-017", as: "liberator" }, "BT1-001", "BT1-002"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("liberator").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("liberator").instanceId)).toBe(
+      true,
+    );
+  });
 });

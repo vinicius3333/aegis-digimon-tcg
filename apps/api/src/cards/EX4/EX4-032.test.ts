@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX4-032.js";
+import "./EX4-031.js";
+import "../BT17/BT17-049.js";
+import "../BT23/BT23-041.js";
 
 describe("EX4-032 Terriermon", () => {
   it("reveals four and adds a green two-color card plus Henry Wong", () => {
@@ -58,5 +61,37 @@ describe("EX4-032 Terriermon", () => {
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual(
       expect.arrayContaining([multicolorId, henryId]),
     );
+  });
+
+  it("digivolves itself from hand after a real Alliance attack suspends an ally", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-041", as: "host", under: ["EX4-032"] },
+            { card: "BT1-064", as: "ally" },
+          ],
+          hand: [{ card: "BT17-049", as: "evolution" }],
+        },
+        1: { battleArea: [{ card: "BT1-019", as: "target", suspended: true }], security: ["BT1-001", "BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    const combat = (s.engine as unknown as { combat: { hasOpenAllianceDecision: boolean } }).combat;
+    await settle(() => combat.hasOpenAllianceDecision);
+    expect(s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: s.perm("ally").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("host").topCard?.cardId === "BT17-049", 5000);
+    expect(s.perm("host").topCard?.cardId).toBe("BT17-049");
   });
 });

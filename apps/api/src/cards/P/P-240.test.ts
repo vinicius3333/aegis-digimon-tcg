@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./P-240.js";
 
@@ -59,10 +62,6 @@ describe("P-240 Arcturusmon", () => {
     );
   });
 });
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
-
 describe("P-240 engine behavior", () => {
   it("de-digivolves three cards and places two qualifying trash cards underneath", async () => {
     const s = setupEngine(
@@ -84,6 +83,60 @@ describe("P-240 engine behavior", () => {
     expect(s.perm("arcturusmon").stack).toHaveLength(2);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX12-007")).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX12-013")).toBe(false);
+  });
+
+  it("also de-digivolves on the digivolving timing", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "P-240", as: "arcturusmon" }], trash: ["EX12-007", "EX12-013"] },
+        1: { battleArea: [{ card: "BT1-080", as: "target", under: ["BT1-009", "BT1-070", "BT1-020"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("arcturusmon"));
+    await settle();
+    expect(s.perm("target").stack).toHaveLength(0);
+    expect(s.perm("arcturusmon").stack).toHaveLength(2);
+  });
+
+  it("plays Proximamon from hand when it is deleted", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "P-240", as: "arcturusmon" }], hand: [{ card: "EX12-077", as: "proximamon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("arcturusmon").permanentId]);
+    await settle();
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("proximamon").instanceId)).toBe(
+      true,
+    );
+  });
+
+  it("redirects an opponent attack to its inherited host once per turn", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-080", as: "host", under: ["P-240"] }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("host").permanentId),
+    ).toBe(true);
   });
 });
 

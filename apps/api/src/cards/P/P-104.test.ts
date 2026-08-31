@@ -481,4 +481,54 @@ describe("P-104 (Mental Training)", () => {
       true,
     );
   });
+  it("reveals and adds its color card before placing itself in the battle area", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "P-104", as: "source" }],
+          battleArea: [{ card: "BT1-037", as: "color" }],
+          deck: [{ card: "BT1-037", as: "match" }, "BT1-009"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("match").instanceId));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("match").instanceId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("source").instanceId),
+    ).toBe(true);
+  });
+  it("uses Delay on a later turn to digivolve into the printed color", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-104", as: "delay" },
+            { card: "BT1-027", as: "host" },
+          ],
+          hand: [{ card: "BT1-033", as: "target" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    s.state.turnCount = 1;
+    await s.ready();
+    const ability = JSON.parse(s.perm("delay").activatableEffectsJson) as { effectKey: string }[];
+    expect(ability).toHaveLength(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("delay").instanceId,
+        effectKey: ability[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("host").topCard.cardId).toBe("BT1-033");
+  });
 });

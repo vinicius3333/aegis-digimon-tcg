@@ -43,4 +43,25 @@ describe("EX4-031 Cherubimon", () => {
 
     expect(s.perm("target").currentDP).toBe(4_000);
   });
+
+  it("applies the same scaled DP reduction in the real attack window", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-031", as: "cherubimon" },
+            { card: "BT1-009", as: "first", suspended: true },
+            { card: "BT1-010", as: "second", suspended: true },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-021", as: "target", dp: 10_000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("cherubimon"));
+    await settle(() => s.perm("target").currentDP !== 10_000);
+
+    expect(s.perm("target").currentDP).toBe(4_000);
+  });
 });

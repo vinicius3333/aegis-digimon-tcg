@@ -30,3 +30,8 @@ traced. The audit corrected nine legacy generated modules to bind a local
 - All 16 focused card tests were run serially, one process per card, with `--pool=forks --poolOptions.forks.singleFork=true --no-file-parallelism`; all passed.
 - Collection gate: `pnpm --filter @aegis/api exec vitest run src/cards/ST2/collection.audit.test.ts --pool=forks --poolOptions.forks.singleFork=true --no-file-parallelism` (3 tests passed).
 - The gate derives all 16 IDs/names, verifies every index import and colocated proof, and enforces exclusive `registerIrCard(cardId, compiled)`, full coverage, empty residuals, and no `RawUnparsed` nodes.
+
+# Evidence remediation (2026-08-31)
+
+ST2-12 now proves both start-of-turn memory and Security play through the production turn and
+attack operations, including the exact memory result and card identity.

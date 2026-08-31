@@ -13,7 +13,8 @@ const compiled: CompiledCard = {
           filter: {
             controller: "mine",
             zone: "security",
-            and: [{ colors: ["Yellow"] }, { colors: ["Black"] }],
+            colors: ["Yellow", "Black"],
+            multicolor: true,
           },
           count: 1,
           from: ["security"],

@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-191.js";
@@ -74,6 +76,23 @@ describe("P-191 Apollomon", () => {
       ok: true,
     });
     await settle(() => s.perm("victim").currentDP === 8000);
+    expect(s.perm("victim").currentDP).toBe(8000);
+  });
+
+  it("applies the same budget effect when digivolving and resolves both end-turn attack windows", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "P-191", as: "source" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 12000 }] },
+      },
+      { autoAcceptOptional: true, autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    await settle();
+    expect(s.perm("victim").currentDP).toBe(8000);
+    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("source"));
+    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("source"));
     expect(s.perm("victim").currentDP).toBe(8000);
   });
 });

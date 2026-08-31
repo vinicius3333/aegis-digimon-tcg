@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX4-027.js";
+import "../BT8/BT8-038.js";
 
 describe("EX4-027 GoldVeedramon", () => {
   it("has Armor Purge", () => {
@@ -22,7 +24,7 @@ describe("EX4-027 GoldVeedramon", () => {
   it("gates the restriction on a blue/yellow Tamer or Armor Form trash card", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions?.[1]).toMatchObject({
       condition: {
-        kind: "or",
+        kind: "orConditions",
         conditions: [
           { kind: "youHave", filter: { colors: ["Blue", "Yellow"] } },
           { kind: "youHave", filter: { nameOrTrait: [{ match: "trait", tokens: ["Armor Form"] }] } },
@@ -62,5 +64,85 @@ describe("EX4-027 GoldVeedramon", () => {
 
     expect(s.perm("boundary").currentDP).toBe(4000);
     expect(s.state.memory).toBe(0);
+    expect(observe(s.engine).isRestricted(s.perm("boundary"), "attack")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("boundary"), "block")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("goldVeedramon"), "Armor Purge")).toBe(true);
+  });
+
+  it("qualifies an 8000-DP target only after the public -2000 reduction reaches 6000", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST8-04", as: "veemon" },
+            { card: "ST21-12", as: "blueTamer" },
+          ],
+          hand: [{ card: "EX4-027", as: "goldVeedramon" }],
+          security: ["BT1-001", "BT1-002"],
+        },
+        1: { battleArea: [{ card: "BT1-019", as: "q3470", dp: 8000 }], security: ["BT1-001", "BT1-002"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("veemon").permanentId,
+        instanceId: s.inst("goldVeedramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("q3470").currentDP === 6000);
+    expect(s.perm("q3470").currentDP).toBe(6000);
+    expect(observe(s.engine).isRestricted(s.perm("q3470"), "attack")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("q3470"), "block")).toBe(true);
+  });
+
+  it("does not grant the attack restriction without either qualifying gate", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST8-04", as: "veemon" }],
+          hand: [{ card: "EX4-027", as: "goldVeedramon" }],
+        },
+        1: { battleArea: [{ card: "BT1-019", as: "target", dp: 6000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("veemon").permanentId,
+        instanceId: s.inst("goldVeedramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").currentDP === 4000);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(false);
+    expect(s.perm("target").currentDP).toBe(4000);
+  });
+
+  it("accepts the Armor Form card in trash as the alternate restriction gate", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST8-04", as: "veemon" }],
+          hand: [{ card: "EX4-027", as: "goldVeedramon" }],
+          trash: [{ card: "BT8-038", as: "armor" }],
+        },
+        1: { battleArea: [{ card: "BT1-019", as: "target", dp: 6000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("veemon").permanentId,
+        instanceId: s.inst("goldVeedramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").currentDP === 4000);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(true);
   });
 });

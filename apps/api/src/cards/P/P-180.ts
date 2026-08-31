@@ -3,17 +3,20 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // "When effects trash this card from digivolution cards" → AllTurns SubTrigger on
-// whenTrashedFromDigivolutionCards (fires whenever the card is trashed from under a Digimon).
+// the simultaneous stack-trash event (the source card is still identified in the batch).
 // "While you have a [Three Musketeers] trait Digimon, can ignore color requirements" → Static
 // WaiveColorRequirement with youHave condition.
 const compiled: CompiledCard = {
   effects: [
     {
       trigger: "AllTurns",
+      // This clause is evaluated while P-180 is a digivolution card being
+      // trashed, so it must be exposed through the stack/inherited source path.
+      isInherited: true,
       actions: [
         {
           kind: "SubTrigger",
-          event: "onDigivolutionCardDiscarded",
+          event: "onDigivolutionCardsDiscardedBatch",
           sourceFilter: {
             isSelfRef: true,
           },

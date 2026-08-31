@@ -1,6 +1,7 @@
 // @ts-nocheck
-// Hand-fixed: PlayToken uses "Familiar Token" name (matching tokens.ts);
-// token [On Deletion] encoded as onDeletionOf SubTrigger on parent (AllTurns).
+// Hand-fixed: PlayToken uses "Familiar Token" name (matching tokens.ts).
+// The token's printed [On Deletion] effect is registered by ST19-12's synthetic
+// TOKEN-Familiar-Token module; duplicating it on this parent would apply -6000 DP.
 // [Security] finding 1 is a false positive (no [Main] in card text).
 // endOfOpponentTurn is correct standard timing (KB Q5756 confirms deletion).
 import type { CompiledCard } from "@aegis/shared";
@@ -66,33 +67,6 @@ const compiled: CompiledCard = {
             wasJustPlayed: true,
           },
           timing: "endOfOpponentTurn",
-        },
-      ],
-    },
-    {
-      trigger: "AllTurns",
-      actions: [
-        {
-          kind: "SubTrigger",
-          event: "onDeletionOf",
-          sourceFilter: {
-            controller: "mine",
-            nameOrTrait: [{ tokens: ["Familiar Token"], match: "name" }],
-          },
-          actions: [
-            {
-              kind: "ModifyDP",
-              target: {
-                filter: {
-                  controller: "opponent",
-                  kind: ["Digimon"],
-                },
-                count: 1,
-              },
-              amount: -3000,
-              duration: "forTheTurn",
-            },
-          ],
         },
       ],
     },

@@ -1,7 +1,7 @@
-import { EffectTiming, getCardDefinition, getCompiledCard } from "@aegis/shared";
+import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./ST2-12.js";
 
 describe("ST2-12 Matt Ishida", () => {
@@ -41,8 +41,11 @@ describe("ST2-12 Matt Ishida", () => {
   it("gains 1 memory at the start of your turn when the opponent has a source-less Digimon", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "ST2-12", as: "matt" }] }, 1: { battleArea: ["ST2-03"] } });
     s.state.memory = 0;
-    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("matt"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.state.memory).toBe(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("gains once for each copy, not once for each source-less opposing Digimon", async () => {
@@ -56,9 +59,11 @@ describe("ST2-12 Matt Ishida", () => {
       1: { battleArea: ["ST2-03", "ST1-03"] },
     });
     s.state.memory = 0;
-    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("matt1"));
-    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("matt2"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.state.memory).toBe(2);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("ignores breeding and does not gain memory when the battle-area Digimon has a source", async () => {
@@ -70,8 +75,11 @@ describe("ST2-12 Matt Ishida", () => {
       },
     });
     s.state.memory = 0;
-    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("matt"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.state.memory).toBe(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("does not gain memory when the opponent has no battle-area Digimon", async () => {
@@ -80,16 +88,31 @@ describe("ST2-12 Matt Ishida", () => {
       1: { breeding: "ST2-03" },
     });
     s.state.memory = 0;
-    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("matt"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.state.memory).toBe(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("plays itself from security", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "ST2-12", as: "securityMatt", faceUp: true }] } });
+    const s = setupEngine({
+      0: { security: [{ card: "ST2-12", as: "securityMatt" }, "BT1-090"] },
+      1: { battleArea: ["BT1-009"] },
+    });
     const id = s.inst("securityMatt").instanceId;
-    s.state.memory = -3;
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityMatt"));
+    s.state.memory = 0;
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.state.players[1]!.battleArea[0]!.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === id));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === id)).toBe(true);
-    expect(s.state.memory).toBe(-3);
+    expect(s.state.memory).toBe(0);
   });
 });

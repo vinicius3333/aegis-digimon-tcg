@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./P-209.js";
 
@@ -69,5 +71,38 @@ describe("P-209 Titamon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "P-209", as: "titamon" }] } });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("titamon"), "Alliance")).toBe(true);
+  });
+
+  it("trashes the required hand card, suspends an opponent, and prevents unsuspending it", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "P-209", as: "titamon" }], hand: [{ card: "BT1-009", as: "cost" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("titamon"));
+    await settle();
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(true);
+  });
+
+  it("plays a level-4 Demon from trash when an effect actually trashes a hand card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-209", as: "titamon" }],
+          hand: [{ card: "BT1-009", as: "cost" }],
+          trash: [{ card: "BT1-069", as: "demon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.trash([s.inst("cost").instanceId], 0);
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("demon").instanceId));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("demon").instanceId)).toBe(true);
   });
 });

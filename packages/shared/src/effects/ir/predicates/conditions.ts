@@ -11,6 +11,7 @@ export interface Condition {
   kind:
     | "true" // for Aura records whose target filter already carries the condition
     | "youHave"
+    | "anyHas" // a matching permanent may belong to either player unless the filter names a controller
     | "youHaveGreenLevelAtLeastInBattle"
     | "breedingActionAvailable"
     | "opponentHas"
@@ -45,6 +46,7 @@ export interface Condition {
     | "digivolutionCardCount" // matching cards in the SOURCE Digimon's stack (EX11-046)
     | "triggerPlayCostAtMostStackCount" // the triggered card's play cost <= a matching stack count
     | "selfDigivolutionStackHasTrait" // `filter.nameOrTrait` vs each stack card's Form ∪ Attribute ∪ Type (BT7-024)
+    | "selfLacksInDigivolutionCards" // true when no SOURCE stack card matches `filter` (P-144)
     | "selfDigivolutionStackDistinctNameCount" // distinct names in the SOURCE stack (EX6-006)
     | "selfDigivolutionStackMatchesFilter" // any SOURCE stack card matches the full filter (BT17-101)
     | "selfDigivolutionStackHasColor" // BT8-082
@@ -102,6 +104,7 @@ export interface Condition {
     | "triggerHandTrashedSeat"
     | "triggeredByEffect" // whenSuspended was produced by an effect, not attack/block rules (EX11-062)
     | "triggerRemovalCause"
+    | "triggerDeletedIsOpponent"
     | "triggerDeletedByDpZero"
     | "triggerIsFirstDeletedPermanent"
     | "noTamerInDigivolution"
@@ -179,10 +182,7 @@ export interface Condition {
   minimum?: number;
   /** For `triggerPlayedByEffectSource`. */
   sourceCardId?: string;
-  /**
-   * For `allOf`/`anyOf`. A true AND of independent checks — P-116 requires three distinct named
-   * Digimon in play, which a single multi-name filter would express as an OR.
-   */
+  /** For `allOf`/`anyOf`: a true AND of independent checks. */
   conditions?: Condition[];
   /** For `not`. */
   condition?: Condition;

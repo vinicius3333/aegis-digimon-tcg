@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-193.js";
@@ -82,5 +84,55 @@ describe("P-193 The Wicked God Emerges!", () => {
     );
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-002")).toBe(true);
+  });
+
+  it("activates its Main effect when revealed in Security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "P-193", as: "option" }],
+          hand: [{ card: "BT19-065", as: "cost" }],
+          deck: ["BT1-002", "BT1-003"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+    await settle();
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("option").instanceId),
+    ).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-002")).toBe(true);
+  });
+
+  it("activates Delay to delete Millenniummon and play a Wicked God from trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-193", as: "option" },
+            { card: "BT18-019", as: "millenniummon" },
+          ],
+          trash: [{ card: "BT19-075", as: "wickedGod" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.perm("option").placedByEffect = true;
+    await s.ready();
+    // EndOfAllTurns is a real timing window: the Delay payload is offered there and
+    // consumes the placed Option as its activation cost before resolving.
+    await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("wickedGod").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("wickedGod").instanceId)).toBe(
+      true,
+    );
+    expect(
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("millenniummon").instanceId),
+    ).toBe(false);
   });
 });

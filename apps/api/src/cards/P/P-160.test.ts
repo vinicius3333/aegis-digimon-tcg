@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-160.js";
 
 describe("P-160 Tyrannomon (X Antibody)", () => {
@@ -44,5 +46,23 @@ describe("P-160 Tyrannomon (X Antibody)", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "P-160", as: "host" }] } });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Raid")).toBe(true);
+  });
+
+  it("digivolves into a higher-level Dinosaur from hand when the X Antibody stack condition is met", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-160", as: "host", under: ["BT11-064"] }],
+          hand: [{ card: "BT8-016", as: "target" }],
+        },
+        1: { security: 1 },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    await settle(() => s.perm("host").topCard.cardId === "BT8-016");
+    expect(s.perm("host").topCard.cardId).toBe("BT8-016");
   });
 });

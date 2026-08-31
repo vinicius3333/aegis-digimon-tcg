@@ -1,17 +1,16 @@
-import { EffectTiming, type CardInstance } from "@aegis/shared";
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import type { CardInstance } from "@aegis/shared";
+import type { CardSource } from "../../engine/effects/CardSource.js";
 import "./ST5-13.js";
 
-interface CardEffectTestSeam {
+interface CardSourceSeam {
   cardSourceOf(instance: CardInstance): CardSource;
-  buildEffectContext(source: CardSource, trigger: object): EffectContext;
 }
 
 describe("ST5-13 BlitzGreymon", () => {
@@ -50,7 +49,7 @@ describe("ST5-13 BlitzGreymon", () => {
       { autoSelectCards: true },
     );
     await s.ready();
-    const seam = s.engine as unknown as CardEffectTestSeam;
+    const seam = s.engine as unknown as CardSourceSeam;
     const source = seam.cardSourceOf(s.perm("blitz").topCard);
     const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
       effect.effectKey.startsWith("ST5-13/"),
@@ -84,14 +83,19 @@ describe("ST5-13 BlitzGreymon", () => {
     );
     preferInstanceIds.push(s.perm("target").permanentId);
     await s.ready();
-    const seam = s.engine as unknown as CardEffectTestSeam;
+    const seam = s.engine as unknown as CardSourceSeam;
     const source = seam.cardSourceOf(s.perm("blitz").topCard);
     const effect = effectsOf(EffectTiming.OnDeclaration, source).find((candidate) =>
       candidate.effectKey.startsWith("ST5-13/"),
     )!;
-    const ctx = seam.buildEffectContext(source, {});
-    await effect.resolve(ctx);
-    expect(s.perm("target").currentDP).toBe(5000);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("blitz").topCard!.instanceId,
+        effectKey: effect.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").currentDP === 5000);
     await advance(s.engine).runTurn(0);
     expect(s.perm("target").currentDP).toBe(5000);
     s.state.turnSeat = 1;

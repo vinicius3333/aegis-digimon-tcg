@@ -147,30 +147,29 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       );
     case "triggerAttackBy":
       return ctx.trigger.attackMechanic === cond.keyword;
-    case "allYoursMatchFilter":
-      {
-        // Preserve the legacy no-filter predicate exactly: an omitted filter is a
-        // structural/vacuous gate and remains true even with an empty battle area.
-        if (cond.filter === undefined) return true;
-        const filter = { ...cond.filter, controller: "mine" as const };
-        // "All of your Digimon and Tamers" quantifies only those card kinds and is not
-        // vacuously true when the battle area has none (KB BT19-100 Q3176-Q3178). This
-        // also leaves unrelated battle-area Options outside the quantified domain.
-        const quantified = ctx.game.player(mine).battleArea.filter((permanent) => {
-          if (filter.kind === undefined || filter.kind.length === 0) return true;
-          if (permanent.topCard === undefined) return false;
-          const definition = ctx.game.definitionOf(permanent.topCard);
-          const effectiveKinds = ctx.game.effectiveKinds?.(permanent.permanentId, definition.kinds) ?? definition.kinds;
-          return filter.kind.some((kind) => {
-            const mapped = KIND_MAP[kind];
-            return mapped !== undefined && effectiveKinds.includes(mapped);
-          });
+    case "allYoursMatchFilter": {
+      // Preserve the legacy no-filter predicate exactly: an omitted filter is a
+      // structural/vacuous gate and remains true even with an empty battle area.
+      if (cond.filter === undefined) return true;
+      const filter = { ...cond.filter, controller: "mine" as const };
+      // "All of your Digimon and Tamers" quantifies only those card kinds and is not
+      // vacuously true when the battle area has none (KB BT19-100 Q3176-Q3178). This
+      // also leaves unrelated battle-area Options outside the quantified domain.
+      const quantified = ctx.game.player(mine).battleArea.filter((permanent) => {
+        if (filter.kind === undefined || filter.kind.length === 0) return true;
+        if (permanent.topCard === undefined) return false;
+        const definition = ctx.game.definitionOf(permanent.topCard);
+        const effectiveKinds = ctx.game.effectiveKinds?.(permanent.permanentId, definition.kinds) ?? definition.kinds;
+        return filter.kind.some((kind) => {
+          const mapped = KIND_MAP[kind];
+          return mapped !== undefined && effectiveKinds.includes(mapped);
         });
-        return (
-          quantified.length > 0 &&
-          quantified.every((permanent) => permanentMatchesFilter(ctx, permanent, filter, ctx.source))
-        );
-      }
+      });
+      return (
+        quantified.length > 0 &&
+        quantified.every((permanent) => permanentMatchesFilter(ctx, permanent, filter, ctx.source))
+      );
+    }
     case "breedingAreaEmpty":
       return ctx.game.player(mine).breeding === undefined;
     case "digivolutionCountCompare": {
@@ -222,6 +221,14 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const { countMax, ...matchingFilter } = cond.filter;
       const count = countMatching(ctx, { controller: "mine", ...matchingFilter });
       if (countMax !== undefined) return count <= countMax;
+      return count >= (cond.countMin ?? cond.count ?? 1);
+    }
+    case "anyHas": {
+      // "There is a ..." / "any player has ..." gates quantify both players unless
+      // the filter carries an explicit controller. This is distinct from youHave,
+      // which is intentionally scoped to the source controller.
+      if (cond.filter === undefined) return false;
+      const count = countMatching(ctx, { controller: "any", ...cond.filter });
       return count >= (cond.countMin ?? cond.count ?? 1);
     }
     case "youHaveGreenLevelAtLeastInBattle":
@@ -384,7 +391,7 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
           return cond.filter === undefined || permanentMatchesFilter(ctx, permanent, cond.filter, ctx.source);
         }).length;
       }
-      return compareNumber(total, cond.kind === "totalDigimonGte" ? "gte" : cond.op, cond.value ?? 3);
+      return compareNumber(total, cond.kind === "totalDigimonGte" ? "gte" : cond.op, cond.value ?? cond.count ?? 3);
     }
     case "totalDigimonLevelsGte": {
       let totalLevels = 0;
@@ -478,9 +485,7 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       if (def === undefined) return false;
       const self = ctx.source.permanent();
       const names =
-        self?.topCard === undefined
-          ? [def.nameEn ?? ""]
-          : (ctx.game.effectiveNames?.(self) ?? [def.nameEn ?? ""]);
+        self?.topCard === undefined ? [def.nameEn ?? ""] : (ctx.game.effectiveNames?.(self) ?? [def.nameEn ?? ""]);
       return (cond.names ?? []).some((name) => names.some((actual) => actual.toLowerCase() === name.toLowerCase()));
     }
     case "selfColorCount": {
@@ -591,6 +596,11 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       // `filter.nameOrTrait`, using the same Form ∪ Attribute ∪ Type union as every other trait
       // match. An unset filter never matches (we do not guess).
       return selfStackMatchesTrait(ctx, cond.filter);
+    case "selfLacksInDigivolutionCards":
+      // P-144: a Gotsumon-named card in the SOURCE Digimon's digivolution stack
+      // is the exception to its Your Turn attack restriction. An absent source stack
+      // therefore satisfies the "lacks" predicate.
+      return !selfStackMatchesTrait(ctx, cond.filter);
     case "selfDigivolutionStackDistinctNameCount": {
       const self = ctx.source.permanent();
       if (self === undefined) return false;
@@ -899,6 +909,8 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
         ctx.trigger.removalCause === cond.removalCause &&
         (cond.removalMechanic === undefined || ctx.trigger.removalMechanic === cond.removalMechanic)
       );
+    case "triggerDeletedIsOpponent":
+      return ctx.trigger.deletedControllerSeat === ctx.game.opponentOf(ctx.source.ownerSeat);
     case "triggerDeletedByDpZero":
       return ctx.trigger.deletedByDpZero === true;
     case "triggerIsFirstDeletedPermanent": {

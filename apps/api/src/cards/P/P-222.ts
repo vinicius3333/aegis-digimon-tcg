@@ -8,38 +8,28 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   effects: [
     {
-      trigger: "Static",
+      // The source is still in hand while its play cost is calculated.  Keep this
+      // replacement at the hand-resident BeforePayCost seam so the reduction is live.
+      trigger: "BeforePayCost",
       actions: [
         {
-          kind: "Replacement",
-          event: "wouldBePlayed",
-          sourceFilter: {
-            isSelfRef: true,
-          },
-          actions: [
-            {
-              kind: "Replacement",
-              event: "wouldBePlayed",
-              mode: "reduceCost",
-              amount: 4,
-              raw: "reduce the play cost by 4",
-              condition: {
-                kind: "youHave",
-                filter: {
-                  controllerDefault: "mine",
-                  zone: "security",
-                  faceUp: true,
-                  nameOrTrait: [
-                    {
-                      tokens: ["Wind Guardians"],
-                      match: "nameExact",
-                    },
-                  ],
-                },
-                raw: "you have a face-up [Wind Guardians] security card",
-              },
+          kind: "CostModifier",
+          costType: "play",
+          mode: "reduce",
+          amount: 4,
+          handResident: true,
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          duration: "permanent",
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              zone: "security",
+              faceUp: true,
+              nameOrTrait: [{ tokens: ["Wind Guardians"], match: "nameExact" }],
             },
-          ],
+            raw: "you have a face-up [Wind Guardians] security card",
+          },
         },
       ],
     },

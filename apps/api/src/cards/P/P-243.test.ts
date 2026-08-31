@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./P-243.js";
 
@@ -85,8 +88,6 @@ describe("P-243 Digiseabass", () => {
     );
   });
 });
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
-
 describe("P-243 engine behavior", () => {
   it("trashes a hand card, draws two, and places itself", async () => {
     const s = setupEngine(
@@ -115,5 +116,50 @@ describe("P-243 engine behavior", () => {
     expect(s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("drawTwo").instanceId)).toBe(true);
     expect(s.state.players[0]!.trash.some((c) => c.instanceId === s.inst("cost").instanceId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "P-243")).toBe(true);
+  });
+
+  it("uses its Delay at the start of turn to return and play a low-cost DM Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "P-243", as: "digiseabass" },
+            { card: "BT1-001", as: "cost" },
+          ],
+          trash: [
+            { card: "BT22-049", as: "dmReturn" },
+            { card: "BT22-049", as: "dmPlay" },
+          ],
+          battleArea: ["P-016"],
+        },
+        1: { battleArea: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("digiseabass").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    await advance(s.engine).fireGlobal(EffectTiming.OnStartTurn);
+    await settle();
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("dmPlay").instanceId)).toBe(true);
+    expect(s.state.players[0]!.deck[0]?.instanceId).toBe(s.inst("dmReturn").instanceId);
+    expect(s.state.players[0]!.trash.some((c) => c.instanceId === s.inst("dmReturn").instanceId)).toBe(false);
+  });
+
+  it("plays a qualifying low-cost DM card from trash through its real Security effect", async () => {
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "P-243", as: "digiseabass" }], trash: [{ card: "BT22-049", as: "dmPlay" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("digiseabass"));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("dmPlay").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("dmPlay").instanceId)).toBe(true);
   });
 });

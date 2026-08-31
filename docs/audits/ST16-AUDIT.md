@@ -34,3 +34,8 @@ Scope: every committed ST16 catalog card, audited in ascending catalog order. Ea
 ## Collection invariants
 
 Every ST16 catalog card has a direct module, colocated test, index import, exclusive `registerIrCard("ST16-NN", compiled)` registration, `coverage: "full"`, and `residual: []`. Applicable Q&A, errata, restriction, trait-peer, and evolution-stack boundaries were reviewed; no unresolved ambiguity remains.
+
+# Evidence remediation (2026-08-31)
+
+ST16-14's start-of-turn and Security clauses now have production turn/attack proofs with exact
+memory and zone observations; its hand-trash watcher retains effect-driven trash scenarios.

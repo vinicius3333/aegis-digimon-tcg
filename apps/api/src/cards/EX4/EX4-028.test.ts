@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX4-028.js";
 
 describe("EX4-028 Doumon", () => {
@@ -61,5 +62,59 @@ describe("EX4-028 Doumon", () => {
     await settle(() => s.state.players[1]!.hand.some(({ instanceId }) => instanceId === boundaryId));
 
     expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === aboveId)).toBe(true);
+    expect(observe(s.engine).grantedNames(s.perm("doumon"))).toContain("taomon");
+  });
+
+  it("returns the exact boundary during a real digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT19-034", as: "kyubimon" }],
+          hand: [{ card: "EX4-028", as: "doumon" }],
+        },
+        1: { battleArea: [{ card: "BT1-019", as: "target", dp: 6000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("kyubimon").permanentId,
+        instanceId: s.inst("doumon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.some((card) => card.cardId === "BT1-019"));
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("requires an Option cost of at least two and activates only once", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-029", as: "host", under: ["EX4-028"] },
+            { card: "BT1-045", as: "yellow" },
+          ],
+          hand: [
+            { card: "BT1-102", as: "option1" },
+            { card: "BT1-102", as: "option2" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-019", as: "target", dp: 6000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option1").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").currentDP === 4000);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option2").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.memory === 6);
+    expect(s.perm("target").currentDP).toBe(4000);
   });
 });

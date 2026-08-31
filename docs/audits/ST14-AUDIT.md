@@ -30,3 +30,11 @@ Scope: every committed ST14 catalog card, audited in ascending catalog order. Ea
 ## Collection invariants
 
 Every ST14 catalog card has a direct module, colocated test, index import, exclusive `registerIrCard("ST14-NN", compiled)` registration, `coverage: "full"`, and `residual: []`. Applicable Q&A, errata, restriction, trait-peer, and evolution-stack boundaries were reviewed; no unresolved ambiguity remains.
+
+Material evidence correction: ST14-08 and ST14-09 now exercise library-trash reactions through real effect-driven plays and deck state. ST14-11 now uses a valid public Digivolve intent, asserting the actual memory payment, return-to-deck result, and Tamer suspension.
+
+# Evidence remediation (2026-08-31)
+
+ST14-06 now proves its mill clause through a public Digivolve intent with a legal Purple Lv.3
+base and a settled three-card trash result. ST14-08/09 isolated fixtures register their BT19
+producer explicitly and retain live mill/Rush observations.

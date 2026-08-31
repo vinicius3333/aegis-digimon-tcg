@@ -96,4 +96,29 @@ describe("P-220 engine behavior", () => {
     expect(s.perm("target").stack).toHaveLength(1);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
+
+  it("returns three qualifying trash cards and plays two different-level eligible Digimon on deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-220", as: "millenniummon" }],
+          trash: [
+            "BT18-013",
+            "BT22-049",
+            "BT19-099",
+            { card: "BT26-040", as: "level4" },
+            { card: "BT22-060", as: "level5" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const beforeDeck = s.state.players[0]!.deck.length;
+    await advance(s.engine).verb.deletePermanent([s.perm("millenniummon").permanentId]);
+    await settle();
+    expect(s.state.players[0]!.deck.length).toBe(beforeDeck + 3);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("level4").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("level5").instanceId)).toBe(true);
+  });
 });

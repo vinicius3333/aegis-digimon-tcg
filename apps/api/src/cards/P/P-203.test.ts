@@ -64,5 +64,10 @@ describe("P-203 Justimon: Accel Arm", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
     await settle();
     expect(s.perm("victim").stack).toHaveLength(1);
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    await settle();
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("source"));
+    await settle();
+    expect(s.perm("victim").stack).toHaveLength(1);
   });
 });

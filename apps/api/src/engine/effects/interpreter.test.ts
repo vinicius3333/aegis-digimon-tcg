@@ -282,6 +282,57 @@ describe("new typed RAW-elimination conditions", () => {
     expect(evaluateCondition(ctx, { kind: "triggerPlayCostAtMostStackCount" })).toBe(true);
   });
 
+  it("uses a totalDigimonGte count threshold when value is omitted", () => {
+    const first = makeFakePermanent({
+      permanentId: "TOTAL-1",
+      controllerSeat: 0 as Seat,
+      topCard: { instanceId: "TOTAL-1-CARD", cardId: "TOTAL-1", ownerSeat: 0, faceUp: true } as never,
+    });
+    const second = makeFakePermanent({
+      permanentId: "TOTAL-2",
+      controllerSeat: 1 as Seat,
+      topCard: { instanceId: "TOTAL-2-CARD", cardId: "TOTAL-2", ownerSeat: 1, faceUp: true } as never,
+    });
+    const { ctx } = conditionContext({
+      ownBattleArea: [first],
+      opponentBattleArea: [second],
+      definitionOf: (cardId) => makeFakeDefinition({ cardId, kinds: [CardKind.Digimon] }),
+    });
+
+    expect(evaluateCondition(ctx, { kind: "totalDigimonGte", count: 2 })).toBe(true);
+    ctx.game.player(1).battleArea.splice(0, 1);
+    expect(evaluateCondition(ctx, { kind: "totalDigimonGte", count: 2 })).toBe(false);
+  });
+
+  it("scopes anyHas across both players while honoring an explicit controller", () => {
+    const own = makeFakePermanent({
+      permanentId: "ANY-OWN",
+      controllerSeat: 0 as Seat,
+      currentDP: 9000,
+      topCard: { instanceId: "ANY-OWN-CARD", cardId: "ANY-OWN", ownerSeat: 0, faceUp: true } as never,
+    });
+    const opponent = makeFakePermanent({
+      permanentId: "ANY-OPPONENT",
+      controllerSeat: 1 as Seat,
+      currentDP: 13000,
+      topCard: { instanceId: "ANY-OPPONENT-CARD", cardId: "ANY-OPPONENT", ownerSeat: 1, faceUp: true } as never,
+    });
+    const { ctx } = conditionContext({
+      ownBattleArea: [own],
+      opponentBattleArea: [opponent],
+      definitionOf: (cardId) => makeFakeDefinition({ cardId, kinds: [CardKind.Digimon] }),
+    });
+    const threshold = {
+      kind: "anyHas" as const,
+      filter: { kind: ["Digimon"] as ["Digimon"], dp: { op: "gte" as const, value: 13000 } },
+    };
+    expect(evaluateCondition(ctx, threshold)).toBe(true);
+    expect(evaluateCondition(ctx, { ...threshold, filter: { ...threshold.filter, controller: "mine" } })).toBe(false);
+    expect(evaluateCondition(ctx, { ...threshold, filter: { ...threshold.filter, controller: "opponent" } })).toBe(
+      true,
+    );
+  });
+
   it("keeps the new predicates conservative at their boundaries", () => {
     const targetA = makeFakePermanent({ permanentId: "TARGET-A", controllerSeat: 1 as Seat, currentDP: 7000 });
     const targetB = makeFakePermanent({ permanentId: "TARGET-B", controllerSeat: 1 as Seat, currentDP: 6999 });
@@ -2294,6 +2345,60 @@ describe("v2 IR actions dispatch to real primitives", () => {
       EffectTiming.OnPlay,
     );
     expect(rec.calls.filter((c) => c.verb === "subscribeSubTrigger")).toHaveLength(1);
+  });
+
+  it("gates an inherited discarded-source watcher by exact instance and effect provenance", async () => {
+    const host = makeFakePermanent({
+      permanentId: "HOST#P167",
+      controllerSeat: 0 as Seat,
+      topCard: { instanceId: "HOST#TOP", cardId: "HOST", ownerSeat: 0, faceUp: true } as never,
+      stack: [{ instanceId: "SOURCE#P167", cardId: "P-167", ownerSeat: 0, faceUp: false }] as never,
+    });
+    const source = makeSource({
+      cardId: "P-167",
+      instanceId: "SOURCE#P167",
+      permanent: () => host,
+    });
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({ source, recorder, ownBattleArea: [host] });
+    const module = irCardModule("P-167-mechanism", {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "Static",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "onDigivolutionCardDiscarded",
+              sourceFilter: { matchTrashedSource: true },
+              requireByEffect: true,
+              actions: [{ kind: "GainMemory", amount: 1 }],
+            },
+          ],
+          isInherited: true,
+        },
+      ],
+    });
+    await module.effectsForTiming(EffectTiming.None, source)[0]!.resolve(ctx);
+    const installed = recorder.calls.find((call) => call.verb === "subscribeSubTrigger")?.args[0] as {
+      matches?: (eventCtx: EffectContext) => boolean;
+    };
+    expect(installed.matches).toBeTypeOf("function");
+    const eventContext = (instanceId: string, byEffect: boolean): EffectContext =>
+      makeContext({
+        source,
+        recorder,
+        ownBattleArea: [host],
+        trigger: {
+          subjectPermanentId: host.permanentId,
+          trashedDigivolutionInstanceId: instanceId,
+          ...(byEffect ? { byEffectSeat: 0 as Seat } : {}),
+        },
+      });
+    expect(installed.matches!(eventContext("SOURCE#P167", true))).toBe(true);
+    expect(installed.matches!(eventContext("OTHER#CARD", true))).toBe(false);
+    expect(installed.matches!(eventContext("SOURCE#P167", false))).toBe(false);
   });
 
   it("CostModifier onConsume installs end-of-turn actions bound to the consumed digivolve target", async () => {
@@ -6220,7 +6325,7 @@ describe("cards that delete the Digimon this effect played", () => {
     await delayEffect.resolve(ctx);
 
     expect(recorder.calls.filter((c) => c.verb === "delayedDeletePlayed")).toEqual([
-      { verb: "delayedDeletePlayed", args: [PLAYED] },
+      { verb: "delayedDeletePlayed", args: [PLAYED, "endOfOwnerTurn"] },
     ]);
     // The played Digimon is NOT deleted on the spot (only the ＜Delay＞ cost's own trash runs).
     expect(

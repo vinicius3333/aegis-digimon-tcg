@@ -32,3 +32,10 @@ Scope: every committed ST22 catalog card, audited in ascending catalog order. Ea
 ## Collection invariants
 
 Every ST22 catalog card has a direct module, colocated focused test, index import, exclusive `registerIrCard("ST22-NN", compiled)` registration, `coverage: "full"`, and `residual: []`; no legacy `registerCard` registration or RawUnparsed runtime clause remains. Applicable Q&A, errata, restrictions, trait-peer, targeting, optionality, and evolution-stack boundaries were reviewed; no unresolved ambiguity remains.
+
+Material evidence correction: ST22-01, ST22-06, and ST22-07 now use real Option play, security-removal, and attack flows. ST22-08 now has public Main and Security proofs; its Link action binds the selected recipient permanent so deletion compares against that Digimon's live DP.
+
+# Evidence remediation (2026-08-31)
+
+ST22-02/05/06/09/11/12/13 now exercise their play, Security, option-use, and attack clauses via
+public intents with settled observable hand, security, link, suspension, DP, and stack results.

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./P-170.js";
 
 describe("P-170 AvengeKidmon", () => {
@@ -74,5 +75,35 @@ describe("P-170 AvengeKidmon", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("musketeer").instanceId)).toBe(
       true,
     );
+  });
+
+  it("returns exactly three Three Musketeers-text cards to pay the reduced play cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "P-170", as: "avenge" }],
+          trash: ["BT6-095", "BT6-105", "BT6-109"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("avenge").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("avenge").instanceId),
+    );
+    expect(s.state.players[0]!.deck.slice(-3).map((card) => card.cardId)).toEqual(["BT6-095", "BT6-105", "BT6-109"]);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("exposes all three printed battle keywords on the live permanent", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "P-170", as: "avenge" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("avenge"), "Raid")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("avenge"), "Blocker")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("avenge"), "Retaliation")).toBe(true);
   });
 });

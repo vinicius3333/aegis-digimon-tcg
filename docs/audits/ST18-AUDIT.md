@@ -25,7 +25,14 @@ independently verified 2/2 components and a 10/10 total.
 
 ## Verification commands
 
+Material evidence correction: ST18-05 now proves effect-suspension filtering and the temporary DP grant through real effect-driven suspension transitions and observable DP state.
+
 - All 15 focused card tests passed serially, one process per card.
 - Collection gate `src/cards/ST18/collection.audit.test.ts` passed 3/3.
 - Vortex, opponent-turn immunity-duration, primitive, and advanced-keyword mechanism suites passed.
 - `pnpm typecheck`, repository lint, changed-file format check, and `git diff --check` passed; repo-wide formatting retains pre-existing baseline findings.
+
+# Evidence remediation (2026-08-31)
+
+ST18-08 and ST18-14 Security/start-of-turn proofs now run through a real attack or production
+turn and settle on the resulting board and memory state.

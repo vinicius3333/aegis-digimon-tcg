@@ -1,7 +1,5 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./ST1-12.js";
 
 describe("ST1-12 Tai Kamiya", () => {
@@ -35,8 +33,20 @@ describe("ST1-12 Tai Kamiya", () => {
   });
 
   it("plays itself from security", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "ST1-12", as: "securityTai", faceUp: true }] } });
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityTai"));
+    const s = setupEngine({
+      0: { security: [{ card: "ST1-12", as: "securityTai" }, "BT1-090"] },
+      1: { battleArea: ["BT1-009"] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.state.players[1]!.battleArea[0]!.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "ST1-12"));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "ST1-12")).toBe(true);
   });
 });

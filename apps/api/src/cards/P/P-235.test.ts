@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./P-235.js";
 
 describe("P-235 Digital Accident Tactics Squad", () => {
@@ -47,8 +51,6 @@ describe("P-235 Digital Accident Tactics Squad", () => {
     );
   });
 });
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
-
 describe("P-235 engine behavior", () => {
   it("adds a DATA SQUAD card from the top three and places itself", async () => {
     const s = setupEngine(
@@ -67,5 +69,35 @@ describe("P-235 engine behavior", () => {
     await settle();
     expect(s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("dataSquad").instanceId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "P-235")).toBe(true);
+  });
+
+  it("places itself after resolving its Security reveal", async () => {
+    const s = setupEngine(
+      { 0: { security: [{ card: "P-235", as: "squad" }], deck: ["AD1-016", "BT1-001", "BT1-002"] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("squad"));
+    await settle();
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("squad").instanceId)).toBe(true);
+  });
+
+  it("activates its armed Delay through the real effect intent and gains two memory", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "P-235", as: "squad" }] } }, { autoAcceptOptional: true });
+    s.state.memory = 0;
+    await s.ready();
+    const delay = (
+      observe(s.engine).activatableEffects(s.perm("squad")) as Array<{ effectKey: string; description?: string }>
+    ).find((entry) => /delay/i.test(entry.description ?? ""));
+    expect(delay).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("squad").instanceId,
+        effectKey: delay!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.memory).toBe(2);
   });
 });

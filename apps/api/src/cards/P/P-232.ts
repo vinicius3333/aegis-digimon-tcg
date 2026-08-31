@@ -1,5 +1,5 @@
 // @ts-nocheck
-// Hand-fixed: [Yuuki] sourceFilter uses match:trait (not name);
+// Hand-fixed: [Yuuki] sourceFilter uses the printed card name;
 // Digivolve action is inside the SubTrigger as the <Delay> payload.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
@@ -58,7 +58,7 @@ const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Yuuki"],
-                match: "trait",
+                match: "name",
               },
             ],
           },
@@ -108,6 +108,7 @@ const compiled: CompiledCard = {
             ],
           },
           from: ["hand", "trash"],
+          payCost: true,
           reduceCost: 3,
           optional: true,
         },

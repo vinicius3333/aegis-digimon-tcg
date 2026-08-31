@@ -47,4 +47,24 @@ describe("P-146 Recharge Plug-In Q", () => {
     await settle();
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
   });
+
+  it("uses the Tamer waiver to place this yellow Option under a non-white Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "P-146", as: "plug" }],
+          battleArea: [
+            { card: "BT1-085", as: "tamer" },
+            { card: "BT1-009", as: "host" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("plug").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("host").stack.some((card) => card.instanceId === s.inst("plug").instanceId));
+    expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("plug").instanceId)).toBe(true);
+  });
 });

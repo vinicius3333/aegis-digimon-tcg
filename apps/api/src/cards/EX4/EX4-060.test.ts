@@ -15,6 +15,7 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import "./EX4-060.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 
 const card = (id: string, seat: Seat): CardInstance =>
   ({ cardId: id, instanceId: `${id}-${seat}`, ownerSeat: seat, faceUp: true }) as CardInstance;
@@ -197,6 +198,41 @@ describe("EX4-060 Omnimon Alter-S", () => {
     expect(s.state.players[0]!.hand.some((handCard) => handCard.instanceId === s.inst("subject").instanceId)).toBe(
       false,
     );
+  });
+
+  it("uses the public opponent attack path to replace leaving play with Blitz, Cres, and face-down security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX4-060", as: "subject", dp: 7000, suspended: true, under: ["EX4-051", "EX4-049"] }],
+          security: ["BT1-001", "BT1-002"],
+        },
+        1: { battleArea: [{ card: "BT1-013", as: "attacker", dp: 12000 }], security: ["BT1-001", "BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("subject").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX4-051") &&
+        s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX4-049"),
+    );
+    expect(s.state.players[0]!.battleArea.filter((perm) => perm.topCard?.cardId === "EX4-051")).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.filter((perm) => perm.topCard?.cardId === "EX4-049")).toHaveLength(1);
+    expect(s.state.players[0]!.security).toHaveLength(3);
+    expect(
+      s.state.players[0]!.security.some(
+        (securityCard) => securityCard.instanceId === s.inst("subject").instanceId && securityCard.faceUp === false,
+      ),
+    ).toBe(true);
   });
   ex4CardBehaviorTests("EX4-060");
 });

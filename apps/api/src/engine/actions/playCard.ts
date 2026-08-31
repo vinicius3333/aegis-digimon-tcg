@@ -148,6 +148,9 @@ export interface PlayCardDeps {
    * (subsystems: effect-framework, effect-stack-resolution).
    */
   fireTiming(state: GameState, seat: Seat, timing: EffectTiming, sourceInstanceId: string): Promise<void>;
+  /** Optional lightweight seam retained for standalone callers; production fireTiming owns the
+   * complete manual-play entry window and publishes `whenPlayed` exactly once. */
+  fireSubTrigger?(event: "whenPlayed", payload: { subjectPermanentId: string; playedPlayCost?: number }): Promise<void>;
   /** Defer rule processing until an Option has completed its trash/Arts/Delay routing. */
   beginOptionResolution?(): void;
   /** Release the Option-resolution deferral and run the pending rule-process fixpoint. */
@@ -394,6 +397,10 @@ export async function applyPlayCard(
     // before On Play sees the stack.
     await deps.placePendingDigivolution?.(instance.instanceId, permanent.permanentId);
 
+    // `fireTiming` owns the complete manual-play entry window, including the canonical
+    // `whenPlayed` bus after On Play resolves. Publishing that bus here as well would make one
+    // hand play one event twice (the second pass is especially visible to once-per-turn
+    // watchers after an optional decline).
     await deps.fireTiming(state, seat, ON_PLAY_TIMING, instance.instanceId);
 
     return {

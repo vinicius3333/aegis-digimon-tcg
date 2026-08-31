@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./P-237.js";
+import "../EX11/EX11-029.js";
 import "../EX11/EX11-027.js";
 
 describe("P-237 Unique Emblem: Machina's Ascension", () => {
@@ -51,8 +56,6 @@ describe("P-237 Unique Emblem: Machina's Ascension", () => {
     );
   });
 });
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
-
 describe("P-237 engine behavior", () => {
   it("plays a Maquinamon from hand without cost and places itself", async () => {
     const s = setupEngine(
@@ -96,5 +99,58 @@ describe("P-237 engine behavior", () => {
       true,
     );
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "P-237")).toBe(true);
+  });
+
+  it("resolves its Security Main effect and plays Maquinamon before placing itself", async () => {
+    const s = setupEngine(
+      { 0: { security: [{ card: "P-237", as: "emblem" }], hand: [{ card: "EX11-027", as: "maquinamon" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("emblem"));
+    await settle();
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("maquinamon").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("emblem").instanceId)).toBe(true);
+  });
+
+  it("arms Delay from a real Unchained play and digivolves without paying the qualifying card's cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-237", as: "emblem" },
+            { card: "BT1-064", as: "host" },
+          ],
+          hand: [
+            { card: "EX11-070", as: "unchained" },
+            { card: "EX11-029", as: "maquinamon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    s.perm("emblem").placedByEffect = true;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("unchained").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("emblem"), "Delay"));
+    const delay = (
+      observe(s.engine).activatableEffects(s.perm("emblem")) as Array<{ effectKey: string; description?: string }>
+    ).find((entry) => /delay/i.test(entry.description ?? ""));
+    expect(delay).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("emblem").instanceId,
+        effectKey: delay!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.instanceId === s.inst("maquinamon").instanceId);
+    expect(s.perm("host").topCard.instanceId).toBe(s.inst("maquinamon").instanceId);
+    expect(s.state.memory).toBe(6);
   });
 });

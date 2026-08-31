@@ -8,26 +8,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   effects: [
     {
-      trigger: "Main",
-      actions: [
-        {
-          kind: "Link",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              hasLinkRequirement: true,
-              hostFilter: { isSelfRef: true },
-            },
-            count: 1,
-          },
-          from: ["trash", "digivolutionCards"],
-          optional: true,
-        },
-      ],
-    },
-    {
       trigger: "YourTurn",
+      isLinked: true,
       actions: [
         {
           kind: "SubTrigger",

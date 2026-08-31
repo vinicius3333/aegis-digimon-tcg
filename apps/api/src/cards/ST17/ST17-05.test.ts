@@ -14,9 +14,7 @@ describe("ST17-05 Gargomon", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenSuspended", {
-      suspendedPermanentId: s.perm("gargomon").permanentId,
-    });
+    await advance(s.engine).verb.suspend([s.perm("gargomon").permanentId], 0);
     await settle(() => observe(s.engine).hasKeyword(s.perm("gargomon").permanentId, "Jamming"));
 
     expect(observe(s.engine).hasKeyword(s.perm("gargomon").permanentId, "Jamming")).toBe(true);

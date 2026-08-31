@@ -31,3 +31,8 @@ errata or restrictions apply; KB Q&A IDs are listed where present.
 - Collection gate: `pnpm --filter @aegis/api exec vitest run src/cards/ST1/collection.audit.test.ts --pool=forks --poolOptions.forks.singleFork=true --no-file-parallelism` (3 tests passed).
 - The gate derives all 16 IDs/names from the committed catalog, checks every index import and colocated test, and proves exclusive `registerIrCard(cardId, compiled)` with `coverage: "full"`, empty residuals, and no `RawUnparsed` nodes.
 - Cross-card/evolution evidence is retained in `wargreymon-historical-deck.test.ts`; shared keyword, source-count, turn-duration, security, and attack seams are exercised by the focused tests and existing engine suites.
+
+# Evidence remediation (2026-08-31)
+
+ST1-12's Security play proof now uses a real opposing attack and settles the revealed card's
+arrival in the battle area.

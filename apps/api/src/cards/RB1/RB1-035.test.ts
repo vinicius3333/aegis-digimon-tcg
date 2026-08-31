@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -18,9 +17,12 @@ describe("RB1-035 Hokuto Amanokawa", () => {
     });
     s.state.memory = 0;
 
-    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("hokuto"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
 
     expect(s.state.memory).toBe(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("suspends to draw once when the opponent plays one or more level 3 Digimon", async () => {
@@ -28,7 +30,7 @@ describe("RB1-035 Hokuto Amanokawa", () => {
       {
         0: { battleArea: [{ card: "RB1-035", as: "hokuto" }], deck: ["BT1-009"] },
         1: {
-          battleArea: [
+          trash: [
             { card: "BT1-009", as: "level3a" },
             { card: "BT1-009", as: "level3b" },
           ],
@@ -40,10 +42,7 @@ describe("RB1-035 Hokuto Amanokawa", () => {
     const handBefore = s.state.players[0]!.hand.length;
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenPlayed", {
-      subjectPermanentId: s.perm("level3a").permanentId,
-      subjectPermanentIds: [s.perm("level3a").permanentId, s.perm("level3b").permanentId],
-    });
+    await advance(s.engine).verb.playInstances([s.inst("level3a").instanceId, s.inst("level3b").instanceId]);
 
     expect(s.perm("hokuto").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand).toHaveLength(handBefore + 1);
@@ -55,7 +54,7 @@ describe("RB1-035 Hokuto Amanokawa", () => {
       {
         0: { battleArea: [{ card: "RB1-035", as: "hokuto" }], deck: ["BT1-009"] },
         1: {
-          battleArea: [
+          trash: [
             { card: "BT1-009", as: "level3" },
             { card: "BT1-014", as: "level4" },
           ],
@@ -68,10 +67,7 @@ describe("RB1-035 Hokuto Amanokawa", () => {
     const handBefore = s.state.players[0]!.hand.length;
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenPlayed", {
-      subjectPermanentId: s.perm("level3").permanentId,
-      subjectPermanentIds: [s.perm("level3").permanentId, s.perm("level4").permanentId],
-    });
+    await advance(s.engine).verb.playInstances([s.inst("level3").instanceId, s.inst("level4").instanceId]);
 
     expect(s.perm("hokuto").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand).toHaveLength(handBefore + 1);
@@ -82,7 +78,7 @@ describe("RB1-035 Hokuto Amanokawa", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "RB1-035", as: "hokuto" }], deck: ["BT1-009"] },
-        1: { battleArea: [{ card: "EX2-045", as: "levelLess" }] },
+        1: { trash: [{ card: "EX2-045", as: "levelLess" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -91,9 +87,7 @@ describe("RB1-035 Hokuto Amanokawa", () => {
     const handBefore = s.state.players[0]!.hand.length;
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenPlayed", {
-      subjectPermanentId: s.perm("levelLess").permanentId,
-    });
+    await advance(s.engine).verb.playInstances([s.inst("levelLess").instanceId]);
 
     expect(s.perm("hokuto").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand).toHaveLength(handBefore);
