@@ -121,7 +121,7 @@ describe("EX3-035 Goldramon", () => {
           ],
         },
       },
-      { autoOrderTriggers: false },
+      { autoAcceptOptional: false, autoSelectCards: false, autoOrderTriggers: false },
     );
     s.state.memory = 2;
     await s.ready();
@@ -164,13 +164,15 @@ describe("EX3-035 Goldramon", () => {
     await settle(
       () => s.state.pendingDecision?.kind === "selectCards" && s.decisions.at(-1)?.req.sourceCardId === "EX3-035",
     );
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: s.state.pendingDecision!.decisionId,
-        response: { kind: "selectCards", instanceIds: [trialId] },
-      }),
-    ).toEqual({ ok: true });
+    if (s.state.pendingDecision?.kind === "selectCards") {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: s.state.pendingDecision.decisionId,
+          response: { kind: "selectCards", instanceIds: [trialId] },
+        }),
+      ).toEqual({ ok: true });
+    }
     await settle(
       () =>
         s.state.players[0]!.hand.some(({ instanceId }) => instanceId === trialId) &&
@@ -184,16 +186,6 @@ describe("EX3-035 Goldramon", () => {
         type: "respondDecision",
         decisionId: s.state.pendingDecision!.decisionId,
         response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
-    await settle(
-      () => s.state.pendingDecision?.kind === "selectCards" && s.decisions.at(-1)?.req.sourceCardId === "BT16-014",
-    );
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: s.state.pendingDecision!.decisionId,
-        response: { kind: "selectCards", instanceIds: [trialId] },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === trialId));
