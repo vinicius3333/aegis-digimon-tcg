@@ -36,7 +36,7 @@ describe("P-140 MegaKabuterimon", () => {
               target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
               grant: "immuneToOpponentDigimonEffects",
               duration: "permanent",
-              condition: { kind: "raw", raw: "this Digimon is suspended" },
+              condition: { kind: "selfIsSuspended", raw: "this Digimon is suspended" },
             },
           ],
         }),

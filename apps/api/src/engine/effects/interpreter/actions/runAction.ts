@@ -58,11 +58,7 @@ function borrowedProcessingCost(ctx: EffectContext, cost: Cost): Cost {
   const sourceZones = (Array.isArray(cost.target.from) ? cost.target.from : [cost.target.from]).filter(
     (zone): zone is ZoneRef => typeof zone === "string",
   );
-  if (
-    sourceZones.length !== 2 ||
-    !sourceZones.includes("hand") ||
-    !sourceZones.includes("trash")
-  ) {
+  if (sourceZones.length !== 2 || !sourceZones.includes("hand") || !sourceZones.includes("trash")) {
     return cost;
   }
   const trashCandidates = candidateLooseInstances(ctx, cost.target, ["trash"]);
@@ -416,6 +412,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   if (
     action.kind === "UseOptionWithoutCost" &&
     action.cost !== undefined &&
+    action.allowCostWithoutTarget !== true &&
     !(await canAttemptUseOptionWithoutCost(ctx, action))
   ) {
     return action.abortOnDecline === true;
