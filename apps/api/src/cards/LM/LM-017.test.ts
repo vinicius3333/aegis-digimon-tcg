@@ -82,11 +82,40 @@ describe("LM-017 Regulusmon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "LM-016")).toBe(true);
   });
 
+  it("can delete an opposing level-4-or-lower Digimon to pay the source-add reaction", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "LM-017", as: "regulusmon" }],
+          trash: ["LM-016"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponentCost" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("opponentCost").permanentId);
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
+      subjectPermanentId: s.perm("regulusmon").permanentId,
+      addedDigivolutionCardInstanceIds: [],
+      byEffectSeat: 0,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0, 2000);
+
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "LM-016")).toBe(true);
+  });
+
   it("does not react when an ordinary digivolution-card addition has no effect provenance", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "LM-017", as: "regulusmon" }, { card: "BT1-009", as: "sacrifice" }],
+          battleArea: [
+            { card: "LM-017", as: "regulusmon" },
+            { card: "BT1-009", as: "sacrifice" },
+          ],
           trash: [{ card: "LM-016", as: "revive" }],
         },
       },

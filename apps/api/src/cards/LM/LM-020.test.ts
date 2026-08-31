@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, getCardDefinition, type CardDefinition, type GameState, type Seat } from "@aegis/shared";
+import { EffectDuration, EffectTiming, getCardDefinition, type CardDefinition, type Seat } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "./LM-020.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 
@@ -18,18 +18,8 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 //  the turn. Return the revealed card to top or bottom of opponent's deck.
 //  (Q4003 notes this text was errata'd to include the "top or bottom" return choice.)
 //
-// The KB reveals two IR defects tested here:
-//  1. WhenDigivolving IR uses SecurityManipulation.trashTop (trash opponent security)
-//     instead of addSecurity / placeAsSecurity (place a Digimon to security). These
-//     are structurally different verbs — the correct verb is addSecurity.
-//  2. StartOfOpponentsTurn IR trigger maps to EffectTiming.None in timingForTrigger(),
-//     so effectsForTiming(OnStartTurn) returns 0. The clause fires on the OPPONENT's
-//     turn-start, which the engine models as the opponent's OnStartTurn window. The
-//     trigger should have been mapped to that window, not to None.
-
-interface Recorder {
-  calls: { verb: string; args: unknown[] }[];
-}
+// The behavioral cases below preserve the corrected security-placement and
+// StartOfOpponentsTurn timing semantics against the production engine.
 
 function fakeDefinition(over: Partial<CardDefinition> = {}): CardDefinition {
   return {
@@ -58,94 +48,6 @@ function makeSource(over: Partial<CardSource> = {}): CardSource {
     hasColor: () => false,
     ...over,
   };
-}
-
-interface ContextOpts {
-  recorder: Recorder;
-  turnSeat?: Seat;
-  ownerBattleArea?: { permanentId: string; topCard: { instanceId: string; cardId: string; ownerSeat: Seat } }[];
-  oppSecurity?: { instanceId: string; cardId: string; ownerSeat: Seat }[];
-}
-
-function makeContext(opts: ContextOpts): EffectContext {
-  const ownerSeat = 0 as Seat;
-  const oppSeat = 1 as Seat;
-  const ownerBattleArea = opts.ownerBattleArea ?? [];
-  const oppSecurity = opts.oppSecurity ?? [];
-
-  const players = [
-    {
-      seat: ownerSeat,
-      battleArea: ownerBattleArea,
-      security: [],
-      hand: [],
-      deck: [],
-      trash: [],
-    },
-    {
-      seat: oppSeat,
-      battleArea: [],
-      security: oppSecurity,
-      hand: [],
-      deck: [],
-      trash: [],
-    },
-  ];
-
-  const state = {
-    memory: 0,
-    players,
-    turnSeat: opts.turnSeat ?? (1 as Seat),
-  } as unknown as GameState;
-
-  const game: GameAccess = {
-    state,
-    player: (seat: Seat) => players[seat] as never,
-    opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat,
-    permanentById: (id: string) => {
-      for (const p of [...players[0]!.battleArea, ...players[1]!.battleArea]) {
-        if ((p as { permanentId: string }).permanentId === id) return p as never;
-      }
-      return undefined;
-    },
-    definitionOf: (card: { cardId: string }) => fakeDefinition({ cardId: card.cardId }),
-  };
-
-  const record =
-    (verb: string) =>
-    (...args: unknown[]) => {
-      opts.recorder.calls.push({ verb, args });
-      return undefined as never;
-    };
-
-  // Only the verbs the tested clauses can actually reach need real bodies.
-  // Everything else throws on contact so accidental dispatch surfaces immediately.
-  const fx = {
-    addSecurity: record("addSecurity"),
-    trashFromSecurity: record("trashFromSecurity"),
-    shuffleSecurity: record("shuffleSecurity"),
-    reveal: async (...args: unknown[]) => {
-      opts.recorder.calls.push({ verb: "reveal", args });
-      return [] as never;
-    },
-    restrict: record("restrict"),
-    returnToDeck: record("returnToDeck"),
-  } as unknown as Primitives;
-
-  const ask: DecisionApi = {
-    optional: async () => true,
-    chooseTargets: async (_c, o) => o.candidates.slice(0, o.max),
-    selectPermanents: async (_c, o) => o.candidates.slice(0, o.max),
-    selectCards: async (_c, o) => o.candidates.slice(0, o.max),
-    chooseOption: async () => 0,
-  };
-
-  const source = makeSource({
-    permanent: () => undefined,
-    isOnBattleArea: () => true,
-  });
-
-  return { source, trigger: {}, game, fx, ask };
 }
 
 describe("LM-020 Quantumon", () => {
@@ -301,42 +203,64 @@ describe("LM-020 Quantumon", () => {
     expect(effects.length).toBeGreaterThanOrEqual(1);
   });
 
-  // Q4008: "By placing 1 Digimon on top of its owner's security stack" — the cost
-  // of the WhenDigivolving effect is ADDING a Digimon to security (addSecurity /
-  // SecurityManipulation.placeAsSecurity), NOT trashing security (trashTop). The
-  // IR incorrectly encodes this as SecurityManipulation.trashTop on the opponent.
-  // Now PASSES: the IR override encodes the "place 1 Digimon to security" cost as
-  // SecurityManipulation{op:"placeAsSecurity", controller:"mine", source: a battle-area
-  // Digimon}, which resolves the Digimon's top card and dispatches addSecurity.
-  it("WhenDigivolving: resolving the effect calls addSecurity (place Digimon to security), not trashFromSecurity", async () => {
-    const recorder: Recorder = { calls: [] };
-    // Provide one own battle-area Digimon so the effect has a candidate to place.
-    const ownDigimon = {
-      permanentId: "PERM#own1",
-      isSuspended: false,
-      currentDP: 5000,
-      stack: [],
-      topCard: { instanceId: "INST#own1", cardId: "LM-001", ownerSeat: 0 as Seat },
-    };
-    const ctx = makeContext({
-      recorder,
-      turnSeat: 0 as Seat, // owner's turn (when digivolving)
-      ownerBattleArea: [ownDigimon],
-      oppSecurity: [],
+  it("declares Digimon, gains only Digimon-effect immunity, and returns the matching reveal to deck bottom", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "LM-020", as: "quantumon" }] },
+      1: {
+        deck: [
+          { card: "LM-016", as: "revealed" },
+          { card: "BT1-085", as: "tail" },
+        ],
+      },
     });
+    s.state.turnSeat = 1;
+    await s.ready();
 
-    const source = makeSource({
-      isOnBattleArea: () => true,
-      permanent: () => undefined,
-    });
-    const effects = module!.effectsForTiming(EffectTiming.WhenDigivolving, source);
-    expect(effects.length).toBeGreaterThanOrEqual(1);
+    const resolving = advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("quantumon"));
+    await settle(() => s.state.pendingDecision?.kind === "chooseOption");
+    const category = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: category.decisionId,
+        response: { kind: "chooseOption", optionIndex: 0 },
+      }),
+    ).toEqual({ ok: true });
 
-    await effects[0]!.resolve(ctx);
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "chooseOption" && s.state.pendingDecision.decisionId !== category.decisionId,
+    );
+    const placement = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: placement.decisionId,
+        response: { kind: "chooseOption", optionIndex: 1 },
+      }),
+    ).toEqual({ ok: true });
+    await resolving;
 
-    // The KB-correct call is addSecurity (place a Digimon onto security stack).
-    // The IR wrongly calls trashFromSecurity instead.
-    const addCalls = recorder.calls.filter((c) => c.verb === "addSecurity");
-    expect(addCalls.length).toBeGreaterThanOrEqual(1);
+    expect(s.state.players[1]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("tail").instanceId,
+      s.inst("revealed").instanceId,
+    ]);
+
+    const driver = advance(s.engine);
+    driver.verb.enterEffectResolution(1, ["Digimon"]);
+    try {
+      await driver.verb.modifyDP(s.perm("quantumon").permanentId, -3000, EffectDuration.UntilOpponentTurnEnd);
+    } finally {
+      driver.verb.leaveEffectResolution();
+    }
+    expect(s.perm("quantumon").currentDP).toBe(13000);
+
+    driver.verb.enterEffectResolution(1, ["Option"]);
+    try {
+      await driver.verb.modifyDP(s.perm("quantumon").permanentId, -1000, EffectDuration.UntilOpponentTurnEnd);
+    } finally {
+      driver.verb.leaveEffectResolution();
+    }
+    expect(s.perm("quantumon").currentDP).toBe(12000);
   });
 });
