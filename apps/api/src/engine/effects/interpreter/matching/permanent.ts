@@ -667,7 +667,7 @@ export function permanentMatchesFilter(
   // inherited text and named effects granted by another card (EX1-021 Q3208), not
   // merely the printed text of the permanent's top card.  Keep name/trait matching
   // definition-based; a live text hit satisfies the whole OR-list.
-  if (filter.nameOrTrait?.some((reference) => reference.match === "text")) {
+  if (filter.printedTextOnly !== true && filter.nameOrTrait?.some((reference) => reference.match === "text")) {
     const textRefs = filter.nameOrTrait.filter((reference) => reference.match === "text");
     const inheritedText = permanent.stack
       .map((card) => ctx.game.definitionOf(card).inheritedEffectText ?? "")
