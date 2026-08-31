@@ -6,7 +6,9 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import "./index.js";
 
-const CARDS = allCards().filter((card) => /^EX3-\d{3}$/.test(card.cardId)).sort((a, b) => a.cardId.localeCompare(b.cardId));
+const CARDS = allCards()
+  .filter((card) => /^EX3-\d{3}$/.test(card.cardId))
+  .sort((a, b) => a.cardId.localeCompare(b.cardId));
 
 describe("EX3 collection audit gate", () => {
   it("registers every catalog card with complete compiled IR", () => {
