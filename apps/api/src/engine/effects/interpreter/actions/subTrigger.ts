@@ -5,7 +5,7 @@ import { evaluateCondition } from "../conditions.js";
 import { canPayCost, payCost, payOneCostOption } from "../costs.js";
 import { runAction } from "../dispatch.js";
 import { unsupported } from "../errors.js";
-import { DefinitionFacts, definitionMatches, matchNameOrTrait, textHasKeyword } from "../matching/definition.js";
+import { DefinitionFacts, definitionHasKeyword, definitionMatches, matchNameOrTrait } from "../matching/definition.js";
 import { matchingSubjectPermanentIds, subjectMatchesFilter, triggerAddedSecurityMatches } from "../matching/trigger.js";
 import { isPermanentUnaffectable, permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
@@ -780,7 +780,7 @@ export async function runSubTrigger(
           const cardId = subCtx.trigger?.byEffectCardId;
           if (cardId === undefined) return false;
           const def = subCtx.game.definitionOf({ cardId } as never);
-          return textHasKeyword(def, action.bySourceKeyword!);
+          return definitionHasKeyword(def, action.bySourceKeyword!);
         };
   // `triggerFilter` on an `onAddDigivolutionCards` watcher (LANE-F-15, BT20-080/BT21-080):
   // restricts WHICH permanent's digivolution-card additions fire this watcher. The event's
@@ -812,8 +812,7 @@ export async function runSubTrigger(
   // the same canonical matcher used by ordinary trigger subjects. This also honors
   // `excludeSelf` (EX9-012/Q4754: its own evolution into Garurumon must not self-trigger).
   const digivolveIntoGate =
-    action.digivolveIntoFilter !== undefined &&
-    (event === "whenOneOfYoursDigivolves" || event === "whenAnyDigivolves")
+    action.digivolveIntoFilter !== undefined && (event === "whenOneOfYoursDigivolves" || event === "whenAnyDigivolves")
       ? (subCtx: EffectContext): boolean => subjectMatchesFilter(subCtx, action.digivolveIntoFilter!)
       : undefined;
   const addedDigivolutionCardGate =

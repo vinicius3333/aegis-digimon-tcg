@@ -398,7 +398,18 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
       // Counts cards matching filter.zone/controller across all applicable seats, then computes:
       //   ceiling = base + Math.floor(totalCards / per) * raise
       // and overrides the target filter's playCostLte with the result. (CAP-E16, BT21-079)
-      const playCostAdjustedTarget = applyPlayCostCeiling(ctx, action, scaledCostAdjustedTarget);
+      const adjustedTarget = applyPlayCostCeiling(ctx, action, scaledCostAdjustedTarget);
+      const playCostAdjustedTarget =
+        action.ignorePlayCostLimit === true
+          ? {
+              ...adjustedTarget,
+              filter: {
+                ...adjustedTarget.filter,
+                playCostLte: undefined,
+                playCostLteScaling: undefined,
+              },
+            }
+          : adjustedTarget;
       const zones = action.from && action.from.length > 0 ? action.from : DEFAULT_PLAY_ZONES;
       let candidates = playableCandidates(
         ctx,

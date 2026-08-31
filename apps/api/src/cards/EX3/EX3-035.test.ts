@@ -187,6 +187,17 @@ describe("EX3-035 Goldramon", () => {
         response: { kind: "optional", accept: true },
       }),
     ).toEqual({ ok: true });
+    await settle(
+      () => s.state.pendingDecision?.kind === "selectCards" && s.decisions.at(-1)?.req.sourceCardId === "BT16-014",
+    );
+    expect(s.state.pendingDecision?.kind).toBe("selectCards");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "selectCards", instanceIds: [trialId] },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === trialId));
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(trialId);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId)).toContain(trialId);

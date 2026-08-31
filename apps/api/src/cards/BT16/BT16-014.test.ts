@@ -8,11 +8,11 @@ describe("BT16-014", () => {
     expect(compiled.effects?.[0]).toMatchObject({ trigger: "Static", keywords: [{ keyword: "Raid" }] });
     expect(compiled.effects?.[1]).toMatchObject({
       trigger: "WhenDigivolving",
-      actions: [{ kind: "PlayWithoutCost", payCost: false, optional: true }],
+      actions: [{ kind: "PlayWithoutCost", payCost: false, optional: true, ignorePlayCostLimit: true }],
     });
     expect(compiled.effects?.[2]).toMatchObject({
       trigger: "WhenAttacking",
-      actions: [{ kind: "PlayWithoutCost", payCost: false, optional: true }],
+      actions: [{ kind: "PlayWithoutCost", payCost: false, optional: true, ignorePlayCostLimit: true }],
     });
     expect(compiled.digivolutionRequirement).toEqual([{ names: ["Goldramon"], cost: 2, isAlternate: true }]);
   });

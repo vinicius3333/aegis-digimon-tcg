@@ -48,11 +48,18 @@ describe("EX4 inherited Alliance suspension watchers", () => {
       }),
     ).toEqual({ ok: true });
 
-    await settle(() => s.perm("ally").isSuspended);
+    await settle(
+      () =>
+        s.perm("host32").topCard?.cardId === "EX4-029" &&
+        s.perm("host33").topCard?.cardId === "EX4-036" &&
+        s.perm("host34").topCard?.cardId === "EX4-029",
+      5000,
+    );
     expect(s.perm("ally").isSuspended).toBe(true);
-    // The three inherited card modules carry the exact local digivolution clauses; their
-    // structural contracts are asserted in EX4-032/033/034.test.ts. This integration proof
-    // focuses on Alliance's production suspension event and its negative counterpart below.
+    expect(s.perm("host32").topCard?.cardId).toBe("EX4-029");
+    expect(s.perm("host33").topCard?.cardId).toBe("EX4-036");
+    expect(s.perm("host34").topCard?.cardId).toBe("EX4-029");
+    expect(s.state.memory).toBe(0);
   });
 
   it("does not fire from an unrelated effect suspension", async () => {

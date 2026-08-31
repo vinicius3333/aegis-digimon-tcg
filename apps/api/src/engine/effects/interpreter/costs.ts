@@ -1503,12 +1503,15 @@ export async function payCost(
       // subsequent target filter's `levelComparison.relativeTo:"lastDeleted"` can bound on it
       // (BT8-107: "delete 1 of your Digimon to delete 1 of your opponent's with level <= it").
       let maxLevel: number | undefined;
+      let maxDP: number | undefined;
       for (const id of permanentIds) {
         const perm = ctx.game.permanentById(id);
         const level = perm?.topCard ? ctx.game.definitionOf(perm.topCard).level : undefined;
         if (level !== undefined && level > 0) maxLevel = Math.max(maxLevel ?? 0, level);
+        if (perm !== undefined) maxDP = Math.max(maxDP ?? 0, perm.currentDP);
       }
       if (maxLevel !== undefined) ctx.lastDeletedLevel = maxLevel;
+      if (maxDP !== undefined) ctx.lastDeletedDP = maxDP;
       if (cost.bindResultAs !== undefined) {
         ctx.boundPlayed ??= new Map();
         ctx.boundPlayed.set(cost.bindResultAs, new Set(permanentIds));
@@ -1764,7 +1767,7 @@ export async function payCost(
             ctx.selections.set(cost.bindHostAs, hostPermId);
           }
           const placedSourceIds: string[] = [];
-          const topInstanceIds = new Map(
+          const sourceTopInstanceIds = new Map(
             sourceIds.map((sourcePermanentId) => [
               sourcePermanentId,
               ctx.game.permanentById(sourcePermanentId)?.topCard?.instanceId,
@@ -1779,7 +1782,7 @@ export async function payCost(
           }
           if (placedSourceIds.length === 0) return false;
           ctx.lastPlacedUnderInstanceIds = placedSourceIds
-            .map((sourcePermanentId) => topInstanceIds.get(sourcePermanentId))
+            .map((sourcePermanentId) => sourceTopInstanceIds.get(sourcePermanentId))
             .filter((instanceId): instanceId is string => instanceId !== undefined);
           ctx.lastEffectActed = true;
           if (cost.trackCount !== undefined) {

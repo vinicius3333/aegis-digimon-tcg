@@ -494,6 +494,7 @@ export function turnOwnerGuard(trigger: CardEffect["trigger"]): ((ctx: EffectCon
 const RESULT_BINDING_KEYS = [
   "lastDeleteCount",
   "lastDeletedLevel",
+  "lastDeletedDP",
   "lastDigivolveResult",
   "lastOptionUsed",
   "lastEffectActed",
