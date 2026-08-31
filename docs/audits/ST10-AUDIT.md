@@ -27,4 +27,4 @@ and every card is 10/10.
 
 - All 15 focused card tests passed serially, one process per card.
 - Collection gate `src/cards/ST10/collection.audit.test.ts` passed 3/3.
-- `pnpm typecheck`, repository lint (pre-existing warnings only), format check, and `git diff --check` passed.
+- `pnpm typecheck`, repository lint (pre-existing warnings only), changed-file format check, and `git diff --check` passed; repo-wide formatting retains pre-existing baseline findings.

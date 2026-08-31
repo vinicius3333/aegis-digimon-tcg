@@ -25,4 +25,4 @@ independently verified 2/2 components and a 10/10 total.
 
 - All 13 focused card tests passed serially, one process per card.
 - Collection gate `src/cards/ST17/ST17.audit.test.ts` passed 3/3.
-- `pnpm typecheck`, repository lint, format check, and `git diff --check` passed.
+- `pnpm typecheck`, repository lint, changed-file format check, and `git diff --check` passed; repo-wide formatting retains pre-existing baseline findings.

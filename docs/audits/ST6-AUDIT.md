@@ -29,4 +29,4 @@ observable stat tests.
 
 - All 16 focused card tests passed serially, one process per card, with the required fork/single-file flags.
 - Collection gate: `pnpm --filter @aegis/api exec vitest run src/cards/ST6/collection.audit.test.ts --pool=forks --poolOptions.forks.singleFork=true --no-file-parallelism` (3/3 passed).
-- `pnpm typecheck`, repository lint (pre-existing warnings only), format check, and `git diff --check` passed for the collection changes.
+- `pnpm typecheck`, repository lint (pre-existing warnings only), changed-file format check, and `git diff --check` passed for the collection changes; repo-wide formatting retains pre-existing baseline findings.
