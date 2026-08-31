@@ -28,4 +28,10 @@ describe("P-194 Aegiomon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("aegio"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("aegio"), "Barrier")).toBe(true);
   });
+
+  it("passes inherited Barrier through a real evolution stack", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "host", under: ["P-194"] }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Barrier")).toBe(true);
+  });
 });

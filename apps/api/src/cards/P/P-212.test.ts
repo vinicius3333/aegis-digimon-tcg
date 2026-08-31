@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-212.js";
 
 describe("P-212 Asuna Shiroki", () => {
@@ -44,8 +47,6 @@ describe("P-212 Asuna Shiroki", () => {
     });
   });
 });
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
-
 describe("P-212 engine behavior", () => {
   it("draws, trashes a matching TS card, and deletes an opposing level-3 Digimon", async () => {
     const s = setupEngine(
@@ -67,5 +68,17 @@ describe("P-212 engine behavior", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("binding").instanceId)).toBe(false);
+  });
+
+  it("gains memory at the start of main phase when the opponent has a Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "P-212", as: "asuna" }] },
+      1: { battleArea: [{ card: "BT1-009" }] },
+    });
+    s.state.memory = 0;
+    await s.ready();
+    await advance(s.engine).fireGlobal(EffectTiming.StartOfYourMainPhase);
+    await settle();
+    expect(s.state.memory).toBe(1);
   });
 });

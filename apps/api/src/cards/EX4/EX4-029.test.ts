@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX4-029.js";
 
 describe("EX4-029 Antylamon", () => {
@@ -46,5 +49,39 @@ describe("EX4-029 Antylamon", () => {
     await settle(() => s.state.players[0]!.security.some(({ instanceId }) => instanceId === recoveryId));
 
     expect(s.state.players[0]!.security).toHaveLength(4);
+  });
+
+  it("adds another suspended Digimon's DP and Security Attack on a real attack", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-029", as: "host", under: ["EX4-029"] },
+          { card: "BT1-064", as: "suspendedAlly", dp: 3000 },
+        ],
+      },
+    });
+    await s.ready();
+    const baseDP = s.perm("host").currentDP;
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), {
+      attackerPermanentId: s.perm("host").permanentId,
+    });
+    expect(s.perm("host").currentDP).toBe(baseDP + 3000);
+    expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);
+  });
+
+  it("applies the inherited End of Attack DP loss only when another ally is suspended", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-029", as: "host", under: ["EX4-029"] },
+          { card: "BT1-064", as: "suspendedAlly", dp: 3000, suspended: true },
+        ],
+      },
+      1: { battleArea: [{ card: "BT1-019", as: "target", dp: 6000 }] },
+    });
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.OnEndAttack, s.perm("host"));
+    await settle(() => s.perm("target").currentDP === 4000);
+    expect(s.perm("target").currentDP).toBe(4000);
   });
 });

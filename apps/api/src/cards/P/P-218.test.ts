@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, GameAccess, Primitives, SubTriggerInstall } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-218.js";
 
 describe("P-218 Torajiro Asuka", () => {
@@ -52,10 +54,23 @@ describe("P-218 Torajiro Asuka", () => {
     ).toBe(false);
   });
 });
-import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
-
 describe("P-218 engine behavior", () => {
+  it("reveals three cards and adds Entertainment and Navi/Tool/Awakening cards", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "P-218", as: "torajiro" }], deck: ["BT22-035", "BT21-047", "BT1-009"] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("torajiro").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT22-035")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT21-047")).toBe(true);
+    expect(s.state.players[0]!.deck.some((card) => card.cardId === "BT1-009")).toBe(true);
+  });
+
   it("plays itself from Security", async () => {
     const s = setupEngine({ 0: { security: [{ card: "P-218", as: "torajiro" }] } });
     await s.ready();
@@ -66,5 +81,57 @@ describe("P-218 engine behavior", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("torajiro").instanceId)).toBe(
       true,
     );
+  });
+
+  it("gains memory by suspending itself when a matching card is linked", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-218", as: "torajiro" },
+            { card: "BT21-009", as: "host", linked: [{ card: "BT22-035", as: "link" }] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    await advance(s.engine).fireGlobal(EffectTiming.OnStartTurn);
+    await advance(s.engine).fireSubTrigger("whenLinked", {
+      subjectPermanentId: s.perm("host").permanentId,
+      linkedCardInstanceIds: [s.inst("link").instanceId],
+    });
+    await settle();
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("torajiro").isSuspended).toBe(true);
+  });
+
+  it("reacts to a real Navi link-card intent and gains memory after paying the link cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-218", as: "torajiro" },
+            { card: "BT21-009", as: "host" },
+          ],
+          hand: [{ card: "BT21-047", as: "link" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.some((card) => card.instanceId === s.inst("link").instanceId));
+    expect(s.perm("host").linked.some((card) => card.instanceId === s.inst("link").instanceId)).toBe(true);
+    expect(s.perm("torajiro").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(2);
   });
 });

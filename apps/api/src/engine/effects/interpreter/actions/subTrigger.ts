@@ -200,6 +200,7 @@ export async function runSubTrigger(
   // The filter is evaluated against the freshly bound context's payload subject via the
   // canonical `permanentMatchesFilter` / `definitionMatches` — never a hand-rolled matcher.
   const sourceFilter = action.sourceFilter;
+  const sourceSelfInstanceId = ctx.source.instanceId;
   const hostFilterGate =
     action.hostFilter === undefined
       ? undefined
@@ -723,7 +724,8 @@ export async function runSubTrigger(
     (event === "onDigivolutionCardDiscarded" ||
       event === "onDigivolutionCardsDiscardedBatch" ||
       event === "onDigiBurstCardDiscarded") &&
-    sourceFilter?.isSelfRef === true
+    sourceFilter?.isSelfRef === true &&
+    sourceFilter.matchTrashedSource !== true
       ? (subCtx: EffectContext): boolean => {
           const matched =
             event === "onDigiBurstCardDiscarded" || event === "onDigivolutionCardsDiscardedBatch"
@@ -731,6 +733,16 @@ export async function runSubTrigger(
               : subCtx.trigger?.trashedDigivolutionInstanceId === subCtx.source.instanceId;
           return matched;
         }
+      : undefined;
+  const matchedTrashedSourceGate =
+    (event === "onDigivolutionCardDiscarded" ||
+      event === "onDigivolutionCardsDiscardedBatch" ||
+      event === "onDigiBurstCardDiscarded") &&
+    sourceFilter?.matchTrashedSource === true
+      ? (subCtx: EffectContext): boolean =>
+          event === "onDigivolutionCardDiscarded"
+            ? subCtx.trigger?.trashedDigivolutionInstanceId === sourceSelfInstanceId
+            : (subCtx.trigger?.trashedDigivolutionInstanceIds ?? []).includes(sourceSelfInstanceId)
       : undefined;
   const digivolutionHostFilterGate =
     hostFilter !== undefined &&
@@ -966,6 +978,7 @@ export async function runSubTrigger(
     whenTrashedFromDeckGate,
     whenTrashedFromHandGate,
     digivolutionCardDiscardedGate,
+    matchedTrashedSourceGate,
     digivolutionHostFilterGate,
     digivolutionBatchHostSourceFilterGate,
     effectSourceGate,
@@ -994,6 +1007,7 @@ export async function runSubTrigger(
   // top card and silently skip the inherited effect (BT7 Digi-Burst cards).
   const discardedSelfSource =
     sourceFilter?.isSelfRef === true &&
+    sourceFilter.matchTrashedSource !== true &&
     (event === "onDigiBurstCardDiscarded" ||
       event === "onDigivolutionCardsDiscardedBatch" ||
       event === "onDigivolutionCardDiscarded");
@@ -1002,15 +1016,24 @@ export async function runSubTrigger(
   const requiresSelfSuspend = (action.actions ?? []).some(costsSelfSuspend);
   ctx.fx.subscribeSubTrigger({
     event,
+    ...(ctx.activeEffectKey !== undefined || ctx.activeActionPath !== undefined
+      ? { dedupeKey: `${ctx.source.instanceId}/${ctx.activeEffectKey ?? "effect"}/${ctx.activeActionPath ?? "0"}` }
+      : {}),
     ...(isInheritedSource ? { isInheritedSource: true } : {}),
     ...(isLinkedSource ? { isLinkedSource: true } : {}),
     ...(requiresSelfSuspend ? { canFire: (subCtx) => subCtx.source.permanent()?.isSuspended !== true } : {}),
-    ...(discardedSelfSource ? {} : { sourcePermanentId: anchorPermanentId }),
+    // A discarded inherited source is intentionally not permanently anchored to its host: its
+    // source instance is the identity used by the stack-card event gate. `matchTrashedSource`
+    // below is the narrow exception; omit sourceInstanceId from the subscription so the host
+    // context can still be built while the closure retains the exact instance identity.
+    ...(discardedSelfSource ? {} : anchorPermanentId !== undefined ? { sourcePermanentId: anchorPermanentId } : {}),
     ...(playerScoped
       ? { activationContext: ctx }
       : action.on !== undefined
         ? {}
-        : { sourceInstanceId: ctx.source.instanceId }),
+        : sourceFilter?.matchTrashedSource === true
+          ? {}
+          : { sourceInstanceId: ctx.source.instanceId }),
     // Anchor-less fallback (the eighth engine gap): when there is no on-field permanent to
     // anchor to AND the clause was not granted to another permanent (both cases already set
     // anchorPermanentId), the watcher's source is a loose hand/trash-resident CardInstance —

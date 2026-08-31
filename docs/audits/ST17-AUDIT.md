@@ -23,6 +23,14 @@ independently verified 2/2 components and a 10/10 total.
 
 ## Verification commands
 
+Material evidence correction: ST17-05 and ST17-06 now trigger suspension watchers through the public effect-suspension verb. ST17-07 now proves its inherited security trash through a real attack that deletes an opposing Digimon in battle and survives.
+
 - All 13 focused card tests passed serially, one process per card.
 - Collection gate `src/cards/ST17/ST17.audit.test.ts` passed 3/3.
 - `pnpm typecheck`, repository lint, changed-file format check, and `git diff --check` passed; repo-wide formatting retains pre-existing baseline findings.
+
+# Evidence remediation (2026-08-31)
+
+ST17-08/09/10 now use public Digivolve, attack, turn, and activated-effect operations for their
+triggered clauses. Assertions settle on suspension/restriction, Alliance revival, exact memory,
+Security play, and the MegaGargomon stack/Rush result.

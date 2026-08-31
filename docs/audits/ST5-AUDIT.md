@@ -26,6 +26,8 @@ compiled IR with no residual or raw nodes.
 
 ## Verification commands
 
+Material evidence correction: ST5-13 now proves Digi-Burst activation and duration expiry through the public `activateEffect` intent and turn lifecycle, with no direct effect resolver call.
+
 - Every focused card test was run serially, one process per card, with `--pool=forks --poolOptions.forks.singleFork=true --no-file-parallelism`.
 - Stack regressions: `machinedramon-reboot-blocker-deck.test.ts` and `reboot-blocker-historical-deck.test.ts` both passed.
 - Collection gate: `pnpm --filter @aegis/api exec vitest run src/cards/ST5/collection.audit.test.ts --pool=forks --poolOptions.forks.singleFork=true --no-file-parallelism` (3 tests passed).

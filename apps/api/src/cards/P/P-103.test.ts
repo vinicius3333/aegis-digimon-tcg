@@ -386,4 +386,57 @@ describe("P-103 (Offense Training)", () => {
       true,
     );
   });
+  it("reveals and adds its color card before placing itself in the battle area", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "P-103", as: "source" }],
+          battleArea: [{ card: "BT1-009", as: "color" }],
+          deck: [{ card: "BT1-009", as: "match" }, "BT1-037"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("match").instanceId));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("match").instanceId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("source").instanceId),
+    ).toBe(true);
+  });
+
+  it("uses Delay to digivolve a Digimon into a red card from hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-103", as: "delay" },
+            { card: "BT1-009", as: "host" },
+          ],
+          hand: [{ card: "BT1-016", as: "target" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    s.state.turnCount = 1;
+    await s.ready();
+    const delayAbility = JSON.parse(s.perm("delay").activatableEffectsJson) as { effectKey: string }[];
+    expect(delayAbility).toHaveLength(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("delay").instanceId,
+        effectKey: delayAbility[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("delay").instanceId)).toBe(true);
+    expect(s.perm("host").topCard.cardId).toBe("BT1-016");
+    expect(s.state.memory).toBe(10);
+  });
 });

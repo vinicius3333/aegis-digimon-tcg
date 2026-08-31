@@ -43,7 +43,7 @@ export const compiled: CompiledCard = {
           restriction: "attackOrBlock",
           duration: "untilOpponentTurnEnd",
           condition: {
-            kind: "or",
+            kind: "orConditions",
             conditions: [
               {
                 kind: "youHave",

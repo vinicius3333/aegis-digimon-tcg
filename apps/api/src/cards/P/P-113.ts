@@ -43,10 +43,6 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenDeletesInBattle",
-          sourceFilter: {
-            controller: "opponent",
-            kind: ["Digimon"],
-          },
           actions: [
             {
               kind: "SecurityManipulation",
@@ -55,6 +51,10 @@ const compiled: CompiledCard = {
               amount: 1,
             },
           ],
+          fireCondition: {
+            kind: "triggerDeletedIsOpponent",
+            raw: "an opponent's Digimon was deleted",
+          },
         },
       ],
       frequency: "OncePerTurn",

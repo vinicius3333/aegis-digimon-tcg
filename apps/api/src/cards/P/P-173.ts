@@ -77,9 +77,11 @@ const compiled: CompiledCard = {
             },
           ],
           fireCondition: {
-            kind: "triggerRemovalCause",
-            removalCause: "byBattle",
-            raw: "deleted in battle",
+            kind: "allOf",
+            conditions: [
+              { kind: "triggerRemovalCause", removalCause: "byBattle" },
+              { kind: "triggerDeletedIsOpponent", raw: "an opponent's Digimon was deleted" },
+            ],
           },
         },
       ],

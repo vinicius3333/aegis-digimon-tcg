@@ -1,6 +1,7 @@
 import type { PlayerState, Seat } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./P-242.js";
 
@@ -100,5 +101,36 @@ describe("P-242 [Start of Your Main Phase] trash Life/System/Transmutation card 
     // The plain card should remain in hand (no matching card to trash → effect skipped).
     expect(p0.hand.some((c) => c.instanceId === plainId)).toBe(true);
     expect(p0.trash.some((c) => c.instanceId === plainId)).toBe(false);
+  });
+
+  it("suspends itself and links an eligible Life card from trash to a Digimon at the reduced cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-242", as: "reiTamer" },
+            { card: "BT21-009", as: "host" },
+          ],
+          trash: [{ card: LIFE_TRAIT_CARD, as: "lifeCard" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const effect = (observe(s.engine).activatableEffects(s.perm("reiTamer")) as Array<{ effectKey?: string }>).find(
+      (entry) => entry.effectKey === "P-242/main-suspend-link",
+    ) as { effectKey: string } | undefined;
+    expect(effect).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("reiTamer").instanceId,
+        effectKey: effect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("reiTamer").isSuspended).toBe(true);
+    expect(s.perm("host").linked.some((card) => card.instanceId === s.inst("lifeCard").instanceId)).toBe(true);
   });
 });

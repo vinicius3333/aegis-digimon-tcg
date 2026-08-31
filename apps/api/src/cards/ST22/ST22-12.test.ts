@@ -1,6 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
@@ -10,8 +8,15 @@ describe("ST22-12 DoGatchmon", () => {
       { 0: { battleArea: [{ card: "ST22-12", as: "dogatchmon" }], hand: [{ card: "BT21-047", as: "navimon" }] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.turnSeat = 0;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("dogatchmon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("dogatchmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("dogatchmon").linked.some((card) => card.instanceId === s.inst("navimon").instanceId));
     expect(s.perm("dogatchmon").linked.some((card) => card.instanceId === s.inst("navimon").instanceId)).toBe(true);
   });

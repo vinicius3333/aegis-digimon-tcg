@@ -86,6 +86,7 @@ describe("P-223 engine behavior", () => {
     expect(s.state.memory).toBe(9);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === optionId)).toBe(false);
     expect(s.state.players[0]!.security.some((card) => card.instanceId === optionId && card.faceUp)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId.includes("TOKEN"))).toBe(true);
   });
 
   it("allows refusing the optional cost-6 Option use", async () => {

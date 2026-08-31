@@ -68,6 +68,7 @@ describe("P-224 Kotone Amano", () => {
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 
 describe("P-224 engine behavior", () => {
   it("plays itself from Security through its Security effect", async () => {
@@ -80,5 +81,34 @@ describe("P-224 engine behavior", () => {
       s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("kotone").instanceId),
     );
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("kotone").instanceId)).toBe(true);
+  });
+
+  it("uses its Main effect to suspend itself and play a level-5 Xros Heart Digimon from under a Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-224", as: "kotone" },
+            { card: "BT10-087", under: [{ card: "BT10-012", as: "shoutmon" }], as: "taiki" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    const effectKey = (observe(s.engine).activatableEffects(s.perm("kotone")) as Array<{ effectKey: string }>)[0]!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("kotone").instanceId,
+        effectKey: effectKey.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("kotone").isSuspended).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("shoutmon").instanceId)).toBe(
+      true,
+    );
   });
 });

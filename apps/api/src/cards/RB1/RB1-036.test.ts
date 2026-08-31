@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -16,7 +15,11 @@ describe("RB1-036 Proximamon", () => {
     s.state.turnSeat = 0;
     const gammamonInstanceId = s.inst("gammamon").instanceId;
 
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("proximamon"));
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
     await settle(() => s.perm("proximamon").stack.some((card) => card.instanceId === gammamonInstanceId));
 
     expect(s.perm("proximamon").stack.some((card) => card.instanceId === gammamonInstanceId)).toBe(true);

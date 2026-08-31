@@ -32,13 +32,14 @@ const compiled: CompiledCard = {
           kind: "Link",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           recipient: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+          bindRecipientAs: "linkedRecipient",
           payCost: false,
           optional: true,
         },
         {
           kind: "Delete",
           target: {
-            filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", relativeToSource: true } },
+            filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", valueFrom: "linkedRecipient" } },
             count: 1,
           },
           optional: true,

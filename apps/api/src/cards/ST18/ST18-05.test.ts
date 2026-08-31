@@ -36,20 +36,12 @@ describe("ST18-05 Muchomon", () => {
       1: { battleArea: [{ card: "ST18-03", as: "victim" }] },
     });
     const before = s.perm("vortexTarget").currentDP;
-    await (s.engine as unknown as { recomputeContinuousEffects(): Promise<void> }).recomputeContinuousEffects();
-    await advance(s.engine).fireSubTrigger("whenEffectSuspends", {
-      subjectPermanentId: s.perm("victim").permanentId,
-      suspendedPermanentId: s.perm("victim").permanentId,
-      effectSuspendSeat: 1,
-    });
+    await s.ready();
+    await advance(s.engine).verb.suspend([s.perm("victim").permanentId], 1);
     await settle(() => false, 60);
     expect(s.perm("vortexTarget").currentDP).toBe(before);
 
-    await advance(s.engine).fireSubTrigger("whenEffectSuspends", {
-      subjectPermanentId: s.perm("muchomon").permanentId,
-      suspendedPermanentId: s.perm("muchomon").permanentId,
-      effectSuspendSeat: 1,
-    });
+    await advance(s.engine).verb.suspend([s.perm("muchomon").permanentId], 1);
     await settle(() => s.perm("vortexTarget").currentDP === before + 3000);
     expect(s.perm("vortexTarget").currentDP).toBe(before + 3000);
   });

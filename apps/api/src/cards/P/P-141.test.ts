@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { getCompiledCard } from "@aegis/shared";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./P-141.js";
 
 describe("P-141 MameTyramon", () => {
@@ -55,5 +56,13 @@ describe("P-141 MameTyramon", () => {
     await advance(s.engine).verb.suspend([s.perm("opponent").permanentId], 1);
     await settle();
     expect(s.perm("mame").isSuspended).toBe(false);
+  });
+
+  it("exposes both printed battle keywords and the Mamemon/Tyrannomon rule names", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "P-141", as: "mame" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("mame"), "Collision")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("mame"), "Blocker")).toBe(true);
+    expect(observe(s.engine).effectiveNames(s.perm("mame"))).toEqual(expect.arrayContaining(["mamemon", "tyrannomon"]));
   });
 });

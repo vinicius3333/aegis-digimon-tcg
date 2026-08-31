@@ -6,6 +6,26 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-153.js";
 
 describe("P-153 MagnaGarurumon", () => {
+  it("returns exactly one opposing level-3/4/5 Digimon when digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "P-153", as: "magna" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "eligible" },
+            { card: "BT1-038", as: "ineligible" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("magna"));
+    await settle();
+    expect(s.state.players[1]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT1-038")).toBe(true);
+  });
+
   it("encodes Armor Purge and a singular level 3/4/5 return", () => {
     const compiled = runtimeCompiledCard("P-153")!;
     expect(compiled.effects).toEqual(

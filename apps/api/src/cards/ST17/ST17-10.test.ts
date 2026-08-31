@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -11,15 +10,32 @@ describe("ST17-10 Henry Wong", () => {
       0: { battleArea: [{ card: "ST17-10", as: "henry" }] },
       1: { battleArea: [{ card: "BT1-009" }] },
     });
-    s.state.memory = 0;
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("henry"));
+    s.state.memory = 5;
+    const turn = s.engine.runOneTurn();
+    await settle(() => s.events.some((event) => event.kind === "memoryChanged" && event.from === 5 && event.to === 6));
 
-    expect(s.state.memory).toBe(1);
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "memoryChanged", from: 5, to: 6, reason: "gainMemory" }),
+    );
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("plays itself from Security without paying its play cost", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "ST17-10", as: "henry", faceUp: true }] } });
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("henry"));
+    const s = setupEngine({
+      0: { security: [{ card: "ST17-10", as: "henry" }, "BT1-090"] },
+      1: { battleArea: ["BT1-009"] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.state.players[1]!.battleArea[0]!.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "ST17-10"));
 
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard.cardId === "ST17-10")).toBe(true);
     expect(s.state.memory).toBe(0);
@@ -42,7 +58,15 @@ describe("ST17-10 Henry Wong", () => {
     s.state.memory = 10;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("henry"));
+    const [effect] = JSON.parse(s.perm("henry").activatableEffectsJson) as { effectKey: string }[];
+    expect(effect).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("henry").topCard.instanceId,
+        effectKey: effect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("terriermon").topCard.cardId === "ST17-08");
 
     expect(s.perm("terriermon").topCard.cardId).toBe("ST17-08");

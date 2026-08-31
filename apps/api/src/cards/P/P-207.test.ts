@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./P-207.js";
 
@@ -69,5 +71,47 @@ describe("P-207 Minervamon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "P-207", as: "minerva" }] } });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("minerva"), "Alliance")).toBe(true);
+  });
+
+  it("plays an eligible level-4 Avian from hand on play", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "P-207", as: "minerva" }], hand: [{ card: "BT1-013", as: "avian" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("minerva"));
+    await settle();
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("avian").instanceId)).toBe(true);
+  });
+
+  it("plays the same eligible card from hand when digivolving", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "P-207", as: "minerva" }], hand: [{ card: "BT1-013", as: "avian" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("minerva"));
+    await settle();
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("avian").instanceId)).toBe(true);
+  });
+
+  it("plays an eligible level-4 card from trash after a real attack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "P-207", as: "minerva" }], trash: [{ card: "BT1-013", as: "avian" }] },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("minerva").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("avian").instanceId));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("avian").instanceId)).toBe(true);
   });
 });

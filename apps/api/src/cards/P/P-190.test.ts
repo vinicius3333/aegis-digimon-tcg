@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-190.js";
 
 describe("P-190 Tweetmon", () => {
@@ -9,27 +10,10 @@ describe("P-190 Tweetmon", () => {
     expect(card.linkRequirement).toEqual([{ cost: 1, traits: ["Appmon"] }]);
   });
 
-  it("links from trash or a digivolution stack and draws when linked", () => {
+  it("keeps its printed linked-only Draw 1 watcher", () => {
     const card = runtimeCompiledCard("P-190")!;
-    expect(card.effects.find((effect) => effect.trigger === "Main")).toMatchObject({
-      actions: [
-        {
-          kind: "Link",
-          from: ["trash", "digivolutionCards"],
-          optional: true,
-          target: {
-            count: 1,
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              hasLinkRequirement: true,
-              hostFilter: { isSelfRef: true },
-            },
-          },
-        },
-      ],
-    });
     expect(card.effects.find((effect) => effect.trigger === "YourTurn")).toMatchObject({
+      isLinked: true,
       actions: [
         {
           event: "whenLinked",
@@ -46,8 +30,6 @@ describe("P-190 Tweetmon", () => {
     });
   });
 });
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
-
 describe("P-190 engine behavior", () => {
   it("draws the top card when played", async () => {
     const s = setupEngine({
@@ -60,5 +42,69 @@ describe("P-190 engine behavior", () => {
     });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
+  });
+
+  it("does not draw when a different card is linked to this host", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "P-190", as: "host" }],
+        hand: [{ card: "BT21-009", as: "linked" }],
+        deck: [{ card: "BT1-001", as: "drawn" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("linked").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.some((card) => card.cardId === "BT21-009"));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(false);
+  });
+
+  it("draws when P-190 itself is linked from hand to an Appmon host", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-009", as: "appmonHost" }],
+          hand: [{ card: "P-190", as: "tweetmon" }],
+          deck: [{ card: "BT1-001", as: "drawn" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("tweetmon").instanceId,
+        targetPermanentId: s.perm("appmonHost").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("appmonHost").linked.some((card) => card.cardId === "P-190"));
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
+    expect(s.perm("appmonHost").linked.some((card) => card.instanceId === s.inst("tweetmon").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(9);
+  });
+
+  it("rejects linking P-190 to a non-Appmon host", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "nonAppmonHost" }], hand: [{ card: "P-190", as: "tweetmon" }] },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("tweetmon").instanceId,
+        targetPermanentId: s.perm("nonAppmonHost").permanentId,
+      }),
+    ).toEqual({ ok: false, reason: "link-requirement-unmet" });
+    expect(s.state.memory).toBe(10);
   });
 });

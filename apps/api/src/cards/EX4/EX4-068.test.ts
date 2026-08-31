@@ -16,6 +16,7 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import "./EX4-068.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 
 const card = (id: string, seat: Seat): CardInstance =>
   ({ cardId: id, instanceId: `${id}-${seat}`, ownerSeat: seat, faceUp: true }) as CardInstance;
@@ -187,6 +188,27 @@ describe("EX4-068 Heaven's Judgement", () => {
     expect(s.state.players[0]!.hand.some((handCard) => handCard.instanceId === s.inst("subject").instanceId)).toBe(
       false,
     );
+  });
+
+  it("publicly waives its yellow color requirement with only a green Digimon in play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-064", as: "green" }],
+          hand: [{ card: "EX4-068", as: "option" }],
+        },
+        1: { battleArea: [{ card: "BT1-013", as: "target", dp: 30000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").currentDP === 18000);
+    expect(s.perm("target").currentDP).toBe(18000);
+    expect(s.state.players[0]!.hand.some((entry) => entry.instanceId === s.inst("option").instanceId)).toBe(false);
   });
   ex4CardBehaviorTests("EX4-068");
 });

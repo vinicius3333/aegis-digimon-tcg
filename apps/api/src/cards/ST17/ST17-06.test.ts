@@ -8,7 +8,7 @@ describe("ST17-06 Rapidmon", () => {
   it("has Blocker and Armor Purge and gives one opposing Digimon and all Security Digimon -4000 DP", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "ST17-06", as: "rapidmon", suspended: true }] },
+        0: { battleArea: [{ card: "ST17-06", as: "rapidmon" }] },
         1: {
           battleArea: [{ card: "BT1-009", as: "target", dp: 6000 }],
           security: [
@@ -23,9 +23,7 @@ describe("ST17-06 Rapidmon", () => {
 
     expect(observe(s.engine).hasKeyword(s.perm("rapidmon").permanentId, "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("rapidmon").permanentId, "Armor Purge")).toBe(true);
-    await advance(s.engine).fireSubTrigger("whenSuspended", {
-      suspendedPermanentId: s.perm("rapidmon").permanentId,
-    });
+    await advance(s.engine).verb.suspend([s.perm("rapidmon").permanentId], 0);
 
     expect(s.perm("target").currentDP).toBe(2000);
     expect(observe(s.engine).securityDp(1)).toBe(-4000);

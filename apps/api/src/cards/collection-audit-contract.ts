@@ -68,6 +68,22 @@ function countMatches(source: string, pattern: RegExp): number {
   return source.match(pattern)?.length ?? 0;
 }
 
+function switchCaseSource(source: string, cardId: string): string {
+  const pattern = new RegExp(`case\\s+["']${cardId}["']\\s*:`, "g");
+  const cases: string[] = [];
+  for (const match of source.matchAll(pattern)) {
+    const remainder = source.slice(match.index);
+    const returnIndex = remainder.search(/\breturn\s*;/);
+    cases.push(returnIndex < 0 ? remainder : remainder.slice(0, returnIndex + "return;".length));
+  }
+  return cases.join("\n");
+}
+
+function behavioralClauseCount(compiled: NonNullable<ReturnType<typeof runtimeCompiledCard>>): number {
+  return compiled.effects.filter((effect) => (effect.actions?.length ?? 0) > 0 || (effect.keywords?.length ?? 0) > 0)
+    .length;
+}
+
 function catalogFor(set: AuditSet) {
   return allCards()
     .filter((card) => card.set === set)
@@ -121,6 +137,7 @@ export function describeRemainingCollectionAuditContract({
 
     it("requires exclusive residual-free IR and a runnable focused proof for all 776 cards", () => {
       const missingRuntimeProofs: string[] = [];
+      const insufficientBehavioralDriverFloor: string[] = [];
       const invalidNoEffectExceptions: string[] = [];
       for (const set of REMAINING_AUDIT_SETS) {
         const indexSource = readFileSync(`${cardsDirectory}/${set}/index.ts`, "utf8");
@@ -128,9 +145,10 @@ export function describeRemainingCollectionAuditContract({
           const moduleSource = readFileSync(`${cardsDirectory}/${set}/${cardId}.ts`, "utf8");
           const testSource = readFileSync(`${cardsDirectory}/${set}/${cardId}.test.ts`, "utf8");
           const supportImport = testSource.match(/import\s*{\s*(\w+Tests)\s*}\s*from\s*["']\.\/([^"']+)\.js["']/);
-          const proofSource = supportImport
-            ? `${testSource}\n${readFileSync(`${cardsDirectory}/${set}/${supportImport[2]}.ts`, "utf8")}`
-            : testSource;
+          const supportSource = supportImport
+            ? readFileSync(`${cardsDirectory}/${set}/${supportImport[2]}.ts`, "utf8")
+            : "";
+          const proofSource = `${testSource}\n${supportSource}`;
           const compiled = runtimeCompiledCard(cardId);
 
           expect(indexSource.match(new RegExp(`^import "\\./${cardId}\\.js";$`, "gm")), `${cardId} index`).toHaveLength(
@@ -182,35 +200,52 @@ export function describeRemainingCollectionAuditContract({
           const setupName = setupImport?.[1] ?? (setupImport ? "setupEngine" : undefined);
           const invokesHarness = setupName !== undefined && new RegExp(`\\b${setupName}\\s*\\(`).test(testSource);
           const invokesProductionAdvance = /\badvance\s*\([^)]*\.engine\s*\)\s*\./.test(testSource);
-          const invokesInterpreterResolver =
-            /\.effectsForTiming\s*\(/.test(testSource) &&
-            /\b(?:effect|effects\[[^\]]+\])\.resolve\s*\(/.test(testSource);
+          const memoryBoostEvidence =
+            supportImport?.[1] === "memoryBoostTests" &&
+            new RegExp(`\\b${supportImport[1]}\\s*\\(\\s*{[\\s\\S]*?cardId\\s*:`).test(testSource)
+              ? supportSource
+              : "";
+          const ex4MatrixEvidence =
+            supportImport?.[1] === "ex4CardBehaviorTests" ? switchCaseSource(supportSource, cardId) : "";
+          const approvedSharedEvidence = memoryBoostEvidence || ex4MatrixEvidence;
           const invokesApprovedSemanticMatrix =
-            ((supportImport?.[1] === "memoryBoostTests" &&
-              new RegExp(`\\b${supportImport[1]}\\s*\\(\\s*{[\\s\\S]*?cardId\\s*:`).test(testSource)) ||
-              (supportImport?.[1] === "ex4CardBehaviorTests" &&
-                new RegExp(`case\\s+["']${cardId}["']\\s*:`).test(proofSource))) &&
-            /\bsetupEngine\s*\(/.test(proofSource) &&
-            /\b(?:applyIntent|advance)\s*\(/.test(proofSource);
-          const runtimeEvidenceSource = invokesApprovedSemanticMatrix ? proofSource : testSource;
+            approvedSharedEvidence.length > 0 &&
+            /\bsetupEngine\s*\(/.test(approvedSharedEvidence) &&
+            /\b(?:applyIntent|advance|fire|playSubject(?:Card)?)\s*\(/.test(approvedSharedEvidence);
+          // Resolver-unit tests with fake GameAccess/Primitives are useful mechanism checks, but
+          // they cannot earn a card's behavioral points. Only a card-scoped production harness
+          // scenario (direct or an explicitly keyed semantic matrix case) counts here.
+          const runtimeEvidenceSource = `${testSource}\n${approvedSharedEvidence}`;
           const observesRuntime =
             /\b(?:settle|observe|advance)\s*\(|\.state\b|\.perm\s*\(|\.events\b|\.decisions\b|\.engine\./.test(
               runtimeEvidenceSource,
             );
-          if (
-            !(
-              invokesHarness ||
-              invokesProductionAdvance ||
-              invokesInterpreterResolver ||
-              invokesApprovedSemanticMatrix
-            ) ||
-            !observesRuntime
-          )
+          if (!(invokesHarness || invokesProductionAdvance || invokesApprovedSemanticMatrix) || !observesRuntime)
             missingRuntimeProofs.push(cardId);
+
+          const clauseCount = compiled === undefined ? 0 : behavioralClauseCount(compiled);
+          const liveScenarioCount = countMatches(runtimeEvidenceSource, /\bsetupEngine\s*\(/g);
+          const liveDriverCount = countMatches(
+            runtimeEvidenceSource,
+            /\.engine\.\w+\s*\(|\badvance\s*\([^)]*\.engine\s*\)\s*\.|\bobserve\s*\([^)]*\.engine\s*\)|\.ready\s*\(\s*\)|\b(?:fire|fireTiming|playSubject(?:Card)?)\s*\(/g,
+          );
+          // This is a necessary smoke-test floor, not proof that every printed clause has
+          // been covered: a driver can exercise multiple effects, or exercise none. The
+          // per-card audit remains responsible for mapping each clause to an observable
+          // production-harness outcome. A single setup may intentionally exercise several
+          // timings, so setup count is diagnostic only and is not itself a threshold.
+          const promoNumber = cardId.startsWith("P-") ? Number(cardId.slice(2)) : 0;
+          const requiresClauseProof = set === "EX4" || (set === "P" && promoNumber >= 103);
+          if (requiresClauseProof && liveDriverCount < clauseCount) {
+            insufficientBehavioralDriverFloor.push(
+              `${cardId} (${liveScenarioCount} live scenarios/${liveDriverCount} drivers for ${clauseCount} clauses)`,
+            );
+          }
         }
       }
       expect(invalidNoEffectExceptions, "no-effect cards without explicit empty-IR proof").toEqual([]);
       expect(missingRuntimeProofs, "effect cards without a real engine-harness proof").toEqual([]);
+      expect(insufficientBehavioralDriverFloor, "cards below the behavioral-driver smoke-test floor").toEqual([]);
     });
 
     it("pins runtime proofs for the regression-sensitive multi-step behavior", () => {

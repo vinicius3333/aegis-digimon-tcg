@@ -34,6 +34,7 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenAttackTargetSwitched",
+          sourceFilter: { isSelfRef: true },
           actions: [
             {
               kind: "SecurityManipulation",

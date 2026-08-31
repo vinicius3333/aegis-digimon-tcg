@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-147.js";
 
 describe("P-147 Pal", () => {
@@ -62,5 +62,29 @@ describe("P-147 Pal", () => {
     const base = s.perm("pal").baseDP;
     await s.ready();
     expect(s.perm("pal").currentDP).toBe(base + 3000);
+  });
+
+  it("places a level-4 Pulsemon-text card and reactivates its When Digivolving effect on attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-147", as: "pal" }],
+          hand: [{ card: "P-150", as: "pulse" }],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("pal").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("pal").stack.some((card) => card.instanceId === s.inst("pulse").instanceId)).toBe(true);
   });
 });

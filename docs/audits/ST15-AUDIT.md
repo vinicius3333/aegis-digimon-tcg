@@ -34,3 +34,5 @@ Scope: every committed ST15 catalog card, audited in ascending catalog order. Ea
 ## Collection invariants
 
 Every ST15 catalog card has a direct module, colocated test, index import, exclusive `registerIrCard("ST15-NN", compiled)` registration, `coverage: "full"`, and `residual: []`. Applicable Q&A, errata, restriction, trait-peer, and evolution-stack boundaries were reviewed; no unresolved ambiguity remains.
+
+Material evidence correction: ST15-01, ST15-02, ST15-08, and ST15-14 now prove attack-target switching through public attack and block intents; ST15-01 also performs two separate switches in one turn to prove its once-per-turn cap. ST15-12 now proves the security-removal watcher through real security checks, including once-per-turn and declined optional paths.

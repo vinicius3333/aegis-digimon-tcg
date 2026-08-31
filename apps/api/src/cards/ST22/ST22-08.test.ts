@@ -1,5 +1,4 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
@@ -10,6 +9,29 @@ import "../index.js";
 // security to the hand. A no-op leaves the opponent's board and the security card untouched.
 
 describe("ST22-08 [Security] delete the opponent's lowest-DP Digimon, then add this card to hand", () => {
+  it("Main links to the chosen Digimon and compares deletion DP to that recipient", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "ST22-08", as: "option" }], battleArea: [{ card: "BT1-010", dp: 6000, as: "recipient" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", dp: 4000, as: "lowDp" },
+            { card: "BT1-010", dp: 8000, as: "highDp" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.every((perm) => perm.topCard?.cardId !== "BT1-009"));
+    expect(s.perm("recipient").linked.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((perm) => perm.permanentId === s.perm("highDp").permanentId)).toBe(true);
+  });
+
   it("deletes the lowest-DP opponent Digimon and moves the Option from security to hand", async () => {
     const s = setupEngine(
       {
@@ -32,11 +54,13 @@ describe("ST22-08 [Security] delete the opponent's lowest-DP Digimon, then add t
     const highDpPermanentId = s.perm("highDp").permanentId;
     const p1 = s.state.players[1]!;
 
-    await (
-      s.engine as unknown as {
-        fireTimingForInstance: (t: EffectTiming, id: string) => Promise<void>;
-      }
-    ).fireTimingForInstance(EffectTiming.SecuritySkill, optionId);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("highDp").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => p0.hand.some((c) => c.instanceId === optionId));
 
     // The lowest-DP opponent Digimon was deleted; the higher-DP one survives.

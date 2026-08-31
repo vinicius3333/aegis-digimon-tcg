@@ -448,22 +448,36 @@ export function ex4CardBehaviorTests(cardId: string): void {
         return;
       case "EX4-068":
         s = setupEngine(
-          defaultSetup(cardId, {
-            battleArea: [{ card: "BT1-064", as: "green" }],
-            hand: [{ card: cardId, as: "subject" }],
-          }),
+          defaultSetup(
+            cardId,
+            {
+              battleArea: [
+                { card: "BT1-064", as: "green" },
+                { card: "BT1-009", as: "red" },
+                { card: "BT1-031", as: "blue" },
+                { card: "BT1-029", as: "yellow" },
+              ],
+              hand: [{ card: cardId, as: "subject" }],
+            },
+            { battleArea: [{ card: "BT1-013", as: "target", dp: 30000 }] },
+          ),
           commonOptions,
         );
         await s.ready();
         await playSubject(s);
-        expect(s.state.players[1]!.battleArea).toHaveLength(1);
-        expect(s.state.players[1]!.battleArea[0]!.topCard?.cardId).toBe("BT1-013");
+        expect(s.perm("target").currentDP).toBe(6000);
         return;
       case "EX4-069":
         s = setupEngine(
           defaultSetup(
             cardId,
-            { battleArea: [{ card: "BT10-058", as: "black" }], hand: [{ card: cardId, as: "subject" }] },
+            {
+              battleArea: [
+                { card: "BT10-058", as: "ownHigh", dp: 5000 },
+                { card: "BT1-064", as: "ownLow", dp: 3000 },
+              ],
+              hand: [{ card: cardId, as: "subject" }],
+            },
             {
               battleArea: [
                 { card: "AD1-025", as: "high", dp: 3000 },
@@ -475,6 +489,8 @@ export function ex4CardBehaviorTests(cardId: string): void {
         );
         await s.ready();
         await playSubject(s);
+        expect(s.state.players[0]!.battleArea).toHaveLength(1);
+        expect(s.state.players[0]!.battleArea[0]!.topCard?.cardId).toBe("BT10-058");
         expect(s.state.players[1]!.battleArea).toHaveLength(1);
         expect(s.state.players[1]!.battleArea[0]!.topCard?.cardId).toBe("AD1-025");
         return;
@@ -541,6 +557,510 @@ export function ex4CardBehaviorTests(cardId: string): void {
         return;
       default:
         throw new Error(`No EX4 behavioral case for ${cardId}`);
+    }
+  });
+  it(`${cardId} resolves its secondary printed clause`, async () => {
+    let s: BehaviorState;
+    switch (cardId) {
+      case "EX4-036": {
+        s = setupEngine(
+          defaultSetup(cardId, {
+            battleArea: [
+              { card: "BT1-010", as: "host", under: [cardId] },
+              { card: "BT1-064", as: "ally" },
+            ],
+          }),
+          commonOptions,
+        );
+        await s.ready();
+        expect(
+          observe(s.engine).subscriptions("whenEffectSuspends", s.perm("host").permanentId).length,
+        ).toBeGreaterThan(0);
+        await advance(s.engine).verb.suspend([s.perm("low").permanentId], 0);
+        await settle(() => observe(s.engine).hasPierce(s.perm("host")));
+        expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(true);
+        return;
+      }
+      case "EX4-037": {
+        s = setupEngine(
+          defaultSetup(cardId, {
+            battleArea: [
+              { card: cardId, as: "host", suspended: true },
+              { card: "EX4-037", as: "ally" },
+            ],
+          }),
+          commonOptions,
+        );
+        await s.ready();
+        await advance(s.engine).verb.suspend([s.perm("ally").permanentId], 0);
+        expect(s.perm("host").isSuspended).toBe(false);
+        return;
+      }
+      case "EX4-038":
+      case "EX4-039": {
+        s = setupEngine(
+          defaultSetup(cardId, {
+            battleArea: [
+              { card: "BT1-010", as: "host", under: [cardId] },
+              { card: "BT1-010", as: "evoTarget" },
+            ],
+            hand: [{ card: "BT1-015", as: "evolution" }],
+          }),
+          commonOptions,
+        );
+        s.state.memory = 10;
+        await s.ready();
+        expect(
+          s.engine.applyIntent(0, {
+            type: "digivolve",
+            permanentId: s.perm("evoTarget").permanentId,
+            instanceId: s.inst("evolution").instanceId,
+          }),
+        ).toEqual({ ok: true });
+        await settle(() => s.perm("evoTarget").topCard?.cardId === "BT1-015");
+        expect(s.state.memory).toBe(9);
+        return;
+      }
+      case "EX4-040": {
+        s = setupEngine(
+          defaultSetup(cardId, { battleArea: [{ card: cardId, as: "host" }], deck: ["EX4-021"] }),
+          commonOptions,
+        );
+        await s.ready();
+        await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
+        expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("EX4-021");
+        return;
+      }
+      case "EX4-041": {
+        s = setupEngine(
+          defaultSetup(cardId, { battleArea: [{ card: cardId, as: "host" }], deck: ["EX4-021"] }),
+          commonOptions,
+        );
+        await s.ready();
+        await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
+        expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("EX4-021");
+        s = setupEngine(
+          defaultSetup(cardId, { battleArea: [{ card: "BT1-010", as: "host", under: [cardId] }] }),
+          commonOptions,
+        );
+        await s.ready();
+        await advance(s.engine).fireForPermanent(EffectTiming.None, s.perm("host"));
+        expect(s.perm("host").currentDP).toBe(3000);
+        return;
+      }
+      case "EX4-042": {
+        s = setupEngine(
+          defaultSetup(cardId, {
+            battleArea: [
+              { card: cardId, as: "host" },
+              { card: "EX4-021", as: "knight" },
+            ],
+          }),
+          commonOptions,
+        );
+        await s.ready();
+        expect(observe(s.engine).isRestricted(s.perm("knight"), "cantBeBlocked")).toBe(true);
+        return;
+      }
+      case "EX4-043": {
+        s = setupEngine(
+          defaultSetup(cardId, {
+            battleArea: [
+              { card: cardId, as: "subject" },
+              { card: "BT1-010", as: "other" },
+            ],
+            hand: [{ card: "BT1-015", as: "evolution" }],
+          }),
+          commonOptions,
+        );
+        s.state.memory = 10;
+        await s.ready();
+        await fire(s, EffectTiming.WhenDigivolving, "subject");
+        expect(s.perm("other").topCard?.cardId).toBe("BT1-015");
+        return;
+      }
+      case "EX4-044": {
+        const preferredIds44: string[] = [];
+        s = setupEngine(
+          defaultSetup(cardId, {
+            battleArea: [
+              { card: cardId, as: "subject" },
+              { card: "BT1-031", as: "other" },
+            ],
+            hand: [{ card: "BT1-036", as: "evolution" }],
+          }),
+          { ...commonOptions, preferInstanceIds: preferredIds44 },
+        );
+        preferredIds44.push(s.perm("other").topCard!.instanceId, s.inst("evolution").instanceId);
+        s.state.memory = 10;
+        await s.ready();
+        await fire(s, EffectTiming.WhenDigivolving, "subject");
+        expect(s.perm("other").topCard?.cardId).toBe("BT1-036");
+        return;
+      }
+      case "EX4-045":
+      case "EX4-046": {
+        s = setupEngine(
+          defaultSetup(
+            cardId,
+            { battleArea: [{ card: "BT1-010", as: "host", dp: 12000, under: [cardId] }], security: ["BT1-001"] },
+            { battleArea: [{ card: "BT1-010", as: "attacker", dp: 3000 }], security: ["BT1-001"] },
+          ),
+          commonOptions,
+        );
+        s.state.turnSeat = 1;
+        await s.ready();
+        expect(
+          s.engine.applyIntent(1, {
+            type: "attack",
+            attackerPermanentId: s.perm("attacker").permanentId,
+            target: { kind: "player" },
+          }),
+        ).toEqual({ ok: true });
+        await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+        expect(s.perm("host").isSuspended).toBe(true);
+        return;
+      }
+      case "EX4-047": {
+        s = setupEngine(
+          defaultSetup(cardId, {
+            battleArea: [{ card: cardId, as: "host" }],
+            deck: ["EX4-021", "BT10-056"],
+          }),
+          commonOptions,
+        );
+        await s.ready();
+        await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
+        expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("EX4-021");
+        return;
+      }
+      case "EX4-048": {
+        s = setupEngine(
+          defaultSetup(cardId, {
+            battleArea: [
+              { card: cardId, as: "host" },
+              { card: "EX4-062", as: "tamer" },
+            ],
+            hand: [{ card: "BT9-068", as: "gaiomon" }],
+          }),
+          commonOptions,
+        );
+        s.state.memory = 10;
+        await s.ready();
+        await fire(s, EffectTiming.EndOfYourTurn, "host");
+        expect(s.perm("host").topCard?.cardId).toBe("BT9-068");
+        return;
+      }
+      case "EX4-049": {
+        const preferredIds49: string[] = [];
+        s = setupEngine(
+          defaultSetup(
+            cardId,
+            {
+              battleArea: [
+                { card: cardId, as: "host" },
+                { card: "BT1-010", as: "other" },
+              ],
+              hand: [{ card: "BT1-015", as: "greymon" }],
+            },
+            { battleArea: [] },
+          ),
+          { ...commonOptions, preferInstanceIds: preferredIds49, preferOptionIndex: 1 },
+        );
+        preferredIds49.push(s.perm("other").topCard!.instanceId, s.inst("greymon").instanceId);
+        await s.ready();
+        await fire(s, EffectTiming.WhenDigivolving, "host");
+        expect(s.perm("other").topCard?.cardId).toBe("BT1-015");
+        return;
+      }
+      case "EX4-050": {
+        s = setupEngine(
+          defaultSetup(
+            cardId,
+            { battleArea: [{ card: cardId, as: "host" }], security: ["BT1-001", "BT1-002"] },
+            { battleArea: [{ card: "BT1-015", as: "target", under: ["BT1-010"] }], security: ["BT1-001", "BT1-002"] },
+          ),
+          commonOptions,
+        );
+        s.state.turnSeat = 1;
+        await s.ready();
+        await advance(s.engine).verb.trashFromSecurity(0, 1);
+        expect(s.perm("target").stack).toHaveLength(0);
+        return;
+      }
+      case "EX4-051": {
+        s = setupEngine(
+          defaultSetup(
+            cardId,
+            {
+              battleArea: [{ card: "EX4-060", as: "host", under: [cardId] }],
+              security: ["BT1-001", "BT1-002", "BT1-003"],
+            },
+            {
+              security: ["BT1-001", "BT1-002", "BT1-003"],
+            },
+          ),
+          commonOptions,
+        );
+        await s.ready();
+        await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), {
+          attackerPermanentId: s.perm("host").permanentId,
+        });
+        expect(s.state.players[1]!.security.length).toBe(2);
+        return;
+      }
+      case "EX4-053":
+      case "EX4-055": {
+        s = setupEngine(
+          defaultSetup(
+            cardId,
+            {
+              battleArea: [{ card: "BT1-010", as: "host", under: [cardId] }],
+            },
+            { hand: ["BT1-001"] },
+          ),
+          commonOptions,
+        );
+        await s.ready();
+        await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
+        expect(s.state.players[1]!.hand).toHaveLength(0);
+        expect(s.state.players[1]!.trash).toHaveLength(1);
+        return;
+      }
+      case "EX4-054":
+      case "EX4-057": {
+        s = setupEngine(
+          defaultSetup(cardId, {
+            battleArea: [
+              { card: "BT1-010", as: "host", under: [cardId] },
+              { card: "BT1-064", as: "ally", suspended: true },
+            ],
+            trash: ["BT1-064"],
+          }),
+          commonOptions,
+        );
+        await s.ready();
+        await advance(s.engine).fireForPermanent(EffectTiming.OnEndAttack, s.perm("host"));
+        expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-064");
+        return;
+      }
+      case "EX4-056": {
+        s = setupEngine(
+          defaultSetup(
+            cardId,
+            { battleArea: [{ card: "BT1-010", as: "host", under: [cardId] }] },
+            {
+              battleArea: [{ card: "BT1-013", as: "victim", dp: 7000 }],
+            },
+          ),
+          commonOptions,
+        );
+        await s.ready();
+        await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
+        expect(s.state.players[1]!.battleArea).toHaveLength(0);
+        return;
+      }
+      case "EX4-058": {
+        s = setupEngine(
+          defaultSetup(cardId, { battleArea: [{ card: cardId, as: "host" }] }, { hand: Array(8).fill("BT1-001") }),
+          commonOptions,
+        );
+        await s.ready();
+        await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
+        expect(s.state.players[1]!.hand).toHaveLength(7);
+        expect(s.state.players[1]!.trash).toHaveLength(1);
+        return;
+      }
+      case "EX4-060": {
+        s = setupEngine(
+          defaultSetup(cardId, {}, { battleArea: [{ card: "AD1-025", as: "high", dp: 15000 }] }),
+          commonOptions,
+        );
+        await s.ready();
+        await fire(s, EffectTiming.WhenDigivolving);
+        expect(s.state.players[1]!.battleArea).toHaveLength(0);
+        expect(s.state.players[1]!.deck.map((card) => card.cardId)).toContain("AD1-025");
+        return;
+      }
+      case "EX4-061":
+      case "EX4-063":
+      case "EX4-064": {
+        s = setupEngine(
+          defaultSetup(cardId, {
+            battleArea: [{ card: "BT1-064", as: "ally" }],
+            security: [{ card: cardId, as: "security", faceUp: true }],
+          }),
+          commonOptions,
+        );
+        await s.ready();
+        await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("security"));
+        expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === cardId)).toBe(true);
+        return;
+      }
+      case "EX4-065": {
+        s = setupEngine(
+          defaultSetup(
+            cardId,
+            {
+              security: [{ card: cardId, as: "security", faceUp: true }],
+            },
+            {
+              battleArea: [
+                { card: "AD1-025", as: "high", dp: 15000 },
+                { card: "BT1-009", as: "low", dp: 3000 },
+              ],
+              security: ["BT1-001", "BT1-002"],
+            },
+          ),
+          commonOptions,
+        );
+        await s.ready();
+        await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("security"));
+        expect(s.state.players[1]!.battleArea).toHaveLength(1);
+        expect(s.state.players[1]!.security).toHaveLength(1);
+        return;
+      }
+      case "EX4-066": {
+        s = setupEngine(
+          defaultSetup(cardId, {
+            security: [{ card: cardId, as: "security", faceUp: true }],
+            hand: [{ card: "BT1-010", as: "agumon" }],
+          }),
+          commonOptions,
+        );
+        await s.ready();
+        await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("security"));
+        expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain(cardId);
+        expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-010")).toBe(true);
+        return;
+      }
+      case "EX4-067": {
+        s = setupEngine(
+          defaultSetup(
+            cardId,
+            {
+              battleArea: [{ card: "BT10-071", as: "purple" }],
+              security: [{ card: cardId, as: "security", faceUp: true }],
+            },
+            {
+              battleArea: [
+                { card: "BT1-009", as: "low", dp: 3000 },
+                { card: "AD1-025", as: "high", dp: 15000 },
+              ],
+              hand: Array(8).fill("BT1-001"),
+            },
+          ),
+          commonOptions,
+        );
+        await s.ready();
+        await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("security"));
+        expect(s.state.players[1]!.battleArea).toHaveLength(0);
+        expect(s.state.players[1]!.hand.length).toBe(9);
+        expect(s.state.players[1]!.deck.map((card) => card.cardId)).toContain("AD1-025");
+        return;
+      }
+      case "EX4-069": {
+        s = setupEngine(
+          defaultSetup(
+            cardId,
+            { security: [{ card: cardId, as: "security", faceUp: true }] },
+            {
+              battleArea: [
+                { card: "BT1-009", as: "low", dp: 3000 },
+                { card: "AD1-025", as: "high", dp: 15000 },
+              ],
+            },
+          ),
+          commonOptions,
+        );
+        await s.ready();
+        await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("security"));
+        expect(s.state.players[1]!.battleArea).toHaveLength(1);
+        expect(s.state.players[1]!.battleArea[0]!.topCard?.cardId).toBe("AD1-025");
+        return;
+      }
+      case "EX4-068": {
+        s = setupEngine(
+          defaultSetup(
+            cardId,
+            { security: [{ card: cardId, as: "security", faceUp: true }] },
+            {
+              battleArea: [{ card: "AD1-025", as: "victim", dp: 15000 }],
+            },
+          ),
+          commonOptions,
+        );
+        await s.ready();
+        await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("security"));
+        expect(s.perm("victim").currentDP).toBe(3000);
+        return;
+      }
+      case "EX4-070":
+      case "EX4-071": {
+        s = setupEngine(
+          defaultSetup(
+            cardId,
+            { security: [{ card: cardId, as: "security", faceUp: true }] },
+            {
+              battleArea: [
+                { card: "BT1-009", as: "low", dp: 3000 },
+                { card: "AD1-025", as: "high", dp: 15000 },
+              ],
+            },
+          ),
+          commonOptions,
+        );
+        await s.ready();
+        await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("security"));
+        if (cardId === "EX4-070") {
+          expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === cardId)).toBe(true);
+        } else {
+          expect(s.state.players[1]!.battleArea).toHaveLength(1);
+          expect(s.state.players[1]!.battleArea[0]!.topCard?.cardId).toBe("AD1-025");
+        }
+        return;
+      }
+      case "EX4-072": {
+        s = setupEngine(
+          defaultSetup(cardId, { security: [{ card: cardId, as: "security", faceUp: true }], trash: ["BT1-064"] }),
+          commonOptions,
+        );
+        await s.ready();
+        await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("security"));
+        expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(
+          expect.arrayContaining([cardId, "BT1-064"]),
+        );
+        return;
+      }
+      case "EX4-073": {
+        s = setupEngine(
+          defaultSetup(
+            cardId,
+            {
+              battleArea: [{ card: cardId, as: "host", under: ["EX4-060", "BT1-084", "AD1-025"] }],
+              security: ["BT1-001", "BT1-002", "BT1-003"],
+            },
+            {
+              battleArea: [
+                { card: "BT1-009", as: "low", dp: 3000 },
+                { card: "BT1-013", as: "high", dp: 7000 },
+                { card: "BT1-064", as: "third", dp: 4000 },
+              ],
+              security: ["BT1-001", "BT1-002", "BT1-003"],
+            },
+          ),
+          commonOptions,
+        );
+        await s.ready();
+        await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), {
+          attackerPermanentId: s.perm("host").permanentId,
+        });
+        expect(s.state.players[1]!.battleArea).toHaveLength(0);
+        expect(s.state.players[1]!.security).toHaveLength(1);
+        return;
+      }
+      default:
+        return;
     }
   });
 }

@@ -22,15 +22,11 @@ describe("P-166 Galemon", () => {
         condition: { kind: "isYourTurn" },
         into: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Bird", "Avian"], match: "trait" }] },
       });
-      expect(effect.actions[2]).toMatchObject({
-        kind: "Replacement",
-        event: "wouldDigivolve",
-        mode: "reduceCost",
-        amount: 1,
-        scaling: {
+      expect(effect.actions[1]).toMatchObject({
+        reduceCostScaling: {
           per: 1,
           unit: "cards",
-          filter: { controllerDefault: "mine", excludeSelf: true, suspended: true, kind: ["Digimon"] },
+          filter: { controller: "any", excludeSelf: true, suspended: true, kind: ["Digimon"] },
         },
       });
     }
@@ -48,6 +44,24 @@ describe("P-166 Galemon", () => {
     );
   });
 
+  it("applies inherited +2000 DP to a real host only during its owner's turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-064", as: "host", under: ["P-166"] }] },
+    });
+    const baseDP = s.perm("host").baseDP;
+    await s.ready();
+
+    expect(s.perm("host").currentDP).toBe(baseDP + 2000);
+
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+    expect(s.perm("host").currentDP).toBe(baseDP);
+
+    s.state.turnSeat = 0;
+    await s.engine.recomputeContinuousEffects();
+    expect(s.perm("host").currentDP).toBe(baseDP + 2000);
+  });
+
   it("suspends one Digimon on play when the optional first clause is accepted", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -63,4 +77,43 @@ describe("P-166 Galemon", () => {
     await settle();
     expect(s.perm("target").isSuspended).toBe(true);
   });
+
+  it.each([0, 1, 2])(
+    "digivolves into an Avian and reduces its cost for %s other suspended Digimon",
+    async (suspendedHelpers) => {
+      const preferred: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            hand: [
+              { card: "P-166", as: "galemon" },
+              { card: "BT5-053", as: "bird" },
+            ],
+            battleArea: Array.from({ length: suspendedHelpers }, (_, index) => ({
+              card: "BT1-064",
+              as: `helper-${index}`,
+              suspended: true,
+            })),
+          },
+          1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      );
+      const targetPermanentId = s.perm("target").permanentId;
+      preferred.push(s.perm("target").topCard!.instanceId);
+      await s.ready();
+      s.state.memory = 10;
+      const playResult = s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("galemon").instanceId });
+      expect(playResult).toEqual({ ok: true });
+      await settle(() => s.perm("galemon").topCard.cardId === "BT5-053");
+      const target = s.state.players[1]!.battleArea.find((permanent) => permanent.permanentId === targetPermanentId);
+      expect(target).toBeDefined();
+      expect(target!.isSuspended).toBe(true);
+      expect(s.perm("galemon").topCard.cardId).toBe("BT5-053");
+      // P-166 costs 4 to play; Deramon costs 3 to evolve, reduced once per
+      // The optional first clause suspends the opponent's target; all other suspended Digimon
+      // (on either side) reduce this effect's digivolution cost.
+      expect(s.state.memory).toBe(4 + suspendedHelpers);
+    },
+  );
 });

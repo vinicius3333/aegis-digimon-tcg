@@ -3,6 +3,29 @@ import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harne
 import "./P-109.js";
 
 describe("P-109 Imperialdramon: Dragon Mode", () => {
+  it("resolves the same suspend/unsuspend sequence on When Digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST9-05", as: "base" }], hand: [{ card: "P-109", as: "dragon" }] },
+        1: { battleArea: [{ card: "BT1-010", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("dragon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "P-109");
+    await settle();
+    expect(s.perm("target").isSuspended).toBe(false);
+    assertNoLoudGap(s);
+  });
+
   it("suspends then unsuspends a Digimon on play and may play a small card", async () => {
     const s = setupEngine(
       {

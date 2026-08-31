@@ -104,6 +104,7 @@ const compiled: CompiledCard = {
             nameOrTrait: [{ tokens: ["LIBERATOR"], match: "trait" }],
           },
           from: ["hand"],
+          payCost: true,
           reduceCost: 3,
           optional: true,
         },

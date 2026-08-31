@@ -56,4 +56,17 @@ describe("P-198 DemiDevimon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("discarded").instanceId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
   });
+
+  it("free-digivolves into a qualifying Fallen Angel/TS card at the four-memory boundary", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "P-198", as: "demidevimon" }], hand: [{ card: "P-194", as: "aegio" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("demidevimon"));
+    await settle(() => s.perm("demidevimon").topCard.instanceId === s.inst("aegio").instanceId);
+    expect(s.perm("demidevimon").topCard.instanceId).toBe(s.inst("aegio").instanceId);
+    expect(s.state.memory).toBe(4);
+  });
 });

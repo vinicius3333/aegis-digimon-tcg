@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX4-014.js";
+import "../BT10/BT10-024.js";
 import "../index.js";
 
 describe("EX4-014 Gaossmon", () => {
@@ -28,22 +28,104 @@ describe("EX4-014 Gaossmon", () => {
     });
   });
 
-  it("draws when an opponent's Blue Flare card is played during your turn", async () => {
+  it("draws when a Blue Flare card is played during your turn", async () => {
     const s = setupEngine(
       {
-        0: { deck: ["BT1-010", "BT1-011"], battleArea: [{ card: "EX4-014", as: "gaossmon" }] },
-        1: { battleArea: [{ card: "BT10-018", as: "blueFlare" }] },
+        0: {
+          deck: ["BT1-010", "BT1-011"],
+          battleArea: [{ card: "EX4-014", as: "gaossmon" }],
+          hand: [{ card: "BT10-018", as: "blueFlare" }],
+        },
       },
       { autoSelectCards: true },
     );
     s.state.turnSeat = 0;
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fireForPermanent("None" as never, s.perm("gaossmon"));
-
-    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("blueFlare").permanentId });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blueFlare").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.length === 1);
 
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[0]!.deck).toHaveLength(1);
+  });
+
+  it("returns a DigiXros Digimon when a Twilight card is played during your turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX4-014", as: "gaossmon" }],
+          hand: [{ card: "BT10-058", as: "twilight" }],
+          deck: ["BT10-061", "BT10-066", "BT10-062", "BT10-064"],
+          trash: [{ card: "BT10-024", as: "xrosCard" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    s.state.turnSeat = 0;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("twilight").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT10-058"));
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("xrosCard").instanceId));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("xrosCard").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("xrosCard").instanceId)).toBe(false);
+  });
+
+  it("resolves both clauses for one dual-trait play, then blocks each later separate trigger (Q3454/Q3456)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          deck: ["BT1-001", "BT1-002", "BT1-003"],
+          battleArea: [{ card: "EX4-014", as: "gaossmon" }],
+          hand: [
+            { card: "EX4-021", as: "dualTrait" },
+            { card: "BT10-018", as: "singleTrait" },
+            { card: "BT14-057", as: "twilightTrait" },
+          ],
+          trash: [
+            { card: "BT10-024", as: "xrosCard" },
+            { card: "BT10-024", as: "xrosCardSecond" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponentTarget" }], security: 5 },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 20;
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dualTrait").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("xrosCard").instanceId));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("xrosCard").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("xrosCardSecond").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("singleTrait").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("singleTrait").instanceId),
+    );
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("twilightTrait").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("twilightTrait").instanceId),
+    );
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("xrosCardSecond").instanceId)).toBe(
+      true,
+    );
   });
 });

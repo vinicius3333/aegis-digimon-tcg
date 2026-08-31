@@ -43,6 +43,8 @@ export interface LinkAction extends ActionBase {
    * ("to this Digimon").
    */
   recipient?: Target;
+  /** Bind the selected recipient permanent for downstream relative filters in this effect. */
+  bindRecipientAs?: string;
   /**
    * Some card effects explicitly link to a Digimon "on the field", which includes the
    * breeding area (BT24-097 Q5707). Normal Link declarations must leave this false.

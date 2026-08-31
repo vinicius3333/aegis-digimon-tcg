@@ -11,20 +11,27 @@ describe("ST14-11 Ai & Mako", () => {
         0: {
           battleArea: [
             { card: "ST14-11", as: "tamer" },
-            { card: "BT12-085", as: "purple" },
+            { card: "ST14-03", as: "purple" },
           ],
-          hand: [{ card: "BT1-009", as: "cost-card" }],
+          hand: [
+            { card: "ST14-05", as: "evolver" },
+            { card: "BT1-009", as: "cost-card" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 0;
-    await advance(s.engine).fireSubTrigger("whenOneOfYoursDigivolves", {
-      subjectPermanentId: s.perm("purple").permanentId,
-    });
-    await settle(() => s.state.memory === 1 && s.state.players[0]!.hand.length === 0);
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("purple").permanentId,
+        instanceId: s.inst("evolver").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length === 0);
     expect(s.perm("tamer").isSuspended).toBe(true);
-    expect(s.state.memory).toBe(1);
+    expect(s.state.memory).toBe(9);
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.deck[0]!.instanceId).toBe(s.inst("cost-card").instanceId);
   });
@@ -35,19 +42,25 @@ describe("ST14-11 Ai & Mako", () => {
         0: {
           battleArea: [
             { card: "ST14-11", as: "tamer" },
-            { card: "BT12-085", as: "purple" },
+            { card: "ST14-03", as: "purple" },
           ],
+          hand: [{ card: "ST14-05", as: "evolver" }],
         },
       },
       { autoAcceptOptional: true },
     );
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenOneOfYoursDigivolves", {
-      subjectPermanentId: s.perm("purple").permanentId,
-    });
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("purple").permanentId,
+        instanceId: s.inst("evolver").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle();
     expect(s.perm("tamer").isSuspended).toBe(true);
-    expect(s.state.memory).toBe(1);
+    expect(s.state.memory).toBe(9);
   });
 
   it("reveals four on play and adds one Evil Digimon", async () => {

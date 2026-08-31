@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./P-182.js";
 
@@ -49,5 +51,32 @@ describe("P-182 WarGreymon", () => {
     await s.ready();
     expect(observe(s.engine).keywordAmount(s.perm("wargrey"), "SecurityAttack")).toBe(1);
     expect(observe(s.engine).hasKeyword(s.perm("wargrey"), "Blocker")).toBe(true);
+  });
+
+  it("deletes only an opposing Digimon at or below its DP and counts distinct allied colors", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-182", dp: 10000, as: "wargrey" },
+            { card: "P-016", as: "purple" },
+            { card: "BT1-063", as: "yellow" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", dp: 10000, as: "equal" },
+            { card: "BT1-009", dp: 11000, as: "over" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("wargrey"));
+    await settle();
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("equal").instanceId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("over").instanceId)).toBe(true);
+    expect(s.perm("wargrey").currentDP).toBe(13000);
   });
 });
