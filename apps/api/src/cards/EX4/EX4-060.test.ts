@@ -59,6 +59,7 @@ describe("EX4-060 Omnimon Alter-S", () => {
   it("deletes an opposing Digimon at 8000 DP or less and returns a level six opponent to deck bottom", async () => {
     const self = {
       permanentId: "self",
+      controllerSeat: 0,
       topCard: card("EX4-060", 0),
       stack: [],
       linked: [],
@@ -68,6 +69,7 @@ describe("EX4-060 Omnimon Alter-S", () => {
     } as unknown as Permanent;
     const low = {
       permanentId: "low",
+      controllerSeat: 1,
       topCard: card("LOW", 1),
       stack: [],
       linked: [],
@@ -77,6 +79,7 @@ describe("EX4-060 Omnimon Alter-S", () => {
     } as unknown as Permanent;
     const high = {
       permanentId: "high",
+      controllerSeat: 1,
       topCard: card("HIGH", 1),
       stack: [],
       linked: [],
@@ -132,6 +135,7 @@ describe("EX4-060 Omnimon Alter-S", () => {
   it("plays both named evolution cards when possible and places itself face-down in security", async () => {
     const self = {
       permanentId: "self",
+      controllerSeat: 0,
       topCard: card("EX4-060", 0),
       stack: [card("BLITZ", 0), card("CRES", 0)],
       linked: [],

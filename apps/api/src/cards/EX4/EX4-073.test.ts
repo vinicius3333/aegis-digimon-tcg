@@ -68,6 +68,7 @@ describe("EX4-073 Omnimon Alter-B", () => {
     });
     const self = {
       permanentId: "self",
+      controllerSeat: 0,
       topCard: card("EX4-073", 0),
       stack: [card("L6A", 0), card("L6B", 0), card("L6C", 0)],
       linked: [],
@@ -78,6 +79,7 @@ describe("EX4-073 Omnimon Alter-B", () => {
       (id) =>
         ({
           permanentId: id,
+          controllerSeat: 1,
           topCard: card(id, 1),
           stack: [],
           linked: [],

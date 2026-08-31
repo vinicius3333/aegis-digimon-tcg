@@ -16,7 +16,7 @@ describe("EX4-062 DigiXros source-zone expansion (trash, [Blue Flare] gate)", ()
     expect(runtimeCompiledCard("EX4-062")).toMatchObject({ coverage: "full", residual: [] });
     expect(runtimeCompiledCard("EX4-062")?.effects?.[2]?.actions?.[0]).toMatchObject({
       kind: "DigiXrosMaterialZoneExpansion",
-      zones: ["tamerCards", "trash"],
+      zones: ["underTamers", "trash"],
       cost: { kind: "suspend" },
     });
   });

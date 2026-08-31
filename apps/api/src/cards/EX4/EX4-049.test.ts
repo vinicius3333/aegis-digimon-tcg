@@ -41,6 +41,7 @@ describe("EX4-049 CresGarurumon", () => {
     const selfCard = instance("EX4-049", 0);
     const self = {
       permanentId: "self",
+      controllerSeat: 0,
       topCard: selfCard,
       stack: [],
       linked: [],
@@ -49,6 +50,7 @@ describe("EX4-049 CresGarurumon", () => {
     } as unknown as Permanent;
     const first = {
       permanentId: "first",
+      controllerSeat: 1,
       topCard: instance("FIRST", 1),
       stack: [],
       linked: [],
@@ -57,6 +59,7 @@ describe("EX4-049 CresGarurumon", () => {
     } as unknown as Permanent;
     const second = {
       permanentId: "second",
+      controllerSeat: 1,
       topCard: instance("SECOND", 1),
       stack: [],
       linked: [],
@@ -113,6 +116,7 @@ describe("EX4-049 CresGarurumon", () => {
     const selfCard = instance("EX4-049", 0);
     const self = {
       permanentId: "self",
+      controllerSeat: 0,
       topCard: selfCard,
       stack: [],
       linked: [],
@@ -121,6 +125,7 @@ describe("EX4-049 CresGarurumon", () => {
     } as unknown as Permanent;
     const target = {
       permanentId: "target",
+      controllerSeat: 0,
       topCard: instance("BASE", 0),
       stack: [],
       linked: [],
@@ -176,6 +181,7 @@ describe("EX4-049 CresGarurumon", () => {
   it("only returns level-five-or-lower opposing Digimon for the inherited Omnimon effect", async () => {
     const self = {
       permanentId: "self",
+      controllerSeat: 0,
       topCard: instance("OMNIMON", 0),
       stack: [],
       linked: [],
@@ -184,6 +190,7 @@ describe("EX4-049 CresGarurumon", () => {
     } as unknown as Permanent;
     const low = {
       permanentId: "low",
+      controllerSeat: 1,
       topCard: instance("LOW", 1),
       stack: [],
       linked: [],
@@ -192,6 +199,7 @@ describe("EX4-049 CresGarurumon", () => {
     } as unknown as Permanent;
     const high = {
       permanentId: "high",
+      controllerSeat: 1,
       topCard: instance("HIGH", 1),
       stack: [],
       linked: [],

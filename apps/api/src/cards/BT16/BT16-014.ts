@@ -28,6 +28,9 @@ const compiled: CompiledCard = {
               // "use 1 [God Flame] or 1 Option card with the [Four Great Dragons] trait":
               // naming Option is what routes this through the USE path rather than a play.
               kind: ["Option"],
+              // This clause has no printed play-cost ceiling; the high-cost Trial of the Four
+              // Great Dragons (EX3-069, cost 8) is a legal target.
+              playCostLte: 99,
               nameOrTrait: [
                 { tokens: ["God Flame"], match: "name" },
                 { tokens: ["Four Great Dragons"], match: "trait" },
@@ -52,6 +55,9 @@ const compiled: CompiledCard = {
               // "use 1 [God Flame] or 1 Option card with the [Four Great Dragons] trait":
               // naming Option is what routes this through the USE path rather than a play.
               kind: ["Option"],
+              // This clause has no printed play-cost ceiling; the high-cost Trial of the Four
+              // Great Dragons (EX3-069, cost 8) is a legal target.
+              playCostLte: 99,
               nameOrTrait: [
                 { tokens: ["God Flame"], match: "name" },
                 { tokens: ["Four Great Dragons"], match: "trait" },

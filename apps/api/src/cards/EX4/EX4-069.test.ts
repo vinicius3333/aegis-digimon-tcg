@@ -37,6 +37,7 @@ describe("EX4-069 Gaia Reactor", () => {
   it("deletes every Digimon except one highest-play-cost Digimon per player", async () => {
     const self = {
       permanentId: "self",
+      controllerSeat: 0,
       topCard: card("EX4-069", 0),
       stack: [],
       linked: [],
@@ -45,6 +46,7 @@ describe("EX4-069 Gaia Reactor", () => {
     } as unknown as Permanent;
     const ownHigh = {
       permanentId: "ownHigh",
+      controllerSeat: 0,
       topCard: card("OWN-HIGH", 0),
       stack: [],
       linked: [],
@@ -53,6 +55,7 @@ describe("EX4-069 Gaia Reactor", () => {
     } as unknown as Permanent;
     const ownLow = {
       permanentId: "ownLow",
+      controllerSeat: 0,
       topCard: card("OWN-LOW", 0),
       stack: [],
       linked: [],
@@ -61,6 +64,7 @@ describe("EX4-069 Gaia Reactor", () => {
     } as unknown as Permanent;
     const oppHigh = {
       permanentId: "oppHigh",
+      controllerSeat: 1,
       topCard: card("OPP-HIGH", 1),
       stack: [],
       linked: [],
@@ -69,6 +73,7 @@ describe("EX4-069 Gaia Reactor", () => {
     } as unknown as Permanent;
     const oppLow = {
       permanentId: "oppLow",
+      controllerSeat: 1,
       topCard: card("OPP-LOW", 1),
       stack: [],
       linked: [],
@@ -120,6 +125,7 @@ describe("EX4-069 Gaia Reactor", () => {
   it("runs the same deletion effect when revealed in security", async () => {
     const self = {
       permanentId: "self",
+      controllerSeat: 0,
       topCard: card("EX4-069", 0),
       stack: [],
       linked: [],
@@ -128,6 +134,7 @@ describe("EX4-069 Gaia Reactor", () => {
     } as unknown as Permanent;
     const survivor = {
       permanentId: "survivor",
+      controllerSeat: 0,
       topCard: card("SURVIVOR", 0),
       stack: [],
       linked: [],
@@ -136,6 +143,7 @@ describe("EX4-069 Gaia Reactor", () => {
     } as unknown as Permanent;
     const victim = {
       permanentId: "victim",
+      controllerSeat: 0,
       topCard: card("VICTIM", 0),
       stack: [],
       linked: [],

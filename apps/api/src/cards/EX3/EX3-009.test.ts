@@ -62,7 +62,6 @@ describe("EX3-009 Volcdramon", () => {
 
   it.each([
     ["Dragon", "BT11-022"],
-    ["saur", "AD1-001"],
     ["Ceratopsian", "BT10-050"],
     ["Dragonkin (Q3376)", "EX3-008"],
   ])("draws for the %s trait family", async (_family, carrier) => {

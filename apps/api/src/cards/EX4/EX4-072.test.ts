@@ -34,6 +34,7 @@ describe("EX4-072 Digital Translator", () => {
     const evolution = { cardId: "VARIANT", instanceId: "evolution", ownerSeat: 0, faceUp: true } as CardInstance;
     const permanent = {
       permanentId: "chosen-perm",
+      controllerSeat: 0,
       topCard: chosen,
       stack: [],
       linked: [],

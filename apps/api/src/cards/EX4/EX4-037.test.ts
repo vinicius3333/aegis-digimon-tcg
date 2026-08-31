@@ -38,6 +38,7 @@ describe("EX4-037 BlackMegaGargomon", () => {
   it("offers the end-of-turn Blocker/Reboot effect for two green-and-black Digimon", async () => {
     const self = {
       permanentId: "self",
+      controllerSeat: 0,
       topCard: card("EX4-037"),
       stack: [],
       linked: [],
@@ -46,6 +47,7 @@ describe("EX4-037 BlackMegaGargomon", () => {
     } as unknown as Permanent;
     const first = {
       permanentId: "first",
+      controllerSeat: 0,
       topCard: card("FIRST"),
       stack: [],
       linked: [],
@@ -54,6 +56,7 @@ describe("EX4-037 BlackMegaGargomon", () => {
     } as unknown as Permanent;
     const second = {
       permanentId: "second",
+      controllerSeat: 0,
       topCard: card("SECOND"),
       stack: [],
       linked: [],
