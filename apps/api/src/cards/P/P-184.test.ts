@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./P-184.js";
 
 describe("P-184 Dorugoramon", () => {
@@ -32,5 +36,32 @@ describe("P-184 Dorugoramon", () => {
         },
       ],
     });
+  });
+
+  it("exposes Collision and Security Attack +1 on the live Dorugoramon", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "P-184", as: "doru" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("doru"), "Collision")).toBe(true);
+    expect(observe(s.engine).keywordAmount(s.perm("doru"), "SecurityAttack")).toBe(1);
+  });
+
+  it("boosts DP and unsuspends every allied SoC Digimon when Kosuke is in its stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-184", as: "doru", under: ["BT16-087"] },
+            { card: "BT14-071", suspended: true, as: "soc" },
+          ],
+        },
+        1: { battleArea: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("doru"));
+    await settle();
+    expect(s.perm("doru").currentDP).toBe(15000);
+    expect(s.perm("soc").isSuspended).toBe(false);
   });
 });

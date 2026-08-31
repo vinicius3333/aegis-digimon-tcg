@@ -7,14 +7,8 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
-      actions: [
-        {
-          kind: "GainKeyword",
-          target: self,
-          keyword: { keyword: "Piercing", raw: "＜Piercing＞" },
-          duration: "untilEachTurnEnd",
-        },
-      ],
+      actions: [],
+      keywords: [{ keyword: "Piercing", raw: "＜Piercing＞" }],
     },
     {
       trigger: "WhenDigivolving",

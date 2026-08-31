@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-225.js";
 
 describe("P-225 DigiLab", () => {
@@ -65,5 +68,33 @@ describe("P-225 DigiLab", () => {
       isSecurity: true,
       actions: [{ kind: "PlaceInBattleAreaSelf" }],
     });
+  });
+});
+describe("P-225 engine behavior", () => {
+  it("draws one and places itself in the battle area through Main", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "P-225", as: "lab" }],
+        deck: [{ card: "BT1-001", as: "drawn" }],
+        battleArea: [{ card: "BT22-008", as: "cs" }],
+      },
+    });
+    s.state.memory = 20;
+    await s.ready();
+    const labId = s.inst("lab").instanceId;
+    const drawnId = s.inst("drawn").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: labId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === labId));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === drawnId)).toBe(true);
+  });
+
+  it("places itself in the battle area through Security", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "P-225", as: "option" }] } });
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+    await settle();
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("option").instanceId),
+    ).toBe(true);
   });
 });

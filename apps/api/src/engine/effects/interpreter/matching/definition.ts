@@ -257,21 +257,21 @@ export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean
 }
 
 /**
- * Digi-Burst searches require the card to declare the keyword, not merely mention another
- * Digimon's Digi-Burst in reminder/reaction text (BT4-051 must reject BT4-052). The compiled
- * keyword metadata makes that distinction exactly. Other keyword filters retain their existing
- * printed-text semantics until their search wording is migrated to structured metadata too.
+ * Prefer structured compiled keyword metadata when available, then fall back to printed text.
+ * This preserves keywords stripped by catalog sanitization (Alliance on EX4-031) while keeping
+ * legacy definitions usable. Digi-Burst still requires a declaration rather than a mere mention.
  */
-function definitionHasKeyword(def: DefinitionFacts, keyword: string | { keyword?: string }): boolean {
+export function definitionHasKeyword(def: DefinitionFacts, keyword: string | { keyword?: string }): boolean {
   const requested = (typeof keyword === "string" ? keyword : (keyword.keyword ?? ""))
     .replace(/[^a-z0-9]/gi, "")
     .toLowerCase();
-  if (requested === "digiburst" && def.cardId !== undefined) {
+  if (def.cardId !== undefined) {
     const compiled = runtimeCompiledCard(def.cardId);
     if (compiled !== undefined) {
-      return compiled.effects.some((effect) =>
+      const declared = compiled.effects.some((effect) =>
         (effect.keywords ?? []).some((entry) => entry.keyword.replace(/[^a-z0-9]/gi, "").toLowerCase() === requested),
       );
+      if (declared || requested === "digiburst") return declared;
     }
   }
   return textHasKeyword(def, keyword);

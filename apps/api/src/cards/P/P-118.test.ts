@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "./P-118.js";
 
 describe("P-118 Wormmon", () => {
@@ -18,6 +19,7 @@ describe("P-118 Wormmon", () => {
       { autoSelectCards: true, autoOrderCards: true },
     );
     s.state.memory = 10;
+    await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wormmon").instanceId })).toEqual({
       ok: true,
     });
@@ -29,6 +31,31 @@ describe("P-118 Wormmon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("multicolor").instanceId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("ken").instanceId)).toBe(true);
     expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(s.inst("filler").instanceId);
+    assertNoLoudGap(s);
+  });
+
+  it("uses the inherited End of Your Turn effect for a legal DNA digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-064", as: "host", under: ["P-118"] },
+            { card: "BT3-021", as: "partner" },
+          ],
+          hand: [{ card: "BT12-022", as: "dna" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    await advance(s.engine).runTurn(0);
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("dna").instanceId));
+    const dna = s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === s.inst("dna").instanceId);
+    expect(dna).toBeDefined();
+    expect(dna!.stack.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("host").instanceId, s.inst("partner").instanceId]),
+    );
     assertNoLoudGap(s);
   });
 });

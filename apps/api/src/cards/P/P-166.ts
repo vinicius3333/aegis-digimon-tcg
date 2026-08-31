@@ -41,27 +41,24 @@ const compiled: CompiledCard = {
             ],
           },
           from: ["hand"],
+          payCost: true,
           optional: true,
           condition: {
             kind: "isYourTurn",
             raw: "it's your turn",
           },
-        },
-        {
-          kind: "Replacement",
-          event: "wouldDigivolve",
-          mode: "reduceCost",
-          amount: 1,
-          raw: "reduce this effect's digivolution cost by 1",
-          scaling: {
+          // The reduction applies to this effect's own digivolution. A sibling
+          // wouldDigivolve replacement would only be installed after this action
+          // resolves, so it could never affect the payment.
+          reduceCostScaling: {
             per: 1,
+            unit: "cards",
             filter: {
-              controllerDefault: "mine",
+              controller: "any",
               excludeSelf: true,
               suspended: true,
               kind: ["Digimon"],
             },
-            unit: "cards",
           },
         },
       ],
@@ -100,27 +97,21 @@ const compiled: CompiledCard = {
             ],
           },
           from: ["hand"],
+          payCost: true,
           optional: true,
           condition: {
             kind: "isYourTurn",
             raw: "it's your turn",
           },
-        },
-        {
-          kind: "Replacement",
-          event: "wouldDigivolve",
-          mode: "reduceCost",
-          amount: 1,
-          raw: "reduce this effect's digivolution cost by 1",
-          scaling: {
+          reduceCostScaling: {
             per: 1,
+            unit: "cards",
             filter: {
-              controllerDefault: "mine",
+              controller: "any",
               excludeSelf: true,
               suspended: true,
               kind: ["Digimon"],
             },
-            unit: "cards",
           },
         },
       ],

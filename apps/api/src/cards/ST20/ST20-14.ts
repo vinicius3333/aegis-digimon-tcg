@@ -53,15 +53,12 @@ const compiled: CompiledCard = {
       trigger: "AllTurns",
       actions: [
         {
-          kind: "Replacement",
-          event: "wouldLeavePlay",
+          kind: "SubTrigger",
+          event: "whenDigimonWouldLeave",
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],
-            levelComparison: {
-              op: "gte",
-              value: 5,
-            },
+            levelComparison: { op: "gte", value: 5 },
           },
           actions: [
             {

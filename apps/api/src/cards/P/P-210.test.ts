@@ -47,3 +47,20 @@ describe("P-210 Hiroko Sagisaka", () => {
     });
   });
 });
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+
+describe("P-210 engine behavior", () => {
+  it("gains exactly 1 memory at the start of the main phase with an opposing Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "P-210", as: "hiroko" }] },
+      1: { battleArea: [{ card: "BT1-009" }] },
+    });
+    s.state.memory = 0;
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("hiroko"));
+    await settle();
+    expect(s.state.memory).toBe(1);
+  });
+});

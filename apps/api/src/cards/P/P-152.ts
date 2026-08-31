@@ -47,11 +47,11 @@ const compiled: CompiledCard = {
                   },
                 ],
                 zone: "digivolutionCards",
+                hostFilter: { isSelfRef: true },
               },
               count: 1,
+              from: ["digivolutionCards"],
             },
-            from: ["digivolutionCards"],
-            fromHost: "self",
             raw: "by placing 1 Digimon card with the [Xros Heart] trait in this Digimon's digivolution cards under 1 of your Tamers",
             underFilter: {
               controller: "mine",

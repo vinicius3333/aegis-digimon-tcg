@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { type PlayerState } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
@@ -68,5 +69,29 @@ describe("P-214 [On Play] tuck under a friendly [Seadramon], return a level-boun
         },
       ],
     });
+  });
+});
+
+describe("P-214 Decode engine behavior", () => {
+  it("plays a Betamon from its digivolution cards when it leaves play", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "P-214", under: [{ card: "BT15-022", as: "decoded" }], as: "betamon" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("betamon").permanentId]);
+    await settle();
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("decoded").instanceId)).toBe(
+      true,
+    );
+  });
+
+  it("does not play a non-matching card when Decode leaves play", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "P-214", as: "betamon", under: ["BT1-001"] }] } });
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("betamon").permanentId]);
+    await settle();
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
   });
 });

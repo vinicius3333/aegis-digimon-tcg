@@ -16,6 +16,7 @@ const compiled: CompiledCard = {
           amount: 2,
           cost: {
             kind: "place",
+            faceDown: true,
             target: {
               filter: {
                 controller: "mine",

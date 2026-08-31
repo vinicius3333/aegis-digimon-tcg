@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-150.js";
 
 describe("P-150 Exermon", () => {
@@ -52,5 +55,59 @@ describe("P-150 Exermon", () => {
         },
       ],
     });
+  });
+
+  it("suspends an opposing Digimon at the exact three-security boundary", async () => {
+    const s = setupEngine(
+      {
+        0: { security: 3, battleArea: [{ card: "P-150", as: "exermon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("exermon"));
+    await settle();
+    expect(s.perm("target").isSuspended).toBe(true);
+  });
+
+  it("does not suspend from the security-at-least-three clause with only two security", async () => {
+    const s = setupEngine(
+      {
+        0: { security: 2, battleArea: [{ card: "P-150", as: "exermon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("exermon"));
+    await settle();
+    expect(s.perm("target").isSuspended).toBe(false);
+  });
+
+  it("restricts an opposing Digimon from unsuspending when security is three or fewer", async () => {
+    const s = setupEngine(
+      {
+        0: { security: 2, battleArea: [{ card: "P-150", as: "exermon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("exermon"));
+    await settle();
+    await advance(s.engine).verb.unsuspend([s.perm("target").permanentId]);
+    expect(s.perm("target").isSuspended).toBe(true);
+  });
+
+  it("inherited reaction suspends an opposing Digimon when the host is publicly suspended", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", dp: 5000, under: ["P-150"] }] },
+      1: { battleArea: [{ card: "BT1-009", as: "target", dp: 4000 }] },
+    });
+    await s.ready();
+    await advance(s.engine).verb.suspend([s.perm("host").permanentId]);
+    await settle(() => s.perm("target").isSuspended);
+    expect(s.perm("target").isSuspended).toBe(true);
   });
 });

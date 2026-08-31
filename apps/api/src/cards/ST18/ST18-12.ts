@@ -15,7 +15,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //
 // "Unaffected by opponent's Digimon's effects" = Restrict(self, "beAffected", forTheTurn).
 // Note: "beAffected" restriction covers all opponent effects; text specifies only
-//   "Digimon's effects" — this is an engine approximation (see LANE_E.md).
+//   The interpreter's source-kind-qualified restriction represents the printed
+//   "Digimon's effects" scope exactly.
 export const compiled: CompiledCard = {
   effects: [
     {

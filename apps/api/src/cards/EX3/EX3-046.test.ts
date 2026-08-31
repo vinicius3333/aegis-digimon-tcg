@@ -97,7 +97,7 @@ describe("EX3-046 Commandramon", () => {
     expect(s.decisions.at(-1)?.req).toMatchObject({
       kind: "selectCards",
       sourceCardId: "EX3-046",
-      promptText: "＜Decoy＞: excluir este Digimon para impedir que o outro Digimon seja excluído?",
+      promptText: "＜Decoy＞: delete this Digimon to prevent the other Digimon's deletion?",
       options: { timing: "Static", effectText: decoyText, min: 0, max: 1 },
     });
     expect(

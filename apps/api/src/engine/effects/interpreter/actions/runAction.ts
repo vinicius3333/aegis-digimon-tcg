@@ -58,11 +58,7 @@ function borrowedProcessingCost(ctx: EffectContext, cost: Cost): Cost {
   const sourceZones = (Array.isArray(cost.target.from) ? cost.target.from : [cost.target.from]).filter(
     (zone): zone is ZoneRef => typeof zone === "string",
   );
-  if (
-    sourceZones.length !== 2 ||
-    !sourceZones.includes("hand") ||
-    !sourceZones.includes("trash")
-  ) {
+  if (sourceZones.length !== 2 || !sourceZones.includes("hand") || !sourceZones.includes("trash")) {
     return cost;
   }
   const trashCandidates = candidateLooseInstances(ctx, cost.target, ["trash"]);
@@ -285,12 +281,25 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     action.cost.kind === "deleteOwn"
       ? action.cost
       : undefined;
-  const deleteTargetBoundByItsCost =
+  const deleteTargetLevelBoundByItsCost =
     action.kind === "Delete" &&
     deleteOwnCost !== undefined &&
     action.target.filter.levelComparison?.relativeTo === "lastDeleted";
-  const deleteOwnLevelTargetAvailable = (() => {
+  const deleteTargetDPBoundByItsCost =
+    action.kind === "Delete" && deleteOwnCost !== undefined && action.target.filter.dp?.relativeTo === "lastDeleted";
+  const deleteTargetBoundByItsCost = deleteTargetLevelBoundByItsCost || deleteTargetDPBoundByItsCost;
+  const deleteOwnBoundedTargetAvailable = (() => {
     if (action.kind !== "Delete" || !deleteTargetBoundByItsCost || deleteOwnCost.target === undefined) return false;
+    if (deleteTargetDPBoundByItsCost) {
+      const highestCostDP = Math.max(
+        ...candidatePermanents(ctx, deleteOwnCost.target).map((permanent) => permanent.currentDP),
+        0,
+      );
+      const { dp: _dp, ...filterWithoutBound } = action.target.filter;
+      return candidatePermanents(ctx, { ...action.target, filter: filterWithoutBound }).some(
+        (permanent) => permanent.currentDP <= highestCostDP,
+      );
+    }
     const highestCostLevel = Math.max(
       ...candidatePermanents(ctx, deleteOwnCost.target)
         .map((permanent) => {
@@ -329,7 +338,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     !dynamicallyScaledDeleteTarget &&
     !placeCostProducesDeleteTarget &&
     !looseCostDefinesDeleteTarget &&
-    (!deleteTargetBoundByItsCost || !deleteOwnLevelTargetAvailable) &&
+    (!deleteTargetBoundByItsCost || !deleteOwnBoundedTargetAvailable) &&
     candidatePermanents(ctx, action.target).length === 0
   ) {
     return action.abortOnDecline === true;
@@ -416,6 +425,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   if (
     action.kind === "UseOptionWithoutCost" &&
     action.cost !== undefined &&
+    action.allowCostWithoutTarget !== true &&
     !(await canAttemptUseOptionWithoutCost(ctx, action))
   ) {
     return action.abortOnDecline === true;

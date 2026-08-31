@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -24,12 +23,15 @@ describe("RB1-032 Hiro Amanokawa", () => {
     const gammamonInstanceId = s.inst("gammamon").instanceId;
     s.state.memory = 0;
 
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("hiro"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     await settle(() => s.perm("host").stack.some((card) => card.instanceId === gammamonInstanceId));
 
     expect(s.perm("host").stack.some((card) => card.instanceId === gammamonInstanceId)).toBe(true);
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === gammamonInstanceId)).toBe(false);
     expect(s.decisions.filter((decision) => decision.req.kind === "optional")).toHaveLength(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 });

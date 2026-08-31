@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { playEx4Card } from "./livePlayTestHelpers.js";
+import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
 import { compiled } from "./EX4-045.js";
 
 describe("EX4-045 MetalGreymon", () => {
@@ -31,4 +33,10 @@ describe("EX4-045 MetalGreymon", () => {
       ],
     });
   });
+
+  it("plays through the live engine", async () => {
+    const s = await playEx4Card("EX4-045");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("subject").instanceId)).toBe(false);
+  });
+  ex4CardBehaviorTests("EX4-045");
 });

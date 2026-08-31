@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-203.js";
 
 describe("P-203 Justimon: Accel Arm", () => {
@@ -47,5 +50,24 @@ describe("P-203 Justimon: Accel Arm", () => {
         },
       ],
     });
+  });
+
+  it("de-digivolves an opposing stack on play", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "P-203", as: "source" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "victim", under: ["BT1-001"] }] },
+      },
+      { autoAcceptOptional: false, autoDeclineOptional: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    await settle();
+    expect(s.perm("victim").stack).toHaveLength(1);
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    await settle();
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("source"));
+    await settle();
+    expect(s.perm("victim").stack).toHaveLength(1);
   });
 });

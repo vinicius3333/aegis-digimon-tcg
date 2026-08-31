@@ -31,6 +31,7 @@ const compiled: CompiledCard = {
             controller: "mine",
             kind: ["Digimon"],
             nameOrTrait: mineralOrRock,
+            byEffect: true,
           },
           actions: [
             {

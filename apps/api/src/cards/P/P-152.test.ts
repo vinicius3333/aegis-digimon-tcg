@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-152.js";
 
 describe("P-152 Shoutmon + Dorulu Cannon", () => {
@@ -22,12 +25,15 @@ describe("P-152 Shoutmon + Dorulu Cannon", () => {
       },
       cost: {
         kind: "place",
-        from: ["digivolutionCards"],
-        fromHost: "self",
         underFilter: { controller: "mine", kind: ["Tamer"] },
         target: {
-          filter: { zone: "digivolutionCards", nameOrTrait: [{ tokens: ["Xros Heart"], match: "trait" }] },
+          filter: {
+            zone: "digivolutionCards",
+            hostFilter: { isSelfRef: true },
+            nameOrTrait: [{ tokens: ["Xros Heart"], match: "trait" }],
+          },
           count: 1,
+          from: ["digivolutionCards"],
         },
       },
     });
@@ -58,5 +64,31 @@ describe("P-152 Shoutmon + Dorulu Cannon", () => {
       { materials: [{ names: ["Shoutmon"] }], count: 1 },
       { materials: [{ names: ["Dorulumon"] }], count: 1 },
     ]);
+  });
+
+  it("reduces an opposing Digimon by 2000, then deletes it at the post-reduction boundary", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-152", as: "cannon", under: ["BT10-008"] },
+            { card: "BT10-089", as: "tamer" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("target").permanentId);
+    await s.ready();
+    const targetId = s.perm("target").permanentId;
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("cannon"));
+    await settle(() => s.state.players[1]!.battleArea.every((permanent) => permanent.permanentId !== targetId));
+
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(false);
+    expect(s.perm("tamer").stack.map((card) => card.cardId)).toContain("BT10-008");
+    expect(s.perm("cannon").stack.map((card) => card.cardId)).not.toContain("BT10-008");
   });
 });

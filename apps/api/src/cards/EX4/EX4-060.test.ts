@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { playEx4Card } from "./livePlayTestHelpers.js";
+import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
 import {
   CardKind,
   EffectTiming,
@@ -13,6 +15,7 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import "./EX4-060.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 
 const card = (id: string, seat: Seat): CardInstance =>
   ({ cardId: id, instanceId: `${id}-${seat}`, ownerSeat: seat, faceUp: true }) as CardInstance;
@@ -59,6 +62,7 @@ describe("EX4-060 Omnimon Alter-S", () => {
   it("deletes an opposing Digimon at 8000 DP or less and returns a level six opponent to deck bottom", async () => {
     const self = {
       permanentId: "self",
+      controllerSeat: 0,
       topCard: card("EX4-060", 0),
       stack: [],
       linked: [],
@@ -68,6 +72,7 @@ describe("EX4-060 Omnimon Alter-S", () => {
     } as unknown as Permanent;
     const low = {
       permanentId: "low",
+      controllerSeat: 1,
       topCard: card("LOW", 1),
       stack: [],
       linked: [],
@@ -77,6 +82,7 @@ describe("EX4-060 Omnimon Alter-S", () => {
     } as unknown as Permanent;
     const high = {
       permanentId: "high",
+      controllerSeat: 1,
       topCard: card("HIGH", 1),
       stack: [],
       linked: [],
@@ -132,6 +138,7 @@ describe("EX4-060 Omnimon Alter-S", () => {
   it("plays both named evolution cards when possible and places itself face-down in security", async () => {
     const self = {
       permanentId: "self",
+      controllerSeat: 0,
       topCard: card("EX4-060", 0),
       stack: [card("BLITZ", 0), card("CRES", 0)],
       linked: [],
@@ -185,4 +192,47 @@ describe("EX4-060 Omnimon Alter-S", () => {
     expect(replacements).toHaveLength(1);
     expect(replacements[0]).toMatchObject({ event: "wouldLeavePlay", mode: "instead" });
   });
+
+  it("plays through the live engine", async () => {
+    const s = await playEx4Card("EX4-060");
+    expect(s.state.players[0]!.hand.some((handCard) => handCard.instanceId === s.inst("subject").instanceId)).toBe(
+      false,
+    );
+  });
+
+  it("uses the public opponent attack path to replace leaving play with Blitz, Cres, and face-down security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX4-060", as: "subject", dp: 7000, suspended: true, under: ["EX4-051", "EX4-049"] }],
+          security: ["BT1-001", "BT1-002"],
+        },
+        1: { battleArea: [{ card: "BT1-013", as: "attacker", dp: 12000 }], security: ["BT1-001", "BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("subject").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX4-051") &&
+        s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX4-049"),
+    );
+    expect(s.state.players[0]!.battleArea.filter((perm) => perm.topCard?.cardId === "EX4-051")).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.filter((perm) => perm.topCard?.cardId === "EX4-049")).toHaveLength(1);
+    expect(s.state.players[0]!.security).toHaveLength(3);
+    expect(
+      s.state.players[0]!.security.some(
+        (securityCard) => securityCard.instanceId === s.inst("subject").instanceId && securityCard.faceUp === false,
+      ),
+    ).toBe(true);
+  });
+  ex4CardBehaviorTests("EX4-060");
 });

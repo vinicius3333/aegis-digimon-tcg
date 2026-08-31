@@ -8,6 +8,8 @@ export interface DpComparison {
   value?: number;
   /** Compare to the effect source's DP. */
   relativeToSource?: boolean;
+  /** Compare to the live DP captured from the Digimon most recently deleted in this resolution. */
+  relativeTo?: "lastDeleted";
   /** Compare to the greatest live DP among permanents matching this filter. */
   relativeToFilter?: Filter;
   /** Permanent-id binding written by a prior action's `bindResultAs`. */

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { getCompiledCard } from "@aegis/shared";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "./P-138.js";
 
 describe("P-138 Veedramon", () => {
@@ -15,6 +16,7 @@ describe("P-138 Veedramon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
+    await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
       ok: true,
@@ -50,5 +52,14 @@ describe("P-138 Veedramon", () => {
         }),
       ]),
     );
+  });
+
+  it("gains one memory when an inherited host becomes unsuspended", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT11-027", as: "host", under: ["P-138"], suspended: true }] } });
+    s.state.memory = 0;
+    await s.ready();
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    await settle();
+    expect(s.state.memory).toBe(1);
   });
 });

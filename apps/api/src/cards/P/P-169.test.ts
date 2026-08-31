@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { type AttackTarget } from "@aegis/shared";
+import { EffectTiming, type AttackTarget } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
@@ -24,6 +25,7 @@ describe("P-169 [Security] play this card without paying the cost", () => {
 
     s.state.turnSeat = 1;
     s.state.memory = 0;
+    await s.ready();
 
     const attacker = s.perm("attacker");
     const res = s.engine.applyIntent(1, {
@@ -39,6 +41,10 @@ describe("P-169 [Security] play this card without paying the cost", () => {
     const secCard = s.inst("secCard");
     expect(p0.security.some((c) => c.instanceId === secCard.instanceId)).toBe(false);
     expect(s.state.memory).toBe(0); // played for free, no memory cost paid
+    s.state.turnSeat = 0;
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("secCard"));
+    await settle();
+    expect(s.state.memory).toBe(1);
   });
 });
 
@@ -62,5 +68,44 @@ describe("P-169 [All Turns] digivolution-trash reaction", () => {
         },
       ],
     });
+  });
+
+  it("publicly places a Mineral card from trash under the qualifying host after effect trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-169", as: "close" },
+            { card: "BT10-062", as: "host", under: ["BT1-009"] },
+          ],
+          trash: [{ card: "BT10-062", as: "recovered" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const source = s.perm("host").stack[0]!;
+    await advance(s.engine).verb.trashDigivolutionCards(s.perm("host").permanentId, [source.instanceId], 0);
+    await settle(() => s.perm("close").isSuspended && s.perm("host").stack.some((card) => card.cardId === "BT10-062"));
+    expect(s.perm("close").isSuspended).toBe(true);
+    expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("recovered").instanceId)).toBe(true);
+  });
+
+  it("does not react to the same stack-card trash when no effect provenance is supplied", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "P-169", as: "close" },
+          { card: "BT10-062", as: "host", under: ["BT1-009"] },
+        ],
+        trash: [{ card: "BT10-062", as: "recovered" }],
+      },
+    });
+    await s.ready();
+    const source = s.perm("host").stack[0]!;
+    await advance(s.engine).verb.trashDigivolutionCards(s.perm("host").permanentId, [source.instanceId]);
+    await settle();
+    expect(s.perm("close").isSuspended).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("recovered").instanceId)).toBe(true);
   });
 });

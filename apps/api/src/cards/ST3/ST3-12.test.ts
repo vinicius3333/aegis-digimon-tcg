@@ -1,7 +1,5 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./ST3-12.js";
 
@@ -22,8 +20,20 @@ describe("ST3-12 T.K. Takaishi", () => {
   });
 
   it("plays itself from security", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "ST3-12", as: "tk", faceUp: true }] } });
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("tk"));
+    const s = setupEngine({
+      0: { security: [{ card: "ST3-12", as: "tk" }, "BT1-090"] },
+      1: { battleArea: ["BT1-009"] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.state.players[1]!.battleArea[0]!.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("tk").instanceId));
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("tk").instanceId)).toBe(true);
   });
 });

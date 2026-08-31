@@ -22,8 +22,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "SelectBind",
-          target: { filter: { controller: "mine", kind: ["Tamer"] }, count: 1 },
-          bindAs: "chosenTamer",
+          target: { filter: { controller: "mine", kind: ["Tamer"] }, count: 1, bindAs: "chosenTamer" },
         },
         {
           kind: "PlayWithoutCost",

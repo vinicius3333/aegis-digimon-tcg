@@ -1,8 +1,31 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-153.js";
 
 describe("P-153 MagnaGarurumon", () => {
+  it("returns exactly one opposing level-3/4/5 Digimon when digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "P-153", as: "magna" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "eligible" },
+            { card: "BT1-038", as: "ineligible" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("magna"));
+    await settle();
+    expect(s.state.players[1]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT1-038")).toBe(true);
+  });
+
   it("encodes Armor Purge and a singular level 3/4/5 return", () => {
     const compiled = runtimeCompiledCard("P-153")!;
     expect(compiled.effects).toEqual(
@@ -39,5 +62,20 @@ describe("P-153 MagnaGarurumon", () => {
     expect(runtimeCompiledCard("P-153")!.digivolutionRequirement).toEqual([
       { names: ["MagnaGarurumon"], minColors: 3, cost: 2, isAlternate: true },
     ]);
+  });
+
+  it("places its top digivolution card on security and unsuspends itself at End of Attack", async () => {
+    const s = setupEngine(
+      {
+        0: { security: 1, battleArea: [{ card: "P-153", as: "magna", suspended: true, under: ["BT1-009"] }] },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnEndAttack, s.perm("magna"));
+    await settle();
+    expect(s.perm("magna").isSuspended).toBe(false);
+    expect(s.perm("magna").stack).toHaveLength(0);
+    expect(s.state.players[0]!.security.some((card) => card.cardId === "BT1-009")).toBe(true);
   });
 });

@@ -281,6 +281,7 @@ function subTriggerIdentity(sub: SubTriggerSubscription): string {
     sub.sourceInstanceId ?? "",
     sub.description,
     sub.oncePerTurnKey ?? "",
+    sub.dedupeKey ?? "",
   ].join("|");
 }
 
@@ -308,6 +309,13 @@ interface ArmedSubTrigger {
    * already activated (KB Q2611/Q2629).
    */
   contextAtFireTime: () => EffectContext | undefined;
+  /** Unique occurrence captured by one `armedSubTriggers` call. */
+  occurrence: {
+    /** Once-per-turn keys that were unused when this event snapshot was armed. */
+    oncePerTurnSnapshotKeys: ReadonlySet<string>;
+    /** Shared success ledger for ordered bodies resolving this same event snapshot. */
+    oncePerTurnSuccessfulKeys: Set<string>;
+  };
 }
 
 /** One deletion a rule-check sweep performed, held until the whole pass can react to it. */
@@ -2316,7 +2324,11 @@ export class GameEngine {
     });
     // A watcher body may have moved/deleted permanents; refresh the continuous tier so a
     // subsequent read sees the post-fire board (mirrors fireTiming's trailing recompute).
-    await this.recomputeContinuousEffects();
+    // A batch stack-card event is immediately followed by one per-card event at the same
+    // primitive seam. Keep continuous inherited watchers installed until those per-card events
+    // have had a chance to fire; recomputing here would remove a source card that has already
+    // moved and erase its exact-card watcher before the canonical event (P-167/BT10-006).
+    if (event !== "onDigivolutionCardsDiscardedBatch") await this.recomputeContinuousEffects();
   }
 
   /**
@@ -2355,6 +2367,21 @@ export class GameEngine {
   ): ArmedSubTrigger[] {
     const armed: ArmedSubTrigger[] = [];
 
+    // Capture the per-turn budget at the event boundary. Distinct action-path clauses sharing
+    // one printed [Once Per Turn] are simultaneous and all remain eligible in this snapshot
+    // (EX4-014/Q3456), even after the first body provisionally marks the shared key. A later
+    // event gets a fresh snapshot and therefore sees the consumed ledger entry.
+    const oncePerTurnSnapshotKeys = new Set(
+      subs
+        .filter((sub) => sub.oncePerTurnKey !== undefined && this.tracker.count(sub.oncePerTurnKey, "subtrigger") === 0)
+        .map((sub) => sub.oncePerTurnKey!)
+        .filter((key, index, keys) => keys.indexOf(key) === index),
+    );
+    const occurrence = {
+      oncePerTurnSnapshotKeys,
+      oncePerTurnSuccessfulKeys: new Set<string>(),
+    };
+
     for (const sub of subs) {
       if (this.consumedSubTriggerKeys.has(subTriggerIdentity(sub))) continue;
       if (sub.oncePerTurnKey !== undefined && this.tracker.count(sub.oncePerTurnKey, "subtrigger") > 0) continue;
@@ -2365,6 +2392,7 @@ export class GameEngine {
       armed.push({
         sub,
         ctx,
+        occurrence,
         contextAtFireTime: () =>
           boundContexts?.get(sub.id) === undefined
             ? this.buildSubTriggerContext(sub, payload)
@@ -2506,6 +2534,16 @@ export class GameEngine {
     const ctx = item.contextAtFireTime();
     if (ctx === undefined) return false;
     if (item.sub.matches !== undefined && !item.sub.matches(ctx)) return false;
+    // Once-per-turn siblings share only their own event occurrence. If a different occurrence
+    // consumed the live ledger, this item must drop from the ordering prompt; the per-occurrence
+    // success set is what distinguishes an allowed same-event sibling from a later event/group.
+    const oncePerTurnKey = item.sub.oncePerTurnKey;
+    if (
+      oncePerTurnKey !== undefined &&
+      this.tracker.count(oncePerTurnKey, "subtrigger") > 0 &&
+      !item.occurrence.oncePerTurnSuccessfulKeys.has(oncePerTurnKey)
+    )
+      return false;
     return item.sub.canFire === undefined || item.sub.canFire(ctx);
   }
 
@@ -2560,7 +2598,7 @@ export class GameEngine {
    * event happened, because their trigger has already activated (KB Q2611/Q2629).
    */
   private async fireOneSubTrigger(
-    { sub, contextAtFireTime }: ArmedSubTrigger,
+    { sub, contextAtFireTime, occurrence }: ArmedSubTrigger,
     opts: { announce?: boolean } = {},
   ): Promise<void> {
     if (this.subTriggerWindowDepth > 0) this.consumedSubTriggerKeys.add(subTriggerIdentity(sub));
@@ -2571,6 +2609,8 @@ export class GameEngine {
       this.subTriggerTurnLedger(),
       undefined,
       opts.announce === false ? undefined : (fired, ctx) => this.announceSubTrigger(fired, ctx),
+      occurrence.oncePerTurnSnapshotKeys,
+      occurrence.oncePerTurnSuccessfulKeys,
     );
   }
 
