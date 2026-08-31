@@ -59,6 +59,7 @@ describe("EX4-051 BlitzGreymon", () => {
     const selfCard = card("EX4-051", 0);
     const self = {
       permanentId: "self",
+      controllerSeat: 0,
       topCard: selfCard,
       stack: [],
       linked: [],
@@ -69,6 +70,7 @@ describe("EX4-051 BlitzGreymon", () => {
       (id) =>
         ({
           permanentId: id,
+          controllerSeat: 1,
           topCard: card(id, 1),
           stack: [],
           linked: [],
@@ -133,6 +135,7 @@ describe("EX4-051 BlitzGreymon", () => {
     const selfCard = card("EX4-051", 0);
     const self = {
       permanentId: "self",
+      controllerSeat: 0,
       topCard: selfCard,
       stack: [],
       linked: [],
@@ -143,6 +146,7 @@ describe("EX4-051 BlitzGreymon", () => {
       (id) =>
         ({
           permanentId: id,
+          controllerSeat: 1,
           topCard: card(id, 1),
           stack: [],
           linked: [],

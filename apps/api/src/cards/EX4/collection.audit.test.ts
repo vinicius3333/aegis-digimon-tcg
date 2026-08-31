@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { allCards } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import "./index.js";
 
 const EX4_IDS = allCards()
@@ -22,5 +24,13 @@ describe("EX4 collection registration evidence", () => {
     });
 
     expect(incomplete).toEqual([]);
+  });
+
+  it("uses only registerIrCard in every EX4 module", () => {
+    for (const cardId of EX4_IDS) {
+      const source = readFileSync(resolve(import.meta.dirname, `${cardId}.ts`), "utf8");
+      expect(source).not.toMatch(/registerCard\s*\(/);
+      expect(source).toMatch(/registerIrCard\s*\(/);
+    }
   });
 });

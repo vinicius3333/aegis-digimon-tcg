@@ -43,6 +43,7 @@ describe("EX4-068 Heaven's Judgement", () => {
     const selfCard = card("EX4-068", 0);
     const self = {
       permanentId: "self",
+      controllerSeat: 0,
       topCard: selfCard,
       stack: [],
       linked: [],
@@ -51,6 +52,7 @@ describe("EX4-068 Heaven's Judgement", () => {
     } as unknown as Permanent;
     const own = {
       permanentId: "own",
+      controllerSeat: 0,
       topCard: card("OWN", 0),
       stack: [],
       linked: [],
@@ -59,6 +61,7 @@ describe("EX4-068 Heaven's Judgement", () => {
     } as unknown as Permanent;
     const opp = {
       permanentId: "opp",
+      controllerSeat: 1,
       topCard: card("OPP", 1),
       stack: [],
       linked: [],
@@ -109,6 +112,7 @@ describe("EX4-068 Heaven's Judgement", () => {
   it("only waives the option color requirement while a green Digimon or Tamer is in play", async () => {
     const option = {
       permanentId: "option",
+      controllerSeat: 0,
       topCard: card("EX4-068", 0),
       stack: [],
       linked: [],
@@ -117,6 +121,7 @@ describe("EX4-068 Heaven's Judgement", () => {
     } as unknown as Permanent;
     const red = {
       permanentId: "red",
+      controllerSeat: 0,
       topCard: card("RED", 0),
       stack: [],
       linked: [],
@@ -162,6 +167,7 @@ describe("EX4-068 Heaven's Judgement", () => {
     expect(waived).toEqual([]);
     players[0]!.battleArea.push({
       permanentId: "green",
+      controllerSeat: 0,
       topCard: card("GREEN", 0),
       stack: [],
       linked: [],
