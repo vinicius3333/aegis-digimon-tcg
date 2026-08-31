@@ -37,6 +37,12 @@ export interface BoardPredicates {
   sameOrientationAsSource?: boolean;
   /** "this Digimon" / "this card". */
   isSelfRef?: boolean;
+  /**
+   * Match `nameOrTrait` text references against only the information printed on the
+   * permanent's top card. Digivolution-card inherited effects and granted effects are
+   * effects the Digimon gains, not text it gains (Comprehensive Rules 4-23-2).
+   */
+  printedTextOnly?: boolean;
   /** Match the permanent that drove the enclosing watcher when this filter is nested as a host filter. */
   sourceRef?: "triggerSubject";
   /** "another", "other". */

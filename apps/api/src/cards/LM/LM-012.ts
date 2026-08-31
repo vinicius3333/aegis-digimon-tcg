@@ -81,6 +81,7 @@ const compiled: CompiledCard = {
             controller: "mine",
             kind: ["Digimon"],
             nameOrTrait: [{ tokens: ["Angoramon"], match: "text" }],
+            printedTextOnly: true,
           },
           actions: [
             {
