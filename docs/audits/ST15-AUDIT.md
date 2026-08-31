@@ -1,0 +1,36 @@
+# ST15 audit ledger
+
+Scope: every committed ST15 catalog card, audited in ascending catalog order. Each row records five evidence components scored 2/2: complete catalog contract, local KB/rules review, direct implementation, observable behavioral proof, and peer/stack integration. A 10/10 score is claimed only where the printed clauses, applicable Q&A/errata/restrictions, compiled IR, and focused test evidence align.
+
+| Card    | Exact catalog name      | Contract | KB/rules | Implementation | Behavioral proof | Integration |     Total | Evidence                                                                                                                                                                                     |
+| ------- | ----------------------- | -------: | -------: | -------------: | ---------------: | ----------: | --------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ST15-01 | Koromon                 |      2/2 |      2/2 |            2/2 |              2/2 |         2/2 | **10/10** | [module](../../apps/api/src/cards/ST15/ST15-01.ts) · [test](../../apps/api/src/cards/ST15/ST15-01.test.ts); Q&A:Q805,Q806; compiled IR and focused behavioral/stack proof passed.            |
+| ST15-02 | Agumon                  |      2/2 |      2/2 |            2/2 |              2/2 |         2/2 | **10/10** | [module](../../apps/api/src/cards/ST15/ST15-02.ts) · [test](../../apps/api/src/cards/ST15/ST15-02.test.ts); Q&A:Q807,Q808,Q809; compiled IR and focused behavioral/stack proof passed.       |
+| ST15-03 | ClearAgumon             |      2/2 |      2/2 |            2/2 |              2/2 |         2/2 | **10/10** | [module](../../apps/api/src/cards/ST15/ST15-03.ts) · [test](../../apps/api/src/cards/ST15/ST15-03.test.ts); no KB entry; compiled IR and focused behavioral/stack proof passed.              |
+| ST15-04 | Solarmon                |      2/2 |      2/2 |            2/2 |              2/2 |         2/2 | **10/10** | [module](../../apps/api/src/cards/ST15/ST15-04.ts) · [test](../../apps/api/src/cards/ST15/ST15-04.test.ts); no KB entry; compiled IR and focused behavioral/stack proof passed.              |
+| ST15-05 | ToyAgumon               |      2/2 |      2/2 |            2/2 |              2/2 |         2/2 | **10/10** | [module](../../apps/api/src/cards/ST15/ST15-05.ts) · [test](../../apps/api/src/cards/ST15/ST15-05.test.ts); Q&A:Q810; compiled IR and focused behavioral/stack proof passed.                 |
+| ST15-06 | Mekanorimon             |      2/2 |      2/2 |            2/2 |              2/2 |         2/2 | **10/10** | [module](../../apps/api/src/cards/ST15/ST15-06.ts) · [test](../../apps/api/src/cards/ST15/ST15-06.test.ts); no KB entry; compiled IR and focused behavioral/stack proof passed.              |
+| ST15-07 | Tankmon                 |      2/2 |      2/2 |            2/2 |              2/2 |         2/2 | **10/10** | [module](../../apps/api/src/cards/ST15/ST15-07.ts) · [test](../../apps/api/src/cards/ST15/ST15-07.test.ts); no KB entry; compiled IR and focused behavioral/stack proof passed.              |
+| ST15-08 | Greymon                 |      2/2 |      2/2 |            2/2 |              2/2 |         2/2 | **10/10** | [module](../../apps/api/src/cards/ST15/ST15-08.ts) · [test](../../apps/api/src/cards/ST15/ST15-08.test.ts); Q&A:Q811,Q812,Q813,Q6160; compiled IR and focused behavioral/stack proof passed. |
+| ST15-09 | Knightmon               |      2/2 |      2/2 |            2/2 |              2/2 |         2/2 | **10/10** | [module](../../apps/api/src/cards/ST15/ST15-09.ts) · [test](../../apps/api/src/cards/ST15/ST15-09.test.ts); no KB entry; compiled IR and focused behavioral/stack proof passed.              |
+| ST15-10 | Andromon                |      2/2 |      2/2 |            2/2 |              2/2 |         2/2 | **10/10** | [module](../../apps/api/src/cards/ST15/ST15-10.ts) · [test](../../apps/api/src/cards/ST15/ST15-10.test.ts); no KB entry; compiled IR and focused behavioral/stack proof passed.              |
+| ST15-11 | MetalGreymon            |      2/2 |      2/2 |            2/2 |              2/2 |         2/2 | **10/10** | [module](../../apps/api/src/cards/ST15/ST15-11.ts) · [test](../../apps/api/src/cards/ST15/ST15-11.test.ts); no KB entry; compiled IR and focused behavioral/stack proof passed.              |
+| ST15-12 | WarGreymon              |      2/2 |      2/2 |            2/2 |              2/2 |         2/2 | **10/10** | [module](../../apps/api/src/cards/ST15/ST15-12.ts) · [test](../../apps/api/src/cards/ST15/ST15-12.test.ts); Q&A:Q814; compiled IR and focused behavioral/stack proof passed.                 |
+| ST15-13 | HiAndromon              |      2/2 |      2/2 |            2/2 |              2/2 |         2/2 | **10/10** | [module](../../apps/api/src/cards/ST15/ST15-13.ts) · [test](../../apps/api/src/cards/ST15/ST15-13.test.ts); no KB entry; compiled IR and focused behavioral/stack proof passed.              |
+| ST15-14 | Tai Kamiya              |      2/2 |      2/2 |            2/2 |              2/2 |         2/2 | **10/10** | [module](../../apps/api/src/cards/ST15/ST15-14.ts) · [test](../../apps/api/src/cards/ST15/ST15-14.test.ts); Q&A:Q815; compiled IR and focused behavioral/stack proof passed.                 |
+| ST15-15 | Breakthrough of Courage |      2/2 |      2/2 |            2/2 |              2/2 |         2/2 | **10/10** | [module](../../apps/api/src/cards/ST15/ST15-15.ts) · [test](../../apps/api/src/cards/ST15/ST15-15.test.ts); Q&A:Q816,Q817; compiled IR and focused behavioral/stack proof passed.            |
+| ST15-16 | Trident Arm             |      2/2 |      2/2 |            2/2 |              2/2 |         2/2 | **10/10** | [module](../../apps/api/src/cards/ST15/ST15-16.ts) · [test](../../apps/api/src/cards/ST15/ST15-16.test.ts); Q&A:Q818,Q819,Q820; compiled IR and focused behavioral/stack proof passed.       |
+
+## Verification commands
+
+- Per-card catalog/KB evidence: `node tools/kb/query.mjs card <CARD-ID>` (executed for every ST15 card).
+- Per-card focused proof, serial and ascending: `pnpm --filter @aegis/api exec vitest run --pool=threads --poolOptions.threads.singleThread=true src/cards/ST15/<CARD-ID>.test.ts` — 16/16 passed.
+- Collection gate: `pnpm --filter @aegis/api exec vitest run --pool=threads --poolOptions.threads.singleThread=true src/cards/ST15/collection.audit.test.ts` — 3/3 tests passed.
+- Affected engine mechanism regressions: `pnpm --filter @aegis/api exec vitest run --pool=threads --poolOptions.threads.singleThread=true src/engine/<affected-suite>.test.ts`.
+- Workspace typecheck: `pnpm typecheck`.
+- Repository lint/format: `meteor npm run quave-check-ci` where available; native `pnpm lint` and changed-file `pnpm exec oxfmt --check` used when the prescribed script/runtime is unavailable.
+- Diff validation: `git diff --check`.
+
+## Collection invariants
+
+Every ST15 catalog card has a direct module, colocated test, index import, exclusive `registerIrCard("ST15-NN", compiled)` registration, `coverage: "full"`, and `residual: []`. Applicable Q&A, errata, restriction, trait-peer, and evolution-stack boundaries were reviewed; no unresolved ambiguity remains.
