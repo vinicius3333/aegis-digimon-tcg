@@ -31,9 +31,9 @@ describe("ST14 collection audit ledger", () => {
     );
     for (const card of st14Cards) {
       const ir = getCompiledCard(card.cardId);
-      expect(runtimeCompiledCard(card.cardId), card.cardId).toBeDefined();
-      expect(ir?.coverage, card.cardId).toBe("full");
-      expect(ir?.residual, card.cardId).toEqual([]);
+      expect(runtimeCompiledCard(card.cardId)).toBeDefined();
+      expect(ir?.coverage).toBe("full");
+      expect(ir?.residual).toEqual([]);
     }
   });
 
@@ -61,7 +61,7 @@ describe("ST14 collection audit ledger", () => {
     for (const card of st14Cards) {
       const moduleSource = readFileSync(`${collectionDirectory}${card.cardId}.ts`, "utf8");
       const testSource = readFileSync(`${collectionDirectory}${card.cardId}.test.ts`, "utf8");
-      expect(getEffectModule(card.cardId), card.cardId).toBeDefined();
+      expect(getEffectModule(card.cardId)).toBeDefined();
       expect(moduleSource).toContain(`registerIrCard("${card.cardId}", compiled)`);
       expect(moduleSource).not.toMatch(/\bregisterCard\s*\(/);
       expect(moduleSource).toMatch(/\bcoverage:\s*["']full/);

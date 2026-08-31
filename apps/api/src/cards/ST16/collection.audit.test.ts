@@ -23,16 +23,16 @@ describe("ST16 collection audit ledger", () => {
       const moduleSource = readFileSync(`${collectionDirectory}${card.cardId}.ts`, "utf8");
       const testSource = readFileSync(`${collectionDirectory}${card.cardId}.test.ts`, "utf8");
       const compiled = getCompiledCard(card.cardId);
-      expect(getEffectModule(card.cardId), card.cardId).toBeDefined();
-      expect(runtimeCompiledCard(card.cardId), card.cardId).toBeDefined();
+      expect(getEffectModule(card.cardId)).toBeDefined();
+      expect(runtimeCompiledCard(card.cardId)).toBeDefined();
       expect(moduleSource).toContain(`registerIrCard("${card.cardId}", compiled)`);
       expect(moduleSource).not.toMatch(/\bregisterCard\s*\(/);
       expect(moduleSource).toMatch(/\bcoverage:\s*["']full/);
       expect(moduleSource).toMatch(/\bresidual:\s*\[\]/);
       expect(testSource).toMatch(/\bsetupEngine\s*\(/);
       expect(testSource).toMatch(/\bexpect\s*\(/);
-      expect(compiled?.coverage, card.cardId).toBe("full");
-      expect(compiled?.residual, card.cardId).toEqual([]);
+      expect(compiled?.coverage).toBe("full");
+      expect(compiled?.residual).toEqual([]);
     }
   });
 });

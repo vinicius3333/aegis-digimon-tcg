@@ -35,11 +35,11 @@ describe("ST15 collection audit ledger guards", () => {
       expect(moduleSource).not.toMatch(/\bregisterCard\s*\(/);
       expect(testSource).toMatch(/\bsetupEngine\s*\(/);
       expect(testSource).toMatch(/\bexpect\s*\(/);
-      expect(runtimeCompiledCard(card.cardId), card.cardId).toBeDefined();
-      expect(runtimeCompiledCard(card.cardId)?.coverage, card.cardId).toBe("full");
-      expect(runtimeCompiledCard(card.cardId)?.residual, card.cardId).toEqual([]);
-      expect(getCompiledCard(card.cardId)?.coverage, card.cardId).toBe("full");
-      expect(getCompiledCard(card.cardId)?.residual, card.cardId).toEqual([]);
+      expect(runtimeCompiledCard(card.cardId)).toBeDefined();
+      expect(runtimeCompiledCard(card.cardId)?.coverage).toBe("full");
+      expect(runtimeCompiledCard(card.cardId)?.residual).toEqual([]);
+      expect(getCompiledCard(card.cardId)?.coverage).toBe("full");
+      expect(getCompiledCard(card.cardId)?.residual).toEqual([]);
     }
   });
 });
