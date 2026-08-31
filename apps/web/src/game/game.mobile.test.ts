@@ -291,27 +291,16 @@ describe("nothing on the phone board is clipped by its neighbour", () => {
 
 describe("floating chrome keeps clear of the hand and the memory band", () => {
   // Both stacks span the width on a phone in portrait, so "notices left, panels
-  // right" no longer separates them: they landed on the same pixels. Each gets a
-  // band of its own, and neither may grow out of it.
-  it("gives the notice stack and the side panels separate bands in portrait", () => {
+  // right" no longer separates them: each anchors to its own screen edge and
+  // grows toward the middle, uncapped, showing its content whole.
+  it("lets the notice stack and the side panels show whole from their own edges", () => {
     expect(phonePortraitRules).toBeDefined();
-    // Each band scrolls rather than clipping, and its floor fits one whole
-    // notice (~12rem) or one whole card panel (~14.5rem): the old caps cut a
-    // long effect clause and the revealed card's art with no way to read them.
-    // The stack takes its own pointer events so the scroll gesture lands on it.
-    expect(phonePortraitRules).toMatch(
-      /\.match-notice-stack,\s*\.side-panel-stack \{[^}]*max-height:\s*max\(12rem, calc\(100dvh - 28rem\)\)[^}]*overflow:\s*hidden auto[^}]*pointer-events:\s*auto/,
-    );
-    // The card panels take the deeper floor: a thumbnail plus a heading.
-    expect(phonePortraitRules).toMatch(
-      /\.side-panel-stack \{[^}]*max-height:\s*max\(14\.5rem, calc\(100dvh - 28rem\)\)/,
-    );
-    // The panel clips its own overflow, so flex shrink would cut the card art
-    // internally, out of reach of the band's scrollbar.
-    expect(phonePortraitRules).toMatch(
-      /\.side-panel-stack > \.side-panel,\s*\.match-notice-stack > \.match-notice \{[^}]*flex-shrink:\s*0/,
-    );
-    // One scroll container per band: the notice text gives up its own scrollbar.
+    // No cap on either stack: every cap tried here (7rem, then a dvh split)
+    // decapitated a notice's clause or a revealed card's art while screen
+    // space sat empty next to it. Nothing may reintroduce one.
+    expect(phonePortraitRules).not.toMatch(/\.match-notice-stack[^{]*\{[^}]*max-height/);
+    expect(phonePortraitRules).not.toMatch(/\.side-panel-stack \{[^}]*max-height/);
+    // The notice text shows whole as well, instead of scrolling inside 7rem.
     expect(phonePortraitRules).toMatch(/\.match-notice__text \{[^}]*max-height:\s*none[^}]*overflow-y:\s*visible/);
     expect(phonePortraitRules).toMatch(/\.side-panel-stack\[data-side="opp"\] \{[^}]*top:\s*calc\(17rem/);
     expect(phonePortraitRules).toMatch(/\.side-panel-stack\[data-side="you"\] \{[^}]*bottom:\s*calc\(17rem/);
