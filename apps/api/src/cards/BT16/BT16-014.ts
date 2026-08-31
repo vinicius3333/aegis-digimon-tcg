@@ -22,6 +22,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlayWithoutCost",
+          ignorePlayCostLimit: true,
           target: {
             filter: {
               controller: "mine",
@@ -34,6 +35,7 @@ const compiled: CompiledCard = {
               ],
             },
             count: 1,
+            forceSelection: true,
           },
           from: ["hand"],
           payCost: false,
@@ -46,6 +48,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlayWithoutCost",
+          ignorePlayCostLimit: true,
           target: {
             filter: {
               controller: "mine",
@@ -58,6 +61,7 @@ const compiled: CompiledCard = {
               ],
             },
             count: 1,
+            forceSelection: true,
           },
           from: ["hand"],
           payCost: false,

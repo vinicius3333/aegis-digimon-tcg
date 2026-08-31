@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { playEx4Card } from "./livePlayTestHelpers.js";
+import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
 import { compiled } from "./EX4-058.js";
 
 describe("EX4-058 Ravemon", () => {
@@ -34,4 +36,10 @@ describe("EX4-058 Ravemon", () => {
       condition: { kind: "zoneCount", op: "lte", value: 7 },
     });
   });
+
+  it("plays through the live engine", async () => {
+    const s = await playEx4Card("EX4-058");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("subject").instanceId)).toBe(false);
+  });
+  ex4CardBehaviorTests("EX4-058");
 });

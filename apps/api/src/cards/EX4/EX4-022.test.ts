@@ -73,7 +73,7 @@ describe("EX4-022 ZeedGarurumon", () => {
       { autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: 1 });
+    await advance(s.engine).verb.returnToHand([s.perm("level3").topCard!.instanceId]);
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     expect(s.state.players[1]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);

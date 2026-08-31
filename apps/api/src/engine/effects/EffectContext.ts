@@ -1522,6 +1522,8 @@ export interface Primitives {
 /** Args for installing a delayed/triggered sub-effect via the primitives. */
 export interface SubTriggerInstall {
   event: SubTriggerEventName;
+  /** Stable action identity used to avoid duplicate installs while preserving distinct clauses. */
+  dedupeKey?: string;
   /** Printed placement class retained so a pending watcher passes the same kernel guard. */
   isInheritedSource?: boolean;
   isLinkedSource?: boolean;
@@ -1894,6 +1896,8 @@ export interface EffectContext {
    * Undefined => no Digimon with a level was deleted in this resolution.
    */
   lastDeletedLevel?: number;
+  /** Live DP captured before the most recent deletion, for DP-bounded follow-up targets. */
+  lastDeletedDP?: number;
   lastDigivolveResult?: boolean;
   lastOptionUsed?: boolean;
   lastOptionUsedInstanceId?: string;

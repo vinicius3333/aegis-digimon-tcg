@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { playEx4Card } from "./livePlayTestHelpers.js";
+import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
 import {
   CardKind,
   EffectTiming,
@@ -10,6 +12,8 @@ import {
 } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { compiled } from "./EX4-073.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 
 describe("EX4-073 Omnimon Alter-B", () => {
   it("registers mandatory When Digivolving and optional When Attacking effects", () => {
@@ -68,6 +72,7 @@ describe("EX4-073 Omnimon Alter-B", () => {
     });
     const self = {
       permanentId: "self",
+      controllerSeat: 0,
       topCard: card("EX4-073", 0),
       stack: [card("L6A", 0), card("L6B", 0), card("L6C", 0)],
       linked: [],
@@ -78,6 +83,7 @@ describe("EX4-073 Omnimon Alter-B", () => {
       (id) =>
         ({
           permanentId: id,
+          controllerSeat: 1,
           topCard: card(id, 1),
           stack: [],
           linked: [],
@@ -156,4 +162,63 @@ describe("EX4-073 Omnimon Alter-B", () => {
     expect(deleted).toEqual([["tamer"], ["digimon"], ["expensive"]]);
     expect(securityTrash).toEqual([[1, 2, { fromTop: true }]]);
   });
+
+  it("plays through the live engine", async () => {
+    const s = await playEx4Card("EX4-073");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("subject").instanceId)).toBe(false);
+  });
+
+  it("uses the public When Digivolving path and never exceeds the six-play-cost deletion budget", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX4-073", as: "subject" }], security: ["BT1-001", "BT1-002"] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "cost2" },
+            { card: "BT1-013", as: "cost3" },
+            { card: "BT1-019", as: "cost6" },
+          ],
+          security: ["BT1-001", "BT1-002"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("subject"));
+    await settle(() => s.state.players[1]!.battleArea.length < 3);
+    expect(s.state.players[1]!.battleArea.map((perm) => perm.topCard.cardId)).toEqual(["BT1-019"]);
+  });
+
+  it("uses the public attack path for the full three-material exclusion budget", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX4-073", as: "attacker", under: ["EX4-048", "EX4-049", "EX4-051"] }],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "cost2" },
+            { card: "BT1-013", as: "cost3" },
+            { card: "BT1-019", as: "cost6" },
+          ],
+          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.state.players[0]!.battleArea[0]!.stack).toHaveLength(0);
+  });
+  ex4CardBehaviorTests("EX4-073");
 });

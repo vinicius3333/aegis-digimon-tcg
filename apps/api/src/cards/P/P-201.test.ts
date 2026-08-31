@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-201.js";
 
 describe("P-201 Phascomon", () => {
@@ -43,5 +45,46 @@ describe("P-201 Phascomon", () => {
         },
       ],
     });
+  });
+
+  it("reveals three, adds a Belphemon-text card, and trashes a hand card on play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "P-201", as: "source" },
+            { card: "BT1-001", as: "filler" },
+          ],
+          deck: [{ card: "BT13-084", as: "match" }, "BT1-002", "BT1-003"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("match").instanceId));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("match").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("filler").instanceId)).toBe(true);
+  });
+
+  it("repeats the reveal-and-trash effect when deleted", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-201", as: "source" }],
+          hand: [{ card: "BT1-001", as: "filler" }],
+          deck: [{ card: "BT13-084", as: "match" }, "BT1-002", "BT1-003"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId]);
+    await settle();
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("match").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("filler").instanceId)).toBe(true);
   });
 });

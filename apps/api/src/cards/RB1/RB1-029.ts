@@ -4,7 +4,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // EndOfAttack: deletes self as cost, then deletes 1 opponent Digimon with DP <= self's DP.
 // OnDeletion: plays [Gammamon] from trash in suspended state.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "EndOfAttack",
@@ -17,7 +17,7 @@ const compiled: CompiledCard = {
               kind: ["Digimon"],
               dp: {
                 op: "lte",
-                compareTo: "deletedSelfDP",
+                relativeTo: "lastDeleted",
               },
             },
             count: 1,

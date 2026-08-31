@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("ST24-01 Koromon", () => {
@@ -32,5 +33,37 @@ describe("ST24-01 Koromon", () => {
         },
       ],
     });
+  });
+
+  it("pays the face-down Tamer-card cost and digivolves the attacking host for 2 less", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST24-02", as: "attacker", under: ["ST24-01"] },
+            { card: "ST24-13", as: "tamer", under: [{ card: "BT1-001", as: "cost", faceUp: false }] },
+          ],
+          hand: [{ card: "ST24-03", as: "gaogamon" }],
+        },
+        1: { security: ["BT1-090", "BT1-090"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const costId = s.inst("cost").instanceId;
+    await s.ready();
+    s.state.memory = 2;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("attacker").topCard.cardId === "ST24-03");
+
+    expect(s.perm("tamer").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === costId)).toBe(true);
+    expect(s.state.memory).toBe(2);
   });
 });

@@ -43,6 +43,7 @@ const compiled: CompiledCard = {
           abortOnDecline: true,
           cost: {
             kind: "place",
+            targetIsPermanent: true,
             target: {
               filter: {
                 isSelfRef: true,
@@ -72,25 +73,16 @@ const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
-          kind: "SubTrigger",
-          event: "onDeletionOf",
-          sourceFilter: {
-            controllerDefault: "mine",
-            kind: ["Digimon"],
-          },
-          actions: [
-            {
-              kind: "Trash",
-              target: {
-                filter: {
-                  controller: "opponent",
-                  zone: "hand",
-                },
-                count: 1,
-              },
-              chooser: "opponent",
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "opponent",
+              zone: "hand",
             },
-          ],
+            count: 1,
+          },
+          chooser: "opponent",
+          condition: { kind: "not", condition: { kind: "triggerRemovalCause", removalCause: "byBattle" } },
         },
       ],
       isInherited: true,

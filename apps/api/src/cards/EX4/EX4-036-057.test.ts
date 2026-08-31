@@ -3,8 +3,8 @@ import { getCardDefinition } from "@aegis/shared";
 import { compiled as blackRapidmon } from "./EX4-036.js";
 import { compiled as antylamon } from "./EX4-057.js";
 
-function actions(card: typeof blackRapidmon, trigger: string): any[] {
-  return card.effects.filter((effect: any) => effect.trigger === trigger).flatMap((effect: any) => effect.actions);
+function actions(card: typeof blackRapidmon, trigger: string) {
+  return card.effects.filter((effect) => effect.trigger === trigger).flatMap((effect) => effect.actions);
 }
 
 describe("EX4-036 BlackRapidmon and EX4-057 Antylamon", () => {
@@ -28,7 +28,9 @@ describe("EX4-036 BlackRapidmon and EX4-057 Antylamon", () => {
       duration: "forThisAttack",
       alsoGainKeywords: [{ keyword: "SecurityAttack", amount: 1 }],
     });
-    expect(attack.cost.target.filter).toMatchObject({ zone: "battleArea", excludeSelf: true });
+    expect(attack).toBeDefined();
+    if (attack === undefined || attack.cost === undefined || typeof attack.cost === "number") return;
+    expect(attack.cost.target?.filter).toMatchObject({ zone: "battleArea", excludeSelf: true });
     expect(getCardDefinition("EX4-057")).toMatchObject({ level: 5, colors: ["Purple", "Green"] });
   });
 });

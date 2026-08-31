@@ -1,6 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./ST18-08.js";
@@ -24,11 +22,22 @@ describe("ST18-08 Galemon", () => {
 
   it("may play a LIBERATOR card costing four or less from hand when revealed in security", async () => {
     const s = setupEngine(
-      { 0: { security: [{ card: "ST18-08", as: "galemon", faceUp: true }], hand: [{ card: "ST18-14", as: "shoto" }] } },
+      {
+        0: { security: [{ card: "ST18-08", as: "galemon" }, "BT1-090"], hand: [{ card: "ST18-14", as: "shoto" }] },
+        1: { battleArea: ["BT1-009"] },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("galemon"));
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.state.players[1]!.battleArea[0]!.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "ST18-14"));
 
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "ST18-14")).toBe(true);

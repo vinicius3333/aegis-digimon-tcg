@@ -72,6 +72,8 @@ describe("EX3-054 Darkdramon", () => {
         instanceId: s.inst("darkdramon").instanceId,
       }),
     ).toEqual({ ok: true });
+    await waitForDecision(s, "optional");
+    respond(s, { kind: "optional", accept: true });
     await waitForDecision(s, "selectCards");
     expect(s.decisions.at(-1)!.req.sourceCardId).toBe("EX3-054");
     respond(s, { kind: "selectCards", instanceIds: [] });
@@ -110,6 +112,8 @@ describe("EX3-054 Darkdramon", () => {
         instanceId: s.inst("darkdramon").instanceId,
       }),
     ).toEqual({ ok: true });
+    await waitForDecision(s, "optional");
+    respond(s, { kind: "optional", accept: true });
     await waitForDecision(s, "selectCards");
     expect(payload(s)).toMatchObject({ min: 0, max: 5, timing: "Static" });
     expect(payload(s).candidateInstanceIds).toHaveLength(6);
@@ -135,6 +139,7 @@ describe("EX3-054 Darkdramon", () => {
       expect.arrayContaining([s.inst("sixth").instanceId, s.inst("nonDBrigade").instanceId]),
     );
     expect(s.decisions.filter(({ req }) => req.sourceCardId === "EX3-054").map(({ req }) => req.kind)).toEqual([
+      "optional",
       "selectCards",
       "orderCards",
     ]);

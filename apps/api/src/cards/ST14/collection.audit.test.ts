@@ -1,11 +1,15 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { allCards, getCompiledCard } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { getEffectModule } from "../../engine/effects/registry.js";
 import "./index.js";
 
 const st14Cards = allCards()
   .filter((card) => /^ST14-\d{2}$/.test(card.cardId))
   .sort((a, b) => Number(a.cardId.slice(5)) - Number(b.cardId.slice(5)));
+const collectionDirectory = fileURLToPath(new URL(".", import.meta.url));
 
 function nodesWithKey(value: unknown, key: string): Record<string, unknown>[] {
   const found: Record<string, unknown>[] = [];
@@ -27,9 +31,9 @@ describe("ST14 collection audit ledger", () => {
     );
     for (const card of st14Cards) {
       const ir = getCompiledCard(card.cardId);
-      expect(runtimeCompiledCard(card.cardId), card.cardId).toBeDefined();
-      expect(ir?.coverage, card.cardId).toBe("full");
-      expect(ir?.residual, card.cardId).toEqual([]);
+      expect(runtimeCompiledCard(card.cardId)).toBeDefined();
+      expect(ir?.coverage).toBe("full");
+      expect(ir?.residual).toEqual([]);
     }
   });
 
@@ -51,5 +55,19 @@ describe("ST14 collection audit ledger", () => {
     const barrage = runtimeCompiledCard("ST14-12")!;
     const delay = nodesWithKey(barrage, "kind").find((node) => node.kind === "Delete")!;
     expect(delay).toBeDefined();
+  });
+
+  it("keeps every direct module and colocated test on exclusive complete IR", () => {
+    for (const card of st14Cards) {
+      const moduleSource = readFileSync(`${collectionDirectory}${card.cardId}.ts`, "utf8");
+      const testSource = readFileSync(`${collectionDirectory}${card.cardId}.test.ts`, "utf8");
+      expect(getEffectModule(card.cardId)).toBeDefined();
+      expect(moduleSource).toContain(`registerIrCard("${card.cardId}", compiled)`);
+      expect(moduleSource).not.toMatch(/\bregisterCard\s*\(/);
+      expect(moduleSource).toMatch(/\bcoverage:\s*["']full/);
+      expect(moduleSource).toMatch(/\bresidual:\s*\[\]/);
+      expect(testSource).toMatch(/\bsetupEngine\s*\(/);
+      expect(testSource).toMatch(/\bexpect\s*\(/);
+    }
   });
 });

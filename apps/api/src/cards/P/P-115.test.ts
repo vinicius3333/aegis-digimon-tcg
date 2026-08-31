@@ -1,9 +1,20 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./P-115.js";
 
 describe("P-115 SkullKnightmon", () => {
+  it("grants Security Attack +1 to a level-5 Bagra Army/Twilight host on your turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT10-066", as: "host", under: ["P-115"] }] },
+      1: { security: ["BT1-001"] },
+    });
+    await s.ready();
+    expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);
+    assertNoLoudGap(s);
+  });
+
   it("plays an errata-eligible Amano Tamer and Saves itself under that Tamer", async () => {
     const s = setupEngine(
       {
@@ -19,6 +30,7 @@ describe("P-115 SkullKnightmon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const skullId = s.perm("skull").topCard.instanceId;
+    await s.ready();
 
     expect(await advance(s.engine).verb.deletePermanent([s.perm("skull").permanentId])).toBe(1);
     await settle(

@@ -82,7 +82,7 @@ describe("P-244 Unique Emblem: Ragnarok Attainer", () => {
             { card: "P-244", as: "emblem" },
             { card: "BT21-098", as: "cannon" },
           ],
-          trash: ["BT18-092", "BT21-056", "BT21-056", "BT11-065", "BT11-065"],
+          trash: ["BT18-092", "BT11-065", "BT11-065", "BT11-065", "BT11-065"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "target" }] },
       },
@@ -141,5 +141,87 @@ describe("P-244 Unique Emblem: Ragnarok Attainer", () => {
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "P-244")).toBe(false);
     expect(s.perm("galacticmon").topCard.cardId).toBe("BT21-062");
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === nextGalacticmon.instanceId)).toBe(true);
+  });
+
+  it("accepts Delay and pays the qualifying digivolution with exactly 3 memory reduced", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-062", as: "galacticmon" }],
+          hand: [
+            { card: "P-244", as: "emblem" },
+            { card: "BT21-098", as: "cannon" },
+          ],
+          trash: ["BT18-092", "BT11-065", "BT11-065", "BT11-065", "BT11-065"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 20;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("emblem").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "P-244"));
+    const mainDecision = s.decisions.find(({ req }) => req.kind === "optional" && req.sourceCardId === "P-244")?.req;
+    expect(mainDecision).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: mainDecision!.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "P-244"));
+    await settle(() => s.state.pendingDecision === undefined);
+    s.state.turnCount += 1;
+    const nextGalacticmon = s.give(0, Zone.Hand, { card: "EX11-046", as: "nextGalacticmon" });
+    const beforeDigivolve = s.state.memory;
+
+    const resolution = advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("galacticmon"));
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "BT21-062"));
+    const galacticmonDecision = s.decisions.find(
+      ({ req }) => req.kind === "optional" && req.sourceCardId === "BT21-062",
+    )?.req;
+    expect(galacticmonDecision).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: galacticmonDecision!.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional" && req.promptText.includes("Delay")), 500);
+    const delayDecision = s.decisions.find(
+      ({ req }) => req.kind === "optional" && req.promptText.includes("Delay"),
+    )?.req;
+    expect(delayDecision).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: delayDecision!.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional" && req.promptText === "Digivolve"), 500);
+    const digivolveDecision = s.decisions.find(
+      ({ req }) => req.kind === "optional" && req.promptText === "Digivolve",
+    )?.req;
+    expect(digivolveDecision).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: digivolveDecision!.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await resolution;
+
+    await settle(() => s.perm("galacticmon").topCard.instanceId === nextGalacticmon.instanceId);
+    expect(s.state.memory).toBe(beforeDigivolve - 2);
+    expect(s.state.memory).toBe(beforeDigivolve - (5 - 3));
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "P-244")).toBe(true);
+    expect(s.perm("galacticmon").stack.some((card) => card.cardId === "BT21-062")).toBe(true);
   });
 });

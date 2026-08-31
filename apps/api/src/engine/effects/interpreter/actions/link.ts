@@ -230,6 +230,10 @@ export async function runLink(ctx: EffectContext, action: Extract<Action, { kind
     if (cost > 0) ctx.fx.gainMemory(-cost);
   }
   await ctx.fx.link(recipientId, chosen);
+  if (action.bindRecipientAs !== undefined) {
+    ctx.boundPlayed ??= new Map();
+    ctx.boundPlayed.set(action.bindRecipientAs, new Set([recipientId]));
+  }
   ctx.lastEffectActed = true;
 }
 

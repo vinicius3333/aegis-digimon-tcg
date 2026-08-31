@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-196.js";
 
 describe("P-196 Gomamon", () => {
@@ -39,5 +42,39 @@ describe("P-196 Gomamon", () => {
         },
       ],
     });
+  });
+
+  it("draws from the inherited attack effect with seven cards in hand", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "host", under: ["P-196"] }],
+        hand: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006", "BT1-007"],
+        deck: [{ card: "BT1-008", as: "drawn" }],
+      },
+      1: { security: 1 },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]!.hand.length).toBe(8);
+  });
+
+  it("free-digivolves into a qualifying Sea Beast/TS card at the four-memory boundary", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "P-196", as: "gomamon" }], hand: [{ card: "P-194", as: "aegio" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("gomamon"));
+    await settle(() => s.perm("gomamon").topCard.instanceId === s.inst("aegio").instanceId);
+    expect(s.perm("gomamon").topCard.instanceId).toBe(s.inst("aegio").instanceId);
+    expect(s.state.memory).toBe(4);
   });
 });

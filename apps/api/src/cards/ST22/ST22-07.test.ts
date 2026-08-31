@@ -35,15 +35,20 @@ describe("ST22-07 Rika Nonaka", () => {
             { card: "ST22-06", as: "attacker" },
           ],
         },
+        1: { security: ["BT1-001", "BT1-001"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenAttacking", {
-      subjectPermanentId: s.perm("attacker").permanentId,
-      attackerPermanentId: s.perm("attacker").permanentId,
-    });
+    s.state.turnSeat = 0;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === s.inst("mandala").instanceId));
 
     expect(s.perm("rika").isSuspended).toBe(true);

@@ -40,7 +40,7 @@ function def(cardId: string, kinds: string[] = ["Digimon"]): CardDefinition {
   };
 }
 
-function perm(permanentId: string, seat: Seat, cardId: string): Permanent {
+function perm(permanentId: string, seat: Seat, cardId: string, currentDP = 0): Permanent {
   return {
     permanentId,
     controllerSeat: seat,
@@ -48,7 +48,7 @@ function perm(permanentId: string, seat: Seat, cardId: string): Permanent {
     stack: [] as never,
     linked: [] as never,
     baseDP: 0,
-    currentDP: 0,
+    currentDP,
     isSuspended: false,
     inBreeding: false,
   } as unknown as Permanent;
@@ -115,6 +115,50 @@ const oppTarget = {
   },
   count: 1,
 };
+
+const oppDPTarget = {
+  filter: {
+    controller: "opponent",
+    kind: ["Digimon"],
+    dp: { op: "lte", relativeTo: "lastDeleted" },
+  },
+  count: 1,
+};
+
+describe("dp.relativeTo:lastDeleted (cost-deleted bound — RB1-029)", () => {
+  it("uses the cost-deleted Digimon's live DP as the opponent target ceiling", async () => {
+    const own = [perm("OWN", 0 as Seat, "COST5", 6_000)];
+    const opponent = [perm("OPP_LO", 1 as Seat, "OPP4", 3_000), perm("OPP_HI", 1 as Seat, "OPP6", 7_000)];
+    const src = source("X-RB1-029");
+    const { ctx, deleted } = makeCtx({ source: src, own, opponent });
+    const card = {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "Delete",
+              target: oppDPTarget,
+              cost: {
+                kind: "deleteOwn",
+                target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+              },
+            },
+          ],
+        },
+      ],
+    } as never as CompiledCard;
+
+    const effects = irCardModule("X-RB1-029", card).effectsForTiming(EffectTiming.OnUseOption, src);
+    await effects[0]!.resolve(ctx);
+
+    expect(deleted[0]).toEqual(["OWN"]);
+    expect(deleted[1]).toEqual(["OPP_LO"]);
+    expect(deleted.flat()).not.toContain("OPP_HI");
+  });
+});
 
 describe("levelComparison.relativeTo:lastDeleted (cost-deleted bound — BT8-107)", () => {
   function card(): CompiledCard {

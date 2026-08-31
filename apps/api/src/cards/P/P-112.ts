@@ -73,8 +73,10 @@ const compiled: CompiledCard = {
               count: 1,
               isSelf: true,
             },
+            targetIsPermanent: true,
             destination: "digivolutionStack",
             position: "bottom",
+            host: "target",
             underFilter: {
               controller: "mine",
               nameOrTrait: [

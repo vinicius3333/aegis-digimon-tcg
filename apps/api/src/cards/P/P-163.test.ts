@@ -13,6 +13,7 @@ describe("P-163 Dokugumon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
+    await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
       ok: true,

@@ -79,6 +79,14 @@ export interface ContextPredicates {
    * plays a Digimon" watcher, which omits this field and fires on any play.
    */
   byEffect?: boolean;
+  /**
+   * Inherited digivolution-card watcher only: match the exact source stack-card instance that
+   * was discarded by this event. The interpreter captures the source instance at install time
+   * and compares it with the event payload after the card has moved, while the normal host anchor
+   * keeps the subscription alive. This is intentionally separate from `isSelfRef`, which means
+   * the current source permanent rather than a discarded stack card.
+   */
+  matchTrashedSource?: boolean;
   placedByThisEffect?: boolean;
   /**
    * An Option permanent that reached the battle area via a "place this card in the battle area"

@@ -123,10 +123,13 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         const permanent = ctx.game.permanentById(id);
         return permanent?.topCard === undefined ? undefined : ctx.game.definitionOf(permanent.topCard).level;
       });
+      const selectedDP = ids.map((id) => ctx.game.permanentById(id)?.currentDP);
       ctx.lastDeleteCount = ids.length > 0 ? await ctx.fx.deletePermanent(ids) : 0;
       ctx.lastDeletedByThisEffectIds = ids.filter((id) => ctx.game.permanentById(id) === undefined);
       ctx.lastDeletedLevel =
         ctx.lastDeletedByThisEffectIds.length > 0 ? selectedLevels.find((level) => level !== undefined) : undefined;
+      ctx.lastDeletedDP =
+        ctx.lastDeletedByThisEffectIds.length > 0 ? selectedDP.find((dp) => dp !== undefined) : undefined;
       ctx.deletedThisEffectIds = [
         ...(ctx.deletedThisEffectIds ?? []),
         ...ctx.lastDeletedByThisEffectIds.filter((id) => !(ctx.deletedThisEffectIds ?? []).includes(id)),
@@ -854,10 +857,18 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       // deletes it at the owner's turn end, expiring at that same boundary.
       const playedIds = ctx.lastPlayedPermanentIds ?? [];
       if (playedIds.length > 0) {
-        for (const permanentId of playedIds) ctx.fx.delayedDeletePlayed?.(permanentId);
+        for (const permanentId of playedIds)
+          ctx.fx.delayedDeletePlayed?.(
+            permanentId,
+            action.timing === "endOfOpponentTurn" ? "endOfOpponentTurn" : "endOfOwnerTurn",
+          );
       } else {
         const self = ctx.source.permanent();
-        if (self !== undefined) ctx.fx.delayedDeletePlayed?.(self.permanentId);
+        if (self !== undefined)
+          ctx.fx.delayedDeletePlayed?.(
+            self.permanentId,
+            action.timing === "endOfOpponentTurn" ? "endOfOpponentTurn" : "endOfOwnerTurn",
+          );
       }
       return false;
     }

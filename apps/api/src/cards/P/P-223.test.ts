@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-223.js";
+import "../ST22/ST22-10.js";
 
 describe("P-223 Kuzuhamon", () => {
   it("reduces play cost by 4 with three or fewer security cards", () => {
@@ -28,7 +30,11 @@ describe("P-223 Kuzuhamon", () => {
         actions: [
           {
             kind: "UseOptionWithoutCost",
-            filter: { kind: ["Option"], nameOrTrait: [{ tokens: ["Onmyōjutsu", "Plug-In"], match: "trait" }] },
+            filter: {
+              kind: ["Option"],
+              playCostLte: 99,
+              nameOrTrait: [{ tokens: ["Onmyōjutsu", "Plug-In"], match: "trait" }],
+            },
             from: ["hand", "trash"],
             payCost: false,
             optional: true,
@@ -50,5 +56,63 @@ describe("P-223 Kuzuhamon", () => {
         },
       ],
     });
+  });
+});
+
+describe("P-223 engine behavior", () => {
+  it("uses a cost-6 Onmyōjutsu Option from hand without paying its cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "P-223", as: "kuzuhamon" },
+            { card: "ST22-10", as: "onmyojutsu" },
+          ],
+          battleArea: [
+            { card: "P-016", as: "purple" },
+            { card: "BT1-063", as: "yellow" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    const optionId = s.inst("onmyojutsu").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kuzuhamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.state.memory).toBe(9);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === optionId)).toBe(false);
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === optionId && card.faceUp)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId.includes("TOKEN"))).toBe(true);
+  });
+
+  it("allows refusing the optional cost-6 Option use", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "P-223", as: "kuzuhamon" },
+            { card: "ST22-10", as: "onmyojutsu" },
+          ],
+          battleArea: [
+            { card: "P-016", as: "purple" },
+            { card: "BT1-063", as: "yellow" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    const optionId = s.inst("onmyojutsu").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kuzuhamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.state.memory).toBe(9);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === optionId)).toBe(true);
   });
 });

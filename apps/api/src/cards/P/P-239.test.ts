@@ -52,3 +52,35 @@ describe("P-239 DemiDevimon", () => {
     );
   });
 });
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+
+describe("P-239 inherited engine behavior", () => {
+  it("trashes a hand card and deletes an opposing level-4 Digimon on host deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT1-001", as: "cost" }],
+          battleArea: [{ card: "BT15-076", as: "host", under: [{ card: "P-239", as: "demidevimon" }] }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
+    await settle();
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+});
+
+describe("P-239 continuous behavior", () => {
+  it("grants Blocker to a resident DemiDevimon", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "P-239", as: "demidevimon" }] } });
+    await s.ready();
+    const ledger = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } })
+      .continuous;
+    expect(ledger.hasKeyword(s.perm("demidevimon").permanentId, "Blocker")).toBe(true);
+  });
+});

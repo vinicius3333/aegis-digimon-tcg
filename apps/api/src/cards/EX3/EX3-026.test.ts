@@ -333,7 +333,6 @@ describe("EX3-026 Aegisdramon", () => {
     await settle(() => s.state.pendingDecision?.kind === "optional");
     respond(s, { kind: "optional", accept: false });
     await settle(() => s.state.pendingDecision === undefined);
-
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("secondOpponentPlay").instanceId })).toEqual({
       ok: true,
     });
@@ -368,7 +367,6 @@ describe("EX3-026 Aegisdramon", () => {
     await settle(() => s.state.pendingDecision?.kind === "optional");
     respond(s, { kind: "optional", accept: false });
     await settle(() => s.state.pendingDecision === undefined);
-
     expect(s.decisions.filter(({ req }) => req.sourceCardId === "EX3-026" && req.kind === "optional")).toHaveLength(2);
   });
 

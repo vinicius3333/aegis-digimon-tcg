@@ -24,7 +24,7 @@ const compiled: CompiledCard = {
           },
           duration: "permanent",
           condition: {
-            kind: "allOf",
+            kind: "anyOf",
             conditions: [
               {
                 kind: "youHave",
