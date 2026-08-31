@@ -54,6 +54,7 @@ const compiled: CompiledCard = {
             controllerDefault: "mine",
             excludeSelf: true,
             kind: ["Digimon"],
+            byEffect: true,
           },
           actions: [
             {

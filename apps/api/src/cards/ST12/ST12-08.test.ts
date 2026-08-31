@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
+import "../BT20/BT20-021.js";
 import "../index.js";
 
 // A3 for ST12-08 (SaviorHuckmon) — two effects:
@@ -17,10 +19,8 @@ import "../index.js";
 // an unsuspended opponent Digimon (which is normally illegal). This directly exercises
 // the canAttackUnsuspended grant written by the WhenDigivolving effect.
 //
-// Test (2): attacking with ST12-08 as top card (Dragonkin, NOT Royal Knight) does NOT
-// play a Sistermon from hand — this verifies the Royal Knight trait guard works correctly.
-// The positive Royal Knight test is deferred (requires stacking a Royal Knight definition
-// on top of a permanent, which requires a real level-7 Royal Knight card from the test data).
+// Test (2): attacking with ST12-08 under a Royal Knight plays one Sistermon from hand or
+// trash, while the negative host and repeated-attack cases prove the trait and OPT guards.
 
 interface ContinuousLedger {
   canAttackUnsuspended(permanentId: string): boolean;
@@ -97,6 +97,30 @@ describe("ST12-08 [When Digivolving] allows attacking unsuspended opponent Digim
     });
     expect(result).toEqual({ ok: false, reason: "illegal-target" });
   });
+
+  it("expires the unsuspended-Digimon attack permission when the turn changes", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: LV4_BASE, as: "base" }], hand: [{ card: SAVIOHUCKMON, as: "card" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "unsuspended" }] },
+      },
+      { autoAcceptOptional: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("card").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    const ledger = ledgerOf(s);
+    await settle(() => ledger.canAttackUnsuspended(s.perm("base").permanentId), 400);
+
+    await advance(s.engine).runTurn(0);
+    expect(ledger.canAttackUnsuspended(s.perm("base").permanentId)).toBe(false);
+    expect([...s.perm("base").attackablePermanentIds]).not.toContain(s.perm("unsuspended").permanentId);
+  });
 });
 
 describe("ST12-08 [When Attacking][Inherited] does not fire when attacker lacks Royal Knight trait", () => {
@@ -116,21 +140,46 @@ describe("ST12-08 [When Attacking][Inherited] does not fire when attacker lacks 
     const p0 = s.state.players[0]!;
     const sistermonId = s.inst("sistermon").instanceId;
 
-    const attackResult = s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
 
-    await settle(() => true, 200);
+    await settle(() => s.state.players[1]!.security.length === 0);
 
     // Sistermon must still be in hand (Royal Knight check failed → no play).
     expect(p0.hand.some((c) => c.instanceId === sistermonId)).toBe(true);
-    void attackResult;
   });
 });
 
 describe("ST12-08 [When Attacking][Inherited] plays Sistermon for a Royal Knight", () => {
+  it("plays a Sistermon from hand without paying its cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-090", as: "royal", under: [SAVIOHUCKMON] }],
+          hand: [{ card: "ST12-12", as: "sister" }],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("royal").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("sister").instanceId),
+    );
+    expect(s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("sister").instanceId)).toBe(false);
+  });
+
   it("plays a Sistermon from trash without paying its cost once the Royal Knight attacks", async () => {
     const s = setupEngine(
       {
@@ -156,19 +205,78 @@ describe("ST12-08 [When Attacking][Inherited] plays Sistermon for a Royal Knight
     expect(s.state.players[0]!.trash.some((c) => c.instanceId === sisterId)).toBe(false);
   });
 
+  it("only plays one Sistermon across multiple attacks in the same turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-021", as: "royal", under: [SAVIOHUCKMON] }],
+          hand: [
+            { card: SISTERMON, as: "first" },
+            { card: SISTERMON, as: "second" },
+          ],
+        },
+        1: { security: ["BT1-001", "BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    const attacker = s.perm("royal");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attacker.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("first").instanceId));
+    await settle(() => s.state.players[1]!.security.length === 1);
+
+    // There is no player intent for unsuspending; drive the production unsuspend seam so the
+    // second attack is legal without bypassing combat validation.
+    await advance(s.engine).verb.unsuspend([attacker.permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attacker.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.players[0]!.battleArea.filter((p) => p.topCard.cardId === SISTERMON)).toHaveLength(1);
+    expect(s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("second").instanceId)).toBe(true);
+  });
+
   it("may decline the free play and leave the Sistermon in trash", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "ST12-10", as: "royal", under: ["ST12-08"] }], trash: [{ card: "ST12-12", as: "sister" }] },
+        0: {
+          battleArea: [{ card: "ST12-10", as: "royal", under: ["ST12-08"] }],
+          trash: [{ card: "ST12-12", as: "sister" }],
+        },
         1: { security: ["BT1-001"] },
       },
       { autoOrderTriggers: true },
     );
     const sisterId = s.inst("sister").instanceId;
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("royal").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("royal").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
     const pending = s.state.pendingDecision!;
-    expect(s.engine.applyIntent(0, { type: "respondDecision", decisionId: pending.decisionId, response: { kind: "optional", accept: false } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pending.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === sisterId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === sisterId)).toBe(false);

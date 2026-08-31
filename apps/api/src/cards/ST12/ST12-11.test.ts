@@ -93,17 +93,81 @@ describe("ST12-11 [When Digivolving] plays Huckmon or Sistermon-name from trash 
 
   it("may decline the free play and leave a matching Huckmon in trash", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: LV5_BASE, as: "base" }], trash: [{ card: HUCKMON, as: "huckmon" }], hand: [{ card: GANKOOMON, as: "card" }] } },
+      {
+        0: {
+          battleArea: [{ card: LV5_BASE, as: "base" }],
+          trash: [{ card: HUCKMON, as: "huckmon" }],
+          hand: [{ card: GANKOOMON, as: "card" }],
+        },
+      },
       { autoOrderTriggers: true },
     );
     const huckmonId = s.inst("huckmon").instanceId;
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("card").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("card").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
     const pending = s.state.pendingDecision!;
-    expect(s.engine.applyIntent(0, { type: "respondDecision", decisionId: pending.decisionId, response: { kind: "optional", accept: false } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pending.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === huckmonId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === huckmonId)).toBe(false);
+  });
+
+  it("only De-Digivolves once when two effect-play Digimon enter in one turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST12-11", as: "gankoomon" },
+            { card: "ST12-10", as: "jesmonOne" },
+            { card: "ST12-10", as: "jesmonTwo" },
+          ],
+          hand: [
+            { card: "ST12-12", as: "sisterOne" },
+            { card: "ST12-12", as: "sisterTwo" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "ST12-10", as: "target", under: ["ST12-08", "ST12-04", "ST12-08"] }],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+
+    const target = s.perm("target");
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("jesmonOne").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => target.stack.length === 2);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("jesmonTwo").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+
+    // A second effect-play in the same turn must not consume Gankoomon's OPT again.
+    expect(target.stack).toHaveLength(2);
   });
 });

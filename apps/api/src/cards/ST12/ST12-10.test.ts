@@ -5,6 +5,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT6/BT6-084.js";
 import "../BT6/BT6-015.js";
 import "./ST12-10.js";
+import "./ST12-11.js";
 import "./ST12-12.js";
 import "../index.js"; // the full catalog is registered in a real match
 
@@ -53,16 +54,118 @@ describe("ST12-10 Jesmon", () => {
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
+  it("does not apply the effect-play bonus a second time in the same turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST12-10", as: "jesmon" },
+            { card: "BT10-064", as: "base" },
+          ],
+          hand: [
+            { card: "BT1-001", as: "cost" },
+            { card: "ST12-12", as: "sister" },
+            { card: "ST12-11", as: "gankoomon" },
+          ],
+          trash: [{ card: "BT13-009", as: "huckmon" }],
+        },
+        1: { security: ["BT1-001", "BT1-002", "BT1-003"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("jesmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("jesmon").currentDP === 15000 &&
+        observe(s.engine).keywordAmount(s.perm("jesmon"), "SecurityAttack") === 1,
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gankoomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT13-009"));
+
+    expect(s.perm("jesmon").currentDP).toBe(15000);
+    expect(observe(s.engine).keywordAmount(s.perm("jesmon"), "SecurityAttack")).toBe(1);
+  });
+
+  it("does not play a non-Sistermon card from hand during its attack effect", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST12-10", as: "jesmon" }], hand: [{ card: "ST12-04", as: "notSister" }] },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    const nonSisterId = s.inst("notSister").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("jesmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === nonSisterId)).toBe(true);
+    expect(s.perm("jesmon").currentDP).toBe(s.perm("jesmon").baseDP);
+    expect(observe(s.engine).keywordAmount(s.perm("jesmon"), "SecurityAttack")).toBe(0);
+  });
+
+  it("does not gain its bonus when another Digimon is played normally", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "ST12-10", as: "jesmon" }],
+        hand: [{ card: "ST12-02", as: "normallyPlayed" }],
+      },
+    });
+    s.state.memory = 2;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("normallyPlayed").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 2);
+
+    expect(s.perm("jesmon").currentDP).toBe(s.perm("jesmon").baseDP);
+    expect(observe(s.engine).keywordAmount(s.perm("jesmon"), "SecurityAttack")).toBe(0);
+  });
+
   it("may decline its attack-time Sistermon play without gaining the effect-play bonus", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "ST12-10", as: "jesmon" }], hand: [{ card: "ST12-12", as: "sister" }] }, 1: { security: ["BT1-001"] } },
+      {
+        0: { battleArea: [{ card: "ST12-10", as: "jesmon" }], hand: [{ card: "ST12-12", as: "sister" }] },
+        1: { security: ["BT1-001"] },
+      },
       { autoOrderTriggers: true },
     );
     const sisterId = s.inst("sister").instanceId;
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("jesmon").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("jesmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
     const pending = s.state.pendingDecision!;
-    expect(s.engine.applyIntent(0, { type: "respondDecision", decisionId: pending.decisionId, response: { kind: "optional", accept: false } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pending.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === sisterId)).toBe(true);
     expect(s.perm("jesmon").currentDP).toBe(s.perm("jesmon").baseDP);
@@ -158,16 +261,17 @@ describe("ST12-10 Jesmon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
-    if (s.state.pendingDecision !== undefined) {
-      expect(
-        s.engine.applyIntent(0, {
-          type: "respondDecision",
-          decisionId: s.state.pendingDecision.decisionId,
-          response: { kind: "optional", accept: false },
-        }),
-      ).toEqual({ ok: true });
-    }
+    await settle(() => s.state.pendingDecision?.kind === "optional" || !mainPhase.isOpen);
+    const attackDecision = s.state.pendingDecision;
+    const declineResult =
+      attackDecision === undefined
+        ? { ok: true }
+        : s.engine.applyIntent(0, {
+            type: "respondDecision",
+            decisionId: attackDecision.decisionId,
+            response: { kind: "optional", accept: false },
+          });
+    expect(declineResult).toEqual({ ok: true });
     await settle(() => !mainPhase.isOpen);
     expect(s.state.pendingDecision).toBeUndefined();
     expect(

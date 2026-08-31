@@ -22,6 +22,25 @@ describe("ST12-16 Quake! Blast! Fire! Father!", () => {
     expect(s.state.players[1]!.trash.some((c) => c.cardId === "ST12-10")).toBe(true);
   });
 
+  it("deletes a Digimon at the exact play-cost 13 boundary", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: ["ST12-04"], hand: [{ card: "ST12-16", as: "option" }] },
+        1: { battleArea: [{ card: "BT10-068", as: "target" }] },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 7;
+    await s.engine.recomputeContinuousEffects();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT10-068")).toBe(true);
+  });
+
   it("cannot ignore its color requirement without Huckmon, Sistermon or a Royal Knight", async () => {
     const s = setupEngine(
       { 0: { hand: [{ card: "ST12-16", as: "option" }] }, 1: { battleArea: ["ST12-10"] } },
@@ -42,7 +61,9 @@ describe("ST12-16 Quake! Blast! Fire! Father!", () => {
     );
     sistermon.state.memory = 7;
     await sistermon.engine.recomputeContinuousEffects();
-    expect(sistermon.engine.applyIntent(0, { type: "playCard", instanceId: sistermon.inst("option").instanceId })).toEqual({ ok: true });
+    expect(
+      sistermon.engine.applyIntent(0, { type: "playCard", instanceId: sistermon.inst("option").instanceId }),
+    ).toEqual({ ok: true });
     await settle(() => sistermon.state.players[1]!.battleArea.length === 0);
 
     const royalKnight = setupEngine(
@@ -51,15 +72,17 @@ describe("ST12-16 Quake! Blast! Fire! Father!", () => {
     );
     royalKnight.state.memory = 7;
     await royalKnight.engine.recomputeContinuousEffects();
-    expect(royalKnight.engine.applyIntent(0, { type: "playCard", instanceId: royalKnight.inst("option").instanceId })).toEqual({ ok: true });
+    expect(
+      royalKnight.engine.applyIntent(0, { type: "playCard", instanceId: royalKnight.inst("option").instanceId }),
+    ).toEqual({ ok: true });
     await settle(() => royalKnight.state.players[1]!.battleArea.length === 0);
   });
 
-  it("does not delete a Digimon whose play cost is 14 or more", async () => {
+  it("does not delete a Digimon at the exact play-cost 14 boundary", async () => {
     const s = setupEngine(
       {
         0: { battleArea: ["ST12-04"], hand: [{ card: "ST12-16", as: "option" }] },
-        1: { battleArea: [{ card: "BT10-112", as: "target" }] },
+        1: { battleArea: [{ card: "BT11-019", as: "target" }] },
       },
       { autoSelectCards: true, autoOrderTriggers: true },
     );
@@ -69,7 +92,7 @@ describe("ST12-16 Quake! Blast! Fire! Father!", () => {
       ok: true,
     });
     await settle(() => s.state.players[0]!.trash.some((c) => c.cardId === "ST12-16"));
-    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT10-112")).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT11-019")).toBe(true);
   });
 
   it("activates the same deletion effect from security", async () => {
