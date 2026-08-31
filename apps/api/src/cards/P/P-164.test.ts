@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-164.js";
 
 describe("P-164 Shellmon", () => {
@@ -50,5 +53,23 @@ describe("P-164 Shellmon", () => {
         }),
       ]),
     );
+  });
+
+  it("draws after placing a level-5-or-lower Aqua card from hand under a Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-164", as: "shellmon" }],
+          hand: [{ card: "BT1-033", as: "aqua" }],
+          deck: [{ card: "BT1-001", as: "drawn" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("shellmon"));
+    await settle();
+    expect(s.perm("shellmon").stack.some((card) => card.instanceId === s.inst("aqua").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
   });
 });

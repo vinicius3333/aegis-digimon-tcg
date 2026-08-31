@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./P-194.js";
 
 describe("P-194 Aegiomon", () => {
@@ -18,5 +20,12 @@ describe("P-194 Aegiomon", () => {
     expect(card.effects.find((effect) => effect.isInherited)).toMatchObject({
       keywords: [{ keyword: "Barrier", raw: "＜Barrier＞" }],
     });
+  });
+
+  it("exposes Blocker and Barrier on the live Aegiomon", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "P-194", as: "aegio" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("aegio"), "Blocker")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("aegio"), "Barrier")).toBe(true);
   });
 });

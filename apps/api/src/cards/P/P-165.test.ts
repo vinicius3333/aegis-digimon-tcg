@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-165.js";
 
 describe("P-165 ShoeShoemon", () => {
@@ -48,5 +51,13 @@ describe("P-165 ShoeShoemon", () => {
         }),
       ]),
     );
+  });
+
+  it("plays exactly one Familiar Token from On Play", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "P-165", as: "shoe" }] } });
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("shoe"));
+    await settle();
+    expect(s.state.players[0]!.battleArea.filter((p) => p.topCard?.cardId === "TOKEN-Familiar-Token")).toHaveLength(1);
   });
 });

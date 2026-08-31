@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-155.js";
 
 describe("P-155 Pawn Device", () => {
@@ -50,5 +53,20 @@ describe("P-155 Pawn Device", () => {
         }),
       ]),
     );
+  });
+
+  it("deletes an opposing Digimon at the 11000-DP security boundary and returns itself", async () => {
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "P-155", as: "pawn" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 11000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("pawn"));
+    await settle();
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("pawn").instanceId)).toBe(true);
   });
 });

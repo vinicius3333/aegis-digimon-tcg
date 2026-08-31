@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-166.js";
 
 describe("P-166 Galemon", () => {
@@ -43,5 +46,21 @@ describe("P-166 Galemon", () => {
         }),
       ]),
     );
+  });
+
+  it("suspends one Digimon on play when the optional first clause is accepted", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "P-166", as: "galemon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("target").topCard!.instanceId);
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("galemon"));
+    await settle();
+    expect(s.perm("target").isSuspended).toBe(true);
   });
 });

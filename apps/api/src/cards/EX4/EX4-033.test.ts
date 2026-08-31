@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX4-033.js";
 
 describe("EX4-033 Terriermon Assistant", () => {
@@ -27,5 +29,26 @@ describe("EX4-033 Terriermon Assistant", () => {
     expect((inherited as { actions?: unknown[] } | undefined)?.actions).not.toContainEqual(
       expect.objectContaining({ kind: "Replacement" }),
     );
+  });
+
+  it("grants the selected Digimon +4000 when an effect suspends this card", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-033", as: "assistant" },
+            { card: "BT1-009", as: "beneficiary", dp: 3000 },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("beneficiary").permanentId);
+    await s.ready();
+    await advance(s.engine).verb.suspend([s.perm("assistant").permanentId], 0);
+    await settle(() => s.perm("beneficiary").currentDP === 7000);
+
+    expect(s.perm("beneficiary").currentDP).toBe(7000);
   });
 });

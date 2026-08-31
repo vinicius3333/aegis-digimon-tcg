@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./P-207.js";
 
 describe("P-207 Minervamon", () => {
@@ -61,5 +63,11 @@ describe("P-207 Minervamon", () => {
         },
       ],
     });
+  });
+
+  it("exposes Alliance on the live Minervamon", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "P-207", as: "minerva" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("minerva"), "Alliance")).toBe(true);
   });
 });

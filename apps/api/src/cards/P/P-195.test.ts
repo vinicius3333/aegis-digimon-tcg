@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-195.js";
 
 describe("P-195 Inori Misono", () => {
@@ -46,5 +49,17 @@ describe("P-195 Inori Misono", () => {
       isSecurity: true,
       actions: [{ kind: "PlayWithoutCost", payCost: false, target: { isSelf: true } }],
     });
+  });
+
+  it("gains one memory at start of main when the opponent has a Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "P-195", as: "inori" }] },
+      1: { battleArea: [{ card: "BT1-009" }] },
+    });
+    await s.ready();
+    const before = s.state.memory;
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("inori"));
+    await settle();
+    expect(s.state.memory).toBe(before + 1);
   });
 });

@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX4-031.js";
 
 describe("EX4-031 Cherubimon", () => {
@@ -18,5 +21,26 @@ describe("EX4-031 Cherubimon", () => {
       amount: -3000,
       duration: "forTheTurn",
     });
+  });
+
+  it("scales the live DP reduction across two suspended Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-031", as: "cherubimon" },
+            { card: "BT1-009", as: "first", suspended: true },
+            { card: "BT1-010", as: "second", suspended: true },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-021", as: "target", dp: 10_000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("cherubimon"));
+    await settle(() => s.perm("target").currentDP !== 10_000);
+
+    expect(s.perm("target").currentDP).toBe(4_000);
   });
 });

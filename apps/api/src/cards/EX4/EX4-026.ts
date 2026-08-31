@@ -11,9 +11,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
-          kind: "GrantStatic",
+          kind: "GainKeyword",
           target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
-          grant: "keyword",
           keyword: { keyword: "Blocker" },
           duration: "untilOpponentTurnEnd",
         },
@@ -23,9 +22,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "GrantStatic",
+          kind: "GainKeyword",
           target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
-          grant: "keyword",
           keyword: { keyword: "Blocker" },
           duration: "untilOpponentTurnEnd",
         },

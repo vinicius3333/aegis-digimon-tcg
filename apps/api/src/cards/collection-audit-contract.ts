@@ -120,6 +120,8 @@ export function describeRemainingCollectionAuditContract({
     });
 
     it("requires exclusive residual-free IR and a runnable focused proof for all 776 cards", () => {
+      const missingRuntimeProofs: string[] = [];
+      const invalidNoEffectExceptions: string[] = [];
       for (const set of REMAINING_AUDIT_SETS) {
         const indexSource = readFileSync(`${cardsDirectory}/${set}/index.ts`, "utf8");
         for (const { cardId } of catalogFor(set)) {
@@ -162,8 +164,53 @@ export function describeRemainingCollectionAuditContract({
           expect(proofSource, `${cardId} test`).toMatch(/\b(?:it|test)\s*\(/);
           expect(proofSource, `${cardId} assertion`).toMatch(/\bexpect\s*\(/);
           expect(proofSource, `${cardId} skipped proof`).not.toMatch(/\b(?:describe|it|test)\.(?:skip|todo)\s*\(/);
+
+          if ((compiled?.effects.length ?? 0) === 0) {
+            const provesEmptyEffects =
+              /effects\s*:\s*\[\s*\]/.test(moduleSource) ||
+              /(?:getCompiledCard\([^)]*\)|runtimeCompiledCard\([^)]*\))!?\.effects\)?\.toEqual\(\[\]\)/.test(
+                testSource,
+              );
+            if (!provesEmptyEffects) invalidNoEffectExceptions.push(cardId);
+            continue;
+          }
+          // A shared smoke helper can prove that a card is loadable/playable, but it cannot
+          // prove this card's own effect clause. Runtime evidence must live in the card's
+          // colocated test so a generic source-zone transition cannot satisfy 10/10.
+          const harnessImport = testSource.match(/import\s*{([^}]*)}\s*from\s*["'][^"']*testkit\/harness\.js["']/);
+          const setupImport = harnessImport?.[1]?.match(/\bsetupEngine(?:\s+as\s+(\w+))?/);
+          const setupName = setupImport?.[1] ?? (setupImport ? "setupEngine" : undefined);
+          const invokesHarness = setupName !== undefined && new RegExp(`\\b${setupName}\\s*\\(`).test(testSource);
+          const invokesProductionAdvance = /\badvance\s*\([^)]*\.engine\s*\)\s*\./.test(testSource);
+          const invokesInterpreterResolver =
+            /\.effectsForTiming\s*\(/.test(testSource) &&
+            /\b(?:effect|effects\[[^\]]+\])\.resolve\s*\(/.test(testSource);
+          const invokesApprovedSemanticMatrix =
+            ((supportImport?.[1] === "memoryBoostTests" &&
+              new RegExp(`\\b${supportImport[1]}\\s*\\(\\s*{[\\s\\S]*?cardId\\s*:`).test(testSource)) ||
+              (supportImport?.[1] === "ex4CardBehaviorTests" &&
+                new RegExp(`case\\s+["']${cardId}["']\\s*:`).test(proofSource))) &&
+            /\bsetupEngine\s*\(/.test(proofSource) &&
+            /\b(?:applyIntent|advance)\s*\(/.test(proofSource);
+          const runtimeEvidenceSource = invokesApprovedSemanticMatrix ? proofSource : testSource;
+          const observesRuntime =
+            /\b(?:settle|observe|advance)\s*\(|\.state\b|\.perm\s*\(|\.events\b|\.decisions\b|\.engine\./.test(
+              runtimeEvidenceSource,
+            );
+          if (
+            !(
+              invokesHarness ||
+              invokesProductionAdvance ||
+              invokesInterpreterResolver ||
+              invokesApprovedSemanticMatrix
+            ) ||
+            !observesRuntime
+          )
+            missingRuntimeProofs.push(cardId);
         }
       }
+      expect(invalidNoEffectExceptions, "no-effect cards without explicit empty-IR proof").toEqual([]);
+      expect(missingRuntimeProofs, "effect cards without a real engine-harness proof").toEqual([]);
     });
 
     it("pins runtime proofs for the regression-sensitive multi-step behavior", () => {

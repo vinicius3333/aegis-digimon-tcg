@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-150.js";
 
 describe("P-150 Exermon", () => {
@@ -52,5 +55,33 @@ describe("P-150 Exermon", () => {
         },
       ],
     });
+  });
+
+  it("suspends an opposing Digimon at the exact three-security boundary", async () => {
+    const s = setupEngine(
+      {
+        0: { security: 3, battleArea: [{ card: "P-150", as: "exermon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("exermon"));
+    await settle();
+    expect(s.perm("target").isSuspended).toBe(true);
+  });
+
+  it("does not suspend from the security-at-least-three clause with only two security", async () => {
+    const s = setupEngine(
+      {
+        0: { security: 2, battleArea: [{ card: "P-150", as: "exermon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("exermon"));
+    await settle();
+    expect(s.perm("target").isSuspended).toBe(false);
   });
 });

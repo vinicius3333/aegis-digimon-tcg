@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./P-189.js";
 
 describe("P-189 Dimetromon", () => {
@@ -30,5 +32,11 @@ describe("P-189 Dimetromon", () => {
       frequency: "OncePerTurn",
       actions: [{ event: "whenSecurityRemoved", actions: [{ kind: "GainMemory", amount: 1 }] }],
     });
+  });
+
+  it("exposes Progress on the live security tamer", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "P-189", as: "tamer" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("tamer"), "Progress")).toBe(true);
   });
 });

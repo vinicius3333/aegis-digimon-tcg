@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { playEx4Card } from "./livePlayTestHelpers.js";
+import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
 import { compiled } from "./EX4-064.js";
 
 describe("EX4-064 Keenan Crier", () => {
@@ -20,4 +22,10 @@ describe("EX4-064 Keenan Crier", () => {
       cost: { kind: "suspend", target: { filter: { isSelfRef: true } } },
     });
   });
+
+  it("plays through the live engine", async () => {
+    const s = await playEx4Card("EX4-064");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("subject").instanceId)).toBe(false);
+  });
+  ex4CardBehaviorTests("EX4-064");
 });

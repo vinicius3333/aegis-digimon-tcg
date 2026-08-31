@@ -52,3 +52,21 @@ describe("P-219 Flame Inferno", () => {
     });
   });
 });
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+
+describe("P-219 engine behavior", () => {
+  it("deletes an opposing level-6-or-lower Digimon through Main", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "P-219", as: "flame" }], battleArea: [{ card: "ST6-03", as: "purple" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("flame").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+});

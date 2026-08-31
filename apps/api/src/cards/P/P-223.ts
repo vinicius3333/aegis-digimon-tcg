@@ -53,6 +53,7 @@ const compiled: CompiledCard = {
           kind: "UseOptionWithoutCost",
           filter: {
             kind: ["Option"],
+            playCostLte: 99,
             nameOrTrait: [{ tokens: ["Onmyōjutsu", "Plug-In"], match: "trait" }],
           },
           from: ["hand", "trash"],
@@ -68,6 +69,7 @@ const compiled: CompiledCard = {
           kind: "UseOptionWithoutCost",
           filter: {
             kind: ["Option"],
+            playCostLte: 99,
             nameOrTrait: [{ tokens: ["Onmyōjutsu", "Plug-In"], match: "trait" }],
           },
           from: ["hand", "trash"],

@@ -1,13 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import type { EffectContext, GameAccess } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-220.js";
 
 describe("P-220 Millenniummon", () => {
   it("provides Reboot and Blocker continuously", () => {
     const effects = getEffectModule("P-220")!.effectsForTiming(EffectTiming.None, {
       isOnBattleArea: () => true,
-    } as any);
+    } as unknown as CardSource);
     expect(effects.map((effect) => effect.effectKey)).toEqual(["P-220/reboot", "P-220/blocker"]);
   });
 
@@ -35,14 +39,14 @@ describe("P-220 Millenniummon", () => {
     const effect = getEffectModule("P-220")!.effectsForTiming(EffectTiming.OnDestroyedAnyone, {
       ownerSeat: 0,
       definition: { effectText: "" },
-    } as any)[0]!;
+    } as unknown as CardSource)[0]!;
     await effect.resolve({
-      source: { ownerSeat: 0 } as any,
+      source: { ownerSeat: 0 } as unknown as CardSource,
       game: {
         player: (seat: number) => (seat === 0 ? owner : opponent),
         definitionOf: (card: { cardId: string }) => definitions[card.cardId],
         opponentOf: () => 1,
-      } as any,
+      } as unknown as GameAccess,
       ask: {
         optional: async () => true,
         selectCards: async (_ctx: unknown, options: { candidates: string[] }) => {
@@ -60,8 +64,36 @@ describe("P-220 Millenniummon", () => {
           played.push(ids);
         },
       },
-    } as any);
+    } as unknown as EffectContext);
     expect(selections[2]).toEqual(["play-6"]);
     expect(played).toEqual([["play-5", "play-6"]]);
+  });
+});
+
+describe("P-220 continuous behavior", () => {
+  it("exposes Reboot and Blocker on a resident Millenniummon", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "P-220", as: "millenniummon" }] } });
+    await s.ready();
+    const ledger = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } })
+      .continuous;
+    expect(ledger.hasKeyword(s.perm("millenniummon").permanentId, "Reboot")).toBe(true);
+    expect(ledger.hasKeyword(s.perm("millenniummon").permanentId, "Blocker")).toBe(true);
+  });
+});
+
+describe("P-220 engine behavior", () => {
+  it("de-digivolves an opposing Digimon by two and permits declining the optional deletion", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "P-220", as: "millenniummon" }] },
+        1: { battleArea: [{ card: "BT1-080", as: "target", under: ["BT1-009", "BT1-070", "BT1-020"] }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("millenniummon"));
+    await settle();
+    expect(s.perm("target").stack).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 });

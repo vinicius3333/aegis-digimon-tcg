@@ -50,3 +50,24 @@ describe("P-186 Gallantmon", () => {
     }
   });
 });
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+
+describe("P-186 engine behavior", () => {
+  it("deletes an opposing Digimon at exactly 13000 DP on play", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "P-186", as: "gallantmon" }], security: 5 },
+        1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 13000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gallantmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
+  });
+});

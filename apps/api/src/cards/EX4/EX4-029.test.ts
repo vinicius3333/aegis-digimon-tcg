@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX4-029.js";
 
 describe("EX4-029 Antylamon", () => {
@@ -22,5 +23,28 @@ describe("EX4-029 Antylamon", () => {
       toTop: true,
       condition: { kind: "youHave", count: 3, comparison: "lte" },
     });
+  });
+
+  it("recovers the deck top after a real attack at three security", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX4-029", as: "antylamon" }],
+        security: 3,
+        deck: [{ card: "BT1-090", as: "recovery" }],
+      },
+      1: { security: ["BT1-090", "BT1-090"] },
+    });
+    const recoveryId = s.inst("recovery").instanceId;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("antylamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some(({ instanceId }) => instanceId === recoveryId));
+
+    expect(s.state.players[0]!.security).toHaveLength(4);
   });
 });

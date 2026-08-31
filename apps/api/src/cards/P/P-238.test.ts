@@ -60,3 +60,24 @@ describe("P-238 Destruction Cannon", () => {
     );
   });
 });
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+
+describe("P-238 engine behavior", () => {
+  it("deletes an opposing level-6-or-lower Digimon and places itself", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "P-238", as: "cannon" }], battleArea: [{ card: "BT22-008", as: "cs" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cannon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "P-238")).toBe(true);
+  });
+});

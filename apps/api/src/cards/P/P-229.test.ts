@@ -87,3 +87,28 @@ describe("P-229 Unique Emblem: Narrative Ronde", () => {
     });
   });
 });
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+
+describe("P-229 engine behavior", () => {
+  it("adds a Puppet and LIBERATOR from the reveal and places itself", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "P-229", as: "emblem" }],
+          deck: [{ card: "BT1-038", as: "puppet" }, { card: "BT18-060", as: "liberator" }, "BT1-001"],
+          battleArea: ["BT1-009", "BT1-037", "BT1-063", "BT1-088", "P-016", "ST6-03", "BT1-084"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("emblem").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("puppet").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("liberator").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "P-229")).toBe(true);
+  });
+});

@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { playEx4Card } from "./livePlayTestHelpers.js";
+import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
 import {
   CardColor,
   CardKind,
@@ -108,4 +110,12 @@ describe("EX4-037 BlackMegaGargomon", () => {
       ["second", "Reboot"],
     ]);
   });
+
+  it("plays through the live engine", async () => {
+    const s = await playEx4Card("EX4-037");
+    expect(s.state.players[0]!.hand.some((handCard) => handCard.instanceId === s.inst("subject").instanceId)).toBe(
+      false,
+    );
+  });
+  ex4CardBehaviorTests("EX4-037");
 });

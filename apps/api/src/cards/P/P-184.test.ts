@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./P-184.js";
 
 describe("P-184 Dorugoramon", () => {
@@ -32,5 +34,12 @@ describe("P-184 Dorugoramon", () => {
         },
       ],
     });
+  });
+
+  it("exposes Collision and Security Attack +1 on the live Dorugoramon", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "P-184", as: "doru" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("doru"), "Collision")).toBe(true);
+    expect(observe(s.engine).keywordAmount(s.perm("doru"), "SecurityAttack")).toBe(1);
   });
 });

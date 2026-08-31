@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-187.js";
 
 describe("P-187 Mastemon", () => {
@@ -53,5 +56,15 @@ describe("P-187 Mastemon", () => {
         },
       ],
     });
+  });
+
+  it("performs Recovery +1 when its digivolution effect resolves", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "P-187", as: "mastemon" }], security: ["BT1-005"], deck: ["BT1-006"] },
+    });
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("mastemon"));
+    await settle();
+    expect(s.state.players[0]!.security).toHaveLength(2);
   });
 });

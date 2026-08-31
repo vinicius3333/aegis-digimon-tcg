@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { playEx4Card } from "./livePlayTestHelpers.js";
+import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
 import {
   CardKind,
   EffectTiming,
@@ -189,4 +191,12 @@ describe("EX4-060 Omnimon Alter-S", () => {
     expect(replacements).toHaveLength(1);
     expect(replacements[0]).toMatchObject({ event: "wouldLeavePlay", mode: "instead" });
   });
+
+  it("plays through the live engine", async () => {
+    const s = await playEx4Card("EX4-060");
+    expect(s.state.players[0]!.hand.some((handCard) => handCard.instanceId === s.inst("subject").instanceId)).toBe(
+      false,
+    );
+  });
+  ex4CardBehaviorTests("EX4-060");
 });

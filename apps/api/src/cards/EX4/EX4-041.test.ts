@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { playEx4Card } from "./livePlayTestHelpers.js";
+import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
 import { compiled } from "./EX4-041.js";
 
 describe("EX4-041 DeadlyAxemon", () => {
@@ -25,4 +27,10 @@ describe("EX4-041 DeadlyAxemon", () => {
       actions: [{ kind: "ModifyDP", amount: 1000, duration: "permanent" }],
     });
   });
+
+  it("plays through the live engine", async () => {
+    const s = await playEx4Card("EX4-041");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("subject").instanceId)).toBe(false);
+  });
+  ex4CardBehaviorTests("EX4-041");
 });

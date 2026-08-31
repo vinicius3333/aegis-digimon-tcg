@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import "./P-147.js";
 
 describe("P-147 Pal", () => {
@@ -47,5 +48,19 @@ describe("P-147 Pal", () => {
       ]),
     );
     expect(compiled.digivolutionRequirement).toEqual([{ names: ["Bibimon"], cost: 0, isAlternate: true }]);
+  });
+
+  it("gets +3000 DP on your turn while you have a Tamer", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "P-147", as: "pal" },
+          { card: "BT1-085", as: "tamer" },
+        ],
+      },
+    });
+    const base = s.perm("pal").baseDP;
+    await s.ready();
+    expect(s.perm("pal").currentDP).toBe(base + 3000);
   });
 });

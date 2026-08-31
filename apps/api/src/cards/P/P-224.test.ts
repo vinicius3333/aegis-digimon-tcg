@@ -65,3 +65,20 @@ describe("P-224 Kotone Amano", () => {
     });
   });
 });
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+
+describe("P-224 engine behavior", () => {
+  it("plays itself from Security through its Security effect", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "P-224", as: "kotone" }] },
+    });
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("kotone"));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("kotone").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("kotone").instanceId)).toBe(true);
+  });
+});

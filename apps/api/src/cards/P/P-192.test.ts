@@ -27,3 +27,29 @@ describe("P-192 Bakemon", () => {
     });
   });
 });
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+
+describe("P-192 engine behavior", () => {
+  it("trashes a hand card and deletes an opposing level-4-or-lower Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "P-192", as: "demidevimon" },
+            { card: "BT1-001", as: "cost" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("demidevimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
+  });
+});

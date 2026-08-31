@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./P-183.js";
 
 describe("P-183 Gaiomon", () => {
@@ -32,5 +34,12 @@ describe("P-183 Gaiomon", () => {
         },
       ],
     });
+  });
+
+  it("exposes Reboot and Blocker on the live Gaiomon", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "P-183", as: "gaiomon" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("gaiomon"), "Reboot")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("gaiomon"), "Blocker")).toBe(true);
   });
 });

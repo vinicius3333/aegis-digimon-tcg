@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-191.js";
 
 describe("P-191 Apollomon", () => {
@@ -57,5 +58,22 @@ describe("P-191 Apollomon", () => {
       frequency: "OncePerTurn",
       actions: [{ kind: "Attack", optional: true }],
     });
+  });
+
+  it("reduces an opposing Digimon by 4000 DP on play", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "P-191", as: "source" }], battleArea: [{ card: "BT1-009", as: "color" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 12000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("victim").currentDP === 8000);
+    expect(s.perm("victim").currentDP).toBe(8000);
   });
 });

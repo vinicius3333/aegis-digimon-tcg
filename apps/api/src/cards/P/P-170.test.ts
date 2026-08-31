@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-170.js";
 
 describe("P-170 AvengeKidmon", () => {
@@ -57,5 +59,20 @@ describe("P-170 AvengeKidmon", () => {
         },
       },
     });
+  });
+
+  it("plays a level-12-or-lower Three Musketeers Digimon from hand after deletion", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "P-170", as: "avenge" }], hand: [{ card: "BT25-085", as: "musketeer" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("avenge").permanentId], "byEffect");
+    await settle();
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("musketeer").instanceId)).toBe(
+      true,
+    );
   });
 });

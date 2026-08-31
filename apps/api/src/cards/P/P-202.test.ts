@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./P-202.js";
 
 describe("P-202 Tyrannomon", () => {
@@ -35,5 +37,11 @@ describe("P-202 Tyrannomon", () => {
     expect(runtimeCompiledCard("P-202")!.effects.find((effect) => effect.isInherited)).toMatchObject({
       keywords: [{ keyword: "Piercing", raw: "＜Piercing＞" }],
     });
+  });
+
+  it("exposes Training on the live Tyrannomon", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "P-202", as: "tyranno" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("tyranno"), "Training")).toBe(true);
   });
 });

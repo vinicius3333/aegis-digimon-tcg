@@ -64,3 +64,39 @@ describe("P-222 Rosemon", () => {
     });
   });
 });
+
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+
+describe("P-222 engine behavior", () => {
+  it("suspends a Digimon on play and resolves the once-per-turn lowest-DP deletion", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "P-222", as: "rosemon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("rosemon"));
+    await settle();
+    expect(s.perm("rosemon").isSuspended).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("allows declining the optional suspension and leaves the opposing Digimon intact", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "P-222", as: "rosemon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoDeclineOptional: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("rosemon"));
+    await settle();
+    expect(s.perm("rosemon").isSuspended).toBe(false);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+});

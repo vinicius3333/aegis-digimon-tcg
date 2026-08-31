@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-193.js";
 
 describe("P-193 The Wicked God Emerges!", () => {
@@ -56,5 +57,30 @@ describe("P-193 The Wicked God Emerges!", () => {
       isSecurity: true,
       actions: [{ kind: "ActivateMain" }],
     });
+  });
+
+  it("draws two after paying the Composite/Wicked God hand cost and places itself", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "P-193", as: "option" }, { card: "BT19-065", as: "cost" }, "BT1-001"],
+          battleArea: [{ card: "BT19-065", as: "color" }],
+          deck: ["BT1-002", "BT1-003"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) =>
+        perm.stack.some((card) => card.instanceId === s.inst("option").instanceId),
+      ),
+    );
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-002")).toBe(true);
   });
 });

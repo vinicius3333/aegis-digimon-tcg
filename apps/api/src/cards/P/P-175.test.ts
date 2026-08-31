@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-175.js";
 
 describe("P-175 Hina Kurihara", () => {
@@ -52,5 +55,14 @@ describe("P-175 Hina Kurihara", () => {
       isSecurity: true,
       actions: [{ kind: "PlayWithoutCost", payCost: false, target: { isSelf: true, count: 1 } }],
     });
+  });
+
+  it("sets memory to 3 at start of turn when memory is 2 or less", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "P-175", as: "hina" }] } });
+    s.state.memory = 1;
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("hina"));
+    await settle();
+    expect(s.state.memory).toBe(3);
   });
 });
