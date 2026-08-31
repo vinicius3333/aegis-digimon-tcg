@@ -28,4 +28,4 @@ independently verified 2/2 components and a 10/10 total.
 - All 15 focused card tests passed serially, one process per card.
 - Collection gate `src/cards/ST20/ST20.collection.test.ts` passed.
 - ADVENTURE evolution, advanced-keyword, and affected primitive mechanism suites passed.
-- `pnpm typecheck`, repository lint, format check, and `git diff --check` passed.
+- `pnpm typecheck`, repository lint, changed-file format check, and `git diff --check` passed; repo-wide formatting retains pre-existing baseline findings.

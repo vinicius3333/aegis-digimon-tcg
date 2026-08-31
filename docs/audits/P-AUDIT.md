@@ -256,8 +256,7 @@ Scope: all committed Collection P catalog cards, audited in ascending catalog or
 - Serial focused result: 243 executable cards (P-001..P-225 and P-227..P-244), 243/243 card suites passed after the P-027 engine correction and P-140/P-142 expectation corrections.
 - Shared mechanism regressions: `pnpm --filter @aegis/api exec vitest run --pool=threads --poolOptions.threads.singleThread=true src/engine/useOption.test.ts src/engine/effects/catalogActionKindGate.test.ts`.
 - Typecheck: `pnpm typecheck`.
-- Repository quality gate: `meteor npm run quave-check-ci`.
-- Diff validation: `git diff --check`.
+- Repository checks: `pnpm lint`, changed-file `pnpm exec oxfmt --check`, and `git diff --check` passed. The prescribed `meteor npm run quave-check-ci` script is absent, and repo-wide `pnpm format:check` retains pre-existing baseline findings.
 
 ## Corrections delivered
 
