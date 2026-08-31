@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./ST19-12.js";
@@ -30,13 +31,9 @@ describe("ST19-12 Familiar Token", () => {
     const token = s.state.players[0]!.battleArea.find((p) => p.topCard.cardId === "TOKEN-Familiar-Token");
     expect(token).toBeDefined();
 
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: token!.permanentId,
-        target: { kind: "permanent", permanentId: s.perm("opponent").permanentId },
-      }),
-    ).toEqual({ ok: true });
+    // The token has summoning sickness; directly delete it to observe its
+    // printed On Deletion effect rather than accidentally testing attack legality.
+    await advance(s.engine).verb.deletePermanent([token!.permanentId]);
     await settle(() => (s.perm("opponent").currentDP ?? 7000) === 4000);
     expect(s.perm("opponent").currentDP).toBe(4000);
   });

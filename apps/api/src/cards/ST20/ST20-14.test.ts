@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./ST20-14.js";
 
 describe("ST20-14 Our Courage United", () => {
@@ -50,22 +51,34 @@ describe("ST20-14 Our Courage United", () => {
     expect(s.state.memory).toBe(0);
   });
 
-  it("exposes its Delay play only after the card has been in the battle area for a turn", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "ST20-14", as: "option" }] } });
+  it("arms Delay when one of your level-5-or-higher Digimon would leave play", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "ST20-11", as: "level5" }],
+        hand: [
+          { card: "ST20-14", as: "option" },
+          { card: "ST20-02", as: "target" },
+        ],
+      },
+    });
     await s.ready();
     await advance(s.engine).verb.placeOptionAsPermanent(s.inst("option").instanceId);
     const option = s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === s.inst("option").instanceId)!;
-    expect(
-      JSON.parse(option.activatableEffectsJson || "[]").some((e: { description: string }) =>
-        /Delay/i.test(e.description),
-      ),
-    ).toBe(false);
+    expect(observe(s.engine).activatableEffects(option)).toHaveLength(0);
+    // Drive the same production leave-event bus used by deletion/bounce while
+    // retaining the source Digimon long enough to observe the armed Delay.
+    await advance(s.engine).fireSubTrigger("whenLeavesPlay", {
+      deletedPermanentId: s.perm("level5").permanentId,
+      deletedControllerSeat: 0,
+    });
     s.state.turnCount += 1;
     await advance(s.engine).recompute();
-    expect(
-      JSON.parse(option.activatableEffectsJson || "[]").some((e: { description: string }) =>
-        /Delay/i.test(e.description),
-      ),
-    ).toBe(true);
+    expect(observe(s.engine).activatableEffects(option)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          description: expect.stringMatching(/Delay/i),
+        }),
+      ]),
+    );
   });
 });
