@@ -4526,35 +4526,11 @@ button.side-panel__name:focus-visible {
     align-content: start;
   }
 
-  /* Each band scrolls instead of decapitating its content: at a fixed 7rem an
-     effect notice lost its bottom third — a realistic clause is ~169px tall and
-     a card panel ~216px. The dvh term is the free middle of the screen between
-     the two bands' chrome offsets, so a lone band spends space that was sitting
-     empty; the rem floor guarantees one whole notice (~12rem) or one whole card
-     panel (~14.5rem) even on a phone too short for the middle. Two full bands
-     can now overlap mid-screen, but both scroll and both dismiss — a rarer and
-     shallower failure than always chopping the card the player must read. The
-     stack needs its own pointer events back to take the scroll gesture. */
-  .match-notice-stack,
-  .side-panel-stack {
-    max-height: max(12rem, calc(100dvh - 28rem));
-    overflow: hidden auto;
-    pointer-events: auto;
-  }
-  /* A card panel is one thumbnail tall plus its heading, so its floor has to be
-     deeper than a notice's floor of text. */
-  .side-panel-stack {
-    max-height: max(14.5rem, calc(100dvh - 28rem));
-  }
-  /* The panel clips its own overflow, so as a flex child it would shrink into
-     the band's cap and cut the card art internally — out of reach of the
-     band's scrollbar. Neither piece may compress: the band scrolls instead. */
-  .side-panel-stack > .side-panel,
-  .match-notice-stack > .match-notice {
-    flex-shrink: 0;
-  }
-  /* The band already scrolls, and a second scrollbar inside one notice would
-     swallow the touch gesture meant for the band. */
+  /* The stacks are not capped on a phone: every cap tried here — 7rem, then a
+     dvh split — ended up decapitating a notice's clause or a revealed card's
+     art while screen space sat empty next to it. The whole notice and the
+     whole card matter more than the board they briefly cover, and each stack
+     grows from its own screen edge toward the middle either way. */
   .match-notice__text {
     max-height: none;
     overflow-y: visible;
