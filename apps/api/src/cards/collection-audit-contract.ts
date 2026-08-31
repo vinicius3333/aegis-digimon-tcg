@@ -20,6 +20,7 @@ export const REMAINING_AUDIT_SETS = [
   "ST8",
   "ST9",
   "ST10",
+  "ST12",
   "ST13",
   "ST14",
   "ST15",
@@ -115,7 +116,7 @@ export function describeRemainingCollectionAuditContract({
           expect(separateName || combinedName, `${card.cardId} exact catalog name`).toBe(true);
         }
       }
-      expect(total).toBe(776);
+      expect(total).toBe(792);
     });
 
     it("requires complete five-part scoring and exact module/test links in every ledger row", () => {
@@ -135,7 +136,7 @@ export function describeRemainingCollectionAuditContract({
       }
     });
 
-    it("requires exclusive residual-free IR and a runnable focused proof for all 776 cards", () => {
+    it("requires exclusive residual-free IR and a runnable focused proof for all 792 cards", () => {
       const missingRuntimeProofs: string[] = [];
       const insufficientBehavioralDriverFloor: string[] = [];
       const invalidNoEffectExceptions: string[] = [];

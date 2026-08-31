@@ -26,6 +26,26 @@ describe("ST12-13 Sistermon Ciel", () => {
     expect(s.perm("huckmon").isSuspended).toBe(true);
   });
 
+  it("grants Reboot to a mixed Huckmon/Royal Knight pool, but not nonmatching Digimon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "ST12-13", as: "ciel" },
+          { card: "ST12-04", as: "huckmon" },
+          { card: "ST12-10", as: "jesmon" },
+          { card: "ST12-12", as: "sistermon" },
+          { card: "ST12-09", as: "volcanomon" },
+        ],
+      },
+    });
+    await s.ready();
+
+    expect(observe(s.engine).hasKeyword(s.perm("huckmon"), "Reboot")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("jesmon"), "Reboot")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("sistermon"), "Reboot")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("volcanomon"), "Reboot")).toBe(false);
+  });
+
   it("reveals 3, adds a Huckmon or Royal Knight and trashes the rest", async () => {
     const s = setupEngine(
       { 0: { hand: [{ card: "ST12-13", as: "ciel" }], deck: [{ card: "ST12-10", as: "hit" }, "BT1-001", "BT1-002"] } },

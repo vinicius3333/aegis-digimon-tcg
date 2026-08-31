@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./ST12-07.js";
 
 describe("ST12-07 SkullMeramon", () => {
+  it("registers an explicit empty IR for its printed no-effect contract", () => {
+    expect(runtimeCompiledCard("ST12-07")?.effects).toEqual([]);
+  });
+
   it("plays with its printed cost and DP", async () => {
     const s = setupEngine({ 0: { hand: [{ card: "ST12-07", as: "skullmeramon" }] } });
     s.state.memory = 6;
@@ -27,5 +33,18 @@ describe("ST12-07 SkullMeramon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === s.inst("skullmeramon").instanceId);
     expect(s.state.memory).toBe(0);
+  });
+
+  it("rejects digivolving from a blue level 4", () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "AD1-010", as: "blueBase" }], hand: [{ card: "ST12-07", as: "skullmeramon" }] },
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("blueBase").permanentId,
+        instanceId: s.inst("skullmeramon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });

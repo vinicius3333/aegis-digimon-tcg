@@ -14,4 +14,23 @@ describe("ST12-01 Gurimon", () => {
     await s.engine.recomputeContinuousEffects();
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
   });
+
+  it("stays at exactly +1000 DP with 4 Digimon, not +1000 per extra Digimon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "ST12-04", as: "host", under: ["ST12-01"] }, "ST12-03", "ST12-02", "ST12-06"],
+      },
+    });
+    await s.engine.recomputeContinuousEffects();
+    expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 1000);
+  });
+
+  it("does not grant its Your Turn bonus during the opponent's turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST12-04", as: "host", under: ["ST12-01"] }, "ST12-03"] },
+    });
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+    expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
+  });
 });
