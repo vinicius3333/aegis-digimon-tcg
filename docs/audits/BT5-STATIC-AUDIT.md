@@ -6,7 +6,7 @@ Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
 Authoritative scope: 112 cards, `BT5-001` through `BT5-112`, derived from `packages/shared/src/cards/data/cards.json`.
 
-This campaign ledger follows the repository's `verify-card-implementation` protocol and the chronological execution plan in `docs/plans/2026-08-27-bt-card-by-card-audit.md`. The pre-existing `BT5-AUDIT.md` is retained intact as historical verification evidence; this pass independently revalidates the current direct implementations and records new range reports.
+This campaign ledger follows the repository's `verify-card-implementation` protocol and the chronological execution plan in `docs/plans/2026-08-27-bt-card-by-card-audit.md`. The pre-existing `docs/audits/BT5-AUDIT.md` is retained intact as historical verification evidence; this pass independently revalidates the current direct implementations and records new range reports.
 
 ## Current execution state
 

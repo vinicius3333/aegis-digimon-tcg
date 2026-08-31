@@ -3,7 +3,7 @@
 > **Historical ledger — superseded for current status.** This file records an
 > earlier audit/execution pass. Its 10/10 labels, PASS results, and closeout
 > language are not the current BT26 audit status. The authoritative 2026-08-29
-> static campaign ledger is `BT26-STATIC-AUDIT.md`, supported by the 11 reports
+> static campaign ledger is `docs/audits/BT26-STATIC-AUDIT.md`, supported by the 11 reports
 > under `internal-docs/audits/BT26/`: 104/104 cards have provisional static
 > coverage, the subtotal is 765/1040, 59 cards are below 8/10, two net semantic
 > corrections were integrated, and Executed delivery gates remain 0/2 for every
@@ -334,7 +334,7 @@ pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-089.test.ts src/car
   PASS (2 files, 14 tests)
 pnpm typecheck
   PASS (shared build, shared/api/web typecheck)
-pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-007.ts apps/api/src/cards/BT26/BT26-007.test.ts BT26-AUDIT.md
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-007.ts apps/api/src/cards/BT26/BT26-007.test.ts docs/audits/BT26-AUDIT.md
   PASS
 git diff --check
   PASS
@@ -364,7 +364,7 @@ pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-008.test.ts
   PASS (8 tests)
 pnpm typecheck
   PASS (shared build, shared/api/web typecheck)
-pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-008.ts apps/api/src/cards/BT26/BT26-008.test.ts BT26-AUDIT.md
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-008.ts apps/api/src/cards/BT26/BT26-008.test.ts docs/audits/BT26-AUDIT.md
   PASS
 git diff --check
   PASS
@@ -411,7 +411,7 @@ pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-009.test.ts src/eng
   PASS (4 files, 350 tests)
 pnpm typecheck
   PASS (shared build, shared/api/web typecheck)
-pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-009.ts apps/api/src/cards/BT26/BT26-009.test.ts BT26-AUDIT.md
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-009.ts apps/api/src/cards/BT26/BT26-009.test.ts docs/audits/BT26-AUDIT.md
   PASS
 git diff --check
   PASS
@@ -457,7 +457,7 @@ pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-010.test.ts src/eng
   PASS (4 files, 357 tests)
 pnpm typecheck
   PASS
-pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-010.ts apps/api/src/cards/BT26/BT26-010.test.ts BT26-AUDIT.md
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-010.ts apps/api/src/cards/BT26/BT26-010.test.ts docs/audits/BT26-AUDIT.md
   PASS
 git diff --check
   PASS

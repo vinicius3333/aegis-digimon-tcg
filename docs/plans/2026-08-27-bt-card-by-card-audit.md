@@ -57,7 +57,7 @@ Presence of a module or test is inventory only. A card receives 10/10 only when 
 
 ## Audit artifacts
 
-Each active collection gets one canonical root ledger named `BT<N>-AUDIT.md`. The ledger contains:
+Each active collection gets one canonical ledger named `docs/audits/BT<N>-AUDIT.md`. The ledger contains:
 
 - the authoritative ordered card count and catalog snapshot commit;
 - one section or row per card, in ascending card-ID order;

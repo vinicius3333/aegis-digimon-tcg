@@ -37,6 +37,9 @@ aegis-accounts.sqlite*
 ui-review/
 
 # Generated card-audit reports
-docs/audits/
+docs/audits/*
+!docs/audits/*AUDIT*.md
+!docs/audits/*QUEUE*.md
+docs/audits/EX12-strict-card-audit.md
 internal-docs/audits/
 internal-docs/card-audits/

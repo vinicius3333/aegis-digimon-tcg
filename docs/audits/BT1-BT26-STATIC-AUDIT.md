@@ -69,7 +69,7 @@ extra report coverage. Of the 2,792 cards, 598 score below 8/10 and 2,194 score
 8/10; none earns 10/10 because the gate component remains zero.
 
 The BT25 subtotal above corrects a report-only arithmetic inconsistency in
-`BT25-STATIC-AUDIT.md`: its 69 cards at 8/10 and 35 cards at 7/10 total
+`docs/audits/BT25-STATIC-AUDIT.md`: its 69 cards at 8/10 and 35 cards at 7/10 total
 797/1040, not 798/1040.
 
 ## Module, index, and registration coverage
@@ -123,17 +123,17 @@ their exact restorations do not count as corrections. In particular:
 ## Authority and historical documents
 
 For current static status, this aggregate, the 299 range reports, and
-`BT5-STATIC-AUDIT.md` through `BT26-STATIC-AUDIT.md` supersede older ledgers'
+`docs/audits/BT5-STATIC-AUDIT.md` through `docs/audits/BT26-STATIC-AUDIT.md` supersede older ledgers'
 10/10, PASS, and collection-closeout language. BT1 through BT4 have no
 separate `STATIC-AUDIT` file; their current range reports and this aggregate
 are the static authority.
 
 The following documents retain historical execution records and must not be
-read as current campaign status: `BT5-AUDIT.md`, `BT5-AUDIT-LEDGER.md`,
-`BT7-AUDIT.md`, `BT9-AUDIT.md`, `BT10-AUDIT.md`, `BT11-AUDIT.md`,
-`BT13-AUDIT.md`, `BT14-AUDIT-LEDGER.md`, `internal-docs/audits/BT18.md`,
-`internal-docs/audits/BT21.md`, `BT23-AUDIT.md`, `BT25-AUDIT.md`, and
-`BT26-AUDIT.md`. The last already carries an explicit supersession banner.
+read as current campaign status: `docs/audits/BT5-AUDIT.md`, `docs/audits/BT5-AUDIT-LEDGER.md`,
+`docs/audits/BT7-AUDIT.md`, `docs/audits/BT9-AUDIT.md`, `docs/audits/BT10-AUDIT.md`, `docs/audits/BT11-AUDIT.md`,
+`docs/audits/BT13-AUDIT.md`, `docs/audits/BT14-AUDIT-LEDGER.md`, `internal-docs/audits/BT18.md`,
+`internal-docs/audits/BT21.md`, `docs/audits/BT23-AUDIT.md`, `docs/audits/BT25-AUDIT.md`, and
+`docs/audits/BT26-AUDIT.md`. The last already carries an explicit supersession banner.
 Older BT1–BT3 ledger provenance names catalog blob `ef2e5b...`; current
 reconciliation uses the immutable `efbecc...` blob stated above.
 

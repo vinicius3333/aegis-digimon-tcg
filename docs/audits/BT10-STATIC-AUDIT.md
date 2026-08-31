@@ -10,7 +10,7 @@ Authoritative scope: 112 cards, `BT10-001` through `BT10-112`, derived from
 This campaign ledger follows the repository's `verify-card-implementation`
 protocol and the chronological execution plan in
 `docs/plans/2026-08-27-bt-card-by-card-audit.md`. The pre-existing
-`BT10-AUDIT.md` is retained intact as historical verification evidence; this
+`docs/audits/BT10-AUDIT.md` is retained intact as historical verification evidence; this
 pass independently revalidates the current direct implementations. Detailed
 clause traces are written in English under `internal-docs/audits/BT10/` and
 integrated here only after coordinator review.
