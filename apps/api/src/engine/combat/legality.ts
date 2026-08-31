@@ -121,7 +121,7 @@ export function hasSummoningSickness(
   turnCount: number,
   reader: ContinuousLegalityReader | undefined,
 ): boolean {
-  return turnCount > 0 && permanent.enterFieldTurnCount === turnCount && !hasRush(permanent, reader);
+  return permanent.enterFieldTurnCount === turnCount && !hasRush(permanent, reader);
 }
 
 /**
@@ -146,7 +146,8 @@ export function hasCollision(attacker: Permanent, reader: ContinuousLegalityRead
  *   - controlled by the active player,
  *   - not already suspended, unless the effect declares the attack without suspending.
  *   - (summoning sickness) a Digimon that entered the field this turn may only
- *     attack if it has ＜Rush＞ (Comprehensive Rules §16-1).
+ *     attack if it has ＜Rush＞ (Comprehensive Rules §16-1), unless a resolving
+ *     card effect explicitly instructs that Digimon to attack.
  *
  * A continuous `attack` restriction ("can't attack") from the ledger forbids the
  * declaration outright (Comprehensive Rules §15: a "can't" rule wins).
@@ -158,6 +159,7 @@ export function canAttackerDeclare(
   reader?: ContinuousLegalityReader,
   isVortex?: boolean,
   withoutSuspending = false,
+  ignoreSummoningSickness = false,
 ): RejectReason | null {
   if (attacker.topCard === undefined) {
     return "illegal-target";
@@ -186,6 +188,7 @@ export function canAttackerDeclare(
   // ALSO a same-turn-attack grant in its own right — a Vortex-mode declaration
   // from a Digimon with the keyword is exempt even without ＜Rush＞.
   if (
+    !ignoreSummoningSickness &&
     hasSummoningSickness(attacker, access.game.turnCount, reader) &&
     !(isVortex === true && hasVortex(attacker, reader))
   ) {

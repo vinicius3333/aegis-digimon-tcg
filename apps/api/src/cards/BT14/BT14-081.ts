@@ -63,7 +63,7 @@ export const compiled: CompiledCard = {
             isSelf: true,
           },
           cost: {
-            kind: "delete",
+            kind: "deleteOwn",
             target: {
               filter: {
                 controller: "opponent",

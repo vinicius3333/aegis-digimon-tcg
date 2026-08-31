@@ -2,10 +2,9 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
+// The immutable catalog omits this card's DNA header, but KB Q2965 records the printed
+// requirement as one level 5 blue or yellow Digimon plus one level 5 green or black Digimon.
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnPlay",
@@ -106,6 +105,12 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  dnaDigivolveRequirement: [
+    { cost: 0, materials: [{ color: "Blue", level: 5 }, { color: "Green", level: 5 }] },
+    { cost: 0, materials: [{ color: "Blue", level: 5 }, { color: "Black", level: 5 }] },
+    { cost: 0, materials: [{ color: "Yellow", level: 5 }, { color: "Green", level: 5 }] },
+    { cost: 0, materials: [{ color: "Yellow", level: 5 }, { color: "Black", level: 5 }] },
+  ],
 };
 
 registerIrCard("BT18-041", compiled);

@@ -13,6 +13,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   1 of your opponent's Digimon.
 //
 // Audit: "that Digimon" = your Digimon that received the placed card (controller: mine).
+// Audit: bind the placement host and reuse it for both restrictions, so "that Digimon"
+// cannot drift to a separately selected own Digimon.
 // Audit: restrictions are beReturned + cantBeDeDigivolved (not immuneToOpponentEffects).
 // Audit: cost target is any card (not just Digimon kind) with the trait.
 // Audit: trash cost zone = digivolutionCards of your Digimon (not hand/trash/battleArea).
@@ -42,6 +44,7 @@ export const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: 1,
+            fromSelectionRef: "protectedHost",
           },
           restriction: "beReturned",
           byOpponentEffectsOnly: true,
@@ -68,6 +71,7 @@ export const compiled: CompiledCard = {
             destination: "digivolutionStack",
             position: "bottom",
             host: "target",
+            bindHostAs: "protectedHost",
             raw: "By placing 1 [Appmon]/[Three Musketeers] trait card from your hand or trash as any of your Digimon's bottom digivolution card",
           },
           optional: true,
@@ -99,6 +103,7 @@ export const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: 1,
+            fromSelectionRef: "protectedHost",
           },
           restriction: "beReturned",
           byOpponentEffectsOnly: true,
@@ -125,6 +130,7 @@ export const compiled: CompiledCard = {
             destination: "digivolutionStack",
             position: "bottom",
             host: "target",
+            bindHostAs: "protectedHost",
             raw: "By placing 1 [Appmon]/[Three Musketeers] trait card from your hand or trash as any of your Digimon's bottom digivolution card",
           },
           optional: true,

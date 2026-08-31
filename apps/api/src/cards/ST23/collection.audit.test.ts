@@ -37,7 +37,10 @@ describe("ST23 collection audit gate", () => {
   it("keeps every catalog card imported with a focused behavioral test", () => {
     for (const cardId of st23Ids) {
       const testSource = readFileSync(`${collectionDirectory}/${cardId}.test.ts`, "utf8");
-      expect(indexSource.match(new RegExp(`^import "\\./${cardId}\\.js";$`, "gm")), `${cardId} index import`).toHaveLength(1);
+      expect(
+        indexSource.match(new RegExp(`^import "\\./${cardId}\\.js";$`, "gm")),
+        `${cardId} index import`,
+      ).toHaveLength(1);
       expect(testSource, `${cardId} test suite`).toMatch(/\bdescribe\s*\(/);
       expect(testSource, `${cardId} runnable proof`).toMatch(/\bit\s*\(/);
       expect(testSource, `${cardId} observable assertion`).toMatch(/\bexpect\s*\(/);
@@ -49,7 +52,9 @@ describe("ST23 collection audit gate", () => {
     const moduleSource = readFileSync(`${collectionDirectory}/${cardId}.ts`, "utf8");
     const compiled = runtimeCompiledCard(cardId);
 
-    expect(moduleSource.match(new RegExp(`\\bregisterIrCard\\s*\\(\\s*["']${cardId}["']\\s*,\\s*compiled\\s*\\)`, "g"))).toHaveLength(1);
+    expect(
+      moduleSource.match(new RegExp(`\\bregisterIrCard\\s*\\(\\s*["']${cardId}["']\\s*,\\s*compiled\\s*\\)`, "g")),
+    ).toHaveLength(1);
     expect(moduleSource.match(/\bregisterIrCard\s*\(/g), `${cardId} exactly one IR registration`).toHaveLength(1);
     expect(moduleSource, `${cardId} legacy registration`).not.toMatch(/\bregisterCard\s*\(/);
     expect(hasRegisteredCompiledCard(cardId), `${cardId} direct compiled registration`).toBe(true);
@@ -74,7 +79,10 @@ describe("ST23 collection audit gate", () => {
       kind: "RevealAdd",
       revealCount: 3,
       rest: "deckBottom",
-      add: [{ count: 1, to: "hand" }, { count: 1, to: "underTamer", faceDown: true }],
+      add: [
+        { count: 1, to: "hand" },
+        { count: 1, to: "underTamer", faceDown: true },
+      ],
     });
     expect(effects("ST23-09").find((effect) => effect.trigger === "WhenDigivolving")?.actions).toMatchObject([
       { kind: "GrantStatic", grant: "immuneToOpponentDigimonEffects" },

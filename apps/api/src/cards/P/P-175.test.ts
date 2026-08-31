@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-175.js";
 
 describe("P-175 Hina Kurihara", () => {
@@ -52,5 +55,51 @@ describe("P-175 Hina Kurihara", () => {
       isSecurity: true,
       actions: [{ kind: "PlayWithoutCost", payCost: false, target: { isSelf: true, count: 1 } }],
     });
+  });
+
+  it("sets memory to 3 at start of turn when memory is 2 or less", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "P-175", as: "hina" }] } });
+    s.state.memory = 1;
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("hina"));
+    await settle();
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("suspends itself and reduces a qualifying level-4-or-higher digivolution by 2 after a real Rock Dragon play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-175", as: "hina" },
+            { card: "BT2-014", as: "host" },
+          ],
+          hand: [
+            { card: "BT2-011", as: "trigger" },
+            { card: "BT2-016", as: "evolution" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("trigger").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("host").topCard.instanceId === s.inst("evolution").instanceId);
+
+    expect(s.perm("hina").isSuspended).toBe(true);
+    expect(s.perm("host").topCard.instanceId).toBe(s.inst("evolution").instanceId);
+    // BT2-016's level-4 evolution cost is 2; Hina's replacement reduces it to 0.
+    expect(s.state.memory).toBe(6);
+  });
+
+  it("plays itself from a security check without paying its cost", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "P-175", as: "hina" }] } });
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("hina"));
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("hina").instanceId));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("hina").instanceId)).toBe(true);
   });
 });

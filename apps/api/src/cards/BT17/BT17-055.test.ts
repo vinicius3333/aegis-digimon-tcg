@@ -96,6 +96,7 @@ describe("BT17-055 Infermon", () => {
     );
     const removedTopId = s.perm("target").topCard!.instanceId;
     s.state.memory = 12;
+    await s.ready();
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",

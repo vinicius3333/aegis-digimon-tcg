@@ -74,6 +74,10 @@ export const compiled: CompiledCard = {
           sourceFilter: {
             isSelfRef: true,
           },
+          fireCondition: {
+            kind: "triggerSourceNotDeletedAtSameTiming",
+            raw: "that Digimon is not deleted at the same timing",
+          },
           actions: [
             {
               kind: "SecurityManipulation",

@@ -287,6 +287,7 @@ export interface MemoryPort {
   gainMemory(amount: number, reason?: string): void;
   addMemoryForSeat(seat: Seat, amount: number, reason?: string, opts?: { isTamerEffect?: boolean }): void;
   setMemory(value: number, reason?: string): void;
+  setMemoryForSeat(seat: Seat, value: number, reason?: string): void;
   setTurnEndMinMemory?(seat: Seat, minimum: number): void;
   pay(seat: Seat, cost: number, reason?: string): number;
   maxCostFor(seat: Seat): number;
@@ -631,6 +632,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     engine.memory.setMemory(value, "setMemory");
   };
 
+  const setMemoryForSeat: Primitives["setMemoryForSeat"] = (seat, value): void => {
+    engine.memory.setMemoryForSeat(seat, value, "setMemory");
+  };
+
   // --- DP / keywords / cost (duration-scoped) --------------------------------
 
   const modifyDP: Primitives["modifyDP"] = (permanentId, delta, duration, opts): void => {
@@ -706,8 +711,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     controllerSeat: Seat,
     explicitReduction = 0,
     useAsOption = false,
+    explicitOverride?: number,
   ): Promise<number> => {
-    const adjusted = ledger.playCostFor({ def: definition, controllerSeat }, normalizeCost(definition.playCost));
+    const printed = normalizeCost(definition.playCost);
+    const overrideBlocked =
+      continuous.blocksCostReduction(controllerSeat, "play") && (explicitOverride ?? printed) < printed;
+    const baseCost = overrideBlocked ? printed : (explicitOverride ?? printed);
+    const adjusted = ledger.playCostFor({ def: definition, controllerSeat }, Math.max(0, baseCost));
     const allowedReduction = continuous.blocksCostReduction(controllerSeat, "play")
       ? 0
       : Math.max(0, explicitReduction);
@@ -851,6 +861,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       suspended?: boolean;
       breeding?: boolean;
       costDelta?: number;
+      costOverride?: number;
       suppressOnPlayEffects?: boolean;
       effectSourceCardId?: string;
       playedByDecode?: boolean;
@@ -864,6 +875,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // BEFORE removal, so the whenPlayed fire can set playedFromZone for the
     // `fromDigivolution` sourceFilter gate (BT20-028 KB Q4321).
     const originByInstance = new Map(instanceIds.map((id) => [id, looseZoneOfInstance(state, id)]));
+    const securityOriginSeats = new Set<Seat>();
     for (const instanceId of instanceIds) {
       const owner = ownerSeatOfLoose(state, instanceId);
       if (owner === undefined) continue;
@@ -892,6 +904,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
           definition,
           ownerPlayer.seat,
           (opts.costDelta ?? 0) + digiXrosReduction,
+          false,
+          opts.costOverride,
         );
         if (engine.memory.maxCostFor(ownerPlayer.seat) < cost) continue;
         if (cost > 0) engine.memory.pay(ownerPlayer.seat, cost, "playCard");
@@ -906,6 +920,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       if (instance === undefined) continue;
       instance.faceUp = true;
       const permanent = placePermanent(engine, ownerPlayer, instance, definition, opts?.suspended ?? false);
+      if (originByInstance.get(instanceId) === "security") securityOriginSeats.add(ownerPlayer.seat);
       // Breeding: relocate permanent from battle area to breeding slot
       if (opts?.breeding) {
         const idx = ownerPlayer.battleArea.findIndex((p) => p.permanentId === permanent.permanentId);
@@ -988,6 +1003,17 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
             },
           );
         }
+      }
+      // Generic PlayWithoutCost can source permanents directly from security. That move is
+      // still an effect-driven security removal, just like playFromSecurity above. Publish
+      // the buses after On Play has installed live watchers so the entering card can observe
+      // its own same-time removal (BT15-037 / KB Q2519).
+      for (const seat of securityOriginSeats) {
+        await engine.fireSubTrigger?.("whenEffectRemovesFromSecurity", { removedFromSecuritySeat: seat });
+        await engine.fireSubTrigger?.("whenSecurityRemoved", {
+          removedFromSecuritySeat: seat,
+          securityRemovedByEffect: true,
+        });
       }
       // An EFFECT just played one or more Digimon (Q3665: "when an effect plays one of your Digimon").
       // Fire the whenPlayed bus ONCE for the play event (KB Q3664: a single effect that plays 2+ at
@@ -1267,6 +1293,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     if (materials.length < 1 || materials.length + extraMaterials.length < 2) return undefined;
     if (extraMaterials.length !== extraMaterialIds.length) return undefined;
     if (extraMaterials.some((c) => !requireCardDefinition(c.cardId).kinds.includes(CardKind.Digimon))) return undefined;
+    // Q5256: a Digimon that can't digivolve also can't be consumed by an effect-driven DNA digivolution.
+    if (materials.some((material) => continuous.hasRestriction(material.permanentId, "digivolve"))) return undefined;
     const peek = peekLooseInstance(state, resultInstanceId);
     if (peek === undefined) return undefined;
     const definition = requireCardDefinition(peek.cardId);
@@ -1611,7 +1639,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     setTopCard(permanent, newTop);
     unshiftOnStack(permanent, oldTop); // bottom of the digivolution cards
     const def = requireCardDefinition(newTop.cardId);
-    permanent.baseDP = def.kinds.includes(CardKind.Digimon) ? def.dp : 0;
+    permanent.baseDP = def.kinds.includes(CardKind.Digimon) || def.kinds.includes(CardKind.DigiEgg) ? def.dp : 0;
+    permanent.invalidNoDpStackTop = promotedTopNeedsInvalidRuleTrash(def);
     ledger.recomputeDP(state, permanent.permanentId);
     engine.emit({
       kind: "cardsMoved",
@@ -1826,7 +1855,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const belowTop = opts?.belowTop ?? true;
     const toAttach: CardInstance[] = shed ? [source.topCard] : [source.topCard, ...source.stack, ...source.linked];
     for (const card of toAttach) {
-      card.faceUp = opts?.faceUp ?? false;
+      // Battle-area cards are public and stay face-up as digivolution cards (KB Q4250/Q4251);
+      // forcing them face-down here withheld their cardId from the opponent's StateView for
+      // the rest of the match, which rendered as card backs in the stack viewer.
+      card.faceUp = opts?.faceUp ?? card.faceUp;
       if (belowTop) pushOnStack(dest, card);
       else unshiftOnStack(dest, card);
     }
@@ -2679,6 +2711,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         instanceIds: moved.map((c) => c.instanceId),
         from: Zone.Security,
         to: Zone.Trash,
+        // The cards are face-up in a public trash the moment this is emitted, so their
+        // identities are public. Carried on the event because it is broadcast before
+        // the state patch lands them in the trash a client could look them up in.
+        cardIds: moved.map((c) => c.cardId),
+        seat,
       });
       // SubTrigger bus: a resolving EFFECT removed cards from `seat`'s security stack
       // attack-driven security check, which routes through its own seam. The payload names
@@ -3031,12 +3068,25 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // can resolve and gate on the deleted card's live traits/controller before it leaves the
     // field. The body (e.g. draw) runs immediately; OnDestroyedAnyone (System A) follows below.
     if (engine.fireSubTrigger) {
+      const deletedPermanentSnapshots = toDelete.flatMap((permanentId) => {
+        const permanent = access.permanentById(permanentId);
+        return permanent?.topCard === undefined
+          ? []
+          : [
+              {
+                permanentId,
+                controllerSeat: permanent.controllerSeat,
+                topCardId: permanent.topCard.cardId,
+              },
+            ];
+      });
       for (const permanentId of toDelete) {
         const deleted = access.permanentById(permanentId);
         if (deleted?.topCard === undefined) continue;
         await engine.fireSubTrigger("onDeletionOf", {
           deletedPermanentId: permanentId,
           deletedPermanentIds: toDelete,
+          deletedPermanentSnapshots,
           deletedControllerSeat: deleted.controllerSeat,
           deletedTopCardId: deleted.topCard?.cardId,
           removalCause: cause,
@@ -3873,6 +3923,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       const ownerSeat = ownerSeatOfLoose(state, instanceId);
       if (ownerSeat !== undefined) returnedFromTrashById.set(instanceId, ownerSeat);
     }
+    // Bind each battle-area target to the permanent identity selected by the return effect.
+    // A would-be-returned reaction can replace that Digimon with a new permanent (BT20-074
+    // DNA digivolving one of the materials; Q4400). The original deck return must then lose its
+    // target rather than re-finding the same card instance underneath the new Digimon.
+    const targetedPermanentByInstance = new Map<string, string>();
     // Fire `wouldBeReturned` for each battle-area permanent whose top-card is about to land in
     // the deck (CAP-C-11). Fires BEFORE the move, consistent with returnToHand.
     if (engine.fireSubTrigger) {
@@ -3887,6 +3942,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
           }
         }
         if (foundPermId !== undefined) {
+          targetedPermanentByInstance.set(instanceId, foundPermId);
           await engine.fireSubTrigger("wouldBeReturned", {
             subjectPermanentId: foundPermId,
             returnDestination: "deck",
@@ -3894,6 +3950,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         }
       }
     }
+    instanceIds = instanceIds.filter((instanceId) => {
+      const targetedPermanentId = targetedPermanentByInstance.get(instanceId);
+      if (targetedPermanentId === undefined) return true;
+      return access.permanentById(targetedPermanentId)?.topCard?.instanceId === instanceId;
+    });
     // Digivolution-stack cards being returned to the deck BOTTOM (toTop === false): record each
     // one's host permanent + cardId BEFORE removal so onDigivolutionCardReturnToDeckBottom can fire
     // for the host's own watcher once the card has landed (BT11-065 "[Vemmon] placed from this
@@ -4651,6 +4712,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       materials.length + extraMaterials.length < 2
     )
       return false;
+    // Q5256: effect-driven DNA digivolution must honor the same digivolution lock as the player path.
+    if (materials.some((material) => continuous.hasRestriction(material.permanentId, "digivolve"))) return false;
     if (
       into.level === 7 &&
       materials.some((material) => continuous.hasRestriction(material.permanentId, "digivolveToLevel7"))
@@ -4991,6 +5054,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     attackerPermanentId: string,
     opts?: {
       withoutSuspending?: boolean;
+      ignoreSummoningSickness?: boolean;
       attackPlayer?: boolean;
       attackPlayerOnly?: boolean;
       attackMechanic?: string;
@@ -5004,7 +5068,17 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const attacker = access.permanentById(attackerPermanentId);
     if (attacker === undefined) return;
     const controllerSeat = attacker.controllerSeat;
-    if (canAttackerDeclare(access, controllerSeat, attacker, continuous, false, opts?.withoutSuspending) !== null) {
+    if (
+      canAttackerDeclare(
+        access,
+        controllerSeat,
+        attacker,
+        continuous,
+        false,
+        opts?.withoutSuspending,
+        opts?.ignoreSummoningSickness,
+      ) !== null
+    ) {
       return;
     }
     const opponentSeat = access.opponentOf(controllerSeat);
@@ -5253,6 +5327,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     isTimingEffectDisabled,
     declareWinner,
     setMemory,
+    setMemoryForSeat,
     setTurnEndMinMemory: (seat: Seat, minimum: number) => engine.memory.setTurnEndMinMemory?.(seat, minimum),
     modifyDP,
     modifyPlayerDP,

@@ -27,7 +27,7 @@ describe("BT17-018", () => {
           op: "trashTop",
           controller: "opponent",
           amount: 1,
-          scaling: { per: 10, unit: "cards" },
+          scaling: { per: 10, unit: "cards", filter: { zone: "trash", controller: "any" } },
         },
       ],
     });
@@ -46,7 +46,7 @@ describe("BT17-018", () => {
           ],
         },
         1: {
-          battleArea: [{ card: "BT17-016", as: "base" }],
+          battleArea: [{ card: "ST7-09", as: "base" }],
           hand: [{ card: "BT17-018", as: "crimson" }],
         },
       },

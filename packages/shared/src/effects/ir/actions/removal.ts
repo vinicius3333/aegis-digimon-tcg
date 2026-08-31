@@ -239,6 +239,8 @@ export interface ReturnToEggDeckAction extends ActionBase {
  */
 export interface DelayedDeletePlayedAction extends ActionBase {
   kind: "DelayedDeletePlayed";
+  /** Boundary at which the played permanent is deleted; defaults to the owner's turn end. */
+  timing?: "endOfOwnerTurn" | "endOfOpponentTurn";
 }
 
 export interface DelayedDeleteAction extends ActionBase {

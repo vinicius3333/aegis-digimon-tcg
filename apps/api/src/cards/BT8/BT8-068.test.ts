@@ -44,7 +44,7 @@ describe("BT8-068 BanchoMamemon", () => {
         0: {
           battleArea: [{ card: "BT10-013", as: "base" }],
           hand: [{ card: "BT8-068", as: "evolving" }],
-          deck: ["BT6-064", "BT3-071", "BT1-010"],
+          deck: ["BT1-009", "BT6-064", "BT3-071", "BT1-010"],
         },
         1: { battleArea: [] },
       },

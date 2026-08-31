@@ -49,7 +49,10 @@ describe("BT13-108 BT13-108", () => {
       {
         0: {
           hand: [{ card: "BT13-108", as: "option" }],
-          battleArea: [{ card: "BT13-111", as: "host" }],
+          battleArea: [
+            { card: "BT13-111", as: "host" },
+            { card: "BT2-089", as: "black-source" },
+          ],
         },
         1: {
           battleArea: [
@@ -62,7 +65,9 @@ describe("BT13-108 BT13-108", () => {
     );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-108"));
 
     s.state.turnSeat = 1;
@@ -71,6 +76,8 @@ describe("BT13-108 BT13-108", () => {
     await advance(s.engine).verb.suspend([s.perm("host").permanentId], 1);
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("low").instanceId));
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("low").instanceId)).toBe(true);
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("high").instanceId)).toBe(true);
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("high").instanceId),
+    ).toBe(true);
   });
 });

@@ -95,6 +95,11 @@ const compiled: CompiledCard = {
                 },
                 count: 1,
               },
+              into: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+              },
+              from: ["hand"],
               optional: true,
             },
           ],

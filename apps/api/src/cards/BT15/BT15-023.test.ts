@@ -54,7 +54,9 @@ describe("BT15-023", () => {
     s.state.memory = 6;
     const removedIds = [s.inst("bottom").instanceId, s.inst("top").instanceId];
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("coelamon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("coelamon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("target").stack.length === 0);
 
     expect(s.state.memory).toBe(3);
@@ -83,7 +85,9 @@ describe("BT15-023", () => {
     );
     s.state.memory = 6;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("coelamon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("coelamon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("target").stack.length === 1);
 
     expect(s.perm("target").stack.map((card) => card.instanceId)).toEqual([s.inst("top").instanceId]);
@@ -94,9 +98,11 @@ describe("BT15-023", () => {
     const s = setupEngine({ 0: { hand: [{ card: "BT15-023", as: "coelamon" }] } });
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("coelamon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("coelamon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT15-023"));
 
-    expect(s.state.memory).toBe(11);
+    expect(s.state.memory).toBe(2);
   });
 });

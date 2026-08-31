@@ -227,7 +227,7 @@ describe("BT26-039 Sunflowmon", () => {
   it("inherited When Attacking locks one opponent Digimon, including an already suspended one", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-082", as: "host", under: [CARD_ID] }] },
+        0: { battleArea: [{ card: "BT11-053", as: "host", under: [CARD_ID] }] },
         1: {
           battleArea: [{ card: "BT26-035", as: "target", suspended: true }],
           security: ["AD1-001"],
@@ -258,7 +258,7 @@ describe("BT26-039 Sunflowmon", () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-082", as: "host", under: [CARD_ID] }] },
+        0: { battleArea: [{ card: "BT11-053", as: "host", under: [CARD_ID] }] },
         1: {
           battleArea: [
             { card: "BT26-035", as: "first" },
@@ -301,7 +301,7 @@ describe("BT26-039 Sunflowmon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT1-082", as: "host", under: [CARD_ID] },
+            { card: "BT11-053", as: "host", under: [CARD_ID] },
             { card: "BT26-035", as: "ally" },
           ],
         },

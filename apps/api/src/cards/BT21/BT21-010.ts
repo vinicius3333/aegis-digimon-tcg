@@ -26,7 +26,7 @@ export const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Siriusmon"],
-                match: "name",
+                match: "nameExact",
               },
             ],
           },
@@ -90,7 +90,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Gurimon"],
+      namesExact: ["Gurimon"],
       cost: 0,
       isAlternate: true,
     },

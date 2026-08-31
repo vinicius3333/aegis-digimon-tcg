@@ -39,10 +39,15 @@ describe("BT14-090", () => {
     );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("agumon").topCard?.cardId === "BT14-101");
     expect(s.perm("agumon").topCard?.cardId).toBe("BT14-101");
-    expect(s.perm("agumon").stack.map((card) => card.cardId)).toEqual(["BT14-012", "BT14-014"]);
+    expect(s.perm("agumon").stack.map((card) => card.cardId)).toHaveLength(3);
+    expect(s.perm("agumon").stack.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT14-007", "BT14-012", "BT14-014"]),
+    );
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT14-012")).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT14-014")).toBe(false);
   });

@@ -39,6 +39,9 @@ export const compiled: CompiledCard = {
               },
             },
             count: 1,
+            // The trash branch remains broad; this narrows only the hosted-card
+            // branch to this Digimon's own digivolution cards.
+            source: "thisDigimon",
           },
           from: ["trash", "digivolutionCards"],
           payCost: false,
@@ -62,6 +65,7 @@ export const compiled: CompiledCard = {
               },
             },
             count: 1,
+            source: "thisDigimon",
           },
           from: ["trash", "digivolutionCards"],
           payCost: false,

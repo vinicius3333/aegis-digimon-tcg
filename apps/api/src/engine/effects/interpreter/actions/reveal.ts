@@ -121,7 +121,8 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
     ctx.namedCounts ??= new Map();
     ctx.namedCounts.set(action.trackCount, 0);
   }
-  const revealed = await ctx.fx.reveal(seat, action.revealCount);
+  const revealMultiplier = action.revealScaling === undefined ? 1 : scaleFactor(ctx, action.revealScaling);
+  const revealed = await ctx.fx.reveal(seat, Math.max(0, action.revealCount * revealMultiplier));
   if (revealed.length === 0) return;
   ctx.lastRevealedCards = revealed.map((card) => ({
     instanceId: card.instanceId,

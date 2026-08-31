@@ -21,7 +21,7 @@ describe("BT21-028 compiled implementation", () => {
     }
   });
 
-  it("requires the printed bottom-material cost before each lowest-DP deletion", () => {
+  it("models the printed optional bottom-material cost before each lowest-DP deletion", () => {
     for (const trigger of ["WhenDigivolving", "WhenAttacking"]) {
       const effect = compiled.effects.find((entry) => entry.trigger === trigger);
       expect(effect?.actions[0]).toMatchObject({
@@ -34,9 +34,9 @@ describe("BT21-028 compiled implementation", () => {
           host: "self",
           target: { from: ["hand"] },
         },
+        optional: true,
+        abortOnDecline: true,
       });
-      expect(effect?.actions[0]).not.toHaveProperty("optional");
-      expect(effect?.actions[0]).not.toHaveProperty("abortOnDecline");
     }
   });
 
@@ -96,7 +96,7 @@ describe("BT21-028 compiled implementation", () => {
           },
           1: { battleArea: [{ card: "BT1-009", as: "target", dp: 3000 }] },
         },
-        { autoSelectCards: true },
+        { autoAcceptOptional: true, autoSelectCards: true },
       );
       s.state.memory = 6;
       await s.ready();
@@ -136,6 +136,40 @@ describe("BT21-028 compiled implementation", () => {
 
     expect(s.perm("siriusmon").stack).toHaveLength(0);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("nonmatching").instanceId);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toContain(
+      s.perm("target").permanentId,
+    );
+  });
+
+  it("permits declining a payable bottom-material cost without deleting", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-077", as: "base" }],
+          hand: [
+            { card: "BT21-028", as: "siriusmon" },
+            { card: "BT21-010", as: "material" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 4000 }] },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("siriusmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT21-028");
+
+    expect(s.perm("base").stack.map((card) => card.instanceId)).not.toContain(s.inst("material").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("material").instanceId);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toContain(
       s.perm("target").permanentId,
     );

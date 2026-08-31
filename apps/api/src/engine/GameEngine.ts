@@ -281,6 +281,7 @@ function subTriggerIdentity(sub: SubTriggerSubscription): string {
     sub.sourceInstanceId ?? "",
     sub.description,
     sub.oncePerTurnKey ?? "",
+    sub.dedupeKey ?? "",
   ].join("|");
 }
 
@@ -308,6 +309,13 @@ interface ArmedSubTrigger {
    * already activated (KB Q2611/Q2629).
    */
   contextAtFireTime: () => EffectContext | undefined;
+  /** Unique occurrence captured by one `armedSubTriggers` call. */
+  occurrence: {
+    /** Once-per-turn keys that were unused when this event snapshot was armed. */
+    oncePerTurnSnapshotKeys: ReadonlySet<string>;
+    /** Shared success ledger for ordered bodies resolving this same event snapshot. */
+    oncePerTurnSuccessfulKeys: Set<string>;
+  };
 }
 
 /** One deletion a rule-check sweep performed, held until the whole pass can react to it. */
@@ -551,10 +559,7 @@ export class GameEngine {
    * separate maps because this one relocates a whole PERMANENT via `relocatePermanent`, not loose
    * card instances via `placeUnder`).
    */
-  private readonly pendingSelfReducerRelocations = new Map<
-    string,
-    (string | { permanentId: string; shedOwnCards?: boolean })[]
-  >();
+  private readonly pendingSelfReducerRelocations = new Map<string, { permanentId: string; shedOwnCards?: boolean }[]>();
 
   /** The effect verbs (effect-primitives) bound to this match. */
   private readonly primitives: Primitives;
@@ -1002,6 +1007,7 @@ export class GameEngine {
           traits,
           (key) => this.tracker.count(`link-cost/${key}`, "replacement") > 0,
         ),
+      (permanent, printedName) => effectiveNames(this.continuous, permanent, printedName),
     );
     return this.gameAccess;
   }
@@ -1293,9 +1299,7 @@ export class GameEngine {
    */
   private async sweepDurations(boundary: TurnBoundary): Promise<void> {
     const seat = this.state.turnSeat;
-    const sweep = (
-      b: "ownerTurnEnd" | "opponentTurnEnd" | "eachTurnEnd" | "ownerActivePhase" | "nextUntap",
-    ): void => {
+    const sweep = (b: "ownerTurnEnd" | "opponentTurnEnd" | "eachTurnEnd" | "ownerActivePhase" | "nextUntap"): void => {
       this.modifiers.sweep(this.state, b, seat);
       this.continuous.sweep(this.state, b, seat);
     };
@@ -2320,7 +2324,11 @@ export class GameEngine {
     });
     // A watcher body may have moved/deleted permanents; refresh the continuous tier so a
     // subsequent read sees the post-fire board (mirrors fireTiming's trailing recompute).
-    await this.recomputeContinuousEffects();
+    // A batch stack-card event is immediately followed by one per-card event at the same
+    // primitive seam. Keep continuous inherited watchers installed until those per-card events
+    // have had a chance to fire; recomputing here would remove a source card that has already
+    // moved and erase its exact-card watcher before the canonical event (P-167/BT10-006).
+    if (event !== "onDigivolutionCardsDiscardedBatch") await this.recomputeContinuousEffects();
   }
 
   /**
@@ -2359,6 +2367,21 @@ export class GameEngine {
   ): ArmedSubTrigger[] {
     const armed: ArmedSubTrigger[] = [];
 
+    // Capture the per-turn budget at the event boundary. Distinct action-path clauses sharing
+    // one printed [Once Per Turn] are simultaneous and all remain eligible in this snapshot
+    // (EX4-014/Q3456), even after the first body provisionally marks the shared key. A later
+    // event gets a fresh snapshot and therefore sees the consumed ledger entry.
+    const oncePerTurnSnapshotKeys = new Set(
+      subs
+        .filter((sub) => sub.oncePerTurnKey !== undefined && this.tracker.count(sub.oncePerTurnKey, "subtrigger") === 0)
+        .map((sub) => sub.oncePerTurnKey!)
+        .filter((key, index, keys) => keys.indexOf(key) === index),
+    );
+    const occurrence = {
+      oncePerTurnSnapshotKeys,
+      oncePerTurnSuccessfulKeys: new Set<string>(),
+    };
+
     for (const sub of subs) {
       if (this.consumedSubTriggerKeys.has(subTriggerIdentity(sub))) continue;
       if (sub.oncePerTurnKey !== undefined && this.tracker.count(sub.oncePerTurnKey, "subtrigger") > 0) continue;
@@ -2369,6 +2392,7 @@ export class GameEngine {
       armed.push({
         sub,
         ctx,
+        occurrence,
         contextAtFireTime: () =>
           boundContexts?.get(sub.id) === undefined
             ? this.buildSubTriggerContext(sub, payload)
@@ -2460,18 +2484,23 @@ export class GameEngine {
     events: readonly SubTriggerEventName[],
     payload: TriggerInfo | undefined,
     fireWindows: () => Promise<void>,
-    opts: { busTrigger?: () => TriggerInfo | undefined } = {},
+    opts: { busTrigger?: () => TriggerInfo | undefined; onlyInitiallyArmed?: boolean } = {},
   ): Promise<void> {
-    const busFire = async (): Promise<void> => {
-      const trigger = opts.busTrigger === undefined ? payload : opts.busTrigger();
-      if (trigger === undefined) return;
-      for (const event of events) await this.fireSubTrigger(event, trigger);
-    };
     // A rule sweep parks watchers wholesale (see fireSubTrigger); leave that path alone.
     const armed =
       this.ruleProcessing || payload === undefined
         ? []
         : events.flatMap((event) => this.armedSubTriggers(this.subTriggers.subscriptionsFor(event), payload));
+    const busFire = async (): Promise<void> => {
+      if (opts.onlyInitiallyArmed === true) {
+        const remaining = armed.filter((item) => !this.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub)));
+        await this.withTriggeredMutations(() => this.runSubTriggersInChosenOrder(remaining));
+        return;
+      }
+      const trigger = opts.busTrigger === undefined ? payload : opts.busTrigger();
+      if (trigger === undefined) return;
+      for (const event of events) await this.fireSubTrigger(event, trigger);
+    };
     if (armed.length === 0) {
       await fireWindows();
       await busFire();
@@ -2486,8 +2515,10 @@ export class GameEngine {
       this.pendingWindowSubTriggers = enclosing;
       this.subTriggerWindowDepth -= 1;
     }
-    // The bus still runs: it resolves the armed watchers the windows did not reach AND any
-    // watcher armed while they were resolving, both under the ordinary ordering rules.
+    // The bus still runs: normally it resolves the armed watchers the windows did not reach
+    // and any watcher armed while they were resolving. Entry windows opt into the trigger-time
+    // snapshot because an inherited effect acquired during this very play event did not exist
+    // when the event happened and cannot retroactively trigger (BT13-013, Q2272).
     await busFire();
     if (this.subTriggerWindowDepth === 0) this.consumedSubTriggerKeys.clear();
   }
@@ -2503,6 +2534,16 @@ export class GameEngine {
     const ctx = item.contextAtFireTime();
     if (ctx === undefined) return false;
     if (item.sub.matches !== undefined && !item.sub.matches(ctx)) return false;
+    // Once-per-turn siblings share only their own event occurrence. If a different occurrence
+    // consumed the live ledger, this item must drop from the ordering prompt; the per-occurrence
+    // success set is what distinguishes an allowed same-event sibling from a later event/group.
+    const oncePerTurnKey = item.sub.oncePerTurnKey;
+    if (
+      oncePerTurnKey !== undefined &&
+      this.tracker.count(oncePerTurnKey, "subtrigger") > 0 &&
+      !item.occurrence.oncePerTurnSuccessfulKeys.has(oncePerTurnKey)
+    )
+      return false;
     return item.sub.canFire === undefined || item.sub.canFire(ctx);
   }
 
@@ -2543,6 +2584,7 @@ export class GameEngine {
       effectKey: `subtrigger/${sub.id}/${sub.description}`,
       description: subTriggerDescriptionFor(sub, ctx),
       timing: sub.event,
+      ...(sub.isInheritedSource === true ? { isInherited: true } : {}),
       // `securityChecked` closes the check AFTER these bodies have run, so the client needs
       // this to hold the announcement until the checked card's reveal has been shown.
       ...(this.securityCheckDepth > 0 ? { duringSecurityCheck: true } : {}),
@@ -2556,7 +2598,7 @@ export class GameEngine {
    * event happened, because their trigger has already activated (KB Q2611/Q2629).
    */
   private async fireOneSubTrigger(
-    { sub, contextAtFireTime }: ArmedSubTrigger,
+    { sub, contextAtFireTime, occurrence }: ArmedSubTrigger,
     opts: { announce?: boolean } = {},
   ): Promise<void> {
     if (this.subTriggerWindowDepth > 0) this.consumedSubTriggerKeys.add(subTriggerIdentity(sub));
@@ -2567,6 +2609,8 @@ export class GameEngine {
       this.subTriggerTurnLedger(),
       undefined,
       opts.announce === false ? undefined : (fired, ctx) => this.announceSubTrigger(fired, ctx),
+      occurrence.oncePerTurnSnapshotKeys,
+      occurrence.oncePerTurnSuccessfulKeys,
     );
   }
 
@@ -3279,9 +3323,8 @@ export class GameEngine {
    * identically. Only `OnPlay` carries the board-wide half; any other timing just fires scoped.
    *
    * The pool is snapshotted from the board as it is when the card ENTERS, which is when those
-   * triggers are determined; the trailing bus fire (inside `withPendingSubTriggers`) re-reads the
-   * played permanent afterwards, exactly as this seam always did, so a watcher the windows did
-   * not reach still sees the post-window board.
+   * triggers are determined. The trailing bus resolves only that snapshot: a watcher gained
+   * during this play's windows did not exist when the event happened (BT13-013, Q2272).
    */
   private async firePlayEntryWindows(
     timing: EffectTiming,
@@ -3296,6 +3339,12 @@ export class GameEngine {
     if (entryPermanentId !== undefined) {
       this.materializePlayerCustomEffects(this.access.permanentById(entryPermanentId));
     }
+    // The played card is already in the battle area when its play event happens, so its
+    // resident `whenPlayed` watchers are eligible to trigger on that same event (BT25-028;
+    // BT22-039 Q4893). Install those entry-state subscriptions before taking the event
+    // snapshot. Effects gained later while [On Play] resolves remain excluded by
+    // `onlyInitiallyArmed`, preserving the trigger-time snapshot rule (BT13-013 Q2272).
+    await this.recomputeContinuousEffects();
     await this.withPendingSubTriggers(
       ["whenPlayed", "onEnterFieldAnyone"],
       { ...this.playedTrigger(entryPermanentId), entryCause: "play" },
@@ -3308,6 +3357,7 @@ export class GameEngine {
         });
       },
       {
+        onlyInitiallyArmed: true,
         busTrigger: () => ({
           ...this.playedTrigger(this.findInstance(sourceInstanceId)?.permanent?.permanentId),
           entryCause: "play",
@@ -3409,10 +3459,12 @@ export class GameEngine {
       await this.fireSubTrigger("whenOneOfYoursDigivolves", {
         subjectPermanentId,
         enteredByEffect: ownerSeat,
+        ...(opts?.digivolvedFromZone !== undefined ? { digivolvedFromZone: opts.digivolvedFromZone } : {}),
       });
       await this.fireSubTrigger("whenAnyDigivolves", {
         subjectPermanentId,
         enteredByEffect: ownerSeat,
+        ...(opts?.digivolvedFromZone !== undefined ? { digivolvedFromZone: opts.digivolvedFromZone } : {}),
       });
     }
   }
@@ -3855,6 +3907,7 @@ export class GameEngine {
           effectKey: collected.effect.effectKey,
           description: collected.effect.description,
           timing: EffectTiming[timing],
+          ...(collected.effect.isInherited ? { isInherited: true } : {}),
           // `securityChecked` closes the check AFTER these effects have resolved, so the
           // client needs this to hold the announcement until the reveal has been shown.
           ...(this.securityCheckDepth > 0 ? { duringSecurityCheck: true } : {}),
@@ -3868,6 +3921,7 @@ export class GameEngine {
           effectKey: collected.effect.effectKey,
           description: collected.effect.description,
           timing: EffectTiming[timing],
+          ...(collected.effect.isInherited ? { isInherited: true } : {}),
         });
       },
     };
@@ -4765,15 +4819,14 @@ export class GameEngine {
         if (relocations !== undefined && relocations.length > 0) {
           this.pendingSelfReducerRelocations.delete(playedInstanceId);
           for (const relocation of relocations) {
-            const sourcePermanentId = typeof relocation === "string" ? relocation : relocation.permanentId;
             const opts = {
               belowTop: true,
-              ...(typeof relocation !== "string" && relocation.shedOwnCards === true ? { shedOwnCards: true } : {}),
+              ...(relocation.shedOwnCards === true ? { shedOwnCards: true } : {}),
             };
             if (this.primitives.relocatePermanentByEffect !== undefined) {
-              await this.primitives.relocatePermanentByEffect(permanentId, sourcePermanentId, opts);
+              await this.primitives.relocatePermanentByEffect(permanentId, relocation.permanentId, opts);
             } else {
-              this.primitives.relocatePermanent(permanentId, sourcePermanentId, opts);
+              this.primitives.relocatePermanent(permanentId, relocation.permanentId, opts);
             }
           }
         }
@@ -4946,6 +4999,14 @@ export class GameEngine {
           intent: "attack",
           reason: err instanceof Error ? err.message : "combat-error",
         });
+        // A combat that died mid-resolution already released the controller's guards
+        // (resolveAttack's finally), but it skipped onCombatComplete — and with it the
+        // turn-end check. If an effect pushed memory across before the throw, no later
+        // verb is legal to re-trigger that check, so the Main phase would hang open
+        // until a manual endPhase (field bug: api.log 2026-08-20, BT21-021).
+        this.syncAttackTargets();
+        this.syncHandAffordances();
+        this.checkTurnEndAfterVerb();
       },
     };
   }
@@ -5483,7 +5544,13 @@ export class GameEngine {
       return { ok: false, reason: check.reason };
     }
     this.continueMainVerb(
-      () => applyActivateEffect(this.state, seat, intent, deps),
+      async () => {
+        const outcome = await applyActivateEffect(this.state, seat, intent, deps);
+        // Direct [Main] activations do not pass through a timing-window resolver, so
+        // perform the post-effect rule check here (e.g. a stack peel exposing a 0-DP card).
+        await this.ruleProcess();
+        return outcome;
+      },
       (outcome) => {
         if (outcome.ok) {
           this.hooks.emit({
@@ -5683,6 +5750,8 @@ export class GameEngine {
         return ctx;
       },
       tracker: this.tracker,
+      enterEffectResolution: (seat, sourceKinds) => this.primitives.enterEffectResolution?.(seat, sourceKinds),
+      leaveEffectResolution: () => this.primitives.leaveEffectResolution?.(),
     };
   }
 

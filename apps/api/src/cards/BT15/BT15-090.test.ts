@@ -49,19 +49,25 @@ describe("BT15-090", () => {
     s.state.turnSeat = 0;
     s.state.memory = 10;
     await s.ready();
+    const lowLevelId = s.perm("lowLevel").permanentId;
+    const lowLevelInstanceId = s.inst("lowLevel").instanceId;
+    const highLevelId = s.perm("highLevel").permanentId;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("fox").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("lowLevel").instanceId));
+    await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === lowLevelInstanceId));
 
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("lowLevel").permanentId)).toBe(false);
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("highLevel").permanentId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowLevelId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === highLevelId)).toBe(true);
     expect(s.state.memory).toBe(6);
   });
 
   it("naturally limits the unqualified branch to level 4 or lower", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "BT15-090", as: "fox" }] },
+        0: {
+          battleArea: [{ card: "BT1-086", as: "blueSource" }],
+          hand: [{ card: "BT15-090", as: "fox" }],
+        },
         1: {
           battleArea: [
             { card: "BT1-036", as: "level4", dp: 1000 },
@@ -78,7 +84,9 @@ describe("BT15-090", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("fox").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("level4").instanceId));
 
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("level5").permanentId)).toBe(true);
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("level5").permanentId),
+    ).toBe(true);
     expect(s.state.memory).toBe(6);
   });
 
@@ -86,11 +94,12 @@ describe("BT15-090", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-029", as: "gabumon" }, { card: "BT1-009", as: "attacker" }],
+          battleArea: [{ card: "BT1-029", as: "gabumon" }],
           security: [{ card: "BT15-090", as: "fox" }],
         },
         1: {
           battleArea: [
+            { card: "BT15-053", as: "attacker" },
             { card: "BT1-009", as: "lowLevel", dp: 12000 },
             { card: "BT1-036", as: "highLevel", dp: 1000 },
           ],
@@ -99,19 +108,21 @@ describe("BT15-090", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
-    s.state.turnSeat = 0;
+    s.state.turnSeat = 1;
     await s.ready();
+    const lowLevelInstanceId = s.inst("lowLevel").instanceId;
+    const highLevelId = s.perm("highLevel").permanentId;
 
     expect(
-      s.engine.applyIntent(0, {
+      s.engine.applyIntent(1, {
         type: "attack",
         attackerPermanentId: s.perm("attacker").permanentId,
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("lowLevel").instanceId));
+    await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === lowLevelInstanceId));
 
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("highLevel").permanentId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === highLevelId)).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(0);
   });
 });

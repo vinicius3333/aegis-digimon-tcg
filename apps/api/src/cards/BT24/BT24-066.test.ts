@@ -1,10 +1,27 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT24-066.js";
 import "../index.js";
 
 describe("BT24-066 Guilmon", () => {
+  it("matches the immutable catalog identity", () => {
+    expect(getCardDefinition("BT24-066")).toMatchObject({
+      cardId: "BT24-066",
+      nameEn: "Guilmon",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 1000,
+      forms: ["Rookie"],
+      attributes: ["Virus"],
+      types: ["Reptile", "Evil"],
+      evoCosts: [{ color: "Purple", level: 2, memoryCost: 0 }],
+    });
+  });
+
   it("reveals qualifying trait cards or purple Tamers, trashes a second hit, and trashes one hand card", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Gigimon"], cost: 0, isAlternate: true }]);

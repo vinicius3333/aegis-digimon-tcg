@@ -59,7 +59,9 @@ describe("BT14-091", () => {
     expect(s.perm("chosen").isSuspended).toBe(false);
     expect(s.perm("firstOpponent").stack).toHaveLength(0);
     expect(s.perm("secondOpponent").stack).toHaveLength(0);
-    expect(s.state.memory).toBe(8);
+    // Wave costs 2, then the Joe Kido used by the condition suspends once and gains 1
+    // when the opposing digivolution cards are trashed.
+    expect(s.state.memory).toBe(9);
   });
 
   it("keeps the chosen Digimon suspended when an opposing stack has as many cards after trashing", async () => {

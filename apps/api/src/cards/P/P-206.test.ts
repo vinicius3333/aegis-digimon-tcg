@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./P-206.js";
@@ -77,5 +79,21 @@ describe("P-206 Digimon Liberator", () => {
         { kind: "AddToHandSelf" },
       ],
     });
+  });
+
+  it("plays a low-cost Digimon and returns itself to hand from Security", async () => {
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "P-206", as: "option" }], hand: [{ card: "BT1-009", as: "digimon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+    await settle();
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("digimon").instanceId),
+    ).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
   });
 });

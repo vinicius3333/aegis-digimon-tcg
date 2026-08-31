@@ -7,7 +7,7 @@ import { COLOR_MAP, PROTECTION_STRING_TOKEN_MAP, PROTECTION_TOKEN_MAP } from "..
 import { DefinitionFacts, definitionMatches, parseCopyEffectsFilterText } from "../matching/definition.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
-import { CardColor, CardKind } from "@aegis/shared";
+import { CardColor, CardKind, effectiveStaticNames } from "@aegis/shared";
 import type { Action } from "@aegis/shared";
 
 export async function runGrantStaticAction(ctx: EffectContext, action: Action): Promise<boolean> {
@@ -22,7 +22,7 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
           if (current === undefined) return [];
           const names = Array.from(current.stack).flatMap((card) => {
             const definition = ctx.game.definitionOf(card);
-            return (definition.level ?? 99) <= 3 ? (definition.nameEn ? [definition.nameEn] : []) : [];
+            return (definition.level ?? 99) <= 3 ? effectiveStaticNames(definition) : [];
           });
           return [...new Set(names)];
         },
@@ -134,13 +134,21 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
           action.grant === "gainEffect") &&
         (action.tokens?.length ?? 0) > 0
       ) {
-        const grantDuration = toDuration(action.duration ?? "untilOpponentTurnEnd");
+        const isDurationScopedDPGrant = action.tokens?.includes("get -5000DP") === true;
+        const nextOpponentTurnDuration = isDurationScopedDPGrant && action.duration === "untilOpponentNextTurnEnd";
+        const grantDuration = nextOpponentTurnDuration
+          ? toDuration("untilOpponentTurnEnd")
+          : toDuration(action.duration ?? "untilOpponentTurnEnd");
         // EX4-074's generated catalog uses the literal phrase "get -5000DP" for a
         // continuous grant, not a triggered ability. Installing it in the named-effect
         // ledger would make it invisible to the DP calculator, so apply the duration-scoped
         // modifier directly to the selected permanents.
-        if (action.tokens?.includes("get -5000DP")) {
-          for (const id of ids) ctx.fx.modifyDP(id, -5000, grantDuration);
+        if (isDurationScopedDPGrant) {
+          for (const id of ids) {
+            ctx.fx.modifyDP(id, -5000, grantDuration, {
+              skipsCurrentOpponentTurnEnd: nextOpponentTurnDuration && !ctx.source.isOwnersTurn(),
+            });
+          }
         }
         for (const id of ids) {
           // Anchor the grant on the granted Digimon's TOP-CARD instance (persists into trash) and
@@ -168,7 +176,9 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
               grantDuration,
               (permanentId) => {
                 const permanent = ctx.game.permanentById(permanentId);
-                return permanent !== undefined && permanentMatchesFilter(ctx, permanent, action.target.filter, ctx.source);
+                return (
+                  permanent !== undefined && permanentMatchesFilter(ctx, permanent, action.target.filter, ctx.source)
+                );
               },
             );
           }
@@ -221,6 +231,7 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
           const sources = action.topmostOnly === true ? matches.slice(-1) : matches;
           for (const stackCard of sources) {
             ctx.fx.conferStackEffects(permanentId, stackCard.instanceId, duration, {
+              excludeInherited: action.excludeInherited === true,
               granterInstanceId: ctx.source.instanceId,
             });
           }

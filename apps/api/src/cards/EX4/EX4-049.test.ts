@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { playEx4Card } from "./livePlayTestHelpers.js";
+import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
 import {
   CardKind,
   EffectTiming,
@@ -12,6 +14,8 @@ import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import { compiled } from "./EX4-049.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 
 function instance(cardId: string, ownerSeat: Seat): CardInstance {
   return { cardId, instanceId: `${cardId}-${ownerSeat}`, ownerSeat, faceUp: true } as CardInstance;
@@ -41,6 +45,7 @@ describe("EX4-049 CresGarurumon", () => {
     const selfCard = instance("EX4-049", 0);
     const self = {
       permanentId: "self",
+      controllerSeat: 0,
       topCard: selfCard,
       stack: [],
       linked: [],
@@ -49,6 +54,7 @@ describe("EX4-049 CresGarurumon", () => {
     } as unknown as Permanent;
     const first = {
       permanentId: "first",
+      controllerSeat: 1,
       topCard: instance("FIRST", 1),
       stack: [],
       linked: [],
@@ -57,6 +63,7 @@ describe("EX4-049 CresGarurumon", () => {
     } as unknown as Permanent;
     const second = {
       permanentId: "second",
+      controllerSeat: 1,
       topCard: instance("SECOND", 1),
       stack: [],
       linked: [],
@@ -113,6 +120,7 @@ describe("EX4-049 CresGarurumon", () => {
     const selfCard = instance("EX4-049", 0);
     const self = {
       permanentId: "self",
+      controllerSeat: 0,
       topCard: selfCard,
       stack: [],
       linked: [],
@@ -121,6 +129,7 @@ describe("EX4-049 CresGarurumon", () => {
     } as unknown as Permanent;
     const target = {
       permanentId: "target",
+      controllerSeat: 0,
       topCard: instance("BASE", 0),
       stack: [],
       linked: [],
@@ -176,6 +185,7 @@ describe("EX4-049 CresGarurumon", () => {
   it("only returns level-five-or-lower opposing Digimon for the inherited Omnimon effect", async () => {
     const self = {
       permanentId: "self",
+      controllerSeat: 0,
       topCard: instance("OMNIMON", 0),
       stack: [],
       linked: [],
@@ -184,6 +194,7 @@ describe("EX4-049 CresGarurumon", () => {
     } as unknown as Permanent;
     const low = {
       permanentId: "low",
+      controllerSeat: 1,
       topCard: instance("LOW", 1),
       stack: [],
       linked: [],
@@ -192,6 +203,7 @@ describe("EX4-049 CresGarurumon", () => {
     } as unknown as Permanent;
     const high = {
       permanentId: "high",
+      controllerSeat: 1,
       topCard: instance("HIGH", 1),
       stack: [],
       linked: [],
@@ -246,4 +258,65 @@ describe("EX4-049 CresGarurumon", () => {
     } as unknown as EffectContext);
     expect(returned).toEqual([[low.topCard!.instanceId]]);
   });
+
+  it("plays through the live engine", async () => {
+    const s = await playEx4Card("EX4-049");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("subject").instanceId)).toBe(false);
+  });
+
+  it("publicly resolves modal mode two by digivolving another Digimon into Greymon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-049", as: "subject" },
+            { card: "BT1-010", as: "target" },
+          ],
+          hand: [{ card: "BT1-015", as: "greymon" }],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009" }, { card: "BT1-013" }, { card: "BT1-015" }],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1 },
+    );
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("subject"));
+    await settle(() => s.perm("target").topCard?.cardId === "BT1-015");
+    expect(s.perm("target").topCard?.cardId).toBe("BT1-015");
+    expect(s.state.players[0]!.hand.some((entry) => entry.instanceId === s.inst("greymon").instanceId)).toBe(false);
+  });
+
+  it("publicly resolves modal mode three through DNA digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-049", as: "subject" },
+            { card: "EX4-051", as: "partner" },
+            { card: "BT1-010", as: "target" },
+          ],
+          hand: [
+            { card: "EX4-060", as: "omnimon" },
+            { card: "BT1-015", as: "greymon" },
+          ],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009" }, { card: "BT1-013" }, { card: "BT1-015" }],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 2 },
+    );
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("subject"));
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX4-060"));
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX4-060")).toBe(true);
+    expect(s.state.players[0]!.hand.some((entry) => entry.instanceId === s.inst("omnimon").instanceId)).toBe(false);
+  });
+
+  ex4CardBehaviorTests("EX4-049");
 });

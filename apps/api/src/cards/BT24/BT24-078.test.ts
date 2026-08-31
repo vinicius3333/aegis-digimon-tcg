@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { observe } from "../../engine/testkit/observe.js";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
@@ -7,6 +7,22 @@ import { compiled as BT24_078 } from "./BT24-078.js";
 import "../index.js";
 
 describe("BT24-078 Creepymon (X Antibody)", () => {
+  it("matches the immutable catalog identity", () => {
+    expect(getCardDefinition("BT24-078")).toMatchObject({
+      cardId: "BT24-078",
+      nameEn: "Creepymon (X Antibody)",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 13,
+      dp: 13000,
+      forms: ["Mega"],
+      attributes: ["Virus"],
+      types: ["Demon Lord", "X Antibody", "Seven Great Demon Lords"],
+      evoCosts: [{ color: "Purple", level: 5, memoryCost: 5 }],
+    });
+  });
+
   it("digivolves from trash before trashing security and uses a dynamic total play-cost budget", () => {
     const trash = BT24_078.effects?.find((entry) => entry.trigger === "YourTurn")?.actions?.[0] as any;
     expect(trash).toMatchObject({

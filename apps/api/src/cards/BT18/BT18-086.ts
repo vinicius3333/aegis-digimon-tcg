@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Security",
@@ -19,7 +19,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Lucemon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -46,18 +46,13 @@ const compiled: CompiledCard = {
               },
             ],
           },
-          actions: [
-            {
-              kind: "Prevent",
-              mode: "leavePlay",
-              cost: {
-                kind: "moveToBattleArea",
-                raw: "by moving this Digimon to battle area",
-              },
-              optional: true,
-              abortOnDecline: true,
-            },
-          ],
+          // Moving the breeding card is itself the replacement payload. Encoding it
+          // directly lets the replacement resolve while the leaving Satan Mode still
+          // occupies the battle area (the generic moveToBattleArea cost gate checks
+          // that area before the replaced event has removed its source).
+          mode: "prevent",
+          actions: [{ kind: "MovePermanent", direction: "toBattle" }],
+          optional: true,
         },
       ],
       isBreeding: true,
@@ -71,6 +66,7 @@ const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
+              dp: { op: "eq", value: 0 },
             },
             count: "all",
           },
@@ -102,4 +98,3 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("BT18-086", compiled);
-export { compiled };

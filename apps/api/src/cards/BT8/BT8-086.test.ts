@@ -14,7 +14,7 @@ describe("BT8-086 Hiro Amanokawa", () => {
             { card: "BT8-078", as: "attacker" },
           ],
         },
-        1: { security: ["BT8-034"] },
+        1: { security: ["BT1-093"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -39,7 +39,7 @@ describe("BT8-086 Hiro Amanokawa", () => {
         0: {
           battleArea: [{ card: "BT8-086", as: "hiro" }, { card: "BT8-008", as: "gammamon" }],
         },
-        1: { security: ["BT8-034"] },
+        1: { security: ["BT1-093"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

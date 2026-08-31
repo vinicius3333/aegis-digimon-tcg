@@ -37,7 +37,7 @@ describe("BT14-061", () => {
         0: { battleArea: [{ card: "BT14-055", as: "base" }], hand: [{ card: "BT14-061", as: "source" }] },
         1: { trash: [{ card: "BT14-044", as: "returned" }] },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 2;
 
@@ -48,7 +48,12 @@ describe("BT14-061", () => {
         instanceId: s.inst("source").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard.cardId === "BT14-061");
+    await settle(
+      () =>
+        s.perm("base").topCard.cardId === "BT14-061" &&
+        s.state.players[1]!.deck[0]?.cardId === "BT14-044" &&
+        s.state.memory === 1,
+    );
 
     expect(s.state.memory).toBe(1);
     expect(s.state.players[1]!.deck[0]?.cardId).toBe("BT14-044");

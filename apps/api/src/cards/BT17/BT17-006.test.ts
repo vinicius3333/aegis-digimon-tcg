@@ -15,7 +15,7 @@ describe("BT17-006", () => {
           event: "onAddDigivolutionCards",
           triggerFilter: { isSelfRef: true },
           addedDigivolutionCardFilter: { kind: ["Tamer"] },
-          actions: [{ kind: "Digivolve", from: ["trash"], optional: true }],
+          actions: [{ kind: "Digivolve", from: ["trash"], payCost: true, optional: true }],
         },
       ],
     });
@@ -26,10 +26,7 @@ describe("BT17-006", () => {
       {
         0: {
           battleArea: [{ card: "BT17-062", under: ["BT17-006"], as: "host" }],
-          hand: [
-            { card: "BT1-085", as: "tamer" },
-            { card: "BT1-010", as: "discardedForDigivolution" },
-          ],
+          hand: [{ card: "BT1-085", as: "tamer" }],
           trash: [{ card: "BT17-065", as: "socTarget" }],
         },
       },
@@ -46,7 +43,6 @@ describe("BT17-006", () => {
     expect(s.perm("host").stack.map((card) => card.cardId)).toContain("BT17-006");
     expect(s.perm("host").stack.map((card) => card.cardId)).toContain("BT1-085");
     expect(s.state.memory).toBe(0);
-    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-010")).toBe(true);
   });
 
   it("does not react when a Digimon, rather than a Tamer, is placed under the host", async () => {

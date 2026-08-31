@@ -26,7 +26,7 @@ describe("BT14-064", () => {
     }));
   it("plays a revealed low-cost D-Brigade card", async () => {
     const s = setupEngine(
-      { 0: { hand: [{ card: "BT14-064", as: "source" }], deck: ["BT14-056", "BT1-001", "BT1-002"] } },
+      { 0: { hand: [{ card: "BT14-064", as: "source" }], deck: ["BT14-056", "BT14-082", "BT14-089"] } },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 10;
@@ -45,7 +45,7 @@ describe("BT14-064", () => {
             { card: "BT14-067", as: "source", under: ["BT14-064"] },
             { card: "BT14-055", as: "deleted" },
           ],
-          deck: ["BT14-056", "BT1-001", "BT1-002"],
+          deck: ["BT14-056", "BT14-082", "BT14-089"],
         },
         1: { hand: [{ card: "BT13-011", as: "deleter" }] },
       },
@@ -63,6 +63,6 @@ describe("BT14-064", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT14-056")).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT14-055")).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT14-055")).toBe(true);
-    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-001", "BT1-002"]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT14-082", "BT14-089"]);
   });
 });

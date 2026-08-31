@@ -153,7 +153,10 @@ describe("BT11-065 when digivolving", () => {
     await settle(() => s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT11-105"));
 
     expect(s.perm("base").stack.filter(({ cardId }) => cardId === VEMMON)).toHaveLength(4);
-    expect(s.perm("base").stack.at(-1)?.instanceId).toBe(s.inst("preexisting").instanceId);
+    expect(s.perm("base").stack.slice(2).map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("preexisting").instanceId,
+      s.inst("base").instanceId,
+    ]);
     expect(s.perm("neighbor").stack).toHaveLength(0);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT11-105");
     expect(s.state.players[0]!.trash).toHaveLength(0);

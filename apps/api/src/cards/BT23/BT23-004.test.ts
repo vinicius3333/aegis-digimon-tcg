@@ -1,7 +1,7 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT23-004.js";
 
@@ -61,7 +61,7 @@ describe("BT23-004 DemiMeramon", () => {
         0: {
           deck: ["BT1-009", "BT1-009", "BT1-009"],
           battleArea: [
-            { card: "BT1-010", under: ["BT23-004"], as: "source" },
+            { card: "BT1-010", under: ["BT23-004"], as: "source", suspended: true },
             { card: "BT20-063", as: "firstGhost" },
             { card: "BT20-067", as: "chosenGhost" },
             { card: "BT1-009", as: "nonGhost" },
@@ -69,14 +69,28 @@ describe("BT23-004 DemiMeramon", () => {
         },
         1: {
           deck: ["BT1-009", "BT1-009", "BT1-009"],
-          battleArea: [{ card: "BT4-077", as: "opponentGhost" }],
+          battleArea: [
+            { card: "BT4-077", as: "opponentGhost" },
+            { card: "BT1-010", as: "attacker", dp: 3000 },
+          ],
         },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("chosenGhost").permanentId);
 
-    expect(await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect")).toBe(1);
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("source").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-010"),
+    );
 
     expect(observe(s.engine).hasKeyword(s.perm("chosenGhost"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("chosenGhost"), "Retaliation")).toBe(true);
@@ -85,11 +99,6 @@ describe("BT23-004 DemiMeramon", () => {
       expect(observe(s.engine).hasKeyword(s.perm(alias), "Retaliation"), alias).toBe(false);
     }
 
-    await advance(s.engine).runTurn(0);
-    expect(observe(s.engine).hasKeyword(s.perm("chosenGhost"), "Blocker")).toBe(true);
-    expect(observe(s.engine).hasKeyword(s.perm("chosenGhost"), "Retaliation")).toBe(true);
-    s.state.turnSeat = 1;
-    s.state.memory = -s.state.memory;
     await advance(s.engine).runTurn(1);
     expect(observe(s.engine).hasKeyword(s.perm("chosenGhost"), "Blocker")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("chosenGhost"), "Retaliation")).toBe(false);

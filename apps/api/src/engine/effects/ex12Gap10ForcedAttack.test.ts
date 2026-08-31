@@ -57,6 +57,7 @@ function makeOpponentDigimon(permanentId: string, dp = 5000): import("@aegis/sha
   return {
     permanentId,
     ownerSeat: 1 as Seat,
+    controllerSeat: 1 as Seat,
     topCard: { instanceId: `${permanentId}-top`, cardId: "DUMMY-001", ownerSeat: 1 as Seat },
     stack: [],
     linked: [],

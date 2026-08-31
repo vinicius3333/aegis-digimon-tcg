@@ -13,8 +13,10 @@ import type { CardColor, Condition, Filter, Permanent, Seat } from "@aegis/share
  * Whether a card matching the trait `filter` is in the SOURCE permanent's digivolution stack
  * (BT7-024 "while a card with [Hybrid] in its traits is in this Digimon's digivolution cards").
  * Matches each stack card's definition against `filter.nameOrTrait` via the shared
- * `matchNameOrTrait` (Form ∪ Attribute ∪ Type union). Returns false when there is no source
- * permanent or no trait filter (conservative; we never invent a gate).
+ * `matchNameOrTrait` (Form ∪ Attribute ∪ Type union). On a post-deletion timing window the
+ * source permanent is already gone; use the deletion snapshot's stack instance ids and the
+ * owner's trash to recover the same stack facts (P-145's conditional On Deletion). Returns
+ * false when no live/source snapshot or trait filter is available.
  */
 export function selfStackMatchesTrait(ctx: EffectContext, filter: Filter | undefined): boolean {
   if (filter === undefined) return false;
@@ -22,8 +24,14 @@ export function selfStackMatchesTrait(ctx: EffectContext, filter: Filter | undef
     (filter.nameOrTrait?.length ?? 0) > 0 || (filter.or?.length ?? 0) > 0 || (filter.and?.length ?? 0) > 0;
   if (!hasPredicate) return false;
   const self = ctx.source.permanent();
-  if (self === undefined) return false;
-  return self.stack.some((card) => definitionMatches(filter, ctx.game.definitionOf(card)));
+  if (self !== undefined) return self.stack.some((card) => definitionMatches(filter, ctx.game.definitionOf(card)));
+  const deletedStackIds = ctx.trigger.deletedWasStackInstanceIds;
+  if (deletedStackIds === undefined || deletedStackIds.length === 0) return false;
+  const trash = ctx.game.player(ctx.source.ownerSeat).trash;
+  return deletedStackIds.some((instanceId) => {
+    const card = trash.find((candidate) => candidate.instanceId === instanceId);
+    return card !== undefined && definitionMatches(filter, ctx.game.definitionOf(card));
+  });
 }
 
 /**
@@ -85,11 +93,11 @@ export function compareNumber(actual: number, op: Condition["op"] | undefined, e
   }
 }
 
-export function sourceStackHasSameLevelCards(ctx: EffectContext, minCount: number): boolean {
-  const self = ctx.source.permanent();
-  if (self === undefined) return false;
+export function permanentStackHasSameLevelCards(ctx: EffectContext, permanent: Permanent, minCount: number): boolean {
   const levelCounts = new Map<number, number>();
-  const cards = [self.topCard, ...self.stack].filter((card): card is NonNullable<typeof card> => card !== undefined);
+  const cards = [permanent.topCard, ...permanent.stack].filter(
+    (card): card is NonNullable<typeof card> => card !== undefined,
+  );
   for (const card of cards) {
     const level = ctx.game.definitionOf(card).level;
     if (typeof level !== "number") continue;
@@ -98,6 +106,11 @@ export function sourceStackHasSameLevelCards(ctx: EffectContext, minCount: numbe
     levelCounts.set(level, next);
   }
   return false;
+}
+
+export function sourceStackHasSameLevelCards(ctx: EffectContext, minCount: number): boolean {
+  const self = ctx.source.permanent();
+  return self !== undefined && permanentStackHasSameLevelCards(ctx, self, minCount);
 }
 
 // ---------------------------------------------------------------------------
@@ -142,6 +155,13 @@ function lastDeletedLevelBound(ctx: EffectContext): number | undefined {
   if (perm?.topCard === undefined) return undefined;
   const level = ctx.game.definitionOf(perm.topCard).level;
   return level !== undefined && level > 0 ? level : undefined;
+}
+
+function lastDeletedDPBound(ctx: EffectContext): number | undefined {
+  if (ctx.lastDeletedDP !== undefined) return ctx.lastDeletedDP;
+  const id = ctx.trigger.deletedPermanentId ?? ctx.trigger.subjectPermanentId;
+  if (id === undefined) return undefined;
+  return ctx.game.permanentById(id)?.currentDP;
 }
 
 export function permanentMatchesFilter(
@@ -234,6 +254,11 @@ export function permanentMatchesFilter(
     const { isTriggerSource: _omit, ...rest } = filter;
     filter = rest;
   }
+  if (filter.stackHasSameLevelCards !== undefined) {
+    if (!permanentStackHasSameLevelCards(ctx, permanent, filter.stackHasSameLevelCards)) return false;
+    const { stackHasSameLevelCards: _sameLevel, ...rest } = filter;
+    filter = rest;
+  }
   // Disjunctive sub-filter ("black or has [Legend-Arms] in its traits"): the permanent matches
   // the OR group if it satisfies ANY alternative. Each alternative is a full Filter, so it is
   // evaluated against the LIVE permanent (recursing) — an alternative may itself constrain DP,
@@ -295,7 +320,9 @@ export function permanentMatchesFilter(
   if (filter.dp) {
     const cmp = filter.dp;
     let bound: number | undefined;
-    if (cmp.relativeToSource) {
+    if (cmp.relativeTo === "lastDeleted") {
+      bound = lastDeletedDPBound(ctx);
+    } else if (cmp.relativeToSource) {
       bound = source.permanent()?.currentDP;
     } else if (cmp.relativeToFilter !== undefined) {
       const referenceDps = seatsForController(ctx, cmp.relativeToFilter).flatMap((seat) =>
@@ -543,10 +570,14 @@ export function permanentMatchesFilter(
     const selectedId = ctx.selections?.get(filter.sameNameAsSelection);
     const selected = selectedId === undefined ? undefined : ctx.game.permanentById(selectedId);
     const selectedTop = selected?.topCard;
-    if (selectedTop === undefined || permanent.topCard === undefined) return false;
-    const selectedName = (ctx.game.definitionOf(selectedTop).nameEn ?? "").toLowerCase();
+    if (permanent.topCard === undefined) return false;
+    const selectedName = (
+      selectedTop === undefined
+        ? ctx.selectionFacts?.get(filter.sameNameAsSelection)?.name
+        : ctx.game.definitionOf(selectedTop).nameEn
+    )?.toLowerCase();
     const candidateName = (def.nameEn ?? "").toLowerCase();
-    if (selectedName === "" || selectedName !== candidateName) return false;
+    if (selectedName === undefined || selectedName === "" || selectedName !== candidateName) return false;
   }
 
   // Comparative digivolution-stack-size filter relative to the effect source ("a Digimon with as
@@ -642,6 +673,7 @@ export function permanentMatchesFilter(
       .map((card) => ctx.game.definitionOf(card).inheritedEffectText ?? "")
       .join("\n")
       .toLowerCase();
+    const normalizedInheritedText = inheritedText.replace(/[\s-]+/g, "");
     const grantedTokens = ctx.fx.customEffectGrants?.(permanent.permanentId) ?? [];
     const liveMatches = textRefs.some((reference) =>
       reference.tokens.some((token) => {
@@ -652,6 +684,7 @@ export function permanentMatchesFilter(
         );
         return (
           inheritedHeader.test(inheritedText) ||
+          normalizedInheritedText.includes(`[${normalizedToken}]`) ||
           grantedTokens.some((grant) => {
             const granted = grant.token.toLowerCase();
             return (

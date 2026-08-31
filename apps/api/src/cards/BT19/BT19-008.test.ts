@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -16,20 +15,22 @@ describe("BT19-008 Shoutmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT19-008", as: "shoutmon" },
-            { card: "BT19-079", as: "tamer", under: ["BT19-012"] },
-          ],
+          battleArea: [{ card: "BT19-079", as: "tamer", under: ["BT19-012"] }],
+          hand: [{ card: "BT19-008", as: "shoutmon" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 0;
+    s.state.memory = 4;
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("shoutmon"));
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shoutmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT19-012"));
 
-    expect(s.perm("shoutmon").topCard?.cardId).toBe("BT19-012");
-    expect(s.perm("shoutmon").stack.some((card) => card.cardId === "BT19-008")).toBe(true);
+    const shoutmon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT19-012");
+    expect(shoutmon?.stack.some((card) => card.cardId === "BT19-008")).toBe(true);
     expect(s.perm("tamer").stack).toHaveLength(0);
     expect(s.state.memory).toBe(0);
   });
@@ -39,17 +40,22 @@ describe("BT19-008 Shoutmon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT19-008", as: "shoutmon" },
             { card: "BT19-079", as: "tamer", under: ["BT11-018"] },
           ],
+          hand: [{ card: "BT19-008", as: "shoutmon" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("shoutmon"));
+    s.state.memory = 4;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shoutmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT19-008"));
 
-    expect(s.perm("shoutmon").topCard?.cardId).toBe("BT19-008");
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT19-008")).toBe(true);
     expect(s.perm("tamer").stack.map((card) => card.cardId)).toEqual(["BT11-018"]);
   });
 

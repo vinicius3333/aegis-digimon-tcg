@@ -154,12 +154,16 @@ describe("BT15-092 Revelation of Light — [Main] play-from-security (use-option
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === s.inst("option").instanceId));
+    const optionInstanceId = s.inst("option").instanceId;
+    const eligibleInstanceId = s.inst("eligible").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === optionInstanceId));
 
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("eligible").instanceId)).toBe(true);
-    expect(s.state.players[0]!.security[0]?.instanceId).toBe(s.inst("option").instanceId);
-    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("eligible").instanceId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === eligibleInstanceId)).toBe(true);
+    expect(s.state.players[0]!.security[0]?.instanceId).toBe(optionInstanceId);
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === eligibleInstanceId)).toBe(false);
   });
 
   it("naturally activates its security effect when revealed by an attack", async () => {

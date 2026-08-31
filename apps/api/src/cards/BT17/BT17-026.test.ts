@@ -14,7 +14,7 @@ describe("BT17-026", () => {
         {
           kind: "Digivolve",
           target: {
-            filter: { nameOrTrait: [{ tokens: ["Koji Minamoto"], match: "name" }] },
+            filter: { kind: ["Tamer"], nameOrTrait: [{ tokens: ["Koji Minamoto"], match: "name" }] },
             fromSelectionRef: "beowolfHost",
           },
           costOverride: 3,
@@ -38,7 +38,10 @@ describe("BT17-026", () => {
           duration: "untilOpponentTurnEnd",
           optional: true,
           abortOnDecline: true,
-          cost: { kind: "return" },
+          cost: {
+            kind: "return",
+            target: { filter: { zone: "digivolutionCards", hostFilter: { sourceRef: "triggerSubject" } } },
+          },
         },
       ],
     });
@@ -82,7 +85,7 @@ describe("BT17-026", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoDeclineOptional: true, autoSelectCards: true },
     );
     s.state.memory = 4;
     await s.ready();

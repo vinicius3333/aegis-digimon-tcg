@@ -108,6 +108,54 @@ describe("LM-019 Bokomon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "LM-019")).toBe(false);
   });
 
+  it("Q4002: can delete Bokomon to prevent its Gammamon-text ally from a simultaneous effect departure", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "LM-019", as: "bokomon" },
+            { card: "AD1-007", as: "gammamon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const bokomonId = s.perm("bokomon").permanentId;
+    const protectedId = s.perm("gammamon").permanentId;
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([bokomonId, protectedId], "byEffect");
+    await settle(() => s.state.pendingDecision === null);
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === bokomonId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === protectedId)).toBe(true);
+  });
+
+  it("does not protect the ally from the controller's own effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "LM-019", as: "bokomon" },
+            { card: "AD1-007", as: "gammamon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const bokomonId = s.perm("bokomon").permanentId;
+    const protectedId = s.perm("gammamon").permanentId;
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([protectedId], "byEffect");
+    await settle(() => s.state.pendingDecision === null);
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === protectedId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === bokomonId)).toBe(true);
+  });
+
   it("matches committed metadata and publishes fully covered compiled IR", () => {
     const definition = getCardDefinition("LM-019");
     const compiled = runtimeCompiledCard("LM-019");

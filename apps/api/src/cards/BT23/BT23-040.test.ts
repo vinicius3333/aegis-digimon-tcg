@@ -104,6 +104,7 @@ describe("BT23-040 Wormmon", () => {
       abortOnDecline: true,
       cost: {
         kind: "place",
+        optional: true,
         targetIsPermanent: true,
         target: {
           filter: {
@@ -117,6 +118,26 @@ describe("BT23-040 Wormmon", () => {
         host: "self",
       },
     });
+  });
+
+  it("may decline the Erika processing condition before moving her under Wormmon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-040", as: "wormmon" },
+            { card: "BT23-084", as: "erika" },
+          ],
+          hand: [{ card: "BT23-101", as: "hudiemon" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const erikaPermanentId = s.perm("erika").permanentId;
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("wormmon"));
+    expect(s.perm("wormmon").topCard?.cardId).toBe("BT23-040");
+    expect(s.state.players[0]!.battleArea.some((card) => card.permanentId === erikaPermanentId)).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("hudiemon").instanceId);
   });
 
   it("inherits the all-Hudie continuous DP bonus", () => {

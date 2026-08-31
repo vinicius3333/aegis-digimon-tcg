@@ -108,7 +108,11 @@ export const compiled: CompiledCard = {
             controller: "mine",
             kind: ["Digimon"],
           },
-          fromZone: "trash",
+          fireCondition: {
+            kind: "digivolvedFromZone",
+            zone: "trash",
+            raw: "digivolves from the trash",
+          },
           actions: [
             {
               kind: "Delete",

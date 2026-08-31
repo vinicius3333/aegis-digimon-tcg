@@ -65,6 +65,32 @@ describe("BT18-025 Korikakumon", () => {
     expect(s.perm("base").stack.at(-1)?.cardId).toBe(baseCard);
   });
 
+  it("naturally restricts an opposing empty-stack Digimon after evolving from Kumamon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT18-022", as: "kumamon" }],
+          hand: [{ card: "BT18-025", as: "korikakumon" }],
+        },
+        1: { battleArea: [{ card: "BT1-030", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    const targetId = s.perm("target").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("kumamon").permanentId,
+        instanceId: s.inst("korikakumon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(targetId, "suspend"));
+
+    expect(observe(s.engine).isRestricted(targetId, "suspend")).toBe(true);
+  });
+
   it("grants Ice-Snow and both main and inherited Jamming", async () => {
     const s = setupEngine({
       0: {

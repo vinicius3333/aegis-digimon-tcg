@@ -43,27 +43,30 @@ describe("BT15-063", () => {
     }));
 
   it("reacts to a natural effect suspension of another permanent", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "BT15-063", as: "host", under: ["BT15-058"] },
+            { card: "BT15-102", as: "host", under: ["BT15-063"] },
             { card: "BT15-058", as: "ally", suspended: true },
           ],
-          hand: [{ card: "BT14-043", as: "koDokugumon" }],
+          hand: [{ card: "BT15-094", as: "superShocker" }],
         },
-        1: { battleArea: [{ card: "BT14-042", as: "opposingTarget" }] },
+        1: { battleArea: [{ card: "BT15-052", as: "opposingTarget" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.perm("opposingTarget").permanentId);
     s.state.memory = 10;
+    await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("koDokugumon").instanceId })).toEqual({
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("superShocker").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.perm("opposingTarget").isSuspended && s.perm("ally").isSuspended === false);
 
-    expect(s.perm("host").isSuspended).toBe(true);
+    expect(s.perm("host").isSuspended).toBe(false);
     expect(s.perm("ally").isSuspended).toBe(false);
     expect(s.perm("opposingTarget").isSuspended).toBe(true);
     advance(s.engine).endMainPhaseIfOpen(0);

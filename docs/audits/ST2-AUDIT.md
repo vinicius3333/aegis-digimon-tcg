@@ -1,0 +1,37 @@
+# ST2 Audit Ledger
+
+Date: 2026-08-30. Scope: all 16 catalog cards in ascending order. Printed
+contracts were read from `packages/shared/src/cards/data/cards.json`, every
+card was queried with the local KB, and each module/test/shared primitive was
+traced. The audit corrected nine legacy generated modules to bind a local
+`compiled` value before their exclusive `registerIrCard` call.
+
+| Card (exact catalog name) | Catalog contract | KB/rules                               | Direct module                                         | Behavioral proof                                                                                      | Gates                                       | Total |
+| ------------------------- | ---------------- | -------------------------------------- | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------- | ----- |
+| ST2-01 — Tsunomon         | 2/2              | none; 2/2                              | [module](../../apps/api/src/cards/ST2/ST2-01.ts); 2/2 | [test](../../apps/api/src/cards/ST2/ST2-01.test.ts): no-source battle +1000 owner turn; 2/2           | focused + gate + type/lint/format/diff; 2/2 | 10/10 |
+| ST2-02 — Gomamon          | 2/2              | none; 2/2                              | [module](../../apps/api/src/cards/ST2/ST2-02.ts); 2/2 | [test](../../apps/api/src/cards/ST2/ST2-02.test.ts): exact vanilla contract; 2/2                      | focused + gate + type/lint/format/diff; 2/2 | 10/10 |
+| ST2-03 — Gabumon          | 2/2              | none; 2/2                              | [module](../../apps/api/src/cards/ST2/ST2-03.ts); 2/2 | [test](../../apps/api/src/cards/ST2/ST2-03.test.ts): bottom-source trash level boundary; 2/2          | focused + gate + type/lint/format/diff; 2/2 | 10/10 |
+| ST2-04 — Bearmon          | 2/2              | none; 2/2                              | [module](../../apps/api/src/cards/ST2/ST2-04.ts); 2/2 | [test](../../apps/api/src/cards/ST2/ST2-04.test.ts): exact vanilla contract; 2/2                      | focused + gate + type/lint/format/diff; 2/2 | 10/10 |
+| ST2-05 — Ikkakumon        | 2/2              | none; 2/2                              | [module](../../apps/api/src/cards/ST2/ST2-05.ts); 2/2 | [test](../../apps/api/src/cards/ST2/ST2-05.test.ts): exact vanilla contract; 2/2                      | focused + gate + type/lint/format/diff; 2/2 | 10/10 |
+| ST2-06 — Garurumon        | 2/2              | none; 2/2                              | [module](../../apps/api/src/cards/ST2/ST2-06.ts); 2/2 | [test](../../apps/api/src/cards/ST2/ST2-06.test.ts): bottom-source trash; 2/2                         | focused + gate + type/lint/format/diff; 2/2 | 10/10 |
+| ST2-07 — Grizzlymon       | 2/2              | Q610; 2/2                              | [module](../../apps/api/src/cards/ST2/ST2-07.ts); 2/2 | [test](../../apps/api/src/cards/ST2/ST2-07.test.ts): Blocker and -2 memory; 2/2                       | focused + gate + type/lint/format/diff; 2/2 | 10/10 |
+| ST2-08 — WereGarurumon    | 2/2              | Q611–Q614; 2/2                         | [module](../../apps/api/src/cards/ST2/ST2-08.ts); 2/2 | [test](../../apps/api/src/cards/ST2/ST2-08.test.ts): no-source opponent gate and Security Attack; 2/2 | focused + gate + type/lint/format/diff; 2/2 | 10/10 |
+| ST2-09 — Zudomon          | 2/2              | Q615; 2/2                              | [module](../../apps/api/src/cards/ST2/ST2-09.ts); 2/2 | [test](../../apps/api/src/cards/ST2/ST2-09.test.ts): exact two bottom cards; 2/2                      | focused + gate + type/lint/format/diff; 2/2 | 10/10 |
+| ST2-10 — Plesiomon        | 2/2              | none; 2/2                              | [module](../../apps/api/src/cards/ST2/ST2-10.ts); 2/2 | [test](../../apps/api/src/cards/ST2/ST2-10.test.ts): exact vanilla contract; 2/2                      | focused + gate + type/lint/format/diff; 2/2 | 10/10 |
+| ST2-11 — MetalGarurumon   | 2/2              | Q616–Q618; 2/2                         | [module](../../apps/api/src/cards/ST2/ST2-11.ts); 2/2 | [test](../../apps/api/src/cards/ST2/ST2-11.test.ts): once-per-turn attack unsuspend; 2/2              | focused + gate + type/lint/format/diff; 2/2 | 10/10 |
+| ST2-12 — Matt Ishida      | 2/2              | Q619–Q622; 2/2                         | [module](../../apps/api/src/cards/ST2/ST2-12.ts); 2/2 | [test](../../apps/api/src/cards/ST2/ST2-12.test.ts): start-turn conditional memory/security play; 2/2 | focused + gate + type/lint/format/diff; 2/2 | 10/10 |
+| ST2-13 — Hammer Spark     | 2/2              | Q623/Q881/Q1081/Q1088/Q1098/Q1416; 2/2 | [module](../../apps/api/src/cards/ST2/ST2-13.ts); 2/2 | [test](../../apps/api/src/cards/ST2/ST2-13.test.ts): main +1 and security +2 memory; 2/2              | focused + gate + type/lint/format/diff; 2/2 | 10/10 |
+| ST2-14 — Sorrow Blue      | 2/2              | Q624/Q625; 2/2                         | [module](../../apps/api/src/cards/ST2/ST2-14.ts); 2/2 | [test](../../apps/api/src/cards/ST2/ST2-14.test.ts): no-source target and opponent-turn duration; 2/2 | focused + gate + type/lint/format/diff; 2/2 | 10/10 |
+| ST2-15 — Kaiser Nail      | 2/2              | Q626–Q629; 2/2                         | [module](../../apps/api/src/cards/ST2/ST2-15.ts); 2/2 | [test](../../apps/api/src/cards/ST2/ST2-15.test.ts): source-card play and zone/stack boundary; 2/2    | focused + gate + type/lint/format/diff; 2/2 | 10/10 |
+| ST2-16 — Cocytus Breath   | 2/2              | none; 2/2                              | [module](../../apps/api/src/cards/ST2/ST2-16.ts); 2/2 | [test](../../apps/api/src/cards/ST2/ST2-16.test.ts): opponent return to hand and source trash; 2/2    | focused + gate + type/lint/format/diff; 2/2 | 10/10 |
+
+## Verification commands
+
+- All 16 focused card tests were run serially, one process per card, with `--pool=forks --poolOptions.forks.singleFork=true --no-file-parallelism`; all passed.
+- Collection gate: `pnpm --filter @aegis/api exec vitest run src/cards/ST2/collection.audit.test.ts --pool=forks --poolOptions.forks.singleFork=true --no-file-parallelism` (3 tests passed).
+- The gate derives all 16 IDs/names, verifies every index import and colocated proof, and enforces exclusive `registerIrCard(cardId, compiled)`, full coverage, empty residuals, and no `RawUnparsed` nodes.
+
+# Evidence remediation (2026-08-31)
+
+ST2-12 now proves both start-of-turn memory and Security play through the production turn and
+attack operations, including the exact memory result and card identity.

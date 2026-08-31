@@ -52,9 +52,11 @@ export const compiled: CompiledCard = {
                 op: "lte",
                 value: 4,
               },
+              or: [{ zone: "trash" }, { zone: "digivolutionCards", hostFilter: { isSelfRef: true } }],
             },
             count: 1,
           },
+          recipient: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           from: ["trash", "digivolutionCards"],
           payCost: false,
           optional: true,
@@ -74,9 +76,11 @@ export const compiled: CompiledCard = {
                 op: "lte",
                 value: 4,
               },
+              or: [{ zone: "trash" }, { zone: "digivolutionCards", hostFilter: { isSelfRef: true } }],
             },
             count: 1,
           },
+          recipient: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           from: ["trash", "digivolutionCards"],
           payCost: false,
           optional: true,
@@ -89,6 +93,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenLinked",
+          sourceFilter: { isSelfRef: true },
           actions: [
             {
               kind: "GrantStatic",

@@ -482,8 +482,8 @@ function NavItem({
 /* ---- Top nav (persistent app chrome) ----
    The bar carries the brand, the section links, and — on the right — the account
    controls: a sign-in call to action for guests and the portrait button that opens
-   the player menu. Tournaments and Settings live in that menu on narrow screens,
-   which keeps the bottom nav to the four sections a thumb reaches for. */
+   the player menu. Settings lives in that menu on narrow screens, which keeps
+   the bottom nav to the four sections a thumb reaches for. */
 export function TopNav({
   screen,
   onNav,
@@ -510,8 +510,6 @@ export function TopNav({
     { key: "deck", label: t("nav.decks"), icon: Icons.LayoutDashboard },
     { key: "collection", label: t("nav.collection"), icon: Icons.BookOpen },
   ];
-  const wideItems = [...items, { key: "tournaments" as Screen, label: t("nav.tournaments"), icon: Icons.Calendar }];
-
   const signIn = signedIn ? null : (
     <button className="aegis-sign-in-button" onClick={() => navTo("login")} aria-current={undefined}>
       <Icons.LogIn size={16} />
@@ -548,7 +546,7 @@ export function TopNav({
             <Logo size={44} />
           </button>
           <nav className="aegis-top-nav__links" aria-label={t("nav.primaryAria")}>
-            {wideItems.map((it) => (
+            {items.map((it) => (
               <NavItem key={it.key} item={it} active={screen === it.key} onSelect={() => navTo(it.key)} />
             ))}
           </nav>

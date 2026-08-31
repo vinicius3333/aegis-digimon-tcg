@@ -1,5 +1,46 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+
+describe("P-221 engine behavior", () => {
+  it("reduces an opposing Digimon by exactly 10000 DP on When Digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "P-221", as: "chaosmon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 15000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    const base = s.perm("target").currentDP;
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("chaosmon"), {
+      isDnaDigivolve: true,
+    });
+    await settle();
+    expect(s.perm("target").currentDP).toBe(base - 10000);
+    expect(observe(s.engine).isRestricted(s.perm("chaosmon"), "beAffected")).toBe(true);
+  });
+
+  it("reduces an opposing Digimon by exactly 10000 DP when attacking", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "P-221", as: "chaosmon" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "target", dp: 15000 }], security: ["BT1-001"] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("chaosmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("target").currentDP).toBe(5000);
+  });
+});
 import "./P-221.js";
 
 describe("P-221 Chaosmon", () => {
@@ -20,7 +61,7 @@ describe("P-221 Chaosmon", () => {
       actions: [
         {
           kind: "Restrict",
-          restriction: "immuneToOpponentEffects",
+          restriction: "beAffected",
           duration: "untilOpponentTurnEnd",
           target: { count: 1, isSelf: true, filter: { isSelfRef: true } },
           condition: { kind: "isDnaDigivolving" },
@@ -45,5 +86,16 @@ describe("P-221 Chaosmon", () => {
         ],
       });
     }
+  });
+});
+
+describe("P-221 continuous behavior", () => {
+  it("grants Security Attack +1 to a resident Chaosmon", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "P-221", as: "chaosmon" }] } });
+    await s.ready();
+    const ledger = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } })
+      .continuous;
+    expect(ledger.hasKeyword(s.perm("chaosmon").permanentId, "SecurityAttack")).toBe(true);
+    expect(ledger.hasKeyword(s.perm("chaosmon").permanentId, "Partition")).toBe(true);
   });
 });

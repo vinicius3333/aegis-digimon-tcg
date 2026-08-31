@@ -1,6 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -10,7 +8,8 @@ describe("ST17-09 Cherubimon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "ST17-09", as: "cherubimon" }],
+          battleArea: [{ card: "ST17-07", as: "base" }],
+          hand: [{ card: "ST17-09", as: "cherubimon" }],
           trash: [
             { card: "ST17-04", as: "revived" },
             { card: "BT1-009", as: "wrongColor" },
@@ -22,13 +21,21 @@ describe("ST17-09 Cherubimon", () => {
     );
     await s.ready();
 
-    expect(observe(s.engine).hasKeyword(s.perm("cherubimon"), "Alliance")).toBe(true);
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("cherubimon"));
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Alliance")).toBe(false);
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("cherubimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
         s.state.players[1]!.battleArea.length === 0 &&
         s.state.players[0]!.battleArea.some((perm) => perm.topCard.cardId === "ST17-04"),
     );
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Alliance")).toBe(true);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard.cardId === "ST17-04")).toBe(true);

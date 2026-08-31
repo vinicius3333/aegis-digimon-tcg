@@ -23,11 +23,9 @@ describe("BT16-082 Ukkomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT16-082", as: "ukko" },
-          ],
+          battleArea: [{ card: "BT16-082", as: "ukko" }],
           breeding: { card: "BT1-009", as: "moved" },
-          deck: ["BT16-090", "BT1-009", "BT1-001"],
+          deck: ["BT16-090", "BT1-009", "BT1-090"],
           eggDeck: ["BT1-001"],
         },
       },
@@ -38,7 +36,12 @@ describe("BT16-082 Ukkomon", () => {
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("moved").permanentId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]?.hand.length === 1);
+    await settle(
+      () =>
+        s.state.players[0]?.hand.length === 1 &&
+        s.state.players[0]?.deck.length === 2 &&
+        s.state.players[0]?.breeding?.topCard?.cardId === "BT1-001",
+    );
     expect(s.state.players[0]?.hand).toHaveLength(1);
     expect(s.state.players[0]?.deck).toHaveLength(2);
     expect(s.state.players[0]?.breeding?.topCard?.cardId).toBe("BT1-001");

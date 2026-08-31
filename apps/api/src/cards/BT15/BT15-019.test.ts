@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT15-019.js";
@@ -103,7 +102,7 @@ describe("BT15-019", () => {
   it("reaches Crabmon through its legal blue level-2 evolution route", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-028", as: "base" }],
+        breeding: { card: "BT1-003", as: "base" },
         hand: [{ card: "BT15-019", as: "crabmon" }],
         deck: ["BT1-001"],
       },
@@ -120,6 +119,6 @@ describe("BT15-019", () => {
     await settle(() => s.perm("base").topCard.cardId === "BT15-019");
 
     expect(s.state.memory).toBe(3);
-    expect(s.perm("base").stack).toHaveLength(2);
+    expect(s.perm("base").stack).toHaveLength(1);
   });
 });

@@ -34,11 +34,6 @@ const compiled: CompiledCard = {
           },
           restriction: "attackOrBlock",
           duration: "untilOpponentTurnEnd",
-          condition: {
-            kind: "digivolutionCountCompare",
-            op: "lte",
-            raw: "opponent Digimon has as many or fewer digivolution cards as the chosen Digimon",
-          },
         },
       ],
     },

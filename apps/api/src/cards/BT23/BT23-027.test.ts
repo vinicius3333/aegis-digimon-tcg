@@ -32,6 +32,36 @@ describe("BT23-027 Angemon", () => {
     expect(result?.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT23-027", "BT23-050"]));
   });
 
+  it("does not DNA digivolve an Angemon played under a digivolution restriction", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-018", as: "host", under: ["BT23-017"] }],
+          hand: [
+            { card: "BT23-027", as: "angemon" },
+            { card: "BT23-032", as: "shakkoumon" },
+          ],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    await settle();
+    const angemon = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard?.instanceId === s.inst("angemon").instanceId,
+    );
+    expect(angemon).toBeDefined();
+    expect(observe(s.engine).isRestricted(angemon!, "digivolve")).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("shakkoumon").instanceId);
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("shakkoumon").instanceId,
+      ),
+    ).toBe(false);
+  });
+
   it("declares Barrier", () => {
     expect(getCardDefinition("BT23-027")).toMatchObject({
       cardId: "BT23-027",

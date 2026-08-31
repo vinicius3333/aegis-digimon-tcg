@@ -28,6 +28,7 @@ describe("EX4 inherited Alliance suspension watchers", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
+    await (s.engine as unknown as { recomputeContinuousEffects: () => Promise<void> }).recomputeContinuousEffects();
     s.state.memory = 6;
 
     expect(
@@ -54,7 +55,6 @@ describe("EX4 inherited Alliance suspension watchers", () => {
         s.perm("host34").topCard?.cardId === "EX4-029",
       5000,
     );
-
     expect(s.perm("ally").isSuspended).toBe(true);
     expect(s.perm("host32").topCard?.cardId).toBe("EX4-029");
     expect(s.perm("host33").topCard?.cardId).toBe("EX4-036");

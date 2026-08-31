@@ -72,6 +72,7 @@ describe("BT16-010", () => {
         type: "digivolve",
         permanentId: s.perm("base").permanentId,
         instanceId: s.inst("helloogarmon").instanceId,
+        alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.cardId === "BT16-010");
@@ -111,7 +112,7 @@ describe("BT16-010", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT16-010", as: "helloogarmon", dp: 3000 }],
+          battleArea: [{ card: "BT16-010", as: "helloogarmon", dp: 3000, suspended: true }],
           trash: [{ card: "BT14-071", as: "loogamon" }],
         },
         1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 4000 }] },

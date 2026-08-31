@@ -84,6 +84,25 @@ describe("BT21-008 Elizamon", () => {
     expect(s.state.memory).toBe(7);
   });
 
+  it("gains inherited memory from a public attack that removes opponent security", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-018", as: "host", under: ["BT21-008"] }] },
+      1: { security: ["BT1-001"] },
+    });
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.state.memory).toBe(1);
+  });
+
   it("leaves all three cards in the deck when neither search bucket matches", async () => {
     const s = setupEngine({
       0: {

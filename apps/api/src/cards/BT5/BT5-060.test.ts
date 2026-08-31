@@ -10,7 +10,7 @@ describe("BT5-060 Monitamon", () => {
     expect(runtimeCompiledCard("BT5-060")?.effects[1]?.actions[0]).toMatchObject({
       add: [
         expect.objectContaining({
-          filter: { nameOrTrait: [{ tokens: ["Monitamon"], match: "nameExact" }] },
+          filter: expect.objectContaining({ nameOrTrait: [{ tokens: ["Monitamon"], match: "nameExact" }] }),
         }),
       ],
     });

@@ -12,7 +12,10 @@ describe("BT13-058 Leopardmon: Leopard Mode", () => {
     expect(compiled.effects[0]).toMatchObject({
       trigger: "WhenDigivolving",
       actions: [
-        { kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } },
+        {
+          kind: "Suspend",
+          target: { filter: { controller: "opponent", kind: ["Digimon"], unsuspended: true }, count: 1 },
+        },
         {
           kind: "Restrict",
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
@@ -41,9 +44,7 @@ describe("BT13-058 Leopardmon: Leopard Mode", () => {
         { kind: "Unsuspend", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: "all" } },
       ],
     });
-    expect(compiled.digivolutionRequirement).toEqual([
-      { namesExact: ["Leopardmon"], cost: 1, isAlternate: true },
-    ]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Leopardmon"], cost: 1, isAlternate: true }]);
   });
 
   it("loads the compiled Leopardmon: Leopard Mode implementation", async () => {
@@ -79,7 +80,7 @@ describe("BT13-058 Leopardmon: Leopard Mode", () => {
       1: {
         battleArea: [
           { card: "BT1-015", as: "suspendTarget" },
-          { card: "BT1-015", as: "lockTarget" },
+          { card: "BT1-015", as: "lockTarget", suspended: true },
         ],
       },
     });
@@ -87,34 +88,19 @@ describe("BT13-058 Leopardmon: Leopard Mode", () => {
 
     const resolving = advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("leopardMode"));
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
-    const firstDecision = s.state.pendingDecision!;
-    expect(firstDecision.options?.candidateInstanceIds).toContain(s.perm("suspendTarget").permanentId);
+    const lockDecision = s.state.pendingDecision!;
+    expect(JSON.parse(lockDecision.payloadJson).candidateInstanceIds).toContain(s.perm("lockTarget").permanentId);
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
-        decisionId: firstDecision.decisionId,
-        response: { kind: "chooseTargets", instanceIds: [s.perm("suspendTarget").permanentId] },
-      }),
-    ).toEqual({ ok: true });
-
-    await settle(
-      () =>
-        s.state.pendingDecision?.kind === "chooseTargets" &&
-        s.state.pendingDecision.decisionId !== firstDecision.decisionId,
-    );
-    const secondDecision = s.state.pendingDecision!;
-    expect(secondDecision.options?.candidateInstanceIds).toContain(s.perm("lockTarget").permanentId);
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: secondDecision.decisionId,
+        decisionId: lockDecision.decisionId,
         response: { kind: "chooseTargets", instanceIds: [s.perm("lockTarget").permanentId] },
       }),
     ).toEqual({ ok: true });
     await resolving;
 
     expect(s.perm("suspendTarget").isSuspended).toBe(true);
-    expect(s.perm("lockTarget").isSuspended).toBe(false);
+    expect(s.perm("lockTarget").isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("lockTarget"), "unsuspend")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("suspendTarget"), "unsuspend")).toBe(false);
   });
@@ -133,7 +119,7 @@ describe("BT13-058 Leopardmon: Leopard Mode", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("leopardMode"));
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("leopardMode"));
 
     expect(s.perm("leopardMode").isSuspended).toBe(false);
     expect(s.perm("costDigimon").isSuspended).toBe(true);

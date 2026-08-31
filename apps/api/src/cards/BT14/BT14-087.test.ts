@@ -3,6 +3,7 @@ import { compiled } from "./BT14-087.js";
 import { Phase } from "@aegis/shared";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "../index.js";
 
 describe("BT14-087", () => {
@@ -35,15 +36,16 @@ describe("BT14-087", () => {
 
   it("naturally gains start-main memory when the opponent has a Digimon", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT14-087", as: "eiji" }] },
+      0: { battleArea: [{ card: "BT14-087", as: "eiji" }], hand: ["BT1-009"] },
       1: { battleArea: [{ card: "BT14-058", as: "opponent" }] },
     });
     await s.ready();
     s.state.memory = 3;
     const turn = s.engine.runOneTurn();
-    await settle(() => s.state.phase === Phase.Main && s.state.memory === 4);
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.state.memory === 4);
     expect(s.state.memory).toBe(4);
-    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    advance(s.engine).endMainPhaseIfOpen(0);
     await turn;
   });
 
@@ -66,7 +68,13 @@ describe("BT14-087", () => {
     const eiji = s.state.players[0]!.battleArea.find((perm) => perm.topCard?.cardId === "BT14-087")!;
     const effects = observe(s.engine).activatableEffects(eiji) as Array<{ effectKey: string }>;
     expect(effects.length).toBeGreaterThan(0);
-    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: eiji.topCard!.instanceId, effectKey: effects[0]!.effectKey })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: eiji.topCard!.instanceId,
+        effectKey: effects[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-087"));
     expect(s.perm("loogarmon").stack.some((card) => card.cardId === "BT14-087")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("loogarmon"), "Alliance")).toBe(true);
@@ -76,7 +84,10 @@ describe("BT14-087", () => {
   });
 
   it("naturally plays Eiji from this host's own stack at end of all turns", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT14-074", as: "loogarmon", under: ["BT14-087"] }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT14-074", as: "loogarmon", under: ["BT14-087"] }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     const turn = s.engine.runOneTurn();
     await settle(() => s.state.phase === Phase.Main);
@@ -87,7 +98,10 @@ describe("BT14-087", () => {
 
   it("plays itself from security through a natural security check", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT14-071", as: "attacker" }] }, 1: { security: [{ card: "BT14-087", as: "securityEiji" }] } },
+      {
+        0: { battleArea: [{ card: "BT14-071", as: "attacker" }] },
+        1: { security: [{ card: "BT14-087", as: "securityEiji" }] },
+      },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
     expect(

@@ -149,6 +149,10 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
       // Bind "the Digimon this effect played" from whichever branch resolves the play, so a later
       // action (e.g. BT16-015's Delete with dp.valueFrom) can reference exactly what was played.
       const bindPlayWithoutCost = (playedPermanentIds = ctx.lastPlayedPermanentIds) => {
+        // `sameTarget` continuations (for example, "that Digimon gains Rush")
+        // consume the common last-resolved target register. A play action is itself
+        // a target-producing action, so preserve the actual permanents it created.
+        ctx.lastResolvedPermanentIds = playedPermanentIds ?? [];
         if (action.bindResultAs && playedPermanentIds !== undefined) {
           ctx.boundPlayed ??= new Map();
           ctx.boundPlayed.set(action.bindResultAs, new Set(playedPermanentIds));
@@ -398,7 +402,18 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
       // Counts cards matching filter.zone/controller across all applicable seats, then computes:
       //   ceiling = base + Math.floor(totalCards / per) * raise
       // and overrides the target filter's playCostLte with the result. (CAP-E16, BT21-079)
-      const playCostAdjustedTarget = applyPlayCostCeiling(ctx, action, scaledCostAdjustedTarget);
+      const adjustedTarget = applyPlayCostCeiling(ctx, action, scaledCostAdjustedTarget);
+      const playCostAdjustedTarget =
+        action.ignorePlayCostLimit === true
+          ? {
+              ...adjustedTarget,
+              filter: {
+                ...adjustedTarget.filter,
+                playCostLte: undefined,
+                playCostLteScaling: undefined,
+              },
+            }
+          : adjustedTarget;
       const zones = action.from && action.from.length > 0 ? action.from : DEFAULT_PLAY_ZONES;
       let candidates = playableCandidates(
         ctx,
@@ -670,6 +685,9 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
                 effectSourceCardId: ctx.source.cardId,
                 ...(action.playedByDecode === true ? { playedByDecode: true } : {}),
                 ...(costReduction !== undefined ? { costDelta: costReduction } : {}),
+                ...((action as typeof action & { costOverride?: number }).costOverride !== undefined
+                  ? { costOverride: (action as typeof action & { costOverride?: number }).costOverride }
+                  : {}),
                 ...(digiXrosMaterialInstanceIds.length > 0 ? { digiXrosMaterialInstanceIds } : {}),
                 ...(action.suppressOnPlayEffects === true ? { suppressOnPlayEffects: true } : {}),
                 hostPermanentIds,
@@ -758,11 +776,14 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
             // hand-play path filters each candidate before prompting; cards assembled from
             // another loose zone need the same guard or an auto-selection can consume invalid
             // cards and silently fall back to a non-DigiXros play.
+            const materialDefinition = (candidate: (typeof allMaterialCandidates)[number]) => {
+              const definition = ctx.game.definitionOf({ cardId: candidate.cardId } as never);
+              return candidate.instanceId === ctx.source.instanceId && action.digiXrosSourceMaterialName !== undefined
+                ? { ...definition, nameEn: action.digiXrosSourceMaterialName }
+                : definition;
+            };
             const materialCandidates = allMaterialCandidates.filter((candidate) =>
-              materialsSatisfyRecipe(
-                [ctx.game.definitionOf({ cardId: candidate.cardId } as never)],
-                requirement.materials,
-              ),
+              materialsSatisfyRecipe([materialDefinition(candidate)], requirement.materials),
             );
             const materialCap =
               requirement.maxMaterials ??
@@ -772,12 +793,9 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
               min: 0,
               max: materialCap,
             });
-            const selectedDefinitions = selected.map((id) => {
-              const definition = ctx.game.definitionOf(materialCandidates.find((card) => card.instanceId === id)!);
-              return id === ctx.source.instanceId && action.digiXrosSourceMaterialName !== undefined
-                ? { ...definition, nameEn: action.digiXrosSourceMaterialName }
-                : definition;
-            });
+            const selectedDefinitions = selected.map((id) =>
+              materialDefinition(materialCandidates.find((card) => card.instanceId === id)!),
+            );
             if (materialsSatisfyRecipe(selectedDefinitions, requirement.materials))
               digiXrosMaterialInstanceIds = selected;
           }

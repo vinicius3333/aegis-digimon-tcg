@@ -7,6 +7,8 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./LM-026.js";
 // BT17-010 supplies the numeric DP-based deletion this inherited modifier raises.
 import "../BT17/BT17-010.js";
+// AD1-002 supplies the DP-relative deletion Q4032 says this modifier must not raise.
+import "../AD1/AD1-002.js";
 
 describe("LM-026 Megidramon", () => {
   it("registers complete leave replacement, rule name, and inherited deletion ceiling IR", () => {
@@ -120,6 +122,26 @@ describe("LM-026 Megidramon", () => {
     await advance(withoutMegidramon.engine).fire(EffectTiming.WhenDigivolving, withoutMegidramon.perm("host"));
     await settle(() => withoutMegidramon.state.pendingDecision === null);
     expect(withoutMegidramon.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  it("Q4032: does not raise a deletion limit relative to the host's own DP", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "AD1-002", as: "host", under: ["LM-026"] }] },
+        1: { battleArea: [{ card: "BT1-081", as: "tooHigh", dp: 10000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    // Aldamon has 8000 DP. LM-026 adds only to printed numeric DP ceilings, not to
+    // "as much or less DP as this Digimon"; Q4032 therefore leaves the 10000-DP target in play.
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("host"));
+    await settle(() => s.state.pendingDecision === null);
+
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("tooHigh").permanentId),
+    ).toBe(true);
   });
 
   it("matches committed metadata and publishes fully covered compiled IR", () => {

@@ -77,7 +77,7 @@ describe("BT14-066", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT14-066", as: "source" }],
+          battleArea: [{ card: "BT14-066", as: "source", suspended: true }],
           hand: [{ card: "BT14-058", as: "numemon" }],
         },
         1: { battleArea: [{ card: "BT14-042", as: "attacker", dp: 12000 }] },

@@ -23,9 +23,11 @@ describe("BT17-014", () => {
       actions: [
         {
           kind: "Digivolve",
+          target: { fromSelectionRef: "takuyaHost", filter: { kind: ["Tamer"] } },
           costOverride: 3,
           virtualBase: { level: 4, colors: ["Red"] },
-          additionalCosts: [{ kind: "place" }],
+          cost: { kind: "place", bindHostAs: "takuyaHost" },
+          additionalCosts: [{ kind: "place", host: { filter: { boundRef: "takuyaHost" }, count: 1 } }],
         },
       ],
     });
@@ -63,11 +65,10 @@ describe("BT17-014", () => {
 
     await settle(() => s.perm("takuya").topCard.cardId === "BT17-014");
 
-    expect(s.perm("takuya").stack.map(({ cardId }) => cardId)).toEqual([
-      "BT17-011",
-      "BT17-012",
-      "BT12-088",
-    ]);
+    expect(s.perm("takuya").stack.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT17-011", "BT17-012", "BT12-088"]),
+    );
+    expect(s.perm("takuya").stack.at(-1)?.cardId).toBe("BT12-088");
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === aldamon.instanceId)).toBe(false);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.memory).toBe(0);

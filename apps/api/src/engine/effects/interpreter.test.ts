@@ -273,11 +273,64 @@ describe("new typed RAW-elimination conditions", () => {
       definitionOf: (id) => makeFakeDefinition({ cardId: id, kinds: [CardKind.Digimon], types: ["D-Reaper"] }),
     });
     ctx.lastResolvedPermanentIds = ["TARGET"];
+    const { ctx: emptyLegacyContext } = conditionContext({ ownBattleArea: [] });
+    expect(evaluateCondition(emptyLegacyContext, { kind: "allYoursMatchFilter" })).toBe(true);
     expect(evaluateCondition(ctx, { kind: "allYoursMatchFilter", filter: { kind: ["Digimon"] } })).toBe(true);
     expect(evaluateCondition(ctx, { kind: "digivolutionCountCompare", op: "lte" })).toBe(true);
     expect(evaluateCondition(ctx, { kind: "triggerPlayCostAtMostStackCount" })).toBe(false);
     ctx.trigger.playedPlayCost = 1;
     expect(evaluateCondition(ctx, { kind: "triggerPlayCostAtMostStackCount" })).toBe(true);
+  });
+
+  it("uses a totalDigimonGte count threshold when value is omitted", () => {
+    const first = makeFakePermanent({
+      permanentId: "TOTAL-1",
+      controllerSeat: 0 as Seat,
+      topCard: { instanceId: "TOTAL-1-CARD", cardId: "TOTAL-1", ownerSeat: 0, faceUp: true } as never,
+    });
+    const second = makeFakePermanent({
+      permanentId: "TOTAL-2",
+      controllerSeat: 1 as Seat,
+      topCard: { instanceId: "TOTAL-2-CARD", cardId: "TOTAL-2", ownerSeat: 1, faceUp: true } as never,
+    });
+    const { ctx } = conditionContext({
+      ownBattleArea: [first],
+      opponentBattleArea: [second],
+      definitionOf: (cardId) => makeFakeDefinition({ cardId, kinds: [CardKind.Digimon] }),
+    });
+
+    expect(evaluateCondition(ctx, { kind: "totalDigimonGte", count: 2 })).toBe(true);
+    ctx.game.player(1).battleArea.splice(0, 1);
+    expect(evaluateCondition(ctx, { kind: "totalDigimonGte", count: 2 })).toBe(false);
+  });
+
+  it("scopes anyHas across both players while honoring an explicit controller", () => {
+    const own = makeFakePermanent({
+      permanentId: "ANY-OWN",
+      controllerSeat: 0 as Seat,
+      currentDP: 9000,
+      topCard: { instanceId: "ANY-OWN-CARD", cardId: "ANY-OWN", ownerSeat: 0, faceUp: true } as never,
+    });
+    const opponent = makeFakePermanent({
+      permanentId: "ANY-OPPONENT",
+      controllerSeat: 1 as Seat,
+      currentDP: 13000,
+      topCard: { instanceId: "ANY-OPPONENT-CARD", cardId: "ANY-OPPONENT", ownerSeat: 1, faceUp: true } as never,
+    });
+    const { ctx } = conditionContext({
+      ownBattleArea: [own],
+      opponentBattleArea: [opponent],
+      definitionOf: (cardId) => makeFakeDefinition({ cardId, kinds: [CardKind.Digimon] }),
+    });
+    const threshold = {
+      kind: "anyHas" as const,
+      filter: { kind: ["Digimon"] as ["Digimon"], dp: { op: "gte" as const, value: 13000 } },
+    };
+    expect(evaluateCondition(ctx, threshold)).toBe(true);
+    expect(evaluateCondition(ctx, { ...threshold, filter: { ...threshold.filter, controller: "mine" } })).toBe(false);
+    expect(evaluateCondition(ctx, { ...threshold, filter: { ...threshold.filter, controller: "opponent" } })).toBe(
+      true,
+    );
   });
 
   it("keeps the new predicates conservative at their boundaries", () => {
@@ -2294,6 +2347,60 @@ describe("v2 IR actions dispatch to real primitives", () => {
     expect(rec.calls.filter((c) => c.verb === "subscribeSubTrigger")).toHaveLength(1);
   });
 
+  it("gates an inherited discarded-source watcher by exact instance and effect provenance", async () => {
+    const host = makeFakePermanent({
+      permanentId: "HOST#P167",
+      controllerSeat: 0 as Seat,
+      topCard: { instanceId: "HOST#TOP", cardId: "HOST", ownerSeat: 0, faceUp: true } as never,
+      stack: [{ instanceId: "SOURCE#P167", cardId: "P-167", ownerSeat: 0, faceUp: false }] as never,
+    });
+    const source = makeSource({
+      cardId: "P-167",
+      instanceId: "SOURCE#P167",
+      permanent: () => host,
+    });
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({ source, recorder, ownBattleArea: [host] });
+    const module = irCardModule("P-167-mechanism", {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "Static",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "onDigivolutionCardDiscarded",
+              sourceFilter: { matchTrashedSource: true },
+              requireByEffect: true,
+              actions: [{ kind: "GainMemory", amount: 1 }],
+            },
+          ],
+          isInherited: true,
+        },
+      ],
+    });
+    await module.effectsForTiming(EffectTiming.None, source)[0]!.resolve(ctx);
+    const installed = recorder.calls.find((call) => call.verb === "subscribeSubTrigger")?.args[0] as {
+      matches?: (eventCtx: EffectContext) => boolean;
+    };
+    expect(installed.matches).toBeTypeOf("function");
+    const eventContext = (instanceId: string, byEffect: boolean): EffectContext =>
+      makeContext({
+        source,
+        recorder,
+        ownBattleArea: [host],
+        trigger: {
+          subjectPermanentId: host.permanentId,
+          trashedDigivolutionInstanceId: instanceId,
+          ...(byEffect ? { byEffectSeat: 0 as Seat } : {}),
+        },
+      });
+    expect(installed.matches!(eventContext("SOURCE#P167", true))).toBe(true);
+    expect(installed.matches!(eventContext("OTHER#CARD", true))).toBe(false);
+    expect(installed.matches!(eventContext("SOURCE#P167", false))).toBe(false);
+  });
+
   it("CostModifier onConsume installs end-of-turn actions bound to the consumed digivolve target", async () => {
     const target = makeFakePermanent({
       permanentId: "TARGET",
@@ -2390,10 +2497,15 @@ describe("v2 IR actions dispatch to real primitives", () => {
     expect(subs).toHaveLength(1);
     expect(subs[0]!.args[0]).toMatchObject({
       event: "endOfTurn",
-      sourcePermanentId: "SELF",
       once: true,
       expiresOnTurnEndOf: 1,
     });
+    const subscription = subs[0]!.args[0] as {
+      sourcePermanentId?: string;
+      activationContext?: EffectContext;
+    };
+    expect(subscription.sourcePermanentId).toBeUndefined();
+    expect(subscription.activationContext).toBeDefined();
   });
 
   it("grants a continuous keyword (non-Piercing) via fx.grantKeyword", async () => {
@@ -5369,6 +5481,102 @@ describe("candidateLooseInstances — hostFilter gating", () => {
     expect(result).toHaveLength(2);
   });
 
+  it("applies a common hostFilter only to hosted cards in a mixed loose/stack pool", () => {
+    const source = makeSource();
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({
+      source,
+      recorder,
+      definitionOf: (cardId) => makeFakeDefinition({ cardId, kinds: [CardKind.Digimon] }),
+    });
+    ctx.game.player(0).trash.push({
+      instanceId: "loose-trash",
+      cardId: "LOOSE",
+      ownerSeat: 0 as Seat,
+      faceUp: true,
+    } as never);
+
+    expect(
+      candidateLooseInstances(
+        ctx,
+        {
+          filter: { controller: "mine", kind: ["Digimon"], hostFilter: { isSelfRef: true } },
+          count: 1,
+        } as never,
+        ["trash", "digivolutionCards"],
+      ).map(({ instanceId }) => instanceId),
+    ).toEqual(["loose-trash"]);
+  });
+
+  it("does not let a loose card satisfy an OR branch qualified by a hostFilter", () => {
+    const source = makeSource();
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({
+      source,
+      recorder,
+      definitionOf: (cardId) =>
+        makeFakeDefinition({ cardId, kinds: [CardKind.Digimon], nameEn: "Royal", types: ["Royal Knight"] }),
+    });
+    ctx.game.player(0).trash.push({
+      instanceId: "loose-royal",
+      cardId: "ROYAL",
+      ownerSeat: 0 as Seat,
+      faceUp: true,
+    } as never);
+
+    expect(
+      candidateLooseInstances(
+        ctx,
+        {
+          filter: {
+            controller: "mine",
+            or: [
+              { nameOrTrait: [{ tokens: ["Sistermon"], match: "name" }] },
+              { trait: "Royal Knight", hostFilter: { zone: "breeding" } },
+            ],
+          },
+          count: 1,
+        } as never,
+        ["trash", "digivolutionCards"],
+      ),
+    ).toEqual([]);
+  });
+
+  it("falls through an invalid hosted OR branch to a later branch that does not require that host", () => {
+    const source = makeSource();
+    const recorder: Recorder = { calls: [] };
+    const digi = makePermWithStack(
+      "digi1",
+      "DIGIMON",
+      ["Digimon"],
+      [{ instanceId: "fallback-stack", cardId: "FALLBACK" }],
+    );
+    const ctx = makeContext({
+      source,
+      recorder,
+      ownBattleArea: [digi],
+      definitionOf: (cardId) =>
+        makeFakeDefinition({ cardId, nameEn: cardId === "FALLBACK" ? "Fallback" : cardId, kinds: [CardKind.Digimon] }),
+    });
+
+    expect(
+      candidateLooseInstances(
+        ctx,
+        {
+          filter: {
+            controller: "mine",
+            or: [
+              { kind: ["Digimon"], hostFilter: { kind: ["Tamer"] } },
+              { nameOrTrait: [{ tokens: ["Fallback"], match: "nameExact" }] },
+            ],
+          },
+          count: 1,
+        } as never,
+        ["digivolutionCards"],
+      ).map(({ instanceId }) => instanceId),
+    ).toEqual(["fallback-stack"]);
+  });
+
   it("FAILS-WHEN-REVERTED: removing hostFilter check returns both cards", () => {
     const source = makeSource();
     const recorder: Recorder = { calls: [] };
@@ -6117,7 +6325,7 @@ describe("cards that delete the Digimon this effect played", () => {
     await delayEffect.resolve(ctx);
 
     expect(recorder.calls.filter((c) => c.verb === "delayedDeletePlayed")).toEqual([
-      { verb: "delayedDeletePlayed", args: [PLAYED] },
+      { verb: "delayedDeletePlayed", args: [PLAYED, "endOfOwnerTurn"] },
     ]);
     // The played Digimon is NOT deleted on the spot (only the ＜Delay＞ cost's own trash runs).
     expect(

@@ -59,9 +59,9 @@ export const compiled: CompiledCard = {
               into: {
                 controllerDefault: "mine",
                 kind: ["Digimon"],
-                allNameOrTraits: [
-                  { tokens: ["Ghost"], match: "trait" },
-                  { tokens: ["LIBERATOR"], match: "trait" },
+                and: [
+                  { nameOrTrait: [{ tokens: ["Ghost"], match: "trait" }] },
+                  { nameOrTrait: [{ tokens: ["LIBERATOR"], match: "trait" }] },
                 ],
               },
               from: ["hand"],

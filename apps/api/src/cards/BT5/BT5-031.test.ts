@@ -39,7 +39,10 @@ describe("BT5-031 MetalGarurumon", () => {
             { card: "BT1-040", as: "base" },
             { card: "BT5-020", as: "watcher", under: ["BT6-002"] },
           ],
-          deck: [{ card: "BT1-010", as: "notDrawn" }],
+          deck: [
+            { card: "BT1-012", as: "evolutionDraw" },
+            { card: "BT1-010", as: "notDrawn" },
+          ],
           hand: [{ card: "BT5-031", as: "evolving" }],
         },
         1: {
@@ -61,6 +64,7 @@ describe("BT5-031 MetalGarurumon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("evolutionDraw").instanceId)).toBe(true);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("source").instanceId)).toBe(true);
     expect(s.state.players[1]!.deck.some((card) => card.instanceId === s.inst("target").instanceId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("notDrawn").instanceId)).toBe(false);

@@ -24,7 +24,10 @@ const compiled: CompiledCard = {
           event: "whenOpponentAttacks",
           fireCondition: {
             kind: "allYoursMatchFilter",
-            filter: { nameOrTrait: [{ tokens: ["D-Reaper"], match: "trait" }] },
+            filter: {
+              kind: ["Digimon", "Tamer"],
+              nameOrTrait: [{ tokens: ["D-Reaper"], match: "trait" }],
+            },
             raw: "all of your Digimon and Tamers in the battle area have the [D-Reaper] trait",
           },
           actions: [
@@ -44,12 +47,7 @@ const compiled: CompiledCard = {
                 per: 1,
                 filter: {
                   controller: "mine",
-                  nameOrTrait: [
-                    {
-                      tokens: ["Mother D-Reaper"],
-                      match: "name",
-                    },
-                  ],
+                  nameOrTrait: [{ tokens: ["Mother D-Reaper"], match: "nameExact" }],
                 },
                 unit: "digivolutionCardsOfFiltered",
               },
@@ -102,6 +100,15 @@ const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
+              playCostLte: 0,
+              playCostLteScaling: {
+                per: 1,
+                filter: {
+                  controller: "mine",
+                  nameOrTrait: [{ tokens: ["Mother D-Reaper"], match: "nameExact" }],
+                },
+                unit: "digivolutionCardsOfFiltered",
+              },
               nameOrTrait: [
                 {
                   tokens: ["D-Reaper"],
@@ -113,23 +120,6 @@ const compiled: CompiledCard = {
           },
           from: ["hand"],
           payCost: false,
-          condition: {
-            kind: "triggerPlayCostAtMostStackCount",
-            raw: "play cost is equal to or lower than the number of digivolution cards of 1 of your [Mother D-Reaper]'s",
-          },
-          scaling: {
-            per: 1,
-            filter: {
-              controller: "mine",
-              nameOrTrait: [
-                {
-                  tokens: ["Mother D-Reaper"],
-                  match: "name",
-                },
-              ],
-            },
-            unit: "digivolutionCardsOfFiltered",
-          },
         },
       ],
       isSecurity: true,

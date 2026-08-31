@@ -17,7 +17,7 @@ describe("BT21-006 Tsumemon", () => {
             condition: {
               kind: "selfDigivolutionStackCountAtLeast",
               count: 4,
-              filter: { nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }] },
+              filter: { nameOrTrait: [{ tokens: ["Vemmon"], match: "nameExact" }] },
             },
           }),
         ],

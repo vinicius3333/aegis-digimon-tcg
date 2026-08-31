@@ -20,6 +20,7 @@ export const compiled: CompiledCard = {
                   {
                     kind: "PlayWithoutCost",
                     target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                    from: ["trash"],
                     payCost: false,
                     optional: true,
                   },
@@ -42,6 +43,7 @@ export const compiled: CompiledCard = {
                   {
                     kind: "PlayWithoutCost",
                     target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                    from: ["trash"],
                     payCost: false,
                     optional: true,
                   },

@@ -27,6 +27,7 @@ describe("BT22-075 Fakemon", () => {
             hasLinkRequirement: true,
           },
           count: 1,
+          source: "thisDigimon",
         },
       });
     }

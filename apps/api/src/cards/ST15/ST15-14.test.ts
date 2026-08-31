@@ -1,20 +1,28 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("ST15-14 Tai Kamiya", () => {
   it("sets memory to 3 only when the player has 2 or less", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "ST15-14", as: "tai" }] } });
+    const positive = setupEngine({ 0: { battleArea: [{ card: "ST15-14", as: "tai" }] } });
+    positive.state.memory = 2;
+    const positiveTurn = positive.engine.runOneTurn();
+    await settle(() =>
+      positive.events.some((event) => event.kind === "memoryChanged" && event.from === 2 && event.to === 3),
+    );
+    expect(positive.events).toContainEqual(
+      expect.objectContaining({ kind: "memoryChanged", from: 2, to: 3, reason: "setMemory" }),
+    );
+    advance(positive.engine).endMainPhaseIfOpen(0);
+    await positiveTurn;
 
-    s.state.memory = 2;
-    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("tai"));
-    expect(s.state.memory).toBe(3);
-
-    s.state.memory = 3;
-    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("tai"));
-    expect(s.state.memory).toBe(3);
+    const negative = setupEngine({ 0: { battleArea: [{ card: "ST15-14", as: "tai" }] } });
+    negative.state.memory = 3;
+    await negative.engine.runOneTurn();
+    expect(negative.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "ST15-14")).toBe(
+      false,
+    );
   });
 
   it("suspends itself, draws 1, and gives one Digimon +2000 DP when an attack target switches", async () => {
@@ -27,6 +35,7 @@ describe("ST15-14 Tai Kamiya", () => {
           ],
           deck: ["BT1-001", "BT1-001"],
         },
+        1: { battleArea: [{ card: "ST15-12", dp: 1000, as: "blocker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -34,7 +43,14 @@ describe("ST15-14 Tai Kamiya", () => {
     const digimon = s.perm("digimon");
     const handBefore = s.state.players[0]!.hand.length;
 
-    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", { attackerPermanentId: digimon.permanentId });
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: digimon.permanentId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
 
     expect(tai.isSuspended).toBe(true);
     expect(s.state.players[0]!.hand.length).toBe(handBefore + 1);
@@ -50,11 +66,19 @@ describe("ST15-14 Tai Kamiya", () => {
         ],
         deck: ["BT1-001"],
       },
+      1: { battleArea: [{ card: "ST15-12", dp: 1000, as: "blocker" }] },
     });
     const digimon = s.perm("digimon");
     const handBefore = s.state.players[0]!.hand.length;
 
-    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", { attackerPermanentId: digimon.permanentId });
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: digimon.permanentId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
 
     expect(s.state.players[0]!.hand.length).toBe(handBefore);
     expect(digimon.currentDP).toBe(3000);

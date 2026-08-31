@@ -36,7 +36,7 @@ describe("BT16-032", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await s.engine.recomputeContinuousEffects();
+    await s.ready();
 
     expect(
       s.engine.applyIntent(0, {
@@ -46,7 +46,9 @@ describe("BT16-032", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
-    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("attacker").permanentId })).toEqual({
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("attacker").permanentId }),
+    ).toEqual({
       ok: true,
     });
     await settle(() => !observe(s.engine).isAttacking());
@@ -65,7 +67,7 @@ describe("BT16-032", () => {
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    await s.engine.recomputeContinuousEffects();
+    await s.ready();
 
     expect(
       s.engine.applyIntent(0, {
@@ -75,7 +77,9 @@ describe("BT16-032", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
-    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("attacker").permanentId })).toEqual({
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("attacker").permanentId }),
+    ).toEqual({
       ok: true,
     });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
@@ -104,6 +108,7 @@ describe("BT16-032", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    await s.ready();
 
     expect(
       s.engine.applyIntent(0, {
@@ -113,7 +118,9 @@ describe("BT16-032", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
-    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blockerOne").permanentId })).toEqual({
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blockerOne").permanentId }),
+    ).toEqual({
       ok: true,
     });
     await settle(() => !observe(s.engine).isAttacking());
@@ -129,7 +136,9 @@ describe("BT16-032", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.events.filter((event) => event.kind === "blockWindowOpened").length === 2);
-    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blockerTwo").permanentId })).toEqual({
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blockerTwo").permanentId }),
+    ).toEqual({
       ok: true,
     });
     await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-009"));
@@ -139,12 +148,15 @@ describe("BT16-032", () => {
   });
 
   it("uses Armor Purge to preserve its underlying stack after losing a battle", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT16-032", as: "sheepmon", under: ["BT1-009"] }] },
-      1: { battleArea: [{ card: "BT1-020", as: "attacker" }] },
-    });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT16-032", as: "sheepmon", under: ["BT1-009"], suspended: true }] },
+        1: { battleArea: [{ card: "BT1-020", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.turnSeat = 1;
-    await s.engine.recomputeContinuousEffects();
+    await s.ready();
 
     expect(
       s.engine.applyIntent(1, {
@@ -173,18 +185,17 @@ describe("BT16-032", () => {
         type: "digivolve",
         permanentId: s.perm("armadillomon").permanentId,
         instanceId: s.inst("sheepmon").instanceId,
+        alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("armadillomon").topCard?.cardId === "BT16-032");
 
-    expect(s.perm("armadillomon").stack.map((card) => card.cardId)).toEqual(["BT16-049", "BT16-032"]);
+    expect(s.perm("armadillomon").stack.map((card) => card.cardId)).toEqual(["BT16-049"]);
     expect(s.state.memory).toBe(0);
   });
 
   it("encodes the Armadillomon alternate evolution requirement", () => {
-    expect(digivolutionRequirementsFor("BT16-032")).toEqual([
-      { names: ["Armadillomon"], cost: 2, isAlternate: true },
-    ]);
+    expect(digivolutionRequirementsFor("BT16-032")).toEqual([{ names: ["Armadillomon"], cost: 2, isAlternate: true }]);
   });
 
   it("keeps Armor Purge and Collision active on a live permanent", async () => {

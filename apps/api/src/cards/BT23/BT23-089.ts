@@ -33,6 +33,7 @@ export const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldLeavePlay",
+          mode: "prevent",
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],

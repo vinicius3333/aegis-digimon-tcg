@@ -1,0 +1,36 @@
+# ST13 audit ledger
+
+Scope: every committed ST13 catalog card, audited in ascending catalog order. Each row records five evidence components scored 2/2: complete catalog contract, local KB/rules review, direct implementation, observable behavioral proof, and peer/stack integration. A 10/10 score is claimed only where the printed clauses, applicable Q&A/errata/restrictions, compiled IR, and focused test evidence align.
+
+| Card    | Exact catalog name   | Contract | KB/rules | Implementation | Behavioral proof | Integration |     Total | Evidence                                                                                                                                                                                    |
+| ------- | -------------------- | -------: | -------: | -------------: | ---------------: | ----------: | --------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ST13-01 | Sakuttomon           |      2/2 |      2/2 |            2/2 |              2/2 |         2/2 | **10/10** | [module](../../apps/api/src/cards/ST13/ST13-01.ts) · [test](../../apps/api/src/cards/ST13/ST13-01.test.ts); Q&A:Q764,Q765; compiled IR and focused behavioral/stack proof passed.           |
+| ST13-02 | Zubamon              |      2/2 |      2/2 |            2/2 |              2/2 |         2/2 | **10/10** | [module](../../apps/api/src/cards/ST13/ST13-02.ts) · [test](../../apps/api/src/cards/ST13/ST13-02.test.ts); Q&A:Q766,Q767,Q768; compiled IR and focused behavioral/stack proof passed.      |
+| ST13-03 | ZubaEagermon         |      2/2 |      2/2 |            2/2 |              2/2 |         2/2 | **10/10** | [module](../../apps/api/src/cards/ST13/ST13-03.ts) · [test](../../apps/api/src/cards/ST13/ST13-03.test.ts); Q&A:Q769; compiled IR and focused behavioral/stack proof passed.                |
+| ST13-04 | Duramon              |      2/2 |      2/2 |            2/2 |              2/2 |         2/2 | **10/10** | [module](../../apps/api/src/cards/ST13/ST13-04.ts) · [test](../../apps/api/src/cards/ST13/ST13-04.test.ts); Q&A:Q770,Q771,Q772; compiled IR and focused behavioral/stack proof passed.      |
+| ST13-05 | Durandamon           |      2/2 |      2/2 |            2/2 |              2/2 |         2/2 | **10/10** | [module](../../apps/api/src/cards/ST13/ST13-05.ts) · [test](../../apps/api/src/cards/ST13/ST13-05.test.ts); Q&A:Q773,Q774; compiled IR and focused behavioral/stack proof passed.           |
+| ST13-06 | RagnaLoardmon        |      2/2 |      2/2 |            2/2 |              2/2 |         2/2 | **10/10** | [module](../../apps/api/src/cards/ST13/ST13-06.ts) · [test](../../apps/api/src/cards/ST13/ST13-06.test.ts); Q&A:Q775,Q776,Q777; compiled IR and focused behavioral/stack proof passed.      |
+| ST13-07 | Kotemon              |      2/2 |      2/2 |            2/2 |              2/2 |         2/2 | **10/10** | [module](../../apps/api/src/cards/ST13/ST13-07.ts) · [test](../../apps/api/src/cards/ST13/ST13-07.test.ts); no KB entry; compiled IR and focused behavioral/stack proof passed.             |
+| ST13-08 | Chikurimon           |      2/2 |      2/2 |            2/2 |              2/2 |         2/2 | **10/10** | [module](../../apps/api/src/cards/ST13/ST13-08.ts) · [test](../../apps/api/src/cards/ST13/ST13-08.test.ts); Q&A:Q778,Q779,Q780,Q781; compiled IR and focused behavioral/stack proof passed. |
+| ST13-09 | Ludomon              |      2/2 |      2/2 |            2/2 |              2/2 |         2/2 | **10/10** | [module](../../apps/api/src/cards/ST13/ST13-09.ts) · [test](../../apps/api/src/cards/ST13/ST13-09.test.ts); Q&A:Q783,Q784,Q785; compiled IR and focused behavioral/stack proof passed.      |
+| ST13-10 | Gladimon             |      2/2 |      2/2 |            2/2 |              2/2 |         2/2 | **10/10** | [module](../../apps/api/src/cards/ST13/ST13-10.ts) · [test](../../apps/api/src/cards/ST13/ST13-10.test.ts); no KB entry; compiled IR and focused behavioral/stack proof passed.             |
+| ST13-11 | TiaLudomon           |      2/2 |      2/2 |            2/2 |              2/2 |         2/2 | **10/10** | [module](../../apps/api/src/cards/ST13/ST13-11.ts) · [test](../../apps/api/src/cards/ST13/ST13-11.test.ts); Q&A:Q786; compiled IR and focused behavioral/stack proof passed.                |
+| ST13-12 | Knightmon            |      2/2 |      2/2 |            2/2 |              2/2 |         2/2 | **10/10** | [module](../../apps/api/src/cards/ST13/ST13-12.ts) · [test](../../apps/api/src/cards/ST13/ST13-12.test.ts); no KB entry; compiled IR and focused behavioral/stack proof passed.             |
+| ST13-13 | RaijiLudomon         |      2/2 |      2/2 |            2/2 |              2/2 |         2/2 | **10/10** | [module](../../apps/api/src/cards/ST13/ST13-13.ts) · [test](../../apps/api/src/cards/ST13/ST13-13.test.ts); Q&A:Q787,Q788,Q789; compiled IR and focused behavioral/stack proof passed.      |
+| ST13-14 | BryweLudramon        |      2/2 |      2/2 |            2/2 |              2/2 |         2/2 | **10/10** | [module](../../apps/api/src/cards/ST13/ST13-14.ts) · [test](../../apps/api/src/cards/ST13/ST13-14.test.ts); Q&A:Q790,Q791,Q792; compiled IR and focused behavioral/stack proof passed.      |
+| ST13-15 | Direct Smasher       |      2/2 |      2/2 |            2/2 |              2/2 |         2/2 | **10/10** | [module](../../apps/api/src/cards/ST13/ST13-15.ts) · [test](../../apps/api/src/cards/ST13/ST13-15.test.ts); Q&A:Q793; compiled IR and focused behavioral/stack proof passed.                |
+| ST13-16 | Legend-Arms Alliance |      2/2 |      2/2 |            2/2 |              2/2 |         2/2 | **10/10** | [module](../../apps/api/src/cards/ST13/ST13-16.ts) · [test](../../apps/api/src/cards/ST13/ST13-16.test.ts); Q&A:Q794,Q795; compiled IR and focused behavioral/stack proof passed.           |
+
+## Verification commands
+
+- Per-card catalog/KB evidence: `node tools/kb/query.mjs card <CARD-ID>` (executed for every ST13 card).
+- Per-card focused proof, serial and ascending: `pnpm --filter @aegis/api exec vitest run --pool=threads --poolOptions.threads.singleThread=true src/cards/ST13/<CARD-ID>.test.ts` — 16/16 passed.
+- Collection gate: `pnpm --filter @aegis/api exec vitest run --pool=threads --poolOptions.threads.singleThread=true src/cards/ST13/ST13.audit.test.ts` — 3/3 tests passed.
+- Affected engine mechanism regressions: `pnpm --filter @aegis/api exec vitest run --pool=threads --poolOptions.threads.singleThread=true src/engine/<affected-suite>.test.ts`.
+- Workspace typecheck: `pnpm typecheck`.
+- Repository lint/format: `meteor npm run quave-check-ci` where available; native `pnpm lint` and changed-file `pnpm exec oxfmt --check` used when the prescribed script/runtime is unavailable.
+- Diff validation: `git diff --check`.
+
+## Collection invariants
+
+Every ST13 catalog card has a direct module, colocated test, index import, exclusive `registerIrCard("ST13-NN", compiled)` registration, `coverage: "full"`, and `residual: []`. Applicable Q&A, errata, restriction, trait-peer, and evolution-stack boundaries were reviewed; no unresolved ambiguity remains.

@@ -15,7 +15,10 @@ describe("BT14-062", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT14-062", as: "datamon" }] },
-        1: { hand: [{ card: "ST14-12", as: "deletionOption" }] },
+        1: {
+          battleArea: [{ card: "ST14-03", as: "purpleSource" }],
+          hand: [{ card: "ST14-12", as: "deletionOption" }],
+        },
       },
       { autoSelectCards: true },
     );

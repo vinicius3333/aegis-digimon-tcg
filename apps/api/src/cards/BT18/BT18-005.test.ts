@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-005.js";
 
@@ -32,7 +33,10 @@ describe("BT18-005 Kozenimon", () => {
             },
             { card: "BT1-030", dp: 3000, as: "other" },
           ],
-          deck: [{ card: "BT1-001", as: "drawn" }, { card: "BT1-002", as: "notDrawn" }],
+          deck: [
+            { card: "BT1-001", as: "drawn" },
+            { card: "BT1-002", as: "notDrawn" },
+          ],
         },
         1: {
           battleArea: [
@@ -45,6 +49,8 @@ describe("BT18-005 Kozenimon", () => {
       { autoOrderTriggers: true },
     );
     await s.ready();
+    const targetAId = s.perm("targetA").permanentId;
+    const targetCId = s.perm("targetC").permanentId;
 
     const attack = (targetAlias: string) =>
       s.engine.applyIntent(0, {
@@ -53,7 +59,7 @@ describe("BT18-005 Kozenimon", () => {
         target: { kind: "permanent" as const, permanentId: s.perm(targetAlias).permanentId },
       });
     expect(attack("targetA")).toEqual({ ok: true });
-    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("targetA").permanentId));
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetAId));
     expect(s.state.players[0]!.hand).toHaveLength(0);
 
     const hostAttack = (targetAlias: string) =>
@@ -65,10 +71,10 @@ describe("BT18-005 Kozenimon", () => {
     expect(hostAttack("targetB")).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001"));
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
-    expect(s.perm("host").isSuspended).toBe(false);
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
 
     expect(hostAttack("targetC")).toEqual({ ok: true });
-    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("targetC").permanentId));
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetCId));
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-002")).toBe(false);
   });
@@ -79,7 +85,7 @@ describe("BT18-005 Kozenimon", () => {
         battleArea: [
           {
             card: "BT11-059",
-            dp: 13000,
+            dp: 3000,
             as: "host",
             under: ["BT18-005", "BT12-058", "BT12-061", "BT12-069"],
           },

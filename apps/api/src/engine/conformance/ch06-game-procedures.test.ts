@@ -4,7 +4,6 @@ import { cite } from "./_kb.js";
 import "./not-testable.js";
 import { TurnStateMachine, type TurnFlowHooks, type MainPhaseEnd } from "../TurnStateMachine.js";
 import { MemoryGauge, PASS_TURN_MEMORY, DEFAULT_TURN_END_MIN_MEMORY } from "../MemoryGauge.js";
-import { MainPhaseController } from "../MainPhaseController.js";
 import { BreedingPhaseController } from "../BreedingPhaseController.js";
 import {
   setupEngine as setup,
@@ -286,7 +285,7 @@ describe("§6-5-1-2-3.. Main Phase, cont'd (comprehensive-0109)", () => {
     expect(state.memory).toBe(-PASS_TURN_MEMORY);
   });
 
-  it("6-5-1-4: a Main-phase 'link a card from hand' verb exists as a player-facing intent", () => {
+  it("6-5-1-4: a Main-phase 'link a card from hand' verb exists as a player-facing intent", async () => {
     cite(
       "comprehensive-0109",
       "6-5-1-4 'Linking a Card in the Hand or Battle Area' lists linking as one of the Main " +
@@ -307,6 +306,7 @@ describe("§6-5-1-2-3.. Main Phase, cont'd (comprehensive-0109)", () => {
     p0.battleArea.push(target);
     const loose = instance("BT21-009", 0, false);
     p0.hand.push(loose);
+    s.state.memory = 1;
 
     const result = s.engine.applyIntent(0, {
       type: "linkCard",
@@ -314,6 +314,7 @@ describe("§6-5-1-2-3.. Main Phase, cont'd (comprehensive-0109)", () => {
       targetPermanentId: target.permanentId,
     });
     expect(result).toEqual({ ok: true });
+    await settle(() => target.linked.some((c) => c.instanceId === loose.instanceId));
     expect(target.linked.some((c) => c.instanceId === loose.instanceId)).toBe(true);
   });
 

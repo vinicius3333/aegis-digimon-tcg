@@ -1,3 +1,4 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -39,6 +40,7 @@ describe("BT21-023 Globemon", () => {
                   kind: ["Digimon"],
                   levelComparison: { op: "lte", value: 4 },
                   hasLinkRequirement: true,
+                  or: [{ zone: "hand" }, { zone: "digivolutionCards", hostFilter: { isSelfRef: true } }],
                 },
                 count: 1,
               },
@@ -163,5 +165,26 @@ describe("BT21-023 Globemon", () => {
     await advance(s.engine).fireSubTrigger("whenLinked", { subjectPermanentId: s.perm("globemon").permanentId });
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  it("links only this Globemon's qualifying stack card, not another Digimon's stack card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-023", as: "globemon", under: [{ card: "BT21-018", as: "ownLink" }] },
+            { card: "BT1-009", as: "otherHost", under: [{ card: "BT21-018", as: "otherLink" }] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("globemon"));
+    await settle(() => s.perm("globemon").linked.length === 1);
+
+    expect(s.perm("globemon").linked[0]?.instanceId).toBe(s.inst("ownLink").instanceId);
+    expect(s.perm("otherHost").stack.map((card) => card.instanceId)).toContain(s.inst("otherLink").instanceId);
   });
 });

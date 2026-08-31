@@ -10076,7 +10076,7 @@ describe("CAP-E14: Delay keyword on AllTurns applies the same trash-cost + turn-
     expect(declEffects).toHaveLength(0);
   });
 
-  it("the None-timing effect installs a subscribeReplacement (not an activated ability)", () => {
+  it("the None-timing effect installs a subscribeReplacement (not an activated ability)", async () => {
     const selfPerm = perm("SRC", 0 as Seat, "SRC");
     const src: CardSource = {
       instanceId: "SRC#i",
@@ -10103,6 +10103,7 @@ describe("CAP-E14: Delay keyword on AllTurns applies the same trash-cost + turn-
       definitionOf: (card: { cardId: string }) => def(card.cardId) as never,
     } as never;
     const fx = {
+      grantKeyword: () => undefined,
       subscribeReplacement: (sub: ReplacementInstall) => {
         captured.push(sub);
         return 0;
@@ -10118,7 +10119,7 @@ describe("CAP-E14: Delay keyword on AllTurns applies the same trash-cost + turn-
     const ctx: EffectContext = { source: src, trigger: {}, game, fx, ask, selections: new Map() } as never;
     const card = makeAllTurnsDelayCard();
     const effects = irCardModule("BT20-100-cap-e14b", card).effectsForTiming(EffectTiming.None, src);
-    void effects[0]!.resolve(ctx);
+    await effects[0]!.resolve(ctx);
     // The resolve body should install a Replacement subscription (mode:"prevent")
     expect(captured).toHaveLength(1);
     expect(captured[0]!.mode).toBe("prevent");
@@ -10129,14 +10130,14 @@ describe("CAP-E14: Delay keyword on AllTurns applies the same trash-cost + turn-
   // effect compiles to — Replacement (BT20-100) and SubTrigger (BT19-099/BT23-093) — so a
   // hand-port (apps/api/src/cards/BT26/BT26-099.ts) and a future IR-compiled AllTurns+Delay
   // card cannot silently drift back apart on which one pays Delay's cost.
-  function installedPreventCheck(
+  async function installedPreventCheck(
     turnCount: number,
     enterFieldTurnCount: number,
-  ): {
+  ): Promise<{
     ctx: EffectContext;
     preventCheck: (ctx: EffectContext, leavingId: string) => Promise<boolean>;
     deleteCalls: string[][];
-  } {
+  }> {
     const selfPerm = perm("SRC", 0 as Seat, "SRC");
     (selfPerm as unknown as { enterFieldTurnCount: number }).enterFieldTurnCount = enterFieldTurnCount;
     const src: CardSource = {
@@ -10164,6 +10165,7 @@ describe("CAP-E14: Delay keyword on AllTurns applies the same trash-cost + turn-
     let installed: ReplacementInstall | undefined;
     const deleteCalls: string[][] = [];
     const fx = {
+      grantKeyword: () => undefined,
       subscribeReplacement: (sub: ReplacementInstall) => {
         installed = sub;
         return 0;
@@ -10182,19 +10184,19 @@ describe("CAP-E14: Delay keyword on AllTurns applies the same trash-cost + turn-
     };
     const ctx: EffectContext = { source: src, trigger: {}, game, fx, ask, selections: new Map() } as never;
     const effects = irCardModule("BT20-100-cap-e14c", makeAllTurnsDelayCard()).effectsForTiming(EffectTiming.None, src);
-    void effects[0]!.resolve(ctx);
+    await effects[0]!.resolve(ctx);
     return { ctx, preventCheck: (installed as ReplacementInstallPrevent).preventCheck!, deleteCalls };
   }
 
   it("preventCheck trashes the source card as Delay's activation cost (§16-17-1)", async () => {
-    const { ctx, preventCheck, deleteCalls } = installedPreventCheck(2, 1);
+    const { ctx, preventCheck, deleteCalls } = await installedPreventCheck(2, 1);
     const prevented = await preventCheck(ctx, "SRC");
     expect(prevented).toBe(true);
     expect(deleteCalls).toEqual([["SRC"]]);
   });
 
   it("preventCheck refuses to activate the turn the card entered play (§16-17-3)", async () => {
-    const { ctx, preventCheck, deleteCalls } = installedPreventCheck(1, 1); // enterFieldTurnCount === turnCount
+    const { ctx, preventCheck, deleteCalls } = await installedPreventCheck(1, 1); // enterFieldTurnCount === turnCount
     const prevented = await preventCheck(ctx, "SRC");
     expect(prevented).toBe(false);
     expect(deleteCalls).toHaveLength(0);
@@ -10232,6 +10234,7 @@ describe("CAP-E14: Delay keyword on AllTurns applies the same trash-cost + turn-
       let installedRun: ((subCtx: EffectContext) => Promise<void>) | undefined;
       const deleteCalls: string[][] = [];
       const fx = {
+        grantKeyword: () => undefined,
         subscribeSubTrigger: (sub: { run: (subCtx: EffectContext) => Promise<void> }) => {
           installedRun = sub.run;
           return 0;
@@ -10268,7 +10271,7 @@ describe("CAP-E14: Delay keyword on AllTurns applies the same trash-cost + turn-
         ],
       } as unknown as CompiledCard;
       const effects = irCardModule("SUBTRIGGER-cap-e14", card).effectsForTiming(EffectTiming.None, src);
-      void effects[0]!.resolve(ctx);
+      await effects[0]!.resolve(ctx);
       expect(installedRun).toBeDefined();
       await installedRun!(ctx);
       // The SAME §16-17-1 trash cost fires for the SubTrigger IR shape as for Replacement.
@@ -12506,7 +12509,6 @@ describe("LANE-F-12: zone:'digivolutionCards' cost from any Digimon stack (BT21-
   it("trashes a matching card from a different Digimon's digivolution cards", async () => {
     const trashed: string[] = [];
     const srcPerm = perm("SDIG", 0 as Seat, "SRC"); // source Digimon with empty stack
-    const hostPerm = perm("HDIG", 0 as Seat, "RED", ["JUNK"]); // other Digimon with JUNK in stack
 
     // JUNK has kind:["Option"] so nameOrTrait match on "Appmon" trait won't match JUNK.
     // We need a card in the stack that matches [Appmon] trait. Use a synthetic def.
@@ -12523,9 +12525,10 @@ describe("LANE-F-12: zone:'digivolutionCards' cost from any Digimon stack (BT21-
       inBreeding: false,
     } as unknown as Permanent;
 
+    const opponentPerm = perm("ODIG", 1 as Seat, "RED", ["JUNK"]);
     const players = [
       { seat: 0, battleArea: [srcPerm, appmonPerm], security: [], hand: [], deck: [], trash: [] },
-      { seat: 1, battleArea: [], security: [], hand: [], deck: [], trash: [] },
+      { seat: 1, battleArea: [opponentPerm], security: [], hand: [], deck: [], trash: [] },
     ];
     const gameF12: GameAccess = {
       state: { memory: 0, players, turnSeat: 0 } as never,
@@ -12562,6 +12565,7 @@ describe("LANE-F-12: zone:'digivolutionCards' cost from any Digimon stack (BT21-
         trashed.push(...ids);
         return ids;
       },
+      deDigivolve: () => undefined,
     } as unknown as Primitives;
     const askF12: DecisionApi = {
       optional: async () => true,
@@ -12622,9 +12626,8 @@ describe("LANE-F-12: zone:'digivolutionCards' cost from any Digimon stack (BT21-
 
     const effects = irCardModule("F12-test", ir).effectsForTiming(EffectTiming.OnPlay, srcF12);
     expect(effects.length).toBeGreaterThan(0);
-    // Resolve — opponent has no Digimon so DeDigivolve finds no target. But the cost path
-    // (trash from digivolutionCards) must fire before failing the target. We track what the
-    // trash primitive received.
+    // Resolve against a legal opposing Digimon so the transactional preflight admits the
+    // activation; this case isolates where the digivolution-card cost may be sourced.
     await effects[0]!.resolve(ctxF12);
     // The [Appmon] card from the other Digimon's digivolution stack must have been trashed.
     expect(trashed).toContain("HDIG#s0");
@@ -13418,15 +13421,15 @@ describe("CAP-G3: Digivolve target.targetBreeding (BT20-018)", () => {
     raw: "1 of your Digimon in the breeding area may digivolve",
   };
 
-  it("moves the breeding permanent to battle area before digivolving", async () => {
+  it("keeps the breeding permanent in breeding while digivolving", async () => {
     // Hand contains a Digimon to digivolve into.
     DEFS["INTO_CARD"] = { kinds: ["Digimon"], level: 4 };
     const { ctx, src, moves } = makeG3Ctx({ hasBredPerm: true, handCardId: "INTO_CARD" });
     await runMain("BT20-018-G3a", [digivolveBreedingAction], ctx, src);
-    expect(moves).toContainEqual({ permanentId: "G3_BRED", direction: "toBattle" });
+    expect(moves).not.toContainEqual({ permanentId: "G3_BRED", direction: "toBattle" });
   });
 
-  it("calls digivolveFromInstance on the moved breeding permanent", async () => {
+  it("calls digivolveFromInstance on the breeding permanent", async () => {
     DEFS["INTO_CARD2"] = { kinds: ["Digimon"], level: 5 };
     const { ctx, src, digivolveCalls } = makeG3Ctx({ hasBredPerm: true, handCardId: "INTO_CARD2" });
     await runMain("BT20-018-G3b", [digivolveBreedingAction], ctx, src);

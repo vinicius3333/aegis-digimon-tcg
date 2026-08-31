@@ -2,9 +2,8 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-039.js";
-import "../../cards/BT1/BT1-064.js";
-import "../../cards/BT3/BT3-020.js";
-import "../../cards/BT3/BT3-104.js";
+import "../BT1/BT1-064.js";
+import "../BT3/BT3-104.js";
 import "./index.js";
 
 describe("BT17-039 ShineGreymon", () => {
@@ -81,6 +80,7 @@ describe("BT17-039 ShineGreymon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.turnSeat = 1;
+    await s.ready();
     const shineId = s.perm("shine").permanentId;
     const tamerId = s.perm("tamer").topCard!.instanceId;
 
@@ -109,10 +109,13 @@ describe("BT17-039 ShineGreymon", () => {
     );
     s.state.turnSeat = 1;
     s.state.memory = 8;
+    await s.ready();
     const shineId = s.perm("shine").permanentId;
     const tamerId = s.perm("tamer").topCard!.instanceId;
 
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === tamerId));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === shineId)).toBe(true);

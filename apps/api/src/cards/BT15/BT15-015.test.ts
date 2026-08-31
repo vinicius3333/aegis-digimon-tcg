@@ -77,7 +77,7 @@ describe("BT15-015", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT15-014", as: "base" }],
+          battleArea: [{ card: "BT15-013", as: "base" }],
           hand: [{ card: "BT15-015", as: "skullMeramon" }],
           deck: ["BT1-001"],
         },
@@ -96,6 +96,6 @@ describe("BT15-015", () => {
     await settle(() => s.perm("base").topCard.cardId === "BT15-015");
 
     expect(s.state.memory).toBe(3);
-    expect(s.perm("base").stack).toHaveLength(2);
+    expect(s.perm("base").stack).toHaveLength(1);
   });
 });

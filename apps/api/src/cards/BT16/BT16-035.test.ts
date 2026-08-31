@@ -138,9 +138,9 @@ describe("BT16-035", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
 
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("slash").permanentId)).toBe(
-      true,
-    );
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("slash").permanentId),
+    ).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(0);
   });
 
@@ -181,7 +181,7 @@ describe("BT16-035", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm(alias).topCard?.cardId === "BT16-035");
 
-    expect(s.perm(alias).stack.map((card) => card.cardId)).toEqual([base, "BT16-035"]);
+    expect(s.perm(alias).stack.map((card) => card.cardId)).toEqual([base]);
     expect(s.state.memory).toBe(0);
   });
 });

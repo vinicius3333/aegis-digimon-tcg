@@ -30,7 +30,10 @@ describe("ST13 collection audit proof", () => {
     for (const cardId of st13Ids) {
       const testSource = readFileSync(`${collectionDirectory}/${cardId}.test.ts`, "utf8");
 
-      expect(indexSource.match(new RegExp(`^import "\\./${cardId}\\.js";$`, "gm")), `${cardId} index import`).toHaveLength(1);
+      expect(
+        indexSource.match(new RegExp(`^import "\\./${cardId}\\.js";$`, "gm")),
+        `${cardId} index import`,
+      ).toHaveLength(1);
       expect(testSource, `${cardId} test suite`).toMatch(/\bdescribe\s*\(/);
       expect(testSource, `${cardId} runnable test`).toMatch(/\bit\s*\(/);
       expect(testSource, `${cardId} engine harness`).toMatch(/\bsetupEngine\s*\(/);
@@ -45,7 +48,9 @@ describe("ST13 collection audit proof", () => {
       const moduleSource = readFileSync(`${collectionDirectory}/${cardId}.ts`, "utf8");
       const compiled = runtimeCompiledCard(cardId);
 
-      expect(moduleSource.match(new RegExp(`\\bregisterIrCard\\s*\\(\\s*["']${cardId}["']\\s*,\\s*compiled\\s*\\)`, "g"))).toHaveLength(1);
+      expect(
+        moduleSource.match(new RegExp(`\\bregisterIrCard\\s*\\(\\s*["']${cardId}["']\\s*,\\s*compiled\\s*\\)`, "g")),
+      ).toHaveLength(1);
       expect(moduleSource.match(/\bregisterIrCard\s*\(/g), `${cardId} total registerIrCard calls`).toHaveLength(1);
       expect(moduleSource, `${cardId} legacy registerCard call`).not.toMatch(/\bregisterCard\s*\(/);
       expect(hasRegisteredCompiledCard(cardId), `${cardId} direct compiled registration`).toBe(true);

@@ -12,7 +12,7 @@ describe("BT17-043 Terriermon", () => {
       sourceFilter: {
         controller: "mine",
         byEffect: true,
-        orFilters: [
+        or: [
           { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Terriermon", "Lopmon"], match: "name" }] },
           { kind: ["Tamer"], colors: ["Green"] },
         ],
@@ -53,9 +53,9 @@ describe("BT17-043 Terriermon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("target").isSuspended);
 
-    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("playedTerriermon").instanceId)).toBe(
-      false,
-    );
+    expect(
+      s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("playedTerriermon").instanceId),
+    ).toBe(false);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-043")).toBe(true);
     expect(s.perm("target").isSuspended).toBe(true);
   });

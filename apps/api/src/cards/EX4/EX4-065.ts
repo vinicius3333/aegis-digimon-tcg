@@ -11,17 +11,6 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
-          kind: "Delete",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              superlative: "highestDP",
-            },
-            count: 1,
-          },
-        },
-        {
           kind: "SubTrigger",
           event: "onDeletionOf",
           sourceFilter: {
@@ -40,6 +29,17 @@ export const compiled: CompiledCard = {
               amount: 1,
             },
           ],
+        },
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "highestDP",
+            },
+            count: 1,
+          },
         },
       ],
     },

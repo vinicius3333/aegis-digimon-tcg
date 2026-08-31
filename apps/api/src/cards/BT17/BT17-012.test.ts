@@ -12,7 +12,7 @@ describe("BT17-012", () => {
   it("may digivolve while attacking into a Hybrid for 1 less", () => {
     expect(compiled.effects?.[2]).toMatchObject({
       trigger: "WhenAttacking",
-      actions: [{ kind: "Digivolve", from: ["hand"], reduceCost: 1, optional: true }],
+      actions: [{ kind: "Digivolve", from: ["hand"], payCost: true, reduceCost: 1, optional: true }],
     });
   });
 
@@ -54,11 +54,10 @@ describe("BT17-012", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(
-      () =>
-        s.state.players[0]!.battleArea.some(
-          (permanent) => permanent.permanentId === burningPermanentId && permanent.topCard?.cardId === "BT17-014",
-        ),
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.permanentId === burningPermanentId && permanent.topCard?.cardId === "BT17-014",
+      ),
     );
 
     expect(s.state.memory).toBe(2);

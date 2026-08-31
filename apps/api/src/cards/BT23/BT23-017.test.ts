@@ -34,7 +34,11 @@ describe("BT23-017 Betamon", () => {
         count: 1,
       },
       to: "hand",
-      cost: { kind: "trash", target: { filter: { zone: "hand", controller: "mine" }, count: 1 } },
+      cost: {
+        kind: "trash",
+        optional: true,
+        target: { filter: { zone: "hand", controller: "mine" }, count: 1 },
+      },
       optional: true,
       abortOnDecline: true,
     });

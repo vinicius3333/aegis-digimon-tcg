@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-022.js";
@@ -74,8 +73,11 @@ describe("BT17-022", () => {
 
     expect(s.perm("tamer").topCard?.cardId).toBe("BT17-028");
     expect(s.state.memory).toBe(0);
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("tamer"));
+    const ancientId = s.perm("tamer").topCard!.instanceId;
+    // The delayed deletion is scheduled for the owner's end of turn, so advance the
+    // actual turn rather than firing a window while the opponent is still active.
+    await advance(s.engine).runTurn(0);
     await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-028"));
-    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT17-028")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === ancientId)).toBe(true);
   });
 });

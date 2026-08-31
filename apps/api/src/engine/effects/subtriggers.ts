@@ -32,6 +32,9 @@ export type SubTriggerRootZone = "trash" | "hand" | "security";
 export interface SubTriggerSubscription {
   id: number;
   event: SubTriggerEventName;
+  /** Stable action identity used to collapse duplicate installs without collapsing
+   * distinct clauses that intentionally share one once-per-turn budget. */
+  dedupeKey?: string;
   /** Printed placement class of the effect that installed this watcher. */
   isInheritedSource?: boolean;
   isLinkedSource?: boolean;
@@ -227,6 +230,7 @@ export interface ReplacementSubscriptionReduceCost extends ReplacementSubscripti
     target: Permanent,
     into: CardDefinition,
     evolvingInstanceId?: string,
+    materials?: readonly Permanent[],
   ) => Promise<boolean | number>;
   /** Remove this replacement after its first successful activation. */
   consumeOnActivate?: boolean;
@@ -384,7 +388,10 @@ export class SubTriggerRegistry {
     }
     if (sub.oncePerTurnKey !== undefined) {
       const existing = this.subs.find(
-        (candidate) => candidate.event === sub.event && candidate.oncePerTurnKey === sub.oncePerTurnKey,
+        (candidate) =>
+          candidate.event === sub.event &&
+          candidate.oncePerTurnKey === sub.oncePerTurnKey &&
+          (candidate.dedupeKey ?? "") === (sub.dedupeKey ?? ""),
       );
       if (existing !== undefined) return existing.id;
     }
@@ -466,8 +473,23 @@ export class SubTriggerRegistry {
     turnLedger?: SubTriggerTurnLedger,
     skip?: (sub: SubTriggerSubscription) => boolean,
     announce?: SubTriggerAnnounce,
+    oncePerTurnSnapshotKeys?: ReadonlySet<string>,
+    oncePerTurnSuccessfulKeys?: Set<string>,
   ): Promise<number> {
     let fired = 0;
+    const successfulOncePerTurnKeys = oncePerTurnSuccessfulKeys ?? new Set<string>();
+    // A snapshot represents one event. Capture shared [Once Per Turn] budget once at entry so
+    // distinct action-path clauses with the same key can all resolve in this event; the ledger
+    // remains authoritative for every later event. GameEngine passes its ordered-window capture
+    // explicitly because those bodies resolve through separate fireSnapshot calls.
+    const snapshotKeys =
+      oncePerTurnSnapshotKeys ??
+      new Set(
+        matching
+          .filter((sub) => sub.oncePerTurnKey !== undefined && !turnLedger?.hasFired(sub.oncePerTurnKey))
+          .map((sub) => sub.oncePerTurnKey!)
+          .filter((key, index, keys) => keys.indexOf(key) === index),
+      );
     for (const sub of matching) {
       // Already resolved by the caller: the timing window that shares this event resolved it
       // through the same ledgers (GameEngine.withPendingSubTriggers). Filtered here rather than
@@ -484,7 +506,12 @@ export class SubTriggerRegistry {
       }
       // oncePerTurnKey: skip when this (stable, recompute-surviving) key already fired a
       // watcher this turn.
-      if (sub.oncePerTurnKey !== undefined && turnLedger?.hasFired(sub.oncePerTurnKey)) continue;
+      if (
+        sub.oncePerTurnKey !== undefined &&
+        turnLedger?.hasFired(sub.oncePerTurnKey) &&
+        !snapshotKeys.has(sub.oncePerTurnKey)
+      )
+        continue;
       // A watcher whose anchor source has left the field yields no context — skip it
       // (its subscription should already have been dropped on leave; this is a guard).
       const ctx = makeContext(sub);
@@ -500,30 +527,38 @@ export class SubTriggerRegistry {
           this.markFired(sub, windowToken, turnLedger);
           announce?.(sub, undefined);
           await sub.run(undefined as unknown as EffectContext);
+          if (sub.oncePerTurnKey !== undefined) successfulOncePerTurnKeys.add(sub.oncePerTurnKey);
           fired += 1;
         }
         continue;
       }
-      if (sub.matches !== undefined && !sub.matches(ctx)) continue;
+      if (sub.matches !== undefined && !sub.matches(ctx)) {
+        continue;
+      }
       this.markFired(sub, windowToken, turnLedger);
       announce?.(sub, ctx);
-      // A linked card's triggered watcher remains an effect of its host Digimon,
-      // including when the physical linked card is an Option (BT25-100/101, KB Q6471/Q6476).
-      if (sub.isLinkedSource === true) {
-        const sourceKinds = [CardKind.Digimon];
-        ctx.effectSourceKinds = sourceKinds;
-        ctx.fx.enterEffectResolution?.(ctx.source.ownerSeat, sourceKinds);
-        try {
-          await sub.run(ctx);
-        } finally {
-          ctx.fx.leaveEffectResolution?.();
-        }
-      } else {
+      // Every triggered watcher is an effect resolution. Keep the resolving seat/kinds on
+      // the same stack used by ordinary timing effects so nested verbs retain effect
+      // provenance (for example, a Tamer's PlaceUnder must publish byEffectSeat). A linked
+      // card's watcher remains an effect of its host Digimon even when the linked card itself
+      // is an Option (BT25-100/101, KB Q6471/Q6476).
+      const sourceKinds = sub.isLinkedSource === true ? [CardKind.Digimon] : [...(ctx.source?.definition?.kinds ?? [])];
+      ctx.effectSourceKinds = sourceKinds;
+      ctx.fx?.enterEffectResolution?.(ctx.source.ownerSeat, sourceKinds);
+      try {
         await sub.run(ctx);
+      } finally {
+        ctx.fx?.leaveEffectResolution?.();
       }
       if (sub.oncePerTurnKey !== undefined && ctx.oncePerTurnActivationDeclined === true) {
-        turnLedger?.unmarkFired?.(sub.oncePerTurnKey);
+        // A shared same-event snapshot may contain several action-path clauses. A declined
+        // sibling rolls back only its provisional mark; once any sibling has succeeded, the
+        // shared [Once Per Turn] budget must remain consumed even with a Set-backed ledger that
+        // cannot represent multiple provisional marks.
+        if (!successfulOncePerTurnKeys.has(sub.oncePerTurnKey)) turnLedger?.unmarkFired?.(sub.oncePerTurnKey);
         ctx.oncePerTurnActivationDeclined = false;
+      } else if (sub.oncePerTurnKey !== undefined) {
+        successfulOncePerTurnKeys.add(sub.oncePerTurnKey);
       }
       fired += 1;
     }

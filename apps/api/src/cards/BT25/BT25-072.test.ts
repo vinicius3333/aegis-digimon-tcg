@@ -177,6 +177,35 @@ describe("BT25-072 Shutmon", () => {
     expect(observe(s.engine).hasRestriction(s.perm("secondOpponent"), "digivolve")).toBe(false);
   });
 
+  it("does not react when a different host receives a link", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "shutmon" },
+            { card: "BT21-009", as: "otherHost" },
+          ],
+          hand: [{ card: CARD_ID, as: "linkCard" }],
+        },
+        1: { battleArea: [{ card: "BT25-081", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("linkCard").instanceId,
+        targetPermanentId: s.perm("otherHost").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("otherHost").linked.some((card) => card.cardId === CARD_ID));
+
+    expect(observe(s.engine).hasRestriction(s.perm("opponent"), "digivolve")).toBe(false);
+  });
+
   it("linked Shutmon's printed When Linking effect restricts two opposing Digimon/Tamers from unsuspending", async () => {
     const s = setupEngine(
       {

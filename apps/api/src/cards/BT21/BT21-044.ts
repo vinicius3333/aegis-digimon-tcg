@@ -8,8 +8,10 @@
 // a TAMER, so the target filter must not require kind:["Digimon"] either (mirrors the
 // AD1-021 fix for the same "[Marcus Damon] treated as a Digimon" pattern): GrantStatic
 // kinds:["Digimon"] + SetBaseDP 3000 + Restrict digivolve, composed with the existing
-// GainKeyword Rush/Alliance grants (KB Q4545-Q4551). Actions are inlined per effect
-// (not factored into a shared const) so the static IR auditor can parse the literal.
+// GainKeyword Rush/Alliance grants (KB Q4545-Q4551). Each trigger binds one exact-name
+// Marcus Damon and routes the whole bundle through that same selection. Actions are
+// inlined per effect (not factored into a shared const) so the static IR auditor can parse
+// the literal.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -19,71 +21,43 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
-          kind: "GrantStatic",
+          kind: "SelectBind",
           target: {
             filter: {
               controller: "mine",
               nameOrTrait: [
                 {
                   tokens: ["Marcus Damon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
             count: 1,
+            bindAs: "bt21-044-marcus",
           },
+        },
+        {
+          kind: "GrantStatic",
+          target: { filter: {}, count: 1, fromSelectionRef: "bt21-044-marcus" },
           grant: "kinds",
           tokens: ["Digimon"],
           duration: "forTheTurn",
         },
         {
           kind: "SetBaseDP",
-          target: {
-            filter: {
-              controller: "mine",
-              nameOrTrait: [
-                {
-                  tokens: ["Marcus Damon"],
-                  match: "name",
-                },
-              ],
-            },
-            count: 1,
-          },
+          target: { filter: {}, count: 1, fromSelectionRef: "bt21-044-marcus" },
           value: 3000,
           duration: "forTheTurn",
         },
         {
           kind: "Restrict",
-          target: {
-            filter: {
-              controller: "mine",
-              nameOrTrait: [
-                {
-                  tokens: ["Marcus Damon"],
-                  match: "name",
-                },
-              ],
-            },
-            count: 1,
-          },
+          target: { filter: {}, count: 1, fromSelectionRef: "bt21-044-marcus" },
           restriction: "digivolve",
           duration: "forTheTurn",
         },
         {
           kind: "GainKeyword",
-          target: {
-            filter: {
-              controller: "mine",
-              nameOrTrait: [
-                {
-                  tokens: ["Marcus Damon"],
-                  match: "name",
-                },
-              ],
-            },
-            count: 1,
-          },
+          target: { filter: {}, count: 1, fromSelectionRef: "bt21-044-marcus" },
           keyword: {
             keyword: "Rush",
             raw: "＜Rush＞",
@@ -92,18 +66,7 @@ export const compiled: CompiledCard = {
         },
         {
           kind: "GainKeyword",
-          target: {
-            filter: {
-              controller: "mine",
-              nameOrTrait: [
-                {
-                  tokens: ["Marcus Damon"],
-                  match: "name",
-                },
-              ],
-            },
-            count: 1,
-          },
+          target: { filter: {}, count: 1, fromSelectionRef: "bt21-044-marcus" },
           keyword: {
             keyword: "Alliance",
             raw: "＜Alliance＞",
@@ -128,71 +91,43 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "GrantStatic",
+          kind: "SelectBind",
           target: {
             filter: {
               controller: "mine",
               nameOrTrait: [
                 {
                   tokens: ["Marcus Damon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
             count: 1,
+            bindAs: "bt21-044-marcus",
           },
+        },
+        {
+          kind: "GrantStatic",
+          target: { filter: {}, count: 1, fromSelectionRef: "bt21-044-marcus" },
           grant: "kinds",
           tokens: ["Digimon"],
           duration: "forTheTurn",
         },
         {
           kind: "SetBaseDP",
-          target: {
-            filter: {
-              controller: "mine",
-              nameOrTrait: [
-                {
-                  tokens: ["Marcus Damon"],
-                  match: "name",
-                },
-              ],
-            },
-            count: 1,
-          },
+          target: { filter: {}, count: 1, fromSelectionRef: "bt21-044-marcus" },
           value: 3000,
           duration: "forTheTurn",
         },
         {
           kind: "Restrict",
-          target: {
-            filter: {
-              controller: "mine",
-              nameOrTrait: [
-                {
-                  tokens: ["Marcus Damon"],
-                  match: "name",
-                },
-              ],
-            },
-            count: 1,
-          },
+          target: { filter: {}, count: 1, fromSelectionRef: "bt21-044-marcus" },
           restriction: "digivolve",
           duration: "forTheTurn",
         },
         {
           kind: "GainKeyword",
-          target: {
-            filter: {
-              controller: "mine",
-              nameOrTrait: [
-                {
-                  tokens: ["Marcus Damon"],
-                  match: "name",
-                },
-              ],
-            },
-            count: 1,
-          },
+          target: { filter: {}, count: 1, fromSelectionRef: "bt21-044-marcus" },
           keyword: {
             keyword: "Rush",
             raw: "＜Rush＞",
@@ -201,18 +136,7 @@ export const compiled: CompiledCard = {
         },
         {
           kind: "GainKeyword",
-          target: {
-            filter: {
-              controller: "mine",
-              nameOrTrait: [
-                {
-                  tokens: ["Marcus Damon"],
-                  match: "name",
-                },
-              ],
-            },
-            count: 1,
-          },
+          target: { filter: {}, count: 1, fromSelectionRef: "bt21-044-marcus" },
           keyword: {
             keyword: "Alliance",
             raw: "＜Alliance＞",
@@ -255,7 +179,7 @@ export const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["Marcus Damon"],
-                      match: "name",
+                      match: "nameExact",
                     },
                   ],
                 },
@@ -294,7 +218,7 @@ export const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["Marcus Damon"],
-                      match: "name",
+                      match: "nameExact",
                     },
                   ],
                 },
@@ -317,7 +241,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["GeoGreymon"],
+      namesExact: ["GeoGreymon"],
       cost: 3,
       isAlternate: true,
     },

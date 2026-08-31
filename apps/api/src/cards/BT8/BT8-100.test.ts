@@ -60,7 +60,10 @@ describe("BT8-100 Disaster Blaster", () => {
   it("gives -6000 DP when a digivolution card is multicolor", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT8-084", under: ["BT8-046", "BT8-039"] }], hand: [{ card: "BT8-100", as: "option" }] },
+        0: {
+          battleArea: [{ card: "BT8-084", under: ["BT8-046", "BT8-039"] }, "BT8-034"],
+          hand: [{ card: "BT8-100", as: "option" }],
+        },
         1: { battleArea: [{ card: "BT8-017", as: "target" }] },
       },
       { autoSelectCards: true },
@@ -91,7 +94,7 @@ describe("BT8-100 Disaster Blaster", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT8-084", under: ["BT1-001", "BT17-019", "BT1-032"] }, "BT8-034"],
+          battleArea: [{ card: "BT8-060", under: ["BT1-001", "BT17-019", "BT1-032"] }, "BT8-034"],
           hand: [{ card: "BT8-100", as: "option" }],
         },
         1: { battleArea: [{ card: "BT8-017", as: "target" }] },

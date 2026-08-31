@@ -26,21 +26,31 @@ describe("BT15-097", () => {
       {
         0: {
           battleArea: [{ card: "BT15-056", as: "source" }],
-          hand: [{ card: "BT15-097", as: "option" }, { card: "BT15-055", as: "cost" }],
+          hand: [
+            { card: "BT15-097", as: "option" },
+            { card: "BT15-055", as: "cost" },
+          ],
         },
         1: {
-          battleArea: [{ card: "BT15-055", as: "digimon" }, { card: "BT15-084", as: "tamer" }],
+          battleArea: [
+            { card: "BT15-055", as: "digimon" },
+            { card: "BT15-084", as: "tamer" },
+          ],
         },
       },
       { autoSelectCards: true },
     );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
-    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("digimon").permanentId));
+    const digimonId = s.perm("digimon").permanentId;
+    const tamerId = s.perm("tamer").permanentId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === digimonId));
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
-    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("digimon").permanentId)).toBe(false);
-    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("tamer").permanentId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === digimonId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === tamerId)).toBe(true);
   });
 });

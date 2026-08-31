@@ -10,6 +10,7 @@ import { evaluateCondition } from "../conditions.js";
 import { payCost } from "../costs.js";
 import { candidateLooseInstances, pickLoose } from "../targeting/loose.js";
 import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
+import { unsupported } from "../errors.js";
 import { CardKind } from "@aegis/shared";
 import type { Action, CardDefinition, Permanent, Seat, Target } from "@aegis/shared";
 
@@ -77,9 +78,19 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
       }
       return false;
     }
-    case "SetMemory":
-      ctx.fx.setMemory(action.value);
+    case "SetMemory": {
+      if (action.controller === undefined) {
+        ctx.fx.setMemory(action.value);
+        return false;
+      }
+      const seat = action.controller === "mine" ? ctx.source.ownerSeat : ctx.game.opponentOf(ctx.source.ownerSeat);
+      if (ctx.fx.setMemoryForSeat === undefined) {
+        unsupported(ctx, action, "SetMemory targeted at a specific seat has no memory-seat primitive");
+        return false;
+      }
+      ctx.fx.setMemoryForSeat(seat, action.value);
       return false;
+    }
     case "SetTurnEndMemory":
       ctx.fx.setTurnEndMinMemory?.(ctx.source.ownerSeat, action.minimum);
       return false;
@@ -259,6 +270,18 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
           // maximum modifier applies to every DP-based deletion effect of the owner.
           ctx.fx.addDeletionMaxDp?.({ seat: ctx.source.ownerSeat }, amount);
         }
+        return false;
+      }
+      // Level-ceiling modifiers are transient context for the following play action and do
+      // not target a permanent. Handle them before the generic target requirement below;
+      // otherwise valid effects such as PawnChessmon's conditional level increase silently
+      // return without recording the delta.
+      if (action.costType === "level") {
+        let delta = action.amount;
+        if (setMode) delta = scale !== undefined ? scale : action.amount;
+        else if (scale !== undefined) delta = action.amount * scale;
+        if (!setMode && action.mode === "reduce") delta = -Math.abs(delta);
+        ctx.playLevelCeilingDelta = (ctx.playLevelCeilingDelta ?? 0) + delta;
         return false;
       }
       const want = action.target;
@@ -442,10 +465,6 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
           };
         }
         ctx.fx.changeEvoCost(predicate, delta, modifierOpts);
-        return false;
-      }
-      if (action.costType === "level") {
-        ctx.playLevelCeilingDelta = (ctx.playLevelCeilingDelta ?? 0) + delta;
         return false;
       }
       // An interactive self-reduction resolved in the card's BeforePayCost window must

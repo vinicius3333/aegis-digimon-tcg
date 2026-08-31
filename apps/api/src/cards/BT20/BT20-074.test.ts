@@ -147,6 +147,28 @@ describe("BT20-074 Dinobeemon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).not.toContain("BT20-074");
   });
 
+  it("Q4400 also cancels the original deck return after DNA digivolving the material", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-074", as: "dinobeemon" },
+            { card: "BT20-016", as: "paildramon" },
+          ],
+          hand: [{ card: "BT20-076", as: "dragonMode" }],
+          deck: ["BT20-047"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.returnToDeck([s.inst("dinobeemon").instanceId]);
+    const result = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT20-076");
+    expect(result).toBeDefined();
+    expect(result!.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT20-074", "BT20-016"]));
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).not.toContain("BT20-074");
+  });
+
   it("inherits Option Security suppression only on its controller's turn", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT20-076", under: ["BT20-074"], as: "host" }] } });
     s.state.turnSeat = 0;

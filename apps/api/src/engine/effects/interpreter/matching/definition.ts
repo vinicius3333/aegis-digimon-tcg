@@ -192,7 +192,7 @@ export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean
   // Keyword-presence ("with ＜Save＞ in its text", "Digimon with ＜Blocker＞"). Matched
   // against the printed effect text (the source "contains ＜KW＞ in text" check).
   if (filter.keywords && filter.keywords.length > 0) {
-    if (!filter.keywords.every((kw) => textHasKeyword(def, kw))) return false;
+    if (!filter.keywords.every((kw) => definitionHasKeyword(def, kw))) return false;
   }
   // Keyword-exclusion ("without ＜Blocker＞"). Static definition path for loose cards;
   // live permanents also account for granted keywords below.
@@ -256,6 +256,27 @@ export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean
   return true;
 }
 
+/**
+ * Prefer structured compiled keyword metadata when available, then fall back to printed text.
+ * This preserves keywords stripped by catalog sanitization (Alliance on EX4-031) while keeping
+ * legacy definitions usable. Digi-Burst still requires a declaration rather than a mere mention.
+ */
+export function definitionHasKeyword(def: DefinitionFacts, keyword: string | { keyword?: string }): boolean {
+  const requested = (typeof keyword === "string" ? keyword : (keyword.keyword ?? ""))
+    .replace(/[^a-z0-9]/gi, "")
+    .toLowerCase();
+  if (def.cardId !== undefined) {
+    const compiled = runtimeCompiledCard(def.cardId);
+    if (compiled !== undefined) {
+      const declared = compiled.effects.some((effect) =>
+        (effect.keywords ?? []).some((entry) => entry.keyword.replace(/[^a-z0-9]/gi, "").toLowerCase() === requested),
+      );
+      if (declared || requested === "digiburst") return declared;
+    }
+  }
+  return textHasKeyword(def, keyword);
+}
+
 /** Does a card's printed text declare a keyword ability (e.g. ＜Save＞, ＜Blocker＞)? */
 export function textHasKeyword(
   def: { effectText?: string; inheritedEffectText?: string },
@@ -286,6 +307,7 @@ export function matchNameOrTrait(
     linkRequirement?: string;
     dualEffect?: string;
     optionEffect?: string;
+    nameAliases?: string[];
   },
   ref: {
     tokens: string[];

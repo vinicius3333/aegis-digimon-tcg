@@ -57,6 +57,7 @@ describe("BT23-018 Garurumon", () => {
       reduceCostBy: 2,
       cost: {
         kind: "place",
+        optional: true,
         target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
         raw: "By placing this Digimon's top stacked card as its bottom digivolution card",
       },

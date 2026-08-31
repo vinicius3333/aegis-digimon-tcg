@@ -30,7 +30,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Tai Kamiya"],
-                  match: "name",
+                  match: "nameExact",
                 },
                 {
                   tokens: ["ADVENTURE"],
@@ -66,7 +66,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Tai Kamiya"],
-                  match: "name",
+                  match: "nameExact",
                 },
                 {
                   tokens: ["ADVENTURE"],

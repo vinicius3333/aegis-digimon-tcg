@@ -43,7 +43,7 @@ describe("BT20-003 Bibimon", () => {
         0: {
           battleArea: [
             { card: "BT20-011", as: "blockedHost", under: ["BT20-089", "BT20-003"] },
-            { card: "BT20-089", as: "otherTamer" },
+            { card: "BT17-086", as: "eligibleTamer" },
           ],
         },
       },
@@ -51,7 +51,7 @@ describe("BT20-003 Bibimon", () => {
     );
     await advance(blocked.engine).fire(EffectTiming.OnEndTurn, blocked.perm("blockedHost"));
     expect(blocked.perm("blockedHost").stack.map((card) => card.cardId)).toEqual(["BT20-089", "BT20-003"]);
-    expect(blocked.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-089")).toBe(
+    expect(blocked.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT17-086")).toBe(
       true,
     );
   });

@@ -616,6 +616,34 @@ describe("primitives: trash / delete / suspend", () => {
     expect(h.state.players[1]!.security).toHaveLength(0);
   });
 
+  it("trashFromSecurity names the trashed cards and their seat on the movement event", async () => {
+    const h = harness({
+      board: {
+        1: {
+          security: [
+            { card: OPTION, as: "top" },
+            { card: TAMER, as: "bottom" },
+          ],
+        },
+      },
+    });
+    const topId = h.s.inst("top").instanceId;
+    const bottomId = h.s.inst("bottom").instanceId;
+
+    await h.fx.trashFromSecurity(1, 2, { fromTop: true });
+
+    // The event is broadcast before the state patch that lands the cards in the trash,
+    // so it must carry the now-public identities itself for the client's trash scene.
+    expect(h.events).toContainEqual({
+      kind: "cardsMoved",
+      instanceIds: [topId, bottomId],
+      from: "security",
+      to: "trash",
+      cardIds: [OPTION, TAMER],
+      seat: 1,
+    });
+  });
+
   it("trashFromSecurity removes an explicitly selected card from anywhere in security", async () => {
     const h = harness({
       board: {
@@ -1469,6 +1497,25 @@ describe("primitives: placeUnder / link", () => {
     // The source left the field, so its three ledgers were torn down together.
     expect(h.subTriggers.costReductionFor("wouldDigivolve", sourceId)).toBe(0);
     expect(h.subTriggers.subscriptionsFor("onDeletionOf", sourceId)).toHaveLength(0);
+  });
+
+  // Battle-area cards are public and stay face-up when a permanent is placed under another
+  // as digivolution cards (KB Q4250/Q4251). Forcing them face-down withheld their cardId
+  // from the opponent's StateView forever, rendering card backs in the stack viewer.
+  it("relocatePermanent keeps the moved cards face-up", () => {
+    const h = harness({
+      turnSeat: 0,
+      board: { 0: { battleArea: [battleDigimon("dest", 5000), battleDigimon("source", 3000)] } },
+    });
+    const destId = h.s.perm("dest").permanentId;
+    const source = h.s.perm("source");
+    const sourceTopId = source.topCard!.instanceId;
+    source.topCard!.faceUp = true;
+
+    expect(h.fx.relocatePermanent(destId, source.permanentId)).toBe(true);
+
+    const moved = h.s.perm("dest").stack.find((card) => card.instanceId === sourceTopId);
+    expect(moved?.faceUp).toBe(true);
   });
 
   it("relocatePermanentByEffect awaits the destination's add-digivolution window", async () => {
@@ -2497,6 +2544,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     grantNameTrait: true,
     grantPierce: true,
     grantPlayerKeyword: true,
+    grantPlayerCustomEffect: true,
     grantVortexCanAttackPlayers: true,
     hasSuspendRestrictionSource: true,
     hatch: true,
@@ -2557,6 +2605,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     securityToHand: true,
     setBaseDP: true,
     setMemory: true,
+    setMemoryForSeat: true,
     setOriginalCardInfo: true,
     setTurnEndMinMemory: true,
     shuffleSecurity: true,

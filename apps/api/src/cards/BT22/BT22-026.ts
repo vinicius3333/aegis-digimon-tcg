@@ -59,12 +59,14 @@ export const compiled: CompiledCard = {
                   filter: {
                     controller: "mine",
                     zone: "battleArea",
+                    kind: ["Digimon"],
                     nameOrTrait: [{ tokens: ["Agumon"], match: "name" }],
                   },
                   count: 1,
                 },
                 into: {
                   controllerDefault: "mine",
+                  kind: ["Digimon"],
                   nameOrTrait: [{ tokens: ["WarGreymon"], match: "name" }],
                 },
                 from: ["hand"],

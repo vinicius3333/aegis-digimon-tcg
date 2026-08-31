@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { getCompiledCard } from "@aegis/shared";
-import { assertNoLoudGap, setupEngine } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./P-141.js";
 
 describe("P-141 MameTyramon", () => {
@@ -40,5 +42,27 @@ describe("P-141 MameTyramon", () => {
     expect(getCompiledCard("P-141")?.digivolutionRequirement).toEqual([
       { level: 4, names: ["Mamemon", "Tyrannomon"], cost: 3, isAlternate: true },
     ]);
+  });
+
+  it("unsuspends after an opponent Digimon becomes suspended", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "P-141", as: "mame", suspended: true }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.suspend([s.perm("opponent").permanentId], 1);
+    await settle();
+    expect(s.perm("mame").isSuspended).toBe(false);
+  });
+
+  it("exposes both printed battle keywords and the Mamemon/Tyrannomon rule names", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "P-141", as: "mame" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("mame"), "Collision")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("mame"), "Blocker")).toBe(true);
+    expect(observe(s.engine).effectiveNames(s.perm("mame"))).toEqual(expect.arrayContaining(["mamemon", "tyrannomon"]));
   });
 });

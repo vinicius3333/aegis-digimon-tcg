@@ -74,6 +74,7 @@ describe("BT16-008", () => {
         type: "digivolve",
         permanentId: s.perm("hawkmon").permanentId,
         instanceId: s.inst("aquilamon").instanceId,
+        alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("hawkmon").topCard?.cardId === "BT16-008");
@@ -121,9 +122,9 @@ describe("BT16-008", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
 
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("aquilamon").permanentId)).toBe(
-      true,
-    );
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("aquilamon").permanentId),
+    ).toBe(true);
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-010")).toBe(true);
   });
 });

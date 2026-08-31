@@ -23,7 +23,7 @@ describe("BT17-036 through BT17-039", () => {
       actions: [
         {
           kind: "SubTrigger",
-          event: "whenEffectRemovesFromSecurity",
+          event: "whenEffectTrashesFromSecurity",
           actions: [{ kind: "Digivolve", payCost: false, from: ["hand"], optional: true }],
         },
       ],

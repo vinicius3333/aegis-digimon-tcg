@@ -56,6 +56,32 @@ describe("BT24-102 Homeros", () => {
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
   });
 
+  it("runs the start-main-phase threshold through the production turn window", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-102", as: "source" }],
+          hand: [{ card: "BT1-009", as: "playable" }],
+          deck: [{ card: "BT1-010", as: "drawn" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.state.memory === 5 && s.perm("source").isSuspended);
+
+    expect(s.state.memory).toBe(5);
+    expect(s.perm("source").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
   it("draws even when it cannot suspend at 5 or more memory (Q6251)", async () => {
     const s = setupEngine({
       0: {
@@ -99,7 +125,7 @@ describe("BT24-102 Homeros", () => {
             { card: "BT24-102", as: "source" },
             { card: "BT24-101", as: "jupitermon" },
           ],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT4-022", "BT4-023", "BT4-024"],
         },
         1: { battleArea: [{ card: "BT1-080", as: "target", dp: 13000 }] },
       },
@@ -114,6 +140,38 @@ describe("BT24-102 Homeros", () => {
     expect(s.state.players[0]!.security).toHaveLength(2);
   });
 
+  it("runs the end-of-your-turn borrowed effect through the production turn window", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-102", as: "source" },
+            { card: "BT24-101", as: "jupitermon" },
+          ],
+          hand: [{ card: "BT1-009", as: "playable" }],
+          security: ["BT4-022", "BT4-023", "BT4-024"],
+        },
+        1: { battleArea: [{ card: "BT1-080", as: "target", dp: 13000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 1;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.state.memory === 2);
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("source").isSuspended).toBe(false);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("target").instanceId));
+
+    expect(s.perm("source").isSuspended).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+  });
+
   it("does not activate a foreign effect when the suspension cost cannot be paid", async () => {
     const s = setupEngine(
       {
@@ -122,7 +180,7 @@ describe("BT24-102 Homeros", () => {
             { card: "BT24-102", as: "source", suspended: true },
             { card: "BT24-101", as: "jupitermon" },
           ],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT4-022", "BT4-023", "BT4-024"],
         },
         1: { battleArea: [{ card: "BT1-080", as: "target", dp: 13000 }] },
       },
@@ -172,8 +230,8 @@ describe("BT24-102 Homeros", () => {
             { card: "BT24-102", as: "source" },
             { card: "BT26-103", as: "wrathMode" },
           ],
-          security: ["BT1-001", "BT1-002"],
-          deck: ["BT1-003", "BT1-004", "BT1-005", "BT1-006"],
+          security: ["BT4-022", "BT4-023"],
+          deck: ["BT4-024", "BT4-025", "BT4-026", "BT4-027"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
@@ -228,5 +286,27 @@ describe("BT24-102 Homeros", () => {
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("source").instanceId),
     );
     expect(observe(s.engine).hasKeyword(s.perm("source"), "Blocker")).toBe(false);
+  });
+
+  it("naturally plays itself when revealed by a security check", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "BT24-102", as: "source" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-102"));
+
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.perm("source").topCard.cardId).toBe("BT24-102");
   });
 });

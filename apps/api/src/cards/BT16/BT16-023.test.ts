@@ -48,7 +48,9 @@ describe("BT16-023", () => {
     preferred.push(s.perm("ally").permanentId, s.perm("target").permanentId);
     s.state.memory = 6;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => !s.perm("ally").isSuspended && s.state.players[1]!.battleArea.length === 0);
 
     expect(s.perm("ally").isSuspended).toBe(false);
@@ -60,12 +62,14 @@ describe("BT16-023", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT16-080", as: "host", under: ["BT16-023"], suspended: false }],
+          battleArea: [{ card: "BT16-047", as: "host", under: ["BT16-023"], suspended: false }],
           security: ["BT1-001"],
         },
+        1: { security: ["BT1-090"] },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
+    await s.ready();
 
     expect(
       s.engine.applyIntent(0, {

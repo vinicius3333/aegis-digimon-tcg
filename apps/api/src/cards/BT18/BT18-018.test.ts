@@ -1,6 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-018.js";
@@ -28,16 +26,37 @@ describe("BT18-018 EmperorGreymon", () => {
       actions: [{ kind: "SubTrigger", event: "whenDeletesInBattle" }],
     });
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT18-018", as: "emperor", under: ["BT1-030"], suspended: true }] },
+      0: { battleArea: [{ card: "BT18-018", as: "emperor", under: ["BT1-030"] }] },
+      1: {
+        battleArea: [
+          { card: "BT1-030", dp: 10000, suspended: true, as: "targetA" },
+          { card: "BT1-030", dp: 10000, suspended: true, as: "targetB" },
+        ],
+      },
     });
     await s.ready();
     const emperorId = s.perm("emperor").permanentId;
-    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", { attackerPermanentId: emperorId });
+    const targetAId = s.perm("targetA").permanentId;
+    const targetBId = s.perm("targetB").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: emperorId,
+        target: { kind: "permanent", permanentId: s.perm("targetA").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetAId));
     expect(s.perm("emperor").isSuspended).toBe(false);
     expect(observe(s.engine).keywordAmount(s.perm("emperor"), "SecurityAttack")).toBe(1);
 
-    s.perm("emperor").isSuspended = true;
-    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", { attackerPermanentId: emperorId });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: emperorId,
+        target: { kind: "permanent", permanentId: s.perm("targetB").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetBId));
     expect(s.perm("emperor").isSuspended).toBe(true);
     expect(observe(s.engine).keywordAmount(s.perm("emperor"), "SecurityAttack")).toBe(1);
   });
@@ -46,7 +65,15 @@ describe("BT18-018 EmperorGreymon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT18-018", as: "emperor", under: ["BT18-012", "BT18-023", "BT18-047"] }],
+          battleArea: [
+            {
+              card: "BT18-088",
+              as: "takuya",
+              under: ["BT18-011", "BT18-012", "BT18-014", "BT18-022", "BT18-023", "BT18-047"],
+            },
+          ],
+          hand: [{ card: "BT18-018", as: "emperor" }],
+          deck: ["BT1-001"],
         },
         1: {
           battleArea: [
@@ -59,7 +86,15 @@ describe("BT18-018 EmperorGreymon", () => {
       { autoDeclineOptional: true, autoSelectCards: true },
     );
 
-    await advance(s.engine).fireForInstance(EffectTiming.WhenDigivolving, s.perm("emperor").topCard!);
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("takuya").permanentId,
+        instanceId: s.inst("emperor").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("takuya").topCard?.cardId === "BT18-018");
 
     expect(
       [s.perm("targetA"), s.perm("targetB"), s.perm("targetC")].map((permanent) => permanent.stack.length),
@@ -72,28 +107,33 @@ describe("BT18-018 EmperorGreymon", () => {
   it("may attack after its When Digivolving processing", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT18-018", as: "emperor", under: ["BT18-012"] }] },
+        0: {
+          battleArea: [
+            {
+              card: "BT18-088",
+              as: "takuya",
+              under: ["BT18-011", "BT18-012", "BT18-014", "BT18-022", "BT18-023", "BT18-047"],
+            },
+          ],
+          hand: [{ card: "BT18-018", as: "emperor" }],
+          deck: ["BT1-001"],
+        },
         1: { security: [{ card: "BT1-030", as: "security" }] },
       },
-      { autoAcceptOptional: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
-    const flow = advance(s.engine).fireForInstance(EffectTiming.WhenDigivolving, s.perm("emperor").topCard!);
-    await settle(() => s.state.pendingDecision !== undefined);
-    const decision = s.state.pendingDecision!;
-    const payload = JSON.parse(decision.payloadJson) as { candidateInstanceIds?: string[] };
-    expect(payload.candidateInstanceIds).toContain("player");
-
+    s.state.memory = 10;
     expect(
       s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: decision.decisionId,
-        response: { kind: "selectCards", instanceIds: ["player"] },
+        type: "digivolve",
+        permanentId: s.perm("takuya").permanentId,
+        instanceId: s.inst("emperor").instanceId,
       }),
     ).toEqual({ ok: true });
-    await flow;
+    await settle(() => s.perm("takuya").topCard?.cardId === "BT18-018");
     await settle(() => s.state.players[1]!.security.length === 0);
 
-    expect(s.perm("emperor").isSuspended).toBe(true);
+    expect(s.perm("takuya").isSuspended).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
 

@@ -26,10 +26,10 @@ const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
-              zone: "underTamers",
-              hostFilter: {
-                kind: ["Tamer"],
-              },
+              // This dedicated alias both enumerates and restricts the stack to
+              // cards beneath Tamers; using the generic digivolutionCards zone
+              // would not match the explicit source alias during resolution.
+              zone: "digivolutionCardsUnderTamers",
               nameOrTrait: [
                 {
                   tokens: ["ShootingStarmon"],
@@ -43,6 +43,7 @@ const compiled: CompiledCard = {
           payCost: false,
           optional: true,
           abortOnDecline: true,
+          bindResultAs: "playedShootingStarmon",
         },
         {
           kind: "PlaceUnder",
@@ -61,6 +62,8 @@ const compiled: CompiledCard = {
           },
           underFilter: {
             controller: "mine",
+            kind: ["Digimon"],
+            boundRef: "playedShootingStarmon",
             nameOrTrait: [
               {
                 tokens: ["ShootingStarmon"],
@@ -87,6 +90,8 @@ const compiled: CompiledCard = {
           },
           underFilter: {
             controller: "mine",
+            kind: ["Digimon"],
+            boundRef: "playedShootingStarmon",
             nameOrTrait: [
               {
                 tokens: ["ShootingStarmon"],

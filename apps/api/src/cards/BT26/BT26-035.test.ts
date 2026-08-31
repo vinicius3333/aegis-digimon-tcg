@@ -54,7 +54,7 @@ describe("BT26-035 Morphomon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT26-035", as: "host", dp: 10000, under: [{ card: "BT26-035", as: "source" }] },
+            { card: "BT11-051", as: "host", dp: 10000, under: [{ card: "BT26-035", as: "source" }] },
             { card: "EX12-049", as: "nspTarget", dp: 10000 },
             { card: "BT1-009", as: "ally", dp: 10000 },
           ],
@@ -91,7 +91,7 @@ describe("BT26-035 Morphomon", () => {
         !observe(s.engine).isAttacking() &&
         !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === allyVictimId),
     );
-    expect(s.perm("host").topCard.cardId).toBe("BT26-035");
+    expect(s.perm("host").topCard.cardId).toBe("BT11-051");
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("evolution").instanceId);
 
     expect(
@@ -104,7 +104,7 @@ describe("BT26-035 Morphomon", () => {
     await settle(() => s.perm("nspTarget").topCard.cardId === "BT1-073");
 
     expect(s.perm("nspTarget").topCard.instanceId).toBe(s.inst("evolution").instanceId);
-    expect(s.perm("host").topCard.cardId).toBe("BT26-035");
+    expect(s.perm("host").topCard.cardId).toBe("BT11-051");
     expect(s.state.memory).toBe(0);
 
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
@@ -117,7 +117,7 @@ describe("BT26-035 Morphomon", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
 
-    expect(s.perm("host").topCard.cardId).toBe("BT26-035");
+    expect(s.perm("host").topCard.cardId).toBe("BT11-051");
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("secondEvolution").instanceId);
     expect(s.state.memory).toBe(0);
   });
@@ -152,7 +152,7 @@ describe("BT26-035 Morphomon", () => {
     const inherited = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-035", as: "host", under: ["BT26-035"] }],
+          battleArea: [{ card: "BT11-051", as: "host", under: ["BT26-035"] }],
           hand: [{ card: "BT1-073", as: "evolution" }],
         },
       },
@@ -163,7 +163,7 @@ describe("BT26-035 Morphomon", () => {
       attackerPermanentId: inherited.perm("host").permanentId,
     });
 
-    expect(inherited.perm("host").topCard.cardId).toBe("BT26-035");
+    expect(inherited.perm("host").topCard.cardId).toBe("BT11-051");
     expect(inherited.state.players[0]!.hand.map((card) => card.instanceId)).toContain(
       inherited.inst("evolution").instanceId,
     );

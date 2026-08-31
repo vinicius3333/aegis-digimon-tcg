@@ -5,7 +5,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Primitives } from "../../engine/effects/EffectContext.js";
 import "../index.js";
-import "./BT15-083.js";
+import { compiled } from "./BT15-083.js";
 
 // A3 for BT15-083 (Matt Ishida) — Blue Tamer.
 //
@@ -135,8 +135,8 @@ describe("BT15-083 Matt Ishida", () => {
       kinds: ["Tamer"],
       playCost: 3,
     });
-    expect(module?.coverage).toBe("full");
-    expect(module?.residual).toEqual([]);
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 
   it("is registered", () => {
@@ -317,7 +317,7 @@ describe("BT15-083 Matt Ishida", () => {
       {
         0: {
           hand: [{ card: "BT15-083", as: "matt" }],
-          deck: ["BT1-029", "BT1-001", "BT1-001"],
+          deck: ["BT1-029", "BT1-009", "BT1-009"],
         },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
@@ -331,7 +331,7 @@ describe("BT15-083 Matt Ishida", () => {
 
     expect(s.state.memory).toBe(7);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("matt").instanceId)).toBe(false);
-    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-001", "BT1-001"]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-009"]);
   });
 
   it("naturally suspends Matt and gains memory when an own Digimon effect adds a card", async () => {
@@ -349,7 +349,9 @@ describe("BT15-083 Matt Ishida", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("agumon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("agumon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("matt").isSuspended);
 
     expect(s.state.memory).toBe(8);

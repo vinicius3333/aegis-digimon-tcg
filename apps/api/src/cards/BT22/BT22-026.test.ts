@@ -35,10 +35,19 @@ describe("BT22-026 MetalGarurumon", () => {
           {
             kind: "Digivolve",
             target: {
-              filter: { controller: "mine", zone: "battleArea", nameOrTrait: [{ tokens: ["Agumon"], match: "name" }] },
+              filter: {
+                controller: "mine",
+                zone: "battleArea",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Agumon"], match: "name" }],
+              },
               count: 1,
             },
-            into: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["WarGreymon"], match: "name" }] },
+            into: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["WarGreymon"], match: "name" }],
+            },
             from: ["hand"],
             payCost: false,
             ignoreRequirements: true,

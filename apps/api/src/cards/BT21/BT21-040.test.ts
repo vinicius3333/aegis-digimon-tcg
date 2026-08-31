@@ -11,6 +11,7 @@ import "../index.js";
  * satisfies neither is proven to keep it shut.
  */
 const SHINEGREYMON = "BT13-018";
+const SHINEGREYMON_BURST_MODE = "BT13-020";
 const OPPONENT_LV6 = "AD1-004"; // WarGreymon, level 6
 const HERO_TAMERS = ["BT21-080", "BT21-082", "BT21-083"]; // three distinct [Hero] Tamer names
 const EFFECT_KEY = `BT21-040/ir-${EffectTiming.OnDeclaration}-0`;
@@ -46,9 +47,26 @@ async function digivolvesForFour(s: ReturnType<typeof board>): Promise<boolean> 
 }
 
 describe("BT21-040 Agumon", () => {
+  it("uses an exact Digimon name matcher for the standalone [ShineGreymon] reference", () => {
+    const effect = compiled.effects.find((candidate) => !candidate.isInherited && candidate.trigger === "YourTurn");
+    expect(effect).toEqual(
+      expect.objectContaining({
+        actions: [
+          expect.objectContaining({
+            into: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["ShineGreymon"], match: "nameExact" }],
+            },
+          }),
+        ],
+      }),
+    );
+  });
+
   it("preserves the two zero-cost alternate Digivolution requirements", () => {
     expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["Koromon"], cost: 0, isAlternate: true },
+      { namesExact: ["Koromon"], cost: 0, isAlternate: true },
       { level: 2, traits: ["Hero"], cost: 0, isAlternate: true },
     ]);
   });
@@ -89,6 +107,28 @@ describe("BT21-040 Agumon", () => {
       effectKey: EFFECT_KEY,
     });
     expect(result).toEqual({ ok: false, reason: "illegal-target" });
+  });
+
+  it("does not treat a near-name ShineGreymon card as the standalone target", () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-040", as: "agumon" }],
+          hand: [{ card: SHINEGREYMON_BURST_MODE, as: "burst" }],
+        },
+        1: { battleArea: [{ card: OPPONENT_LV6 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("agumon").topCard.instanceId,
+        effectKey: EFFECT_KEY,
+      }),
+    ).toEqual({ ok: false, reason: "illegal-target" });
   });
 
   it("requires three distinct Hero Tamer names rather than three copies", () => {

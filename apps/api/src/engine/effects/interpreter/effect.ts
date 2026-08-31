@@ -27,7 +27,7 @@ import type { BuilderOptions } from "../builders.js";
 import { canAttemptDnaDigivolve } from "./actions/dna.js";
 import { canAttemptDigivolve } from "./actions/digivolve.js";
 import { canAttemptPlaceUnder } from "./actions/placeUnder.js";
-import { canAttemptLink } from "./actions/link.js";
+import { canAttemptLink, canAttemptMindLink } from "./actions/link.js";
 import { evaluateCondition } from "./conditions.js";
 import { canPayCost } from "./costs.js";
 import { installEffectRunner, runAction } from "./dispatch.js";
@@ -494,6 +494,7 @@ export function turnOwnerGuard(trigger: CardEffect["trigger"]): ((ctx: EffectCon
 const RESULT_BINDING_KEYS = [
   "lastDeleteCount",
   "lastDeletedLevel",
+  "lastDeletedDP",
   "lastDigivolveResult",
   "lastOptionUsed",
   "lastEffectActed",
@@ -575,7 +576,10 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
         ? "permanent"
         : "forTheTurn";
     for (const keyword of effect.keywords ?? []) {
-      if (keyword.keyword === "Reboot" || ACTION_TYPE_KEYWORDS.has(keyword.keyword)) continue;
+      // Delay on a continuous trigger is an activation marker whose trash cost is
+      // installed by `withIntrinsicDelayGate`; it is not a resident keyword grant.
+      if (keyword.keyword === "Reboot" || keyword.keyword === "Delay" || ACTION_TYPE_KEYWORDS.has(keyword.keyword))
+        continue;
       await runAction(ctxWithSelections, {
         kind: "GainKeyword",
         target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
@@ -678,6 +682,7 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
     action.kind === "Digivolve" ||
     action.kind === "DnaDigivolve" ||
     action.kind === "PlaceUnder" ||
+    action.kind === "MindLink" ||
     (action.kind !== "ConditionalBranch" && action.condition !== undefined) ||
     action.cost !== undefined ||
     action.additionalCost !== undefined ||
@@ -704,6 +709,7 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
       return costProducedTarget || canAttemptDigivolve(ctx, action);
     }
     if (action.kind === "PlaceUnder") return canAttemptPlaceUnder(ctx, action);
+    if (action.kind === "MindLink") return canAttemptMindLink(ctx, action);
     return action.kind === "DnaDigivolve"
       ? canAttemptDnaDigivolve(ctx, action)
       : action.kind !== "Link" || canAttemptLink(ctx, action);

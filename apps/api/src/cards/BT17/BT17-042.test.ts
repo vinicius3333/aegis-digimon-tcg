@@ -17,9 +17,7 @@ describe("BT17-042 Argomon", () => {
         { color: "Purple", level: 2, memoryCost: 1 },
       ],
     });
-    expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["Argomon"], cost: 0, isAlternate: true },
-    ]);
+    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Argomon"], level: 2, cost: 0, isAlternate: true }]);
   });
 
   it("reveals three, adds one Argomon and one Rhythm, and bottoms the rest", () => {

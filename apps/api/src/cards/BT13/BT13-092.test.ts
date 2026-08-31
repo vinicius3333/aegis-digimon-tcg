@@ -32,10 +32,14 @@ describe("BT13-092 BT13-092", () => {
       actions: [
         {
           kind: "Delete",
-          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"], sameNameAsSelection: "returnedDigimon" },
+            count: "all",
+          },
           optional: true,
           cost: {
             kind: "return",
+            bindResultAs: "returnedDigimon",
             target: { filter: { zone: "trash", controller: "opponent", kind: ["Digimon"] }, count: 1 },
           },
         },
@@ -49,10 +53,41 @@ describe("BT13-092 BT13-092", () => {
     expect(s.perm("card").topCard?.cardId).toBe("BT13-092");
   });
 
+  it("deletes only opponent Digimon sharing the name returned from their trash", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT13-092", as: "ravemon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "same-name-a" },
+            { card: "BT1-009", as: "same-name-b" },
+            { card: "BT1-010", as: "different-name" },
+          ],
+          trash: [{ card: "BT1-009", as: "returned" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("ravemon"));
+
+    expect(
+      s.state.players[1]!.battleArea.some(
+        (permanent) => permanent.permanentId === s.perm("different-name").permanentId,
+      ),
+    ).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-009")).toBe(false);
+    expect(s.state.players[1]!.deck.some((card) => card.instanceId === s.inst("returned").instanceId)).toBe(true);
+  });
+
   it("rejects a longer Ravemon: Burst Mode host despite an exact payable Keenan Crier", () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT13-092", as: "near-host" }, { card: "BT13-102", as: "keenan" }],
+        battleArea: [
+          { card: "BT13-092", as: "near-host" },
+          { card: "BT13-102", as: "keenan" },
+        ],
         hand: [{ card: "BT13-092", as: "burst" }],
       },
     });
@@ -95,7 +130,10 @@ describe("BT13-092 BT13-092", () => {
   it("applies Burst pending trash only after a valid exact Ravemon host", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT13-089", as: "base" }, { card: "BT13-102", as: "keenan" }],
+        battleArea: [
+          { card: "BT13-089", as: "base" },
+          { card: "BT13-102", as: "keenan" },
+        ],
         hand: [{ card: "BT13-092", as: "card" }],
       },
     });

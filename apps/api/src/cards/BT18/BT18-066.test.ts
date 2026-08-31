@@ -1,11 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT18-066.js";
 import "./BT18-049.js";
 import "./BT18-064.js";
 import "./BT18-066.js";
 
 describe("BT18-066 Sephirothmon", () => {
   it("uses its normal black level-3 evolution route for 3", async () => {
+    expect(compiled.effects.slice(0, 2)).toMatchObject([
+      { trigger: "OnPlay", actions: [{ kind: "PlaceUnder" }, { kind: "ActivateEffect", lastPlacedOnly: true }] },
+      { trigger: "WhenDigivolving", actions: [{ kind: "PlaceUnder" }, { kind: "ActivateEffect", lastPlacedOnly: true }] },
+    ]);
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT18-059", as: "base" }],

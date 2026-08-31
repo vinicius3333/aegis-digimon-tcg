@@ -58,7 +58,7 @@ describe("BT17-076 Eosmon", () => {
           kind: "Aura",
           target: { count: "all", filter: { nameOrTrait: [{ tokens: ["Eosmon"], match: "name" }] } },
           effect: { kind: "modifyDP", amount: 1000 },
-          scaling: { unit: "cards", per: 1, filter: { kind: ["Tamer"] } },
+          scaling: { unit: "cards", per: 1, filter: { controller: "any", kind: ["Tamer"] } },
         },
       ],
     });
@@ -86,11 +86,74 @@ describe("BT17-076 Eosmon", () => {
     );
     s.state.memory = 6;
     const targetId = s.perm("target").permanentId;
+    await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("playedEosmon").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId));
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(false);
+    expect(s.perm("eosmon").currentDP).toBe(14000);
+  });
+
+  it("plays Eosmon from hand on a natural digivolution and resolves its played-DP deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-075", as: "base" }],
+          hand: [
+            { card: "BT17-076", as: "evolving" },
+            { card: "BT17-075", as: "playedEosmon" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT17-063", dp: 6000, as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("target").instanceId));
+
+    expect(s.perm("base").topCard.cardId).toBe("BT17-076");
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("playedEosmon").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("target").instanceId)).toBe(true);
+  });
+
+  it("plays Eosmon from hand when attacking and shares its once-per-turn limit", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-076", as: "attacker" }],
+          hand: [{ card: "BT17-075", as: "playedEosmon" }],
+        },
+        1: { security: ["BT1-101"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 2);
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("playedEosmon").instanceId)).toBe(
+      true,
+    );
   });
 });

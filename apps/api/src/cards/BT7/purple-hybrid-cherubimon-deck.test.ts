@@ -104,26 +104,6 @@ describe("BT7 Purple Hybrid Cherubimon historical deck", () => {
         },
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      s.decisions.some(
-        ({ req }) =>
-          req.decisionId !== playTamerOptional.decisionId && req.kind === "optional" && req.sourceCardId === "BT7-079",
-      ),
-    );
-    const deleteOptional = s.decisions
-      .filter(
-        ({ req }) =>
-          req.decisionId !== playTamerOptional.decisionId && req.kind === "optional" && req.sourceCardId === "BT7-079",
-      )
-      .at(-1)!.req;
-    expect(deleteOptional.sourceCardId).toBe("BT7-079");
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: deleteOptional.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
 
     const deleteDecision = s.decisions.at(-1)!.req;

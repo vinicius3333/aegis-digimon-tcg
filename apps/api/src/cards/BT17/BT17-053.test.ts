@@ -61,7 +61,7 @@ describe("BT17-053 Keramon", () => {
     });
     await settle(() => s.perm("keramon").topCard?.instanceId === infermonId);
 
-    expect(s.state.memory).toBe(13);
+    expect(s.state.memory).toBe(10);
   });
 
   it("does not evolve when the opponent plays a level-4 Digimon", async () => {
@@ -91,7 +91,7 @@ describe("BT17-053 Keramon", () => {
   it("plays a Diaboromon Token when its Unidentified host is deleted in battle", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT17-054", under: ["BT17-053"], as: "host" }] },
+        0: { battleArea: [{ card: "BT17-054", under: ["BT17-053"], suspended: true, as: "host" }] },
         1: { battleArea: [{ card: "BT17-057", as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

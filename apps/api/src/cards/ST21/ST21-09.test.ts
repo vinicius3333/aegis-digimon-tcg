@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { irNode } from "../../engine/testkit/irNode.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 describe("ST21-09", () => {
   it("suspends through 5000 DP and scales deck-bottom returns by Tamer colors", () => {
@@ -36,5 +37,31 @@ describe("ST21-09", () => {
       ),
     ).toBe(true);
     expect(card?.digivolutionRequirement).toEqual([{ level: 4, traits: ["ADVENTURE"], cost: 3, isAlternate: true }]);
+  });
+
+  it("suspends through the 5000-DP boundary and deck-bottoms one target for two Tamer colors", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: ["ST21-12"], hand: [{ card: "ST21-09", as: "lillymon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-019", as: "boundary", dp: 5000 },
+            { card: "BT1-021", as: "above", dp: 7000 },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const boundaryId = s.perm("boundary").topCard.instanceId;
+    const aboveId = s.perm("above").permanentId;
+    s.state.memory = 20;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lillymon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.deck.some(({ instanceId }) => instanceId === boundaryId));
+
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === aboveId)).toBe(true);
+    expect(s.perm("above").isSuspended).toBe(false);
   });
 });

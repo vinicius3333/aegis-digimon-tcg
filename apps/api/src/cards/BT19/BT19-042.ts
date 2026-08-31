@@ -69,6 +69,14 @@ const compiled: CompiledCard = {
           },
           amount: 6000,
           duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "selfHasInDigivolutionCards",
+            nameOrTrait: [
+              { tokens: ["Dynasmon"], match: "name" },
+              { tokens: ["X Antibody"], match: "trait" },
+            ],
+            raw: "[Dynasmon]/[X Antibody] is in this Digimon's digivolution cards",
+          },
         },
       ],
       frequency: "OncePerTurn",
@@ -116,6 +124,14 @@ const compiled: CompiledCard = {
           },
           amount: 6000,
           duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "selfHasInDigivolutionCards",
+            nameOrTrait: [
+              { tokens: ["Dynasmon"], match: "name" },
+              { tokens: ["X Antibody"], match: "trait" },
+            ],
+            raw: "[Dynasmon]/[X Antibody] is in this Digimon's digivolution cards",
+          },
         },
       ],
       frequency: "OncePerTurn",

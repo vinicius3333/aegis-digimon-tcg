@@ -29,7 +29,9 @@ describe("BT15-039", () => {
     );
     s.state.memory = 8;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("bomber").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("bomber").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.memory === 2, 1_500);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
@@ -56,7 +58,12 @@ describe("BT15-039", () => {
           battleArea: [{ card: "BT15-039", as: "bomber", under: ["BT8-008"] }],
           security: ["BT1-001"],
         },
-        1: { battleArea: [{ card: "BT1-009", dp: 3000, as: "target" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", dp: 3000, as: "firstTarget" },
+            { card: "BT1-009", dp: 3000, as: "secondTarget" },
+          ],
+        },
       },
       { autoSelectCards: true },
     );
@@ -71,6 +78,8 @@ describe("BT15-039", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
 
-    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("target").instanceId)).toBe(true);
+    // The physically inherited BT8-008 effect deletes one target. Excluding inherited
+    // effects from Bombermon's borrowed copy prevents a second activation deleting both.
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 });

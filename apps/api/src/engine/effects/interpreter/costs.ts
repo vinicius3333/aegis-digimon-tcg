@@ -3,12 +3,20 @@
 import { MEMORY_MIN } from "../../MemoryGauge.js";
 import { requireOpponentAsk } from "../../decisions/decisionApi.js";
 import type { EffectContext } from "../EffectContext.js";
+import { canAttemptDigivolve, runDigivolve } from "./actions/digivolve.js";
 import { definitionMatches } from "./matching/definition.js";
 import { permanentMatchesFilter, seatsForController } from "./matching/permanent.js";
 import { LooseCandidate, candidateLooseInstances, looseCardsInZone, pickLoose, zoneList } from "./targeting/loose.js";
 import { candidatePermanents, resolvePermanentTargets, topInstanceIds } from "./targeting/permanents.js";
-import { CardKind, getCardDefinition, isDigimon, isTamer } from "@aegis/shared";
-import type { Cost, Filter, Permanent, Target, ZoneRef } from "@aegis/shared";
+import {
+  canAssignDistinctColors,
+  CardKind,
+  filterToDistinctColors,
+  getCardDefinition,
+  isDigimon,
+  isTamer,
+} from "@aegis/shared";
+import type { Action, Cost, Filter, Permanent, Target, ZoneRef } from "@aegis/shared";
 
 // ---------------------------------------------------------------------------
 // Cost payment
@@ -29,12 +37,51 @@ function placeCostHostCandidates(ctx: EffectContext, host: Target): Permanent[] 
 }
 
 /**
+ * Keep the selected permanents that satisfy the shared "different colors" rule. A
+ * multicolor permanent contributes one assignable color, rather than occupying every
+ * printed color (CR 4-24-2 / KB Q3048). The target resolver handles the board choice;
+ * placement costs must revalidate its submitted ids before moving any permanent.
+ */
+function distinctColorPermanentIds(ctx: EffectContext, permanentIds: readonly string[]): string[] {
+  const selected = permanentIds
+    .map((permanentId) => ctx.game.permanentById(permanentId))
+    .filter((permanent): permanent is Permanent => permanent?.topCard !== undefined);
+  const colorSets = selected.map((permanent) => ctx.game.definitionOf(permanent.topCard).colors);
+  if (canAssignDistinctColors(colorSets)) return selected.map((permanent) => permanent.permanentId);
+  return filterToDistinctColors(selected, (permanent) => ctx.game.definitionOf(permanent.topCard).colors).map(
+    (permanent) => permanent.permanentId,
+  );
+}
+
+/**
  * A return-cost target with `topCardOnly` names a permanent's visible top card, not a loose
  * digivolution-card instance. A stack card must exist beneath that top card so the permanent can
  * remain in play after payment (BT13-107 Q2359/Q2360).
  */
 function permanentTopReturnCostCandidates(ctx: EffectContext, target: Target): Permanent[] {
   return candidatePermanents(ctx, target).filter((permanent) => permanent.stack.length > 0);
+}
+
+/** Snapshot one loose-card payment for a downstream relative/name filter in this resolution. */
+function bindLooseCostSelection(
+  ctx: EffectContext,
+  ref: string | undefined,
+  candidates: readonly LooseCandidate[],
+  chosen: readonly string[],
+): void {
+  if (ref === undefined) return;
+  const selected = candidates.find((candidate) => chosen.includes(candidate.instanceId));
+  if (selected === undefined) return;
+  const definition = ctx.game.definitionOf({ cardId: selected.cardId });
+  ctx.selections ??= new Map();
+  ctx.selections.set(ref, selected.instanceId);
+  ctx.selectionFacts ??= new Map();
+  ctx.selectionFacts.set(ref, {
+    dp: definition.dp,
+    level: definition.level,
+    playCost: definition.playCost,
+    name: definition.nameEn,
+  });
 }
 
 /**
@@ -49,6 +96,17 @@ function permanentTopReturnCostCandidates(ctx: EffectContext, target: Target): P
  */
 export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
   if (cost.kind === "raw") return false;
+  if (cost.kind === "digivolve") {
+    if (cost.target === undefined || cost.into === undefined) return false;
+    return canAttemptDigivolve(ctx, {
+      kind: "Digivolve",
+      target: cost.target,
+      into: cost.into,
+      from: cost.from ?? ["hand", "trash"],
+      payCost: true,
+      ...(cost.costReduction === undefined ? {} : { costDelta: -cost.costReduction }),
+    });
+  }
   if (cost.kind === "trash" && cost.target?.from?.includes("hand") && cost.target.from.includes("digivolutionCards")) {
     const filter = { ...cost.target.filter, zone: undefined };
     const candidates = candidateLooseInstances(ctx, { ...cost.target, filter }, ["hand", "digivolutionCards"]);
@@ -182,7 +240,14 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
   if (cost.kind === "return" && cost.target !== undefined && cost.target.filter.zone === "digivolutionCards") {
     const candidates = candidateLooseInstances(ctx, cost.target, ["digivolutionCards"]);
     const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
-    return required > 0 && candidates.length >= required;
+    if (required <= 0 || candidates.length < required) return false;
+    if (cost.target.filter.sameHost !== true) return true;
+    const byHost = new Map<string, number>();
+    for (const candidate of candidates) {
+      if (candidate.hostPermanentId !== undefined)
+        byHost.set(candidate.hostPermanentId, (byHost.get(candidate.hostPermanentId) ?? 0) + 1);
+    }
+    return [...byHost.values()].some((count) => count >= required);
   }
   if (cost.kind === "return" && cost.target !== undefined && Array.isArray(cost.target.filter.zone)) {
     const zones = cost.target.filter.zone as ZoneRef[];
@@ -305,11 +370,18 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     // destination host. EX3-066 otherwise asked to place a Cyborg with an empty
     // hand/trash, then opened a guaranteed no-op selection.
     if (cost.targetIsPermanent === true) {
-      const required = cost.target.count === "all" ? 1 : (cost.target.count ?? 1);
-      if (candidatePermanents(ctx, cost.target).length < required) return false;
+      const candidates = candidatePermanents(ctx, cost.target);
+      const selectedIds = candidates.map((permanent) => permanent.permanentId);
+      const legalIds =
+        cost.target.filter.differentColors === true ? distinctColorPermanentIds(ctx, selectedIds) : selectedIds;
+      const required = cost.target.upTo === true ? 1 : cost.target.count === "all" ? 1 : (cost.target.count ?? 1);
+      if (legalIds.length < required) return false;
       if (cost.destination === "security" || cost.destination === "battleArea") return true;
       if (cost.host !== null && typeof cost.host === "object") {
         return placeCostHostCandidates(ctx, { filter: cost.host.filter, count: cost.host.count }).length > 0;
+      }
+      if (cost.host === "target" && cost.underFilter !== undefined) {
+        return candidatePermanents(ctx, { filter: cost.underFilter, count: 1 }).length > 0;
       }
       return ctx.source.permanent() !== undefined;
     }
@@ -403,6 +475,21 @@ export async function payCost(
     case "attack":
     case "digivolveSelf":
       return false;
+    case "digivolve": {
+      if (cost.target === undefined || cost.into === undefined) return false;
+      const action: Extract<Action, { kind: "Digivolve" }> = {
+        kind: "Digivolve",
+        target: cost.target,
+        into: cost.into,
+        from: cost.from ?? ["hand", "trash"],
+        payCost: true,
+        ...(cost.costReduction === undefined ? {} : { costDelta: -cost.costReduction }),
+      };
+      await runDigivolve(ctx, action);
+      const paid = ctx.lastDigivolveResult === true;
+      if (paid && out) out.paidCount = 1;
+      return paid;
+    }
     case "reveal": {
       if (cost.target === undefined) return false;
       const candidates = candidateLooseInstances(ctx, cost.target, ["hand"]);
@@ -1050,7 +1137,26 @@ export async function payCost(
           const chosen = await ctx.ask.selectCards(ctx, { candidates: candidateIds, min: allowZero ? 0 : 1, max: cap });
           if (chosen.length < 1) return false;
           const moved = await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
+          ctx.lastTrashedCards = moved.map((card) => ({
+            instanceId: card.instanceId,
+            cardId: card.cardId,
+            dp: ctx.game.definitionOf(card).dp ?? 0,
+          }));
+          if (cost.storeAs !== undefined && moved.length > 0) {
+            const level = ctx.game.definitionOf(moved[0]!).level;
+            if (level !== undefined && level > 0) {
+              ctx.namedCounts ??= new Map();
+              ctx.namedCounts.set(cost.storeAs, level);
+            }
+          }
           if (out) out.paidCount = moved.length;
+          if (moved.length >= 1)
+            bindLooseCostSelection(
+              ctx,
+              cost.bindResultAs,
+              candidates,
+              moved.map((card) => card.instanceId),
+            );
           return moved.length >= 1;
         }
         const want = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
@@ -1058,7 +1164,26 @@ export async function payCost(
         const chosen = await pickLoose(ctx, { ...handTarget, count: want }, candidates);
         if (chosen.length < want) return false;
         const moved = await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
+        ctx.lastTrashedCards = moved.map((card) => ({
+          instanceId: card.instanceId,
+          cardId: card.cardId,
+          dp: ctx.game.definitionOf(card).dp ?? 0,
+        }));
+        if (cost.storeAs !== undefined && moved.length > 0) {
+          const level = ctx.game.definitionOf(moved[0]!).level;
+          if (level !== undefined && level > 0) {
+            ctx.namedCounts ??= new Map();
+            ctx.namedCounts.set(cost.storeAs, level);
+          }
+        }
         if (out) out.paidCount = moved.length;
+        if (moved.length === want)
+          bindLooseCostSelection(
+            ctx,
+            cost.bindResultAs,
+            candidates,
+            moved.map((card) => card.instanceId),
+          );
         return moved.length === want;
       }
       // A security-/hand-/trash-resident effect can pay "by trashing this card" while its
@@ -1185,7 +1310,7 @@ export async function payCost(
       // battle-area permanent top cards. Resolve them through the loose-card path so
       // returnToDeck can remove the selected stack cards from their hosts.
       if (cost.target.filter.zone === "digivolutionCards") {
-        const candidates = candidateLooseInstances(ctx, cost.target, ["digivolutionCards"]);
+        let candidates = candidateLooseInstances(ctx, cost.target, ["digivolutionCards"]);
         const n = cost.target.count === "all" ? candidates.length : cost.target.count;
         if (n <= 0 || candidates.length < n) return false;
         if (cost.target.filter.sameHost === true) {
@@ -1277,6 +1402,7 @@ export async function payCost(
             chosen.push(id);
           }
           await ctx.fx.returnToDeck(chosen, { toTop: await returnToTop() });
+          bindLooseCostSelection(ctx, cost.bindResultAs, candidates, chosen);
           if (out) out.paidCount = chosen.length;
           return true;
         }
@@ -1303,6 +1429,7 @@ export async function payCost(
           }
           const toTop = await returnToTop();
           await ctx.fx.returnToDeck(toTop ? [...chosen].reverse() : chosen, { toTop });
+          bindLooseCostSelection(ctx, cost.bindResultAs, candidates, chosen);
           if (out) out.paidCount = chosen.length;
           return true;
         }
@@ -1333,6 +1460,7 @@ export async function payCost(
         ];
         recordTrackedColors(candidates, chosen);
         await ctx.fx.returnToDeck(chosen, { toTop: await returnToTop() });
+        bindLooseCostSelection(ctx, cost.bindResultAs, candidates, chosen);
         if (out) out.paidCount = chosen.length;
         return true;
       }
@@ -1375,12 +1503,15 @@ export async function payCost(
       // subsequent target filter's `levelComparison.relativeTo:"lastDeleted"` can bound on it
       // (BT8-107: "delete 1 of your Digimon to delete 1 of your opponent's with level <= it").
       let maxLevel: number | undefined;
+      let maxDP: number | undefined;
       for (const id of permanentIds) {
         const perm = ctx.game.permanentById(id);
         const level = perm?.topCard ? ctx.game.definitionOf(perm.topCard).level : undefined;
         if (level !== undefined && level > 0) maxLevel = Math.max(maxLevel ?? 0, level);
+        if (perm !== undefined) maxDP = Math.max(maxDP ?? 0, perm.currentDP);
       }
       if (maxLevel !== undefined) ctx.lastDeletedLevel = maxLevel;
+      if (maxDP !== undefined) ctx.lastDeletedDP = maxDP;
       if (cost.bindResultAs !== undefined) {
         ctx.boundPlayed ??= new Map();
         ctx.boundPlayed.set(cost.bindResultAs, new Set(permanentIds));
@@ -1552,12 +1683,16 @@ export async function payCost(
       }
       // Routed place-as-cost (cost.destination set): the chosen card(s) go to the
       // security stack or a chosen/own digivolution stack at top/bottom, instead of
-      // the default "under the source" placeUnder below. Source zones come from
-      // cost.target.from (defaulting to hand); the cost is all-or-nothing.
+      // the default "under the source" placeUnder below. Loose-card source zones come from
+      // cost.target.from (defaulting to hand); permanent relocation tracks actual moves.
       if (cost.destination !== undefined) {
         if (!cost.target) return false;
         if (cost.targetIsPermanent === true) {
-          const sourceIds = await resolvePermanentTargets(ctx, cost.target);
+          const resolvedSourceIds = await resolvePermanentTargets(ctx, cost.target);
+          const sourceIds =
+            cost.target.filter.differentColors === true
+              ? distinctColorPermanentIds(ctx, resolvedSourceIds)
+              : resolvedSourceIds;
           if (sourceIds.length === 0) return false;
           if (cost.storeAs !== undefined) {
             const sourcePermanent = ctx.game.permanentById(sourceIds[0]!);
@@ -1571,9 +1706,18 @@ export async function payCost(
             for (const sourcePermanentId of sourceIds) {
               const permanent = ctx.game.permanentById(sourcePermanentId);
               if (permanent?.topCard === undefined) return false;
-              await ctx.fx.addSecurity(permanent.controllerSeat, [permanent.topCard.instanceId], {
+              const topInstanceId = permanent.topCard.instanceId;
+              await ctx.fx.addSecurity(permanent.controllerSeat, [topInstanceId], {
                 toTop: cost.position !== "bottom",
+                detachPermanentTop: cost.detachPermanentTop === true,
               });
+              if (cost.detachPermanentTop === true) {
+                const reachedSecurity = ctx.game.state.players.some((player) =>
+                  player.security.some((card) => card.instanceId === topInstanceId),
+                );
+                if (!reachedSecurity) return false;
+                continue;
+              }
               // The cost is paid only if the permanent actually left. A leave-prevention
               // replacement can keep it in the battle area (ST22-06 Q5425), in which case the
               // dependent effect must not resolve even though the placement was attempted.
@@ -1622,13 +1766,30 @@ export async function payCost(
             ctx.selections ??= new Map();
             ctx.selections.set(cost.bindHostAs, hostPermId);
           }
+          const placedSourceIds: string[] = [];
+          const sourceTopInstanceIds = new Map(
+            sourceIds.map((sourcePermanentId) => [
+              sourcePermanentId,
+              ctx.game.permanentById(sourcePermanentId)?.topCard?.instanceId,
+            ]),
+          );
           for (const sourcePermanentId of sourceIds) {
-            await relocateByEffect(ctx, hostPermId, sourcePermanentId, {
+            const moved = await relocateByEffect(ctx, hostPermId, sourcePermanentId, {
               belowTop: cost.position !== "bottom",
               shedOwnCards: cost.shedOwnCards === true,
             });
+            if (moved) placedSourceIds.push(sourcePermanentId);
           }
-          if (out) out.paidCount = sourceIds.length;
+          if (placedSourceIds.length === 0) return false;
+          ctx.lastPlacedUnderInstanceIds = placedSourceIds
+            .map((sourcePermanentId) => sourceTopInstanceIds.get(sourcePermanentId))
+            .filter((instanceId): instanceId is string => instanceId !== undefined);
+          ctx.lastEffectActed = true;
+          if (cost.trackCount !== undefined) {
+            ctx.namedCounts ??= new Map();
+            ctx.namedCounts.set(cost.trackCount, placedSourceIds.length);
+          }
+          if (out) out.paidCount = placedSourceIds.length;
           return true;
         }
         const srcZones: ZoneRef[] = (cost.target.from?.length ?? 0) > 0 ? (cost.target.from as ZoneRef[]) : ["hand"];

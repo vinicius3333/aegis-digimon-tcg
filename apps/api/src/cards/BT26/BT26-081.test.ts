@@ -214,7 +214,7 @@ describe("BT26-081 compiled behavior", () => {
       {
         0: {
           battleArea: [{ card: "BT26-081", as: "mervamon" }],
-          breeding: { card: "BT26-080", as: "breedingIliad" },
+          breeding: { card: "BT24-002", as: "breedingIliad" },
         },
         1: { battleArea: [{ card: "BT1-084", as: "target", dp: 10000 }] },
       },

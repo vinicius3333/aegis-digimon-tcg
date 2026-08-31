@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -5,6 +6,22 @@ import { compiled as BT24_068 } from "./BT24-068.js";
 import "../index.js";
 
 describe("BT24-068 DemiDevimon", () => {
+  it("matches the immutable catalog identity", () => {
+    expect(getCardDefinition("BT24-068")).toMatchObject({
+      cardId: "BT24-068",
+      nameEn: "DemiDevimon",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 1000,
+      forms: ["Rookie"],
+      attributes: ["Virus"],
+      types: ["Evil"],
+      evoCosts: [{ color: "Purple", level: 2, memoryCost: 0 }],
+    });
+  });
+
   it("reveals both printed trait categories, bottoms the rest, then trashes a hand card", () => {
     const onPlay = BT24_068.effects?.find((entry) => entry.trigger === "OnPlay");
     expect(onPlay?.actions?.[0]).toMatchObject({

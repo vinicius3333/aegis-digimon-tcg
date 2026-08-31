@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-004.js";
 import "../index.js";
-import "../../BT1/BT1-036.js";
+import "../BT1/BT1-036.js";
 
 describe("BT16-004", () => {
   it("once per turn gains memory when it deletes in battle and has two colors", () =>
@@ -28,8 +28,8 @@ describe("BT16-004", () => {
         },
         1: {
           battleArea: [
-            { card: "BT1-010", as: "firstTarget", dp: 1000 },
-            { card: "BT1-010", as: "secondTarget", dp: 1000 },
+            { card: "BT1-010", as: "firstTarget", dp: 1000, suspended: true },
+            { card: "BT1-010", as: "secondTarget", dp: 1000, suspended: true },
           ],
         },
       },
@@ -37,7 +37,7 @@ describe("BT16-004", () => {
     );
     const firstTargetInstanceId = s.perm("firstTarget").topCard.instanceId;
     const secondTargetInstanceId = s.perm("secondTarget").topCard.instanceId;
-    s.state.memory = 10;
+    s.state.memory = 9;
 
     expect(
       s.engine.applyIntent(0, {
@@ -47,9 +47,11 @@ describe("BT16-004", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === firstTargetInstanceId));
-    expect(s.state.memory).toBe(11);
+    expect(s.state.memory).toBe(10);
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("garurumon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("garurumon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("host").isSuspended === false);
     const memoryBeforeSecondBattle = s.state.memory;
 
@@ -67,7 +69,7 @@ describe("BT16-004", () => {
   it("does not gain memory when a one-color host deletes in battle", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-010", as: "host", under: ["BT16-004"] }] },
-      1: { battleArea: [{ card: "BT1-010", as: "target", dp: 1000 }] },
+      1: { battleArea: [{ card: "BT1-010", as: "target", dp: 1000, suspended: true }] },
     });
     s.state.memory = 0;
 

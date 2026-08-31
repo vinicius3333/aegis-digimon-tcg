@@ -8,10 +8,22 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 
 describe("BT13-040 Magnamon", () => {
   it("keeps both bracketed Veemon references exact", () => {
-    const play = compiled.effects[1]!.actions[0] as unknown as {
-      actions: [{ target: { filter: { or: [{ nameOrTrait: [{ tokens: string[]; match: string }] }] } } }];
+    const replacement = compiled.effects[1]!.actions[0] as unknown as {
+      actions: [
+        unknown,
+        {
+          target: {
+            filter: {
+              or: [
+                { nameOrTrait: [{ tokens: string[]; match: string }] },
+                { nameOrTrait: [{ tokens: string[]; match: string }] },
+              ];
+            };
+          };
+        },
+      ];
     };
-    const branches = play.actions[0].target.filter.or;
+    const branches = replacement.actions[1].target.filter.or;
     const handReference = branches[0]!.nameOrTrait[0]!;
     const stackReference = branches[1]!.nameOrTrait[0]!;
 
@@ -73,8 +85,8 @@ describe("BT13-040 Magnamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT13-040", as: "magna", under: ["BT12-021"] }],
-          hand: ["BT12-021"],
+          battleArea: [{ card: "BT13-040", as: "magna", under: ["BT3-021"] }],
+          hand: ["BT3-021"],
           deck: ["BT1-001"],
         },
       },
@@ -91,7 +103,7 @@ describe("BT13-040 Magnamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT13-040", as: "magna", under: [{ card: "BT12-021", as: "source-veemon" }] }],
+          battleArea: [{ card: "BT13-040", as: "magna", under: [{ card: "BT3-021", as: "source-veemon" }] }],
           deck: [{ card: "BT1-001", as: "drawn" }],
         },
       },
@@ -101,7 +113,7 @@ describe("BT13-040 Magnamon", () => {
     const magnaId = s.perm("magna").topCard.instanceId;
 
     await advance(s.engine).verb.deletePermanent([s.perm("magna").permanentId]);
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT12-021"));
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT3-021"));
 
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("drawn").instanceId)).toBe(true);
     expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === magnaId)).toBe(true);
@@ -115,7 +127,7 @@ describe("BT13-040 Magnamon", () => {
       {
         0: {
           battleArea: [{ card: "BT13-040", as: "magna" }],
-          hand: [{ card: "BT12-021", as: "hand-veemon" }],
+          hand: [{ card: "BT3-021", as: "hand-veemon" }],
           deck: ["BT1-001"],
         },
       },
@@ -123,7 +135,9 @@ describe("BT13-040 Magnamon", () => {
     );
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("magna").permanentId]);
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("hand-veemon").instanceId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("hand-veemon").instanceId),
+    );
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("hand-veemon").instanceId)).toBe(
       true,
     );
@@ -134,17 +148,19 @@ describe("BT13-040 Magnamon", () => {
       {
         0: {
           battleArea: [{ card: "BT13-040", as: "magna" }],
-          deck: [{ card: "BT12-021", as: "drawn-veemon" }],
+          deck: [{ card: "BT3-021", as: "drawn-veemon" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("magna").permanentId]);
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("drawn-veemon").instanceId));
-    expect(
+    await settle(() =>
       s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("drawn-veemon").instanceId),
-    ).toBe(true);
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("drawn-veemon").instanceId)).toBe(
+      true,
+    );
   });
 
   it("does not offer a Veemon from another Digimon's sources", async () => {
@@ -162,9 +178,9 @@ describe("BT13-040 Magnamon", () => {
     );
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("magna").permanentId]);
-    expect(s.perm("other-host").stack.some(({ instanceId }) => instanceId === s.inst("wrong-host-veemon").instanceId)).toBe(
-      true,
-    );
+    expect(
+      s.perm("other-host").stack.some(({ instanceId }) => instanceId === s.inst("wrong-host-veemon").instanceId),
+    ).toBe(true);
     expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
   });
 
@@ -195,7 +211,7 @@ describe("BT13-040 Magnamon", () => {
       {
         0: {
           battleArea: [{ card: "BT13-040", as: "magna" }],
-          hand: [{ card: "BT12-021", as: "veemon" }],
+          hand: [{ card: "BT3-021", as: "veemon" }],
           deck: [{ card: "BT1-001", as: "drawn" }],
         },
       },

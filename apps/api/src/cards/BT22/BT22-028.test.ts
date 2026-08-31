@@ -12,13 +12,44 @@ describe("BT22-028 Ariemon", () => {
         keywords: [{ keyword: "Decode", raw: "＜Decode (Lv.6 or lower w/[Aqua]/[Sea Animal] in any trait)＞" }],
       }),
     );
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "AllTurns",
+        actions: [
+          {
+            kind: "Replacement",
+            event: "wouldLeavePlay",
+            leaveCause: "otherThanBattle",
+            sourceFilter: { isSelfRef: true },
+            actions: [
+              {
+                kind: "PlayWithoutCost",
+                fromOwnDigivolutionStack: true,
+                payCost: false,
+                playedByDecode: true,
+                optional: true,
+                target: {
+                  filter: {
+                    controller: "mine",
+                    kind: ["Digimon"],
+                    levelComparison: { op: "lte", value: 6 },
+                    nameOrTrait: [{ tokens: ["Aqua", "Sea Animal"], match: "traitContains" }],
+                  },
+                  count: 1,
+                },
+              },
+            ],
+          },
+        ],
+      }),
+    );
     const digivolving = compiled.effects.filter((entry) => entry.trigger === "WhenDigivolving");
     expect(digivolving[0]?.optional).toBe(true);
     expect(digivolving[0]?.actions).toHaveLength(3);
     expect(digivolving[0]?.actions.map((action) => (action as any).target.filter.levels)).toEqual([[3], [4], [5]]);
     expect(
       digivolving[0]?.actions.every(
-        (action) => (action as any).from?.[0] === "digivolutionCards" && (action as any).optional === false,
+        (action) => (action as any).fromOwnDigivolutionStack === true && (action as any).optional === false,
       ),
     ).toBe(true);
     for (const trigger of ["WhenDigivolving", "WhenAttacking"]) {
@@ -145,5 +176,18 @@ describe("BT22-028 Ariemon", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[1]!.deck).toHaveLength(0);
+  });
+
+  it("executes Decode from its own stack on a non-battle leave", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT22-028", under: ["BT22-024"], as: "host" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-024"));
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT22-024"]);
   });
 });

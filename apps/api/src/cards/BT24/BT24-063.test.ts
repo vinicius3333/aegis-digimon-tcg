@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -5,6 +6,22 @@ import { compiled as BT24_063 } from "./BT24-063.js";
 import "../index.js";
 
 describe("BT24-063 Locomon", () => {
+  it("matches the immutable catalog identity", () => {
+    expect(getCardDefinition("BT24-063")).toMatchObject({
+      cardId: "BT24-063",
+      nameEn: "Locomon",
+      colors: ["Black"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
+      forms: ["Ultimate"],
+      attributes: ["Data"],
+      types: ["Machine", "Iliad", "TS"],
+      evoCosts: [{ color: "Black", level: 4, memoryCost: 3 }],
+    });
+  });
+
   it("has the same play-from-reveal search on play and digivolving", () => {
     const effects = BT24_063.effects?.filter((entry) => ["OnPlay", "WhenDigivolving"].includes(entry.trigger));
     expect(effects).toHaveLength(2);

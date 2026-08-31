@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { playEx4Card } from "./livePlayTestHelpers.js";
+import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
 import {
   CardColor,
   CardKind,
@@ -14,6 +16,7 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import "./EX4-068.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 
 const card = (id: string, seat: Seat): CardInstance =>
   ({ cardId: id, instanceId: `${id}-${seat}`, ownerSeat: seat, faceUp: true }) as CardInstance;
@@ -43,6 +46,7 @@ describe("EX4-068 Heaven's Judgement", () => {
     const selfCard = card("EX4-068", 0);
     const self = {
       permanentId: "self",
+      controllerSeat: 0,
       topCard: selfCard,
       stack: [],
       linked: [],
@@ -51,6 +55,7 @@ describe("EX4-068 Heaven's Judgement", () => {
     } as unknown as Permanent;
     const own = {
       permanentId: "own",
+      controllerSeat: 0,
       topCard: card("OWN", 0),
       stack: [],
       linked: [],
@@ -59,6 +64,7 @@ describe("EX4-068 Heaven's Judgement", () => {
     } as unknown as Permanent;
     const opp = {
       permanentId: "opp",
+      controllerSeat: 1,
       topCard: card("OPP", 1),
       stack: [],
       linked: [],
@@ -109,6 +115,7 @@ describe("EX4-068 Heaven's Judgement", () => {
   it("only waives the option color requirement while a green Digimon or Tamer is in play", async () => {
     const option = {
       permanentId: "option",
+      controllerSeat: 0,
       topCard: card("EX4-068", 0),
       stack: [],
       linked: [],
@@ -117,6 +124,7 @@ describe("EX4-068 Heaven's Judgement", () => {
     } as unknown as Permanent;
     const red = {
       permanentId: "red",
+      controllerSeat: 0,
       topCard: card("RED", 0),
       stack: [],
       linked: [],
@@ -162,6 +170,7 @@ describe("EX4-068 Heaven's Judgement", () => {
     expect(waived).toEqual([]);
     players[0]!.battleArea.push({
       permanentId: "green",
+      controllerSeat: 0,
       topCard: card("GREEN", 0),
       stack: [],
       linked: [],
@@ -173,4 +182,33 @@ describe("EX4-068 Heaven's Judgement", () => {
     await effect.resolve(ctx);
     expect(waived).toEqual([option.topCard!.instanceId]);
   });
+
+  it("plays through the live engine", async () => {
+    const s = await playEx4Card("EX4-068");
+    expect(s.state.players[0]!.hand.some((handCard) => handCard.instanceId === s.inst("subject").instanceId)).toBe(
+      false,
+    );
+  });
+
+  it("publicly waives its yellow color requirement with only a green Digimon in play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-064", as: "green" }],
+          hand: [{ card: "EX4-068", as: "option" }],
+        },
+        1: { battleArea: [{ card: "BT1-013", as: "target", dp: 30000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").currentDP === 18000);
+    expect(s.perm("target").currentDP).toBe(18000);
+    expect(s.state.players[0]!.hand.some((entry) => entry.instanceId === s.inst("option").instanceId)).toBe(false);
+  });
+  ex4CardBehaviorTests("EX4-068");
 });

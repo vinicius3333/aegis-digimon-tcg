@@ -935,6 +935,60 @@ describe("security a card effect trashes", () => {
     await advance(TIMINGS.securityArm);
     expect(result.current.securityBreak).toMatchObject({ seat: 1, phase: "break" });
   });
+
+  // The reported bug: a chained effect (Medusamon's Petrification tokens) delivers one
+  // trash per event batch, and each new batch's shield break replaced the centre of the
+  // screen — cancelling the previous card's still-playing scene.
+  it("queues a later batch's trash behind the scene the first batch is still playing", async () => {
+    const trashOf = (instanceId: string, cardId: string): ServerEvent => ({
+      kind: "cardsMoved",
+      instanceIds: [instanceId],
+      from: "security",
+      to: "trash",
+      cardIds: [cardId],
+      seat: 1,
+    });
+    const first = trashOf("i-a", "BT1-010");
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([first]);
+    await advance(SECURITY_BREAK_TOTAL_MS);
+    expect(result.current.securityClash?.revealed.cardId).toBe("BT1-010");
+
+    // The second trash arrives while the first card's scene is on screen.
+    rerender([first, trashOf("i-b", "BT1-011")]);
+    await advance(0);
+    expect(result.current.securityClash?.revealed.cardId).toBe("BT1-010");
+
+    // The first scene runs its full clock, and only then does the second play.
+    await advance(SECURITY_DESTROY_TOTAL_MS + SECURITY_BREAK_TOTAL_MS);
+    expect(result.current.securityClash?.revealed.cardId).toBe("BT1-011");
+
+    await advance(SECURITY_DESTROY_TOTAL_MS);
+    expect(result.current.securityClash).toBeNull();
+  });
+
+  // The other half of the reported bug: the movement event outruns the state patch, so
+  // the board index cannot name the card yet. The event's own identities carry the scene.
+  it("plays the scene from the event's identities before the board has the card", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([
+      {
+        kind: "cardsMoved",
+        instanceIds: ["i-not-in-any-index"],
+        from: "security",
+        to: "trash",
+        cardIds: ["BT1-010"],
+        seat: 1,
+      },
+    ]);
+    await advance(SECURITY_BREAK_TOTAL_MS);
+    expect(result.current.securityClash?.revealed.cardId).toBe("BT1-010");
+    expect(result.current.securityClash?.cause).toBe("destruction");
+  });
 });
 
 describe("the figure a shield shows", () => {
@@ -980,5 +1034,85 @@ describe("the figure a shield shows", () => {
     rerender([ATTACK, REVEAL, SECOND_REVEAL, SECOND_CHECK]);
     await advance(SECURITY_BREAK_TOTAL_MS + CLASH_TOTAL_MS);
     expect(result.current.heldSecurityCounts.get(0)).toBeUndefined();
+  });
+});
+
+describe("security gains", () => {
+  function boardWithSecurity(you: number, opp: number): GameState {
+    return {
+      players: [
+        { battleArea: [], trash: [], hand: [], securityCount: you },
+        { battleArea: [], trash: [], hand: [], securityCount: opp },
+      ],
+    } as unknown as GameState;
+  }
+
+  /** The same hook, with the board as a second input so a patch can land between batches. */
+  function renderCuesOverGrowingBoard(initialState: GameState) {
+    return renderHook(
+      ({ events, state }: { events: readonly ServerEvent[]; state: GameState }) =>
+        useMatchCues({
+          events,
+          state,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          anchors,
+          onActionRejected: vi.fn<(reason: string) => void>(),
+        }),
+      { initialProps: { events: [] as readonly ServerEvent[], state: initialState } },
+    );
+  }
+
+  it("flies the card onto the stack and announces a growth an effect caused", async () => {
+    const { result, rerender } = renderCuesOverGrowingBoard(boardWithSecurity(5, 5));
+    await advance(0);
+
+    rerender({ events: [], state: boardWithSecurity(6, 5) });
+    await advance(0);
+    expect(result.current.securityFlights.has(VIEWER)).toBe(true);
+    expect(result.current.notices).toHaveLength(1);
+    expect(result.current.notices[0]).toMatchObject({ side: "you", body: { variant: "securityGain", amount: 1 } });
+
+    await advance(TIMINGS.securityFlight);
+    expect(result.current.securityFlights.has(VIEWER)).toBe(false);
+  });
+
+  it("announces the opponent's growth on the opponent's side", async () => {
+    const { result, rerender } = renderCuesOverGrowingBoard(boardWithSecurity(5, 5));
+    await advance(0);
+
+    rerender({ events: [], state: boardWithSecurity(5, 7) });
+    await advance(0);
+    expect(result.current.securityFlights.has(1)).toBe(true);
+    expect(result.current.notices[0]).toMatchObject({ side: "opp", body: { variant: "securityGain", amount: 2 } });
+  });
+
+  it("leaves a growth a recovery announced to the recovery", async () => {
+    const { result, rerender } = renderCuesOverGrowingBoard(boardWithSecurity(5, 5));
+    await advance(0);
+
+    rerender({
+      events: [{ kind: "securityRecovered", seat: VIEWER, amount: 1 }],
+      state: boardWithSecurity(6, 5),
+    });
+    await advance(0);
+    expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(["recovery"]);
+  });
+
+  it("says nothing when the stack shrinks", async () => {
+    const { result, rerender } = renderCuesOverGrowingBoard(boardWithSecurity(5, 5));
+    await advance(0);
+
+    rerender({ events: [], state: boardWithSecurity(4, 5) });
+    await advance(0);
+    expect(result.current.securityFlights.size).toBe(0);
+    expect(result.current.notices).toEqual([]);
+  });
+
+  it("treats the dealt opening stack as a baseline, not a growth", async () => {
+    const { result } = renderCuesOverGrowingBoard(boardWithSecurity(5, 5));
+    await advance(0);
+    expect(result.current.securityFlights.size).toBe(0);
+    expect(result.current.notices).toEqual([]);
   });
 });

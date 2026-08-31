@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -5,6 +6,22 @@ import { compiled as BT24_070 } from "./BT24-070.js";
 import "../index.js";
 
 describe("BT24-070 Growlmon", () => {
+  it("matches the immutable catalog identity", () => {
+    expect(getCardDefinition("BT24-070")).toMatchObject({
+      cardId: "BT24-070",
+      nameEn: "Growlmon",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 5,
+      dp: 5000,
+      forms: ["Champion"],
+      attributes: ["Virus"],
+      types: ["Dark Dragon"],
+      evoCosts: [{ color: "Purple", level: 3, memoryCost: 2 }],
+    });
+  });
+
   it("plays a qualifying purple Tamer from trash under the hand-size gate", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       expect(BT24_070.effects?.find((entry) => entry.trigger === trigger)?.actions?.[0]).toMatchObject({

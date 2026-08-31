@@ -15,7 +15,13 @@ describe("BT19-100 D-Reaper Zone", () => {
           {
             kind: "SubTrigger",
             event: "whenOpponentAttacks",
-            fireCondition: { kind: "allYoursMatchFilter" },
+            fireCondition: {
+              kind: "allYoursMatchFilter",
+              filter: {
+                kind: ["Digimon", "Tamer"],
+                nameOrTrait: [{ tokens: ["D-Reaper"], match: "trait" }],
+              },
+            },
             actions: [
               {
                 kind: "ModifyDP",
@@ -45,10 +51,24 @@ describe("BT19-100 D-Reaper Zone", () => {
         actions: [
           {
             kind: "PlayWithoutCost",
+            target: {
+              filter: {
+                controller: "mine",
+                playCostLte: 0,
+                playCostLteScaling: {
+                  per: 1,
+                  filter: {
+                    controller: "mine",
+                    nameOrTrait: [{ tokens: ["Mother D-Reaper"], match: "nameExact" }],
+                  },
+                  unit: "digivolutionCardsOfFiltered",
+                },
+                nameOrTrait: [{ tokens: ["D-Reaper"], match: "trait" }],
+              },
+              count: 1,
+            },
             from: ["hand"],
             payCost: false,
-            condition: { kind: "triggerPlayCostAtMostStackCount" },
-            scaling: { per: 1, unit: "digivolutionCardsOfFiltered" },
           },
         ],
       },

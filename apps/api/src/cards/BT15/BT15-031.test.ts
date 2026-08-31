@@ -44,7 +44,9 @@ describe("BT15-031", () => {
     );
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("metalSeadramon"));
-    await settle(() => s.state.players[1]!.hand.some(({ instanceId }) => instanceId === s.inst("levelFive").instanceId));
+    await settle(() =>
+      s.state.players[1]!.hand.some(({ instanceId }) => instanceId === s.inst("levelFive").instanceId),
+    );
 
     expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("levelFive").instanceId);
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(
@@ -88,9 +90,7 @@ describe("BT15-031", () => {
     await s.ready();
 
     expect(s.inst("whiteOmnimon").digivolveTargetPermanentIds).toContain(s.perm("metalSeadramon").permanentId);
-    expect(s.inst("blueBurstMode").digivolveTargetPermanentIds).not.toContain(
-      s.perm("metalSeadramon").permanentId,
-    );
+    expect(s.inst("blueBurstMode").digivolveTargetPermanentIds).not.toContain(s.perm("metalSeadramon").permanentId);
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -118,7 +118,9 @@ describe("BT15-031", () => {
     await advance(s.engine).fire(EffectTiming.EndOfOpponentsTurn, s.perm("metalSeadramon"));
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT15-052"));
 
-    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("metalSeadramon").instanceId);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("metalSeadramon").instanceId,
+    );
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT15-052");
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(
       s.inst("excludedMetalSeadramon").instanceId,
@@ -138,11 +140,13 @@ describe("BT15-031", () => {
     );
     await s.ready();
     s.state.turnSeat = 1;
-    s.state.memory = -4;
+    s.state.memory = 4;
 
     await advance(s.engine).runTurn(1);
 
-    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("metalSeadramon").instanceId);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("metalSeadramon").instanceId,
+    );
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT15-052");
   });
 

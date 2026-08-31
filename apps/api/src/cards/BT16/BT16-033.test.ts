@@ -15,9 +15,7 @@ describe("BT16-033 Harpymon", () => {
       keywords: [{ keyword: "Armor Purge" }],
     });
     expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Hawkmon"], cost: 2, isAlternate: true }]);
-    expect(digivolutionRequirementsFor("BT16-033")).toEqual([
-      { namesExact: ["Hawkmon"], cost: 2, isAlternate: true },
-    ]);
+    expect(digivolutionRequirementsFor("BT16-033")).toEqual([{ namesExact: ["Hawkmon"], cost: 2, isAlternate: true }]);
     expect(compiled.effects[1]).toMatchObject({
       trigger: "OnSecurityCheck",
       turnCondition: "yourTurn",
@@ -75,7 +73,7 @@ describe("BT16-033 Harpymon", () => {
     expect(s.state.players[0]?.deck).toHaveLength(0);
   });
 
-  it("does not activate when the revealed Security effect removes the attacker first", async () => {
+  it("activates before the revealed Security effect removes the attacker", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: HARPYMON, as: "harpymon" }],
@@ -94,17 +92,20 @@ describe("BT16-033 Harpymon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 0);
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(1);
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
 
   it("uses Armor Purge to preserve its underlying card after losing a battle", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: HARPYMON, as: "harpymon", under: [NEUTRAL] }] },
-      1: { battleArea: [{ card: "BT1-020", as: "attacker" }] },
-    });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: HARPYMON, as: "harpymon", under: [NEUTRAL], suspended: true }] },
+        1: { battleArea: [{ card: "BT1-020", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.turnSeat = 1;
-    await s.engine.recomputeContinuousEffects();
+    await s.ready();
 
     expect(
       s.engine.applyIntent(1, {
@@ -133,11 +134,12 @@ describe("BT16-033 Harpymon", () => {
         type: "digivolve",
         permanentId: s.perm("hawkmon").permanentId,
         instanceId: s.inst("harpymon").instanceId,
+        alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("hawkmon").topCard?.cardId === HARPYMON);
 
-    expect(s.perm("hawkmon").stack.map((card) => card.cardId)).toEqual(["BT16-007", HARPYMON]);
+    expect(s.perm("hawkmon").stack.map((card) => card.cardId)).toEqual(["BT16-007"]);
     expect(s.state.memory).toBe(0);
   });
 });

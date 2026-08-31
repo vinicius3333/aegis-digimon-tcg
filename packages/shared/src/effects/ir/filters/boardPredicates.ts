@@ -29,6 +29,8 @@ export interface BoardPredicates {
   singleColor?: boolean;
   /** Cost-only: the stack card's level must be represented at least twice. */
   sameLevelPair?: boolean;
+  /** The live permanent's top card and digivolution cards contain N cards sharing a level. */
+  stackHasSameLevelCards?: number;
   suspended?: boolean;
   unsuspended?: boolean;
   /** Candidate has the same suspended/unsuspended orientation as the live effect source. */

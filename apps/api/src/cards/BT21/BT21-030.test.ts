@@ -38,6 +38,18 @@ describe("BT21-030 compiled implementation", () => {
         },
       ],
     });
+    expect(compiled.effects[0]?.actions[0]).toMatchObject({
+      actions: expect.arrayContaining([
+        {
+          kind: "SelectBind",
+          target: expect.objectContaining({
+            filter: expect.objectContaining({
+              nameOrTrait: [{ tokens: ["Shoutmon"], match: "nameExact" }],
+            }),
+          }),
+        },
+      ]),
+    });
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       expect(compiled.effects).toContainEqual(
         expect.objectContaining({

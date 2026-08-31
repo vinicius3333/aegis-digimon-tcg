@@ -11,6 +11,7 @@ import type {
   Seat,
   TargetFate,
   ZoneRef,
+  ActivateForeignEffectOverrides,
 } from "@aegis/shared";
 import type { CardSource } from "./CardSource.js";
 import type { PlayMatch } from "./continuous.js";
@@ -194,6 +195,8 @@ export interface TriggerInfo {
   deletedPermanentId?: string;
   /** Every permanent in the same simultaneous deletion action, captured before movement. */
   deletedPermanentIds?: string[];
+  /** Controller and top-card facts for every permanent in the simultaneous deletion action. */
+  deletedPermanentSnapshots?: Array<{ permanentId: string; controllerSeat: Seat; topCardId: string }>;
   /** Physical cards that became link cards in the current linking operation. */
   linkedInstanceIds?: string[];
   deletedInstanceIds?: string[];
@@ -531,6 +534,8 @@ export interface GameAccess {
     permanentId: string,
     printedKinds?: readonly import("@aegis/shared").CardKind[],
   ): import("@aegis/shared").CardKind[];
+  /** A permanent's effective name set, including dynamic aliases from its digivolution stack. */
+  effectiveNames?(permanent: Permanent): string[];
   /** Effective printed-plus-granted colors used by Option color requirements. */
   effectiveColors?(permanent: Permanent): import("@aegis/shared").CardColor[];
   /** Current DP including active continuous modifiers during effect recomputation. */
@@ -616,6 +621,8 @@ export interface Primitives {
   isTimingEffectDisabled?(permanentId: string, timing: DisableTiming): boolean;
   declareWinner(seat: Seat): void;
   setMemory(v: number): void;
+  /** Raise/set a specific seat's memory from that seat's perspective when the action targets it. */
+  setMemoryForSeat?(seat: Seat, value: number): void;
   /** Raise the active turn-end threshold for this effect's controller (BT14-081). */
   setTurnEndMinMemory?(seat: Seat, minimum: number): void;
   modifyDP(
@@ -671,6 +678,8 @@ export interface Primitives {
       suspended?: boolean;
       breeding?: boolean;
       costDelta?: number;
+      /** Set the paid play's base cost to this value before continuous modifiers. */
+      costOverride?: number;
       suppressOnPlayEffects?: boolean;
       /** Card whose resolving effect initiated this play. */
       effectSourceCardId?: string;
@@ -1362,6 +1371,7 @@ export interface Primitives {
     attackerPermanentId: string,
     opts?: {
       withoutSuspending?: boolean;
+      ignoreSummoningSickness?: boolean;
       attackPlayer?: boolean;
       attackPlayerOnly?: boolean;
       attackMechanic?: string;
@@ -1512,6 +1522,8 @@ export interface Primitives {
 /** Args for installing a delayed/triggered sub-effect via the primitives. */
 export interface SubTriggerInstall {
   event: SubTriggerEventName;
+  /** Stable action identity used to avoid duplicate installs while preserving distinct clauses. */
+  dedupeKey?: string;
   /** Printed placement class retained so a pending watcher passes the same kernel guard. */
   isInheritedSource?: boolean;
   isLinkedSource?: boolean;
@@ -1803,6 +1815,11 @@ export interface EffectContext {
   continuousPass?: boolean;
   /** Exact rules clause currently resolving, including inherited/security provenance. Display-only. */
   activeEffectText?: string;
+  /**
+   * Context-specific rules applied while a borrowed CardEffect resolves. This is seeded only by
+   * an ActivateForeignEffect action and never mutates the lender's compiled IR.
+   */
+  borrowedEffectOverrides?: ActivateForeignEffectOverrides;
   /** Stable compiled effect identity used by installed reactive actions; never derived from prose. */
   activeEffectKey?: string;
   /** Stable zero-based action path within the active compiled effect. */
@@ -1839,7 +1856,10 @@ export interface EffectContext {
    * opponent's Digimon with as much or less DP as it" — BT16-070) still needs those attributes
    * after the permanent has left the board, where `selections` alone resolves to nothing.
    */
-  selectionFacts?: Map<string, { dp?: number; level?: number; playCost?: number; digivolutionCount?: number }>;
+  selectionFacts?: Map<
+    string,
+    { dp?: number; level?: number; playCost?: number; digivolutionCount?: number; name?: string }
+  >;
   /**
    * When set, this effect is conferred from a digivolution-stack card onto
    * `conferredToPermanentId` (GrantStatic grant:"effects").
@@ -1876,6 +1896,8 @@ export interface EffectContext {
    * Undefined => no Digimon with a level was deleted in this resolution.
    */
   lastDeletedLevel?: number;
+  /** Live DP captured before the most recent deletion, for DP-bounded follow-up targets. */
+  lastDeletedDP?: number;
   lastDigivolveResult?: boolean;
   lastOptionUsed?: boolean;
   lastOptionUsedInstanceId?: string;
@@ -1926,7 +1948,7 @@ export interface EffectContext {
    * permanent's top card and trashes the rest of its stack (BT15-102 places battle-area top cards
    * per KB Q2599); without it the whole permanent moves under the played card (BT12-112).
    */
-  pendingSelfReducerRelocations?: (string | { permanentId: string; shedOwnCards?: boolean })[];
+  pendingSelfReducerRelocations?: { permanentId: string; shedOwnCards?: boolean }[];
   /** Loose card instance ids committed under the card being played once its permanent exists. */
   pendingSelfReducerPlacements?: string[];
   /**

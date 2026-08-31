@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
-import { observe } from "../../engine/testkit/observe.js";
 import "./BT7-069.js";
 import "./BT7-072.js";
 import "./BT7-091.js";
@@ -80,13 +79,8 @@ describe("BT7 Eyesmon discard deck gauntlet", () => {
         attackerPermanentId: eyesmon.permanentId,
         target: { kind: "permanent", permanentId: targetId },
       }),
-    ).toEqual({ ok: true });
-    await settle(
-      () =>
-        !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === targetId) &&
-        !observe(s.engine).isAttacking(),
-      5000,
-    );
+    ).toEqual({ ok: false, reason: "illegal-target" });
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === targetId)).toBe(true);
 
     assertNoLoudGap(s);
   });

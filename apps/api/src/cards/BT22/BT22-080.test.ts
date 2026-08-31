@@ -17,6 +17,27 @@ describe("BT22-080 Eater (Human Form)", () => {
       from: ["hand"],
       target: { filter: { kind: ["Tamer"], nameOrTrait: [{ tokens: ["CS"], match: "trait" }] } },
     });
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "digivolutionCards",
+              source: "digivolutionCards",
+              hostFilter: { isSelfRef: true },
+            },
+          },
+        },
+      ],
+    });
+    expect(compiled.effects[1]).toMatchObject({
+      trigger: "OnSecurityCheck",
+      turnCondition: "yourTurn",
+      condition: { kind: "triggerAttackerIsSelf" },
+    });
   });
 
   it("moves Species Form from its evolved stack to the bottom of Mother Eater", async () => {

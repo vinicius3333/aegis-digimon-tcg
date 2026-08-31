@@ -18,9 +18,7 @@ describe("BT17-045 Argomon", () => {
         { color: "Purple", level: 3, memoryCost: 3 },
       ],
     });
-    expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["Argomon"], cost: 2, isAlternate: true },
-    ]);
+    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Argomon"], level: 3, cost: 2, isAlternate: true }]);
   });
 
   it("may play Rhythm from hand when no Rhythm is in play after digivolving", () => {

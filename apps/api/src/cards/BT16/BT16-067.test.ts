@@ -27,6 +27,7 @@ describe("BT16-067", () => {
   });
 
   it("trashes a hand card to boost an own Digimon on play", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -37,9 +38,11 @@ describe("BT16-067", () => {
           battleArea: [{ card: "BT1-009", as: "ally", dp: 3000 }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.perm("ally").permanentId);
     s.state.memory = 3;
+    await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lopmon").instanceId })).toEqual({
       ok: true,
@@ -54,15 +57,13 @@ describe("BT16-067", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT1-044", as: "launcher", under: ["BT1-040", "BT1-036"] },
-            { card: "BT16-067", as: "lopmon" },
-          ],
+          battleArea: [{ card: "BT1-044", as: "launcher", under: ["BT1-040", "BT1-036", "BT16-067"] }],
           deck: ["BT1-009"],
         },
       },
       { autoSelectCards: true },
     );
+    await s.ready();
 
     expect(
       s.engine.applyIntent(0, {

@@ -74,13 +74,14 @@ describe("BT16-034", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT16-034", as: "tempo" }],
+          battleArea: [{ card: "BT16-043", as: "tempo", under: ["BT16-034"] }],
           security: ["BT1-009"],
         },
         1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    await s.ready();
 
     expect(
       s.engine.applyIntent(0, {
@@ -138,7 +139,7 @@ describe("BT16-034", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("runner").topCard?.cardId === "BT16-034");
 
-    expect(s.perm("runner").stack.map((card) => card.cardId)).toEqual(["BT16-043", "BT16-034"]);
+    expect(s.perm("runner").stack.map((card) => card.cardId)).toEqual(["BT16-043"]);
     expect(s.state.memory).toBe(0);
   });
 

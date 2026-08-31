@@ -119,15 +119,15 @@ export class AegisConnectionRouter {
     return this.remember(reconnected, slot);
   }
 
-  async joinWithBot(roomId: string): Promise<void> {
+  async joinWithBot(roomId: string, botDeckId?: string): Promise<void> {
     const knownSlot = this.slotByRoomId.get(roomId);
     const slot = knownSlot ?? (await this.dependencies.loadManifest()).active.slot;
     const { http } = this.dependencies.endpointForSlot(slot);
-    console.info("[BOT_JOIN_CLIENT] requesting bot", { roomId, slot });
+    console.info("[BOT_JOIN_CLIENT] requesting bot", { roomId, slot, botDeckId });
     const response = await this.fetch(`${http}/bot/join`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ roomId }),
+      body: JSON.stringify({ roomId, botDeckId }),
     });
     if (!response.ok) {
       const detail = await response.text().catch(() => "");
@@ -247,12 +247,12 @@ export async function reconnect(reconnectionToken: string, slot: RoomSlot): Prom
 }
 
 /** Ask the owning server to seat a bot as the second player. */
-export async function joinWithBot(roomId: string): Promise<void> {
-  if (useProductionRouter()) return getProductionRouter().joinWithBot(roomId);
+export async function joinWithBot(roomId: string, botDeckId?: string): Promise<void> {
+  if (useProductionRouter()) return getProductionRouter().joinWithBot(roomId, botDeckId);
   const response = await fetch(`${legacyEndpoint().replace(/^ws/, "http")}/bot/join`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ roomId }),
+    body: JSON.stringify({ roomId, botDeckId }),
   });
   if (!response.ok) throw new Error(`Bot join failed (${response.status})`);
 }

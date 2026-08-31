@@ -68,7 +68,9 @@ describe("BT15-030", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pukumon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pukumon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.deck.some(({ instanceId }) => instanceId === s.inst("returned").instanceId));
 
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
@@ -86,22 +88,25 @@ describe("BT15-030", () => {
   });
 
   it("On Deletion resolves from its leaving snapshot and returns a stackless opposing Digimon", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT15-030", as: "pukumon" }] },
-      1: {
-        battleArea: [
-          {
-            card: "BT15-029",
-            as: "target",
-            under: [
-              { card: "BT15-002", as: "bottom" },
-              { card: "BT15-023", as: "top" },
-            ],
-          },
-          { card: "BT15-031", as: "attacker" },
-        ],
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT15-030", as: "pukumon", suspended: true }] },
+        1: {
+          battleArea: [
+            {
+              card: "BT15-029",
+              as: "target",
+              under: [
+                { card: "BT15-002", as: "bottom" },
+                { card: "BT15-023", as: "top" },
+              ],
+            },
+            { card: "BT15-031", as: "attacker" },
+          ],
+        },
       },
-    });
+      { autoSelectCards: true },
+    );
     s.state.turnSeat = 1;
     await s.ready();
 

@@ -26,6 +26,25 @@ describe("BT25-101 Divine Arms Version Ω", () => {
     );
   });
 
+  it("does not waive color requirements for a TS Option in the battle area", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: CARD_ID, as: "tsOptionOnBoard" }],
+        hand: [{ card: CARD_ID, as: "option" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+        useAs: "option",
+      } as never),
+    ).toEqual({ ok: false, reason: "color-requirement-unmet" });
+  });
+
   it("pays the TS cost, draws 2, and links only a Link-capable TS trash card", async () => {
     const preferred: string[] = [];
     const s = setupEngine(

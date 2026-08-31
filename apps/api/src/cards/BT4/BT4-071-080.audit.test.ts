@@ -49,6 +49,7 @@ describe("BT4-071 through BT4-080 direct IR audit evidence", () => {
           kind: ["Digimon"],
           nameOrTrait: [{ tokens: ["D-Brigade"], match: "trait" }],
         },
+        notSimultaneous: true,
         actions: [
           {
             kind: "RevealAdd",

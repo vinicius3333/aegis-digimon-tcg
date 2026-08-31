@@ -24,6 +24,16 @@ describe("BT23-082 Makiko Date", () => {
     expect(compiled.residual).toEqual([]);
   });
 
+  it("makes the optional return-to-hand cost gate the free-play payload", () => {
+    const action = (compiled.effects.find((entry) => entry.trigger === "YourTurn") as any).actions[0].actions[0];
+    expect(action).toMatchObject({
+      kind: "PlayWithoutCost",
+      optional: true,
+      abortOnDecline: true,
+      cost: { kind: "return", to: "hand" },
+    });
+  });
+
   it("gains memory only at the start of its controller's main phase", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT23-082" }] },
@@ -71,13 +81,14 @@ describe("BT23-082 Makiko Date", () => {
             { card: "BT23-006", as: "subject" },
           ],
           hand: [
-            { card: "BT23-017", as: "level3Cs" },
+            { card: "BT23-026", as: "level3Cs" },
             { card: "BT1-009", as: "ineligible" },
           ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    await s.ready();
     const eligibleId = s.inst("level3Cs").instanceId;
     const ineligibleId = s.inst("ineligible").instanceId;
     await advance(s.engine).fireSubTrigger("whenOneOfYoursDigivolves", {

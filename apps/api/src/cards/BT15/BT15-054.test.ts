@@ -47,7 +47,12 @@ describe("BT15-054", () => {
             {
               condition: {
                 kind: "selfDigivolutionStackHasTrait",
-                filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] },
+                filter: {
+                  nameOrTrait: [
+                    { tokens: ["Rosemon"], match: "name" },
+                    { tokens: ["X Antibody"], match: "trait" },
+                  ],
+                },
               },
             },
           ],

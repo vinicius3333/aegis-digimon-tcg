@@ -55,6 +55,7 @@ const compiled: CompiledCard = {
           sourceFilter: {
             controller: "opponent",
             kind: ["Digimon"],
+            deleteCause: "byEffect",
           },
           actions: [
             {

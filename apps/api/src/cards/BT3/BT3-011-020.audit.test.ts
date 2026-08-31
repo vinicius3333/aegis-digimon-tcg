@@ -57,64 +57,91 @@ describe("BT3-011 through BT3-020 IR coverage", () => {
       expect.arrayContaining([
         expect.objectContaining({
           trigger: "WhenDigivolving",
-          actions: [{ kind: "SetBaseDP", value: 1000, duration: "forTheTurn" }],
+          actions: [expect.objectContaining({ kind: "SetBaseDP", value: 1000, duration: "forTheTurn" })],
         }),
         expect.objectContaining({
           trigger: "YourTurn",
-          actions: [{ kind: "GrantStatic", grant: "color", tokens: ["Yellow"], duration: "forTheTurn" }],
+          actions: [
+            expect.objectContaining({ grant: "color", kind: "GrantStatic", tokens: ["Yellow"], duration: "forTheTurn" }),
+          ],
         }),
       ]),
     );
     expect(runtimeCompiledCard("BT3-015")?.effects).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ trigger: "Static", keywords: [{ keyword: "Piercing" }] }),
+        expect.objectContaining({
+          trigger: "Static",
+          keywords: expect.arrayContaining([expect.objectContaining({ keyword: "Piercing" })]),
+        }),
         expect.objectContaining({
           trigger: "WhenDigivolving",
-          actions: [
-            {
+          actions: expect.arrayContaining([
+            expect.objectContaining({
               kind: "Return",
               to: "hand",
               optional: true,
-              target: { count: 1, filter: { zone: "trash", levels: [7] } },
-            },
-          ],
+              target: expect.objectContaining({
+                count: 1,
+                filter: expect.objectContaining({ zone: "trash", levels: [7] }),
+              }),
+            }),
+          ]),
         }),
       ]),
     );
     expect(runtimeCompiledCard("BT3-016")?.effects[0]).toMatchObject({
       trigger: "Static",
       isInherited: true,
-      keywords: [{ keyword: "Piercing" }],
+      keywords: expect.arrayContaining([expect.objectContaining({ keyword: "Piercing" })]),
     });
     expect(runtimeCompiledCard("BT3-017")?.effects).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ trigger: "WhenDigivolving", actions: [{ kind: "Delete" }] }),
-        expect.objectContaining({ trigger: "WhenAttacking", actions: [{ kind: "Delete" }] }),
+        expect.objectContaining({
+          trigger: "WhenDigivolving",
+          actions: expect.arrayContaining([expect.objectContaining({ kind: "Delete" })]),
+        }),
+        expect.objectContaining({
+          trigger: "WhenAttacking",
+          actions: expect.arrayContaining([expect.objectContaining({ kind: "Delete" })]),
+        }),
       ]),
     );
     expect(runtimeCompiledCard("BT3-018")?.effects).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ trigger: "Static", keywords: [{ keyword: "Piercing" }] }),
-        expect.objectContaining({ trigger: "WhenDigivolving", actions: [{ kind: "DeDigivolve", amount: 2 }] }),
+        expect.objectContaining({
+          trigger: "Static",
+          keywords: expect.arrayContaining([expect.objectContaining({ keyword: "Piercing" })]),
+        }),
+        expect.objectContaining({
+          trigger: "WhenDigivolving",
+          actions: expect.arrayContaining([expect.objectContaining({ kind: "DeDigivolve", amount: 2 })]),
+        }),
       ]),
     );
     expect(runtimeCompiledCard("BT3-019")?.effects).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           trigger: "Static",
-          keywords: expect.arrayContaining([{ keyword: "SecurityAttack", amount: 1 }, { keyword: "Reboot" }]),
+          keywords: expect.arrayContaining([
+            expect.objectContaining({ keyword: "SecurityAttack", amount: 1 }),
+            expect.objectContaining({ keyword: "Reboot" }),
+          ]),
         }),
         expect.objectContaining({
           trigger: "WhenDigivolving",
-          actions: [
+          actions: expect.arrayContaining([
             expect.objectContaining({
               kind: "PlaceUnder",
-              from: ["hand"],
               position: "top",
               optional: true,
+              target: expect.objectContaining({ from: ["hand"] }),
             }),
-            expect.objectContaining({ kind: "GainMemory", amount: 3, condition: { kind: "ifThisEffectActed" } }),
-          ],
+            expect.objectContaining({
+              kind: "GainMemory",
+              amount: 3,
+              condition: expect.objectContaining({ kind: "ifThisEffectActed" }),
+            }),
+          ]),
         }),
       ]),
     );

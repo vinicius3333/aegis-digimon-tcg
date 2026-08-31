@@ -139,7 +139,10 @@ describe("BT4-021 through BT4-030 IR coverage", () => {
     expect(card("BT4-029")?.effects).toEqual([]);
     expect(card("BT4-030")?.effects).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ trigger: "Static", keywords: [{ keyword: "Jamming" }] }),
+        expect.objectContaining({
+          trigger: "Static",
+          keywords: expect.arrayContaining([expect.objectContaining({ keyword: "Jamming" })]),
+        }),
         expect.objectContaining({
           trigger: "Static",
           actions: [

@@ -6,7 +6,7 @@ import { observe } from "../../engine/testkit/observe.js";
 import "./BT3-092.js";
 
 describe("BT3-092 MaloMyotismon", () => {
-  it("records errata scaling over the complete deletion batch", () => {
+  it("records one memory gain per matching deletion trigger", () => {
     const compiled = runtimeCompiledCard("BT3-092");
     const allTurns = compiled?.effects.find((effect) => effect.trigger === "AllTurns");
     const watcher = allTurns?.actions.find((action) => action.kind === "SubTrigger");
@@ -15,8 +15,8 @@ describe("BT3-092 MaloMyotismon", () => {
     expect(gain).toMatchObject({
       kind: "GainMemory",
       amount: 1,
-      scaling: { per: 1, filter: { deletedByTrigger: true }, unit: "cards" },
     });
+    expect(gain).not.toHaveProperty("scaling");
     expect(watcher).toMatchObject({ sourceFilter: { excludeSelf: true, kind: ["Digimon"] } });
   });
 

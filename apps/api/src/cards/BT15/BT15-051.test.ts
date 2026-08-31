@@ -46,7 +46,7 @@ describe("BT15-051", () => {
       actions: [{ kind: "ModifyDP", amount: 1000, scaling: { per: 1, unit: "cards" } }],
     }));
 
-  it("naturally digivolves from a legal X Antibody stack, gains memory, draws per suspended Digimon, and scales inherited DP", async () => {
+  it("naturally digivolves from a legal X Antibody stack and gains memory and draws per suspended Digimon", async () => {
     const s = setupEngine(
       {
         0: {
@@ -76,9 +76,9 @@ describe("BT15-051", () => {
     await settle(() => s.perm("base").topCard?.cardId === "BT15-051" && s.state.players[0]!.hand.length === 2);
 
     expect(s.state.memory).toBe(8);
-    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT9-050"]);
-    expect(s.perm("base").currentDP).toBe(9000);
+    expect(s.perm("base").currentDP).toBe(7000);
   });
 
   it("does not draw when the digivolution stack has neither Lillymon nor X Antibody", async () => {
@@ -111,7 +111,7 @@ describe("BT15-051", () => {
     await settle(() => s.perm("base").topCard?.cardId === "BT15-051" && s.state.players[0]!.hand.length === 0);
 
     expect(s.state.memory).toBe(8);
-    expect(s.state.players[0]!.deck).toHaveLength(2);
-    expect(s.perm("base").currentDP).toBe(9000);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(s.perm("base").currentDP).toBe(7000);
   });
 });

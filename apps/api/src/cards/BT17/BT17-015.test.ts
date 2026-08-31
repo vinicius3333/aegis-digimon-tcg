@@ -31,6 +31,8 @@ describe("BT17-015", () => {
               ignoreRequirements: true,
               optional: true,
               allowNoTarget: true,
+              target: { filter: { kind: ["Digimon"] } },
+              into: { kind: ["Digimon"] },
             },
           ],
         ],
@@ -55,7 +57,7 @@ describe("BT17-015", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("warGreymon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.perm("warGreymon").topCard.cardId === "BT17-015");
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT17-015"));
 
     expect(s.state.memory).toBe(0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
@@ -84,7 +86,7 @@ describe("BT17-015", () => {
 
     expect(s.perm("gabumon").stack.map(({ cardId }) => cardId)).toContain("BT1-029");
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).not.toContain("BT1-044");
-    expect(s.state.memory).toBe(11);
+    expect(s.state.memory).toBe(0);
   });
 
   it("allows the optional Gabumon branch to end without a target (Q2743)", async () => {
@@ -98,7 +100,7 @@ describe("BT17-015", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("warGreymon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.perm("warGreymon").topCard.cardId === "BT17-015");
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT17-015"));
 
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.memory).toBe(0);

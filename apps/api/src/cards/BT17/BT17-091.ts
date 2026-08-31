@@ -41,7 +41,7 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
-          kind: "PlaceUnder",
+          kind: "MindLink",
           target: {
             filter: {
               controller: "mine",
@@ -54,13 +54,6 @@ export const compiled: CompiledCard = {
               ],
             },
             count: 1,
-          },
-          underFilter: {
-            isSelfRef: true,
-            position: "bottom",
-            condition: {
-              noTamerInDigivolution: true,
-            },
           },
         },
       ],

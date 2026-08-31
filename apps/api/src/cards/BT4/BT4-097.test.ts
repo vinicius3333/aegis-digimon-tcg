@@ -29,7 +29,10 @@ describe("BT4-097 Kari Kamiya", () => {
   });
 
   it("plays itself from security", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "BT4-097", as: "securityTamer", faceUp: true }] } });
+    const s = setupEngine(
+      { 0: { security: [{ card: "BT4-097", as: "securityTamer", faceUp: true }] } },
+      { autoDeclineOptional: true },
+    );
     const id = s.inst("securityTamer").instanceId;
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityTamer"));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === id)).toBe(true);

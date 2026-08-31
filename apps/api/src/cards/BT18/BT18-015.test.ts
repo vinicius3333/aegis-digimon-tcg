@@ -1,7 +1,5 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-015.js";
 import "./BT18-019.js";
@@ -45,10 +43,49 @@ describe("BT18-015 Kimeramon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("kimeramon"), "SecurityAttack")).toBe(true);
   });
 
-  it.each([
-    ["When Digivolving", EffectTiming.WhenDigivolving],
-    ["When Attacking", EffectTiming.OnUseAttack],
-  ])("pays one own deletion to delete exactly one lowest-DP opponent at %s", async (_label, timing) => {
+  it("pays one own deletion to delete exactly one lowest-DP opponent when digivolving", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT18-013", as: "base" },
+            { card: "BT1-030", as: "cost" },
+          ],
+          hand: [{ card: "BT18-015", as: "source" }],
+          deck: ["BT1-001"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-030", dp: 3000, as: "low" },
+            { card: "BT1-030", dp: 4000, as: "high" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("cost").topCard!.instanceId);
+    s.state.memory = 10;
+    const costId = s.perm("cost").permanentId;
+    const lowId = s.perm("low").permanentId;
+    const highId = s.perm("high").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowId));
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(costId);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(lowId);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(highId);
+  });
+
+  it("pays one own deletion to delete exactly one lowest-DP opponent when attacking", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -64,20 +101,23 @@ describe("BT18-015 Kimeramon", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    await s.ready();
-    const sourceId = s.perm("source").permanentId;
+    preferred.push(s.perm("cost").topCard!.instanceId);
     const costId = s.perm("cost").permanentId;
     const lowId = s.perm("low").permanentId;
     const highId = s.perm("high").permanentId;
-    await advance(s.engine).fire(timing, s.perm("source"));
-    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+
     expect(
-      s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId).filter((id) =>
-        [costId, sourceId].includes(id),
-      ),
-    ).toHaveLength(1);
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowId));
+
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(costId);
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(lowId);
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(highId);
   });
@@ -87,16 +127,25 @@ describe("BT18-015 Kimeramon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT18-015", as: "source" },
+            { card: "BT18-013", as: "base" },
             { card: "BT1-030", as: "cost" },
           ],
+          hand: [{ card: "BT18-015", as: "source" }],
+          deck: ["BT1-001"],
         },
         1: { battleArea: [{ card: "BT1-030", dp: 3000, as: "target" }] },
       },
       { autoAcceptOptional: false, autoSelectCards: true },
     );
-    await s.ready();
-    const resolution = advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
     expect(
       s.engine.applyIntent(0, {
@@ -105,7 +154,7 @@ describe("BT18-015 Kimeramon", () => {
         response: { kind: "optional", accept: false },
       }),
     ).toEqual({ ok: true });
-    await resolution;
+    await settle(() => s.state.pendingDecision === undefined);
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(s.perm("cost").permanentId);
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(
       s.perm("target").permanentId,
@@ -138,20 +187,34 @@ describe("BT18-015 Kimeramon", () => {
   });
 
   it("uses the deleted Kimeramon from trash with Machinedramon for Millenniummon DNA digivolution", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "BT18-015", as: "kimeramon" },
             { card: "BT11-072", as: "machinedramon" },
+            { card: "BT1-030", as: "cost" },
           ],
           hand: [{ card: "BT18-019", as: "millenniummon" }],
         },
+        1: {
+          battleArea: [
+            { card: "BT1-030", dp: 1000, as: "effectTarget" },
+            { card: "BT1-030", dp: 15000, suspended: true, as: "defender" },
+          ],
+        },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("kimeramon").permanentId]);
+    preferred.push(s.perm("cost").topCard!.instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("kimeramon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT18-019"));
     const result = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT18-019")!;
     expect(result.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT11-072", "BT18-015"]));

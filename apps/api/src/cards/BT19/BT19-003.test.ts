@@ -16,7 +16,7 @@ describe("BT19-003 Viximon", () => {
       { autoSelectCards: true },
     );
 
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("host"));
+    await advance(s.engine).runTurn(0);
     await settle(() => (s.state.players[0] as PlayerState).hand.length === 1);
 
     expect((s.state.players[0] as PlayerState).hand.map((card) => card.cardId)).toEqual(["P-095"]);
@@ -24,6 +24,8 @@ describe("BT19-003 Viximon", () => {
       expect.arrayContaining(["BT1-102", "P-095"]),
     );
 
+    // A second same-turn end-of-turn window has no public origin; use the production
+    // timing seam only to prove the Once Per Turn guard after the natural turn-end.
     await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("host"));
     await settle(() => false, 20);
 

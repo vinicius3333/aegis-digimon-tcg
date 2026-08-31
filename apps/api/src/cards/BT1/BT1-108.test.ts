@@ -36,8 +36,8 @@ describe("BT1-108 Horn Buster", () => {
       {
         0: {
           battleArea: [
-            { card: "BT1-010", as: "chosen" },
-            { card: "BT1-011", as: "other" },
+            { card: "BT1-066", as: "chosen" },
+            { card: "BT1-068", as: "other" },
           ],
           hand: [{ card: "BT1-108", as: "option" }],
           deck: ["BT1-001"],
@@ -61,17 +61,20 @@ describe("BT1-108 Horn Buster", () => {
   });
 
   it("suspends one opponent Digimon and returns itself to hand from security", async () => {
-    const s = setupEngine({
-      0: {
-        security: [{ card: "BT1-108", as: "securityOption", faceUp: true }],
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT1-108", as: "securityOption", faceUp: true }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "chosen" },
+            { card: "BT1-011", as: "other" },
+          ],
+        },
       },
-      1: {
-        battleArea: [
-          { card: "BT1-010", as: "chosen" },
-          { card: "BT1-011", as: "other" },
-        ],
-      },
-    });
+      { autoSelectCards: true },
+    );
     const optionId = s.inst("securityOption").instanceId;
 
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));

@@ -48,11 +48,16 @@ describe("BT15-096", () => {
     );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("option").instanceId));
+    const optionInstanceId = s.inst("option").instanceId;
+    const addedInstanceId = s.inst("added").instanceId;
+    const trashedInstanceId = s.inst("trashed").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === optionInstanceId));
 
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("added").instanceId)).toBe(true);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("trashed").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === addedInstanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === trashedInstanceId)).toBe(true);
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT15-007", "BT15-008", "BT15-009"]);
   });
 
@@ -69,11 +74,20 @@ describe("BT15-096", () => {
     );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("option").instanceId));
+    const optionInstanceId = s.inst("option").instanceId;
+    const onlyHitInstanceId = s.inst("onlyHit").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === optionInstanceId));
 
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("onlyHit").instanceId)).toBe(true);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("onlyHit").instanceId)).toBe(false);
-    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT15-007", "BT15-008", "BT15-009", "BT15-010"]);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === onlyHitInstanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === onlyHitInstanceId)).toBe(false);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual([
+      "BT15-007",
+      "BT15-008",
+      "BT15-009",
+      "BT15-010",
+    ]);
   });
 });

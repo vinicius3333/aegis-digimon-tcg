@@ -138,4 +138,34 @@ describe("BT18-062 Gladimon", () => {
     expect(s.perm("other").currentDP).toBe(5000);
     assertNoLoudGap(s);
   });
+
+  it("expires the opponent-effect protection at the natural end of the opponent's turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-030", as: "target" }],
+          hand: [
+            { card: "BT18-062", as: "gladimon" },
+            { card: "BT18-099", as: "cost" },
+          ],
+        },
+        1: { deck: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gladimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "beDeleted"));
+
+    s.state.turnSeat = 1;
+    // Keep the active seat's entry gauge above the automatic pass threshold so Main opens.
+    s.state.memory = 4;
+    await advance(s.engine).runTurn(1);
+
+    expect(observe(s.engine).isRestricted(s.perm("target"), "beDeleted")).toBe(false);
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("target").permanentId], "byEffect")).toBe(1);
+    assertNoLoudGap(s);
+  });
 });

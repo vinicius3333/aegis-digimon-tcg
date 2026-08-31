@@ -8,7 +8,7 @@ import "../index.js";
 
 describe("BT21-052 Examon (X Antibody)", () => {
   it("preserves the Examon alternate Digivolution requirement", () => {
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Examon"], cost: 2, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Examon"], cost: 2, isAlternate: true }]);
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual ?? []).toEqual([]);
   });
@@ -53,7 +53,15 @@ describe("BT21-052 Examon (X Antibody)", () => {
       kind: "trashSecurityTop",
       controller: "opponent",
       count: 1,
-      condition: { kind: "selfDigivolutionStackHasTrait" },
+      condition: {
+        kind: "selfDigivolutionStackHasTrait",
+        filter: {
+          nameOrTrait: [
+            { tokens: ["Examon"], match: "nameExact" },
+            { tokens: ["X Antibody"], match: "trait" },
+          ],
+        },
+      },
     });
     expect(watcherActions?.[0]).toEqual({
       kind: "Unsuspend",

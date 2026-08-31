@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./P-158.js";
 
@@ -20,6 +22,7 @@ describe("P-158 Jeri (Fake)", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
+    await s.ready();
 
     expect(
       s.engine.applyIntent(0, {
@@ -49,5 +52,13 @@ describe("P-158 Jeri (Fake)", () => {
       kind: "PlayWithoutCost",
       payCost: false,
     });
+  });
+
+  it("plays itself from security without paying its memory cost", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "P-158", as: "jeri" }] } });
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("jeri"));
+    await settle();
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("jeri").instanceId)).toBe(true);
   });
 });

@@ -213,7 +213,10 @@ export async function runPlaceUnder(
         destination: "stackBottom",
       });
     }
-    await ctx.fx.placeUnder(hostId, chosen, { belowTop: action.position !== "bottom" });
+    // The primitive inserts bottom placements one card at a time with unshift,
+    // so reverse the logical bottom-to-top order before handing it off.
+    const placementIds = action.position === "bottom" ? [...chosen].reverse() : chosen;
+    await ctx.fx.placeUnder(hostId, placementIds, { belowTop: action.position !== "bottom" });
     rememberPlacedUnder(ctx, chosen);
     ctx.lastEffectActed = chosen.length > 0;
     if (action.trackCount !== undefined) {

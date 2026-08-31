@@ -42,6 +42,7 @@ describe("BT16-071", () => {
           battleArea: [{ card: "BT16-071", as: "host", under: ["BT16-071"] }],
           trash: [{ card: "BT16-069", as: "played" }],
         },
+        1: { security: ["BT1-090"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

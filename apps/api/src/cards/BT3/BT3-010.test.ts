@@ -12,7 +12,7 @@ describe("BT3-010 ZubaEagermon", () => {
           {
             card: "BT6-018",
             as: "host",
-            under: ["BT3-001", "BT3-009", "BT3-010", "BT3-013", "BT3-016"],
+            under: ["BT3-010"],
           },
         ],
       },

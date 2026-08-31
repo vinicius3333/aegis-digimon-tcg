@@ -11,9 +11,17 @@ describe("BT18-020 Syakomon", () => {
       trigger: "Rule",
       actions: [{ kind: "GrantStatic", grant: "trait", tokens: ["Aquatic"], target: { filter: { isSelfRef: true } } }],
     });
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT18-020", as: "syakomon" }] } });
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT18-020", as: "syakomon" },
+          { card: "BT1-003", as: "other" },
+        ],
+      },
+    });
     await s.ready();
     expect(observe(s.engine).hasEffectiveTrait(s.perm("syakomon"), "Aquatic")).toBe(true);
+    expect(observe(s.engine).hasEffectiveTrait(s.perm("other"), "Aquatic")).toBe(false);
   });
 
   it("digivolves from a blue level 2 for cost 0 and preserves the source", async () => {

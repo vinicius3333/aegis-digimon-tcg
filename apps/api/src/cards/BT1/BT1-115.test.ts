@@ -50,6 +50,6 @@ describe("BT1-115 Veedramon", () => {
 
     s.state.turnSeat = 1;
     await s.engine.recomputeContinuousEffects();
-    expect(s.perm("host").currentDP).toBe(7000);
+    expect(s.perm("host").currentDP).toBe(8000);
   });
 });

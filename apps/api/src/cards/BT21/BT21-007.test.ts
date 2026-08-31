@@ -99,7 +99,9 @@ describe("BT21-007 Agumon", () => {
 
   it("grants the inherited +2000 DP only during its controller's turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", dp: 5000, under: ["BT21-007"] }] },
+      0: {
+        battleArea: [{ card: "BT21-015", as: "host", dp: 5000, under: ["BT21-001", "BT21-007"] }],
+      },
     });
     await s.ready();
     expect(s.perm("host").currentDP).toBe(7000);

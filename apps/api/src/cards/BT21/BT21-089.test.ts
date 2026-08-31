@@ -83,6 +83,26 @@ describe("BT21-089 Takato Matsuki", () => {
     },
   );
 
+  it("naturally triggers the when-played watcher from a qualifying Digimon play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-089", as: "takato" }],
+          hand: [{ card: "BT21-064", as: "hero" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hero").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("takato").isSuspended && observe(s.engine).hasKeyword(s.perm("hero"), "Blocker"));
+
+    expect(s.perm("takato").isSuspended).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("hero"), "Blocker")).toBe(true);
+  });
+
   it("at 9 total trash grants Blocker but not the conditional +2000 DP", async () => {
     const s = setupEngine(
       {

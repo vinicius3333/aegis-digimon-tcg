@@ -44,9 +44,19 @@ function NoticeThumb({ cardId }: { cardId: string }) {
   );
 }
 
-function EffectNoticeBody({ cardId, timing, description }: { cardId: string; timing?: string; description?: string }) {
+function EffectNoticeBody({
+  cardId,
+  timing,
+  description,
+  isInherited,
+}: {
+  cardId: string;
+  timing?: string;
+  description?: string;
+  isInherited?: boolean;
+}) {
   const { t } = useTranslation();
-  const clause = playerFacingEffectClause({ cardId, timing, description });
+  const clause = playerFacingEffectClause({ cardId, timing, description, isInherited });
   const label = (timing ? TIMING_LABELS[timing] : undefined) ?? t("overlay.effect");
   return (
     <>
@@ -64,7 +74,8 @@ function EffectNoticeBody({ cardId, timing, description }: { cardId: string; tim
   );
 }
 
-function RecoveryNoticeBody({ amount, mine }: { amount: number; mine: boolean }) {
+/** The security-increase call-out, shared by ＜Recovery＞ and any other effect stacking a card there. */
+function SecurityGainNoticeBody({ amount, mine, recovery }: { amount: number; mine: boolean; recovery: boolean }) {
   const { t } = useTranslation();
   return (
     <>
@@ -73,7 +84,9 @@ function RecoveryNoticeBody({ amount, mine }: { amount: number; mine: boolean })
       </span>
       <div className="match-notice__copy">
         <span className="match-notice__label">{t(mine ? "overlay.recoveryYou" : "overlay.recoveryOpp")}</span>
-        <strong className="match-notice__title">{t("overlay.recovery", { count: amount })}</strong>
+        <strong className="match-notice__title">
+          {t(recovery ? "overlay.recovery" : "overlay.securityGain", { count: amount })}
+        </strong>
       </div>
     </>
   );
@@ -134,9 +147,18 @@ function NoticeView({
           time the queue is holding this notice for. */}
       <span className="match-notice__erode" style={{ animationDuration: `${remainingMs}ms` }} aria-hidden="true" />
       {body.variant === "effect" ? (
-        <EffectNoticeBody cardId={body.cardId} timing={body.timing} description={body.description} />
-      ) : body.variant === "recovery" ? (
-        <RecoveryNoticeBody amount={body.amount} mine={notice.side === "you"} />
+        <EffectNoticeBody
+          cardId={body.cardId}
+          timing={body.timing}
+          description={body.description}
+          isInherited={body.isInherited}
+        />
+      ) : body.variant === "recovery" || body.variant === "securityGain" ? (
+        <SecurityGainNoticeBody
+          amount={body.amount}
+          mine={notice.side === "you"}
+          recovery={body.variant === "recovery"}
+        />
       ) : body.variant === "keyword" ? (
         <KeywordNoticeBody keyword={body.keyword} cardId={body.cardId} />
       ) : (

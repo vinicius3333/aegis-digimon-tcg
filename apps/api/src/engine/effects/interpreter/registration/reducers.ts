@@ -27,8 +27,12 @@ export interface WouldBePlayedSelfReducer {
   /** Cost reduction earned for each card committed by a deferred self-placement cost. */
   amountPerPaid?: number;
   raw: string;
-  /** Hand-written payment hook for costs whose card-selection/movement shape is not representable as Cost. */
-  pay?: (ctx: EffectContext) => Promise<boolean>;
+  /**
+   * Hand-written payment hook for costs whose card-selection/movement shape is not representable as
+   * Cost. Returning a boolean grants `amount` once when true; returning a number reports how many
+   * cards were committed and grants `amountPerPaid` for each (BT15-102's "up to 3, -4 each").
+   */
+  pay?: (ctx: EffectContext) => Promise<boolean | number>;
   cost?: Cost;
   costActions?: Action[];
   condition?: Condition;
@@ -64,12 +68,18 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "AD1-017", // 4+ Lucemon/Witchelny-text cards in trash -> self play cost -5
   "AD1-018", // 4+ Knightmon/Lucemon-text cards in trash -> self play cost -5
   "BT13-045", // 8+ Chessmon-name Digimon cards in trash -> self play cost -8
+  "BT13-080", // delete one own level-2 Digimon in breeding -> self play cost -2
+  "BT13-083", // delete one own level-3 Digimon -> self play cost -4
   "BT13-111", // no battle-area Digimon; -2 per 5 combined trash cards (KB Q2364; §15-1-7)
   "BT2-099", // self Option use cost -1 per yellow Tamer
   "BT2-112", // opponent has a 10000+ DP Digimon -> -6
   "EX8-074", // suspend 2 Digimon -> -4
   "EX10-048", // delete 1 own Myotismon-text Digimon -> -4 (Q5130/Q5131)
   "BT17-068", // return 1 [Apocalymon] from trash -> -3
+  "BT17-015", // Tai Kamiya in play -> self play cost -3
+  "BT17-027", // Matt Ishida in play -> self play cost -3
+  "BT17-060", // return up to 13 Unidentified/Diaboromon-text cards -> -1 each
+  "BT18-073", // delete 1 own [Composite] Digimon -> -4
   "EX9-011", // trash 1 [Cyborg]/[Ver.1] from hand -> -2
   "EX9-018", // trash 1 [Cyborg]/[Ver.x] from hand -> -2
   "EX9-030", // trash 1 [Cyborg]/[Ver.x] from hand -> -2
@@ -79,6 +89,7 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "P-171", // face-up [Deep Savers] in security -> -4
   "P-172", // face-up [Nature Spirits] in security -> -4
   "P-174", // face-up [Nightmare Soldiers] in security -> -4
+  "P-186", // 13000+ DP Digimon present -> self play cost -2 per five total trash cards
   "ST14-09", // reduce this card's play cost by 4 for every 10 cards in your trash
   "BT12-112", // place 1 [Shoutmon] as digivolution material -> -1 (KB Q2249-Q2256)
   "BT21-030", // place 1 [Shoutmon] under itself -> -1 and enable trash DigiXros materials
@@ -203,6 +214,7 @@ function captureReducer(
     raw?: string;
     condition?: unknown;
     target?: unknown;
+    amountFromPaidCost?: boolean;
   },
   scaling: Scaling | undefined,
   fallbackRaw: string,
@@ -217,7 +229,12 @@ function captureReducer(
   if (a.cost !== undefined) {
     if (condition !== undefined) return;
     if (!STRUCTURED_REDUCER_COSTS.has(a.cost.kind)) return;
-    out.push({ cost: a.cost, amount, raw });
+    out.push({
+      cost: a.cost,
+      amount: a.amountFromPaidCost === true ? 0 : amount,
+      raw,
+      ...(a.amountFromPaidCost === true ? { amountPerPaid: amount } : {}),
+    });
     return;
   }
   if (costActionsRaw.length > 0) {
@@ -486,7 +503,10 @@ async function runWouldBePlayedCostActions(ctx: EffectContext, actions: readonly
     if (raw.kind === "PlaceUnder" && (raw as { targetIsPermanent?: boolean }).targetIsPermanent === true) {
       const sourceIds = await resolvePermanentTargets(ctx, (raw as Extract<Action, { kind: "PlaceUnder" }>).target);
       if (sourceIds.length === 0) return false;
-      ctx.pendingSelfReducerRelocations = [...(ctx.pendingSelfReducerRelocations ?? []), ...sourceIds];
+      ctx.pendingSelfReducerRelocations = [
+        ...(ctx.pendingSelfReducerRelocations ?? []),
+        ...sourceIds.map((permanentId) => ({ permanentId })),
+      ];
       sawDeferredRelocation = true;
       continue;
     }
@@ -514,8 +534,15 @@ export async function applyWouldBePlayedSelfReducer(
 ): Promise<void> {
   if (reducer.pay !== undefined) {
     if (!(await ctx.ask.optional(ctx, reducer.raw))) return;
-    if (await reducer.pay(ctx)) {
-      ctx.playCostDelta = (ctx.playCostDelta ?? 0) + Math.max(0, reducer.amount);
+    const paid = await reducer.pay(ctx);
+    const reduction =
+      typeof paid === "number"
+        ? Math.max(0, paid) * Math.max(0, reducer.amountPerPaid ?? 0)
+        : paid
+          ? Math.max(0, reducer.amount)
+          : 0;
+    if (reduction > 0) {
+      ctx.playCostDelta = (ctx.playCostDelta ?? 0) + reduction;
     }
     return;
   }
@@ -531,7 +558,7 @@ export async function applyWouldBePlayedSelfReducer(
       const declaredZones = [
         ...(target.from ?? []),
         ...((Array.isArray(target.filter.zone) ? target.filter.zone : [target.filter.zone]).filter(
-          (zone): zone is string => typeof zone === "string",
+          (zone): zone is ZoneRef => zone !== undefined,
         ) ?? []),
       ];
       const sourceZones = new Set(
@@ -541,11 +568,7 @@ export async function applyWouldBePlayedSelfReducer(
       const candidates: { instanceId: string; cardId: string; permanentId?: string }[] = [];
       if (sourceZones.has("trash")) {
         candidates.push(
-          ...candidateLooseInstances(
-            ctx,
-            { ...target, filter: { ...candidateFilter, zone: "trash" } },
-            ["trash"],
-          ),
+          ...candidateLooseInstances(ctx, { ...target, filter: { ...candidateFilter, zone: "trash" } }, ["trash"]),
         );
       }
       if (sourceZones.has("battleArea")) {
@@ -603,23 +626,20 @@ export async function applyWouldBePlayedSelfReducer(
         }
       }
       if (chosenPlacements.length > 0) {
-        ctx.pendingSelfReducerPlacements = [
-          ...(ctx.pendingSelfReducerPlacements ?? []),
-          ...chosenPlacements,
-        ];
+        ctx.pendingSelfReducerPlacements = [...(ctx.pendingSelfReducerPlacements ?? []), ...chosenPlacements];
       }
       if (chosenRelocations.length > 0) {
-        ctx.pendingSelfReducerRelocations = [
-          ...(ctx.pendingSelfReducerRelocations ?? []),
-          ...chosenRelocations,
-        ];
+        ctx.pendingSelfReducerRelocations = [...(ctx.pendingSelfReducerRelocations ?? []), ...chosenRelocations];
       }
       const placedCount = chosenPlacements.length + chosenRelocations.length;
       ctx.playCostDelta = (ctx.playCostDelta ?? 0) + placedCount * reducer.amountPerPaid;
       return;
     }
-    if (await payCost(ctx, reducer.cost)) {
-      ctx.playCostDelta = (ctx.playCostDelta ?? 0) + Math.max(0, reducer.amount);
+    const receipt = { paidCount: 0 };
+    if (await payCost(ctx, reducer.cost, receipt)) {
+      const reduction =
+        reducer.amountPerPaid === undefined ? reducer.amount : reducer.amountPerPaid * receipt.paidCount;
+      ctx.playCostDelta = (ctx.playCostDelta ?? 0) + Math.max(0, reduction);
     }
     return;
   }

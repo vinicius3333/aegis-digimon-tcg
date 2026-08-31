@@ -21,7 +21,10 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   effects: [
     {
-      trigger: "Static",
+      // The source is still in hand while its use cost is calculated.  A hand-resident
+      // BeforePayCost effect is the live cost seam; a field Static effect would never run
+      // before this Option is used.
+      trigger: "BeforePayCost",
       actions: [
         {
           kind: "CostModifier",
@@ -35,6 +38,7 @@ const compiled: CompiledCard = {
             count: 1,
             isSelf: true,
           },
+          handResident: true,
           duration: "permanent",
           condition: {
             kind: "zoneCount",

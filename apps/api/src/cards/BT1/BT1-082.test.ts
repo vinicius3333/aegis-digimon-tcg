@@ -9,9 +9,7 @@ describe("BT1-082 Rosemon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT1-082", as: "rosemon", suspended: true, under: [{ card: "BT1-076", under: ["BT1-073"] }] },
-          ],
+          battleArea: [{ card: "BT1-082", as: "rosemon", suspended: true, under: ["BT1-073", "BT1-076"] }],
           security: ["BT1-010"],
         },
         1: {

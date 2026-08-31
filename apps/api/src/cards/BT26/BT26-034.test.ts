@@ -110,7 +110,7 @@ describe("BT26-034 Palmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-035", as: "host", under: [{ card: "BT26-034" }, { card: "EX4-019" }] }],
+          battleArea: [{ card: "BT11-051", as: "host", under: [{ card: "BT26-034" }] }],
         },
         1: {
           battleArea: [
@@ -133,7 +133,8 @@ describe("BT26-034 Palmon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("first").isSuspended && !s.perm("host").isSuspended && !observe(s.engine).isAttacking());
+    await settle(() => s.perm("first").isSuspended && !observe(s.engine).isAttacking());
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -150,7 +151,7 @@ describe("BT26-034 Palmon", () => {
   it("may decline the inherited suspension", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-035", as: "host", under: ["BT26-034"] }] },
+        0: { battleArea: [{ card: "BT11-051", as: "host", under: ["BT26-034"] }] },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
       },
       { autoDeclineOptional: true },

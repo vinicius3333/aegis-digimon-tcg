@@ -22,56 +22,50 @@ describe("BT21-044 compiled implementation", () => {
   });
 
   it("preserves the GeoGreymon alternate Digivolution requirement", () => {
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["GeoGreymon"], cost: 3, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["GeoGreymon"], cost: 3, isAlternate: true }]);
   });
 
   it("grants one Marcus Damon the temporary Digimon, DP, restriction, and keyword effects", () => {
+    const selectedMarcusTarget = { filter: {}, count: 1, fromSelectionRef: "bt21-044-marcus" };
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       const effect = compiled.effects.find((entry) => entry.trigger === trigger);
       expect(effect?.actions).toEqual([
         {
-          kind: "GrantStatic",
+          kind: "SelectBind",
           target: {
-            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Marcus Damon"], match: "name" }] },
+            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Marcus Damon"], match: "nameExact" }] },
             count: 1,
+            bindAs: "bt21-044-marcus",
           },
+        },
+        {
+          kind: "GrantStatic",
+          target: selectedMarcusTarget,
           grant: "kinds",
           tokens: ["Digimon"],
           duration: "forTheTurn",
         },
         {
           kind: "SetBaseDP",
-          target: {
-            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Marcus Damon"], match: "name" }] },
-            count: 1,
-          },
+          target: selectedMarcusTarget,
           value: 3000,
           duration: "forTheTurn",
         },
         {
           kind: "Restrict",
-          target: {
-            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Marcus Damon"], match: "name" }] },
-            count: 1,
-          },
+          target: selectedMarcusTarget,
           restriction: "digivolve",
           duration: "forTheTurn",
         },
         {
           kind: "GainKeyword",
-          target: {
-            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Marcus Damon"], match: "name" }] },
-            count: 1,
-          },
+          target: selectedMarcusTarget,
           keyword: { keyword: "Rush", raw: "＜Rush＞" },
           duration: "forTheTurn",
         },
         {
           kind: "GainKeyword",
-          target: {
-            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Marcus Damon"], match: "name" }] },
-            count: 1,
-          },
+          target: selectedMarcusTarget,
           keyword: { keyword: "Alliance", raw: "＜Alliance＞" },
           duration: "forTheTurn",
         },
@@ -112,6 +106,28 @@ describe("BT21-044 compiled implementation", () => {
     );
   });
 
+  it("does not treat a combined Marcus Damon card name as exact", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "AD1-021", as: "nearMarcus" }],
+          hand: [{ card: "BT21-044", as: "rize" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("rize").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT21-044"));
+
+    expect(s.perm("nearMarcus").currentDP).toBe(0);
+    expect(observe(s.engine).hasKeyword(s.perm("nearMarcus"), "Rush")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("nearMarcus"), "Alliance")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("nearMarcus"), "digivolve")).toBe(false);
+  });
+
   it("observably turns exactly one Marcus into a 3000 DP Digimon with both keywords and no digivolution", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -140,7 +156,6 @@ describe("BT21-044 compiled implementation", () => {
   });
 
   it("alternate-digivolves from GeoGreymon for 3 and resolves the optional attack", async () => {
-    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -152,9 +167,8 @@ describe("BT21-044 compiled implementation", () => {
         },
         1: { security: [{ card: "BT1-009", as: "security" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
-    preferred.push(s.perm("marcus").topCard.instanceId);
     s.state.memory = 5;
     await s.ready();
 

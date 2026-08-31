@@ -79,7 +79,11 @@ describe("BT16-043", () => {
   it("uses the Pulsemon alternate route and resolves both clauses on digivolution", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT16-039", as: "base" }], hand: [{ card: "BT16-043", as: "runner" }], security: ["BT1-009", "BT1-009", "BT1-009"] },
+        0: {
+          battleArea: [{ card: "BT16-039", as: "base" }],
+          hand: [{ card: "BT16-043", as: "runner" }],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
       },
       { autoSelectCards: true },
@@ -91,12 +95,12 @@ describe("BT16-043", () => {
         type: "digivolve",
         permanentId: s.perm("base").permanentId,
         instanceId: s.inst("runner").instanceId,
-        useAlternateCost: true,
+        alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT16-043");
 
-    expect(s.state.memory).toBe(2);
+    expect(s.state.memory).toBe(3);
     expect(s.perm("opponent").isSuspended).toBe(true);
   });
 

@@ -53,7 +53,7 @@ describe("BT17-007", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT17-010", as: "host", under: ["BT17-001", "BT17-007"] },
+          { card: "BT17-007", as: "host", under: ["BT17-001"] },
           { card: "BT1-085", as: "tai" },
         ],
         trash: [

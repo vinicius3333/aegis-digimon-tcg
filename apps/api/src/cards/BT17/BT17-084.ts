@@ -23,7 +23,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // without a valid target).
 // [End of Your Turn] Attack uses the Attack kind with optional:true and a filter for
 // [Free] trait Digimon.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "StartOfYourTurn",
@@ -44,6 +44,7 @@ const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldBeDeleted",
+          mode: "instead",
           leaveCause: "battle",
           sourceFilter: {
             controller: "mine",
@@ -61,36 +62,43 @@ const compiled: CompiledCard = {
           },
           actions: [
             {
-              kind: "PlayWithoutCost",
-              target: {
-                filter: {
-                  controller: "mine",
-                  kind: ["Digimon"],
-                  levelComparison: {
-                    op: "lte",
-                    value: 4,
+              kind: "CostGatedBlock",
+              cost: {
+                kind: "suspend",
+                target: {
+                  filter: {
+                    isSelfRef: true,
                   },
-                  zone: "digivolutionCards",
+                  count: 1,
+                  isSelf: true,
                 },
-                count: 1,
+                raw: "by suspending this Tamer",
               },
-              from: ["digivolutionCards"],
-              payCost: false,
               optional: true,
+              abortOnDecline: true,
+              actions: [
+                {
+                  kind: "PlayWithoutCost",
+                  target: {
+                    filter: {
+                      controller: "mine",
+                      kind: ["Digimon"],
+                      levelComparison: {
+                        op: "lte",
+                        value: 4,
+                      },
+                      zone: "digivolutionCards",
+                      hostFilter: { sourceRef: "triggerSubject" },
+                    },
+                    count: 1,
+                  },
+                  from: ["digivolutionCards"],
+                  payCost: false,
+                  optional: true,
+                },
+              ],
             },
           ],
-          cost: {
-            kind: "suspend",
-            target: {
-              filter: {
-                isSelfRef: true,
-              },
-              count: 1,
-              isSelf: true,
-            },
-            raw: "by suspending this Tamer",
-          },
-          optional: true,
         },
       ],
     },
@@ -99,7 +107,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "Attack",
-          target: {
+          attacker: {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
@@ -110,6 +118,10 @@ const compiled: CompiledCard = {
                 },
               ],
             },
+            count: 1,
+          },
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"] },
             count: 1,
           },
           optional: true,

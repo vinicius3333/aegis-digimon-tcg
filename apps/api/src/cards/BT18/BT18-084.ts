@@ -65,6 +65,8 @@ export const compiled: CompiledCard = {
                       match: "trait",
                     },
                   ],
+                  zone: "digivolutionCards",
+                  hostFilter: { sourceRef: "triggerSubject" },
                 },
                 count: 1,
               },
@@ -83,7 +85,10 @@ export const compiled: CompiledCard = {
     {
       materials: [
         {
-          names: ["Loweemon"],
+          names: ["Loweemon", "Duskmon"],
+        },
+        {
+          names: ["KaiserLeomon", "Velgrmon"],
         },
       ],
       count: 2,

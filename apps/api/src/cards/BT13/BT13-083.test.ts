@@ -10,7 +10,7 @@ describe("BT13-083 Gizmon: AT", () => {
       actions?: unknown[];
     };
     expect(replacement).toMatchObject({
-      sourceFilter: { controllerDefault: "mine", nameOrTrait: [{ match: "nameExact", tokens: ["Gizmon: AT"] }] },
+      sourceFilter: { isSelfRef: true },
     });
     expect(replacement.actions?.[0]).toMatchObject({
       kind: "Replacement",
@@ -85,7 +85,10 @@ describe("BT13-083 Gizmon: AT", () => {
       {
         0: {
           battleArea: [{ card: "BT13-083", as: "gizmon" }],
-          trash: [{ card: "BT13-080", as: "firstGizmon" }, { card: "BT13-086", as: "xt" }],
+          trash: [
+            { card: "BT13-080", as: "firstGizmon" },
+            { card: "BT13-086", as: "xt" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: false, preferInstanceIds: preferred },
@@ -133,7 +136,10 @@ describe("BT13-083 Gizmon: AT", () => {
       {
         0: {
           battleArea: [{ card: "BT13-083", as: "gizmon" }],
-          trash: [{ card: "BT13-080", as: "returnable" }, { card: "BT13-086", as: "xt" }],
+          trash: [
+            { card: "BT13-080", as: "returnable" },
+            { card: "BT13-086", as: "xt" },
+          ],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
@@ -148,15 +154,20 @@ describe("BT13-083 Gizmon: AT", () => {
   });
 
   it("pays the wrapper and can decline the nested XT play", async () => {
+    const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT13-083", as: "gizmon" }],
-          trash: [{ card: "BT13-080", as: "returnable" }, { card: "BT13-086", as: "xt" }],
+          trash: [
+            { card: "BT13-080", as: "returnable" },
+            { card: "BT13-086", as: "xt" },
+          ],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, preferInstanceIds },
     );
+    preferInstanceIds.push(s.perm("gizmon").topCard!.instanceId, s.inst("returnable").instanceId);
     await s.ready();
     const resolving = advance(s.engine).verb.deletePermanent([s.perm("gizmon").permanentId]);
     await settle(() => s.state.pendingDecision?.kind === "optional");
@@ -168,7 +179,9 @@ describe("BT13-083 Gizmon: AT", () => {
         response: { kind: "optional", accept: true },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional" && s.state.pendingDecision.decisionId !== wrapper.decisionId);
+    await settle(
+      () => s.state.pendingDecision?.kind === "optional" && s.state.pendingDecision.decisionId !== wrapper.decisionId,
+    );
     const nested = s.state.pendingDecision!;
     expect(
       s.engine.applyIntent(0, {

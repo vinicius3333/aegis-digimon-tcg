@@ -17,6 +17,10 @@ describe("BT23-084 Erika Mishima", () => {
     });
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
+    expect(compiled.effects.find((entry) => entry.trigger === "Security")).toMatchObject({
+      isSecurity: true,
+      actions: [{ kind: "PlayWithoutCost", payCost: false }],
+    });
   });
 
   it("atomically pays both costs and plays a level 3 CS Digimon into the empty breeding area", async () => {
@@ -96,7 +100,11 @@ describe("BT23-084 Erika Mishima", () => {
         kind: "compound",
         costs: [
           { kind: "suspend", target: { isSelf: true, filter: { isSelfRef: true } } },
-          { kind: "return", target: { count: 1, filter: { nameOrTrait: [{ tokens: ["Hudie"], match: "trait" }] } } },
+          {
+            kind: "return",
+            to: "hand",
+            target: { count: 1, filter: { nameOrTrait: [{ tokens: ["Hudie"], match: "trait" }] } },
+          },
         ],
       },
     });

@@ -47,7 +47,7 @@ describe("BT21-037 compiled implementation", () => {
   });
 
   it("preserves the Veemon alternate Digivolution cost", () => {
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Veemon"], cost: 2, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Veemon"], cost: 2, isAlternate: true }]);
   });
 
   it("evolves from Veemon for 2 reduced to 1 and retains the realistic stack", async () => {

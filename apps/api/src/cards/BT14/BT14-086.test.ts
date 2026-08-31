@@ -3,6 +3,7 @@ import { compiled } from "./BT14-086.js";
 import { Phase } from "@aegis/shared";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "../index.js";
 
 describe("BT14-086", () => {
@@ -30,24 +31,25 @@ describe("BT14-086", () => {
       isSecurity: true,
       actions: [{ kind: "PlayWithoutCost", payCost: false }],
     });
-    expect(compiled.effects?.[2]?.actions).toEqual([
-      expect.objectContaining({ kind: "Aura", target: { filter: { isSelfRef: true }, isSelf: true } }),
-      expect.objectContaining({ kind: "Aura", target: { filter: { isSelfRef: true }, isSelf: true } }),
+    expect(compiled.effects?.[2]?.actions).toMatchObject([
+      { kind: "Aura", target: { filter: { isSelfRef: true }, isSelf: true } },
+      { kind: "Aura", target: { filter: { isSelfRef: true }, isSelf: true } },
     ]);
     expect(compiled.effects?.[3]?.actions[0]).toMatchObject({ fromOwnDigivolutionStack: true });
   });
 
   it("naturally gains start-main memory when the opponent has a Digimon", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT14-086", as: "satsuki" }] },
+      0: { battleArea: [{ card: "BT14-086", as: "satsuki" }], hand: ["BT1-009"] },
       1: { battleArea: [{ card: "BT14-058", as: "opponent" }] },
     });
     await s.ready();
     s.state.memory = 3;
     const turn = s.engine.runOneTurn();
-    await settle(() => s.state.phase === Phase.Main && s.state.memory === 4);
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.state.memory === 4);
     expect(s.state.memory).toBe(4);
-    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    advance(s.engine).endMainPhaseIfOpen(0);
     await turn;
   });
 
@@ -65,12 +67,20 @@ describe("BT14-086", () => {
       { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("satsuki").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("satsuki").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-086"));
     const satsuki = s.state.players[0]!.battleArea.find((perm) => perm.topCard?.cardId === "BT14-086")!;
     const effects = observe(s.engine).activatableEffects(satsuki) as Array<{ effectKey: string }>;
     expect(effects.length).toBeGreaterThan(0);
-    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: satsuki.topCard!.instanceId, effectKey: effects[0]!.effectKey })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: satsuki.topCard!.instanceId,
+        effectKey: effects[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-086"));
     expect(s.perm("numemon").stack.some((card) => card.cardId === "BT14-086")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("numemon"), "Jamming")).toBe(true);
@@ -80,7 +90,10 @@ describe("BT14-086", () => {
   });
 
   it("naturally plays Satsuki from this host's own stack at end of all turns", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT14-058", as: "numemon", under: ["BT14-086"] }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT14-058", as: "numemon", under: ["BT14-086"] }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     const turn = s.engine.runOneTurn();
     await settle(() => s.state.phase === Phase.Main);

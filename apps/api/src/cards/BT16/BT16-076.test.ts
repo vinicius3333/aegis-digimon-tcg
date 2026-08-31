@@ -8,6 +8,7 @@ describe("BT16-076", () => {
       kind: "Delete",
       optional: true,
       abortOnDecline: true,
+      allowCostWithoutTarget: true,
       cost: { kind: "trash", target: { count: 2 } },
       target: { filter: { dp: { op: "lte", value: 6000 } } },
     });
@@ -65,9 +66,7 @@ describe("BT16-076", () => {
         instanceId: s.inst("soloogar").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(
-      () => s.perm("base").topCard?.cardId === "BT16-076" && s.state.players[1]!.battleArea.length === 0,
-    );
+    await settle(() => s.perm("base").topCard?.cardId === "BT16-076" && s.state.players[1]!.battleArea.length === 0);
 
     expect(s.perm("base").topCard?.cardId).toBe("BT16-076");
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
@@ -104,6 +103,9 @@ describe("BT16-076", () => {
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[1]!.battleArea[0]?.currentDP).toBe(6001);
-    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT14-074")).toHaveLength(1);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT14-074")).toHaveLength(
+      1,
+    );
   });
 });

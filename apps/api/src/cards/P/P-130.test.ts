@@ -13,6 +13,7 @@ describe("P-130 Lui Ohwada", () => {
     );
     s.state.phase = Phase.Main;
     s.state.memory = 10;
+    await s.ready();
     const raisedId = s.perm("raised").topCard.instanceId;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lui").instanceId })).toEqual({ ok: true });
     await settle(
@@ -21,6 +22,7 @@ describe("P-130 Lui Ohwada", () => {
         s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === raisedId),
     );
     expect(s.state.memory).toBe(8);
+    expect(s.perm("lui").isSuspended).toBe(true);
     assertNoLoudGap(s);
   });
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { internalsOf } from "../../engine/testkit/internals.js";
 import { compiled } from "./EX4-002.js";
 import "../index.js";
 
@@ -20,7 +20,7 @@ describe("EX4-002 Kokomon", () => {
       0: { deck: ["BT1-010"], battleArea: [{ card: "BT1-009", as: "host", under: ["EX4-002"] }] },
     });
     await s.ready();
-    await internalsOf(s.engine).primitives.suspend([s.perm("host").permanentId]);
+    await advance(s.engine).verb.suspend([s.perm("host").permanentId], 0);
     await settle(() => s.state.players[0]!.hand.length === 1);
     expect(s.state.players[0]!.hand).toHaveLength(1);
   });
@@ -28,14 +28,18 @@ describe("EX4-002 Kokomon", () => {
   it("does not draw when an attack suspends the host", async () => {
     const s = setupEngine({
       0: { deck: ["BT1-010"], battleArea: [{ card: "BT1-009", dp: 5000, as: "host", under: ["EX4-002"] }] },
-      1: { battleArea: [{ card: "BT1-009", dp: 1000, as: "defender" }] },
+      1: { battleArea: [{ card: "BT1-009", dp: 1000, as: "defender" }], security: ["BT1-001"] },
     });
     await s.ready();
-    await internalsOf(s.engine).combat.resolveAttack(0, s.perm("host"), {
-      kind: "permanent",
-      permanentId: s.perm("defender").permanentId,
-    });
-    await settle(() => s.perm("host").isSuspended);
+    s.state.turnSeat = 0;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.deck).toHaveLength(1);
   });

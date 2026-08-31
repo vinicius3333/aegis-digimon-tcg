@@ -40,7 +40,9 @@ describe("BT16-044", () => {
       abortOnDecline: true,
       cost: { kind: "trash" },
     });
-    expect(digivolutionRequirementsFor("BT16-044")).toEqual([{ level: 4, texts: ["Pulsemon"], cost: 3, isAlternate: true }]);
+    expect(digivolutionRequirementsFor("BT16-044")).toEqual([
+      { level: 4, texts: ["Pulsemon"], cost: 3, isAlternate: true },
+    ]);
   });
 
   it("suspends and restricts the same opponent at exactly three security", async () => {
@@ -66,7 +68,11 @@ describe("BT16-044", () => {
   it("resolves both independent branches when digivolving at exactly three security", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT16-043", as: "base" }], hand: [{ card: "BT16-044", as: "pistmon" }], security: ["BT1-009", "BT1-009", "BT1-009"] },
+        0: {
+          battleArea: [{ card: "BT16-043", as: "base" }],
+          hand: [{ card: "BT16-044", as: "pistmon" }],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
       },
       { autoSelectCards: true },
@@ -90,10 +96,15 @@ describe("BT16-044", () => {
   it("naturally pays the inherited security cost and unsuspends after attacking", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT16-047", as: "host", under: ["BT16-044"], suspended: false }], security: ["BT1-009", "BT1-009"] },
+        0: {
+          battleArea: [{ card: "BT16-047", as: "host", under: ["BT16-044"], suspended: false }],
+          security: ["BT1-009", "BT1-009"],
+        },
+        1: { security: ["BT1-090"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    await s.ready();
 
     expect(
       s.engine.applyIntent(0, {
