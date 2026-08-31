@@ -295,15 +295,21 @@ describe("floating chrome keeps clear of the hand and the memory band", () => {
   // band of its own, and neither may grow out of it.
   it("gives the notice stack and the side panels separate bands in portrait", () => {
     expect(phonePortraitRules).toBeDefined();
-    // Each band scrolls rather than clipping: a fixed 7rem clip cut a long
-    // effect clause mid-sentence with no way to read the rest. The stack takes
-    // its own pointer events so the scroll gesture lands on it.
+    // Each band scrolls rather than clipping, and its floor fits one whole
+    // notice (~12rem) or one whole card panel (~14.5rem): the old caps cut a
+    // long effect clause and the revealed card's art with no way to read them.
+    // The stack takes its own pointer events so the scroll gesture lands on it.
     expect(phonePortraitRules).toMatch(
-      /\.match-notice-stack,\s*\.side-panel-stack \{[^}]*max-height:\s*max\(7rem, calc\(50dvh - 14rem\)\)[^}]*overflow:\s*hidden auto[^}]*pointer-events:\s*auto/,
+      /\.match-notice-stack,\s*\.side-panel-stack \{[^}]*max-height:\s*max\(12rem, calc\(100dvh - 28rem\)\)[^}]*overflow:\s*hidden auto[^}]*pointer-events:\s*auto/,
     );
-    // The card panels take the deeper of the two bands: a thumbnail plus a heading.
+    // The card panels take the deeper floor: a thumbnail plus a heading.
     expect(phonePortraitRules).toMatch(
-      /\.side-panel-stack \{[^}]*max-height:\s*max\(9rem, calc\(50dvh - 17\.25rem\)\)/,
+      /\.side-panel-stack \{[^}]*max-height:\s*max\(14\.5rem, calc\(100dvh - 28rem\)\)/,
+    );
+    // The panel clips its own overflow, so flex shrink would cut the card art
+    // internally, out of reach of the band's scrollbar.
+    expect(phonePortraitRules).toMatch(
+      /\.side-panel-stack > \.side-panel,\s*\.match-notice-stack > \.match-notice \{[^}]*flex-shrink:\s*0/,
     );
     // One scroll container per band: the notice text gives up its own scrollbar.
     expect(phonePortraitRules).toMatch(/\.match-notice__text \{[^}]*max-height:\s*none[^}]*overflow-y:\s*visible/);
