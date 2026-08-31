@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
@@ -47,5 +48,49 @@ describe("ST12-04 Huckmon", () => {
     });
     await settle(() => s.state.players[0]!.battleArea.length === 3);
     expect(s.state.memory).toBe(3);
+  });
+
+  it("does not gain memory when a non-Sistermon Digimon is played", async () => {
+    const s = setupEngine({ 0: { battleArea: ["ST12-04"], hand: [{ card: "ST12-02", as: "other" }] } });
+    s.state.memory = 2;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("other").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 2);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("does not gain memory when the opponent plays a Sistermon", async () => {
+    const s = setupEngine({
+      0: { battleArea: ["ST12-04"] },
+      1: { hand: [{ card: "ST12-12", as: "opponentSister" }] },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentSister").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("gains only 1 memory when two Sistermon are played in one effect window (Q756)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: ["ST12-04"],
+        hand: [
+          { card: "BT10-085", as: "first" },
+          { card: "BT10-085", as: "second" },
+        ],
+      },
+    });
+    s.state.memory = 0;
+
+    await advance(s.engine).verb.playInstances(
+      [s.inst("first").instanceId, s.inst("second").instanceId],
+      "test-effect-play",
+    );
+
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.battleArea.filter((p) => p.topCard.cardId === "BT10-085")).toHaveLength(2);
   });
 });

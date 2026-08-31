@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-060.js";
 
-describe("EX6-060 Belphemon: Sleep Mode", () => {
+describe("EX6-060 Belphemon: Rage Mode", () => {
   it("trashes up to three hand cards, suspends one low-level opponent per card, and deletes all lowest-cost suspended Digimon", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions).toMatchObject([
       { kind: "Trash", target: { count: 3, upTo: true }, trackCount: "trashedCards" },
@@ -13,7 +13,7 @@ describe("EX6-060 Belphemon: Sleep Mode", () => {
       kind: "Replacement",
       leaveCause: "otherThanBattle",
       actions: [
-        { kind: "PlaceUnder", target: { from: ["trash"] }, position: "bottom", underFilter: { zone: "breedingArea" } },
+        { kind: "PlaceUnder", target: { from: ["trash"] }, position: "bottom", underFilter: { zone: "breeding" } },
       ],
     }));
 });

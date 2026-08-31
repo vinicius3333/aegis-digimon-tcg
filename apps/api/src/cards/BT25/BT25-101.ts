@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -15,6 +14,7 @@ export const compiled: CompiledCard = {
             filter: {
               controllerDefault: "mine",
               zone: "battleArea",
+              kind: ["Digimon", "Tamer"],
               nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
             },
           },
@@ -29,13 +29,13 @@ export const compiled: CompiledCard = {
           kind: "GainKeyword",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           keyword: { keyword: "SecurityAttack", amount: 1 },
-          duration: "untilEachTurnEnd",
+          duration: "permanent",
         },
         {
           kind: "GainKeyword",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           keyword: { keyword: "Reboot" },
-          duration: "untilEachTurnEnd",
+          duration: "permanent",
         },
       ],
     },
@@ -70,6 +70,7 @@ export const compiled: CompiledCard = {
         {
           kind: "Draw",
           amount: 2,
+          controller: "mine",
           cost: {
             kind: "trash",
             target: {
@@ -95,7 +96,11 @@ export const compiled: CompiledCard = {
             count: 1,
             isSelf: true,
           },
-          recipient: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+          recipient: {
+            filter: { controller: "mine", kind: ["Digimon"] },
+            orFilters: [{ controller: "mine", zone: "breeding", kind: ["Digimon"] }],
+            count: 1,
+          },
           from: ["trash"],
           allowBreedingRecipient: true,
           payCost: false,

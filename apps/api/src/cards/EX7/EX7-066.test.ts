@@ -6,6 +6,7 @@ describe("EX7-066", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "onDigivolutionCardDiscarded",
+      requireByEffect: true,
       actions: [{ kind: "ModifyDP", amount: 3000 }],
     });
     expect(compiled.effects?.find((entry) => entry.trigger === "Static")?.actions[0]).toMatchObject({

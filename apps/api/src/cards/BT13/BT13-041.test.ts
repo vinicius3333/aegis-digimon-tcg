@@ -22,7 +22,10 @@ describe("BT13-041 Chirinmon", () => {
           payCost: false,
           suspended: true,
           optional: true,
-          target: { filter: { controller: "mine", nameOrTrait: [{ match: "name", tokens: ["Kudamon"] }] }, count: 1 },
+          target: {
+            filter: { controller: "mine", nameOrTrait: [{ match: "nameExact", tokens: ["Kudamon"] }] },
+            count: 1,
+          },
         },
       ],
     });
@@ -42,7 +45,7 @@ describe("BT13-041 Chirinmon", () => {
       },
     });
     await s.ready();
-    const deletion = advance(s.engine).verb.deletePermanent([s.perm("chirin").permanentId]);
+    const deletion = advance(s.engine).verb.deletePermanent([s.perm("chirin").permanentId], "byBattle");
     await settle(() => s.events.some(({ kind }) => kind === "barrierPrompt"));
     expect(
       s.engine.applyIntent(0, { type: "respondBarrier", permanentId: s.perm("chirin").permanentId, accept: true }),
@@ -51,9 +54,9 @@ describe("BT13-041 Chirinmon", () => {
 
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.security).toHaveLength(0);
-    expect(
-      s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("top-security").instanceId),
-    ).toBe(true);
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("top-security").instanceId)).toBe(
+      true,
+    );
   });
 
   it("the inherited deletion effect plays Kudamon from trash suspended and for free", async () => {

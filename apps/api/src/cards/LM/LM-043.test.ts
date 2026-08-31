@@ -56,6 +56,36 @@ describe("LM-043 Darkdramon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Collision")).toBe(true);
   });
 
+  it("uses Scapegoat to delete another own Digimon instead of itself against an opponent's battle", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-009", as: "sacrifice" },
+            { card: "LM-043", as: "darkdramon", suspended: true },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 13000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const sacrificePermanentId = s.perm("sacrifice").permanentId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("darkdramon").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some((p) => p.permanentId === sacrificePermanentId), 2000);
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("darkdramon").permanentId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === sacrificePermanentId)).toBe(false);
+  });
+
   it("matches committed metadata and publishes fully covered compiled IR", () => {
     const definition = getCardDefinition("LM-043");
     const compiled = runtimeCompiledCard("LM-043");

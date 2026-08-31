@@ -5,6 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const linkedSource = {
   controllerDefault: "mine",
   zone: "digivolutionCards",
+  hostFilter: { isSelfRef: true },
   kind: ["Digimon"],
   levels: [3],
   hasLinkRequirement: true,
@@ -67,7 +68,10 @@ export const compiled: CompiledCard = {
   residual: [],
   appFusionRequirement: [{ names: ["Aidmon", "Supplemon", "Spamon"], cost: 0 }],
   assemblyRequirement: [
-    { reduceCost: 2, materials: [{ traits: ["Life", "System", "Seven Code"], level: 3, count: 1 }] },
+    {
+      reduceCost: 2,
+      materials: [{ kinds: ["Digimon"], traits: ["Life", "System", "Seven Code"], level: 3, count: 1 }],
+    },
   ],
   linkRequirement: [{ traits: ["Appmon"], cost: 3 }],
 };

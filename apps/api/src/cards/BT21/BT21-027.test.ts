@@ -21,7 +21,7 @@ describe("BT21-027 compiled implementation", () => {
 
   it("requires OmniShoutmon and ZeigGreymon as the two DigiXros materials", () => {
     expect(compiled.digiXrosRequirement).toEqual([
-      { materials: [{ names: ["OmniShoutmon"] }, { names: ["ZeigGreymon"] }], count: 2 },
+      { materials: [{ names: ["OmniShoutmon"] }, { names: ["ZeigGreymon"] }], count: 3 },
     ]);
     expect(compiled.effects).toContainEqual(
       expect.objectContaining({
@@ -55,7 +55,7 @@ describe("BT21-027 compiled implementation", () => {
 
   it("publishes both alternate evolution routes and its additional DigiXros names", async () => {
     expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["ZeigGreymon"], cost: 2, isAlternate: true },
+      { namesExact: ["ZeigGreymon"], cost: 2, isAlternate: true },
       { level: 5, traits: ["Xros Heart"], cost: 3, isAlternate: true },
     ]);
     const s = setupEngine({ 0: { battleArea: [{ card: "BT21-027", as: "shoutmon-dx" }] } });
@@ -143,6 +143,7 @@ describe("BT21-027 compiled implementation", () => {
                 { card: "BT1-009", as: "nonmatching" },
               ],
             },
+            { card: "BT1-010", as: "other-host", under: [{ card: "BT21-021", as: "foreign-source" }] },
             { card: "BT1-085", as: "tamer" },
           ],
         },
@@ -167,6 +168,7 @@ describe("BT21-027 compiled implementation", () => {
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
       expect.arrayContaining(["BT21-027", "BT1-009"]),
     );
+    expect(s.perm("other-host").stack.map((card) => card.instanceId)).toContain(s.inst("foreign-source").instanceId);
   });
 
   it("may decline moving sources and leaves without offering the effect when no Tamer exists", async () => {

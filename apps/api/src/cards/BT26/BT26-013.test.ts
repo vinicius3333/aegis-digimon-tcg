@@ -68,6 +68,28 @@ describe("BT26-013 Musyamon", () => {
     ).toEqual(expect.objectContaining({ ok: false }));
   });
 
+  it("also digivolves for 2 over a Shambala-only Lv.3", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX12-061", as: "shambalaBase" }],
+        hand: [{ card: "BT26-013", as: "musyamon" }],
+        deck: ["BT1-009"],
+      },
+    });
+    s.state.memory = 2;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("shambalaBase").permanentId,
+        instanceId: s.inst("musyamon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("shambalaBase").topCard.cardId === "BT26-013");
+    expect(s.state.memory).toBe(0);
+  });
+
   it("trashes one hand card and deletes an opponent Digimon at 6000 DP or less", async () => {
     const s = setupEngine(
       {

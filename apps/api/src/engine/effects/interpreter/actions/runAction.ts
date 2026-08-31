@@ -26,7 +26,118 @@ import { runRestrictionAction } from "./restrictions.js";
 import { runRevealAction } from "./reveal.js";
 import { runSecurityAction } from "./security.js";
 import { runStaticAction } from "./statics.js";
-import type { Action, Cost, ZoneRef } from "@aegis/shared";
+import type { Action, Cost, Target, ZoneRef } from "@aegis/shared";
+
+function isCostBearingAction(action: Action): boolean {
+  // RawUnparsedAction is the sole Action variant that is not based on ActionBase.
+  // Narrow before reading the common cost fields so this guard remains sound as the
+  // closed union gains more action kinds.
+  if (action.kind === "RawUnparsed") return false;
+  return (
+    action.cost !== undefined ||
+    action.additionalCost !== undefined ||
+    (action.additionalCosts?.length ?? 0) > 0 ||
+    (action.costOptions?.length ?? 0) > 0
+  );
+}
+
+/**
+ * Q5331's borrowed BT23-045 On Play has a context-specific source priority: an eligible Royal
+ * Base/Zaxon card in trash must be placed before a hand fallback. Keep this transformation on
+ * the borrowed resolution context so the ordinary BT23-045 effect and every other borrower keep
+ * their declared source pool and selection behavior.
+ */
+function borrowedProcessingCost(ctx: EffectContext, cost: Cost): Cost {
+  if (
+    ctx.borrowedEffectOverrides?.preferTrashCostSource !== true ||
+    cost.kind !== "place" ||
+    cost.target === undefined
+  ) {
+    return cost;
+  }
+  const sourceZones = (Array.isArray(cost.target.from) ? cost.target.from : [cost.target.from]).filter(
+    (zone): zone is ZoneRef => typeof zone === "string",
+  );
+  if (sourceZones.length !== 2 || !sourceZones.includes("hand") || !sourceZones.includes("trash")) {
+    return cost;
+  }
+  const trashCandidates = candidateLooseInstances(ctx, cost.target, ["trash"]);
+  const handCandidates = candidateLooseInstances(ctx, cost.target, ["hand"]);
+  const preferredZones: ZoneRef[] =
+    trashCandidates.length > 0 ? ["trash"] : handCandidates.length > 0 ? ["hand"] : sourceZones;
+  if (
+    preferredZones.length === sourceZones.length &&
+    preferredZones.every((zone, index) => zone === sourceZones[index])
+  ) {
+    return cost;
+  }
+  return {
+    ...cost,
+    target: {
+      ...cost.target,
+      from: preferredZones,
+    },
+  };
+}
+
+/**
+ * A loose-card payment can define the following Delete target (same name/relative level).
+ * Prove that at least one payable card/target pair exists before offering or consuming the cost;
+ * the real binding is written by payCost after the player chooses the payment.
+ */
+function looseCostCanProduceDeleteTarget(
+  ctx: EffectContext,
+  action: Extract<Action, { kind: "Delete" }>,
+  cost: Cost,
+): boolean {
+  const ref = cost.bindResultAs;
+  const costTarget = cost.target;
+  if (ref === undefined || costTarget === undefined) return false;
+  const sameName = action.target.filter.sameNameAsSelection === ref;
+  const relative = action.target.filter.relativeTo;
+  if (!sameName && relative?.selectionRef !== ref) return false;
+  const zone = costTarget.filter.zone;
+  const zones = (Array.isArray(zone) ? zone : zone === undefined ? [] : [zone]).filter(
+    (candidate): candidate is ZoneRef => candidate === "hand" || candidate === "trash",
+  );
+  if (zones.length === 0) return false;
+  const costCandidates = candidateLooseInstances(ctx, costTarget, zones);
+  if (costCandidates.length === 0) return false;
+  const { sameNameAsSelection: _sameName, relativeTo: _relative, ...staticFilter } = action.target.filter;
+  const targets = candidatePermanents(ctx, { ...action.target, filter: staticFilter } as Target);
+  return costCandidates.some((candidate) => {
+    const paid = ctx.game.definitionOf({ cardId: candidate.cardId });
+    return targets.some((target) => {
+      if (target.topCard === undefined) return false;
+      const targetDefinition = ctx.game.definitionOf(target.topCard);
+      if (sameName) {
+        const paidName = (paid.nameEn ?? "").toLowerCase();
+        return paidName !== "" && paidName === (targetDefinition.nameEn ?? "").toLowerCase();
+      }
+      if (relative === undefined) return false;
+      const lhs =
+        relative.attr === "dp"
+          ? target.currentDP
+          : relative.attr === "digivolutionCount"
+            ? target.stack.length
+            : relative.attr === "level"
+              ? targetDefinition.level
+              : targetDefinition.playCost;
+      const rhs =
+        relative.attr === "dp"
+          ? paid.dp
+          : relative.attr === "digivolutionCount"
+            ? 0
+            : relative.attr === "level"
+              ? paid.level
+              : paid.playCost;
+      if (lhs === undefined || rhs === undefined) return false;
+      if (relative.op === "lte") return lhs <= rhs;
+      if (relative.op === "gte") return lhs >= rhs;
+      return lhs === rhs;
+    });
+  });
+}
 
 // ---------------------------------------------------------------------------
 // Action dispatch
@@ -44,15 +155,30 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   // afterwards because a nested action (a branch, a repeat) resolves its own
   // targets and must not inherit the outer action's fate.
   const outerFate = ctx.activeTargetFate;
+  const outerDelayArmedConsumed = ctx.delayArmedConsumed;
   ctx.activeTargetFate = targetFateOf(action);
   try {
     return await runActionInner(ctx, action);
   } finally {
     ctx.activeTargetFate = outerFate;
+    // `requiresDelayArmed` is scoped to this action resolution. Some focused
+    // contexts are intentionally reused across timing windows; leaking the
+    // consumed flag would let the same payload run again without a new grant.
+    ctx.delayArmedConsumed = outerDelayArmedConsumed;
   }
 }
 
 async function runActionInner(ctx: EffectContext, action: Action): Promise<boolean> {
+  // A placement tally is scoped to this action's current resolution.  In particular, a
+  // declined/blocked optional placement must overwrite a prior activation's count rather
+  // than allowing a later conditional to borrow it (EX6-073 Q3825).
+  if (action.kind === "PlaceUnder") {
+    if (action.trackCount !== undefined || action.trackDistinctNames !== undefined) {
+      ctx.namedCounts ??= new Map();
+      if (action.trackCount !== undefined) ctx.namedCounts.set(action.trackCount, 0);
+      if (action.trackDistinctNames !== undefined) ctx.namedCounts.set(action.trackDistinctNames, 0);
+    }
+  }
   if (action.kind === "PlayWithoutCost" && action.target.filter?.sameColorAsReturned === true) {
     ctx.lastReturnedColors = undefined;
   }
@@ -69,6 +195,25 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     if (!ctx.lastActionConditionMatched) return false;
   } else {
     ctx.lastActionConditionMatched = true;
+  }
+  // A Delay payload may use any action kind, including GainKeyword. Consume an armed Delay
+  // grant here for action kinds whose specialized handlers do not own that gate. The intrinsic
+  // Main Delay wrapper passes delayArmedConsumed after consuming its grant, while Play,
+  // Replacement, and SubTrigger handlers can safely observe the same flag without double use.
+  const ownsDelayGate =
+    action.kind === "PlayWithoutCost" || action.kind === "Replacement" || action.kind === "SubTrigger";
+  if (
+    action.kind !== "RawUnparsed" &&
+    !ownsDelayGate &&
+    action.requiresDelayArmed === true &&
+    ctx.delayArmedConsumed !== true
+  ) {
+    const self = ctx.source.permanent();
+    if (self === undefined) return false;
+    const hasDelay = (ctx.fx.grantedKeywords?.(self.permanentId) ?? []).some((grant) => grant.keyword === "Delay");
+    if (!hasDelay) return false;
+    ctx.fx.revokeKeyword?.(self.permanentId, "Delay");
+    ctx.delayArmedConsumed = true;
   }
   // "By paying ..., return 1 [X]" is not worth offering when nothing can be returned — but
   // only a BATTLE-AREA return is answered by a board scan. A return that sources a loose card
@@ -101,15 +246,31 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       action.playCostCeiling !== undefined ||
       action.scaling !== undefined ||
       action.target.filter?.playCostLteScaling !== undefined);
+  const actionCost = action.kind === "DigivolveViaPlacement" ? undefined : action.cost;
+  const payableActionCost =
+    actionCost !== undefined && typeof actionCost !== "number" ? borrowedProcessingCost(ctx, actionCost) : actionCost;
+  const forceOptionalCostProcessing =
+    ctx.borrowedEffectOverrides?.forceCostProcessing === true &&
+    action.optional === true &&
+    isCostBearingAction(action);
+  const additionalCost = action.kind === "RawUnparsed" ? undefined : action.additionalCost;
+  const additionalCosts = action.kind === "RawUnparsed" ? [] : (action.additionalCosts ?? []);
+  const placementCosts = [
+    ...(actionCost?.kind === "place" ? [actionCost] : []),
+    ...(additionalCost?.kind === "place" ? [additionalCost] : []),
+    ...additionalCosts.filter((cost): cost is Cost => cost.kind === "place"),
+  ];
   const placeCostProducesDeleteTarget =
     action.kind === "Delete" &&
-    action.cost?.kind === "place" &&
-    ((action.cost.storeAs !== undefined && action.target.filter.levelEq === action.cost.storeAs) ||
-      (action.cost.storeAs !== undefined &&
-        action.target.filter.levelComparison?.scaling?.unit === "namedCount" &&
-        action.target.filter.levelComparison.scaling.countSource === action.cost.storeAs) ||
-      (action.cost.bindResultAs !== undefined &&
-        action.target.filter.levelComparison?.relativeTo === action.cost.bindResultAs));
+    placementCosts.some(
+      (cost) =>
+        (cost.storeAs !== undefined && action.target.filter.levelEq === cost.storeAs) ||
+        (cost.storeAs !== undefined &&
+          action.target.filter.levelComparison?.scaling?.unit === "namedCount" &&
+          action.target.filter.levelComparison.scaling.countSource === cost.storeAs) ||
+        (cost.bindHostAs !== undefined && action.target.filter.relativeTo?.selectionRef === cost.bindHostAs) ||
+        (cost.bindResultAs !== undefined && action.target.filter.levelComparison?.relativeTo === cost.bindResultAs),
+    );
   // A "by deleting 1 of your Digimon, delete 1 with a level no higher than it" target
   // cannot be matched until the deleteOwn cost captures `lastDeletedLevel`.  Preflighting
   // it before payment makes the target set look empty and silently skips the whole action.
@@ -120,12 +281,25 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     action.cost.kind === "deleteOwn"
       ? action.cost
       : undefined;
-  const deleteTargetBoundByItsCost =
+  const deleteTargetLevelBoundByItsCost =
     action.kind === "Delete" &&
     deleteOwnCost !== undefined &&
     action.target.filter.levelComparison?.relativeTo === "lastDeleted";
-  const deleteOwnLevelTargetAvailable = (() => {
+  const deleteTargetDPBoundByItsCost =
+    action.kind === "Delete" && deleteOwnCost !== undefined && action.target.filter.dp?.relativeTo === "lastDeleted";
+  const deleteTargetBoundByItsCost = deleteTargetLevelBoundByItsCost || deleteTargetDPBoundByItsCost;
+  const deleteOwnBoundedTargetAvailable = (() => {
     if (action.kind !== "Delete" || !deleteTargetBoundByItsCost || deleteOwnCost.target === undefined) return false;
+    if (deleteTargetDPBoundByItsCost) {
+      const highestCostDP = Math.max(
+        ...candidatePermanents(ctx, deleteOwnCost.target).map((permanent) => permanent.currentDP),
+        0,
+      );
+      const { dp: _dp, ...filterWithoutBound } = action.target.filter;
+      return candidatePermanents(ctx, { ...action.target, filter: filterWithoutBound }).some(
+        (permanent) => permanent.currentDP <= highestCostDP,
+      );
+    }
     const highestCostLevel = Math.max(
       ...candidatePermanents(ctx, deleteOwnCost.target)
         .map((permanent) => {
@@ -142,13 +316,43 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       return card !== undefined && (ctx.game.definitionOf(card).level ?? 0) <= highestCostLevel;
     });
   })();
+  const looseCostDefinesDeleteTarget =
+    action.kind === "Delete" &&
+    payableActionCost !== undefined &&
+    typeof payableActionCost !== "number" &&
+    payableActionCost.bindResultAs !== undefined &&
+    (action.target.filter.sameNameAsSelection === payableActionCost.bindResultAs ||
+      action.target.filter.relativeTo?.selectionRef === payableActionCost.bindResultAs);
+  if (
+    action.kind === "Delete" &&
+    looseCostDefinesDeleteTarget &&
+    typeof payableActionCost !== "number" &&
+    !looseCostCanProduceDeleteTarget(ctx, action, payableActionCost)
+  ) {
+    return action.abortOnDecline === true;
+  }
   if (
     action.kind === "Delete" &&
     action.cost !== undefined &&
     action.allowCostWithoutTarget !== true &&
     !dynamicallyScaledDeleteTarget &&
     !placeCostProducesDeleteTarget &&
-    (!deleteTargetBoundByItsCost || !deleteOwnLevelTargetAvailable) &&
+    !looseCostDefinesDeleteTarget &&
+    (!deleteTargetBoundByItsCost || !deleteOwnBoundedTargetAvailable) &&
+    candidatePermanents(ctx, action.target).length === 0
+  ) {
+    return action.abortOnDecline === true;
+  }
+  // Target-bearing source-trash and binding actions must not consume a Digi-Burst (or other
+  // activation) cost when their target pool is empty. Return/Delete already have equivalent
+  // preflights above; BT4-032 uses TrashDigivolution, BT4-033 uses SelectBind before the
+  // subsequent bounce, and BT4-068 gates De-Digivolve with Digi-Burst, so leaving these
+  // target-bearing verbs to pay first makes a no-target activation
+  // silently trash the source stack (CR §15-8-4-4-1).
+  if (
+    (action.kind === "TrashDigivolution" || action.kind === "SelectBind" || action.kind === "DeDigivolve") &&
+    action.cost !== undefined &&
+    action.allowCostWithoutTarget !== true &&
     candidatePermanents(ctx, action.target).length === 0
   ) {
     return action.abortOnDecline === true;
@@ -156,6 +360,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   if (
     action.kind === "Unsuspend" &&
     action.cost !== undefined &&
+    action.allowCostWithoutTarget !== true &&
     !(action.cost.bindHostAs !== undefined && action.cost.bindHostAs === action.target.fromSelectionRef) &&
     (await resolvePermanentTargets(ctx, action.target)).every((id) => {
       const permanent = ctx.game.permanentById(id);
@@ -189,7 +394,12 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   // activation cost is payable only when the attack can actually be redirected. Preflight
   // candidates before the optional prompt and generic cost path; otherwise a card such as
   // BT26-092 can return its Tamer even though no eligible TS Digimon exists to receive the attack.
-  if (action.kind === "RedirectAttack" && action.includePlayer !== true && action.allowCostWithoutTarget !== true) {
+  if (
+    action.kind === "RedirectAttack" &&
+    action.mode !== "endAttack" &&
+    action.includePlayer !== true &&
+    action.allowCostWithoutTarget !== true
+  ) {
     const target =
       action.chooser === "opponent"
         ? { ...action.target, filter: { ...action.target.filter, controller: "opponent" as const } }
@@ -215,6 +425,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   if (
     action.kind === "UseOptionWithoutCost" &&
     action.cost !== undefined &&
+    action.allowCostWithoutTarget !== true &&
     !(await canAttemptUseOptionWithoutCost(ctx, action))
   ) {
     return action.abortOnDecline === true;
@@ -244,11 +455,15 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     action.cost?.kind === "trash";
   let costModifierPaidCount: number | undefined;
   if (action.kind === "CostModifier" && action.cost !== undefined && !interactiveDigivolveReduction) {
-    if (action.optional && !(await ctx.ask.optional(ctx, `Pay cost: ${action.cost.raw ?? action.cost.kind}?`))) {
+    if (
+      action.optional &&
+      !forceOptionalCostProcessing &&
+      !(await ctx.ask.optional(ctx, `Pay cost: ${action.cost.raw ?? action.cost.kind}?`))
+    ) {
       return action.abortOnDecline === true;
     }
     const payment = { paidCount: 0 };
-    const paid = await payCost(ctx, action.cost, payment);
+    const paid = await payCost(ctx, payableActionCost as Cost, payment);
     if (!paid) return action.abortOnDecline === true;
     costModifierPaidCount = payment.paidCount;
   }
@@ -266,7 +481,18 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     // player may choose to USE the card; asking again while recomputing a hand
     // card makes the permission inert in continuous contexts (EX1-071, BT6 Options).
     action.kind !== "WaiveColorRequirement" &&
-    action.optional
+    action.optional &&
+    // An opponent-directed optional trash is THEIR up-to selection. Let the Trash
+    // resolver ask that opponent and record a zero-card choice as a decline for
+    // the printed "if they don't" tail (BT13-102), instead of opening a separate
+    // source-controller prompt that loses the opponent-decline receipt.
+    (action.kind !== "Trash" || action.chooser !== "opponent") &&
+    // RedirectAttack with chooser:"opponent" owns its optional decline at the combat
+    // primitive so the defending player, rather than the source controller, decides
+    // whether to switch targets (BT4-075 / Q1224-Q1227).
+    (action.kind !== "RedirectAttack" || action.chooser !== "opponent") &&
+    !forceOptionalCostProcessing &&
+    actionCost?.optional !== true
   ) {
     if (action.kind === "PlaceUnder" && !canAttemptPlaceUnder(ctx, action)) {
       return action.abortOnDecline === true;
@@ -283,7 +509,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       action.op === "toHand" &&
       ctx.game.player(ctx.source.ownerSeat).security.length === 0
     ) {
-      return false;
+      return action.abortOnDecline === true;
     }
     // Do not offer an optional play when no legal loose card exists. Besides avoiding a
     // meaningless UI prompt, this is required for nested entry windows: Nokia played from
@@ -296,7 +522,24 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       action.fromOwnDigivolutionStack !== true
     ) {
       const zones = action.from && action.from.length > 0 ? action.from : DEFAULT_PLAY_ZONES;
-      const preflightTarget = applyPlayCostCeiling(ctx, action, action.target);
+      const costCeilingTarget = applyPlayCostCeiling(ctx, action, action.target);
+      const preflightTarget =
+        ctx.playLevelCeilingDelta === undefined || ctx.playLevelCeilingDelta === 0
+          ? costCeilingTarget
+          : {
+              ...costCeilingTarget,
+              filter: {
+                ...costCeilingTarget.filter,
+                levelComparison:
+                  costCeilingTarget.filter.levelComparison?.op === "lte" &&
+                  costCeilingTarget.filter.levelComparison.value !== undefined
+                    ? {
+                        ...costCeilingTarget.filter.levelComparison,
+                        value: costCeilingTarget.filter.levelComparison.value + ctx.playLevelCeilingDelta,
+                      }
+                    : costCeilingTarget.filter.levelComparison,
+              },
+            };
       const sameColorAsReturned = preflightTarget.filter.sameColorAsReturned === true;
       const staticPreflightTarget = sameColorAsReturned
         ? { ...preflightTarget, filter: { ...preflightTarget.filter, sameColorAsReturned: undefined } }
@@ -328,7 +571,8 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       // so defer that more complex shape to the play resolver.
       if (action.payCost === true && action.allowDigiXros !== true && ctx.fx.canAffordEffectPlay !== undefined) {
         const costDelta =
-          action.reduceCostByScaling === undefined ? action.reduceCostBy : scaleFactor(ctx, action.reduceCostByScaling);
+          (action.reduceCostBy ?? 0) +
+          (action.reduceCostByScaling === undefined ? 0 : scaleFactor(ctx, action.reduceCostByScaling));
         const affordability = await Promise.all(
           candidates.map(async (candidate) => ({
             candidate,
@@ -371,32 +615,51 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       // activation cost that changes target legality (BT16-048 suspends the Digimon
       // whose DP becomes the bounce ceiling), so its candidates must be resolved
       // after payment by the normal action path.
-      if (looseZones !== undefined && candidateLooseInstances(ctx, action.target, looseZones).length === 0)
-        return false;
+      if (looseZones !== undefined && candidateLooseInstances(ctx, action.target, looseZones).length === 0) {
+        // Paying a trash cost can itself create the recovery target: BT21-056 trashes a
+        // [Vemmon]-text card from hand and may then return a matching card from the trash —
+        // legal even when the trash starts empty, because the trashed cost card qualifies.
+        // Offer the confirmation only when some payable cost card would match the Return filter.
+        const trashCost = action.cost?.kind === "trash" ? action.cost : undefined;
+        const costCreatesRecoveryCandidate = (): boolean => {
+          if (trashCost?.target === undefined || !looseZones.includes("trash")) return false;
+          const costZones = zoneList(trashCost.target.filter.zone ?? "hand");
+          const payable = new Set(candidateLooseInstances(ctx, trashCost.target, costZones).map((c) => c.instanceId));
+          if (payable.size === 0) return false;
+          const zonelessReturnTarget = { ...action.target, filter: { ...action.target.filter, zone: undefined } };
+          return candidateLooseInstances(ctx, zonelessReturnTarget, costZones).some((c) => payable.has(c.instanceId));
+        };
+        if (!costCreatesRecoveryCandidate()) return false;
+      }
     }
     // A "may digivolve" prompt is meaningful only when at least one matching source and
     // destination form a legal digivolution. In particular, "without paying the cost" does
     // not waive printed requirements (P-092 Q4182); do this before asking so the UI never
     // confirms an evolution the resolver will immediately discard.
     if (action.kind === "Digivolve") {
-      const hostBindingCost =
-        action.cost?.kind === "place" &&
-        action.cost.bindHostAs !== undefined &&
-        action.cost.bindHostAs === action.target.fromSelectionRef &&
-        action.cost.underFilter !== undefined;
       // The placement cost binds the exact base that the following digivolve must use.
       // Before payment that binding does not exist, so preflight against the cost's host
       // filter instead. This keeps the cost transactional: no legal trash/hand evolution
       // means the source card is not first moved under the host (EX10-066).
-      const canAttempt = hostBindingCost
-        ? canAttemptDigivolve(ctx, {
-            ...action,
-            target: { filter: action.cost!.underFilter!, count: 1 },
-          })
-        : canAttemptDigivolve(ctx, action);
+      const hostBindingFilter =
+        action.cost?.kind === "place" &&
+        action.cost.bindHostAs !== undefined &&
+        action.cost.bindHostAs === action.target.fromSelectionRef
+          ? (action.cost.underFilter ??
+            (action.cost.host !== undefined && action.cost.host !== null && typeof action.cost.host === "object"
+              ? action.cost.host.filter
+              : undefined))
+          : undefined;
+      const canAttempt =
+        hostBindingFilter === undefined
+          ? canAttemptDigivolve(ctx, action)
+          : canAttemptDigivolve(ctx, {
+              ...action,
+              target: { filter: hostBindingFilter, count: 1 },
+            });
       if (!canAttempt) return false;
     }
-    const costUnpayable = action.cost !== undefined && !canPayCost(ctx, action.cost as Cost);
+    const costUnpayable = payableActionCost !== undefined && !canPayCost(ctx, payableActionCost as Cost);
     if (!costUnpayable) {
       const yes = await ctx.ask.optional(ctx, describeAction(action));
       if (!yes) {
@@ -442,14 +705,23 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     // `DigivolveViaPlacement.cost` is a memory amount paid by the digivolve itself, not an
     // activation Cost, so it must not enter the generic cost-payment path.
     action.kind !== "DigivolveViaPlacement" &&
-    action.cost
+    payableActionCost
   ) {
-    if (action.cost.optional) {
-      const willPay = await ctx.ask.optional(ctx, `Pay cost: ${action.cost.raw ?? action.cost.kind}?`);
-      if (willPay) await payCost(ctx, action.cost, costPayment);
+    if (payableActionCost.optional) {
+      const willPay =
+        forceOptionalCostProcessing ||
+        (await ctx.ask.optional(ctx, `Pay cost: ${payableActionCost.raw ?? payableActionCost.kind}?`));
+      if (willPay) {
+        const paid = await payCost(ctx, payableActionCost, costPayment);
+        if (!paid) return action.abortOnDecline === true;
+      } else if (action.abortOnDecline === true) {
+        // A clause may make only its processing condition optional; refusal skips
+        // the remaining effect even when the payload itself is not optional.
+        return true;
+      }
     } else {
-      const deferSuspendTriggers = action.kind === "Attack" && action.cost.kind === "suspend";
-      const paid = await payCost(ctx, action.cost, costPayment, { deferSuspendTriggers });
+      const deferSuspendTriggers = action.kind === "Attack" && payableActionCost.kind === "suspend";
+      const paid = await payCost(ctx, payableActionCost, costPayment, { deferSuspendTriggers });
       if (paid && deferSuspendTriggers) deferredCostSuspensions = [...(ctx.lastSuspendedPermanentIds ?? [])];
       if (!paid) {
         // An unpayable ACTIVATION cost ("By [paying X], [effect]. Then …") means the entire
@@ -460,12 +732,22 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
         // remaining clause as well. Two legacy activation-cost shapes also gate their whole
         // clause even when the IR omitted `abortOnDecline`: <Digi-Burst N> (trash from THIS
         const isDigiBurstCost =
-          action.cost.kind === "trash" &&
-          action.cost.target?.filter.zone === "digivolutionCards" &&
-          action.cost.target.filter.isSelfRef === true;
-        const isSecurityTrashCost = action.cost.kind === "trash" && action.cost.target?.filter.zone === "security";
+          payableActionCost.kind === "trash" &&
+          payableActionCost.target?.filter.zone === "digivolutionCards" &&
+          payableActionCost.target.filter.isSelfRef === true;
+        const isSecurityTrashCost =
+          payableActionCost.kind === "trash" && payableActionCost.target?.filter.zone === "security";
         return action.abortOnDecline === true || isDigiBurstCost || isSecurityTrashCost;
       }
+    }
+  }
+  // When both the processing condition and payload are optional, pay the former
+  // first, then offer the payload choice (e.g. Q6255: trash, then decline return).
+  if (action.kind !== "RawUnparsed" && action.optional && actionCost?.optional === true) {
+    const yes = await ctx.ask.optional(ctx, describeAction(action));
+    if (!yes) {
+      ctx.lastEffectActed = false;
+      return action.abortOnDecline === true;
     }
   }
   if (

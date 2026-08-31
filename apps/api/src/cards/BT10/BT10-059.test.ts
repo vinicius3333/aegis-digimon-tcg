@@ -17,7 +17,14 @@ describe("BT10-059 Spadamon", () => {
     expect(compiled.effects).toEqual([
       expect.objectContaining({
         trigger: "OnPlay",
-        actions: [expect.objectContaining({ kind: "DeDigivolve", amount: 1, stopAtLevel: 3 })],
+        actions: [
+          expect.objectContaining({
+            kind: "DeDigivolve",
+            amount: 1,
+            stopAtLevel: 3,
+            allowCostWithoutTarget: true,
+          }),
+        ],
       }),
       expect.objectContaining({ trigger: "WhenAttacking", isInherited: true, frequency: "OncePerTurn" }),
     ]);

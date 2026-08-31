@@ -97,6 +97,39 @@ describe("BT26-067 Wizardmon", () => {
     expect(s.state.memory).toBe(8);
   });
 
+  it("may decline the legal reduced-cost play without returning itself or moving the target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-067", as: "wizardmon" },
+            { card: "BT26-054", as: "yellowDigimon" },
+          ],
+          trash: [{ card: "BT26-060", as: "iliad" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    const wizardId = s.perm("wizardmon").permanentId;
+    await s.ready();
+
+    const resolving = advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("wizardmon"));
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await resolving;
+
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(wizardId);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("iliad").instanceId);
+    expect(s.state.memory).toBe(20);
+  });
+
   it("does not return itself when there is no legal Iliad card to play", async () => {
     const s = setupEngine(
       {
@@ -187,7 +220,7 @@ describe("BT26-067 Wizardmon", () => {
   it("grants executable inherited Retaliation in battle", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-068", as: "host", under: ["BT26-067"] }] },
+        0: { battleArea: [{ card: "BT24-075", as: "host", under: ["BT26-067"] }] },
         1: { battleArea: [{ card: "BT26-060", as: "defender", suspended: true }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

@@ -22,7 +22,7 @@ describe("EX11-048 Ghostmon", () => {
     const compiled = runtimeCompiledCard(cardId)!;
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.digivolutionRequirement).toEqual([]);
-    expect(digivolutionRequirementsFor(cardId)).toBeUndefined();
+    expect(digivolutionRequirementsFor(cardId)).toEqual([]);
     for (const trigger of ["WhenMoving", "OnPlay"]) {
       expect(compiled.effects.find((candidate) => candidate.trigger === trigger)?.actions[0]).toMatchObject({
         kind: "GainKeyword",

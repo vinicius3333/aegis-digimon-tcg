@@ -59,6 +59,9 @@ export interface ActivateEffectDeps {
   makeContext(source: CardSource, effect: Effect): EffectContext;
   /** Per-turn use ledger (engine-owned; shared with the effect stack). */
   tracker: UseTracker;
+  /** Attribute nested effect-driven events to this direct activation while it resolves. */
+  enterEffectResolution?(seat: Seat, sourceKinds?: string[]): void;
+  leaveEffectResolution?(): void;
 }
 
 /** The timing window activated `[Main]` abilities are keyed under. */
@@ -136,7 +139,14 @@ export async function applyActivateEffect(
   if (!check.ok) return check;
 
   const { source, effect, ctx } = check;
-  await effect.resolve(ctx);
+  const sourceKinds = effect.isLinked ? ["Digimon"] : [...(source.definition.kinds ?? [])];
+  ctx.effectSourceKinds = sourceKinds;
+  deps.enterEffectResolution?.(source.ownerSeat, sourceKinds);
+  try {
+    await effect.resolve(ctx);
+  } finally {
+    deps.leaveEffectResolution?.();
+  }
   deps.tracker.register(source.instanceId, effect.effectKey);
 
   return {

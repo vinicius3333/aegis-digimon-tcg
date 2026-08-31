@@ -1,8 +1,8 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../BT11/BT11-070.js";
 import "./BT18-065.js";
 import { compiled } from "./BT18-065.js";
 
@@ -155,9 +155,11 @@ describe("BT18-065 Snatchmon", () => {
     );
     accepted.state.memory = 8;
     await accepted.ready();
-    await advance(accepted.engine).fire(EffectTiming.EndOfYourTurn, accepted.perm("qualified"));
+    await advance(accepted.engine).runTurn(0);
     expect(accepted.perm("qualified").topCard?.instanceId).toBe(accepted.inst("destromon").instanceId);
-    expect(accepted.state.memory).toBe(3);
+    // runTurn closes the turn after the effect resolves: the outgoing gauge is reframed
+    // for the next player, so the post-payment +3 is observed as -8 here.
+    expect(accepted.state.memory).toBe(-8);
 
     const refused = setupEngine(
       {
@@ -170,9 +172,10 @@ describe("BT18-065 Snatchmon", () => {
     );
     refused.state.memory = 8;
     await refused.ready();
-    await advance(refused.engine).fire(EffectTiming.EndOfYourTurn, refused.perm("qualified"));
+    await advance(refused.engine).runTurn(0);
     expect(refused.perm("qualified").topCard?.cardId).toBe("BT18-065");
-    expect(refused.state.memory).toBe(8);
+    // Refusing leaves the outgoing turn's pass marker at -3 in the next-player frame.
+    expect(refused.state.memory).toBe(-3);
     assertNoLoudGap(accepted);
     assertNoLoudGap(refused);
   });
@@ -189,7 +192,7 @@ describe("BT18-065 Snatchmon", () => {
     );
     belowThreshold.state.memory = 8;
     await belowThreshold.ready();
-    await advance(belowThreshold.engine).fire(EffectTiming.EndOfYourTurn, belowThreshold.perm("snatchmon"));
+    await advance(belowThreshold.engine).runTurn(0);
     expect(belowThreshold.perm("snatchmon").topCard?.cardId).toBe("BT18-065");
     expect(belowThreshold.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT11-070");
     expect(belowThreshold.decisions).toHaveLength(0);
@@ -211,7 +214,7 @@ describe("BT18-065 Snatchmon", () => {
     );
     trashOnly.state.memory = 8;
     await trashOnly.ready();
-    await advance(trashOnly.engine).fire(EffectTiming.EndOfYourTurn, trashOnly.perm("snatchmon"));
+    await advance(trashOnly.engine).runTurn(0);
     expect(trashOnly.perm("snatchmon").topCard?.cardId).toBe("BT18-065");
     expect(trashOnly.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT11-070"]);
     expect(trashOnly.decisions).toHaveLength(0);

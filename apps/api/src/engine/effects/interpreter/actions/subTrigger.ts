@@ -5,7 +5,7 @@ import { evaluateCondition } from "../conditions.js";
 import { canPayCost, payCost, payOneCostOption } from "../costs.js";
 import { runAction } from "../dispatch.js";
 import { unsupported } from "../errors.js";
-import { DefinitionFacts, definitionMatches, matchNameOrTrait } from "../matching/definition.js";
+import { DefinitionFacts, definitionHasKeyword, definitionMatches, matchNameOrTrait } from "../matching/definition.js";
 import { matchingSubjectPermanentIds, subjectMatchesFilter, triggerAddedSecurityMatches } from "../matching/trigger.js";
 import { isPermanentUnaffectable, permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
@@ -73,6 +73,8 @@ export const SUBTRIGGER_EVENT_MAP: Record<string, SubTriggerEventName | undefine
   // event-shaped spelling. Both describe the same deleted-permanent payload.
   OnDeletion: "onDeletionOf",
   whenSecurityRemoved: "whenSecurityRemoved",
+  whenCardTrashedFromSecurity: "whenCardTrashedFromSecurity",
+  whenEffectTrashesFromSecurity: "whenEffectTrashesFromSecurity",
   whenSecurityBattleEnded: "whenSecurityBattleEnded",
   // Alias used by the ST15 hand-authored module; both spellings share the
   // same security-removal payload and fire sites.
@@ -198,6 +200,7 @@ export async function runSubTrigger(
   // The filter is evaluated against the freshly bound context's payload subject via the
   // canonical `permanentMatchesFilter` / `definitionMatches` — never a hand-rolled matcher.
   const sourceFilter = action.sourceFilter;
+  const sourceSelfInstanceId = ctx.source.instanceId;
   const hostFilterGate =
     action.hostFilter === undefined
       ? undefined
@@ -217,7 +220,10 @@ export async function runSubTrigger(
   // security lost a card. Interpret sourceFilter.controller as the watched stack direction:
   // most cards watch "your" stack, while BT9-016 watches the opponent's stack.
   const securityRemovalGate =
-    event === "whenEffectRemovesFromSecurity" || event === "whenSecurityRemoved"
+    event === "whenEffectRemovesFromSecurity" ||
+    event === "whenSecurityRemoved" ||
+    event === "whenCardTrashedFromSecurity" ||
+    event === "whenEffectTrashesFromSecurity"
       ? (subCtx: EffectContext): boolean => {
           const removedSeat = subCtx.trigger?.removedFromSecuritySeat;
           if (removedSeat === undefined) return false;
@@ -250,13 +256,15 @@ export async function runSubTrigger(
   // `byEffectSeat`/`byEffectCardId`; remove only that play-specific field from the permanent
   // match and enforce the trash provenance in the dedicated gate below.
   const subjectFilter =
-    event === "whenDigivolutionTrashed" && sourceFilter?.byEffect === true
+    (event === "whenDigivolutionTrashed" || event === "onAddDigivolutionCards") && sourceFilter?.byEffect === true
       ? { ...sourceFilter, byEffect: undefined }
       : sourceFilter;
   const filterMatch =
     subjectFilter === undefined ||
     event === "whenEffectRemovesFromSecurity" ||
     event === "whenSecurityRemoved" ||
+    event === "whenCardTrashedFromSecurity" ||
+    event === "whenEffectTrashesFromSecurity" ||
     event === "onDiscardLibrary" ||
     event === "onDigivolutionCardReturnToDeckBottom" ||
     event === "whenHandTrashed" ||
@@ -296,6 +304,13 @@ export async function runSubTrigger(
       : (subCtx: EffectContext): boolean => subjectMatchesFilter(subCtx, subjectFilter);
   const digivolutionTrashByEffectGate =
     event === "whenDigivolutionTrashed" && sourceFilter?.byEffect === true
+      ? (subCtx: EffectContext): boolean =>
+          subCtx.trigger.byEffectSeat !== undefined || subCtx.trigger.byEffectCardId !== undefined
+      : undefined;
+  // "When an effect adds digivolution cards" (LM-017) is distinct from ordinary
+  // digivolution. The add-card bus carries effect provenance only for the former.
+  const addDigivolutionByEffectGate =
+    event === "onAddDigivolutionCards" && sourceFilter?.byEffect === true
       ? (subCtx: EffectContext): boolean =>
           subCtx.trigger.byEffectSeat !== undefined || subCtx.trigger.byEffectCardId !== undefined
       : undefined;
@@ -412,14 +427,17 @@ export async function runSubTrigger(
     event === "whenSecurityBattleEnded"
       ? (subCtx: EffectContext): boolean => subCtx.trigger.securityInstanceId === ctx.source.instanceId
       : undefined;
-  // `whenEffectSuspends` without an explicit sourceFilter is the printed self-scoped form:
+  // `whenEffectSuspends` without an explicit subject/source filter is the printed self-scoped form:
   // "when an effect suspends THIS Digimon" (EX3-038 and its family). The bus broadcasts every
   // effect-suspension, including the opponent Digimon suspended by the watcher's own body, so
   // leaving this ungated makes every copy react to every Digimon and recursively suspend the
-  // opponent's entire board. Filtered forms ("when your effect suspends a Tamer") deliberately
-  // keep their broader subject gate above.
+  // opponent's entire board. Filtered forms ("when your effect suspends a Tamer" or EX6-064's
+  // "one of your Digimon") deliberately keep their broader subject gate above.
   const effectSuspendsSelfGate =
-    event === "whenEffectSuspends" && sourceFilter === undefined && anchorPermanentId !== undefined
+    event === "whenEffectSuspends" &&
+    sourceFilter === undefined &&
+    action.triggerFilter === undefined &&
+    anchorPermanentId !== undefined
       ? (subCtx: EffectContext): boolean => subCtx.trigger.suspendedPermanentId === anchorPermanentId
       : undefined;
   // `whenSuspended` is a board-wide bus. The single-card payload historically carries only
@@ -706,7 +724,8 @@ export async function runSubTrigger(
     (event === "onDigivolutionCardDiscarded" ||
       event === "onDigivolutionCardsDiscardedBatch" ||
       event === "onDigiBurstCardDiscarded") &&
-    sourceFilter?.isSelfRef === true
+    sourceFilter?.isSelfRef === true &&
+    sourceFilter.matchTrashedSource !== true
       ? (subCtx: EffectContext): boolean => {
           const matched =
             event === "onDigiBurstCardDiscarded" || event === "onDigivolutionCardsDiscardedBatch"
@@ -714,6 +733,16 @@ export async function runSubTrigger(
               : subCtx.trigger?.trashedDigivolutionInstanceId === subCtx.source.instanceId;
           return matched;
         }
+      : undefined;
+  const matchedTrashedSourceGate =
+    (event === "onDigivolutionCardDiscarded" ||
+      event === "onDigivolutionCardsDiscardedBatch" ||
+      event === "onDigiBurstCardDiscarded") &&
+    sourceFilter?.matchTrashedSource === true
+      ? (subCtx: EffectContext): boolean =>
+          event === "onDigivolutionCardDiscarded"
+            ? subCtx.trigger?.trashedDigivolutionInstanceId === sourceSelfInstanceId
+            : (subCtx.trigger?.trashedDigivolutionInstanceIds ?? []).includes(sourceSelfInstanceId)
       : undefined;
   const digivolutionHostFilterGate =
     hostFilter !== undefined &&
@@ -724,12 +753,15 @@ export async function runSubTrigger(
           return host !== undefined && permanentMatchesFilter(subCtx, host, hostFilter, subCtx.source);
         }
       : undefined;
-  // A batch watcher whose sourceFilter describes the permanent that LOST stack cards (rather
-  // than `isSelfRef`, which describes a discarded inherited source) must scope against the
-  // event's host. BT26-048 uses this for "from your Digimon"; the generic subject gate is
-  // intentionally skipped for discard events because inherited self-watchers need card identity.
+  // A Digi-Burst/batch watcher whose sourceFilter describes the permanent that LOST stack cards
+  // (rather than `isSelfRef`, which describes a discarded inherited source) must scope against
+  // the event's host. BT5-056/BT26-048 use this for "one of your Digimon"; the generic subject
+  // gate is intentionally skipped for discard events because inherited self-watchers need card
+  // identity.
   const digivolutionBatchHostSourceFilterGate =
-    event === "onDigivolutionCardsDiscardedBatch" && sourceFilter !== undefined && sourceFilter.isSelfRef !== true
+    (event === "onDigiBurstCardDiscarded" || event === "onDigivolutionCardsDiscardedBatch") &&
+    sourceFilter !== undefined &&
+    sourceFilter.isSelfRef !== true
       ? (subCtx: EffectContext): boolean => {
           const hostId = subCtx.trigger?.subjectPermanentId;
           const host = hostId === undefined ? undefined : subCtx.game.permanentById(hostId);
@@ -749,6 +781,19 @@ export async function runSubTrigger(
           const def = subCtx.game.definitionOf({ cardId } as never);
           return definitionMatches(action.effectSourceFilter!, def as DefinitionFacts);
         };
+  // Some effect-driven events are caused specifically by a keyword ability (EX4-032/033/034:
+  // "when <Alliance> suspends ..."). The suspension seam carries the resolving effect's card
+  // identity as `byEffectCardId`; inspect its printed keyword text rather than the suspended
+  // subject, whose own abilities are unrelated to the event cause.
+  const bySourceKeywordGate =
+    action.bySourceKeyword === undefined
+      ? undefined
+      : (subCtx: EffectContext): boolean => {
+          const cardId = subCtx.trigger?.byEffectCardId;
+          if (cardId === undefined) return false;
+          const def = subCtx.game.definitionOf({ cardId } as never);
+          return definitionHasKeyword(def, action.bySourceKeyword!);
+        };
   // `triggerFilter` on an `onAddDigivolutionCards` watcher (LANE-F-15, BT20-080/BT21-080):
   // restricts WHICH permanent's digivolution-card additions fire this watcher. The event's
   // `subjectPermanentId` is the RECEIVER permanent (the Digimon whose stack grew). Gate on that
@@ -756,15 +801,31 @@ export async function runSubTrigger(
   // generic `filterMatch` uses for `sourceFilter` on other events.
   //   BT20-080: { isSelfRef: true } — fires only when cards are placed under THIS permanent.
   //   BT21-080: { kind: ["Digimon"], nameOrTrait: [...] } — receiver must be Gammamon/Hero trait.
+  // For suspension events, the event subject is the Digimon that was actually
+  // suspended; EX6-064 uses this to distinguish one of your Digimon from an
+  // opponent's Digimon without requiring that it be the Tamer itself.
   // For attack events (whenAttacking / whenOpponentAttacks) the event subject is the
   // ATTACKER, so the same subject-filter gate lets a watcher fire only when the attacker matches —
   // including relative gates like `digivolutionCardsCompareToSource` ("with as many or fewer
   // digivolution cards as this Digimon attacks", BT15-032 and AD1/BT16-family cards).
-  const SUBJECT_TRIGGER_FILTER_EVENTS = new Set(["whenAttacking", "whenOpponentAttacks", "whenLinked"]);
+  const SUBJECT_TRIGGER_FILTER_EVENTS = new Set([
+    "whenAttacking",
+    "whenOpponentAttacks",
+    "whenLinked",
+    "whenEffectSuspends",
+  ]);
   const triggerFilterGate =
     action.triggerFilter !== undefined &&
     (event === "onAddDigivolutionCards" || SUBJECT_TRIGGER_FILTER_EVENTS.has(event))
       ? (subCtx: EffectContext): boolean => subjectMatchesFilter(subCtx, action.triggerFilter!)
+      : undefined;
+  // Digivolution watchers can constrain the card being digivolved into separately from the
+  // source Digimon (`sourceFilter`). The payload's subject is the resulting permanent, so use
+  // the same canonical matcher used by ordinary trigger subjects. This also honors
+  // `excludeSelf` (EX9-012/Q4754: its own evolution into Garurumon must not self-trigger).
+  const digivolveIntoGate =
+    action.digivolveIntoFilter !== undefined && (event === "whenOneOfYoursDigivolves" || event === "whenAnyDigivolves")
+      ? (subCtx: EffectContext): boolean => subjectMatchesFilter(subCtx, action.digivolveIntoFilter!)
       : undefined;
   const addedDigivolutionCardGate =
     event === "onAddDigivolutionCards" && action.addedDigivolutionCardFilter !== undefined
@@ -849,6 +910,32 @@ export async function runSubTrigger(
       ? (subCtx: EffectContext): boolean =>
           subCtx.trigger.removalCause === (sourceDeleteCause === "byEffect" ? "byEffect" : "byRule")
       : undefined;
+  // Leave-play watchers use the same relative cause vocabulary as replacements.  Preserve the
+  // event's effect-owner provenance so "other than by one of your effects" can distinguish an
+  // opponent effect, battle, and rules departure from the watcher's controller's own effect.
+  const leaveCauseGate =
+    event === "whenLeavesPlay" && action.leaveCause !== undefined
+      ? (subCtx: EffectContext): boolean => {
+          const cause = subCtx.trigger.removalCause ?? "byRule";
+          const resolvingSeat = subCtx.trigger.byEffectSeat;
+          switch (action.leaveCause) {
+            case "opponentEffect":
+            case "byOpponentEffect":
+              return cause === "byEffect" && resolvingSeat !== undefined && resolvingSeat !== subCtx.source.ownerSeat;
+            case "otherThanYourEffect":
+              return !(cause === "byEffect" && resolvingSeat === subCtx.source.ownerSeat);
+            case "byEffect":
+              return cause === "byEffect";
+            case "byBattle":
+              return cause === "byBattle";
+            case "otherThanBattle":
+              return cause !== "byBattle";
+            case "any":
+            default:
+              return true;
+          }
+        }
+      : undefined;
   const trashedDigivolutionTopGate =
     event === "whenDigivolutionTrashed" && action.requireTrashedDigivolutionCardWasTop === true
       ? (subCtx: EffectContext): boolean => subCtx.trigger.trashedDigivolutionCardWasTop === true
@@ -860,6 +947,7 @@ export async function runSubTrigger(
   const gates = [
     filterMatch,
     digivolutionTrashByEffectGate,
+    addDigivolutionByEffectGate,
     digimonReturnsToHandGate,
     requireByEffectGate,
     deletionSourceFilterGate,
@@ -890,10 +978,13 @@ export async function runSubTrigger(
     whenTrashedFromDeckGate,
     whenTrashedFromHandGate,
     digivolutionCardDiscardedGate,
+    matchedTrashedSourceGate,
     digivolutionHostFilterGate,
     digivolutionBatchHostSourceFilterGate,
     effectSourceGate,
+    bySourceKeywordGate,
     triggerFilterGate,
+    digivolveIntoGate,
     addedDigivolutionCardGate,
     addedDigivolutionPositionGate,
     placedOwnTopAtStackBottomGate,
@@ -902,6 +993,7 @@ export async function runSubTrigger(
     inheritedHostNameGate,
     hostFilterGate,
     deleteCauseGate,
+    leaveCauseGate,
     notSimultaneousGate,
     trashedDigivolutionTopGate,
     faceDownDigivolutionBatchGate,
@@ -915,6 +1007,7 @@ export async function runSubTrigger(
   // top card and silently skip the inherited effect (BT7 Digi-Burst cards).
   const discardedSelfSource =
     sourceFilter?.isSelfRef === true &&
+    sourceFilter.matchTrashedSource !== true &&
     (event === "onDigiBurstCardDiscarded" ||
       event === "onDigivolutionCardsDiscardedBatch" ||
       event === "onDigivolutionCardDiscarded");
@@ -923,15 +1016,24 @@ export async function runSubTrigger(
   const requiresSelfSuspend = (action.actions ?? []).some(costsSelfSuspend);
   ctx.fx.subscribeSubTrigger({
     event,
+    ...(ctx.activeEffectKey !== undefined || ctx.activeActionPath !== undefined
+      ? { dedupeKey: `${ctx.source.instanceId}/${ctx.activeEffectKey ?? "effect"}/${ctx.activeActionPath ?? "0"}` }
+      : {}),
     ...(isInheritedSource ? { isInheritedSource: true } : {}),
     ...(isLinkedSource ? { isLinkedSource: true } : {}),
     ...(requiresSelfSuspend ? { canFire: (subCtx) => subCtx.source.permanent()?.isSuspended !== true } : {}),
-    ...(discardedSelfSource ? {} : { sourcePermanentId: anchorPermanentId }),
+    // A discarded inherited source is intentionally not permanently anchored to its host: its
+    // source instance is the identity used by the stack-card event gate. `matchTrashedSource`
+    // below is the narrow exception; omit sourceInstanceId from the subscription so the host
+    // context can still be built while the closure retains the exact instance identity.
+    ...(discardedSelfSource ? {} : anchorPermanentId !== undefined ? { sourcePermanentId: anchorPermanentId } : {}),
     ...(playerScoped
       ? { activationContext: ctx }
       : action.on !== undefined
         ? {}
-        : { sourceInstanceId: ctx.source.instanceId }),
+        : sourceFilter?.matchTrashedSource === true
+          ? {}
+          : { sourceInstanceId: ctx.source.instanceId }),
     // Anchor-less fallback (the eighth engine gap): when there is no on-field permanent to
     // anchor to AND the clause was not granted to another permanent (both cases already set
     // anchorPermanentId), the watcher's source is a loose hand/trash-resident CardInstance —
@@ -1117,7 +1219,7 @@ export async function runGainTriggeredEffect(
     const grantedPerm = ctx.game.permanentById(targetPermanentId);
     if (grantedPerm === undefined) continue;
     let expiresOnTurnEndOf: typeof ctx.source.ownerSeat | undefined;
-    if (action.duration === "forTheTurn") expiresOnTurnEndOf = ctx.source.ownerSeat;
+    if (action.duration === "forTheTurn") expiresOnTurnEndOf = ctx.game.state.turnSeat;
     if (action.duration === "untilYourTurnEnd") expiresOnTurnEndOf = ctx.source.ownerSeat;
     if (action.duration === "untilOpponentTurnEnd") {
       expiresOnTurnEndOf = ctx.game.opponentOf(ctx.source.ownerSeat);
@@ -1146,6 +1248,10 @@ export async function runGainTriggeredEffect(
       event === "whenDeletesInBattle"
         ? (subCtx: EffectContext): boolean => subCtx.trigger.attackerPermanentId === targetPermanentId
         : undefined;
+    const grantedPermanentAttackGate =
+      event === "whenAttacking"
+        ? (subCtx: EffectContext): boolean => subCtx.trigger.attackerPermanentId === targetPermanentId
+        : undefined;
     const whenDeletesInBattleSelfGate =
       event === "whenDeletesInBattle" && sourceFilter?.isSelfRef === true && anchorPermanentId !== undefined
         ? (subCtx: EffectContext): boolean => subCtx.trigger.attackerPermanentId === anchorPermanentId
@@ -1170,6 +1276,7 @@ export async function runGainTriggeredEffect(
       ownerTurnEndGate,
       grantedPermanentDeletionGate,
       grantedPermanentBattleDeleteGate,
+      grantedPermanentAttackGate,
       whenDeletesInBattleSelfGate,
       whenSuspendedSelfGate,
       immunityAtTriggerGate,

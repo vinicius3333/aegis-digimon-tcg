@@ -55,6 +55,7 @@ export const compiled: CompiledCard = {
           },
           restriction: "suspend",
           duration: "untilOpponentTurnEnd",
+          whileMatchesTargetFilter: true,
         },
         {
           kind: "Delete",
@@ -84,6 +85,7 @@ export const compiled: CompiledCard = {
           },
           restriction: "suspend",
           duration: "untilOpponentTurnEnd",
+          whileMatchesTargetFilter: true,
         },
         {
           kind: "Delete",
@@ -123,6 +125,28 @@ export const compiled: CompiledCard = {
               scope: "acrossDigimon",
               optional: true,
             },
+            {
+              kind: "DnaDigivolve",
+              materials: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                },
+                count: 2,
+              },
+              into: {
+                controllerDefault: "mine",
+                zone: "hand",
+                nameOrTrait: [
+                  {
+                    tokens: ["GraceNovamon"],
+                    match: "name",
+                  },
+                ],
+              },
+              payCost: true,
+              optional: true,
+            },
           ],
         },
         {
@@ -147,28 +171,29 @@ export const compiled: CompiledCard = {
               scope: "acrossDigimon",
               optional: true,
             },
-          ],
-        },
-        {
-          kind: "DnaDigivolve",
-          materials: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-            },
-            count: 2,
-          },
-          into: {
-            controllerDefault: "mine",
-            nameOrTrait: [
-              {
-                tokens: ["GraceNovamon"],
-                match: "name",
+            {
+              kind: "DnaDigivolve",
+              materials: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                },
+                count: 2,
               },
-            ],
-          },
-          payCost: true,
-          optional: true,
+              into: {
+                controllerDefault: "mine",
+                zone: "hand",
+                nameOrTrait: [
+                  {
+                    tokens: ["GraceNovamon"],
+                    match: "name",
+                  },
+                ],
+              },
+              payCost: true,
+              optional: true,
+            },
+          ],
         },
       ],
       frequency: "OncePerTurn",

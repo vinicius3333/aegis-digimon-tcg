@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,6 +7,22 @@ import { compiled as BT24_069 } from "./BT24-069.js";
 import "../index.js";
 
 describe("BT24-069 Vilemon", () => {
+  it("matches the immutable catalog identity", () => {
+    expect(getCardDefinition("BT24-069")).toMatchObject({
+      cardId: "BT24-069",
+      nameEn: "Vilemon",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 4,
+      dp: 4000,
+      forms: ["Champion"],
+      attributes: ["Virus"],
+      types: ["Evil"],
+      evoCosts: [{ color: "Purple", level: 3, memoryCost: 2 }],
+    });
+  });
+
   it("lets the opponent choose their discard and mills only when they decline", () => {
     for (const trigger of ["WhenMoving", "WhenDigivolving"]) {
       const actions = BT24_069.effects?.find((entry) => entry.trigger === trigger)?.actions ?? [];
@@ -32,14 +48,14 @@ describe("BT24-069 Vilemon", () => {
           battleArea: [{ card: "BT24-068", as: "base" }],
           hand: [
             { card: "BT24-069", as: "vilemon" },
-            { card: "BT1-001", as: "ownCard" },
+            { card: "BT4-022", as: "ownCard" },
           ],
         },
         1: {
-          hand: [{ card: "BT1-002", as: "opponentCard" }],
+          hand: [{ card: "BT4-022", as: "opponentCard" }],
           deck: [
-            { card: "BT1-003", as: "firstDeck" },
-            { card: "BT1-004", as: "secondDeck" },
+            { card: "BT4-022", as: "firstDeck" },
+            { card: "BT4-022", as: "secondDeck" },
           ],
         },
       },
@@ -79,11 +95,21 @@ describe("BT24-069 Vilemon", () => {
           ],
         },
       },
-      { autoDeclineOptional: true, autoSelectCards: true },
+      { autoDeclineOptional: true },
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenMoving, s.perm("vilemon"));
+    const resolving = advance(s.engine).fire(EffectTiming.WhenMoving, s.perm("vilemon"));
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const discardChoice = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: discardChoice.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await resolving;
 
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("ownCard").instanceId);
     expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("opponentCard").instanceId);

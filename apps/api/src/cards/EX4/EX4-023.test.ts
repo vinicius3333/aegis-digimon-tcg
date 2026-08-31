@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX4-023.js";
 import "../index.js";
@@ -15,7 +14,7 @@ describe("EX4-023 Agumon Expert", () => {
           kind: "SecurityManipulation",
           op: "placeAsSecurity",
           toTop: true,
-          source: { filter: { zone: "hand", controller: "mine", level: "same" } },
+          source: "revealed",
           cost: { kind: "reveal", target: { filter: { zone: "hand", controller: "mine", level: "same" } } },
         },
       ],
@@ -30,16 +29,48 @@ describe("EX4-023 Agumon Expert", () => {
           hand: [{ card: "BT1-009", as: "revealed" }],
           security: ["BT1-001"],
         },
-        1: { battleArea: [{ card: "BT1-010", as: "played" }] },
+        1: { hand: [{ card: "BT1-010", as: "played" }], security: ["BT1-001"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.turnSeat = 1;
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("played").permanentId });
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === s.inst("revealed").instanceId));
 
     expect(s.state.players[0]!.security[0]!.cardId).toBe("BT1-009");
     expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("revealed").instanceId);
+  });
+
+  it("places the exact card selected by the reveal cost when another same-level card is in hand", async () => {
+    const preferredInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX4-023", as: "expert" }],
+          hand: [
+            { card: "BT1-009", as: "revealed" },
+            { card: "BT1-010", as: "otherSameLevel" },
+          ],
+          security: ["BT1-001"],
+        },
+        1: { hand: [{ card: "BT1-011", as: "played" }], security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredInstanceIds },
+    );
+    preferredInstanceIds.push(s.inst("revealed").instanceId);
+    s.state.turnSeat = 1;
+    await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === s.inst("revealed").instanceId));
+
+    expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("revealed").instanceId);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("otherSameLevel").instanceId)).toBe(true);
   });
 });

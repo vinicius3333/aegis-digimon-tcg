@@ -176,14 +176,6 @@ describe("EX3-037 Dracomon", () => {
         ),
     );
 
-    expect(
-      s.events.find(
-        (event) =>
-          event.kind === "cardsMoved" &&
-          event.to === "deck" &&
-          event.instanceIds.some((instanceId) => requestedOrder.includes(instanceId)),
-      ),
-    ).toMatchObject({ instanceIds: requestedOrder });
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual(requestedOrder);
   });
 

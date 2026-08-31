@@ -17,7 +17,7 @@ import {
   type Permanent,
   type ZoneRef,
 } from "@aegis/shared";
-import { tamerOntoDigivolveLevel } from "./tamerOntoDigivolve.js";
+import { tamerOntoDigivolveColors, tamerOntoDigivolveLevel } from "./tamerOntoDigivolve.js";
 import type { GameAccess } from "../effects/EffectContext.js";
 
 /**
@@ -356,6 +356,7 @@ function requirementHasGate(req: DigivolutionRequirement): boolean {
     (req.traits !== undefined && req.traits.length > 0) ||
     (req.traitSubstrings !== undefined && req.traitSubstrings.length > 0) ||
     (req.excludeTraits !== undefined && req.excludeTraits.length > 0) ||
+    req.colorCount !== undefined ||
     (req.names !== undefined && req.names.length > 0) ||
     (req.namesExact !== undefined && req.namesExact.length > 0) ||
     (req.texts !== undefined && req.texts.length > 0) ||
@@ -464,6 +465,7 @@ function matchGatedRequirement(
     if (req.colors && req.colors.length > 0) {
       if (!req.colors.some((c) => baseDef.colors.includes(c as CardColor))) continue;
     }
+    if (req.colorCount !== undefined && baseDef.colors.length !== req.colorCount) continue;
 
     // Exclude-trait gate: base must NOT carry any listed trait ("from a Digimon without
     // the [X Antibody] trait", EX8-037).
@@ -544,9 +546,13 @@ export function matchingAlternateDigivolutionRequirement(
     const named = matchGatedRequirement(requirements, baseDef, baseEffectiveNames, options, true);
     if (named) return named;
     if (!isTamer(baseDef)) return undefined;
-    // The base Tamer must share a color with the evolving card ("onto one of your <color>
-    // Tamers" — standard digivolve color rule), and the cost is the evolving card's evo cost
-    // at the "as if" level for that shared color. The stale gateless/baseIsTamer-only
+    const tamerColors = tamerOntoDigivolveColors(evolvingId);
+    if (tamerColors !== undefined && !tamerColors.some((color) => baseDef.colors.includes(color as CardColor))) {
+      return undefined;
+    }
+    // The base Tamer must satisfy the printed "onto one of your <color> Tamers" filter, then
+    // share a color with the evolving card (standard digivolve color rule), and the cost is the
+    // evolving card's evo cost at the "as if" level for that shared color. The stale gateless/baseIsTamer-only
     // effects.json entry for these cards is intentionally ignored here.
     const evolvingDef = resolve(evolving);
     const evo = evolvingDef.evoCosts.find((c) => c.level === tamerOntoLevel && baseDef.colors.includes(c.color));

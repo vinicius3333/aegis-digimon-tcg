@@ -30,7 +30,7 @@ describe("historical multicolor control options", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
 
     s.state.turnSeat = 0;

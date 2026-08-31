@@ -1,6 +1,7 @@
 // Playing cards from hand, deck, trash, and security.
 
 import type { EffectContext } from "../../EffectContext.js";
+import { evaluateCondition } from "../conditions.js";
 import type { ActionScope } from "../dispatch.js";
 import { definitionMatches } from "../matching/definition.js";
 import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
@@ -12,10 +13,60 @@ import type { Action, Scaling, Seat, Target } from "@aegis/shared";
 import { materialsSatisfyRecipe } from "../../../actions/digiXros.js";
 import { digiXrosZoneExpanderFor } from "../../../digiXros/zoneExpanders.js";
 
+/**
+ * The card kinds a play target explicitly asks for, across its filter and every alternative.
+ * Empty means the IR named no kind at all.
+ */
+function requestedPlayKinds(target: Target | undefined): string[] {
+  if (target === undefined) return [];
+  const filters = [target.filter, ...(target.orFilters ?? []), ...(target.filter?.orFilters ?? [])];
+  return filters.flatMap((filter) => filter?.kind ?? []);
+}
+
+/**
+ * Drop Option-only cards from a play candidate pool whose IR named no card kind.
+ *
+ * Only Digimon and Tamers are ever PLAYED; an Option card is USED (comprehensive rules
+ * §6-4 vs §6-5), and no printed card says "play N ... Option card". A kind-less filter such
+ * as BT21-098's "play 1 card with [Vemmon] in its text and a play cost of 6 or less"
+ * therefore means Digimon and Tamers, but matched Options too because `kind` was the only
+ * thing excluding them.
+ *
+ * An IR that genuinely means "use an Option" says so with `kind: ["Option"]`, which is the
+ * same signal the play-vs-use split further down already reads — so naming Option keeps the
+ * card in the pool, and a DUAL Digimon/Option is never dropped because it has a playable side.
+ */
+function playableCandidates<T extends { cardId: string }>(
+  ctx: EffectContext,
+  target: Target | undefined,
+  candidates: readonly T[],
+): T[] {
+  if (requestedPlayKinds(target).length > 0) return [...candidates];
+  return candidates.filter((candidate) => {
+    const kinds = ctx.game.definitionOf({ cardId: candidate.cardId } as never).kinds;
+    if (!kinds.includes(CardKind.Option)) return true;
+    return kinds.includes(CardKind.Digimon) || kinds.includes(CardKind.Tamer);
+  });
+}
+
 export function playCostScalingDelta(scaling: Scaling, factor: number): number {
   if (scaling.subtract !== undefined) return -scaling.subtract * factor;
   if (scaling.bonus !== undefined) return scaling.bonus * factor;
   return factor;
+}
+
+function paidReduction(ctx: EffectContext, action: Extract<Action, { kind: "PlayWithoutCost" }>): number | undefined {
+  const base = action.reduceCostBy;
+  const scaling = action.reduceCostByScaling === undefined ? 0 : scaleFactor(ctx, action.reduceCostByScaling);
+  const conditional = (
+    action as typeof action & { reduceCostByIf?: { amount: number; condition: import("@aegis/shared").Condition } }
+  ).reduceCostByIf;
+  if (base === undefined && action.reduceCostByScaling === undefined && conditional === undefined) return undefined;
+  return (
+    (base ?? 0) +
+    scaling +
+    (conditional !== undefined && evaluateCondition(ctx, conditional.condition) ? conditional.amount : 0)
+  );
 }
 
 export function applyPlayCostCeiling(
@@ -58,7 +109,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
         ? action.from
         : [action.from === "digivolution" ? "digivolutionCards" : action.from];
       const target: Target = { filter: action.filter, count: "all", upTo: true };
-      const candidates = candidateLooseInstances(ctx, target, from);
+      const candidates = playableCandidates(ctx, target, candidateLooseInstances(ctx, target, from));
       if (candidates.length === 0) {
         ctx.lastPlayedPermanentIds = [];
         return false;
@@ -98,6 +149,10 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
       // Bind "the Digimon this effect played" from whichever branch resolves the play, so a later
       // action (e.g. BT16-015's Delete with dp.valueFrom) can reference exactly what was played.
       const bindPlayWithoutCost = (playedPermanentIds = ctx.lastPlayedPermanentIds) => {
+        // `sameTarget` continuations (for example, "that Digimon gains Rush")
+        // consume the common last-resolved target register. A play action is itself
+        // a target-producing action, so preserve the actual permanents it created.
+        ctx.lastResolvedPermanentIds = playedPermanentIds ?? [];
         if (action.bindResultAs && playedPermanentIds !== undefined) {
           ctx.boundPlayed ??= new Map();
           ctx.boundPlayed.set(action.bindResultAs, new Set(playedPermanentIds));
@@ -177,10 +232,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           // A scaled reduction ("with the play cost reduced by the play cost of the returned
           // Tamer" — LM-006) resolves against the live context, which already carries the
           // receipts written while this action's own cost was paid.
-          const scaledReduction =
-            action.reduceCostByScaling === undefined
-              ? action.reduceCostBy
-              : scaleFactor(ctx, action.reduceCostByScaling);
+          const scaledReduction = paidReduction(ctx, action);
           const played = await ctx.fx.playInstances([self.instanceId], {
             payCost: action.payCost,
             ...(action.breeding === true ? { breeding: true } : {}),
@@ -197,10 +249,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           // This is an effect-driven play, not a bare zone move. Route through the
           // generalized play seam so the card's [On Play] window and `whenPlayed`
           // watchers both fire (the same contract used by filtered plays).
-          const selfReduction =
-            action.reduceCostByScaling === undefined
-              ? action.reduceCostBy
-              : scaleFactor(ctx, action.reduceCostByScaling);
+          const selfReduction = paidReduction(ctx, action);
           const played = await ctx.fx.playInstances([self.instanceId], {
             payCost: action.payCost,
             ...(action.breeding === true ? { breeding: true } : {}),
@@ -223,18 +272,51 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           ...(action.target.orFilters ?? []),
           ...(action.target.filter.orFilters ?? []),
         ];
-        const matching = self.stack.filter((c) => {
-          const definition = ctx.game.definitionOf({ cardId: c.cardId } as never);
-          return filters.some((filter) => definitionMatches(filter, definition));
-        });
+        const matching = playableCandidates(
+          ctx,
+          action.target,
+          self.stack.filter((c) => {
+            const definition = ctx.game.definitionOf({ cardId: c.cardId } as never);
+            return filters.some((filter) => definitionMatches(filter, definition));
+          }),
+        );
         if (matching.length === 0) {
           ctx.lastEffectActed = false;
           return false;
         }
         const cap = action.target.count === "all" ? matching.length : Math.min(action.target.count, matching.length);
-        // KB Q4860: play 3 (or as many as possible up to the cap) — a mandatory as-many-as-possible
-        // selection, NOT an "up to" partial. Take the first `cap` matching stack cards.
-        const chosenOwn = matching.slice(0, cap).map((c) => c.instanceId);
+        // Named own-stack targets need the same exact-name semantics as loose-card targeting.
+        // This matters for BT7-063: its On Play target is up-to by name, while its deletion
+        // replacement requires both names when both are present (Q1623).
+        const requiredNamesExact = action.target.requiredNamesExact ?? [];
+        const requiredNamesExactUpTo = action.target.requiredNamesExactUpTo ?? [];
+        const namedSelection = (names: string[], requireAll: boolean) => {
+          const selected: typeof matching = [];
+          const used = new Set<string>();
+          for (const requiredName of names) {
+            const candidate = matching.find((card) => {
+              if (used.has(card.instanceId)) return false;
+              const definition = ctx.game.definitionOf({ cardId: card.cardId } as never);
+              return definition.nameEn === requiredName;
+            });
+            if (candidate === undefined) {
+              if (requireAll) return [];
+              continue;
+            }
+            used.add(candidate.instanceId);
+            selected.push(candidate);
+          }
+          return selected;
+        };
+        // A required exact set is all-or-none; an up-to set takes one of each available name.
+        // With neither field, preserve the normal mandatory as-many-as-possible selection.
+        const selectedNamed =
+          requiredNamesExact.length > 0
+            ? namedSelection(requiredNamesExact, true)
+            : requiredNamesExactUpTo.length > 0
+              ? namedSelection(requiredNamesExactUpTo, false)
+              : undefined;
+        const chosenOwn = (selectedNamed ?? matching.slice(0, cap)).slice(0, cap).map((c) => c.instanceId);
         if (chosenOwn.length > 0) {
           const played = await ctx.fx.playInstances(chosenOwn, {
             payCost: action.payCost,
@@ -320,9 +402,24 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
       // Counts cards matching filter.zone/controller across all applicable seats, then computes:
       //   ceiling = base + Math.floor(totalCards / per) * raise
       // and overrides the target filter's playCostLte with the result. (CAP-E16, BT21-079)
-      const playCostAdjustedTarget = applyPlayCostCeiling(ctx, action, scaledCostAdjustedTarget);
+      const adjustedTarget = applyPlayCostCeiling(ctx, action, scaledCostAdjustedTarget);
+      const playCostAdjustedTarget =
+        action.ignorePlayCostLimit === true
+          ? {
+              ...adjustedTarget,
+              filter: {
+                ...adjustedTarget.filter,
+                playCostLte: undefined,
+                playCostLteScaling: undefined,
+              },
+            }
+          : adjustedTarget;
       const zones = action.from && action.from.length > 0 ? action.from : DEFAULT_PLAY_ZONES;
-      let candidates = candidateLooseInstances(ctx, playCostAdjustedTarget, zones);
+      let candidates = playableCandidates(
+        ctx,
+        playCostAdjustedTarget,
+        candidateLooseInstances(ctx, playCostAdjustedTarget, zones),
+      );
       if (action.fromTriggerHandTrash === true) {
         const triggeringIds = new Set(ctx.trigger.handTrashedInstanceIds ?? []);
         candidates = candidates.filter((candidate) => triggeringIds.has(candidate.instanceId));
@@ -421,10 +518,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
               .filter((instanceId, index, all) => all.indexOf(instanceId) === index)
           : undefined;
       const chosen = await pickLoose(ctx, playCostAdjustedTarget, candidates, undefined, ctx.ask, visibleZoneIds);
-      const costReduction =
-        action.reduceCostByScaling === undefined
-          ? (action.reduceCostBy ?? action.costReduction)
-          : scaleFactor(ctx, action.reduceCostByScaling);
+      const costReduction = paidReduction(ctx, action) ?? action.costReduction;
       if (chosen.length > 0) {
         // Options are USED, not played as permanents. `playInstances` intentionally rejects
         // Option definitions, so routing every PlayWithoutCost target through it silently
@@ -477,16 +571,34 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
             const selectedExpanders = expanders.filter((permanent) =>
               selectedExpanderCards.includes(permanent.topCard!.instanceId),
             );
+            // A triggered DigiXrosMaterialZoneExpansion is recorded by the canonical primitive
+            // ledger. Consume that ledger here as well as the card-id registry: effect-driven
+            // PlayWithoutCost must see the same extra source zones as an explicit playCard
+            // declaration (EX4-062, BT19-079/087). The registry still supplies the precise
+            // per-expander maxima and trait gate when a Tamer is selected interactively.
+            const ledgerZones = new Set(ctx.fx.digiXrosExpandedZones?.(ownerSeat) ?? []);
+            const ledgerUnderTamer =
+              ledgerZones.has("underTamers") ||
+              ledgerZones.has("underMyTamers") ||
+              ledgerZones.has("underTamer") ||
+              ledgerZones.has("digivolutionCards");
+            const ledgerTrash = ledgerZones.has("trash");
             const expansion = selectedExpanders.reduce(
               (current, permanent) => {
                 const expander = digiXrosZoneExpanderFor(permanent.topCard!.cardId)!;
                 return {
-                  underTamerMax: Math.max(current.underTamerMax, expander.underTamerMax),
-                  trashMax: Math.max(current.trashMax, expander.trashMax),
+                  underTamerMax: current.underTamerMax + expander.underTamerMax,
+                  trashMax: current.trashMax + expander.trashMax,
                 };
               },
               { underTamerMax: 0, trashMax: 0 },
             );
+            // The primitive ledger represents an already-paid expansion (for example,
+            // a replacement effect from EX4-062/BT19-087), so it must remain usable
+            // even though that Tamer is now suspended and is absent from the interactive
+            // expander list. Merge it with any independently selected live expanders.
+            if (ledgerUnderTamer) expansion.underTamerMax += 1;
+            if (ledgerTrash) expansion.trashMax += 1;
             const defaultCandidates = [
               ...looseCardsInZone(ctx, ownerSeat, "hand").filter(
                 (candidate) => candidate.instanceId !== playedCard!.instanceId,
@@ -547,7 +659,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
               if (selectedUnderTamer > 0 || selectedTrash > 0) {
                 await ctx.fx.suspend(
                   selectedExpanders.map((permanent) => permanent.permanentId),
-                  { byEffectSeat: ownerSeat },
+                  { byEffectSeat: ownerSeat, byEffectCardId: ctx.source.cardId },
                 );
               }
               digiXrosMaterialInstanceIds = selected;
@@ -573,6 +685,9 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
                 effectSourceCardId: ctx.source.cardId,
                 ...(action.playedByDecode === true ? { playedByDecode: true } : {}),
                 ...(costReduction !== undefined ? { costDelta: costReduction } : {}),
+                ...((action as typeof action & { costOverride?: number }).costOverride !== undefined
+                  ? { costOverride: (action as typeof action & { costOverride?: number }).costOverride }
+                  : {}),
                 ...(digiXrosMaterialInstanceIds.length > 0 ? { digiXrosMaterialInstanceIds } : {}),
                 ...(action.suppressOnPlayEffects === true ? { suppressOnPlayEffects: true } : {}),
                 hostPermanentIds,
@@ -595,7 +710,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
       // when present, prompt the controller, then play the chosen instance with cost reduced by
       // `costReduction` (floored at 0). `payCost` defaults to true; false means free play.
       const zones = action.from && action.from.length > 0 ? action.from : DEFAULT_PLAY_ZONES;
-      let pfzCandidates = candidateLooseInstances(ctx, action.target, zones);
+      let pfzCandidates = playableCandidates(ctx, action.target, candidateLooseInstances(ctx, action.target, zones));
 
       // relativeToLeavingDigimon: the target's printed playCost must equal the triggering
       // leaving Digimon's playCost + N (BT19-099 ＜Delay＞ body, KB Q3175).
@@ -639,7 +754,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           const chosenCard = pfzCandidates.find((card) => card.instanceId === pfzChosen[0]);
           const requirement = chosenCard === undefined ? undefined : digiXrosRequirementFor(chosenCard.cardId)?.[0];
           if (requirement !== undefined) {
-            const materialCandidates = action.digiXrosMaterialsFrom
+            const allMaterialCandidates = action.digiXrosMaterialsFrom
               .flatMap((zone) =>
                 zone === "battleArea"
                   ? Array.from(ctx.game.player(ctx.source.ownerSeat).battleArea).flatMap((permanent) =>
@@ -657,17 +772,30 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
                   : looseCardsInZone(ctx, ctx.source.ownerSeat, zone),
               )
               .filter((card) => card.instanceId !== pfzChosen[0]);
+            // Keep the selection prompt faithful to the chosen DigiXros recipe.  The normal
+            // hand-play path filters each candidate before prompting; cards assembled from
+            // another loose zone need the same guard or an auto-selection can consume invalid
+            // cards and silently fall back to a non-DigiXros play.
+            const materialDefinition = (candidate: (typeof allMaterialCandidates)[number]) => {
+              const definition = ctx.game.definitionOf({ cardId: candidate.cardId } as never);
+              return candidate.instanceId === ctx.source.instanceId && action.digiXrosSourceMaterialName !== undefined
+                ? { ...definition, nameEn: action.digiXrosSourceMaterialName }
+                : definition;
+            };
+            const materialCandidates = allMaterialCandidates.filter((candidate) =>
+              materialsSatisfyRecipe([materialDefinition(candidate)], requirement.materials),
+            );
+            const materialCap =
+              requirement.maxMaterials ??
+              (requirement.materials.length === 1 ? materialCandidates.length : requirement.materials.length);
             const selected = await ctx.ask.selectCards(ctx, {
               candidates: materialCandidates.map((card) => card.instanceId),
               min: 0,
-              max: requirement.materials.length,
+              max: materialCap,
             });
-            const selectedDefinitions = selected.map((id) => {
-              const definition = ctx.game.definitionOf(materialCandidates.find((card) => card.instanceId === id)!);
-              return id === ctx.source.instanceId && action.digiXrosSourceMaterialName !== undefined
-                ? { ...definition, nameEn: action.digiXrosSourceMaterialName }
-                : definition;
-            });
+            const selectedDefinitions = selected.map((id) =>
+              materialDefinition(materialCandidates.find((card) => card.instanceId === id)!),
+            );
             if (materialsSatisfyRecipe(selectedDefinitions, requirement.materials))
               digiXrosMaterialInstanceIds = selected;
           }

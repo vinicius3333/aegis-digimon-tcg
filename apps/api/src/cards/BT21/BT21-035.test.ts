@@ -53,7 +53,7 @@ describe("BT21-035 compiled implementation", () => {
   });
 
   it("preserves the Veemon alternate Digivolution cost", () => {
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Veemon"], cost: 2, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Veemon"], cost: 2, isAlternate: true }]);
   });
 
   it("stacks Veemon's reduction and inherited DP with its own evolution bonus", async () => {

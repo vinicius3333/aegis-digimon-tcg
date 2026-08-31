@@ -37,6 +37,7 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          requiresDelayArmed: true,
           kind: "DnaDigivolve",
           materials: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
           looseMaterials: { filter: { zone: "hand", controller: "mine", kind: ["Digimon"] }, count: 1, from: ["hand"] },

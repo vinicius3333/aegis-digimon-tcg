@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../BT15/BT15-097.js";
 import { compiled } from "./BT17-037.js";
 import "./index.js";
 
@@ -96,5 +97,41 @@ describe("BT17-037 RizeGreymon", () => {
 
     expect(s.state.players[0]!.security[0]?.faceUp).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === marcusId)).toBe(false);
+  });
+
+  it("naturally reacts when an Option effect deletes a red or yellow Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT17-034", as: "inheritedHost", under: ["BT17-037"] },
+            { card: "BT1-087", as: "yellowTamer" },
+          ],
+          trash: [{ card: "BT12-092", as: "marcus" }],
+          security: ["BT1-001"],
+        },
+        1: {
+          battleArea: ["BT15-055"],
+          hand: [
+            { card: "BT15-097", as: "slicer" },
+            { card: "BT15-055", as: "machineCost" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const marcusId = s.inst("marcus").instanceId;
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("slicer").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === marcusId));
+
+    const securedMarcus = s.state.players[0]!.security.find((card) => card.instanceId === marcusId);
+    expect(securedMarcus).toBeDefined();
+    expect(securedMarcus?.faceUp).toBe(false);
   });
 });

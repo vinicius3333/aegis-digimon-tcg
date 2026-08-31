@@ -46,4 +46,16 @@ describe("BT1-025 WarGreymon", () => {
     expect(s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(false);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
   });
+
+  it("suppresses Option Security effects only during its owner's turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-025", as: "attacker" }] } });
+    await s.ready();
+
+    expect(observe(s.engine).suppressesSecurityEffect(s.perm("attacker"), "BT1-112")).toBe(true);
+
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+
+    expect(observe(s.engine).suppressesSecurityEffect(s.perm("attacker"), "BT1-112")).toBe(false);
+  });
 });

@@ -34,6 +34,7 @@ const compiled: CompiledCard = {
                 ],
               },
               count: 1,
+              source: "thisDigimon",
             },
             from: ["hand", "digivolutionCards"],
             raw: "By trashing 1 card with [Numemon] in its name in your hand or this Digimon's digivolution cards",

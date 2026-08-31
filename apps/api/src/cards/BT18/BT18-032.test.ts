@@ -75,6 +75,24 @@ describe("BT18-032 Luxmon", () => {
     assertNoLoudGap(s);
   });
 
+  it("does not watch a matching Digimon played during the opponent's turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT18-032", as: "luxmon" }] },
+      1: { hand: [{ card: "BT1-053", as: "opponentAngel" }] },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentAngel").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.memory).toBe(6);
+    assertNoLoudGap(s);
+  });
+
   it("reduces exactly one opposing Digimon by 2000 only on its host's first attack of the turn", async () => {
     const s = setupEngine(
       {

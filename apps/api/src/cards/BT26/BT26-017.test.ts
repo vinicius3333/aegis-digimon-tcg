@@ -290,6 +290,25 @@ describe("BT26-017 Zanbamon", () => {
     );
   });
 
+  it("plays an own Shambala Tamer at the inclusive play-cost-5 boundary", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-017", as: "self" }],
+          trash: [{ card: "BT26-104", as: "kunlun" }],
+        },
+        1: { trash: [{ card: "BT26-104", as: "opponentKunlun" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("self").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-104"));
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT26-104");
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT26-104");
+  });
+
   it("Q6982 offers simultaneous top-card and inherited On Deletion effects for ordering", async () => {
     const s = setupEngine(
       {

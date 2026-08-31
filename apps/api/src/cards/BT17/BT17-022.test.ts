@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-022.js";
+import "./index.js";
 
 describe("BT17-022", () => {
   it("can digivolve onto a yellow Tamer as level 3", () => {
@@ -30,5 +34,50 @@ describe("BT17-022", () => {
       isInherited: true,
       actions: [{ kind: "Draw", amount: 1, condition: { kind: "zoneCount", value: 7 } }],
     });
+  });
+
+  it("matches only the printed yellow Tamer path and preserves the named alternates", () => {
+    expect(matchingAlternateDigivolutionRequirement("BT17-022", "BT1-087")).toMatchObject({
+      cost: 3,
+      baseIsTamer: true,
+    });
+    expect(matchingAlternateDigivolutionRequirement("BT17-022", "BT1-086")).toBeUndefined();
+    expect(matchingAlternateDigivolutionRequirement("BT17-022", "BT17-023")).toMatchObject({ cost: 1 });
+  });
+
+  it("digivolves from a yellow Tamer and can slide-evolve into AncientGarurumon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-087", as: "tamer" },
+            { card: "BT10-093", as: "purpleTamer" },
+          ],
+          hand: [
+            { card: "BT17-022", as: "lobomon" },
+            { card: "BT17-028", as: "ancient" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("tamer").permanentId,
+        instanceId: s.inst("lobomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("tamer").topCard?.cardId === "BT17-028");
+
+    expect(s.perm("tamer").topCard?.cardId).toBe("BT17-028");
+    expect(s.state.memory).toBe(0);
+    const ancientId = s.perm("tamer").topCard!.instanceId;
+    // The delayed deletion is scheduled for the owner's end of turn, so advance the
+    // actual turn rather than firing a window while the opponent is still active.
+    await advance(s.engine).runTurn(0);
+    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-028"));
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === ancientId)).toBe(true);
   });
 });

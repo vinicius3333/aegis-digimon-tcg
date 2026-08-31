@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { playEx4Card } from "./livePlayTestHelpers.js";
+import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
 import {
   CardColor,
   CardKind,
@@ -38,6 +40,7 @@ describe("EX4-037 BlackMegaGargomon", () => {
   it("offers the end-of-turn Blocker/Reboot effect for two green-and-black Digimon", async () => {
     const self = {
       permanentId: "self",
+      controllerSeat: 0,
       topCard: card("EX4-037"),
       stack: [],
       linked: [],
@@ -46,6 +49,7 @@ describe("EX4-037 BlackMegaGargomon", () => {
     } as unknown as Permanent;
     const first = {
       permanentId: "first",
+      controllerSeat: 0,
       topCard: card("FIRST"),
       stack: [],
       linked: [],
@@ -54,6 +58,7 @@ describe("EX4-037 BlackMegaGargomon", () => {
     } as unknown as Permanent;
     const second = {
       permanentId: "second",
+      controllerSeat: 0,
       topCard: card("SECOND"),
       stack: [],
       linked: [],
@@ -105,4 +110,12 @@ describe("EX4-037 BlackMegaGargomon", () => {
       ["second", "Reboot"],
     ]);
   });
+
+  it("plays through the live engine", async () => {
+    const s = await playEx4Card("EX4-037");
+    expect(s.state.players[0]!.hand.some((handCard) => handCard.instanceId === s.inst("subject").instanceId)).toBe(
+      false,
+    );
+  });
+  ex4CardBehaviorTests("EX4-037");
 });

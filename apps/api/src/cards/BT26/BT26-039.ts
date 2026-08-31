@@ -7,7 +7,7 @@ const playYoshino = {
   target: {
     filter: {
       controllerDefault: "mine",
-      nameOrTrait: [{ tokens: ["Yoshino Fujieda"], match: "name" }],
+      nameOrTrait: [{ tokens: ["Yoshino Fujieda"], match: "nameExact" }],
     },
     count: 1,
   },

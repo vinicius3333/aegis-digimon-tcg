@@ -139,9 +139,9 @@ describe("LM-026 Megidramon", () => {
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("host"));
     await settle(() => s.state.pendingDecision === null);
 
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("tooHigh").permanentId)).toBe(
-      true,
-    );
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("tooHigh").permanentId),
+    ).toBe(true);
   });
 
   it("matches committed metadata and publishes fully covered compiled IR", () => {

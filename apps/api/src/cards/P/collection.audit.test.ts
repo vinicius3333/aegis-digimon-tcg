@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { allCards, getCompiledCard } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
@@ -7,6 +9,7 @@ import "./index.js";
 const pCards = allCards()
   .filter((card) => /^P-\d{3}$/.test(card.cardId))
   .sort((a, b) => Number(a.cardId.slice(2)) - Number(b.cardId.slice(2)));
+const collectionDirectory = fileURLToPath(new URL(".", import.meta.url));
 
 describe("P collection audit ledger guards", () => {
   it("covers every committed P catalog entry from P-001 through P-244", () => {
@@ -25,6 +28,16 @@ describe("P collection audit ledger guards", () => {
       .map((card) => card.cardId);
     expect(missingModules).toEqual([]);
     expect(missingIr).toEqual([]);
+  });
+
+  it("uses exclusive registerIrCard registration in every direct module", () => {
+    const violations = pCards
+      .filter((card) => {
+        const source = readFileSync(`${collectionDirectory}${card.cardId}.ts`, "utf8");
+        return !source.includes(`registerIrCard("${card.cardId}", compiled)`) || source.includes("registerCard(");
+      })
+      .map((card) => card.cardId);
+    expect(violations).toEqual([]);
   });
 
   it("has full executable IR coverage with no residual behavior", () => {

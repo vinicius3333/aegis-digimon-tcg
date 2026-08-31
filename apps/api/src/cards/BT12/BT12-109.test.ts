@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { EffectTiming } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import "./BT12-091.js";
 import "./BT12-109.js";
 
 describe("BT12-109 Overflowing Power", () => {
@@ -46,7 +47,7 @@ describe("BT12-109 Overflowing Power", () => {
     expect(s.perm("base").topCard.cardId).toBe("BT12-077");
     expect(s.perm("hunter").stack).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT12-109");
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(1);
     expect(s.decisions.filter(({ req }) => req.kind === "chooseTargets")).toHaveLength(1);
     expect(s.decisions.filter(({ req }) => req.kind === "selectCards")).toHaveLength(1);
     expect(s.decisions.every(({ req }) => req.sourceCardId === "BT12-109")).toBe(true);

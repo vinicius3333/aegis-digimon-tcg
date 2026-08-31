@@ -23,7 +23,7 @@ import { formatKeyword } from "./keywordDisplay";
 import { gameOverSplash, type GameOverOutcome } from "./gameOverSplash";
 import { pendingFateBadge, type PendingFateBadge } from "./pendingFate";
 import { inspectorPlacement, type PermanentDetail } from "./permanentDetail";
-import { useTranslation, type Translate } from "../i18n";
+import { useTranslation, type Translate, type TranslationKey } from "../i18n";
 import { CardLink, CardLinkedText } from "./cardLinks";
 import { eligibleDigiXrosCandidateIds } from "./digiXrosMaterialSelection";
 import { useMediaQuery, WIDE_DIALOG_QUERY } from "../design/useMediaQuery";
@@ -177,14 +177,21 @@ export function MulliganOverlay({
 export function BlockOverlay({
   attackerCardId,
   blockers,
+  mustBlock = false,
   onBlock,
   onDecline,
 }: {
   attackerCardId?: string;
   blockers: { permanentId: string; cardId: string; currentDP: number; sourceCount: number }[];
+  /**
+   * ＜Collision＞ (§16-30): the block is compulsory while a Digimon can make it, so the
+   * window states the compulsion and drops the refusal the server would reject anyway.
+   */
+  mustBlock?: boolean;
   onBlock: (permanentId: string) => void;
   onDecline: () => void;
 }) {
+  const forced = mustBlock && blockers.length > 0;
   const { t } = useTranslation();
   return (
     <div
@@ -222,8 +229,35 @@ export function BlockOverlay({
           <Icons.Swords size={18} />
         </span>
         <div>
-          <div style={{ fontFamily: "var(--ds-font-display)", fontWeight: 700, fontSize: 17, color: "var(--ds-fg)" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              fontFamily: "var(--ds-font-display)",
+              fontWeight: 700,
+              fontSize: 17,
+              color: "var(--ds-fg)",
+            }}
+          >
             {t("overlay.blockWindow")}
+            {forced ? (
+              <span
+                style={{
+                  fontFamily: "var(--ds-font-mono)",
+                  fontSize: 10.5,
+                  fontWeight: 700,
+                  letterSpacing: 0.4,
+                  textTransform: "uppercase",
+                  padding: "2px 7px",
+                  borderRadius: 999,
+                  background: "var(--ds-warning-surface)",
+                  color: "var(--ds-warning)",
+                }}
+              >
+                {t("overlay.blockForced")}
+              </span>
+            ) : null}
           </div>
           <div style={{ fontSize: 12.5, color: "var(--ds-fg-muted)" }}>
             {attackerCardId ? (
@@ -238,7 +272,7 @@ export function BlockOverlay({
         </div>
       </div>
       <div style={{ fontSize: 12.5, color: "var(--ds-fg-secondary)", marginBottom: 12 }}>
-        {t("overlay.blockPrompt")}
+        {t(forced ? "overlay.blockForcedPrompt" : "overlay.blockPrompt")}
       </div>
       {blockers.length ? (
         <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
@@ -282,9 +316,11 @@ export function BlockOverlay({
       ) : (
         <div style={{ fontSize: 12, color: "var(--ds-fg-muted)", marginBottom: 16 }}>{t("overlay.noBlockers")}</div>
       )}
-      <Button full variant="secondary" icon={Icons.Shield} onClick={onDecline}>
-        {t("overlay.takeAttack")}
-      </Button>
+      {forced ? null : (
+        <Button full variant="secondary" icon={Icons.Shield} onClick={onDecline}>
+          {t("overlay.takeAttack")}
+        </Button>
+      )}
     </div>
   );
 }
@@ -810,6 +846,13 @@ export function PermanentDetailInspector({
           </ul>
         )}
       </section>
+      {detail.restrictions.length ? (
+        <ul className="opponent-permanent-inspector__restrictions" aria-label={t("overlay.restrictions")}>
+          {detail.restrictions.map((restriction) => (
+            <li key={restriction.kind}>{t(restriction.labelKey)}</li>
+          ))}
+        </ul>
+      ) : null}
       {fate ? (
         <p className="opponent-permanent-inspector__fate" data-tone={fate.tone}>
           <span aria-hidden="true">{fate.glyph}</span>
@@ -924,12 +967,21 @@ export function effectClauseForTiming(effectText: string | undefined, timing: st
   return effectText.slice(group.start, end).trim();
 }
 
-/** Select the matching printed clause across a card's main, inherited, and Security text boxes. */
-export function cardEffectClauseForTiming(cardId: string, timing: string | undefined): string | undefined {
+/**
+ * Select the matching printed clause across a card's main, inherited, and Security text
+ * boxes. A timing bracket can appear in more than one box, so when the caller knows the
+ * resolving effect is inherited, the inherited box is searched first.
+ */
+export function cardEffectClauseForTiming(
+  cardId: string,
+  timing: string | undefined,
+  isInherited = false,
+): string | undefined {
   const definition = getCardDefinition(cardId);
-  const texts = [definition?.effectText, definition?.inheritedEffectText, definition?.securityEffectText].filter(
-    (text): text is string => Boolean(text),
-  );
+  const boxes = isInherited
+    ? [definition?.inheritedEffectText, definition?.effectText, definition?.securityEffectText]
+    : [definition?.effectText, definition?.inheritedEffectText, definition?.securityEffectText];
+  const texts = boxes.filter((text): text is string => Boolean(text));
   const label = timing ? TIMING_LABELS[timing] : undefined;
   const matching = label ? texts.find((text) => new RegExp(`\\[${escapeRegExp(label)}\\]`).test(text)) : undefined;
   if (matching === undefined && timing !== undefined) {
@@ -946,8 +998,12 @@ export function cardEffectClauseForTiming(cardId: string, timing: string | undef
 }
 
 /** The printed clause to surface for a resolved effect, or undefined when there is nothing worth showing. */
-export function resolvedEffectClause(cardId: string, timing: string | undefined): string | undefined {
-  const clause = cardEffectClauseForTiming(cardId, timing);
+export function resolvedEffectClause(
+  cardId: string,
+  timing: string | undefined,
+  isInherited = false,
+): string | undefined {
+  const clause = cardEffectClauseForTiming(cardId, timing, isInherited);
   const trimmed = clause?.trim();
   if (!trimmed) return undefined;
   // A bare "[On Play] [When Digivolving]" header with no body carries nothing to read.
@@ -974,17 +1030,19 @@ const INTERNAL_IR_DESCRIPTION = /^\[[^\]]+\](?:\s+＜[^＞]+＞)?\s+[A-Z][A-Za-z
  */
 const GENERATED_ACTION_PHRASES: readonly RegExp[] = [
   /^Draw -?\d+$/,
-  /^Delete \d+ target\(s\)$/,
-  /^(?:Suspend|Unsuspend) \d+ target\(s\)$/,
-  /^Trash \d+ card\(s\)$/,
+  // A target count is a number or the literal "all" (`String(action.target.count)`
+  // in describeAction stringifies both), so "Delete all target(s)" is generated too.
+  /^Delete (?:\d+|all) target\(s\)$/,
+  /^(?:Suspend|Unsuspend) (?:\d+|all) target\(s\)$/,
+  /^Trash (?:\d+|all) card\(s\)$/,
   /^Trash (?:up to )?-?\d+ card\(s\) from the top of the deck$/,
-  /^Return \d+ to [A-Za-z]+$/,
+  /^Return (?:\d+|all) to [A-Za-z]+$/,
   /^Modify DP by -?\d+$/,
   /^Set base DP to -?\d+$/,
   /^Set memory to -?\d+$/,
   /^(?:Gain|Lose) \d+ memory$/,
   /^Play without paying the cost$/,
-  /^Place (?:up to )?\d+ card\(s\) under$/,
+  /^Place (?:up to )?(?:\d+|all) card\(s\) under$/,
   /^Reveal top \d+ and add$/,
   /^Gain (?:＜[^＞]+＞|<[^>]+>|keyword)$/,
   /^Hatch a Digi-Egg$/,
@@ -995,6 +1053,9 @@ const GENERATED_ACTION_PHRASES: readonly RegExp[] = [
   /^[A-Z][A-Za-z0-9]*$/,
   /^[A-Z][a-z0-9]*(?: [a-z0-9]+)+$/,
 ];
+
+/** A watcher's event name, e.g. "whenSecurityRemoved" — one camelCase or PascalCase token. */
+const INTERNAL_WATCHER_DESCRIPTION = /^[A-Za-z][A-Za-z0-9]*$/;
 
 /**
  * Whether a description is the engine's own summary of an effect rather than the
@@ -1007,6 +1068,10 @@ const GENERATED_ACTION_PHRASES: readonly RegExp[] = [
  */
 function isInternalEffectDescription(text: string): boolean {
   if (INTERNAL_IR_DESCRIPTION.test(text)) return true;
+  // A watcher is described by the event it watches ("whenSecurityRemoved"): an identifier
+  // the engine reads, never a clause a player can. Card text is a sentence, so a single
+  // unspaced token is the engine's own name for the effect.
+  if (INTERNAL_WATCHER_DESCRIPTION.test(text)) return true;
   const body = text
     .replace(/^(?:\s*\[[^\]]*\])+/, "")
     .replace(/^\s*＜[^＞]+＞/, "")
@@ -1043,10 +1108,12 @@ export function playerFacingEffectClause({
   cardId,
   timing,
   description,
+  isInherited,
 }: {
   cardId: string;
   timing: string | undefined;
   description: string | undefined;
+  isInherited?: boolean;
 }): string | undefined {
   const supplied = description?.trim();
   if (supplied && !isInternalEffectDescription(supplied)) {
@@ -1057,7 +1124,7 @@ export function playerFacingEffectClause({
   // Without timing provenance, choosing the first printed text box can attribute a
   // main effect to an inherited decision. Prefer showing nothing over a wrong clause.
   if (timing === undefined) return undefined;
-  return resolvedEffectClause(cardId, timing);
+  return resolvedEffectClause(cardId, timing, isInherited === true);
 }
 
 /**
@@ -1086,6 +1153,25 @@ export interface TriggerDetail {
   sourceLabel?: string;
   summary?: string;
 }
+
+/*
+   The choices a `chooseOption` decision names are the engine's own words for where a card
+   goes — the destination keys `RevealAdd` builds its prompt from, and the two deck ends an
+   ordering asks about. Printed straight, a Zenith-style "add it or play it" prompt offered
+   buttons reading "hand" and "play"; each one gets the sentence a player would recognise.
+*/
+const CHOICE_LABEL_KEYS: Readonly<Record<string, TranslationKey>> = {
+  top: "overlay.deckTop",
+  bottom: "overlay.deckBottom",
+  hand: "overlay.dispositionHand",
+  play: "overlay.dispositionPlay",
+  useOption: "overlay.dispositionUseOption",
+  trash: "overlay.dispositionTrash",
+  digivolve: "overlay.dispositionDigivolve",
+  security: "overlay.dispositionSecurity",
+  placeUnder: "overlay.dispositionPlaceUnder",
+  underTamer: "overlay.dispositionUnderTamer",
+};
 
 export function DecisionOverlay({
   request,
@@ -1159,9 +1245,11 @@ export function DecisionOverlay({
     return undefined;
   };
   const choiceLabel = (choice: string): string => {
-    if (choice === "top") return t("overlay.deckTop");
-    if (choice === "bottom") return t("overlay.deckBottom");
-    return choice;
+    const key = CHOICE_LABEL_KEYS[choice];
+    // Anything the server has not been taught a label for still reads: the raw
+    // choice is the fallback, so a new disposition ships as a plain word rather
+    // than as a blank button.
+    return key === undefined ? choice : t(key);
   };
 
   const [isViewingBoard, setIsViewingBoard] = useState(false);
@@ -2350,6 +2438,13 @@ function StackViewerState({ detail, fate }: { detail: PermanentDetail; fate?: Pe
           </li>
         ))}
       </ul>
+      {detail.restrictions.length ? (
+        <ul className="stack-viewer-state__restrictions" aria-label={t("overlay.restrictions")}>
+          {detail.restrictions.map((restriction) => (
+            <li key={restriction.kind}>{t(restriction.labelKey)}</li>
+          ))}
+        </ul>
+      ) : null}
       {fate ? (
         <p className="stack-viewer-state__fate" data-tone={fate.tone}>
           <span aria-hidden="true">{fate.glyph}</span>

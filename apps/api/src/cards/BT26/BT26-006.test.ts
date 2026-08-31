@@ -8,6 +8,47 @@ import { compiled } from "./BT26-006.js";
 const CARD_ID = "BT26-006";
 
 describe("BT26-006 Monimon", () => {
+  it("plays a Bagra Army Tamer through the play branch with the cost reduced by 2", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT10-075",
+              as: "host",
+              under: [
+                { card: CARD_ID, as: "monimon" },
+                { card: "BT10-073", as: "costA" },
+                { card: "BT14-057", as: "costB" },
+              ],
+            },
+          ],
+          hand: [
+            { card: "BT10-093", as: "bagraTamer" },
+            { card: "BT1-087", as: "nonBagraTamer" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 1;
+    preferred.push(s.inst("costA").instanceId, s.inst("costB").instanceId, s.inst("bagraTamer").instanceId);
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), {
+      attackerPermanentId: s.perm("host").permanentId,
+    });
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("costA").instanceId, s.inst("costB").instanceId]),
+    );
+    expect(
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("bagraTamer").instanceId),
+    ).toBe(true);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("nonBagraTamer").instanceId]);
+  });
+
   it("trashes exactly 2 sources, then plays 1 Bagra Army Digimon for 2 less", async () => {
     const preferred: string[] = [];
     const s = setupEngine(

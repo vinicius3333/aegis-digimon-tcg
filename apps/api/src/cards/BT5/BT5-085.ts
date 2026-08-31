@@ -2,7 +2,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "BeforePayCost",
@@ -15,7 +15,7 @@ const compiled: CompiledCard = {
               filter: {
                 controller: "mine",
                 kind: ["Digimon"],
-                nameOrTrait: [{ tokens: ["Diaboromon"], match: "name" }],
+                nameOrTrait: [{ tokens: ["Diaboromon"], match: "nameExact" }],
               },
               count: 1,
             },
@@ -26,21 +26,7 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "Static",
-      actions: [
-        {
-          kind: "GainKeyword",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [{ tokens: ["Armageddemon"], match: "name" }],
-            },
-            count: 1,
-          },
-          keyword: { keyword: "Rush" },
-          duration: "permanent",
-        },
-      ],
+      actions: [],
       keywords: [{ keyword: "Rush", raw: "＜Rush＞" }],
     },
     {

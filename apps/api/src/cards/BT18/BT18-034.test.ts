@@ -1,10 +1,30 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT18-034.js";
+import { compiled } from "./BT18-034.js";
 
 describe("BT18-034 Lucemon", () => {
+  it("keeps the alternate digivolution requirement and the Q4999 exclusion visible in the compiled IR", () => {
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Cupimon"], cost: 5, isAlternate: true }]);
+    expect(compiled.effects[1]).toMatchObject({
+      trigger: "EndOfYourTurn",
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "Digivolve",
+          from: ["trash"],
+          payCost: false,
+          ignoreRequirements: false,
+          optional: true,
+          cost: { kind: "placeAsSecurity", destination: "security", position: "top" },
+          into: { excludeCardIds: ["BT7-111"] },
+        },
+      ],
+    });
+  });
+
   it("trashes the hand cost, lets the opponent trash security, and recovers when they decline", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -30,7 +50,7 @@ describe("BT18-034 Lucemon", () => {
     await settle(() =>
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("lucemon").instanceId),
     );
-    await advance(s.engine).fireForInstance(EffectTiming.OnPlay, s.inst("lucemon"));
+    await settle(() => s.state.players[0]!.security.length === 2 && s.state.players[1]!.security.length === 1);
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(1);
@@ -62,7 +82,6 @@ describe("BT18-034 Lucemon", () => {
     await settle(() =>
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("lucemon").instanceId),
     );
-    await advance(s.engine).fireForInstance(EffectTiming.OnPlay, s.inst("lucemon"));
     await settle(() => s.state.players[0]!.security.some((card) => card.cardId === "BT1-002"));
 
     expect(s.state.players[0]!.security).toHaveLength(2);
@@ -86,7 +105,8 @@ describe("BT18-034 Lucemon", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("lucemon"));
+    s.state.turnSeat = 0;
+    await advance(s.engine).runTurn(0);
 
     expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("handCost").instanceId)).toBe(true);
     expect(
@@ -114,15 +134,17 @@ describe("BT18-034 Lucemon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 3;
+    s.state.turnSeat = 0;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("lucemon"));
+    await advance(s.engine).runTurn(0);
 
     expect(s.perm("lucemon").topCard?.instanceId).toBe(s.inst("chaosMode").instanceId);
     expect(s.perm("lucemon").stack.map(({ cardId }) => cardId)).toEqual(["BT18-034"]);
     expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("levelSixCost").instanceId);
     expect(s.state.players[0]!.security[1]!.instanceId).toBe(s.inst("oldTopSecurity").instanceId);
-    expect(s.state.memory).toBe(3);
+    // runTurn completes the turn and passes priority, normalizing memory.
+    expect(s.state.memory).toBe(-3);
     assertNoLoudGap(s);
   });
 
@@ -140,9 +162,10 @@ describe("BT18-034 Lucemon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.turnSeat = 0;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("lucemon"));
+    await advance(s.engine).runTurn(0);
 
     expect(s.perm("lucemon").topCard?.cardId).toBe("BT18-034");
     expect(s.perm("levelSixCost")).toBeDefined();

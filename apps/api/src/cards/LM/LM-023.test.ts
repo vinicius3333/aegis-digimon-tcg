@@ -3,6 +3,7 @@ import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../BT2/BT2-099.js";
 import "./LM-023.js";
 
 describe("LM-023 Sakuyamon: Maid Mode", () => {
@@ -43,6 +44,52 @@ describe("LM-023 Sakuyamon: Maid Mode", () => {
     await settle(() => s.state.players[0]!.security.some((card) => card.cardId === "BT1-091"), 2000);
 
     expect(s.state.players[0]!.security.some((card) => card.cardId === "BT1-091")).toBe(true);
+  });
+
+  it("places a printed-cost-9 Option whose hand use cost is reduced to 5, per Q5516", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "LM-023", as: "maid" },
+            "BT1-087",
+            "BT1-087",
+            "BT1-087",
+            "BT1-087",
+          ],
+          hand: [{ card: "BT2-099", as: "reduced-option" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    // Glorious Burst has printed use cost 9, reduced by one for each of four
+    // Yellow Tamers. Q5516 permits the resulting effective cost of 5.
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("maid"));
+    await settle(() => s.state.players[0]!.security.some((card) => card.cardId === "BT2-099"), 2000);
+
+    expect(s.state.players[0]!.security.some((card) => card.cardId === "BT2-099")).toBe(true);
+  });
+
+  it("does not project an automatic self-reducer past the Q5516 cost boundary", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "LM-023", as: "maid" }, "BT1-087", "BT1-087", "BT1-087"],
+          hand: [{ card: "BT2-099", as: "too-expensive" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    // Three Yellow Tamers reduce Glorious Burst from 9 to 6, so it remains ineligible.
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("maid"));
+    await settle(() => s.state.pendingDecision === null);
+
+    expect(s.state.players[0]!.security.some((card) => card.cardId === "BT2-099")).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT2-099")).toBe(true);
   });
 
   it("does not place an ineligible multicolor Option from hand", async () => {

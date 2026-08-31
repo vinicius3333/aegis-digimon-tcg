@@ -29,3 +29,37 @@ describe("BT14 Four Great Dragons tokens", () => {
     }
   });
 });
+
+describe("LM-018 Gyuukimon Token", () => {
+  it("preserves the printed token identity and stats", () => {
+    expect(tokenDefinitions.find(({ cardId }) => cardId === "TOKEN-Gyuukimon-Token")).toMatchObject({
+      nameEn: "Gyuukimon Token",
+      kinds: ["Digimon"],
+      colors: ["Purple"],
+      level: 5,
+      playCost: 7,
+      dp: 3000,
+      forms: ["Ultimate"],
+      attributes: ["Virus"],
+      types: ["Dark Animal"],
+      isToken: true,
+    });
+  });
+});
+
+describe("EX7-058 Volée & Zerdrücken Token", () => {
+  it("preserves the printed identity, level, DP, color, and keywords", () => {
+    const cardId = resolveTokenCardId("Volée & Zerdrücken");
+    expect(cardId).toBe("TOKEN-Volée-&-Zerdrücken");
+    expect(tokenDefinitions.find(({ cardId: id }) => id === cardId)).toMatchObject({
+      nameEn: "Volée & Zerdrücken",
+      kinds: ["Digimon"],
+      colors: ["Purple"],
+      level: 4,
+      dp: 5000,
+      playCost: -1,
+      effectText: "＜Blocker＞ ＜Retaliation＞",
+      isToken: true,
+    });
+  });
+});

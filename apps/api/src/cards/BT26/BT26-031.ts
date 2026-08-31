@@ -29,6 +29,7 @@ export const compiled: CompiledCard = {
           kind: "Restrict",
           target: { fromSelectionRef: "suspendLocked", filter: {}, count: 1 },
           restriction: "suspend",
+          blocksCombatSuspend: true,
           duration: "untilOpponentTurnEnd",
           condition: { kind: "ifThisEffectActed" },
         },

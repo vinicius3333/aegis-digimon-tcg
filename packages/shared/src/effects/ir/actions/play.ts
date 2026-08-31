@@ -16,6 +16,8 @@ export interface PlayWithoutCostAction extends ActionBase {
   /** "from your hand or trash", "from security". */
   from?: ZoneRef[];
   payCost: boolean;
+  /** The printed clause has no play/use-cost ceiling; ignore any generated `playCostLte` bound. */
+  ignorePlayCostLimit?: true;
   /**
    * Reduce the paid cost when `payCost` is true. Folded INTO the play verb rather than being a
    * standalone CostModifier, and floored at 0. Ignored for a free play.

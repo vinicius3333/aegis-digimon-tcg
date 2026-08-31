@@ -69,4 +69,23 @@ describe("BT8-046 Terriermon", () => {
 
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(originalDeck);
   });
+
+  it("digivolves from a green level-2 Digimon for 0 memory", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-007", as: "base" }], hand: [{ card: "BT8-046", as: "evolving" }] },
+    });
+    s.state.memory = 1;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT8-046");
+
+    expect(s.perm("base").topCard.cardId).toBe("BT8-046");
+    expect(s.state.memory).toBe(1);
+  });
 });

@@ -36,7 +36,7 @@ describe("LM-041 Regalecusmon", () => {
     expect(observe(s.engine).isRestricted(opponent!, "beSuspended")).toBe(true);
   });
 
-  it("does not hand back security while its controller has no memory", async () => {
+  it("skips security return at zero memory but still applies the Then suspend lock", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "LM-041", as: "regalecusmon" }] },
@@ -52,6 +52,7 @@ describe("LM-041 Regalecusmon", () => {
 
     expect(s.state.players[1]!.hand).toHaveLength(0);
     expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(observe(s.engine).isRestricted(s.perm("opponent"), "beSuspended")).toBe(true);
   });
 
   it("skips the suspend lock above one memory", async () => {

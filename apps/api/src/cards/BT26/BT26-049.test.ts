@@ -197,6 +197,36 @@ describe("BT26-049 Rosemon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("secondDataSquad").instanceId);
   });
 
+  it("plays a DATA SQUAD Digimon when an effect trashes under one of your Tamers", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-049", as: "rosemon", suspended: true },
+            {
+              card: "BT1-085",
+              as: "stackedTamer",
+              under: [{ card: "BT1-010", as: "underTamer", faceUp: false }],
+            },
+          ],
+          hand: [{ card: "BT26-039", as: "dataSquadDigimon" }],
+        },
+        1: { battleArea: [{ card: "BT1-086", as: "suspendedOpponent", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 0 },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.trashDigivolutionCards(
+      s.perm("stackedTamer").permanentId,
+      [s.inst("underTamer").instanceId],
+      0,
+    );
+
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT26-039"));
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("underTamer").instanceId);
+  });
+
   it("shares the mandatory suspend-2 once-per-turn use between digivolving and attacking", async () => {
     const preferred: string[] = [];
     const s = setupEngine(

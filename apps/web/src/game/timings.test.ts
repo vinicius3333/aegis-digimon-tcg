@@ -2,8 +2,24 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { ATTACK_ANNOUNCE_MS, SIDE_PANEL_LIFETIME_MS, SIDE_PANEL_MERGE_WINDOW_MS } from "./sidePanels";
 import { NOTICE_CROWDED_LIFETIME_MS, NOTICE_LIFETIME_MS } from "./notices";
+import {
+  SECURITY_CHECK_NARRATION_MS,
+  SECURITY_DESTRUCTION_NARRATION_MS,
+  SECURITY_EFFECT_NARRATION_MS,
+} from "@aegis/shared";
 import { SECURITY_CLASH_TIMINGS, SECURITY_CLASH_TOTAL_MS } from "./securityClash";
-import { BATTLE_TIMING_STYLE, BATTLE_TIMING_VARIABLES, CLASH_OUTCOME_AT_MS, CLASH_TOTAL_MS, TIMINGS } from "./timings";
+import { CARD_SHARD_SPREAD_MS } from "./cardShatter";
+import {
+  BATTLE_TIMING_STYLE,
+  BATTLE_TIMING_VARIABLES,
+  CLASH_OUTCOME_AT_MS,
+  CLASH_SHATTER_MS,
+  CLASH_TOTAL_MS,
+  SECURITY_BRANCH_TOTAL_MS,
+  SECURITY_BREAK_TOTAL_MS,
+  SECURITY_DESTROY_TOTAL_MS,
+  TIMINGS,
+} from "./timings";
 
 const gameCss = readFileSync(new URL("./game.css", import.meta.url), "utf8");
 
@@ -13,6 +29,13 @@ function keyframePercents(name: string): readonly number[] {
   expect(start, `${name} is missing from game.css`).toBeGreaterThan(-1);
   const block = gameCss.slice(start, gameCss.indexOf("\n}", start));
   return [...block.matchAll(/(\d+)%/g)].map((match) => Number(match[1]));
+}
+
+/** The declaration block of one CSS rule, so a delay expression can be read back. */
+function clashRule(selector: string): string {
+  const start = gameCss.indexOf(`${selector} {`);
+  expect(start, `${selector} is missing from game.css`).toBeGreaterThan(-1);
+  return gameCss.slice(start, gameCss.indexOf("\n}", start));
 }
 
 /** Where a moment lands inside an animation, as the percentage the keyframe has to carry. */
@@ -52,6 +75,12 @@ describe("battle timings", () => {
     );
   });
 
+  // Cut off mid-flight, the shards read as the card blinking out rather than breaking.
+  it("finishes the clash shatter inside the outcome beat that shows it", () => {
+    expect(CLASH_SHATTER_MS + CARD_SHARD_SPREAD_MS).toBeLessThanOrEqual(TIMINGS.clashOutcome);
+    expect(CLASH_SHATTER_MS).toBeGreaterThan(0);
+  });
+
   it("derives the security clash timeline from the table", () => {
     expect(SECURITY_CLASH_TIMINGS.attackerEnterMs).toBe(TIMINGS.clashAttackerEnter);
     expect(SECURITY_CLASH_TOTAL_MS).toBe(CLASH_TOTAL_MS);
@@ -66,10 +95,31 @@ describe("battle timings", () => {
     expect(keyframePercents("battle-clash-hit")).toContain(percentOf(TIMINGS.cardShake, TIMINGS.clashOutcome));
   });
 
-  it("holds the clash scene up from the entrance until the exit begins", () => {
-    const percents = keyframePercents("battle-clash-scene");
-    expect(percents).toContain(percentOf(TIMINGS.clashAttackerEnter, CLASH_TOTAL_MS));
-    expect(percents).toContain(percentOf(CLASH_OUTCOME_AT_MS + TIMINGS.clashOutcome, CLASH_TOTAL_MS));
+  // The scene fades in and out as two animations rather than one long keyframe, because a
+  // check the server has not closed yet holds on stage for as long as it takes: the exit
+  // is delayed off the outcome, which a scene settled late zeroes for itself.
+  it("starts the clash exit where the outcome beat ends", () => {
+    const rule = clashRule('.battle-clash:not([data-resolution="pending"])');
+    expect(rule).toContain(`battle-clash-in var(--t-clash-enter, ${TIMINGS.clashAttackerEnter}ms)`);
+    expect(rule).toContain(`battle-clash-out var(--t-clash-exit, ${TIMINGS.clashExit}ms)`);
+    expect(rule).toContain(
+      `calc(var(--t-clash-outcome-at, ${CLASH_OUTCOME_AT_MS}ms) + var(--t-clash-outcome, ${TIMINGS.clashOutcome}ms))`,
+    );
+  });
+
+  // The server paces an automated seat behind this budget, so a check that outgrew it
+  // would let the bot play its next card over a clash still on screen.
+  it("keeps the security check inside the narration budget the server paces bots behind", () => {
+    expect(SECURITY_BREAK_TOTAL_MS + CLASH_TOTAL_MS).toBeLessThanOrEqual(SECURITY_CHECK_NARRATION_MS);
+    expect(SECURITY_BREAK_TOTAL_MS + CLASH_TOTAL_MS + SECURITY_BRANCH_TOTAL_MS).toBeLessThanOrEqual(
+      SECURITY_EFFECT_NARRATION_MS,
+    );
+  });
+
+  // A destruction plays the whole sequence once per card, so the budget the server holds a
+  // bot behind is per card too: it multiplies this by however many the stack lost.
+  it("keeps one destroyed security card inside the per-card narration budget", () => {
+    expect(SECURITY_BREAK_TOTAL_MS + SECURITY_DESTROY_TOTAL_MS).toBeLessThanOrEqual(SECURITY_DESTRUCTION_NARRATION_MS);
   });
 
   it("derives the side panel timings from the table", () => {

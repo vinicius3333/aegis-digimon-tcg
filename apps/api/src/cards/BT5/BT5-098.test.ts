@@ -38,6 +38,7 @@ describe("BT5-098 Meteor Shower", () => {
           hand: [
             { card: "BT5-098", as: "option" },
             { card: "BT5-071", as: "wrong" },
+            { card: "BT1-046", as: "wrongName" },
           ],
         },
       },
@@ -49,6 +50,30 @@ describe("BT5-098 Meteor Shower", () => {
     });
     await settle(() => s.state.players[0]!.battleArea.length === 1);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("wrong").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("wrongName").instanceId)).toBe(true);
+  });
+
+  it("may decline the free play while leaving an eligible card in hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["BT5-033"],
+          hand: [
+            { card: "BT5-098", as: "option" },
+            { card: "BT5-035", as: "starmons" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("starmons").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.memory).toBe(2);
   });
 
   it("activates the Main effect from security", async () => {

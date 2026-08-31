@@ -18,6 +18,12 @@ describe("BT20-029 Pulsemon", () => {
       kind: "Replacement",
       event: "wouldDigivolve",
       sourceFilter: { isSelfRef: true, zone: "battleArea" },
+      into: {
+        nameOrTrait: [
+          { tokens: ["Pulsemon"], match: "name" },
+          { tokens: ["SEEKERS"], match: "trait" },
+        ],
+      },
     });
     expect(compiled.effects[1]).toMatchObject({
       trigger: "WhenBattleDeleteOpponent",
@@ -31,7 +37,7 @@ describe("BT20-029 Pulsemon", () => {
     const battle = setupEngine({
       0: {
         battleArea: [{ card: "BT20-029", as: "pulsemon" }],
-        hand: [{ card: "BT17-034", as: "destination" }],
+        hand: [{ card: "BT20-032", as: "destination" }],
       },
     });
     battle.state.turnSeat = 0;
@@ -44,13 +50,13 @@ describe("BT20-029 Pulsemon", () => {
         instanceId: battle.inst("destination").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => battle.perm("pulsemon").topCard.cardId === "BT17-034");
+    await settle(() => battle.perm("pulsemon").topCard.cardId === "BT20-032");
     expect(battle.state.memory).toBe(1);
 
     const breeding = setupEngine({
       0: {
         breeding: { card: "BT20-029", as: "pulsemon" },
-        hand: [{ card: "BT17-034", as: "destination" }],
+        hand: [{ card: "BT20-032", as: "destination" }],
       },
     });
     breeding.state.turnSeat = 0;
@@ -63,8 +69,27 @@ describe("BT20-029 Pulsemon", () => {
         instanceId: breeding.inst("destination").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => breeding.perm("pulsemon").topCard.cardId === "BT17-034");
+    await settle(() => breeding.perm("pulsemon").topCard.cardId === "BT20-032");
     expect(breeding.state.memory).toBe(0);
+
+    const textOnly = setupEngine({
+      0: {
+        battleArea: [{ card: "BT20-029", as: "pulsemon" }],
+        hand: [{ card: "BT17-034", as: "textOnly" }],
+      },
+    });
+    textOnly.state.turnSeat = 0;
+    await textOnly.ready();
+    textOnly.state.memory = 3;
+    expect(
+      textOnly.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: textOnly.perm("pulsemon").permanentId,
+        instanceId: textOnly.inst("textOnly").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => textOnly.perm("pulsemon").topCard.cardId === "BT17-034");
+    expect(textOnly.state.memory).toBe(0);
   });
 
   it("inherits a once-per-turn memory gain after the host deletes an opponent in battle", async () => {

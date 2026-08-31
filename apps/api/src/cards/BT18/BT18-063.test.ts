@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -121,10 +120,13 @@ describe("BT18-063 Beetlemon", () => {
     s.state.memory = 5;
     await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("attacker"), {
-      attackerPermanentId: s.perm("attacker").permanentId,
-      subjectPermanentId: s.perm("attacker").permanentId,
-    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT18-063");
     expect(s.state.memory).toBe(3);
     expect(s.perm("base").stack.map(({ cardId }) => cardId)).toContain("BT18-059");

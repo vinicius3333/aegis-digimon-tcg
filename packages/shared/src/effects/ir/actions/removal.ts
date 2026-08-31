@@ -8,11 +8,15 @@ import type { ActionBase } from "./base.js";
 
 export interface DeleteAction extends ActionBase {
   kind: "Delete";
+  /** Require a previously granted, unconsumed Delay keyword before this payload resolves. */
+  requiresDelayArmed?: true;
   target: Target;
   /** Shorthand for controller-less targets. */
   controller?: Controller;
   /** Schedule the deletion for the owner's end-of-turn window. */
   at?: "endOfTurn";
+  /** Store how many selected permanents were actually deleted. */
+  trackCount?: string;
   /** Add to the target DP ceiling per unit counted. */
   dpCeilingScaling?: Scaling & { amount: number };
   /** Add to a total-DP deletion budget per live scaling unit. */
@@ -33,6 +37,8 @@ export interface ReturnTopDigivolutionCardsAction extends ActionBase {
   target: Target;
   /** Number of cards removed from the top of each complete Digimon stack, always leaving one. */
   cardsPerTarget: number;
+  /** Bottom-stack return keeps the current top card in play (EX6-061). */
+  position?: "top" | "bottom";
   order?: "any";
 }
 
@@ -215,6 +221,8 @@ export interface ReturnAction extends ActionBase {
     unit: Scaling["unit"];
     raw?: string;
   };
+  /** Raise a return target's DP ceiling by a live scaling amount. */
+  dpCeilingScaling?: Scaling & { amount: number };
 }
 
 /** Return Digi-Egg cards to the dedicated Digi-Egg deck (BT4-095). */
@@ -231,6 +239,8 @@ export interface ReturnToEggDeckAction extends ActionBase {
  */
 export interface DelayedDeletePlayedAction extends ActionBase {
   kind: "DelayedDeletePlayed";
+  /** Boundary at which the played permanent is deleted; defaults to the owner's turn end. */
+  timing?: "endOfOwnerTurn" | "endOfOpponentTurn";
 }
 
 export interface DelayedDeleteAction extends ActionBase {

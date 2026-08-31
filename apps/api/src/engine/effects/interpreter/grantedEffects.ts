@@ -266,11 +266,30 @@ export const GRANTED_EFFECT_LIBRARY: Record<string, CardEffect | readonly CardEf
           filter: {
             controller: "mine",
             kind: ["Digimon"],
-            nameOrTrait: [{ tokens: ["Biyomon"], match: "name" }],
+            nameOrTrait: [{ tokens: ["Biyomon"], match: "nameExact" }],
           },
           count: 1,
         },
         from: ["hand", "trash"],
+        payCost: false,
+        optional: true,
+      } as Action,
+    ],
+  },
+  "[On Deletion] You may play 1 Digimon card with [Numemon] in its name from your trash without paying the cost.": {
+    trigger: "OnDeletion",
+    actions: [
+      {
+        kind: "PlayWithoutCost",
+        target: {
+          filter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Numemon"], match: "name" }],
+          },
+          count: 1,
+        },
+        from: ["trash"],
         payCost: false,
         optional: true,
       } as Action,
@@ -357,6 +376,15 @@ export const GRANTED_EFFECT_LIBRARY: Record<string, CardEffect | readonly CardEf
       } as Action,
     ],
   },
+  "[When Attacking] Lose 4 memory": {
+    trigger: "WhenAttacking",
+    actions: [
+      {
+        kind: "GainMemory",
+        amount: -4,
+      } as Action,
+    ],
+  },
   "[On Deletion] Trash 1 card in your hand.": {
     trigger: "OnDeletion",
     actions: [
@@ -415,8 +443,7 @@ export const GRANTED_EFFECT_LIBRARY: Record<string, CardEffect | readonly CardEf
           actions: [
             {
               kind: "SelectBind",
-              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-              bindAs: "grantSource",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true, bindAs: "grantSource" },
             } as Action,
             {
               kind: "Delete",

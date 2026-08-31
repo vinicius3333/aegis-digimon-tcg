@@ -2,7 +2,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "StartOfYourMainPhase",
@@ -16,11 +16,10 @@ const compiled: CompiledCard = {
             target: {
               filter: { zone: "hand", controller: "mine", nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }] },
               count: 1,
-              upTo: true,
-              allowZero: true,
             },
             raw: "By trashing 1 card with the [Appmon] trait from your hand",
           },
+          optional: true,
           abortOnDecline: true,
         },
         { kind: "GainMemory", amount: 1 },
@@ -49,6 +48,7 @@ const compiled: CompiledCard = {
   coverage: "full",
   residual: [],
   digivolutionRequirement: [{ level: 2, traits: ["Appmon"], cost: 0, isAlternate: true }],
+  linkRequirement: [{ traits: ["Appmon"], cost: 1 }],
 };
 
 registerIrCard("BT25-061", compiled);

@@ -30,6 +30,8 @@ export type SubTriggerEvent =
   | "whenAnyDigivolves" // `sourceFilter` narrows the controller
   | "onDeletionOf"
   | "whenSecurityRemoved"
+  | "whenCardTrashedFromSecurity"
+  | "whenEffectTrashesFromSecurity"
   | "whenAddSecurity"
   | "onAddDigivolutionCards"
   | "whenPlayed"
@@ -72,6 +74,15 @@ export type SubTriggerEvent =
 export interface SubTriggerAction extends ActionBase {
   kind: "SubTrigger";
   event: SubTriggerEvent;
+  /** Restrict a leave-play watcher by the cause of the departure. */
+  leaveCause?:
+    | "opponentEffect"
+    | "byOpponentEffect"
+    | "otherThanYourEffect"
+    | "byEffect"
+    | "byBattle"
+    | "otherThanBattle"
+    | "any";
   /** For whenHandTrashed, select whose hand must have been trashed. Defaults to mine. */
   handTrashedController?: "mine" | "opponent";
   /**
@@ -93,6 +104,8 @@ export interface SubTriggerAction extends ActionBase {
    * or Digimon with the [Puppet] trait is deleted"). Only a matching card fires the sub-effect.
    */
   sourceFilter?: Filter;
+  /** For digivolution watchers: filter the Digimon being digivolved into (not the source Digimon). */
+  digivolveIntoFilter?: Filter;
   /** Restrict the permanent hosting this watcher to a live board filter. */
   hostFilter?: Filter;
   /** Do not fire if the watcher host is in the same simultaneous deletion batch. */
@@ -110,6 +123,8 @@ export interface SubTriggerAction extends ActionBase {
   linkedCardFilter?: Filter;
   /** Restrict the card whose effect produced the event ("by [Rasenmon]'s effect"). */
   effectSourceFilter?: Filter;
+  /** Restrict an effect-driven event to a producer whose printed text carries this keyword. */
+  bySourceKeyword?: string;
   /** Require the triggering event to carry effect attribution. */
   requireByEffect?: boolean;
   /** Do not fire when this card's own effect caused the deck trash (EX2-039). */

@@ -1,4 +1,4 @@
-import { Phase } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,6 +7,40 @@ import { compiled as BT25_039 } from "./BT25-039.js";
 import "../index.js";
 
 describe("BT25-039 Sirenmon", () => {
+  it("keeps the TS evolution route alternate to the normal Yellow/Green routes", () => {
+    expect(getCardDefinition("BT25-039")).toMatchObject({
+      evoCosts: [
+        { color: "Yellow", level: 4, memoryCost: 4 },
+        { color: "Green", level: 4, memoryCost: 4 },
+      ],
+    });
+    expect(BT25_039.digivolutionRequirement).toEqual([{ level: 4, traits: ["TS"], cost: 3, isAlternate: true }]);
+  });
+
+  it("can digivolve from a TS level-4 base for the alternate cost of 3", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT25-033", as: "base" }],
+        hand: [{ card: "BT25-039", as: "sirenmon" }],
+      },
+    });
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("sirenmon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT25-039");
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base").stack.at(-1)?.cardId).toBe("BT25-033");
+  });
+
   it("places this security card under the Ceresmon played by its security effect", () => {
     const effect = BT25_039.effects?.find((entry) => entry.trigger === "EndOfYourTurn");
     const [play, place] = effect?.actions ?? [];
@@ -28,6 +62,28 @@ describe("BT25-039 Sirenmon", () => {
     });
   });
 
+  it("plays Ceresmon for 5 memory and places this face-up security card underneath it", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT25-039", as: "sirenmon", faceUp: true }],
+          hand: [{ card: "BT25-059", as: "ceresmon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+
+    await advance(s.engine).fireForInstance(EffectTiming.OnEndTurn, s.inst("sirenmon"));
+
+    expect(s.state.memory).toBe(0);
+    const ceresmon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT25-059");
+    expect(ceresmon).toBeDefined();
+    expect(ceresmon!.stack.map((card) => card.cardId)).toContain("BT25-039");
+    expect(ceresmon!.stack.find((card) => card.cardId === "BT25-039")?.faceUp).toBe(true);
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("sirenmon").instanceId)).toBe(false);
+  });
+
   it("places itself face up at the bottom of security on deletion", () => {
     const effect = BT25_039.effects?.find((entry) => entry.trigger === "OnDeletion");
     expect(effect?.actions?.[0]).toMatchObject({
@@ -38,6 +94,56 @@ describe("BT25-039 Sirenmon", () => {
       faceUp: true,
     });
     expect((effect?.actions?.[0] as { source?: unknown }).source).toBeUndefined();
+  });
+
+  it("deletes itself once to prevent all simultaneous matching departures", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-039", as: "sirenmon" },
+            { card: "BT25-033", as: "shaman" },
+            { card: "BT25-034", as: "iliad" },
+            { card: "BT1-009", as: "other" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+
+    expect(
+      await advance(s.engine).verb.deletePermanent(
+        [s.perm("shaman").permanentId, s.perm("iliad").permanentId, s.perm("other").permanentId],
+        "byBattle",
+      ),
+    ).toBe(1);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT25-033")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT25-034")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-009")).toBe(false);
+    expect(s.state.players[0]!.security.at(-1)?.cardId).toBe("BT25-039");
+    expect(s.state.players[0]!.security.at(-1)?.faceUp).toBe(true);
+  });
+
+  it("does not replace a departure caused by the controller's own effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-039", as: "sirenmon" },
+            { card: "BT25-033", as: "shaman" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+
+    const shamanId = s.perm("shaman").permanentId;
+    const sirenmonId = s.perm("sirenmon").permanentId;
+    expect(await advance(s.engine).verb.deletePermanent([shamanId], "byEffect")).toBe(1);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === shamanId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === sirenmonId)).toBe(true);
   });
 
   it("protects all matching other Shaman/Iliad permanents from non-own effects", () => {
@@ -90,6 +196,7 @@ describe("BT25-039 Sirenmon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.turnSeat = 1;
+    await s.ready();
 
     expect(
       s.engine.applyIntent(1, {
@@ -176,7 +283,7 @@ describe("BT25-039 Sirenmon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT25-059", as: "host", under: [{ card: "BT25-039" }] },
+            { card: "BT1-009", as: "host", under: [{ card: "BT25-039" }] },
             { card: "BT1-009", as: "redirect", suspended: true, dp: 12_000 },
           ],
           security: ["BT1-009"],
@@ -194,8 +301,9 @@ describe("BT25-039 Sirenmon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.security.length === 0);
-
+    await settle(
+      () => s.state.players[0]!.security.length === 0 && s.events.some((event) => event.kind === "combatResolved"),
+    );
     expect(
       s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("attacker").permanentId),
     ).toBe(true);

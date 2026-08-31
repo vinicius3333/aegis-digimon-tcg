@@ -24,4 +24,14 @@ describe("BT7-001 Kapurimon", () => {
     await opponentOnly.ready();
     expect(opponentOnly.perm("host").currentDP).toBe(opponentOnly.perm("host").baseDP);
   });
+
+  it("does not give its host +1000 DP during the opponent's turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-010", under: ["BT7-001"], as: "host" }, "BT1-086"] },
+    });
+    s.state.turnSeat = 1;
+
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
+  });
 });

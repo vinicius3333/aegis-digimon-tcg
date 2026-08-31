@@ -96,6 +96,7 @@ describe("IR-02 Tier-1 — SetMemory (BT1-086 [Start of Your Turn] set memory to
 // ---------------------------------------------------------------------------
 describe("IR-02 Tier-1 — Trash (BT13-080 [On Play] discard 1 from hand)", () => {
   it("the chosen hand card leaves the hand and enters the trash", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -107,11 +108,12 @@ describe("IR-02 Tier-1 — Trash (BT13-080 [On Play] discard 1 from hand)", () =
           deck: ["AD1-001"],
         },
       },
-      { autoSelectCards: true },
+      { autoDeclineOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     const p0 = s.state.players[0] as PlayerState;
     const source = s.inst("source");
     const victim = s.inst("victim");
+    preferred.push(victim.instanceId);
     s.state.memory = 3;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: source.instanceId })).toEqual({ ok: true });

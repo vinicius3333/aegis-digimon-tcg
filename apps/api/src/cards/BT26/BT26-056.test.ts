@@ -48,6 +48,30 @@ describe("BT26-056 Cerberusmon: Werewolf Mode", () => {
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-021");
   });
 
+  it("plays only a level-4-or-lower Titan from a mixed trash pool", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-056", as: "werewolf" }],
+          trash: [
+            { card: "BT26-021", as: "validTitan" },
+            { card: "BT25-071", as: "tooHighTitan" },
+            { card: "BT26-026", as: "wrongTrait" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("werewolf").permanentId], "byEffect")).toBe(1);
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-021");
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT25-071", "BT26-026"]),
+    );
+  });
+
   it("doesn't replay its own level 5 card when no level 4-or-lower Titan is in trash", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "BT26-056", as: "werewolf" }] } },
@@ -124,7 +148,11 @@ describe("BT26-056 Cerberusmon: Werewolf Mode", () => {
             { card: "BT1-001", as: "handTrash" },
           ],
         },
-        1: { battleArea: [{ card: "BT26-060", as: "target", under: ["BT26-059", "BT26-058", "BT26-057"] }] },
+        1: {
+          battleArea: [
+            { card: "BT26-060", as: "target", under: ["BT26-059", "BT26-058", "BT26-057", "BT26-055"] },
+          ],
+        },
       },
       { autoSelectCards: true },
     );
@@ -138,10 +166,40 @@ describe("BT26-056 Cerberusmon: Werewolf Mode", () => {
         useAs: "option",
       } as never),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("target").stack.length === 0);
+    await settle(() => s.perm("target").stack.length === 1);
 
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-001");
-    expect(s.perm("target").stack).toHaveLength(0);
+    expect(s.perm("target").stack).toHaveLength(1);
+  });
+
+  it("waives the black Option requirement only with a TS card", async () => {
+    const withoutTs = setupEngine({ 0: { hand: [{ card: "BT26-056", as: "infernoDivide" }] } });
+    withoutTs.state.memory = 3;
+    await withoutTs.ready();
+    expect(
+      withoutTs.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: withoutTs.inst("infernoDivide").instanceId,
+        useAs: "option",
+      } as never),
+    ).toEqual({ ok: false, reason: "color-requirement-unmet" });
+
+    const withTs = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-021", as: "tsSource" }],
+        hand: [{ card: "BT26-056", as: "infernoDivide" }],
+      },
+    });
+    withTs.state.memory = 3;
+    await withTs.ready();
+    expect(
+      withTs.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: withTs.inst("infernoDivide").instanceId,
+        useAs: "option",
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(() => withTs.state.players[0]!.trash.some(({ cardId }) => cardId === "BT26-056"));
   });
 
   it("Q7059: uses Inferno Divide with an empty hand and still De-Digivolves 3", async () => {

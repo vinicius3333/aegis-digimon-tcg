@@ -81,7 +81,17 @@ export type ServerEvent =
       /** Public identity of a permanent target at declaration time. */
       targetCardId?: string;
     }
-  | { kind: "blockWindowOpened"; attackerPermanentId: string; eligibleBlockerIds: string[] }
+  | {
+      kind: "blockWindowOpened";
+      attackerPermanentId: string;
+      eligibleBlockerIds: string[];
+      /**
+       * ＜Collision＞ (§16-30): the defending player is forced to block whenever able, so
+       * declining is illegal while an eligible blocker exists. The server enforces it either
+       * way; the flag is what lets the client stop offering a choice it will reject.
+       */
+      mustBlock?: boolean;
+    }
   | { kind: "blocked"; blockerPermanentId: string }
   | { kind: "blockDeclined"; attackerPermanentId: string }
   // §11-3 Counter Timing: opened after When Attacking effects resolve and before block
@@ -102,6 +112,17 @@ export type ServerEvent =
   | { kind: "barrierResolved"; permanentId: string; accepted: boolean }
   | { kind: "combatResolved"; seat: Seat; attackerPermanentId: string; deletedPermanentIds: string[] }
   | {
+      // The top security card was turned face up. Emitted the moment the card is flipped —
+      // before its [Security] effect, before the triggers the check fires, and before the
+      // battle — so the client can show WHICH card was revealed at the moment of the attack
+      // and play everything that follows from it as a consequence. `securityChecked` closes
+      // the same check and carries the outcome; there is exactly one of each, in this order.
+      kind: "securityRevealed";
+      seat: Seat;
+      revealedCardId: string;
+      attackerPermanentId: string;
+    }
+  | {
       kind: "securityChecked";
       seat: Seat;
       revealedCardId: string;
@@ -119,6 +140,28 @@ export type ServerEvent =
   | { kind: "cardRevealed"; seat: Seat; cardId: string; sourceCardId?: string }
   | { kind: "effectActivated"; seat: Seat; sourceCardId: string; effectKey: string; description: string }
   | {
+      // A triggered effect (On Play / When Digivolving / ...) STARTED resolving. Emitted
+      // before the effect's optional prompt and any in-body decisions, so the client can
+      // announce the effect ahead of the "opponent is selecting" wait it may open.
+      kind: "effectTriggered";
+      seat: Seat;
+      sourceCardId: string;
+      effectKey: string;
+      description: string;
+      timing?: string;
+      /**
+       * The clause lives in the source card's inherited text box. Some timings appear in
+       * both text boxes, so without this the client can only guess which box to quote.
+       */
+      isInherited?: boolean;
+      /**
+       * The effect fired while a security check was resolving. `securityChecked` closes
+       * the check and so is emitted AFTER these effects; the flag lets the client hold
+       * what they announce until the checked card's reveal has actually been shown.
+       */
+      duringSecurityCheck?: boolean;
+    }
+  | {
       // A triggered effect (On Play / When Digivolving / On Deletion / ...) finished
       // resolving. `timing` is the enum member name (e.g. "OnPlay") so the client can
       // slice the matching printed clause out of the card's effect text for a transient
@@ -129,8 +172,28 @@ export type ServerEvent =
       effectKey: string;
       description: string;
       timing?: string;
+      /** The clause lives in the source card's inherited text box (see `effectTriggered`). */
+      isInherited?: boolean;
     }
-  | { kind: "cardsMoved"; instanceIds: string[]; from: string; to: string } // generic zone movement for the log
+  | {
+      // Generic zone movement for the log. Identity-free by default: the event is
+      // broadcast the instant it happens, which is normally BEFORE the state patch
+      // that lands the cards in their destination, so a client cannot reliably
+      // resolve `instanceIds` against its own zone index at delivery time.
+      kind: "cardsMoved";
+      instanceIds: string[];
+      from: string;
+      to: string;
+      /**
+       * Card identities, in `instanceIds` order — present only when the movement
+       * itself makes them public (an effect trashing security cards turns them face
+       * up in a public trash). Carried on the event so the destruction scene and the
+       * panel can name the cards without racing the state patch.
+       */
+      cardIds?: string[];
+      /** The seat whose zone the cards left, when `cardIds` is present. */
+      seat?: Seat;
+    }
   | { kind: "turnEnded"; endingSeat: Seat; nextSeat: Seat; turnCount: number } // turn transition overlay
   | { kind: "actionRejected"; intent: string; reason: string } // sent to the offending client only
   | {
@@ -177,11 +240,13 @@ export const SERVER_EVENT_KINDS = [
   "barrierPrompt",
   "barrierResolved",
   "combatResolved",
+  "securityRevealed",
   "securityChecked",
   "securityRecovered",
   "deckShuffled",
   "cardRevealed",
   "effectActivated",
+  "effectTriggered",
   "effectResolved",
   "cardsMoved",
   "turnEnded",

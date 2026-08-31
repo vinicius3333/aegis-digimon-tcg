@@ -12,7 +12,16 @@ import {
   type DecisionRequest,
 } from "@aegis/shared";
 import { GameEngine, type GameEngineHooks } from "../GameEngine.js";
-import { fillZone, insertCard, placePermanent, type CardZone } from "../state/access.js";
+import {
+  fillZone,
+  insertCard,
+  linkCard,
+  placePermanent,
+  pushOnStack,
+  setBreeding,
+  setTopCard,
+  type CardZone,
+} from "../state/access.js";
 
 /**
  * Shared test harness for engine behavioral suites (A3 mechanic tests, KB conformance
@@ -50,11 +59,15 @@ export function makeDigimon(seat: Seat, dp: number, cardId = "AD1-001"): Permane
   // present" after e.g. a DNA merge consumes the hand-laid permanent.
   permanent.permanentId = `seed-perm-${seq}`;
   permanent.controllerSeat = seat;
-  permanent.topCard = top;
+  setTopCard(permanent, top);
   permanent.isSuspended = false;
   permanent.inBreeding = false;
   permanent.baseDP = dp;
   permanent.currentDP = dp;
+  // A manually seeded battle-area Digimon is established by default, matching
+  // Board Spec fixtures. Tests for summoning sickness opt in by setting the
+  // entry turn explicitly.
+  permanent.enterFieldTurnCount = ESTABLISHED_TURN;
   return permanent;
 }
 
@@ -194,8 +207,8 @@ function buildPermanent(spec: PermanentSpec | string, seat: Seat, aliases: Alias
   const permanent = makeDigimon(seat, dp, resolved.card);
   permanent.isSuspended = resolved.suspended ?? false;
   permanent.enterFieldTurnCount = resolved.enteredThisTurn === true ? 0 : ESTABLISHED_TURN;
-  for (const under of resolved.under ?? []) permanent.stack.push(buildInstance(under, seat, true, aliases));
-  for (const linked of resolved.linked ?? []) permanent.linked.push(buildInstance(linked, seat, true, aliases));
+  for (const under of resolved.under ?? []) pushOnStack(permanent, buildInstance(under, seat, true, aliases));
+  for (const linked of resolved.linked ?? []) linkCard(permanent, buildInstance(linked, seat, true, aliases), "bottom");
   if (resolved.as !== undefined) {
     aliases.set(resolved.as, {
       kind: "permanent",
@@ -245,7 +258,7 @@ function layBoard(state: GameState, board: BoardSpec, aliases: AliasTable): void
     if (spec.breeding !== undefined) {
       const permanent = buildPermanent(spec.breeding, seat, aliases);
       permanent.inBreeding = true;
-      player.breeding = permanent;
+      setBreeding(player, permanent);
     }
   }
 }
@@ -322,8 +335,17 @@ export function setupEngine(boardOrOpts?: BoardSpec | SetupEngineOptions, maybeO
         // candidate. Falls back to candidate order.
         const prefer = opts?.preferInstanceIds ?? [];
         const ordered = [...candidates].sort((a, b) => {
-          const pa = prefer.includes(a) ? 0 : 1;
-          const pb = prefer.includes(b) ? 0 : 1;
+          const preferred = (id: string): boolean => {
+            if (prefer.includes(id)) return true;
+            // `selectCards` candidates are exact loose-card identities. Expanding one
+            // through its host would make every sibling in that stack equally preferred.
+            // `chooseTargets` may instead expose a permanent id for a preferred top card.
+            if (req.kind === "selectCards") return false;
+            const permanent = findPermanentForDecisionId(state, id);
+            return permanent?.topCard !== undefined && prefer.includes(permanent.topCard.instanceId);
+          };
+          const pa = preferred(a) ? 0 : 1;
+          const pb = preferred(b) ? 0 : 1;
           return pa - pb;
         });
         // A malformed/NaN `max` (e.g. a compiled action with an unset materials.count) must not
@@ -566,7 +588,7 @@ export function makeSecurityState(securityCards: CardInstance[], attackerPermane
   top.instanceId = "attacker-top";
   top.cardId = "BT15-002";
   top.ownerSeat = 0;
-  attacker.topCard = top;
+  setTopCard(attacker, top);
   const attackerController = state.players[0];
   if (attackerController) placePermanent(attackerController, attacker);
   return state;

@@ -37,7 +37,7 @@ async function waitForDecision(s: EngineSetup, kind: string): Promise<void> {
 }
 
 describe("EX3-054 Darkdramon", () => {
-  it("digivolves for its printed cost when the optional trash return is declined", async () => {
+  it("digivolves for its printed cost when zero optional returns are chosen", async () => {
     expect(getCardDefinition("EX3-054")).toMatchObject({
       cardId: "EX3-054",
       nameEn: "Darkdramon",
@@ -73,8 +73,10 @@ describe("EX3-054 Darkdramon", () => {
       }),
     ).toEqual({ ok: true });
     await waitForDecision(s, "optional");
+    respond(s, { kind: "optional", accept: true });
+    await waitForDecision(s, "selectCards");
     expect(s.decisions.at(-1)!.req.sourceCardId).toBe("EX3-054");
-    respond(s, { kind: "optional", accept: false });
+    respond(s, { kind: "selectCards", instanceIds: [] });
     await settle(() => s.perm("base").topCard.cardId === "EX3-054" && s.state.pendingDecision === undefined);
 
     expect(s.state.memory).toBe(0);
@@ -113,7 +115,7 @@ describe("EX3-054 Darkdramon", () => {
     await waitForDecision(s, "optional");
     respond(s, { kind: "optional", accept: true });
     await waitForDecision(s, "selectCards");
-    expect(payload(s)).toMatchObject({ min: 1, max: 5, timing: "Static" });
+    expect(payload(s)).toMatchObject({ min: 0, max: 5, timing: "Static" });
     expect(payload(s).candidateInstanceIds).toHaveLength(6);
     expect(payload(s).candidateInstanceIds).not.toContain(s.inst("nonDBrigade").instanceId);
     const chosen = ["first", "second", "third", "fourth", "fifth"].map((alias) => s.inst(alias).instanceId);

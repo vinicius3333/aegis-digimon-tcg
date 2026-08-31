@@ -144,6 +144,8 @@ export function collectConferredEffects(
     trigger?: string;
     /** Collect only the stack card's INHERITED effects, not its own. */
     inheritedOnly?: boolean;
+    /** Do not collect the stack card's inherited effects. */
+    excludeInherited?: boolean;
     granterInstanceId?: string;
   }[],
   instanceById: (id: string) => CardSource | undefined,
@@ -156,17 +158,28 @@ export function collectConferredEffects(
   tracker: UseTracker,
 ): CollectedEffect[] {
   const collected: CollectedEffect[] = [];
-  for (const { targetPermanentId, stackInstanceId, trigger, inheritedOnly, granterInstanceId } of conferrals) {
+  for (const { targetPermanentId, stackInstanceId, trigger, inheritedOnly, excludeInherited, granterInstanceId } of conferrals) {
     const source = instanceById(stackInstanceId);
     if (source === undefined) continue;
     for (const effect of effectsOf(timing, source)) {
       if (inheritedOnly === true && effect.isInherited !== true) continue;
+      if (excludeInherited === true && effect.isInherited === true) continue;
       if (trigger !== undefined && effect.irTrigger !== trigger) continue;
       const ctx = makeContext(source, effect, targetPermanentId, granterInstanceId);
       if (canTrigger(effect, ctx, tracker) && canActivate(effect, ctx, tracker)) {
+        // A card can gain the same stack effect from more than one static grant
+        // at the same timing (for example BT16-014 gaining Goldramon's
+        // [When Digivolving] effect while Goldramon itself is also present).
+        // Those are distinct effect instances and must not collide in the
+        // per-turn UseTracker, whose ordinary identity is source + effectKey.
+        // Keep the printed key unchanged when there is no grant provenance.
+        const collectedEffect =
+          granterInstanceId === undefined
+            ? effect
+            : { ...effect, effectKey: `${effect.effectKey}/conferral/${granterInstanceId}` };
         collected.push({
           source,
-          effect,
+          effect: collectedEffect,
           timing,
           conferredToPermanentId: targetPermanentId,
           conferralGranterInstanceId: granterInstanceId,

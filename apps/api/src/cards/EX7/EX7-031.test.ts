@@ -14,7 +14,14 @@ describe("EX7-031", () => {
   it("inherits once-per-turn memory gain after a Digimon is deleted in battle", () =>
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
       frequency: "OncePerTurn",
-      actions: [{ kind: "SubTrigger", event: "whenDeletesInBattle", actions: [{ kind: "GainMemory", amount: 1 }] }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenDeletesInBattle",
+          sourceFilter: { isSelfRef: true },
+          actions: [{ kind: "GainMemory", amount: 1 }],
+        },
+      ],
     }));
   it("gains memory once after its inherited Digimon wins battle", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX7-030", as: "host", under: ["EX7-031"] }] } });

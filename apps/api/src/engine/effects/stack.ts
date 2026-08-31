@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { CardKind, EffectTiming } from "@aegis/shared";
 import type { Seat } from "@aegis/shared";
 import type { CardSource } from "./CardSource.js";
 import type { EffectContext } from "./EffectContext.js";
@@ -126,6 +126,13 @@ export interface ResolutionEnv {
    * transient "what just resolved" overlay; the pure resolver never depends on it.
    */
   onResolved?(timing: EffectTiming, collected: CollectedEffect): void;
+
+  /**
+   * Notify that a triggered effect is about to resolve — before its optional
+   * prompt and before any decision its body opens. Optional observability seam
+   * used by the engine to announce the effect ahead of the wait it may cause.
+   */
+  onResolving?(timing: EffectTiming, collected: CollectedEffect): void;
 }
 
 /**
@@ -394,6 +401,7 @@ export async function resolveTiming(timing: EffectTiming, env: ResolutionEnv): P
       if (chosen === undefined) return; // defensive: out-of-range index
 
       const chosenKey = declineKey(chosen);
+      env.onResolving?.(timing, chosen);
       inProgress.add(chosenKey);
       let wasResolved: boolean;
       try {
@@ -478,7 +486,11 @@ async function resolveOne(
     }
   }
 
-  ctx.fx.enterEffectResolution?.(source.ownerSeat, [...source.definition.kinds]);
+  // A linked card's clause is treated as an effect of the host Digimon, even when
+  // the physical linked card is an Option (BT25-100/101, KB Q6471/Q6476).
+  const sourceKinds = effect.isLinked ? [CardKind.Digimon] : [...(source.definition.kinds ?? [])];
+  ctx.effectSourceKinds = sourceKinds;
+  ctx.fx.enterEffectResolution?.(source.ownerSeat, sourceKinds);
   try {
     await effect.resolve(ctx);
   } finally {

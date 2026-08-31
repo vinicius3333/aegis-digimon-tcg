@@ -1,8 +1,35 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT8-024.js";
 import "./BT8-024.js";
 
 describe("BT8-024 Angemon", () => {
+  it("encodes Recovery as targetless security-stack manipulation at activation time", () => {
+    const replacement = compiled.effects[0]!.actions[0] as any;
+    expect(replacement).toMatchObject({
+      kind: "Replacement",
+      event: "wouldDigivolve",
+      sourceFilter: { isSelfRef: true },
+      actions: [
+        {
+          kind: "SecurityManipulation",
+          op: "addTop",
+          controller: "mine",
+          source: "deck",
+          amount: 1,
+          condition: {
+            kind: "zoneCount",
+            seat: "mine",
+            zone: "security",
+            op: "lte",
+            value: 3,
+          },
+        },
+      ],
+    });
+    expect(replacement).not.toHaveProperty("condition");
+  });
+
   it("recovers before digivolving while you have 3 or fewer security cards", async () => {
     const s = setupEngine({
       0: {

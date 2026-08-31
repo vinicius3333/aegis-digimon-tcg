@@ -76,6 +76,29 @@ describe("BT21-056 Vemmon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("egg").instanceId)).toBe(true);
   });
 
+  it("offers the effect with an empty trash because the trashed cost card becomes the target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT21-056", as: "played" },
+            { card: "BT11-061", as: "cost" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("cost").instanceId));
+
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
+
   it("declining the recovery leaves the hand cost and trash target in place", async () => {
     const s = setupEngine(
       {

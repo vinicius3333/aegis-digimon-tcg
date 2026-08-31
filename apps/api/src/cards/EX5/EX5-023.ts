@@ -30,6 +30,8 @@ export const compiled: CompiledCard = {
             },
             raw: "By trashing 2 cards in your hand",
           },
+          // The Return is a Then clause: an unpaid head must stop this action list.
+          abortOnDecline: true,
         },
         {
           kind: "Return",

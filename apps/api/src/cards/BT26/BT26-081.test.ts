@@ -38,7 +38,11 @@ describe("BT26-081 compiled behavior", () => {
             kind: "ModifyDP",
             amount: -4000,
             duration: "untilOpponentTurnEnd",
-            scaling: { per: 1, unit: "cards", filter: { nameOrTrait: [{ tokens: ["Iliad", "TS"], match: "trait" }] } },
+            scaling: {
+              per: 1,
+              unit: "cards",
+              filter: { zone: "battleArea", nameOrTrait: [{ tokens: ["Iliad", "TS"], match: "trait" }] },
+            },
           },
         ],
       });
@@ -131,7 +135,7 @@ describe("BT26-081 compiled behavior", () => {
           hand: [
             { card: "BT24-019", as: "handKamemon" },
             { card: "BT24-020", as: "handGomamon" },
-            { card: "BT26-067", as: "wrongTrait" },
+            { card: "BT1-009", as: "wrongTrait" },
             { card: "BT24-090", as: "pureOption" },
           ],
           trash: [{ card: "BT26-029", as: "trashAegiochusmon" }],
@@ -147,15 +151,71 @@ describe("BT26-081 compiled behavior", () => {
       expect.arrayContaining(["BT24-019", "BT24-020"]),
     );
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT24-019")).toBe(false);
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT26-067")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT24-090")).toBe(true);
     expect(s.state.players[1]!.battleArea.find((p) => p.topCard?.cardId === "BT1-084")?.currentDP).toBe(3000);
+  });
+
+  it("plays an exact-cost-8 Iliad Digimon from the trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-081", as: "mervamon" }],
+          trash: [{ card: "BT26-029", as: "trashIliad" }],
+        },
+        1: { battleArea: [{ card: "BT1-084", as: "target", dp: 10000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("mervamon"));
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-029");
+    expect(s.state.players[1]!.battleArea.find((p) => p.topCard?.cardId === "BT1-084")?.currentDP).toBe(2000);
   });
 
   it("Q7115 still reduces DP when no card is played", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT26-081", as: "mervamon" }] },
+        1: { battleArea: [{ card: "BT1-084", as: "target", dp: 10000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("mervamon"));
+
+    expect(s.perm("target").currentDP).toBe(6000);
+  });
+
+  it("may decline the Iliad play and still resolves the following DP reduction", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-081", as: "mervamon" }],
+          hand: [{ card: "BT24-019", as: "eligible" }],
+        },
+        1: { battleArea: [{ card: "BT1-084", as: "target", dp: 10000 }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("mervamon"));
+
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT24-019");
+    expect(s.perm("target").currentDP).toBe(6000);
+  });
+
+  it("does not count a matching Digimon in the breeding area for the DP scaling", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-081", as: "mervamon" }],
+          breeding: { card: "BT24-002", as: "breedingIliad" },
+        },
         1: { battleArea: [{ card: "BT1-084", as: "target", dp: 10000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

@@ -6,7 +6,7 @@ const opponentDigimon = { controller: "opponent", kind: ["Digimon"] };
 const chronomon = {
   controller: "mine",
   kind: ["Digimon"],
-  level: 6,
+  levels: [6],
   nameOrTrait: [{ tokens: ["Chronomon"], match: "name" }],
 };
 
@@ -71,7 +71,11 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     { level: 6, texts: ["Chronomon"], cost: 5, isAlternate: true },
-    { level: 6, namesExact: ["Giant Slayer"], cost: 5, isAlternate: true },
+    // [Giant Slayer] (BT26-085) is a level-less ([Assembly]) Digimon, so this half of the
+    // printed "Lv.6 w/[Chronomon] in text/[Giant Slayer]" route carries no level gate — with
+    // one it would never be satisfiable, and BT26-085's own "digivolve into [Chronomon:
+    // Destroy Mode] instead of leaving" clause would have no legal path.
+    { namesExact: ["Giant Slayer"], cost: 5, isAlternate: true },
   ],
 };
 

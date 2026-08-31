@@ -15,6 +15,35 @@ export const compiled: CompiledCard = {
       ],
     },
     {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          leaveCause: "otherThanBattle",
+          sourceFilter: { isSelfRef: true },
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  levelComparison: { op: "eq", value: 5 },
+                  nameOrTrait: [{ tokens: ["Aqua", "Sea Animal"], match: "traitContains" }],
+                },
+                count: 1,
+              },
+              fromOwnDigivolutionStack: true,
+              payCost: false,
+              playedByDecode: true,
+              optional: true,
+            },
+          ],
+        },
+      ],
+    },
+    {
       trigger: "OnPlay",
       actions: [
         {

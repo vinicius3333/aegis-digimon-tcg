@@ -26,8 +26,14 @@ import {
   assemblyRequirementFor,
 } from "@aegis/shared";
 import { MemoryGauge } from "./MemoryGauge.js";
-import { buildStateView, refreshStateView as refreshStateViewInto, syncPublicCounts } from "./state/visibility.js";
-import { GameStateAccess, insertCard, takeTop } from "./state/access.js";
+import {
+  buildStateView,
+  exposeCardInZone,
+  refreshStateView as refreshStateViewInto,
+  syncPublicCounts,
+} from "./state/visibility.js";
+import { installVisibilityPort, type VisibilityZone, type VisibilityPort } from "./state/access.js";
+import { GameStateAccess, insertCard, setTopCard, takeTop } from "./state/access.js";
 import { CombatController } from "./combat/controller.js";
 import { detachableLinkedCards, detachLinkedCard, detachTraitTokens } from "./effects/detach.js";
 import { canAttackerDeclare, hasSummoningSickness } from "./combat/legality.js";
@@ -100,6 +106,7 @@ import { collectConferredEffects, collectGrantedCustomEffects, effectsOf } from 
 import {
   applyWouldBePlayedSelfReducer,
   applyWouldDigivolveSelfReducer,
+  potentialWouldBePlayedSelfReduction,
   wouldBePlayedSelfReducersFor,
   wouldDigivolveSelfReducersFor,
   potentialWouldDigivolveSelfReduction,
@@ -274,7 +281,18 @@ function subTriggerIdentity(sub: SubTriggerSubscription): string {
     sub.sourceInstanceId ?? "",
     sub.description,
     sub.oncePerTurnKey ?? "",
+    sub.dedupeKey ?? "",
   ].join("|");
+}
+
+/**
+ * A watcher's description as the players should read it. A player-scoped watcher tags its
+ * description with the instance that installed it, so it can be told apart from the copy
+ * conferred on another card; that tag is bookkeeping and never belongs in an announcement.
+ */
+function subTriggerDescriptionFor(sub: SubTriggerSubscription, ctx: EffectContext): string {
+  const tag = ` [${ctx.source.instanceId}]`;
+  return sub.description.endsWith(tag) ? sub.description.slice(0, -tag.length) : sub.description;
 }
 
 /** A watcher that triggered, with the EffectContext bound at the moment its event fired. */
@@ -291,6 +309,13 @@ interface ArmedSubTrigger {
    * already activated (KB Q2611/Q2629).
    */
   contextAtFireTime: () => EffectContext | undefined;
+  /** Unique occurrence captured by one `armedSubTriggers` call. */
+  occurrence: {
+    /** Once-per-turn keys that were unused when this event snapshot was armed. */
+    oncePerTurnSnapshotKeys: ReadonlySet<string>;
+    /** Shared success ledger for ordered bodies resolving this same event snapshot. */
+    oncePerTurnSuccessfulKeys: Set<string>;
+  };
 }
 
 /** One deletion a rule-check sweep performed, held until the whole pass can react to it. */
@@ -534,7 +559,7 @@ export class GameEngine {
    * separate maps because this one relocates a whole PERMANENT via `relocatePermanent`, not loose
    * card instances via `placeUnder`).
    */
-  private readonly pendingSelfReducerRelocations = new Map<string, string[]>();
+  private readonly pendingSelfReducerRelocations = new Map<string, { permanentId: string; shedOwnCards?: boolean }[]>();
 
   /** The effect verbs (effect-primitives) bound to this match. */
   private readonly primitives: Primitives;
@@ -864,6 +889,7 @@ export class GameEngine {
         const instance = this.findLooseInstance(instanceId);
         return instance === undefined ? baseCost : this.fireBeforePayCost(instance, baseCost, useAsOption);
       },
+      effectiveLooseUseCost: (instanceId, controllerSeat) => this.projectLooseUseCost(instanceId, controllerSeat),
       fireWhenLinking: async (instanceIds, targetPermanentId) => {
         for (const instanceId of instanceIds) {
           await this.fireTimingForInstance(EffectTiming.OnLinking, instanceId, {
@@ -974,6 +1000,14 @@ export class GameEngine {
       (permanentId, printedTraits) => effectiveTraits(this.continuous, permanentId, printedTraits),
       (permanentId, printedKinds) => effectiveKinds(this.continuous, permanentId, printedKinds),
       (seat, base, evolving) => this.matchBaseGrantedDigivolve(seat, base, evolving),
+      undefined,
+      (id, traits) =>
+        this.continuous.linkCostReductionGrant(
+          id,
+          traits,
+          (key) => this.tracker.count(`link-cost/${key}`, "replacement") > 0,
+        ),
+      (permanent, printedName) => effectiveNames(this.continuous, permanent, printedName),
     );
     return this.gameAccess;
   }
@@ -1089,7 +1123,10 @@ export class GameEngine {
           const selected = keyed.find(({ key }) => key === response.order[0]);
           return selected === undefined
             ? replacements
-            : [selected.replacement, ...replacements.filter((replacement) => replacement.id !== selected.replacement.id)];
+            : [
+                selected.replacement,
+                ...replacements.filter((replacement) => replacement.id !== selected.replacement.id),
+              ];
         },
       },
       permanentIds,
@@ -1256,13 +1293,13 @@ export class GameEngine {
    * `UntilOpponentTurnEnd` buff clears on the opponent's. The recompute that follows
    * re-applies the still-valid persistent effects from the post-sweep board.
    *
-   * `ownerTurnStart` / `ownerActivePhaseEnd` carry no modifier expiry of their own
-   * (the active-phase unsuspend is handled separately); they only trigger a recompute
-   * so a new turn re-derives its `[Your Turn]` / `[Opponent's Turn]` persistent tier.
+   * `ownerTurnStart` carries no modifier expiry of its own. `ownerActivePhaseEnd`
+   * sweeps phase-scoped entries after the active-phase unsuspend, including the
+   * `UntilNextUntap` window used by "during the next unsuspend phase" effects.
    */
   private async sweepDurations(boundary: TurnBoundary): Promise<void> {
     const seat = this.state.turnSeat;
-    const sweep = (b: "ownerTurnEnd" | "opponentTurnEnd" | "eachTurnEnd"): void => {
+    const sweep = (b: "ownerTurnEnd" | "opponentTurnEnd" | "eachTurnEnd" | "ownerActivePhase" | "nextUntap"): void => {
       this.modifiers.sweep(this.state, b, seat);
       this.continuous.sweep(this.state, b, seat);
     };
@@ -1282,8 +1319,13 @@ export class GameEngine {
         this.securityDp.sweepTurnEnd(seat);
         break;
       case "ownerTurnStart":
+        break; // the recompute below refreshes the persistent tier for the new turn
       case "ownerActivePhaseEnd":
-        break; // no modifier expiry; the recompute below refreshes the persistent tier
+        // Active-phase unsuspend runs before this boundary. A restriction with
+        // UntilNextUntap must therefore block that unsuspend, then expire here.
+        sweep("ownerActivePhase");
+        sweep("nextUntap");
+        break;
     }
     // Re-derive the persistent tier from the post-sweep board.
     await this.recomputeContinuousEffects();
@@ -1461,6 +1503,7 @@ export class GameEngine {
       // printed evolve cost: a `fixed` adjustment sets an absolute cost, otherwise the
       // delta sums; floored at 0 (Official Rule Manual: a cost can't go below 0).
       adjustedDigivolveCost: (_state, target, base, into, opts) => {
+        const reductionsBlocked = this.continuous.blocksCostReduction(target.controllerSeat, "digivolve");
         let cost = base;
         const adj = this.modifiers.evoCostFor(target, into, opts);
         if (adj !== undefined) {
@@ -1472,10 +1515,11 @@ export class GameEngine {
           markFired: (key) => this.tracker.register(key, "replacement"),
         });
         const intrinsicReduction = intrinsicDigivolutionCostReduction(into, target);
-        return Math.max(0, cost - replReduction - intrinsicReduction);
+        return Math.max(0, cost - (reductionsBlocked ? 0 : replReduction + intrinsicReduction));
       },
       prepareDigivolveCost: (_state, _seat, target, evolving) => this.fireBeforeDigivolveCost(evolving, target),
       potentialInteractiveDigivolveReduction: (state, seat, target, into) => {
+        if (this.continuous.blocksCostReduction(seat, "digivolve")) return 0;
         const liveReduction = this.subTriggers.potentialInteractiveReductionFor("wouldDigivolve", seat, target, into, {
           hasFired: (key) => this.tracker.count(key, "replacement") > 0,
           markFired: (key) => this.tracker.register(key, "replacement"),
@@ -1490,6 +1534,7 @@ export class GameEngine {
         return liveReduction + intrinsicReduction;
       },
       activateInteractiveDigivolveReduction: async (_state, seat, target, into, evolvingInstanceId) => {
+        if (this.continuous.blocksCostReduction(seat, "digivolve")) return 0;
         const liveReduction = await this.subTriggers.activateInteractiveReductionsFor(
           "wouldDigivolve",
           seat,
@@ -1597,6 +1642,7 @@ export class GameEngine {
       // suspendable to pay it (the controller's own, or — while an eligible BT3-056 redirector is
       // on the controller's battle area this turn — an opponent's). Pure read; no prompt/suspend.
       digisorptionReduction: (_state, seat, intoCardId) => {
+        if (this.continuous.blocksCostReduction(seat, "digivolve")) return 0;
         const amount = digisorptionAmountFor(intoCardId);
         if (amount === undefined) return 0;
         return this.digisorptionSuspendCandidates(seat).length >= 1 ? amount : 0;
@@ -1668,6 +1714,10 @@ export class GameEngine {
             // ctx.trigger.subjectPermanentId; it was previously undefined here, leaving such
             // effects silently inert.
             await this.fireTiming(EffectTiming.OnEnterFieldAnyone, {
+              ...digivolveTrigger,
+              entryCause: "digivolve",
+            });
+            await this.fireSubTrigger("onEnterFieldAnyone", {
               ...digivolveTrigger,
               entryCause: "digivolve",
             });
@@ -1972,10 +2022,19 @@ export class GameEngine {
       // A phase-boundary event has one fixed set of card sources: a Tamer played by an
       // earlier start-of-turn/start-of-main effect did not exist when that boundary
       // occurred and cannot retroactively trigger (BT24-082/Q5664, BT24-083/Q5667).
-      // Keep ordinary timing windows live because derived triggers and mid-window
+      // The end of the turn is the same kind of boundary in the other direction: a card
+      // that ARRIVES while it is being resolved has missed it, so its own end-of-turn
+      // clause is not processed this turn (Q2731/Q2762 — "the end of the turn timing has
+      // already passed"). Without the snapshot, EX11-046's "[End of Opponent's Turn] this
+      // Digimon may digivolve into [Galacticmon]" put a fresh Galacticmon on top of the
+      // stack that fired the very same clause again, chaining through hand and trash in
+      // one window.
+      // Keep every other timing window live because derived triggers and mid-window
       // digivolutions intentionally join those resolution fixpoints.
       const phaseBoundarySourceLocations =
-        timing === EffectTiming.OnStartTurn || timing === EffectTiming.OnStartMainPhase
+        timing === EffectTiming.OnStartTurn ||
+        timing === EffectTiming.OnStartMainPhase ||
+        timing === EffectTiming.OnEndTurn
           ? new Map(
               this.listCandidateInstances().map((instance) => [
                 instance.instanceId,
@@ -2172,13 +2231,24 @@ export class GameEngine {
         const context = this.buildSubTriggerContext(sub, payload);
         if (context !== undefined) contexts.set(sub.id, context);
       }
+      const armed = this.armedSubTriggers(subscriptions, payload, contexts).map((item) => {
+        // A triggered effect granted to the Digimon being deleted has to retain that
+        // Digimon's last live context (BT15-039). Other watchers have only met their
+        // trigger condition: they have not activated yet, so their source must still
+        // exist after the rule-process fixpoint (BT25-084/Q6399).
+        if (event === "onDeletionOf" && item.sub.sourcePermanentId === payload.deletedPermanentId) return item;
+        return {
+          ...item,
+          contextAtFireTime: () => this.buildSubTriggerContext(item.sub, payload),
+        };
+      });
       this.deferredRuleSubTriggers.push({
         event,
         payload: {
           turnSeat: this.state.turnSeat,
           ...payload,
         },
-        armed: this.armedSubTriggers(subscriptions, payload, contexts),
+        armed,
       });
       return;
     }
@@ -2248,12 +2318,17 @@ export class GameEngine {
           this.activeWindowToken,
           this.subTriggerTurnLedger(),
           (sub) => this.consumedSubTriggerKeys.has(subTriggerIdentity(sub)),
+          (sub, ctx) => this.announceSubTrigger(sub, ctx),
         );
       }
     });
     // A watcher body may have moved/deleted permanents; refresh the continuous tier so a
     // subsequent read sees the post-fire board (mirrors fireTiming's trailing recompute).
-    await this.recomputeContinuousEffects();
+    // A batch stack-card event is immediately followed by one per-card event at the same
+    // primitive seam. Keep continuous inherited watchers installed until those per-card events
+    // have had a chance to fire; recomputing here would remove a source card that has already
+    // moved and erase its exact-card watcher before the canonical event (P-167/BT10-006).
+    if (event !== "onDigivolutionCardsDiscardedBatch") await this.recomputeContinuousEffects();
   }
 
   /**
@@ -2292,6 +2367,21 @@ export class GameEngine {
   ): ArmedSubTrigger[] {
     const armed: ArmedSubTrigger[] = [];
 
+    // Capture the per-turn budget at the event boundary. Distinct action-path clauses sharing
+    // one printed [Once Per Turn] are simultaneous and all remain eligible in this snapshot
+    // (EX4-014/Q3456), even after the first body provisionally marks the shared key. A later
+    // event gets a fresh snapshot and therefore sees the consumed ledger entry.
+    const oncePerTurnSnapshotKeys = new Set(
+      subs
+        .filter((sub) => sub.oncePerTurnKey !== undefined && this.tracker.count(sub.oncePerTurnKey, "subtrigger") === 0)
+        .map((sub) => sub.oncePerTurnKey!)
+        .filter((key, index, keys) => keys.indexOf(key) === index),
+    );
+    const occurrence = {
+      oncePerTurnSnapshotKeys,
+      oncePerTurnSuccessfulKeys: new Set<string>(),
+    };
+
     for (const sub of subs) {
       if (this.consumedSubTriggerKeys.has(subTriggerIdentity(sub))) continue;
       if (sub.oncePerTurnKey !== undefined && this.tracker.count(sub.oncePerTurnKey, "subtrigger") > 0) continue;
@@ -2302,6 +2392,7 @@ export class GameEngine {
       armed.push({
         sub,
         ctx,
+        occurrence,
         contextAtFireTime: () =>
           boundContexts?.get(sub.id) === undefined
             ? this.buildSubTriggerContext(sub, payload)
@@ -2373,7 +2464,8 @@ export class GameEngine {
         const collected = this.subTriggerAsCollected(item);
         return {
           ...collected,
-          effect: { ...collected.effect, resolve: async () => this.fireOneSubTrigger(item) },
+          // The resolver announces what it resolves, so this body must not announce itself.
+          effect: { ...collected.effect, resolve: async () => this.fireOneSubTrigger(item, { announce: false }) },
         };
       });
     return [...this.pendingNestedTimingEffects, ...subTriggers];
@@ -2392,18 +2484,23 @@ export class GameEngine {
     events: readonly SubTriggerEventName[],
     payload: TriggerInfo | undefined,
     fireWindows: () => Promise<void>,
-    opts: { busTrigger?: () => TriggerInfo | undefined } = {},
+    opts: { busTrigger?: () => TriggerInfo | undefined; onlyInitiallyArmed?: boolean } = {},
   ): Promise<void> {
-    const busFire = async (): Promise<void> => {
-      const trigger = opts.busTrigger === undefined ? payload : opts.busTrigger();
-      if (trigger === undefined) return;
-      for (const event of events) await this.fireSubTrigger(event, trigger);
-    };
     // A rule sweep parks watchers wholesale (see fireSubTrigger); leave that path alone.
     const armed =
       this.ruleProcessing || payload === undefined
         ? []
         : events.flatMap((event) => this.armedSubTriggers(this.subTriggers.subscriptionsFor(event), payload));
+    const busFire = async (): Promise<void> => {
+      if (opts.onlyInitiallyArmed === true) {
+        const remaining = armed.filter((item) => !this.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub)));
+        await this.withTriggeredMutations(() => this.runSubTriggersInChosenOrder(remaining));
+        return;
+      }
+      const trigger = opts.busTrigger === undefined ? payload : opts.busTrigger();
+      if (trigger === undefined) return;
+      for (const event of events) await this.fireSubTrigger(event, trigger);
+    };
     if (armed.length === 0) {
       await fireWindows();
       await busFire();
@@ -2418,8 +2515,10 @@ export class GameEngine {
       this.pendingWindowSubTriggers = enclosing;
       this.subTriggerWindowDepth -= 1;
     }
-    // The bus still runs: it resolves the armed watchers the windows did not reach AND any
-    // watcher armed while they were resolving, both under the ordinary ordering rules.
+    // The bus still runs: normally it resolves the armed watchers the windows did not reach
+    // and any watcher armed while they were resolving. Entry windows opt into the trigger-time
+    // snapshot because an inherited effect acquired during this very play event did not exist
+    // when the event happened and cannot retroactively trigger (BT13-013, Q2272).
     await busFire();
     if (this.subTriggerWindowDepth === 0) this.consumedSubTriggerKeys.clear();
   }
@@ -2435,6 +2534,16 @@ export class GameEngine {
     const ctx = item.contextAtFireTime();
     if (ctx === undefined) return false;
     if (item.sub.matches !== undefined && !item.sub.matches(ctx)) return false;
+    // Once-per-turn siblings share only their own event occurrence. If a different occurrence
+    // consumed the live ledger, this item must drop from the ordering prompt; the per-occurrence
+    // success set is what distinguishes an allowed same-event sibling from a later event/group.
+    const oncePerTurnKey = item.sub.oncePerTurnKey;
+    if (
+      oncePerTurnKey !== undefined &&
+      this.tracker.count(oncePerTurnKey, "subtrigger") > 0 &&
+      !item.occurrence.oncePerTurnSuccessfulKeys.has(oncePerTurnKey)
+    )
+      return false;
     return item.sub.canFire === undefined || item.sub.canFire(ctx);
   }
 
@@ -2458,18 +2567,50 @@ export class GameEngine {
   }
 
   /**
+   * Announce a watcher body as it starts, the way the effect stack announces the printed
+   * effects it resolves (`resolutionDeps.onResolving`). A watcher IS a triggered effect: it can
+   * stop the game to ask its controller for a choice, and the players are owed the clause that
+   * asked before the wait — a security-removal reaction ("when your opponent's security stack is
+   * removed from") activates mid-check, so without this the board simply froze on the check with
+   * nothing said. Watchers folded into a timing window are announced by the resolver instead, so
+   * that path passes no announcer and neither announces twice.
+   */
+  private announceSubTrigger(sub: SubTriggerSubscription, ctx: EffectContext | undefined): void {
+    if (ctx === undefined) return;
+    this.hooks.emit({
+      kind: "effectTriggered",
+      seat: ctx.source.ownerSeat,
+      sourceCardId: ctx.source.cardId,
+      effectKey: `subtrigger/${sub.id}/${sub.description}`,
+      description: subTriggerDescriptionFor(sub, ctx),
+      timing: sub.event,
+      ...(sub.isInheritedSource === true ? { isInherited: true } : {}),
+      // `securityChecked` closes the check AFTER these bodies have run, so the client needs
+      // this to hold the announcement until the checked card's reveal has been shown.
+      ...(this.securityCheckDepth > 0 ? { duringSecurityCheck: true } : {}),
+    });
+  }
+
+  /**
    * Run one armed watcher. `contextAtFireTime` decides which board it sees: the immediate path
    * rebuilds the context now (so `fireSnapshot`'s own `matches` re-check can still drop a watcher
    * whose condition lapsed), while the deferred paths hand back the context bound when their
    * event happened, because their trigger has already activated (KB Q2611/Q2629).
    */
-  private async fireOneSubTrigger({ sub, contextAtFireTime }: ArmedSubTrigger): Promise<void> {
+  private async fireOneSubTrigger(
+    { sub, contextAtFireTime, occurrence }: ArmedSubTrigger,
+    opts: { announce?: boolean } = {},
+  ): Promise<void> {
     if (this.subTriggerWindowDepth > 0) this.consumedSubTriggerKeys.add(subTriggerIdentity(sub));
     await this.subTriggers.fireSnapshot(
       [sub],
       () => contextAtFireTime(),
       this.activeWindowToken,
       this.subTriggerTurnLedger(),
+      undefined,
+      opts.announce === false ? undefined : (fired, ctx) => this.announceSubTrigger(fired, ctx),
+      occurrence.oncePerTurnSnapshotKeys,
+      occurrence.oncePerTurnSuccessfulKeys,
     );
   }
 
@@ -2565,6 +2706,7 @@ export class GameEngine {
         this.activeWindowToken,
         this.subTriggerTurnLedger(),
         (sub) => this.consumedSubTriggerKeys.has(subTriggerIdentity(sub)),
+        (sub, ctx) => this.announceSubTrigger(sub, ctx),
       );
     }
     await this.recomputeContinuousEffects();
@@ -2620,14 +2762,14 @@ export class GameEngine {
     this.syncActivatableEffects();
     this.syncKeywords();
     this.syncSummoningSickness();
-    this.syncCombatRestrictions();
+    this.syncRestrictions();
     this.syncAttackTargets();
     this.syncHandAffordances();
   }
 
   /**
    * The number of security cards an attack by `permanentId` checks. Single reader for both
-   * the live security-check loop (`strikeFor`) and the {@link syncCombatRestrictions}
+   * the live security-check loop (`strikeFor`) and the {@link syncRestrictions}
    * projection, so the inspector value cannot drift from the rule.
    */
   private securityStrikeFor(permanentId: string): number {
@@ -2641,24 +2783,32 @@ export class GameEngine {
   }
 
   /**
-   * Publish the blanket combat restrictions imposed on each permanent, plus its resolved
+   * Publish the blanket restrictions imposed on each permanent, plus its resolved
    * ＜Security Attack＞ count. Both seats and every phase, like {@link syncSummoningSickness}
    * and unlike {@link syncAttackTargets}: these are board-state facts about the permanent
    * itself, not "can this attack be declared right now", so the client can pulse a freeze
-   * the moment a restriction lands and show a truthful strike count in the inspector.
+   * the moment a restriction lands, wear a standing debuff badge for as long as one holds,
+   * and show a truthful strike count in the inspector.
    */
-  private syncCombatRestrictions(): void {
+  private syncRestrictions(): void {
     for (const player of this.state.players) {
-      for (const perm of player.battleArea) this.projectCombatRestrictions(perm);
+      for (const perm of player.battleArea) this.projectRestrictions(perm);
       // A permanent in the raising area can neither attack nor block by the rules of the
-      // area itself, so an imposed restriction has nothing to add; leave the defaults.
-      if (player.breeding) this.projectCombatRestrictions(player.breeding);
+      // area itself, so those two have nothing to add there; the unsuspend and [When
+      // Digivolving] locks do apply in the raising area, and {@link projectRestrictions}
+      // publishes every one of them from the same ledger the rules read.
+      if (player.breeding) this.projectRestrictions(player.breeding);
     }
   }
 
-  private projectCombatRestrictions(perm: Permanent): void {
+  private projectRestrictions(perm: Permanent): void {
     perm.cannotAttack = this.continuous.hasRestriction(perm.permanentId, "attack");
     perm.cannotBlock = this.continuous.hasRestriction(perm.permanentId, "block");
+    perm.cannotUnsuspend = this.continuous.hasRestriction(perm.permanentId, "unsuspend");
+    perm.cannotActivateWhenDigivolving = this.continuous.hasRestriction(
+      perm.permanentId,
+      "cannotActivateWhenDigivolving",
+    );
     perm.securityAttack = this.securityStrikeFor(perm.permanentId);
   }
 
@@ -3173,9 +3323,8 @@ export class GameEngine {
    * identically. Only `OnPlay` carries the board-wide half; any other timing just fires scoped.
    *
    * The pool is snapshotted from the board as it is when the card ENTERS, which is when those
-   * triggers are determined; the trailing bus fire (inside `withPendingSubTriggers`) re-reads the
-   * played permanent afterwards, exactly as this seam always did, so a watcher the windows did
-   * not reach still sees the post-window board.
+   * triggers are determined. The trailing bus resolves only that snapshot: a watcher gained
+   * during this play's windows did not exist when the event happened (BT13-013, Q2272).
    */
   private async firePlayEntryWindows(
     timing: EffectTiming,
@@ -3187,9 +3336,18 @@ export class GameEngine {
       return;
     }
     const entryPermanentId = this.findInstance(sourceInstanceId)?.permanent?.permanentId;
+    if (entryPermanentId !== undefined) {
+      this.materializePlayerCustomEffects(this.access.permanentById(entryPermanentId));
+    }
+    // The played card is already in the battle area when its play event happens, so its
+    // resident `whenPlayed` watchers are eligible to trigger on that same event (BT25-028;
+    // BT22-039 Q4893). Install those entry-state subscriptions before taking the event
+    // snapshot. Effects gained later while [On Play] resolves remain excluded by
+    // `onlyInitiallyArmed`, preserving the trigger-time snapshot rule (BT13-013 Q2272).
+    await this.recomputeContinuousEffects();
     await this.withPendingSubTriggers(
-      ["whenPlayed"],
-      this.playedTrigger(entryPermanentId),
+      ["whenPlayed", "onEnterFieldAnyone"],
+      { ...this.playedTrigger(entryPermanentId), entryCause: "play" },
       async () => {
         await this.fireTimingForInstance(timing, sourceInstanceId, scopedTrigger);
         const playedPermanentId = this.findInstance(sourceInstanceId)?.permanent?.permanentId;
@@ -3198,8 +3356,23 @@ export class GameEngine {
           entryCause: "play",
         });
       },
-      { busTrigger: () => this.playedTrigger(this.findInstance(sourceInstanceId)?.permanent?.permanentId) },
+      {
+        onlyInitiallyArmed: true,
+        busTrigger: () => ({
+          ...this.playedTrigger(this.findInstance(sourceInstanceId)?.permanent?.permanentId),
+          entryCause: "play",
+        }),
+      },
     );
+  }
+
+  /** Materialize filtered player-scoped named grants before a new permanent's On Play window. */
+  private materializePlayerCustomEffects(permanent: Permanent | undefined): void {
+    const top = permanent?.topCard;
+    if (permanent === undefined || top === undefined) return;
+    for (const grant of this.continuous.playerCustomEffectsFor(permanent.permanentId, permanent.controllerSeat)) {
+      this.continuous.addCustomEffectGrant(top.instanceId, top.ownerSeat, grant.token, grant.duration);
+    }
   }
 
   /** The `whenPlayed` payload for a played permanent: its subject id plus its printed level/cost. */
@@ -3239,6 +3412,7 @@ export class GameEngine {
     const attackerPermanentId = this.combat?.currentAttackerId;
     const subjectPermanent = this.findInstance(instanceId)?.permanent;
     if (subjectPermanent !== undefined) subjectPermanent.enteredByEffect = true;
+    if (timing === EffectTiming.OnPlay) this.materializePlayerCustomEffects(subjectPermanent);
     // Effect-driven digivolutions are genuine digivolutions for "digivolved this turn"
     // conditions (BT1-007 Q871). As with the manual action seam, breeding-area evolutions
     // remain excluded unless card text explicitly references that area (Q870).
@@ -3264,8 +3438,19 @@ export class GameEngine {
         entryCause: "play",
         enteredByEffect: ownerSeat,
       });
+      await this.fireSubTrigger("onEnterFieldAnyone", {
+        subjectPermanentId,
+        entryCause: "play",
+        enteredByEffect: ownerSeat,
+      });
     } else if (timing === EffectTiming.WhenDigivolving) {
       await this.fireTiming(EffectTiming.OnEnterFieldAnyone, {
+        subjectPermanentId,
+        entryCause: "digivolve",
+        enteredByEffect: ownerSeat,
+        ...(opts?.isDnaDigivolve === true ? { isDnaDigivolve: true } : {}),
+      });
+      await this.fireSubTrigger("onEnterFieldAnyone", {
         subjectPermanentId,
         entryCause: "digivolve",
         enteredByEffect: ownerSeat,
@@ -3274,10 +3459,12 @@ export class GameEngine {
       await this.fireSubTrigger("whenOneOfYoursDigivolves", {
         subjectPermanentId,
         enteredByEffect: ownerSeat,
+        ...(opts?.digivolvedFromZone !== undefined ? { digivolvedFromZone: opts.digivolvedFromZone } : {}),
       });
       await this.fireSubTrigger("whenAnyDigivolves", {
         subjectPermanentId,
         enteredByEffect: ownerSeat,
+        ...(opts?.digivolvedFromZone !== undefined ? { digivolvedFromZone: opts.digivolvedFromZone } : {}),
       });
     }
   }
@@ -3347,6 +3534,28 @@ export class GameEngine {
   }
 
   /**
+   * Read-only hand-use-cost projection for card filters such as LM-023's Q5516 clause.
+   * It mirrors only automatic card-local would-be-played reducers; paid/optional reducers remain
+   * unknown until the actual payment window and must not be assumed or consumed by targeting.
+   */
+  private projectLooseUseCost(instanceId: string, controllerSeat: Seat): number | undefined {
+    const instance = this.findLooseInstance(instanceId);
+    if (instance === undefined) return undefined;
+    const source = this.cardSourceOf(instance);
+    const baseCost = this.modifiers.playCostFor(
+      { def: source.definition, controllerSeat },
+      Math.max(0, source.definition.playCost),
+    );
+    if (this.continuous.blocksCostReduction(controllerSeat, "play")) return baseCost;
+    const ctx: EffectContext = { ...this.buildEffectContext(source, {}), selections: new Map() };
+    const reduction = wouldBePlayedSelfReducersFor(instance.cardId).reduce(
+      (total, reducer) => total + potentialWouldBePlayedSelfReduction(ctx, reducer),
+      0,
+    );
+    return Math.max(0, baseCost - reduction);
+  }
+
+  /**
    * The pay-time interactive cost-reduction hook (subsystem: play-card / effect-framework). Fired
    * by the play action for the card being played WHILE IT IS STILL IN HAND, before memory is paid:
    * collect the played instance's `BeforePayCost` effects, resolve each through a single shared
@@ -3404,7 +3613,7 @@ export class GameEngine {
     const playTarget = new Permanent();
     playTarget.permanentId = `pending-play-${instance.instanceId}`;
     playTarget.controllerSeat = source.ownerSeat;
-    playTarget.topCard = instance;
+    setTopCard(playTarget, instance);
     playTarget.inBreeding = false;
     playTarget.baseDP = source.definition.dp ?? 0;
     playTarget.currentDP = playTarget.baseDP;
@@ -3690,6 +3899,20 @@ export class GameEngine {
       isGameOver: () => this.state.gameOver,
       chooseOrder: (seat, active, timing) => this.resolverDecisions.chooseOrder(seat, active, timing),
       askOptional: (seat, collected) => this.resolverDecisions.askOptional(seat, collected),
+      onResolving: (timing, collected) => {
+        this.hooks.emit({
+          kind: "effectTriggered",
+          seat: collected.source.ownerSeat,
+          sourceCardId: collected.source.cardId,
+          effectKey: collected.effect.effectKey,
+          description: collected.effect.description,
+          timing: EffectTiming[timing],
+          ...(collected.effect.isInherited ? { isInherited: true } : {}),
+          // `securityChecked` closes the check AFTER these effects have resolved, so the
+          // client needs this to hold the announcement until the reveal has been shown.
+          ...(this.securityCheckDepth > 0 ? { duringSecurityCheck: true } : {}),
+        });
+      },
       onResolved: (timing, collected) => {
         this.hooks.emit({
           kind: "effectResolved",
@@ -3698,6 +3921,7 @@ export class GameEngine {
           effectKey: collected.effect.effectKey,
           description: collected.effect.description,
           timing: EffectTiming[timing],
+          ...(collected.effect.isInherited ? { isInherited: true } : {}),
         });
       },
     };
@@ -3716,7 +3940,11 @@ export class GameEngine {
    * controller's hand, but the resulting watcher cannot activate before the repeated
    * 0-DP rule check deletes Titamon.
    */
-  private readonly deferredRuleSubTriggers: { event: SubTriggerEventName; payload: TriggerInfo; armed: ArmedSubTrigger[] }[] = [];
+  private readonly deferredRuleSubTriggers: {
+    event: SubTriggerEventName;
+    payload: TriggerInfo;
+    armed: ArmedSubTrigger[];
+  }[] = [];
 
   /**
    * The deletions a rule-check fixpoint has performed but not yet reacted to, or `undefined`
@@ -3971,7 +4199,7 @@ export class GameEngine {
     return this.state.players.some((p) => p?.lost === true) && !this.state.gameOver;
   }
 
-  /** A Digimon stack peeled by an effect until its new top has no Digimon DP (BT26-060 Q7082). */
+  /** A Digimon stack peeled by an effect until its new top is an invalid no-DP remnant (BT26-060 Q7082). */
   private anyInvalidNoDpStackTop(): boolean {
     return this.battleAreaPermanents().some((permanent) => permanent.invalidNoDpStackTop);
   }
@@ -4360,6 +4588,13 @@ export class GameEngine {
    *   - dpOf / securityCardDp / isDigimon / deletePermanents: backed by the shared
    *     GameStateAccess + card data, identical to combat's own reads.
    */
+  /**
+   * Non-zero while `runSecurityCheck` is resolving. Effects triggered inside the check
+   * announce themselves before the closing `securityChecked` event, so their
+   * `effectTriggered` is stamped `duringSecurityCheck` for the client to hold.
+   */
+  private securityCheckDepth = 0;
+
   private async runSecurityCheck(defenderSeat: Seat, attackerPermanentId: string): Promise<void> {
     // Re-derive the continuous tier at the start of the live security battle so the
     // continuous ModifySecurityDP (ST3-12's [Opponent's Turn] +2000) is re-applied under its
@@ -4429,9 +4664,14 @@ export class GameEngine {
         log("[securityCheck]", "securityChecked event:", JSON.stringify(event));
       }
     };
-    await runSecurityCheck(this.state, emitWithLog, this.win, deps, defenderSeat, {
-      permanentId: attackerPermanentId,
-    });
+    this.securityCheckDepth += 1;
+    try {
+      await runSecurityCheck(this.state, emitWithLog, this.win, deps, defenderSeat, {
+        permanentId: attackerPermanentId,
+      });
+    } finally {
+      this.securityCheckDepth -= 1;
+    }
   }
 
   /**
@@ -4578,13 +4818,15 @@ export class GameEngine {
         const relocations = this.pendingSelfReducerRelocations.get(playedInstanceId);
         if (relocations !== undefined && relocations.length > 0) {
           this.pendingSelfReducerRelocations.delete(playedInstanceId);
-          for (const sourcePermanentId of relocations) {
+          for (const relocation of relocations) {
+            const opts = {
+              belowTop: true,
+              ...(relocation.shedOwnCards === true ? { shedOwnCards: true } : {}),
+            };
             if (this.primitives.relocatePermanentByEffect !== undefined) {
-              await this.primitives.relocatePermanentByEffect(permanentId, sourcePermanentId, {
-                belowTop: true,
-              });
+              await this.primitives.relocatePermanentByEffect(permanentId, relocation.permanentId, opts);
             } else {
-              this.primitives.relocatePermanent(permanentId, sourcePermanentId, { belowTop: true });
+              this.primitives.relocatePermanent(permanentId, relocation.permanentId, opts);
             }
           }
         }
@@ -4757,6 +4999,14 @@ export class GameEngine {
           intent: "attack",
           reason: err instanceof Error ? err.message : "combat-error",
         });
+        // A combat that died mid-resolution already released the controller's guards
+        // (resolveAttack's finally), but it skipped onCombatComplete — and with it the
+        // turn-end check. If an effect pushed memory across before the throw, no later
+        // verb is legal to re-trigger that check, so the Main phase would hang open
+        // until a manual endPhase (field bug: api.log 2026-08-20, BT21-021).
+        this.syncAttackTargets();
+        this.syncHandAffordances();
+        this.checkTurnEndAfterVerb();
       },
     };
   }
@@ -4801,6 +5051,10 @@ export class GameEngine {
     player.displayName = options.displayName;
     this.state.players[seat] = player;
     this.stagedDecks[seat] = options.deck;
+    // Seating replaces the PlayerState object, so the port has to be re-installed on the new
+    // one; installing it here (rather than at match start) also covers the cards `runSetup`
+    // deals, which arrive before any turn is played.
+    if (this.visibilityNotify !== undefined) installVisibilityPort(player, this.visibilityNotify);
   }
 
   /** Readiness belongs to the current occupant, not permanently to a seat. */
@@ -4975,6 +5229,38 @@ export class GameEngine {
     if (view === undefined) return;
     syncPublicCounts(this.state);
     refreshStateViewInto(view, this.state, seat);
+  }
+
+  /** Set once by the room; re-applied to each PlayerState as seats are filled. */
+  private visibilityNotify?: VisibilityPort;
+
+  /**
+   * Install the mutation seam's visibility port for both seats. `notify` is called once per
+   * card arrival in a loose zone; the room turns that into an `exposeCardInZone` per connected
+   * client. Idempotent — installing again simply replaces the callback.
+   *
+   * Without this the private zones are never exposed mid-match (the per-patch full walk that
+   * used to do it was removed: it re-queued a forced ADD for every field of every card on
+   * every patch, so each patch carried the whole state).
+   */
+  installVisibility(notify: VisibilityPort): void {
+    this.visibilityNotify = notify;
+    for (const player of this.state.players) installVisibilityPort(player, notify);
+  }
+
+  /**
+   * Apply one card arrival to one client's view. Thin pass-through to the visibility policy
+   * so the room stays free of StateView details, mirroring `refreshStateView` above.
+   */
+  exposeCardToView(
+    view: Client["view"],
+    viewerSeat: Seat,
+    ownerSeat: Seat,
+    zone: VisibilityZone,
+    card: CardInstance,
+  ): void {
+    if (view === undefined) return;
+    exposeCardInZone(view, viewerSeat, ownerSeat, zone, card);
   }
 
   /**
@@ -5258,7 +5544,13 @@ export class GameEngine {
       return { ok: false, reason: check.reason };
     }
     this.continueMainVerb(
-      () => applyActivateEffect(this.state, seat, intent, deps),
+      async () => {
+        const outcome = await applyActivateEffect(this.state, seat, intent, deps);
+        // Direct [Main] activations do not pass through a timing-window resolver, so
+        // perform the post-effect rule check here (e.g. a stack peel exposing a 0-DP card).
+        await this.ruleProcess();
+        return outcome;
+      },
       (outcome) => {
         if (outcome.ok) {
           this.hooks.emit({
@@ -5380,8 +5672,9 @@ export class GameEngine {
    * List `seat`'s currently-activatable [Counter] effects (§11-3-1), one entry per
    * (source instance, effect) pair. Mirrors `syncActivatableEffects` but scoped to
    * one (defending) seat and `EffectTiming.OnCounterTiming` rather than the turn
-   * player and `ACTIVATE_TIMING`. Bound into `CombatController`'s `counterEligible`
-   * hook so `runCounterWindow` can skip the round trip when nothing is eligible.
+   * player and `ACTIVATE_TIMING`. Both battle-area Counter effects and explicit
+   * `[Hand][Counter]` effects are eligible. Bound into `CombatController`'s
+   * `counterEligible` hook so `runCounterWindow` can skip the round trip when nothing is eligible.
    */
   private counterEligibleSources(seat: Seat): { instanceId: string; effectKey: string; description: string }[] {
     const player = this.state.players[seat];
@@ -5402,6 +5695,19 @@ export class GameEngine {
               description: effect.description,
             });
           }
+        }
+      }
+    }
+    for (const instance of player.hand) {
+      const source = this.cardSourceOf(instance);
+      for (const effect of effectsOf(EffectTiming.OnCounterTiming, source)) {
+        const ctx = this.buildEffectContext(source, {});
+        if (canTrigger(effect, ctx, this.tracker) && canActivate(effect, ctx, this.tracker)) {
+          entries.push({
+            instanceId: instance.instanceId,
+            effectKey: effect.effectKey,
+            description: effect.description,
+          });
         }
       }
     }
@@ -5444,6 +5750,8 @@ export class GameEngine {
         return ctx;
       },
       tracker: this.tracker,
+      enterEffectResolution: (seat, sourceKinds) => this.primitives.enterEffectResolution?.(seat, sourceKinds),
+      leaveEffectResolution: () => this.primitives.leaveEffectResolution?.(),
     };
   }
 
@@ -5705,6 +6013,32 @@ export class GameEngine {
       payMemory: mem.payMemory,
       linkRequirementSatisfied: (hostDefinition, linkedCard) =>
         this.linkRequirementSatisfied(hostDefinition, linkedCard),
+      linkCostReduction: (targetPermanentId, traits) =>
+        this.continuous.linkCostReductionGrant(
+          targetPermanentId,
+          traits,
+          (key) => this.tracker.count(`link-cost/${key}`, "replacement") > 0,
+        )?.amount ?? 0,
+      resolveLinkCostReduction: async (targetPermanentId, traits) => {
+        const grant = this.continuous.linkCostReductionGrant(
+          targetPermanentId,
+          traits,
+          (key) => this.tracker.count(`link-cost/${key}`, "replacement") > 0,
+        );
+        if (grant === undefined) return 0;
+        if (grant.optional === true) {
+          const response = await this.decisions.request({
+            seat: grant.controllerSeat ?? this.state.turnSeat,
+            kind: "optional",
+            promptText: `Reduce this Link cost by ${grant.amount}?`,
+          });
+          if (response.kind !== "optional" || !response.accept) return 0;
+        }
+        if (grant.oncePerTurnKey !== undefined) {
+          this.tracker.register(`link-cost/${grant.oncePerTurnKey}`, "replacement");
+        }
+        return grant.amount;
+      },
       link: (targetPermanentId, instanceIds) => this.primitives.link(targetPermanentId, instanceIds),
       ruleProcess: () => this.ruleProcess(),
     };
@@ -5771,6 +6105,39 @@ export class GameEngine {
           }
         }
         return Math.max(0, cost - this.subTriggers.dnaCostReductionFor(materials, definition));
+      },
+      potentialInteractiveDnaDigivolveReduction: (_state, seat, materials, definition) => {
+        const target = materials[0];
+        if (target === undefined || this.continuous.blocksCostReduction(seat, "digivolve")) return 0;
+        return this.subTriggers.potentialInteractiveReductionFor("wouldDigivolve", seat, target, definition, {
+          hasFired: (key) => this.tracker.count(key, "replacement") > 0,
+          markFired: (key) => this.tracker.register(key, "replacement"),
+        });
+      },
+      activateInteractiveDnaDigivolveReduction: async (_state, seat, materials, definition, evolvingInstanceId) => {
+        const target = materials[0];
+        if (target === undefined || this.continuous.blocksCostReduction(seat, "digivolve")) return 0;
+        return this.subTriggers.activateInteractiveReductionsFor(
+          "wouldDigivolve",
+          seat,
+          target,
+          definition,
+          evolvingInstanceId,
+          (sourcePermanentId, sourceInstanceId) => {
+            const source = this.access.permanentById(sourcePermanentId);
+            return source?.topCard === undefined
+              ? undefined
+              : this.buildEffectContext(
+                  this.cardSourceOf(this.findInstance(sourceInstanceId ?? "")?.instance ?? source.topCard),
+                  {},
+                );
+          },
+          {
+            hasFired: (key) => this.tracker.count(key, "replacement") > 0,
+            markFired: (key) => this.tracker.register(key, "replacement"),
+          },
+          materials,
+        );
       },
       costWaived: (_state, instance) => hasBlastDigivolveKeyword(instance.cardId),
       materialsRestricted: (_state, materials, definition) =>
@@ -5840,20 +6207,32 @@ export class GameEngine {
     if (!result.ok) return { ok: false, reason: mapBreedingReason(result.reason) };
     this.breeding.actionTaken(seat);
     const movedPermanentId = result.outcome.permanentId;
-    // The breeding -> battle move fires the OnMove timing (P-130's [Your Turn] reaction), then
-    // the two SubTrigger events below so reactive watchers execute (both fired unconditionally:
+    // The breeding -> battle move fires the OnMove timing, the broad entry timing/bus, then
+    // the two movement SubTrigger events below so reactive watchers execute (both fired unconditionally:
     // a watcher's sourceFilter (isSelfRef / controller matching) gates which side reacts):
     //   whenMovedFromBreeding         — "when one of YOUR Digimon moves from breeding" (BT16-082)
     //   whenOpponentMovedFromBreeding — "when your OPPONENT moves a Digimon from breeding" (BT5-044, BT11-087)
     // Fire-and-forget from this sync intent handler, mirroring the OnDraw fire in drawCards —
     // but unlike drawCards (which is itself awaited by its own caller), this handler must return
-    // its IntentResult synchronously, so the three fires are chained into one promise: sequential
+    // its IntentResult synchronously, so the fires are chained into one promise: sequential
     // internal ordering (each begins only after the previous settles) with a single .catch(logError)
     // so a thrown error surfaces as a log instead of an unhandled rejection. Un-awaited/uncaught
     // fires here previously risked exactly the race P-130's fix eliminated for movePermanentZone:
     // a nested fire clobbering the then-shared engine trigger field out of order (each window
     // now carries its own trigger payload in its environment).
     void this.fireTiming(EffectTiming.OnMove, { movedPermanentId })
+      .then(() =>
+        this.fireTiming(EffectTiming.OnEnterFieldAnyone, {
+          subjectPermanentId: movedPermanentId,
+          entryCause: "move",
+        }),
+      )
+      .then(() =>
+        this.fireSubTrigger("onEnterFieldAnyone", {
+          subjectPermanentId: movedPermanentId,
+          entryCause: "move",
+        }),
+      )
       .then(() => this.fireSubTrigger("whenMovedFromBreeding", { subjectPermanentId: movedPermanentId }))
       .then(() => this.fireSubTrigger("whenOpponentMovedFromBreeding", { subjectPermanentId: movedPermanentId }))
       .catch((err) => {

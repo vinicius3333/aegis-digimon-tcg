@@ -20,7 +20,7 @@ export const compiled: CompiledCard = {
         },
       ],
     },
-    { trigger: "Security", actions: [{ kind: "AddToHandSelf" }] },
+    { trigger: "Security", actions: [{ kind: "AddToHandSelf" }], isSecurity: true },
   ],
   coverage: "full",
   residual: [],

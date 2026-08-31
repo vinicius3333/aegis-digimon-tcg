@@ -43,11 +43,48 @@ export const compiled: CompiledCard = {
       ],
     },
     {
+      trigger: "EndOfYourTurn",
+      actions: [
+        {
+          kind: "Attack",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          attackPlayer: true,
+          withoutSuspending: true,
+          cost: {
+            kind: "deleteOwn",
+            target: {
+              filter: {
+                controller: "mine",
+                excludeSelf: true,
+                kind: ["Digimon"],
+                nameOrTrait: [
+                  {
+                    tokens: ["Puppet"],
+                    match: "trait",
+                  },
+                ],
+                allowTokens: true,
+              },
+              count: 1,
+            },
+            raw: "by deleting 1 of your Tokens or other [Puppet] trait Digimon",
+          },
+        },
+      ],
+    },
+    {
       trigger: "AllTurns",
       actions: [
         {
           kind: "Replacement",
           event: "wouldLeavePlay",
+          leaveCause: "otherThanYourEffect",
           sourceFilter: {
             isSelfRef: true,
           },
@@ -67,6 +104,7 @@ export const compiled: CompiledCard = {
                         match: "trait",
                       },
                     ],
+                    allowTokens: true,
                   },
                   count: 1,
                 },

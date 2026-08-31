@@ -79,6 +79,40 @@ describe("BT25-102 Factorial Area", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("tooHigh").instanceId);
   });
 
+  it("fires the Security play from a real security check", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT25-102", as: "area" }],
+          trash: [{ card: "BT25-011", as: "eligible" }],
+        },
+        1: { battleArea: [{ card: "AD1-003", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("eligible").instanceId,
+      ),
+    );
+
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("eligible").instanceId,
+      ),
+    ).toBe(true);
+  });
+
   it("places itself face up at the bottom of security after taking the top card", async () => {
     const s = setupEngine(
       {

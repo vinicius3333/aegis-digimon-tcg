@@ -23,7 +23,7 @@ describe("EX5-059 Dobermon (X Antibody)", () => {
           filter: {
             nameOrTrait: [
               { match: "name", tokens: ["Dobermon"] },
-              { match: "name", tokens: ["X Antibody"] },
+              { match: "trait", tokens: ["X Antibody"] },
             ],
           },
         },

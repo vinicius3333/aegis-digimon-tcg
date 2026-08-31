@@ -56,7 +56,10 @@ describe("ST20 collection audit proof", () => {
     for (const cardId of st20Ids) {
       const testSource = readFileSync(`${collectionDirectory}/${cardId}.test.ts`, "utf8");
 
-      expect(indexSource.match(new RegExp(`^import \"\\./${cardId}\\.js\";$`, "gm")), `${cardId} index import`).toHaveLength(1);
+      expect(
+        indexSource.match(new RegExp(`^import "\\./${cardId}\\.js";$`, "gm")),
+        `${cardId} index import`,
+      ).toHaveLength(1);
       expect(testSource, `${cardId} test suite`).toMatch(/\bdescribe\s*\(/);
       expect(testSource, `${cardId} runnable test`).toMatch(/\bit\s*\(/);
       expect(testSource, `${cardId} engine harness`).toMatch(/\bsetupEngine\s*\(/);
@@ -72,7 +75,7 @@ describe("ST20 collection audit proof", () => {
       const compiled = runtimeCompiledCard(cardId);
 
       expect(
-        moduleSource.match(new RegExp(`\\bregisterIrCard\\s*\\(\\s*[\"']${cardId}[\"']\\s*,\\s*compiled\\s*\\)`, "g")),
+        moduleSource.match(new RegExp(`\\bregisterIrCard\\s*\\(\\s*["']${cardId}["']\\s*,\\s*compiled\\s*\\)`, "g")),
         `${cardId} exact registerIrCard call`,
       ).toHaveLength(1);
       expect(moduleSource.match(/\bregisterIrCard\s*\(/g), `${cardId} total registerIrCard calls`).toHaveLength(1);
@@ -198,7 +201,7 @@ describe("ST20 collection audit proof", () => {
     }
   });
 
-  it("ST20-14 preserves color waiver, draw-and-place, Delay replacement, and security placement", () => {
+  it("ST20-14 preserves color waiver, draw-and-place, Delay leave watcher, and security placement", () => {
     expect(effects("ST20-14").find((effect) => effect.trigger === "Main")?.actions).toMatchObject([
       { kind: "Draw", amount: 2 },
       { kind: "PlaceInBattleAreaSelf" },
@@ -209,7 +212,9 @@ describe("ST20 collection audit proof", () => {
       )?.actions[0],
     ).toMatchObject({ kind: "PlayWithoutCost", optional: true, from: ["hand"] });
     expect(effects("ST20-14").find((effect) => effect.trigger === "AllTurns")?.actions[0]).toMatchObject({
-      kind: "Replacement",
+      kind: "SubTrigger",
+      event: "whenDigimonWouldLeave",
+      sourceFilter: { kind: ["Digimon"], levelComparison: { op: "gte", value: 5 } },
       actions: [{ kind: "GainKeyword", keyword: { keyword: "Delay" } }],
     });
     expect(effects("ST20-14").find((effect) => effect.trigger === "Security")).toMatchObject({

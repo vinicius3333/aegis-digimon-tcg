@@ -9,6 +9,7 @@
    fallback stops matching the table. */
 
 import type { CSSProperties } from "react";
+import { CARD_SHARD_SPREAD_MS } from "./cardShatter";
 import type { CutInTier } from "./cutIn";
 
 export const TIMINGS = {
@@ -63,6 +64,13 @@ export const TIMINGS = {
   securityBranchHold: 900,
   /** The card leaving for the trash or the field. */
   securityBranchOut: 220,
+  /**
+   * How long a security card an effect trashed is held readable before it breaks
+   * (the reference client's 0.5 s between the reveal and `DestroySecurityEffect`).
+   * It is the whole beat the player gets to see which card the stack just lost, so
+   * it is longer than any hold the check itself takes.
+   */
+  securityDestroyHold: 500,
   /** The security counter popping as it decrements. */
   securityCountPop: 300,
   /** One permanent's 90° suspend or unsuspend rotation. */
@@ -94,9 +102,9 @@ export const TIMINGS = {
   /** The full-width turn banner: the reference client's 160ms in, 300ms hold and 160ms out. */
   turnBanner: 620,
   /** How long a framed notice stays readable on its own. */
-  noticeLifetime: 2800,
+  noticeLifetime: 4200,
   /** A crowded notice stack disperses on this shorter clock instead. */
-  noticeCrowdedLifetime: 1400,
+  noticeCrowdedLifetime: 2400,
   /** A notice sliding in from its anchor. */
   noticeIn: 200,
   /** How long one opponent action stays up in the corner feed. */
@@ -191,11 +199,40 @@ export const CLASH_REVEAL_AT_MS = TIMINGS.clashAttackerEnter;
 /** The outcome beat starts when the hold is over. */
 export const CLASH_OUTCOME_AT_MS = CLASH_REVEAL_AT_MS + TIMINGS.clashReveal + TIMINGS.clashHold;
 
+/**
+ * When the revealed card has finished growing into place. The card has left the stack by
+ * then, so this is the beat the defender's shield finally drops its figure — the reference
+ * client reduces the stack right after the same clip (`CardController.cs:4008-4012`).
+ */
+export const CLASH_REVEAL_SHOWN_AT_MS = CLASH_REVEAL_AT_MS + TIMINGS.clashReveal;
+
 /** End to end, which is also how long the scene stays mounted. */
 export const CLASH_TOTAL_MS = CLASH_OUTCOME_AT_MS + TIMINGS.clashOutcome + TIMINGS.clashExit;
 
+/**
+ * How long a card's shards fly inside the centre-stage clash. A field deletion breaks on
+ * the longer `cardShatter` clock because nothing takes the board back from it, but inside
+ * the clash the card has only the outcome beat before the scene fades — so the shards, and
+ * the stagger that starts the last of them, have to finish within it or they are cut off
+ * mid-flight.
+ */
+export const CLASH_SHATTER_MS = TIMINGS.clashOutcome - CARD_SHARD_SPREAD_MS;
+
 /** Shield break, end to end: the arm, the shatter, and the held frames after it. */
 export const SECURITY_BREAK_TOTAL_MS = TIMINGS.securityArm + TIMINGS.shieldBreak + TIMINGS.securityBreakHold;
+
+/** How long the revealed card takes to slide out to the side it reads out from. */
+export const SECURITY_BRANCH_IN_MS = TIMINGS.securityBranchIn;
+
+/**
+ * When a destroyed security card breaks. It faces no attacker, so the beat starts as
+ * soon as the card has grown into place and been held.
+ */
+export const SECURITY_DESTROY_OUTCOME_AT_MS =
+  TIMINGS.clashAttackerEnter + TIMINGS.clashReveal + TIMINGS.securityDestroyHold;
+
+/** One destroyed security card, end to end: the reveal, the hold, the break and the fade. */
+export const SECURITY_DESTROY_TOTAL_MS = SECURITY_DESTROY_OUTCOME_AT_MS + TIMINGS.clashOutcome + TIMINGS.clashExit;
 
 /** The security-effect branch, end to end: the slide out, the hold, and the exit. */
 export const SECURITY_BRANCH_TOTAL_MS =
@@ -218,6 +255,15 @@ export const ARROW_FLASH_COUNT = 2;
 
 /** How long the arrow spends flashing before it stays extended. */
 export const ARROW_FLASH_TOTAL_MS = TIMINGS.arrowFlash * ARROW_FLASH_COUNT * 2;
+
+/** A board battle leans the attacker at its target once the arrow has extended. */
+export const FIELD_CLASH_LUNGE_AT_MS = ARROW_FLASH_TOTAL_MS;
+
+/** The blow lands when the lunge peaks into the defender. */
+export const FIELD_CLASH_IMPACT_AT_MS = FIELD_CLASH_LUNGE_AT_MS + TIMINGS.attackLunge;
+
+/** A board battle end to end: the arrow, the lunge, and the claw-and-shake it lands. */
+export const FIELD_CLASH_TOTAL_MS = FIELD_CLASH_IMPACT_AT_MS + COMBAT_IMPACT_TOTAL_MS;
 
 /** A cut-in, end to end, for the tier it is playing. */
 export function cutInTotalMs(tier: CutInTier): number {
@@ -262,7 +308,7 @@ export const BATTLE_TIMING_VARIABLES: Readonly<Record<string, number>> = {
   "--t-clash-reveal": TIMINGS.clashReveal,
   "--t-clash-outcome": TIMINGS.clashOutcome,
   "--t-clash-outcome-at": CLASH_OUTCOME_AT_MS,
-  "--t-clash-total": CLASH_TOTAL_MS,
+  "--t-clash-exit": TIMINGS.clashExit,
   "--t-showcase-in": TIMINGS.showcaseIn,
   "--t-showcase-out": TIMINGS.showcaseOut,
   "--t-showcase-out-at": SHOWCASE_OUT_AT_MS,
@@ -300,6 +346,7 @@ export const BATTLE_TIMING_VARIABLES: Readonly<Record<string, number>> = {
   "--t-effect-trash-rise": TIMINGS.effectTrashRise,
   "--t-effect-hand-rise": TIMINGS.effectHandRise,
   "--t-card-shatter": TIMINGS.cardShatter,
+  "--t-clash-shatter": CLASH_SHATTER_MS,
 };
 
 /**

@@ -9,8 +9,9 @@ import {
   DECISION_CHANNEL,
 } from "@aegis/shared";
 import { GameEngine, type SeatJoinOptions } from "../engine/GameEngine.js";
+import type { VisibilityPort } from "../engine/state/index.js";
 import { BotPlayer, type BotOptions } from "../bot/BotPlayer.js";
-import { randomBotDeck } from "../engine/testDecks.js";
+import { botDeckFor } from "../engine/testDecks.js";
 import { accountStore } from "../accounts/runtime.js";
 import type { AccountStore, DeckSnapshot } from "../accounts/AccountStore.js";
 import { seriesStore } from "../tournaments/runtime.js";
@@ -327,6 +328,9 @@ export class AegisRoom extends Room<GameState> {
         for (const bot of this.bots) bot?.onEvent(event);
       },
     });
+    // Route zone arrivals to the per-client StateViews (see exposeCardToClients). Installed
+    // before any seat is filled so `seatPlayer` picks it up for both PlayerStates.
+    this.engine.installVisibility(this.exposeCardToClients);
 
     // One catch-all handler: every client intent type is reassembled into a
     // discriminated-union Intent and handed to the engine, which validates,
@@ -692,7 +696,7 @@ export class AegisRoom extends Room<GameState> {
    * Seat a bot as seat 1 and start the match. The room must have exactly one
    * human player already seated. Idempotent: a second call is a no-op.
    */
-  addBot(): boolean {
+  addBot(botDeckId?: string): boolean {
     // Ordinary casual rooms remain accepted during the expand/contract rollout so
     // a tab with the previous web bundle can still start its bot match. New clients
     // create an isolated bot room and therefore never enter the casual queue.
@@ -720,7 +724,7 @@ export class AegisRoom extends Room<GameState> {
 
     this.engine.seatPlayer(this.BOT_SEAT, "bot", {
       displayName: "Bot",
-      deck: randomBotDeck(),
+      deck: botDeckFor(botDeckId),
     });
 
     // The bot never sends its own `ready` intent (it isn't a Colyseus client, so it
@@ -756,6 +760,24 @@ export class AegisRoom extends Room<GameState> {
   }
 
   /**
+   * The mutation seam's VisibilityPort: fan one card arrival out to every connected client's
+   * view. Installed on the engine in `onCreate`.
+   *
+   * This is what replaced walking every private zone before every patch. `StateView.add`
+   * force-queues an ADD for every field of the object it is given, so the old per-patch walk
+   * made each patch re-encode the entire state for both seats — the client then spent all of
+   * its main thread in the schema decoder. Exposing a card once, when it actually arrives,
+   * carries the same information at a fraction of the bytes.
+   */
+  private readonly exposeCardToClients: VisibilityPort = (ownerSeat, zone, card) => {
+    for (const client of this.clients) {
+      const viewerSeat = this.seatByClient.get(client.sessionId);
+      if (viewerSeat === undefined || client.view === undefined) continue;
+      this.engine.exposeCardToView(client.view, viewerSeat, ownerSeat, zone, card);
+    }
+  };
+
+  /**
    * Refresh the public per-zone count mirrors before every state broadcast. The
    * hidden zones (deck/hand/security) are redacted per seat, so only these counts
    * convey their sizes to the opponent; recomputing here keeps them in lockstep with
@@ -764,6 +786,15 @@ export class AegisRoom extends Room<GameState> {
    */
   override onBeforePatch(): void {
     this.engine.syncCounts();
+    // Refresh every view before the patch is encoded, not only after the three events that
+    // happen to name a move. A StateView must still recognise a card as visible at the moment
+    // its removal is encoded, or the encoder drops the delete and the client's copy of the
+    // hand keeps the card forever (see rebuildClientViews). Any hand-emptying path whose
+    // event is not `cardPlayed`/`cardsMoved`/`digivolved` — a cost paid mid-effect, a card
+    // placed under a permanent by a watcher — used to strand exactly that way, so each such
+    // move left one more phantom copy in the player's own hand. Refreshing per patch closes
+    // the whole class: `unlockInto` is add-only and idempotent, so this is safe to repeat.
+    this.rebuildClientViews();
   }
 
   private handleIntent(client: Client, intent: Intent): void {

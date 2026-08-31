@@ -21,9 +21,7 @@ const compiled: CompiledCard = {
               },
             ],
           },
-          causeFilter: {
-            byOpponentEffect: true,
-          },
+          leaveCause: "byOpponentEffect",
           actions: [],
           cost: {
             kind: "place",
@@ -34,6 +32,10 @@ const compiled: CompiledCard = {
               count: 1,
               isSelf: true,
             },
+            targetIsPermanent: true,
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "triggerSource",
             raw: "by placing this Digimon as its bottom digivolution card, it doesn't leave",
           },
         },

@@ -14,7 +14,7 @@ describe("BT9-046 Kokuwamon (X Antibody)", () => {
       expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
         actions: [{ kind: "RevealAdd", revealCount: 3, rest: "deckBottom", add: [
           { filter: { nameOrTrait: [{ tokens: ["Insectoid", "Machine"], match: "trait" }] }, count: 1 },
-          { filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "name" }] }, count: 1 },
+          { filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "nameExact" }] }, count: 1 },
         ] }],
       });
     }
@@ -39,5 +39,27 @@ describe("BT9-046 Kokuwamon (X Antibody)", () => {
     });
     await settle(() => ids.every((id) => player.hand.some((c) => c.instanceId === id)));
     expect(player.deck).toHaveLength(1);
+  });
+
+  it("does not treat an X Antibody trait as the exact X Antibody card name", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT9-046", as: "source" }],
+          deck: [{ card: "BT9-049", as: "insectoid" }, { card: "BT9-041", as: "xTraitOnly" }, "BT9-047"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const player = s.state.players[0] as PlayerState;
+    const traitOnlyId = s.inst("xTraitOnly").instanceId;
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => player.hand.some((card) => card.instanceId === s.inst("insectoid").instanceId));
+
+    expect(player.hand.some((card) => card.instanceId === traitOnlyId)).toBe(false);
+    expect(player.deck.some((card) => card.instanceId === traitOnlyId)).toBe(true);
   });
 });

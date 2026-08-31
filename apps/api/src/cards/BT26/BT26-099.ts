@@ -2,7 +2,11 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const dm = { controller: "mine", nameOrTrait: [{ tokens: ["DM"], match: "trait" }] };
+const dm = {
+  controller: "mine",
+  nameOrTrait: [{ tokens: ["DM"], match: "trait" }],
+};
+const dmOnField = { ...dm, kind: ["Digimon", "Tamer"] };
 const dmDigimon = { ...dm, kind: ["Digimon"] };
 const dmLevelSix = { ...dmDigimon, levelComparison: { op: "lte", value: 6 } };
 
@@ -14,7 +18,7 @@ export const compiled: CompiledCard = {
         {
           kind: "WaiveColorRequirement",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          condition: { kind: "youHave", filter: dm },
+          condition: { kind: "youHave", filter: dmOnField },
         },
       ],
     },

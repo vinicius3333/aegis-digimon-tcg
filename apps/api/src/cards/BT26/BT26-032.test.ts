@@ -86,7 +86,7 @@ describe("BT26-032 compiled fidelity", () => {
     expect(s.perm("penaltyTarget").currentDP).toBe(7000);
   });
 
-  it("confers only the topmost matching Ceresmon and includes its printed keywords", async () => {
+  it("confers only the topmost matching Ceresmon and keeps its own printed keywords", async () => {
     const s = setupEngine({
       0: {
         battleArea: [
@@ -105,12 +105,26 @@ describe("BT26-032 compiled fidelity", () => {
 
     const conferrals = (
       s.engine as unknown as {
-        continuous: { listStackEffectConferrals: () => Array<{ stackInstanceId: string }> };
+        continuous: {
+          listStackEffectConferrals: () => Array<{ stackInstanceId: string; targetPermanentId: string }>;
+        };
       }
     ).continuous.listStackEffectConferrals();
     expect(conferrals.map(({ stackInstanceId }) => stackInstanceId)).toContain(s.inst("topmostCeresmon").instanceId);
     expect(conferrals.map(({ stackInstanceId }) => stackInstanceId)).not.toContain(s.inst("lowerCeresmon").instanceId);
-    expect(s.perm("ceresmon").keywords).toContain("Digisorption");
+    expect(
+      conferrals.some(
+        ({ stackInstanceId, targetPermanentId }) =>
+          stackInstanceId === s.inst("topmostCeresmon").instanceId &&
+          targetPermanentId === s.perm("ceresmon").permanentId,
+      ),
+    ).toBe(true);
+    // BT3-056's only printed keyword is ＜Digisorption -3＞, an ACTION_TYPE_KEYWORD the engine
+    // never publishes through `Permanent.keywords` (engine/effects/interpreter/errors.ts); the
+    // Succession conferral above is what carries its effects. This card's own printed markers
+    // must still be published.
+    expect(s.perm("ceresmon").keywords).toContain("Alliance");
+    expect(s.perm("ceresmon").keywords).not.toContain("Digisorption");
   });
 
   it("publicly reduces every suspended opposing Digimon by 5000 on digivolution", async () => {

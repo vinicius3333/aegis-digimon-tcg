@@ -1,8 +1,25 @@
 import { describe, expect, it } from "vitest";
+import { compiled } from "./BT13-017.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT13-017.js";
 
 describe("BT13-017 Jesmon", () => {
+  it("counts only battle-area other Digimon for all three printed scaling clauses", () => {
+    const scalingFilters = compiled.effects
+      .flatMap((effect) => effect.actions)
+      .filter((action) => action.kind === "DeleteByDPBudget")
+      .map((action) => action.budgetBonus?.filter)
+      .concat(
+        compiled.effects
+          .flatMap((effect) => effect.actions)
+          .filter((action) => action.kind === "ModifyDP")
+          .map((action) => action.scaling?.filter),
+      );
+
+    expect(scalingFilters).toHaveLength(3);
+    expect(scalingFilters.every((filter) => filter?.zone === "battleArea")).toBe(true);
+  });
+
   it("on play adds 2000 to its deletion budget for each other allied Digimon", async () => {
     const s = setupEngine(
       {
@@ -149,5 +166,17 @@ describe("BT13-017 Jesmon", () => {
     await s.ready();
 
     for (const alias of baseDp.keys()) expect(s.perm(alias).currentDP).toBe(baseDp.get(alias)! + 2000);
+  });
+
+  it("does not count a Digimon in the breeding area as another Digimon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT13-017", as: "jesmon" }],
+        breeding: "BT1-012",
+      },
+    });
+    await s.ready();
+
+    expect(s.perm("jesmon").currentDP).toBe(11000);
   });
 });

@@ -12,7 +12,7 @@ describe("BT2-096 The Ray of Victory", () => {
           battleArea: [{ card: "BT2-021", as: "mine", suspended: true }, "BT2-085"],
           hand: [{ card: "BT2-096", as: "option" }],
         },
-        1: { battleArea: [{ card: "BT2-045", as: "target", under: [{ card: "BT2-001", as: "source" }] }] },
+        1: { battleArea: [{ card: "BT2-045", as: "target", under: [{ card: "BT2-043", as: "source" }] }] },
       },
       { autoSelectCards: true },
     );
@@ -99,7 +99,7 @@ describe("BT2-096 The Ray of Victory", () => {
           security: [{ card: "BT2-096", as: "securityOption", faceUp: true }],
           battleArea: [{ card: "BT2-021", as: "mine", suspended: true }, "BT2-085"],
         },
-        1: { battleArea: [{ card: "BT2-045", as: "target", under: [{ card: "BT2-001", as: "source" }] }] },
+        1: { battleArea: [{ card: "BT2-045", as: "target", under: [{ card: "BT2-043", as: "source" }] }] },
       },
       { autoSelectCards: true },
     );

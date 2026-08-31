@@ -54,7 +54,7 @@ describe("EX10-003 Tumblemon", () => {
           ],
           security: [{ card: "BT1-009", as: "security" }],
         },
-        1: { battleArea: [{ card: "BT5-082", as: "attacker" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 7000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -89,7 +89,7 @@ describe("EX10-003 Tumblemon", () => {
           ],
           security: ["BT1-009"],
         },
-        1: { battleArea: [{ card: "BT5-082", as: "attacker" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 7000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -123,7 +123,7 @@ describe("EX10-003 Tumblemon", () => {
           ],
           security: ["BT1-009"],
         },
-        1: { battleArea: [{ card: "BT5-082", as: "attacker" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 7000 }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );

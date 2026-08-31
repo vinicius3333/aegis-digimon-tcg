@@ -6,7 +6,7 @@ describe("BT8-001 Gurimon", () => {
   it("draws once when its 6000-DP-or-higher host attacks", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT8-017", as: "host", under: ["BT8-001"] }],
+        battleArea: [{ card: "BT8-013", as: "host", under: ["BT8-001", "BT8-008"] }],
         deck: [{ card: "BT8-033", as: "drawn" }],
       },
       1: { security: ["BT8-034"] },
@@ -26,7 +26,7 @@ describe("BT8-001 Gurimon", () => {
   it("does not draw when the opponent's Digimon attacks", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT8-017", as: "host", under: ["BT8-001"] }],
+        battleArea: [{ card: "BT8-013", as: "host", under: ["BT8-001", "BT8-008"] }],
         deck: [{ card: "BT8-033", as: "wouldDraw" }],
         security: ["BT8-034"],
       },
@@ -51,7 +51,7 @@ describe("BT8-001 Gurimon", () => {
   it("does not draw when its host has 5999 DP", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT8-017", as: "host", under: ["BT8-001"] }],
+        battleArea: [{ card: "BT8-013", as: "host", under: ["BT8-001", "BT8-008"] }],
         deck: [{ card: "BT8-033", as: "wouldDraw" }],
       },
       1: { security: ["BT8-034"] },

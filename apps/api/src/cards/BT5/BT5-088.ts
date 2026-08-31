@@ -48,6 +48,7 @@ const compiled: CompiledCard = {
                 count: 1,
               },
               amount: 2,
+              upTo: true,
               fromTop: false,
               cost: {
                 kind: "suspend",

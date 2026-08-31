@@ -5,6 +5,8 @@ import type { Cost } from "../predicates/costs.js";
 import type { Scaling } from "../predicates/scaling.js";
 
 export interface ActionBase {
+  /** This action is the payload of a Delay activation armed by a prior GainKeyword(Delay). */
+  requiresDelayArmed?: true;
   /** Optional per-action gate (the clause-level "If ..."). */
   condition?: Condition;
   /** Optional cost paid to perform this action. */

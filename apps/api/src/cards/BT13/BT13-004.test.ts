@@ -25,6 +25,17 @@ describe("BT13-004 Budmon", () => {
     expect(s.perm("host").currentDP).toBe(5000);
   });
 
+  it("does not count a suspended Digimon in the opponent's breeding area", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-064", as: "host", dp: 5000, under: ["BT13-004"] }] },
+      1: { breeding: { card: "BT1-010", as: "breedingOpponent", suspended: true } },
+    });
+
+    await s.engine.recomputeContinuousEffects();
+
+    expect(s.perm("host").currentDP).toBe(5000);
+  });
+
   it("does not give the bonus during the opponent's turn", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-064", as: "host", dp: 5000, under: ["BT13-004"] }] },

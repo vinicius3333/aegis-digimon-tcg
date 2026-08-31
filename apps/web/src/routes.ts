@@ -27,17 +27,6 @@ export function routeFromPathname(pathname: string): AppRoute | undefined {
   if (normalized === "/decks") return { screen: "deck" };
   if (normalized === "/collection") return { screen: "collection" };
   if (normalized === "/settings") return { screen: "settings" };
-  if (normalized === "/tournaments") return { screen: "tournaments", tournament: { kind: "catalog" } };
-  if (normalized === "/tournaments/new") return { screen: "tournaments", tournament: { kind: "create" } };
-
-  const tournamentMatch = /^\/tournaments\/([^/]+)$/.exec(normalized);
-  if (tournamentMatch?.[1]) {
-    try {
-      return { screen: "tournaments", tournament: { kind: "detail", id: decodeURIComponent(tournamentMatch[1]) } };
-    } catch {
-      return undefined;
-    }
-  }
   return undefined;
 }
 

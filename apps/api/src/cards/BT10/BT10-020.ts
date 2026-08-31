@@ -1,6 +1,6 @@
 // @ts-nocheck
 // HAND-FIXED IR for BT10-020 — do not regenerate.
-// AllTurns Aura while condition: added count:2 (opponent has 2+ Digimon).
+// On Play scaling and AllTurns Aura both count opposing Digimon in the battle area.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
@@ -22,6 +22,7 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
+              zone: "battleArea",
             },
             unit: "cards",
           },
@@ -66,12 +67,13 @@ export const compiled: CompiledCard = {
             kind: "modifyDP",
             amount: 1000,
           },
-          while: {
-            kind: "opponentHas",
-            filter: {
-              controllerDefault: "opponent",
-              kind: ["Digimon"],
-            },
+            while: {
+              kind: "opponentHas",
+              filter: {
+                controllerDefault: "opponent",
+                kind: ["Digimon"],
+                zone: "battleArea",
+              },
             count: 2,
             raw: "your opponent has 2 or more Digimon in play",
           },

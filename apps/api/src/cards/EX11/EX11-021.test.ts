@@ -1,4 +1,4 @@
-import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectDuration, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -167,13 +167,13 @@ describe("EX11-021 Kokeshimon", () => {
     assertNoLoudGap(s);
   });
 
-  it("does not end the attack when Barrier prevents the deletion cost (Q5806)", async () => {
+  it("does not end the attack when another effect prevents the deletion cost (Q5806)", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "BT1-032", as: "host", under: [cardId] },
-            { card: "BT1-032", as: "protectedFodder", under: ["EX11-019"] },
+            { card: "BT1-032", as: "protectedFodder" },
           ],
           security: ["BT1-010", "BT1-011"],
         },
@@ -184,6 +184,7 @@ describe("EX11-021 Kokeshimon", () => {
     s.state.turnSeat = 1;
     await s.ready();
     const protectedId = s.perm("protectedFodder").permanentId;
+    advance(s.engine).ledgers.continuous.addRestriction(protectedId, "beDeleted", EffectDuration.Permanent);
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -191,11 +192,7 @@ describe("EX11-021 Kokeshimon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some(({ kind }) => kind === "barrierPrompt"));
-    expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: protectedId, accept: true })).toEqual({
-      ok: true,
-    });
-    await settle(() => s.state.players[0]!.security.length === 0);
+    await settle(() => s.state.players[0]!.security.length === 1);
 
     expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === protectedId)).toBe(true);
     assertNoLoudGap(s);

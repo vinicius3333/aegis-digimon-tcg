@@ -22,6 +22,8 @@ const compiled: CompiledCard = {
           amount: 1,
           cost: {
             kind: "place",
+            targetIsPermanent: true,
+            shedOwnCards: true,
             target: {
               filter: {
                 controller: "mine",

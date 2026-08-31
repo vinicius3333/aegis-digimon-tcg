@@ -16,6 +16,7 @@ export const compiled: CompiledCard = {
           sourceFilter: {
             isSelfRef: true,
           },
+          requireByEffect: true,
           actions: [
             {
               kind: "GainMemory",

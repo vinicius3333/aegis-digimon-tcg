@@ -37,6 +37,7 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          requiresDelayArmed: true,
           kind: "Digivolve",
           target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
           into: {

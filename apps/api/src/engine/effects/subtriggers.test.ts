@@ -1,4 +1,4 @@
-import { CardColor } from "@aegis/shared";
+import { CardColor, CardKind } from "@aegis/shared";
 import { describe, it, expect } from "vitest";
 import type { EffectContext } from "./EffectContext.js";
 import { SubTriggerRegistry } from "./subtriggers.js";
@@ -6,6 +6,34 @@ import { SubTriggerRegistry } from "./subtriggers.js";
 const fakeCtx = {} as EffectContext;
 
 describe("SubTriggerRegistry", () => {
+  it("preserves Digimon-effect provenance for a linked Option watcher (BT25-100/101, Q6471/Q6476)", async () => {
+    const registry = new SubTriggerRegistry();
+    const enteredKinds: string[][] = [];
+    let bodyKinds: readonly string[] | undefined;
+    registry.subscribe({
+      event: "whenAttacking",
+      sourcePermanentId: "host",
+      isLinkedSource: true,
+      once: false,
+      description: "linked Option watcher",
+      run: async (ctx) => {
+        bodyKinds = ctx.effectSourceKinds;
+      },
+    });
+    const ctx = {
+      source: { ownerSeat: 0 },
+      fx: {
+        enterEffectResolution: (_seat: number, kinds?: string[]) => enteredKinds.push(kinds ?? []),
+        leaveEffectResolution: () => undefined,
+      },
+    } as unknown as EffectContext;
+
+    await registry.fire("whenAttacking", () => ctx, "host");
+
+    expect(bodyKinds).toEqual([CardKind.Digimon]);
+    expect(enteredKinds).toEqual([[CardKind.Digimon]]);
+  });
+
   it("accepts a matches-gated watcher retained by activation context", () => {
     const registry = new SubTriggerRegistry();
     expect(() =>
@@ -410,6 +438,207 @@ describe("SubTriggerRegistry — oncePerTurnKey (persistent-effect [Once Per Tur
     expect(n1).toBe(1);
     expect(n2).toBe(0);
     expect(fired).toBe(1);
+  });
+
+  it("fires every distinct action path in one snapshot, then blocks the next event", async () => {
+    const registry = new SubTriggerRegistry();
+    const fired: string[] = [];
+    const ledger = turnLedger();
+    const common = {
+      event: "whenPlayed" as const,
+      sourcePermanentId: "P1",
+      once: false,
+      oncePerTurnKey: "EX4-014/your-turn",
+    };
+    registry.subscribe({
+      ...common,
+      dedupeKey: "source/effect/0",
+      description: "draw clause",
+      run: async () => {
+        fired.push("draw");
+      },
+    });
+    registry.subscribe({
+      ...common,
+      dedupeKey: "source/effect/1",
+      description: "return clause",
+      run: async () => {
+        fired.push("return");
+      },
+    });
+
+    expect(await registry.fire("whenPlayed", () => fakeCtx, "P1", undefined, ledger)).toBe(2);
+    expect(fired).toEqual(["draw", "return"]);
+    expect(await registry.fire("whenPlayed", () => fakeCtx, "P1", undefined, ledger)).toBe(0);
+    expect(fired).toEqual(["draw", "return"]);
+  });
+
+  it("dedupes an identical action path while retaining distinct action-path identity", async () => {
+    const registry = new SubTriggerRegistry();
+    const first = registry.subscribe({
+      event: "whenPlayed",
+      sourcePermanentId: "P1",
+      once: false,
+      oncePerTurnKey: "EX4-014/your-turn",
+      dedupeKey: "source/effect/0",
+      description: "draw clause",
+      run: async () => undefined,
+    });
+    const duplicate = registry.subscribe({
+      event: "whenPlayed",
+      sourcePermanentId: "P1",
+      once: false,
+      oncePerTurnKey: "EX4-014/your-turn",
+      dedupeKey: "source/effect/0",
+      description: "draw clause",
+      run: async () => undefined,
+    });
+    const distinct = registry.subscribe({
+      event: "whenPlayed",
+      sourcePermanentId: "P1",
+      once: false,
+      oncePerTurnKey: "EX4-014/your-turn",
+      dedupeKey: "source/effect/1",
+      description: "return clause",
+      run: async () => undefined,
+    });
+
+    expect(duplicate).toBe(first);
+    expect(distinct).not.toBe(first);
+    expect(registry.subscriptionsFor("whenPlayed", "P1")).toHaveLength(2);
+  });
+
+  it("lets a declined sibling leave the shared snapshot budget available", async () => {
+    const registry = new SubTriggerRegistry();
+    const fired = new Set<string>();
+    const ledger = {
+      hasFired: (key: string) => fired.has(key),
+      markFired: (key: string) => fired.add(key),
+      unmarkFired: (key: string) => fired.delete(key),
+    };
+    const runs: string[] = [];
+    const common = {
+      event: "whenPlayed" as const,
+      sourcePermanentId: "P1",
+      once: false,
+      oncePerTurnKey: "EX4-014/your-turn",
+    };
+    registry.subscribe({
+      ...common,
+      dedupeKey: "source/effect/0",
+      description: "optional draw clause",
+      run: async (ctx) => {
+        runs.push("declined");
+        ctx.oncePerTurnActivationDeclined = true;
+      },
+    });
+    registry.subscribe({
+      ...common,
+      dedupeKey: "source/effect/1",
+      description: "successful return clause",
+      run: async () => {
+        runs.push("successful");
+      },
+    });
+
+    expect(await registry.fire("whenPlayed", () => ({ ...fakeCtx }), "P1", undefined, ledger)).toBe(2);
+    expect(runs).toEqual(["declined", "successful"]);
+    expect(fired).toEqual(new Set(["EX4-014/your-turn"]));
+  });
+
+  it("keeps the shared budget consumed when a successful sibling precedes a decline", async () => {
+    const registry = new SubTriggerRegistry();
+    const fired = new Set<string>();
+    const ledger = {
+      hasFired: (key: string) => fired.has(key),
+      markFired: (key: string) => fired.add(key),
+      unmarkFired: (key: string) => fired.delete(key),
+    };
+    const runs: string[] = [];
+    const common = {
+      event: "whenPlayed" as const,
+      sourcePermanentId: "P1",
+      once: false,
+      oncePerTurnKey: "EX4-014/your-turn",
+    };
+    registry.subscribe({
+      ...common,
+      dedupeKey: "source/effect/0",
+      description: "successful return clause",
+      run: async () => {
+        runs.push("successful");
+      },
+    });
+    registry.subscribe({
+      ...common,
+      dedupeKey: "source/effect/1",
+      description: "optional draw clause",
+      run: async (ctx) => {
+        runs.push("declined");
+        ctx.oncePerTurnActivationDeclined = true;
+      },
+    });
+
+    expect(await registry.fire("whenPlayed", () => ({ ...fakeCtx }), "P1", undefined, ledger)).toBe(2);
+    expect(runs).toEqual(["successful", "declined"]);
+    expect(fired).toEqual(new Set(["EX4-014/your-turn"]));
+  });
+
+  it("retains that success when ordered siblings resolve through separate snapshot calls", async () => {
+    const registry = new SubTriggerRegistry();
+    const fired = new Set<string>();
+    const ledger = {
+      hasFired: (key: string) => fired.has(key),
+      markFired: (key: string) => fired.add(key),
+      unmarkFired: (key: string) => fired.delete(key),
+    };
+    const snapshotKeys = new Set(["EX4-014/your-turn"]);
+    const successfulKeys = new Set<string>();
+    const common = {
+      event: "whenPlayed" as const,
+      sourcePermanentId: "P1",
+      once: false,
+      oncePerTurnKey: "EX4-014/your-turn",
+    };
+    const successful = registry.subscribe({
+      ...common,
+      dedupeKey: "source/effect/0",
+      description: "successful clause",
+      run: async () => {},
+    });
+    const declined = registry.subscribe({
+      ...common,
+      dedupeKey: "source/effect/1",
+      description: "declined clause",
+      run: async (ctx) => {
+        ctx.oncePerTurnActivationDeclined = true;
+      },
+    });
+    const subscriptions = registry.subscriptionsFor("whenPlayed", "P1");
+
+    await registry.fireSnapshot(
+      subscriptions.filter((sub) => sub.id === successful),
+      () => ({ ...fakeCtx }),
+      undefined,
+      ledger,
+      undefined,
+      undefined,
+      snapshotKeys,
+      successfulKeys,
+    );
+    await registry.fireSnapshot(
+      subscriptions.filter((sub) => sub.id === declined),
+      () => ({ ...fakeCtx }),
+      undefined,
+      ledger,
+      undefined,
+      undefined,
+      snapshotKeys,
+      successfulKeys,
+    );
+
+    expect(successfulKeys).toEqual(new Set(["EX4-014/your-turn"]));
+    expect(fired).toEqual(new Set(["EX4-014/your-turn"]));
   });
 
   it("the key surviving a fresh subscription id (continuous recompute) still gates the second fire", async () => {

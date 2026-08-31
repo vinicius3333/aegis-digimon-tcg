@@ -1,8 +1,8 @@
 // @ts-nocheck
 // Hand-authored override — do not regenerate.
-// OnPlay+WhenDigivolving: 3 separate PlaceUnder actions (1 per named card from trash).
+// OnPlay+WhenDigivolving: 3 separate bottom PlaceUnder actions (1 per named card from trash).
 // Errata (2022-09-05): Fujinmon (not Fuijinmon). Source zone: trash (per text and errata).
-// GainMemory scaling: count placed cards (no controllerDefault restriction).
+// GainMemory scaling: count all cards placed by this effect (no controllerDefault restriction).
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
@@ -25,6 +25,7 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
+          position: "bottom",
         },
         {
           kind: "PlaceUnder",
@@ -41,6 +42,7 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
+          position: "bottom",
         },
         {
           kind: "PlaceUnder",
@@ -57,6 +59,7 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
+          position: "bottom",
         },
         {
           kind: "GainMemory",
@@ -86,6 +89,7 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
+          position: "bottom",
         },
         {
           kind: "PlaceUnder",
@@ -102,6 +106,7 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
+          position: "bottom",
         },
         {
           kind: "PlaceUnder",
@@ -118,6 +123,7 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
+          position: "bottom",
         },
         {
           kind: "GainMemory",

@@ -22,7 +22,7 @@ describe("EX11-038 Sunarizamon", () => {
     const compiled = runtimeCompiledCard(cardId)!;
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.digivolutionRequirement).toEqual([]);
-    expect(digivolutionRequirementsFor(cardId)).toBeUndefined();
+    expect(digivolutionRequirementsFor(cardId)).toEqual([]);
     for (const trigger of ["WhenMoving", "OnPlay"]) {
       const effect = compiled.effects.find((candidate) => candidate.trigger === trigger)!;
       expect(effect.actions[0]).toMatchObject({

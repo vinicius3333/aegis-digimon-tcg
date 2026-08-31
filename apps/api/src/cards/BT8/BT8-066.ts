@@ -11,7 +11,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // (Hisyaryumon has [X-Antibody] so the condition is met whenever this is inherited).
 // selfDigivolutionStackHasTrait checks the host's digivolution
 // stack for the [X-Antibody] trait (the whole stack, including Hisyaryumon itself).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "YourTurn",
@@ -21,6 +21,7 @@ const compiled: CompiledCard = {
           event: "onAddDigivolutionCards",
           sourceFilter: {
             isSelfRef: true,
+            byEffect: true,
           },
           actions: [
             {

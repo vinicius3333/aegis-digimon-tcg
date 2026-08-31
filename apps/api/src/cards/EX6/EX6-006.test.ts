@@ -1,4 +1,7 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-006.js";
 
 describe("EX6-006 Gate of Deadly Sins", () => {
@@ -51,5 +54,21 @@ describe("EX6-006 Gate of Deadly Sins", () => {
         },
       ],
     });
+  });
+
+  it("Q3694: deletes all of its controller's Digimon even when the Digi-Egg deck is empty", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "EX6-006", as: "gate" },
+        battleArea: [{ card: "BT1-009", as: "victim" }],
+      },
+    });
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("gate"));
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("victim").instanceId);
+    expect(s.perm("gate").stack).toHaveLength(0);
   });
 });

@@ -23,7 +23,7 @@ describe("BT26-060 Chronomon: Destroy Mode", () => {
       residual: [],
       digivolutionRequirement: [
         { level: 6, texts: ["Chronomon"], cost: 5, isAlternate: true },
-        { level: 6, namesExact: ["Giant Slayer"], cost: 5, isAlternate: true },
+        { namesExact: ["Giant Slayer"], cost: 5, isAlternate: true },
       ],
     });
     expect(compiled.keywords?.map(({ keyword }) => keyword)).toEqual(
@@ -45,6 +45,63 @@ describe("BT26-060 Chronomon: Destroy Mode", () => {
         },
       ],
     });
+  });
+
+  it("uses each exact alternate evolution path and rejects a non-matching Lv.6", async () => {
+    const chronomon = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-016", as: "chronomonBase" }],
+        hand: [{ card: CARD_ID, as: "destroyMode" }],
+      },
+    });
+    chronomon.state.memory = 5;
+    await chronomon.ready();
+    expect(
+      chronomon.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: chronomon.perm("chronomonBase").permanentId,
+        instanceId: chronomon.inst("destroyMode").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => chronomon.perm("chronomonBase").topCard.cardId === CARD_ID);
+    expect(chronomon.state.memory).toBe(0);
+
+    const giantSlayer = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-085", as: "giantSlayerBase" }],
+        hand: [{ card: CARD_ID, as: "destroyMode" }],
+      },
+    });
+    giantSlayer.state.memory = 5;
+    await giantSlayer.ready();
+    expect(
+      giantSlayer.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: giantSlayer.perm("giantSlayerBase").permanentId,
+        instanceId: giantSlayer.inst("destroyMode").instanceId,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => giantSlayer.perm("giantSlayerBase").topCard.cardId === CARD_ID);
+    expect(giantSlayer.state.memory).toBe(0);
+
+    const invalid = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-017", as: "nonMatchingBase" }],
+        hand: [{ card: CARD_ID, as: "destroyMode" }],
+      },
+    });
+    invalid.state.memory = 5;
+    await invalid.ready();
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("nonMatchingBase").permanentId,
+        instanceId: invalid.inst("destroyMode").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
   });
 
   it("Q7079/Q7081 returns the current top and at most 4 sources from exactly 3 targets, leaving one card", async () => {
@@ -237,6 +294,7 @@ describe("BT26-060 Chronomon: Destroy Mode", () => {
               as: "destroyMode",
               under: [
                 { card: "BT26-016", as: "lowerHolyMode" },
+                { card: "BT26-017", as: "nonChronomon" },
                 { card: "BT26-016", as: "highestHolyMode" },
               ],
             },
@@ -258,6 +316,27 @@ describe("BT26-060 Chronomon: Destroy Mode", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(Array.from(s.perm("destroyMode").keywords)).toEqual(
       expect.arrayContaining(["Piercing", "Engage", "Reboot", "Blocker"]),
+    );
+  });
+
+  it("doesn't delete a Digimon when the optional deck-add reaction is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "destroyMode" }],
+          trash: [{ card: "BT1-009", as: "ownReturn" }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "victim" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.returnToDeck([s.inst("ownReturn").instanceId]);
+
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("ownReturn").instanceId);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(
+      s.perm("victim").permanentId,
     );
   });
 });

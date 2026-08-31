@@ -32,6 +32,8 @@ const compiled: CompiledCard = {
             },
             raw: "By placing 1 purple Digimon card from your hand under one of your Tamers",
           },
+          optional: true,
+          abortOnDecline: true,
         },
       ],
     },

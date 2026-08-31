@@ -24,6 +24,14 @@ describe("BT21-077 Regulusmon", () => {
       gainedTrigger: "StartOfYourMainPhase",
     });
     expect(compiled.effects.filter((e) => e.trigger === "OnDeletion")).toHaveLength(2);
+    expect(compiled.effects.find((e) => e.trigger === "OnDeletion" && !e.isInherited)?.actions[0]).toMatchObject({
+      kind: "PlayWithoutCost",
+      target: {
+        filter: {
+          orFilters: expect.arrayContaining([{ nameOrTrait: [{ tokens: ["Canoweissmon"], match: "nameExact" }] }]),
+        },
+      },
+    });
     expect(compiled.effects.find((e) => e.trigger === "OnDeletion" && e.isInherited)?.actions[0]).toMatchObject({
       kind: "PlayWithoutCost",
       from: ["trash"],

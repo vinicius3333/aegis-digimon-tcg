@@ -8,6 +8,7 @@ const tamer = {
   nameOrTrait: [{ tokens: ["Tai Kamiya", "Kari Kamiya"], match: "name" }],
 };
 export const compiled: CompiledCard = {
+  digivolutionRequirement: [{ level: 3, names: ["Agumon"], cost: 2, isAlternate: true }],
   effects: [
     {
       trigger: "WhenDigivolving",

@@ -18,6 +18,7 @@ const compiled: CompiledCard = {
               filter: {
                 controllerDefault: "mine",
                 multicolor: true,
+                colorCount: 2,
                 colors: ["Blue"],
               },
               count: 1,
@@ -32,5 +33,7 @@ const compiled: CompiledCard = {
   coverage: "full",
   residual: [],
 };
+
+export { compiled };
 
 registerIrCard("BT8-021", compiled);

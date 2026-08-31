@@ -1,10 +1,9 @@
-import { describe, it, expect } from "vitest";
-import { EffectTiming, CardKind, CardColor, type CardDefinition, type GameState, type Seat } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { getEffectModule } from "../../engine/effects/registry.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./AD1-021.js";
 
 // AD1-021 Marcus Damon & Agumon
@@ -14,149 +13,8 @@ import "./AD1-021.js";
 //
 // KB sources: Q6101-Q6111 (2026-03-13/2026-05-08)
 
-interface Recorder {
-  calls: { verb: string; args: unknown[] }[];
-}
-
-function fakeTamerDefinition(over: Partial<CardDefinition> = {}): CardDefinition {
-  return {
-    cardId: "AD1-021",
-    set: "AD1",
-    nameEn: "Marcus Damon & Agumon",
-    kinds: [CardKind.Tamer],
-    colors: [CardColor.Yellow],
-    playCost: 3,
-    dp: 0,
-    evoCosts: [],
-    maxCountInDeck: 4,
-    ...over,
-  };
-}
-
-function fakeMarcosDamonDefinition(): CardDefinition {
-  return {
-    cardId: "AD1-021",
-    set: "AD1",
-    nameEn: "Marcus Damon",
-    kinds: [CardKind.Tamer],
-    colors: [CardColor.Yellow],
-    playCost: 3,
-    dp: 0,
-    evoCosts: [],
-    maxCountInDeck: 4,
-  };
-}
-
-function fakeYellowAgumonDefinition(): CardDefinition {
-  return {
-    cardId: "BT1-010",
-    set: "BT1",
-    nameEn: "Agumon",
-    kinds: [CardKind.Digimon],
-    colors: [CardColor.Yellow],
-    playCost: 3,
-    dp: 2000,
-    evoCosts: [],
-    maxCountInDeck: 4,
-  };
-}
-
-function makeSource(overrides: Partial<CardSource> = {}): CardSource {
-  return {
-    instanceId: "INST#AD1-021",
-    cardId: "AD1-021",
-    ownerSeat: 0 as Seat,
-    definition: fakeTamerDefinition(),
-    permanent: () => undefined,
-    isOnBattleArea: () => true,
-    isOwnersTurn: () => true,
-    hasColor: (c) => c === CardColor.Yellow,
-    ...overrides,
-  };
-}
-
-type BattleAreaEntry = {
-  permanentId: string;
-  topCard: { instanceId: string; cardId: string; ownerSeat: Seat };
-  currentDP: number;
-  isSuspended: boolean;
-  stack: never[];
-  linked?: never[];
-};
-
-function makePermanent(
-  permanentId: string,
-  definition: CardDefinition,
-  currentDP = 0,
-  isSuspended = false,
-): BattleAreaEntry {
-  return {
-    permanentId,
-    topCard: { instanceId: `INST#${permanentId}`, cardId: definition.cardId, ownerSeat: 0 as Seat },
-    currentDP,
-    isSuspended,
-    stack: [],
-  };
-}
-
-function makeContext(opts: {
-  recorder: Recorder;
-  seat0BattleArea?: BattleAreaEntry[];
-  seat1BattleArea?: BattleAreaEntry[];
-  definitionMap?: Map<string, CardDefinition>;
-}): EffectContext {
-  const seat0Area = opts.seat0BattleArea ?? [];
-  const seat1Area = opts.seat1BattleArea ?? [];
-  const defMap = opts.definitionMap ?? new Map<string, CardDefinition>();
-
-  const players = [
-    { seat: 0, battleArea: seat0Area, security: [], hand: [], deck: [], trash: [] },
-    { seat: 1, battleArea: seat1Area, security: [], hand: [], deck: [], trash: [] },
-  ];
-  const state = { memory: 3, players, turnSeat: 0 } as unknown as GameState;
-
-  const game: GameAccess = {
-    state,
-    player: (seat: Seat) => players[seat] as never,
-    opponentOf: (s) => (s === 0 ? 1 : 0) as Seat,
-    permanentById: (id) => seat0Area.find((p) => p.permanentId === id) as never,
-    definitionOf: (card) => {
-      const def = defMap.get(card.cardId);
-      if (def) return def;
-      return fakeTamerDefinition({ cardId: card.cardId });
-    },
-  };
-
-  const record =
-    (verb: string) =>
-    (...args: unknown[]) => {
-      opts.recorder.calls.push({ verb, args });
-      return undefined as never;
-    };
-
-  const fx = {
-    restrict: record("restrict"),
-    grantKeyword: record("grantKeyword"),
-    grantNameTrait: record("grantNameTrait"),
-    grantKind: record("grantKind"),
-    setBaseDP: record("setBaseDP"),
-    modifyDP: record("modifyDP"),
-    forceAttack: record("forceAttack"),
-  } as unknown as Primitives;
-
-  const ask: DecisionApi = {
-    optional: async () => true,
-    chooseTargets: async (_c, o) => o.candidates.slice(0, o.max),
-    selectPermanents: async (_c, o) => o.candidates.slice(0, o.max),
-    selectCards: async (_c, o) => o.candidates.slice(0, o.max),
-    chooseOption: async () => 0,
-  };
-
-  return { source: makeSource(), trigger: {}, game, fx, ask };
-}
-
 describe("AD1-021 Marcus Damon & Agumon", () => {
-  const module = getEffectModule("AD1-021");
+  const compiled = registeredCompiledCards.get("AD1-021");
 
   it("plays from security without paying its cost", async () => {
     const s = setupEngine({ 0: { security: [{ card: "AD1-021", as: "securityMarcus", faceUp: true }] } });
@@ -170,8 +28,8 @@ describe("AD1-021 Marcus Damon & Agumon", () => {
     ).toBe(true);
   });
 
-  it("is registered", () => {
-    expect(module, "AD1-021 must self-register on import").toBeDefined();
+  it("is registered as fully covered compiled IR", () => {
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
   });
 
   it("draws and may digivolve for 3 less only when this Tamer suspends", async () => {
@@ -197,7 +55,8 @@ describe("AD1-021 Marcus Damon & Agumon", () => {
     expect(s.state.memory).toBe(2);
   });
 
-  it("turns one Marcus into a 6000 DP Rush Digimon that can't digivolve, then attacks", async () => {
+  it("turns only the chosen Marcus into a restricted 6000 DP Rush Digimon, then attacks once", async () => {
+    const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -206,25 +65,23 @@ describe("AD1-021 Marcus Damon & Agumon", () => {
             { card: "BT12-034", as: "agumon" },
           ],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-001", "BT1-001"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
     );
+    preferInstanceIds.push(s.perm("marcus").topCard!.instanceId);
 
     await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("marcus"));
     await settle();
-    const continuous = (
-      s.engine as unknown as {
-        continuous: {
-          hasKeyword(id: string, keyword: string): boolean;
-          hasRestriction(id: string, restriction: string): boolean;
-        };
-      }
-    ).continuous;
 
+    const view = observe(s.engine);
     expect(s.perm("marcus").currentDP).toBe(6000);
-    expect(continuous.hasKeyword(s.perm("marcus").permanentId, "Rush")).toBe(true);
-    expect(continuous.hasRestriction(s.perm("marcus").permanentId, "digivolve")).toBe(true);
+    expect(view.hasKeyword(s.perm("marcus"), "Rush")).toBe(true);
+    expect(view.isRestricted(s.perm("marcus"), "digivolve")).toBe(true);
+    expect(view.hasKeyword(s.perm("agumon"), "Rush")).toBe(false);
+    expect(view.isRestricted(s.perm("agumon"), "digivolve")).toBe(false);
+    expect(view.hasAttackedThisTurn(s.perm("marcus"))).toBe(true);
+    expect(s.events.filter((event) => event.kind === "attackDeclared")).toHaveLength(1);
   });
 
   it("does not offer the trailing attack without the yellow Agumon/Greymon gate", async () => {
@@ -235,190 +92,28 @@ describe("AD1-021 Marcus Damon & Agumon", () => {
 
     await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("marcus"));
     await settle();
+
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
-  // Q6111: [End of Your Turn] is mandatory and [Once Per Turn].
-  // The effect must appear at OnEndTurn and NOT at wrong timings.
-  it("routes [End of Your Turn] to OnEndTurn and not to other timings", () => {
-    const source = makeSource();
-    // Q6111: the effect fires at end of turn.
-    expect(module!.effectsForTiming(EffectTiming.OnEndTurn, source).length).toBeGreaterThanOrEqual(1);
-    // Sanity: no end-of-turn effect in wrong windows.
-    expect(module!.effectsForTiming(EffectTiming.OnPlay, source)).toHaveLength(0);
-    expect(module!.effectsForTiming(EffectTiming.OnStartTurn, source)).toHaveLength(0);
-  });
-
-  // Q6111: "you must choose 1 of your [Marcus Damon]s" — the TAMER named Marcus Damon
-  // is the target of the "also treated as a 6000 DP Digimon, gains <Rush> and can't
-  // digivolve" bundle. The IR incorrectly targets kind:["Digimon"] for the Restrict
-  // action; Marcus Damon is a Tamer, not a Digimon, so it would never be matched and
-  // the restriction would never be applied.
-  it("[End of Your Turn] applies digivolve restriction to the chosen Marcus Damon Tamer", async () => {
-    // KB-correct: the hand-fixed IR targets [Marcus Damon] by NAME without a kind
-    // restriction (documented behavior CanSelectTamer has no kind check), so the Tamer is matched.
-    const recorder: Recorder = { calls: [] };
-    const marcusDamonDef = fakeMarcosDamonDefinition();
-    const agumonDef = fakeYellowAgumonDefinition();
-
-    // Battle area: Marcus Damon (Tamer) + a yellow Agumon (Digimon, satisfies the gate).
-    const _marcusPermanent = makePermanent("PERM#marcus", marcusDamonDef);
-    const _agumonPermanent = makePermanent("PERM#agumon", agumonDef, 2000);
-
-    const _defMap = new Map<string, CardDefinition>([
-      [marcusDamonDef.cardId, marcusDamonDef],
-      [agumonDef.cardId, agumonDef],
-    ]);
-
-    // Use a definition map keyed by cardId. Marcus Damon shares card id AD1-021.
-    // Give him a distinct fake cardId to allow the filter to match by nameEn.
-    const marcusDistinctDef: CardDefinition = {
-      ...marcusDamonDef,
-      cardId: "MARCUS-TAMER",
-      nameEn: "Marcus Damon",
-      kinds: [CardKind.Tamer],
-    };
-    const agumonDistinctDef: CardDefinition = {
-      ...agumonDef,
-      cardId: "AGUMON-YELLOW",
-      nameEn: "Agumon",
-      kinds: [CardKind.Digimon],
-    };
-    const marcusPermanent2 = makePermanent("PERM#marcus", marcusDistinctDef);
-    const agumonPermanent2 = makePermanent("PERM#agumon", agumonDistinctDef, 2000);
-
-    const defMap2 = new Map<string, CardDefinition>([
-      [marcusDistinctDef.cardId, marcusDistinctDef],
-      [agumonDistinctDef.cardId, agumonDistinctDef],
-    ]);
-
-    const ctx = makeContext({
-      recorder,
-      seat0BattleArea: [marcusPermanent2, agumonPermanent2],
-      definitionMap: defMap2,
+  it("binds every Marcus grant to one selection and declares exactly one optional attack", () => {
+    const endTurn = compiled?.effects.find((effect) => effect.trigger === "EndOfYourTurn");
+    expect(endTurn).toBeDefined();
+    expect(endTurn?.frequency).toBe("OncePerTurn");
+    expect(endTurn?.actions).toHaveLength(6);
+    expect(endTurn?.actions[0]).toMatchObject({
+      kind: "SelectBind",
+      target: {
+        bindAs: "chosenMarcus",
+        count: 1,
+        filter: { controller: "mine", nameOrTrait: [{ tokens: ["Marcus Damon"], match: "name" }] },
+      },
     });
-    // Override permanentById to handle both ids
-    (ctx.game as { permanentById: (id: string) => BattleAreaEntry | undefined }).permanentById = (id) =>
-      [marcusPermanent2, agumonPermanent2].find((p) => p.permanentId === id);
-
-    const endTurnEffects = module!.effectsForTiming(EffectTiming.OnEndTurn, makeSource());
-    expect(endTurnEffects.length).toBeGreaterThanOrEqual(1);
-    await endTurnEffects[0]!.resolve(ctx);
-
-    // The IR should call restrict("PERM#marcus", "digivolve", ...) for the Tamer.
-    const restrictCalls = recorder.calls.filter((c) => c.verb === "restrict");
-    expect(restrictCalls.length).toBeGreaterThanOrEqual(1);
-    expect(restrictCalls[0]!.args[0]).toBe("PERM#marcus");
-  });
-
-  // Q6102: "it can attack like a standard Digimon, and it will gain <Rush>".
-  // Q6111: "1 of your [Marcus Damon]s is also treated as a 6000 DP Digimon, gains <Rush>".
-  // The Rush keyword must be granted to the SAME Marcus Damon permanent that received
-  // the "also treated as Digimon" treatment — NOT to a yellow Agumon/Greymon Digimon.
-  // The IR GainKeyword action incorrectly targets yellow Digimon with Agumon/Greymon
-  // in their name instead of the chosen Marcus Damon.
-  it("[End of Your Turn] grants Rush to the chosen Marcus Damon, not to a yellow Agumon/Greymon", async () => {
-    // KB-correct: the hand-fixed IR's GainKeyword targets the name-matched
-    // [Marcus Damon]; the yellow Agumon/Greymon is only the youHave gate.
-    const recorder: Recorder = { calls: [] };
-    const marcusDistinctDef: CardDefinition = {
-      cardId: "MARCUS-TAMER",
-      set: "AD1",
-      nameEn: "Marcus Damon",
-      kinds: [CardKind.Tamer],
-      colors: [CardColor.Yellow],
-      playCost: 3,
-      dp: 0,
-      evoCosts: [],
-      maxCountInDeck: 4,
-    };
-    const agumonDistinctDef: CardDefinition = {
-      cardId: "AGUMON-YELLOW",
-      set: "BT1",
-      nameEn: "Agumon",
-      kinds: [CardKind.Digimon],
-      colors: [CardColor.Yellow],
-      playCost: 3,
-      dp: 2000,
-      evoCosts: [],
-      maxCountInDeck: 4,
-    };
-
-    const marcusPermanent = makePermanent("PERM#marcus", marcusDistinctDef);
-    const agumonPermanent = makePermanent("PERM#agumon", agumonDistinctDef, 2000);
-
-    const defMap = new Map<string, CardDefinition>([
-      [marcusDistinctDef.cardId, marcusDistinctDef],
-      [agumonDistinctDef.cardId, agumonDistinctDef],
+    for (const action of endTurn?.actions.slice(1, 5) ?? []) {
+      expect(action).toMatchObject({ target: { fromSelectionRef: "chosenMarcus", count: 1 } });
+    }
+    expect(endTurn?.actions.filter((action) => action.kind === "Attack")).toEqual([
+      expect.objectContaining({ kind: "Attack", optional: true }),
     ]);
-
-    const ctx = makeContext({
-      recorder,
-      seat0BattleArea: [marcusPermanent, agumonPermanent],
-      definitionMap: defMap,
-    });
-    (ctx.game as { permanentById: (id: string) => BattleAreaEntry | undefined }).permanentById = (id) =>
-      [marcusPermanent, agumonPermanent].find((p) => p.permanentId === id);
-
-    const endTurnEffects = module!.effectsForTiming(EffectTiming.OnEndTurn, makeSource());
-    await endTurnEffects[0]!.resolve(ctx);
-
-    // Rush must be granted to the Marcus Damon Tamer permanent, not the Agumon.
-    const rushCalls = recorder.calls.filter((c) => c.verb === "grantKeyword" && (c.args[1] as string) === "Rush");
-    expect(rushCalls.length).toBeGreaterThanOrEqual(1);
-    // KB-correct: Rush goes to PERM#marcus (the chosen Marcus Damon).
-    expect(rushCalls[0]!.args[0]).toBe("PERM#marcus");
-  });
-
-  // The IR incorrectly emits TWO Attack actions in the EndOfYourTurn effect.
-  // Q6110 confirms: two copies trigger simultaneously, but EACH has only one attack
-  // declaration, confirming the effect itself has a single Attack action per copy.
-  it("[End of Your Turn] resolves exactly one Attack action (not two)", async () => {
-    // KB-correct (Q6110): the EndOfYourTurn effect carries exactly ONE optional
-    // Attack action.
-    const recorder: Recorder = { calls: [] };
-    const agumonDef: CardDefinition = {
-      cardId: "AGUMON-YELLOW",
-      set: "BT1",
-      nameEn: "Agumon",
-      kinds: [CardKind.Digimon],
-      colors: [CardColor.Yellow],
-      playCost: 3,
-      dp: 2000,
-      evoCosts: [],
-      maxCountInDeck: 4,
-    };
-    const marcusDef: CardDefinition = {
-      cardId: "MARCUS-TAMER",
-      set: "AD1",
-      nameEn: "Marcus Damon",
-      kinds: [CardKind.Tamer],
-      colors: [CardColor.Yellow],
-      playCost: 3,
-      dp: 0,
-      evoCosts: [],
-      maxCountInDeck: 4,
-    };
-    const agumonPermanent = makePermanent("PERM#agumon", agumonDef, 2000);
-    const marcusPermanent = makePermanent("PERM#marcus", marcusDef);
-    const defMap = new Map<string, CardDefinition>([
-      [agumonDef.cardId, agumonDef],
-      [marcusDef.cardId, marcusDef],
-    ]);
-    const ctx = makeContext({
-      recorder,
-      seat0BattleArea: [marcusPermanent, agumonPermanent],
-      definitionMap: defMap,
-    });
-    (ctx.game as { permanentById: (id: string) => BattleAreaEntry | undefined }).permanentById = (id) =>
-      [marcusPermanent, agumonPermanent].find((p) => p.permanentId === id);
-
-    const endTurnEffects = module!.effectsForTiming(EffectTiming.OnEndTurn, makeSource());
-    await endTurnEffects[0]!.resolve(ctx);
-
-    // There should be at most 1 forceAttack call per resolution of this effect.
-    // Q6110: each copy of this card can produce at most 1 attack declaration.
-    const attackCalls = recorder.calls.filter((c) => c.verb === "forceAttack");
-    expect(attackCalls).toHaveLength(1);
   });
 });

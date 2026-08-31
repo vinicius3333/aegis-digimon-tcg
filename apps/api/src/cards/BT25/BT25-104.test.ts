@@ -3,10 +3,20 @@ import { CardKind, EffectDuration, EffectTiming, digivolutionRequirementsFor } f
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { compiled } from "./BT25-104.js";
 import "../index.js";
 
 describe("BT25-104 ShineGreymon: Burst Mode", () => {
   it("exposes both the DATA SQUAD and Marcus-return Burst Digivolve routes", async () => {
+    expect(compiled.digivolutionRequirement).toEqual([
+      { cost: 5, isAlternate: true, level: 6, traits: ["DATA SQUAD"] },
+      {
+        cost: 0,
+        isAlternate: true,
+        names: ["ShineGreymon"],
+        burstDigivolve: { returnTamerNamesExact: ["Marcus Damon"] },
+      },
+    ]);
     expect(digivolutionRequirementsFor("BT25-104")).toEqual([
       { cost: 5, isAlternate: true, level: 6, traits: ["DATA SQUAD"] },
       {
@@ -41,7 +51,11 @@ describe("BT25-104 ShineGreymon: Burst Mode", () => {
         alternateRequirementIndex: 1,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard.cardId === "BT25-104");
+    await settle(() => s.perm("base").topCard.cardId === "BT25-104" && s.perm("target").currentDP === 2000);
+    // Final Shining Burst applies -15000, then the replayed Marcus suspends and applies
+    // its own -3000 reaction. Prove the completed nested chain rather than its 5000-DP
+    // intermediate state.
+    expect(s.perm("target").currentDP).toBe(2000);
     // The Burst cost returns Marcus, then this card's mandatory When Digivolving
     // activates its Option-side Main. With auto-selection enabled, that optional Main
     // replays Marcus; his On Play suspension gains 1 memory while a Greymon is present.
@@ -129,6 +143,41 @@ describe("BT25-104 ShineGreymon: Burst Mode", () => {
         useAs: "option",
       } as never),
     ).toEqual({ ok: false, reason: "color-requirement-unmet" });
+  });
+
+  it("requires a DATA SQUAD Digimon or Tamer in the battle area for Use Req.", async () => {
+    expect(compiled.effects).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          trigger: "Static",
+          actions: [
+            expect.objectContaining({
+              kind: "WaiveColorRequirement",
+              condition: expect.objectContaining({
+                kind: "youHave",
+                filter: expect.objectContaining({ zone: "battleArea", kind: ["Digimon", "Tamer"] }),
+              }),
+            }),
+          ],
+        }),
+      ]),
+    );
+
+    for (const board of [
+      { breeding: { card: "BT25-021", as: "breedingDataSquad" } },
+      { battleArea: [{ card: "ST24-15", as: "dataSquadOption" }] },
+    ]) {
+      const s = setupEngine({ 0: { ...board, hand: [{ card: "BT25-104", as: "option" }] } });
+      s.state.memory = 6;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "playCard",
+          instanceId: s.inst("option").instanceId,
+          useAs: "option",
+        } as never),
+      ).toEqual({ ok: false, reason: "color-requirement-unmet" });
+    }
   });
 
   it("activates the Option-side Main effect from When Digivolving", async () => {

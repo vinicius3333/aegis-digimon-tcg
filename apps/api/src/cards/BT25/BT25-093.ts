@@ -20,6 +20,8 @@ export const compiled: CompiledCard = {
             kind: "youHave",
             filter: {
               controllerDefault: "mine",
+              zone: "battleArea",
+              kind: ["Digimon", "Tamer"],
               nameOrTrait: [
                 {
                   tokens: ["TS"],
@@ -61,6 +63,7 @@ export const compiled: CompiledCard = {
               zone: "battleArea",
               controller: "opponent",
               kind: ["Option"],
+              placedInBattleAreaByEffect: true,
             },
             count: 1,
           },
@@ -114,6 +117,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  linkRequirement: [{ traits: ["TS"], cost: 3 }],
 };
 
 registerIrCard("BT25-093", compiled);

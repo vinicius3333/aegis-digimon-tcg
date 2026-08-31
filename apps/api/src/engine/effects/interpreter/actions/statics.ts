@@ -8,7 +8,7 @@ import { toDuration } from "../duration.js";
 import { unsupported } from "../errors.js";
 import { GRANTED_EFFECT_LIBRARY } from "../grantedEffects.js";
 import { scaleFactor } from "../scaling.js";
-import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
+import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
 import { SUBTRIGGER_EVENT_MAP } from "./subTrigger.js";
 import { EffectDuration } from "@aegis/shared";
@@ -50,9 +50,11 @@ export async function runStaticAction(ctx: EffectContext, action: Action): Promi
             }
             break;
           }
-          case "modifyDP":
-            ctx.fx.modifyDP(id, action.effect.amount, duration, { continuous: true });
+          case "modifyDP": {
+            const amount = action.effect.amount * (action.scaling === undefined ? 1 : scaleFactor(ctx, action.scaling));
+            ctx.fx.modifyDP(id, amount, duration, { continuous: true });
             break;
+          }
           case "modifySecurityDP":
             // Security DP is seat-scoped rather than permanent-scoped. Aura target resolution
             // supplies one live host id; apply the seat delta once, not once per board Digimon.
@@ -101,11 +103,59 @@ export async function runStaticAction(ctx: EffectContext, action: Action): Promi
             ({ filter: action.filter ?? { kind: ["Digimon"], controller: "opponent" }, count: "all" } as Target),
         );
         const grantDuration = toDuration(action.duration ?? "untilOpponentTurnEnd");
+        // The same permanent can be reported by more than one entry producer in a
+        // resolving window. Keep this grant idempotent before it reaches the ledger
+        // (which also deduplicates by instance/token as a defensive second layer).
+        const grantedInstanceIds = new Set<string>();
         for (const id of ids) {
           const permanent = ctx.game.permanentById(id);
           const top = permanent?.topCard;
           if (top === undefined) continue;
-          ctx.fx.grantCustomEffect?.(top.instanceId, top.ownerSeat, action.effectText, grantDuration);
+          ctx.fx.grantCustomEffect?.(top.instanceId, ctx.source.ownerSeat, action.effectText, grantDuration);
+          grantedInstanceIds.add(top.instanceId);
+        }
+        // "All of their Digimon gain ... until the end of their turn" is a timed player-wide
+        // grant, not a snapshot of the board. Keep the existing targets and apply the same
+        // token to a matching opponent Digimon that enters before the duration expires.
+        if (action.includeLaterEntrants === true) {
+          const target =
+            action.target ??
+            ({ filter: action.filter ?? { kind: ["Digimon"], controller: "opponent" }, count: "all" } as Target);
+          ctx.fx.subscribeSubTrigger({
+            description: "opponent-turn entrant granted effect",
+            // Q3590 includes Digimon that enter after this effect resolves, not
+            // merely those played from a card zone. The board-wide seam also
+            // carries breeding -> battle movement and digivolution entry.
+            event: "onEnterFieldAnyone",
+            activationContext: ctx,
+            once: false,
+            expiresOnTurnEndOf: ctx.game.opponentOf(ctx.source.ownerSeat),
+            matches: (subCtx) => {
+              const id = subCtx.trigger.subjectPermanentId;
+              const permanent = id === undefined ? undefined : subCtx.game.permanentById(id);
+              return (
+                permanent !== undefined &&
+                permanentMatchesFilter(subCtx, permanent, { ...target.filter, controller: "opponent" }, subCtx.source)
+              );
+            },
+            run: async (subCtx) => {
+              const id = subCtx.trigger.subjectPermanentId;
+              const permanent = id === undefined ? undefined : subCtx.game.permanentById(id);
+              const top = permanent?.topCard;
+              if (top !== undefined && !grantedInstanceIds.has(top.instanceId)) {
+                // This exact entry may be visible through several entry producers
+                // in one window. The grant ledger is token/idempotence-aware, but
+                // only invoke it once per watcher/event subject here as well.
+                subCtx.fx.grantCustomEffect?.(
+                  top.instanceId,
+                  subCtx.source.ownerSeat,
+                  action.effectText!,
+                  grantDuration,
+                );
+                grantedInstanceIds.add(top.instanceId);
+              }
+            },
+          });
         }
         return false;
       }

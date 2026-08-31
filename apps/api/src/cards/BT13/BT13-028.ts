@@ -13,7 +13,7 @@ export const compiled: CompiledCard = {
         kind: "youHave",
         filter: {
           controllerDefault: "mine",
-          nameOrTrait: [{ tokens: ["Kiyoshiro Higashimitarai"], match: "name" }],
+          nameOrTrait: [{ tokens: ["Kiyoshiro Higashimitarai"], match: "nameExact" }],
         },
         raw: "If you have [Kiyoshiro Higashimitarai]",
       },
@@ -95,6 +95,7 @@ export const compiled: CompiledCard = {
               },
               count: 3,
             },
+            orderReturnedCards: true,
             raw: "By returning 3 cards with [Jellymon] in their text from your trash at the bottom of the deck in any order",
           },
           optional: true,

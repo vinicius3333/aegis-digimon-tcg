@@ -32,20 +32,12 @@ export const compiled: CompiledCard = {
           },
         },
         {
-          kind: "Trash",
-          target: {
-            filter: {
-              controller: "mine",
-            },
-            count: 1,
-          },
+          kind: "TrashTopDeck",
+          controller: "mine",
+          amount: 1,
           scaling: {
             per: 1,
-            filter: {
-              controllerDefault: "mine",
-              kind: ["Digimon"],
-            },
-            unit: "cards",
+            unit: "lastDeletedLevel",
           },
         },
       ],
@@ -65,20 +57,12 @@ export const compiled: CompiledCard = {
           },
         },
         {
-          kind: "Trash",
-          target: {
-            filter: {
-              controller: "mine",
-            },
-            count: 1,
-          },
+          kind: "TrashTopDeck",
+          controller: "mine",
+          amount: 1,
           scaling: {
             per: 1,
-            filter: {
-              controllerDefault: "mine",
-              kind: ["Digimon"],
-            },
-            unit: "cards",
+            unit: "lastDeletedLevel",
           },
         },
       ],
@@ -89,6 +73,7 @@ export const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldLeavePlay",
+          leaveCause: "otherThanBattle",
           sourceFilter: {
             isSelfRef: true,
           },
@@ -98,6 +83,7 @@ export const compiled: CompiledCard = {
               target: {
                 filter: {
                   controller: "mine",
+                  zone: "trash",
                   nameOrTrait: [
                     {
                       tokens: ["Seven Great Demon Lords"],
@@ -109,6 +95,7 @@ export const compiled: CompiledCard = {
               },
               underFilter: {
                 controller: "mine",
+                zone: "breeding",
                 nameOrTrait: [
                   {
                     tokens: ["Gate of Deadly Sins"],
@@ -116,6 +103,7 @@ export const compiled: CompiledCard = {
                   },
                 ],
               },
+              position: "bottom",
             },
           ],
         },

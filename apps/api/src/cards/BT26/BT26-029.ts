@@ -123,7 +123,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [{ level: 4, names: ["Aegiomon"], cost: 3, isAlternate: true }],
+  digivolutionRequirement: [{ names: ["Aegiomon"], cost: 3, isAlternate: true }],
 };
 
 registerIrCard("BT26-029", compiled);

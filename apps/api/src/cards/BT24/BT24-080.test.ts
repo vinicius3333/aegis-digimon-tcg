@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,6 +7,22 @@ import { compiled as BT24_080 } from "./BT24-080.js";
 import "../index.js";
 
 describe("BT24-080 Megidramon", () => {
+  it("matches the immutable catalog identity", () => {
+    expect(getCardDefinition("BT24-080")).toMatchObject({
+      cardId: "BT24-080",
+      nameEn: "Megidramon",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 13,
+      dp: 13000,
+      forms: ["Mega"],
+      attributes: ["Virus"],
+      types: ["Evil Dragon", "Four Great Dragons"],
+      evoCosts: [{ color: "Purple", level: 5, memoryCost: 5 }],
+    });
+  });
+
   it("digivolves into this trash card from Dark Dragon/Evil Dragon and keeps lowest-level deletion", () => {
     const trash = BT24_080.effects?.find((entry) => entry.trigger === "EndOfYourTurn");
     expect(trash).toMatchObject({ isFromTrash: true });

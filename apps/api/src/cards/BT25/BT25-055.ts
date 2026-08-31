@@ -87,6 +87,9 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenSuspended",
+          sourceFilter: {
+            isSelfRef: true,
+          },
           actions: [
             {
               kind: "PlayWithoutCost",

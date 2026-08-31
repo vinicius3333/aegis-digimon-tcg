@@ -39,5 +39,8 @@ describe("BT5-026 Coelamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("coelamon").isSuspended);
     expect(s.perm("coelamon").isSuspended).toBe(true);
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(s.events.some((event) => event.kind === "securityChecked")).toBe(false);
+    expect(s.state.memory).toBe(0);
   });
 });

@@ -1,4 +1,4 @@
-import { requireCardDefinition, CardKind, type CardColor } from "@aegis/shared";
+import { famousDeckById, isFamousDeckAvailable, requireCardDefinition, CardKind, type CardColor } from "@aegis/shared";
 
 /**
  * Two legal-shaped, color-coherent test decks so a match can actually be dealt and
@@ -363,4 +363,20 @@ for (const deck of BOT_DECKS) assertLegalDeck(deck);
 /** Pick one of the {@link BOT_DECKS} at random for the bot to play. */
 export function randomBotDeck(): Decklist {
   return BOT_DECKS[Math.floor(Math.random() * BOT_DECKS.length)]!;
+}
+
+/**
+ * The deck the bot plays: the requested famous-deck preset when the id resolves to an
+ * available (fully implemented, banlist-legal) catalog deck, otherwise one of the
+ * {@link BOT_DECKS} at random. The id comes over HTTP from the practising player, so
+ * an unknown or withheld id degrades to the random pool instead of failing the match.
+ */
+export function botDeckFor(requestedDeckId?: string): Decklist {
+  if (requestedDeckId !== undefined) {
+    const famous = famousDeckById(requestedDeckId);
+    if (famous && isFamousDeckAvailable(famous)) {
+      return { mainDeck: [...famous.decklist.mainDeck], eggDeck: [...famous.decklist.eggDeck] };
+    }
+  }
+  return randomBotDeck();
 }

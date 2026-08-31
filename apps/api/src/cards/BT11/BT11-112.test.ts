@@ -100,6 +100,62 @@ describe("BT11-112 [All Turns] Veedramon-named Digimon suspended -> reactivate i
     expect(kouji.isSuspended).toBe(true);
   });
 
+  it("Q2142: still suspends Rina when an eligible Veedramon has no When Digivolving effect", async () => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-112", dp: 0, as: "rina" },
+            // BT11-027 is a cataloged Veedramon with no [When Digivolving] effect.
+            { card: "BT11-027", dp: 6000, as: "veedramon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const rina = s.perm("rina");
+    const veedramon = s.perm("veedramon");
+    s.state.memory = 5;
+    await s.ready();
+
+    await advance(s.engine).verb.suspend([veedramon.permanentId]);
+    await settle(() => false, 60);
+
+    // Q2142: paying the “by suspending this Tamer” cost is still legal even though
+    // there is no borrowed When Digivolving effect to activate afterward.
+    expect(rina.isSuspended).toBe(true);
+    expect(veedramon.isSuspended).toBe(true);
+    expect(s.state.memory).toBe(5);
+  });
+
+  it("does not reactivate the effect when this Tamer is already suspended", async () => {
+    registerIrCard(TARGET_CARD, stub);
+
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-112", dp: 0, as: "kouji" },
+            { card: TARGET_CARD, dp: 3000, as: "veedramon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const kouji = s.perm("kouji");
+    const veedramon = s.perm("veedramon");
+    s.state.memory = 5;
+    kouji.isSuspended = true;
+    await (s.engine as unknown as { recomputeContinuousEffects(): Promise<void> }).recomputeContinuousEffects();
+
+    await advance(s.engine).verb.suspend([veedramon.permanentId]);
+
+    await settle(() => false, 60);
+
+    expect(s.state.memory).toBe(5);
+    expect(kouji.isSuspended).toBe(true);
+  });
+
   it("does NOT reactivate when the suspended Digimon does not have [Veedramon] in its name", async () => {
     registerIrCard(TARGET_CARD, stub);
 
@@ -149,5 +205,20 @@ describe("BT11-112 [Your Turn][Once Per Turn] blue Digimon unsuspend -> memory",
 
     await settle(() => s.state.memory === 4, 200);
     expect(s.state.memory).toBe(4);
+  });
+});
+
+describe("BT11-112 IR target ownership", () => {
+  it("binds both On Play keywords and reactivates the suspended permanent's effect", () => {
+    const card = runtimeCompiledCard("BT11-112")!;
+    expect(card.effects?.[0]?.actions[1]).toMatchObject({ kind: "GainKeyword", target: { sameTarget: true } });
+    expect(card.effects?.[1]?.actions[0]).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenSuspended",
+      actions: [
+        { kind: "Suspend", abortOnDecline: true },
+        { kind: "ActivateEffect", target: { sourceRef: "triggerSubject" } },
+      ],
+    });
   });
 });

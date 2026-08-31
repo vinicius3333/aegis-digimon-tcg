@@ -13,7 +13,7 @@ describe("EX8-015", () => {
       {
         kind: "Delete",
         target: { count: 1, filter: { dp: { op: "lte", value: 10000 } } },
-        condition: { kind: "selfDigivolutionStackHasTrait" },
+        condition: { kind: "anyOf" },
       },
     ]));
   it("inherits Security Attack +1", () =>
@@ -90,8 +90,30 @@ describe("EX8-015", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("meramon").topCard.instanceId === s.inst("xWarGrowlmon").instanceId);
 
-    expect(s.perm("meramon").currentDP).toBe(11000);
+    // EX8-010 remains in the stack and contributes its inherited +2000 DP.
+    expect(s.perm("meramon").currentDP).toBe(13000);
     expect(observe(s.engine).isRestricted(s.perm("meramon"), "beReturned")).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  it("deletes when an X Antibody trait source has no X Antibody words in its name", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT12-078", as: "xTraitBase" }],
+        hand: [{ card: "EX8-015", as: "xWarGrowlmon" }],
+      },
+      1: { battleArea: [{ card: "BT1-024", as: "target" }] },
+    });
+    s.state.memory = 4;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("xTraitBase").permanentId,
+        instanceId: s.inst("xWarGrowlmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });

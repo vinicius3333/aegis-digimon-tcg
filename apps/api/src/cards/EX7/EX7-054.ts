@@ -122,20 +122,20 @@ export const compiled: CompiledCard = {
           actions: [
             {
               kind: "EndAttack",
+              cost: {
+                kind: "deleteOwn",
+                target: {
+                  filter: {
+                    controller: "mine",
+                    excludeSelf: true,
+                    kind: ["Digimon"],
+                  },
+                  count: 1,
+                },
+                raw: "by deleting 1 of your other Digimon, end that attack",
+              },
             },
           ],
-          cost: {
-            kind: "deleteOwn",
-            target: {
-              filter: {
-                controller: "mine",
-                excludeSelf: true,
-                kind: ["Digimon"],
-              },
-              count: 1,
-            },
-            raw: "by deleting 1 of your other Digimon",
-          },
         },
       ],
       isInherited: true,

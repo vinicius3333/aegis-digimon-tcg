@@ -14,7 +14,7 @@ const compiled = {
       ],
     },
     {
-      trigger: "AllTurns",
+      trigger: "YourTurn",
       actions: [
         {
           kind: "SubTrigger",
@@ -39,6 +39,8 @@ const compiled = {
                 target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
                 raw: "by suspending this Tamer",
               },
+              optional: true,
+              abortOnDecline: true,
             },
             {
               kind: "Attack",
@@ -47,7 +49,7 @@ const compiled = {
                 count: 1,
                 sourceRef: "triggerSubject",
               },
-              withoutSuspending: true,
+              withoutSuspending: false,
               attackPlayer: true,
               mandatory: true,
             },

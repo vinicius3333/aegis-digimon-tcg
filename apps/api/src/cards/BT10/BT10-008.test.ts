@@ -3,9 +3,20 @@ import type { PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT10-008.js";
+import { compiled } from "./BT10-008.js";
 
 describe("BT10-008 Shoutmon", () => {
+  it("restricts Save's destination to a controller-owned Tamer", () => {
+    expect(compiled.effects.find((effect) => effect.trigger === "OnDeletion")).toMatchObject({
+      actions: [
+        {
+          kind: "PlaceUnder",
+          underFilter: { controller: "mine", kind: ["Tamer"] },
+        },
+      ],
+    });
+  });
+
   it("supports both the standard red and off-color Xros Heart level 2 evolution paths for 0", async () => {
     const standard = setupEngine({
       0: {

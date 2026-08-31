@@ -92,7 +92,10 @@ installDeploymentRoutes({ app, runtime: deploymentRuntime });
  * Returns 404 if absent, 409 if ineligible, or 200 { ok: true } on success.
  */
 app.post("/bot/join", async (req, res) => {
-  const { roomId } = req.body as { roomId?: string };
+  const { roomId, botDeckId: rawBotDeckId } = req.body as { roomId?: string; botDeckId?: unknown };
+  // Untrusted input: anything but a plain string is treated as "no preference" and
+  // the room falls back to its random bot-deck pool.
+  const botDeckId = typeof rawBotDeckId === "string" ? rawBotDeckId : undefined;
   if (!roomId) {
     log(`[BOT_JOIN] ${JSON.stringify({ status: 400, outcome: "room_id_required", slot: configuredSlot })}`);
     res.status(400).json({ error: "roomId required" });
@@ -113,7 +116,7 @@ app.post("/bot/join", async (req, res) => {
   }
   // A room this process does not own lives on a sibling: `remoteRoomCall` runs `seatBot` there
   // and returns its answer, so the caller cannot tell which process held the match.
-  const seated = local !== undefined ? local.addBot() : await remoteAddBot(roomId);
+  const seated = local !== undefined ? local.addBot(botDeckId) : await remoteAddBot(roomId, botDeckId);
   if (seated === undefined) {
     log(`[BOT_JOIN] ${JSON.stringify({ roomId, status: 404, outcome: "room_not_found", slot: configuredSlot })}`);
     res.status(404).json({ error: "room not found" });
@@ -129,9 +132,9 @@ app.post("/bot/join", async (req, res) => {
 });
 
 /** Seat a bot in a room owned by another process. Undefined when no process owns that room. */
-async function remoteAddBot(roomId: string): Promise<boolean | undefined> {
+async function remoteAddBot(roomId: string, botDeckId?: string): Promise<boolean | undefined> {
   try {
-    return await matchMaker.remoteRoomCall<boolean>(roomId, "addBot");
+    return await matchMaker.remoteRoomCall<boolean>(roomId, "addBot", [botDeckId]);
   } catch (error) {
     log(`[BOT_JOIN] ${JSON.stringify({ roomId, outcome: "remote_call_failed", error: String(error) })}`);
     return undefined;

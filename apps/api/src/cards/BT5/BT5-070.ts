@@ -34,7 +34,9 @@ const compiled: CompiledCard = {
               count: 2,
             },
             raw: "＜Digi-Burst 2＞",
+            optional: true,
           },
+          abortOnDecline: true,
         },
         {
           kind: "Delete",

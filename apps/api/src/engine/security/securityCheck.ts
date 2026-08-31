@@ -27,7 +27,8 @@ import type { WinCheck } from "./winCheck.js";
  *   2. A player-directed attack with Strike >= 1 into EMPTY security => the
  *      attacker's controller wins immediately (loss = "security").
  *   3. Otherwise loop up to `Strike` times while security cards remain:
- *      a. take the top security card (security[0]) and reveal it (faceUp = true),
+ *      a. take the top security card (security[0]), reveal it (faceUp = true) and
+ *         announce the reveal (`securityRevealed`) before anything it causes,
  *      b. fire the OnSecurityCheck trigger,
  *      c. run its [Security] effect, if any (the card is STILL in the security
  *         stack, so a [Security] "play this card" effect can locate it there),
@@ -89,16 +90,24 @@ export interface SecurityCheckDeps {
    * Fire the SubTrigger bus (System B) for security events. Optional so the security unit
    * tests need no change; absent => no watcher runs.
    *   - `whenSecurityRemoved`: fires when a card is removed from a player's security.
+   *   - `whenCardTrashedFromSecurity`: fires after a checked card is actually moved to trash,
+   *     excluding security effects that relocate it elsewhere.
    *   - `whenCheckedFaceUpSecurity`: fires when the attacker checks a card that was already
    *     face-up in the security stack (BT20-055 CAP-H-03). Carries the attacker's permanent ID
    *     so a watcher knows which Digimon did the check.
    */
   fireSubTrigger?(
-    event: "whenSecurityRemoved" | "whenCheckedFaceUpSecurity" | "whenSecurityBattleEnded" | "whenBattleWon",
+    event:
+      | "whenSecurityRemoved"
+      | "whenCardTrashedFromSecurity"
+      | "whenCheckedFaceUpSecurity"
+      | "whenSecurityBattleEnded"
+      | "whenBattleWon",
     info: {
       attackerPermanentId: string;
       securityInstanceId: string;
       removedFromSecuritySeat?: Seat;
+      trashedFromSecurityInstanceIds?: string[];
       subjectPermanentId?: string;
     },
   ): Promise<void>;
@@ -209,6 +218,17 @@ export async function runSecurityCheck(
     revealed.faceUp = true;
     checkedCount += 1;
 
+    // Announce the reveal before anything the revealed card causes. Everything below —
+    // the triggers, the [Security] effect and any decision it opens, the battle — is a
+    // consequence of this card, and the client cannot present it as one until it has been
+    // told which card was flipped. `securityChecked` closes the check with the outcome.
+    emit({
+      kind: "securityRevealed",
+      seat: defenderSeat,
+      revealedCardId: revealed.cardId,
+      attackerPermanentId: attacker.permanentId,
+    });
+
     if (wasAlreadyFaceUp) {
       await deps.fireSubTrigger?.("whenCheckedFaceUpSecurity", {
         attackerPermanentId: attacker.permanentId,
@@ -292,7 +312,15 @@ export async function runSecurityCheck(
     // The checked card goes to trash unless an effect already relocated it
     // (e.g. a security Digimon that survived and was put into play, or a
     // [Security] effect that moved it elsewhere).
-    trashIfStillLoose(state, defenderSeat, revealed);
+    const trashedFromSecurity = trashIfStillLoose(state, defenderSeat, revealed);
+    if (trashedFromSecurity) {
+      await deps.fireSubTrigger?.("whenCardTrashedFromSecurity", {
+        attackerPermanentId: attacker.permanentId,
+        securityInstanceId: revealed.instanceId,
+        removedFromSecuritySeat: defenderSeat,
+        trashedFromSecurityInstanceIds: [revealed.instanceId],
+      });
+    }
 
     if (battlesAttacker) {
       await deps.fireSubTrigger?.("whenSecurityBattleEnded", {
@@ -355,15 +383,16 @@ async function battleSecurityDigimon(
 }
 
 /** Move `card` to the seat's trash if it is not already in another zone. */
-function trashIfStillLoose(state: GameState, seat: Seat, card: CardInstance): void {
+function trashIfStillLoose(state: GameState, seat: Seat, card: CardInstance): boolean {
   const player = state.players[seat];
-  if (player === undefined) return;
+  if (player === undefined) return false;
   const inHand = player.hand.some((c) => c.instanceId === card.instanceId);
   const inSecurity = player.security.some((c) => c.instanceId === card.instanceId);
   const onField = player.battleArea.some((p) => p.topCard?.instanceId === card.instanceId);
   const inTrash = player.trash.some((c) => c.instanceId === card.instanceId);
   const inDeck = player.deck.some((c) => c.instanceId === card.instanceId);
   const inDelay = player.delayZone?.some((c) => c.instanceId === card.instanceId) ?? false;
-  if (inHand || inSecurity || onField || inTrash || inDeck || inDelay) return;
+  if (inHand || inSecurity || onField || inTrash || inDeck || inDelay) return false;
   insertCard(player, Zone.Trash, card);
+  return true;
 }

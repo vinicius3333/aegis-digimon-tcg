@@ -136,6 +136,29 @@ describe("BT26-094 compiled fidelity", () => {
     expect(observe(s.engine).hasKeyword(s.perm("dataSquad"), "Execute")).toBe(true);
   });
 
+  it("grants Execute only to a DATA SQUAD Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-094", as: "keenan" },
+            { card: "BT26-039", as: "dataSquad" },
+            { card: "BT1-009", as: "unrelated" },
+          ],
+        },
+        1: { hand: [{ card: "BT1-001", as: "trashed" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await primitivesOf(s).trash([s.inst("trashed").instanceId], { byEffectSeat: 0 });
+    await settle(() => s.perm("keenan").isSuspended);
+
+    expect(observe(s.engine).hasKeyword(s.perm("dataSquad"), "Execute")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("unrelated"), "Execute")).toBe(false);
+  });
+
   it("suspends itself and grants Execute when an effect trashes a card from under it", async () => {
     const s = setupEngine(
       {

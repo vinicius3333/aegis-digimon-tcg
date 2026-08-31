@@ -96,14 +96,11 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "onDigivolutionCardDiscarded",
+          sourceFilter: { matchTrashedSource: true },
+          requireByEffect: true,
           hostFilter: {
             controller: "mine",
-            nameOrTrait: [
-              {
-                tokens: ["Mineral", "Rock"],
-                match: "trait",
-              },
-            ],
+            nameOrTrait: [{ tokens: ["Mineral", "Rock"], match: "trait" }],
           },
           actions: [
             {

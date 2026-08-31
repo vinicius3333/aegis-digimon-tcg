@@ -46,6 +46,38 @@ describe("BT25-103 GraceNovamon", () => {
     ).toEqual(expect.objectContaining({ ok: false }));
   });
 
+  it("returns an eligible opponent Digimon during a real digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-018", under: ["BT24-010"], as: "base" }],
+          hand: [{ card: "BT25-103", as: "grace" }],
+        },
+        1: { battleArea: [{ card: "BT24-014", under: ["BT24-009"], as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const targetId = s.perm("target").topCard!.instanceId;
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("grace").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("base").topCard.cardId === "BT25-103" &&
+        s.state.players[1]!.deck.some((card) => card.instanceId === targetId),
+    );
+
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === targetId)).toBe(false);
+    expect(s.state.players[1]!.deck.some((card) => card.instanceId === targetId)).toBe(true);
+  });
+
   it("models the shared When Attacking/Counter once-per-turn effect per this stack", () => {
     const attack = compiled.effects.find(
       (entry) => entry.trigger === "WhenAttacking" && entry.frequency === "OncePerTurn",
@@ -79,7 +111,7 @@ describe("BT25-103 GraceNovamon", () => {
         0: { battleArea: [{ card: "BT25-103", under: ["BT24-009", "BT24-010"], as: "grace" }] },
         1: { battleArea: [{ card: "BT24-014", under: ["BT24-009"], as: "target" }] },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     const targetId = s.perm("target").topCard!.instanceId;
 
@@ -103,7 +135,7 @@ describe("BT25-103 GraceNovamon", () => {
           ],
         },
       },
-      { autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("equal").permanentId);
     const returnedId = s.perm("equal").topCard.instanceId;
@@ -141,13 +173,17 @@ describe("BT25-103 GraceNovamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT25-103", under: ["BT24-009", "BT24-010"], as: "grace" }],
+          battleArea: [
+            { card: "BT25-103", under: ["BT24-009", "BT24-010"], as: "grace" },
+            { card: "BT1-013", under: ["BT1-009", "BT1-010", "BT1-019"], as: "unrelatedOwnStack" },
+          ],
         },
         1: {
           security: ["AD1-001"],
           battleArea: [
-            { card: "BT24-014", under: ["AD1-001", "AD1-002", "AD1-003"], as: "firstHost" },
-            { card: "BT24-015", under: ["BT1-009", "BT1-019", "BT1-051"], as: "secondHost" },
+            { card: "BT1-014", as: "returnTarget" },
+            { card: "BT1-020", under: ["AD1-001", "AD1-002", "AD1-003"], as: "firstHost" },
+            { card: "BT1-024", under: ["BT1-009", "BT1-019", "BT1-051"], as: "secondHost" },
           ],
         },
       },

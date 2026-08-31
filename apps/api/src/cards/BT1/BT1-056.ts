@@ -12,7 +12,10 @@ export const compiled: CompiledCard = {
           from: ["hand", "trash"],
           payCost: false,
           optional: true,
-          target: { filter: { nameOrTrait: [{ tokens: ["Tinkermon"], match: "name" }] }, count: 1 },
+          target: {
+            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Tinkermon"], match: "name" }] },
+            count: 1,
+          },
         },
       ],
     },

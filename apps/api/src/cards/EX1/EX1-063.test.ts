@@ -59,4 +59,24 @@ describe("EX1-063 VenomMyotismon", () => {
       s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("levelFour").permanentId),
     ).toBe(true);
   });
+
+  it("does not treat an inherited-only Retaliation clause as a playable Retaliation card", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX1-063", as: "venom" }], trash: [{ card: "BT12-076", as: "inheritedOnly" }] },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("venom").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT12-076")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT12-076")).toBe(false);
+  });
 });

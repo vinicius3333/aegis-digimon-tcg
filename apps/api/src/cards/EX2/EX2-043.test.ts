@@ -94,6 +94,11 @@ describe("EX2-043 Gulfmon", () => {
     const compiled = registeredCompiledCards.get("EX2-043");
     expect(compiled?.coverage).toBe("full");
     expect(compiled?.residual).toEqual([]);
+    const watcher = compiled?.effects.find((effect) => effect.actions.some((action) => action.kind === "SubTrigger"));
+    expect(watcher?.actions.find((action) => action.kind === "SubTrigger")).toMatchObject({
+      fireCondition: { kind: "triggerByYourEffect" },
+      actions: [{ kind: "Unsuspend", target: { filter: { controller: "mine", kind: ["Digimon"] } } }],
+    });
   });
   it("discards each player's excess hand down to exactly 5 when digivolving", async () => {
     const module = getEffectModule("EX2-043")!;

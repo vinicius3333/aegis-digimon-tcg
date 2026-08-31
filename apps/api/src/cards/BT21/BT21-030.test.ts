@@ -38,6 +38,18 @@ describe("BT21-030 compiled implementation", () => {
         },
       ],
     });
+    expect(compiled.effects[0]?.actions[0]).toMatchObject({
+      actions: expect.arrayContaining([
+        {
+          kind: "SelectBind",
+          target: expect.objectContaining({
+            filter: expect.objectContaining({
+              nameOrTrait: [{ tokens: ["Shoutmon"], match: "nameExact" }],
+            }),
+          }),
+        },
+      ]),
+    });
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       expect(compiled.effects).toContainEqual(
         expect.objectContaining({
@@ -86,7 +98,7 @@ describe("BT21-030 compiled implementation", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT21-009", as: "shoutmon" }],
+          battleArea: [{ card: "BT21-011", as: "shoutmon" }],
           hand: [{ card: "BT21-030", as: "superior" }],
         },
       },
@@ -103,7 +115,7 @@ describe("BT21-030 compiled implementation", () => {
     const superior = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT21-030")!;
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === shoutmonId)).toBe(false);
-    expect(superior.stack.map((card) => card.cardId)).toContain("BT21-009");
+    expect(superior.stack.map((card) => card.cardId)).toContain("BT21-011");
   });
 
   it("accepts a qualifying trash card as DigiXros material after paying the Shoutmon cost", async () => {

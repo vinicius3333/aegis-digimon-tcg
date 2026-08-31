@@ -67,6 +67,26 @@ describe("BT23-044 Lilamon", () => {
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === topSecurityId)).toBe(true);
   });
 
+  it("does not trash security after its carrier wins against a Security Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT23-046", as: "host", under: ["BT23-044"] }] },
+      1: {
+        security: [{ card: "BT23-041", as: "securityDigimon" }, { card: "BT1-010", as: "remaining" }],
+      },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+
+    expect(s.state.players[1]!.security[0]!.instanceId).toBe(s.inst("remaining").instanceId);
+  });
+
   it("reduces its play cost when the required Yuuko or CS condition is present", () => {
     const replacement = (compiled.effects.find((entry) => entry.trigger === "Static") as any).actions[0];
     expect(replacement).toMatchObject({
@@ -128,7 +148,7 @@ describe("BT23-044 Lilamon", () => {
       actions: [
         {
           kind: "SubTrigger",
-          event: "whenBattleWon",
+          event: "whenDeletesInBattle",
           sourceFilter: { isSelfRef: true },
           actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent", amount: 1 }],
         },

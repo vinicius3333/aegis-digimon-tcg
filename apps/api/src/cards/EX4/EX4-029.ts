@@ -113,6 +113,7 @@ export const compiled: CompiledCard = {
     {
       level: 4,
       multicolor: true,
+      colorCount: 2,
       colors: ["Green"],
       cost: 3,
       isAlternate: true,

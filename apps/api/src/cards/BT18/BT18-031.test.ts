@@ -78,6 +78,37 @@ describe("BT18-031 Neemon", () => {
     assertNoLoudGap(s);
   });
 
+  it("adds only one card for each reveal category when multiple Hybrid cards are shown", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT18-031", as: "neemon" }],
+          deck: [
+            { card: "BT12-009", as: "firstHybrid" },
+            { card: "BT12-009", as: "secondHybrid" },
+            { card: "AD1-023", as: "inheritedTamer" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("neemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("firstHybrid").instanceId,
+      s.inst("inheritedTamer").instanceId,
+    ]);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("secondHybrid").instanceId,
+    ]);
+    assertNoLoudGap(s);
+  });
+
   it("gains memory only for the first inherited-effect Tamer its controller plays during their turn", async () => {
     const s = setupEngine({
       0: {

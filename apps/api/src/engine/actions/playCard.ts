@@ -13,7 +13,13 @@ import {
   getCompiledCard,
 } from "@aegis/shared";
 import { definitionOf, dpOf } from "../cards/cardData.js";
-import { extractCardAt, insertCard, placePermanent as appendPermanent } from "../state/access.js";
+import {
+  extractCardAt,
+  insertCard,
+  placePermanent as appendPermanent,
+  setResolvingOption,
+  setTopCard,
+} from "../state/access.js";
 
 /** The narrowed intent this action handles (mirrors the @aegis/shared Intent variant). */
 export interface PlayCardIntent {
@@ -142,6 +148,9 @@ export interface PlayCardDeps {
    * (subsystems: effect-framework, effect-stack-resolution).
    */
   fireTiming(state: GameState, seat: Seat, timing: EffectTiming, sourceInstanceId: string): Promise<void>;
+  /** Optional lightweight seam retained for standalone callers; production fireTiming owns the
+   * complete manual-play entry window and publishes `whenPlayed` exactly once. */
+  fireSubTrigger?(event: "whenPlayed", payload: { subjectPermanentId: string; playedPlayCost?: number }): Promise<void>;
   /** Defer rule processing until an Option has completed its trash/Arts/Delay routing. */
   beginOptionResolution?(): void;
   /** Release the Option-resolution deferral and run the pending rule-process fixpoint. */
@@ -388,6 +397,10 @@ export async function applyPlayCard(
     // before On Play sees the stack.
     await deps.placePendingDigivolution?.(instance.instanceId, permanent.permanentId);
 
+    // `fireTiming` owns the complete manual-play entry window, including the canonical
+    // `whenPlayed` bus after On Play resolves. Publishing that bus here as well would make one
+    // hand play one event twice (the second pass is especially visible to once-per-turn
+    // watchers after an optional decline).
     await deps.fireTiming(state, seat, ON_PLAY_TIMING, instance.instanceId);
 
     return {
@@ -413,7 +426,7 @@ export async function applyPlayCard(
   // effect against its own source. try/finally guarantees the slot is cleared and the
   // card lands in trash even if the effect throws — a stranded instance would otherwise
   // sit outside every zone permanently.
-  player.resolvingOption = instance;
+  setResolvingOption(player, instance);
   deps.beginOptionResolution?.();
   let routedToTrash = false;
   try {
@@ -434,7 +447,7 @@ export async function applyPlayCard(
       // permanent, BT18-100) via `removeLooseInstance`, which claims resolvingOption and
       // clears it when that happens. Only route it to trash here when nothing claimed it.
       if (player.resolvingOption === instance) {
-        player.resolvingOption = undefined;
+        setResolvingOption(player, undefined);
         insertCard(player, Zone.Trash, instance);
         routedToTrash = true;
       }
@@ -581,7 +594,7 @@ function placePermanent(
   const permanent = new Permanent();
   permanent.permanentId = deps.nextPermanentId();
   permanent.controllerSeat = player.seat;
-  permanent.topCard = instance;
+  setTopCard(permanent, instance);
   permanent.stack = new ArraySchema<CardInstance>();
   permanent.linked = new ArraySchema<CardInstance>();
   const dp = definition.kinds.includes(CardKind.Digimon) ? dpOf(definition) : 0;

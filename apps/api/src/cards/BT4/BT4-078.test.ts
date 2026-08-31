@@ -50,4 +50,27 @@ describe("BT4-078 Soundbirdmon", () => {
     expect(s.state.players[0]!.trash.filter((card) => card.cardId === "BT4-109")).toHaveLength(1);
     expect(s.state.players[0]!.hand.filter((card) => card.cardId === "BT4-109")).toHaveLength(1);
   });
+
+  it("may decline the Option payment and leave the card in hand", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT4-078", as: "sound" }], hand: [{ card: "BT4-109", as: "option" }] },
+        1: { security: ["BT1-009"] },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    s.state.memory = 0;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("sound").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT4-109")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT4-109")).toBe(false);
+    expect(s.state.memory).toBe(0);
+  });
 });

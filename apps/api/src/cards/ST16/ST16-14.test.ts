@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
 import type { Primitives } from "../../engine/effects/EffectContext.js";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -22,18 +21,33 @@ describe("ST16-14 Matt Ishida — whenHandTrashed: by suspending this Tamer, gai
     const s = setupEngine({ 0: { battleArea: [{ card: "ST16-14", as: "tamer" }] } });
     s.state.memory = 2;
 
-    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("tamer"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
 
     expect(s.state.memory).toBe(3);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("plays itself without cost from security", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "ST16-14", as: "securityMatt", faceUp: true }] } });
+    const s = setupEngine({
+      0: { security: [{ card: "ST16-14", as: "securityMatt" }, "BT1-090"] },
+      1: { battleArea: ["BT1-009"] },
+    });
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityMatt"));
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.state.players[1]!.battleArea[0]!.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "ST16-14"));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST16-14")).toBe(true);
-    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.security).toHaveLength(1);
   });
 
   it("suspends the Tamer and gains 1 memory when owner's hand card is trashed", async () => {

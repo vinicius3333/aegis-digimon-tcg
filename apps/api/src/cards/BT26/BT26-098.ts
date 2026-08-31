@@ -26,7 +26,6 @@ const rosemon = {
   kind: ["Digimon"],
   nameOrTrait: [{ tokens: ["Rosemon"], match: "name" }],
 };
-const _aegiochusmon = { controller: "mine", zone: "trash", nameOrTrait: [{ tokens: ["Aegiochusmon"], match: "name" }] };
 const securityPlayable = {
   controller: "mine",
   zone: ["hand", "trash"],
@@ -43,15 +42,12 @@ export const compiled: CompiledCard = {
       trigger: "BeforePayCost",
       actions: [
         {
-          kind: "CostModifier",
-          costType: "use",
-          mode: "reduce",
-          amount: 2,
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          handResident: true,
-          cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine" },
-          optional: true,
-          abortOnDecline: true,
+          kind: "ReducePlayCost",
+          payment: {
+            kind: "payCost",
+            cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine" },
+          },
+          amount: { kind: "fixed", value: 2 },
         },
       ],
     },

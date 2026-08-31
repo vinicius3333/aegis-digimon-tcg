@@ -69,6 +69,7 @@ export const compiled: CompiledCard = {
           condition: {
             kind: "memoryAtLeast",
             value: 1,
+            controller: "mine",
           },
         },
         {
@@ -87,6 +88,7 @@ export const compiled: CompiledCard = {
           while: {
             kind: "memoryAtMost",
             value: 1,
+            controller: "mine",
           },
         },
       ],

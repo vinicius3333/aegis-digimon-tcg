@@ -45,6 +45,7 @@ describe("BT16-065", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
+    await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("darkdramon").instanceId })).toEqual({
       ok: true,
@@ -54,7 +55,10 @@ describe("BT16-065", () => {
     );
 
     expect(s.state.memory).toBe(9);
-    expect((s.state.players[0]?.trash.length ?? 0) + (s.state.players[0]?.deck.length ?? 0)).toBe(6);
+    expect(s.state.players[0]?.trash).toHaveLength(3);
+    expect(s.state.players[0]?.deck).toHaveLength(3);
+    expect(s.state.players[0]?.trash.every((card) => card.cardId === "BT16-050")).toBe(true);
+    expect(s.state.players[0]?.deck.every((card) => card.cardId === "BT16-050")).toBe(true);
   });
 
   it("reveals three, deletes within the chosen play-cost budget, and trashes the reveal", async () => {
@@ -69,6 +73,7 @@ describe("BT16-065", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 13;
+    await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("darkdramon").instanceId })).toEqual({
       ok: true,

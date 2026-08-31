@@ -20,16 +20,13 @@ import { accountApi, type RemoteAccount } from "./account/client";
 import { BugReportDialog } from "./bugs/BugReportDialog";
 import { PlayerMenu } from "./account/PlayerMenu";
 import type { DigimonWorldAvatarId } from "./account/avatars";
-import { pathForRoute, routeFromPathname, type AppRoute, type TournamentRoute } from "./routes";
+import { pathForRoute, routeFromPathname, type AppRoute } from "./routes";
 
 const Home = lazy(() => import("./screens/Home").then((m) => ({ default: m.Home })));
 const Login = lazy(() => import("./screens/Login").then((m) => ({ default: m.Login })));
 const Lobby = lazy(() => import("./screens/Lobby").then((m) => ({ default: m.Lobby })));
 const Collection = lazy(() => import("./screens/Collection").then((m) => ({ default: m.Collection })));
 const DeckBuilder = lazy(() => import("./screens/DeckBuilder").then((m) => ({ default: m.DeckBuilder })));
-const TournamentsScreen = lazy(() =>
-  import("./tournaments/TournamentsScreen").then((m) => ({ default: m.TournamentsScreen })),
-);
 const GameScreen = lazy(() => import("./game/GameScreen").then((m) => ({ default: m.GameScreen })));
 const CardEffectsDemo = lazy(() => import("./dev/CardEffectsDemo").then((m) => ({ default: m.CardEffectsDemo })));
 const BoardShowcase = lazy(() => import("./dev/BoardShowcase").then((m) => ({ default: m.BoardShowcase })));
@@ -58,7 +55,7 @@ function ScreenFallback() {
   );
 }
 
-const NAV_SCREENS: Screen[] = ["home", "lobby", "deck", "collection", "tournaments", "settings"];
+const NAV_SCREENS: Screen[] = ["home", "lobby", "deck", "collection", "settings"];
 
 export function withAccountAvatar(player: PlayerIdentity, account: RemoteAccount | null): PlayerIdentity {
   return {
@@ -202,6 +199,7 @@ export function AegisClient({
   });
   const [startMode, setStartMode] = useState<StartMode>("casual");
   const [roomCode, setRoomCode] = useState<string>();
+  const [botDeckId, setBotDeckId] = useState<string>();
   const [playerMenuOpen, setPlayerMenuOpen] = useState(false);
   const [bugReportOpen, setBugReportOpen] = useState(false);
   const screen = route.screen;
@@ -240,7 +238,6 @@ export function AegisClient({
     setRoute(nextRoute);
   };
   const navigateScreen = (nextScreen: Screen) => navigate({ screen: nextScreen });
-  const navigateTournament = (tournament: TournamentRoute) => navigate({ screen: "tournaments", tournament });
 
   const availableDecks = useMemo(() => selectableDecks(decks), [decks]);
   const activeDeck = deckById(availableDecks, activeDeckId);
@@ -307,9 +304,10 @@ export function AegisClient({
                 navigateScreen("deck");
               }}
               onNav={navigateScreen}
-              onStart={(mode, code) => {
+              onStart={(mode, code, requestedBotDeckId) => {
                 setStartMode(mode);
                 setRoomCode(code);
+                setBotDeckId(requestedBotDeckId);
                 navigateScreen("game");
               }}
             />
@@ -326,14 +324,6 @@ export function AegisClient({
           )}
 
           {screen === "collection" && <Collection />}
-
-          {screen === "tournaments" && (
-            <TournamentsScreen
-              decks={decks}
-              view={route.tournament ?? { kind: "catalog" }}
-              onViewChange={navigateTournament}
-            />
-          )}
 
           {screen === "settings" && (
             <Settings
@@ -355,6 +345,7 @@ export function AegisClient({
               identityAvatarUrl={effectivePlayer.avatarUrl}
               startMode={startMode}
               roomCode={roomCode}
+              botDeckId={botDeckId}
               signedIn={!!account}
               onExit={navigateScreen}
             />

@@ -18,7 +18,7 @@ export const compiled: CompiledCard = {
           sourceFilter: {
             controllerDefault: "mine",
             kind: ["Digimon"],
-            hasFaceDownDigivolutionCard: true,
+            digivolutionCards: "hasFaceDown",
           },
           into: {
             controllerDefault: "mine",

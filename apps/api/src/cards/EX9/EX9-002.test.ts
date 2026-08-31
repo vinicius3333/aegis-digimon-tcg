@@ -12,6 +12,7 @@ describe("EX9-002", () => {
         {
           kind: "SubTrigger",
           event: "onAddDigivolutionCards",
+          triggerFilter: { isSelfRef: true },
           actions: [{ kind: "Digivolve", from: ["hand"], reduceCost: 1, optional: true }],
         },
       ],
@@ -63,5 +64,115 @@ describe("EX9-002", () => {
 
     expect(host.topCard?.cardId).toBe("EX9-014");
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX9-017")).toBe(true);
+  });
+
+  it("only reacts when this Digimon's own stack receives the face-down card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX9-014", as: "host", under: [{ card: "EX9-002" }, { card: "BT1-009", faceUp: false }] },
+            { card: "EX9-014", as: "otherHost", under: [{ card: "BT1-010", faceUp: false }] },
+          ],
+          hand: ["EX9-017"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const otherHost = s.perm("otherHost");
+    const added = otherHost.stack[0]!;
+
+    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
+      subjectPermanentId: otherHost.permanentId,
+      addedDigivolutionCardInstanceIds: [added.instanceId],
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "EX9-017"));
+
+    expect(s.perm("host").topCard?.cardId).toBe("EX9-014");
+    expect(otherHost.topCard?.cardId).toBe("EX9-014");
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX9-017")).toBe(true);
+  });
+
+  it("does not offer a non-Ver.2 card as the evolution destination", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX9-014", as: "host", under: [{ card: "EX9-002" }, { card: "BT1-009", faceUp: false }] },
+          ],
+          hand: ["EX9-053"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const host = s.perm("host");
+    const added = host.stack.find((card) => card.cardId === "BT1-009")!;
+
+    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
+      subjectPermanentId: host.permanentId,
+      addedDigivolutionCardInstanceIds: [added.instanceId],
+    });
+
+    expect(host.topCard?.cardId).toBe("EX9-014");
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX9-053")).toBe(true);
+  });
+
+  it("allows declining the optional evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX9-014", as: "host", under: [{ card: "EX9-002" }, { card: "BT1-009", faceUp: false }] },
+          ],
+          hand: ["EX9-017"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const host = s.perm("host");
+    const added = host.stack.find((card) => card.cardId === "BT1-009")!;
+
+    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
+      subjectPermanentId: host.permanentId,
+      addedDigivolutionCardInstanceIds: [added.instanceId],
+    });
+
+    expect(host.topCard?.cardId).toBe("EX9-014");
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX9-017")).toBe(true);
+  });
+
+  it("can activate only once per turn even when another face-down card is added", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "EX9-017",
+              as: "host",
+              under: [{ card: "EX9-002" }, { card: "BT1-009", faceUp: false }, { card: "BT1-010", faceUp: false }],
+            },
+          ],
+          hand: ["EX9-018", "EX9-020"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    const host = s.perm("host");
+    const firstAdded = host.stack.find((card) => card.cardId === "BT1-009")!;
+    const secondAdded = host.stack.find((card) => card.cardId === "BT1-010")!;
+
+    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
+      subjectPermanentId: host.permanentId,
+      addedDigivolutionCardInstanceIds: [firstAdded.instanceId],
+    });
+    await settle(() => host.topCard?.cardId === "EX9-018");
+
+    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
+      subjectPermanentId: host.permanentId,
+      addedDigivolutionCardInstanceIds: [secondAdded.instanceId],
+    });
+    expect(host.topCard?.cardId).toBe("EX9-018");
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX9-020")).toBe(true);
   });
 });

@@ -27,9 +27,18 @@ export const compiled: CompiledCard = {
     {
       trigger: "YourTurn",
       actions: [
+        // The printed "your or your opponent's hand" wording is represented by two
+        // directional buses, sharing one once-per-turn key.
         {
           kind: "SubTrigger",
           event: "whenEffectAddsToHand",
+          oncePerTurnKey: "BT17-028/hand-add",
+          actions: [{ kind: "SecurityManipulation", op: "toHand", controller: "opponent", amount: 1, toTop: true }],
+        },
+        {
+          kind: "SubTrigger",
+          event: "whenEffectAddsToOpponentHand",
+          oncePerTurnKey: "BT17-028/hand-add",
           actions: [{ kind: "SecurityManipulation", op: "toHand", controller: "opponent", amount: 1, toTop: true }],
         },
       ],

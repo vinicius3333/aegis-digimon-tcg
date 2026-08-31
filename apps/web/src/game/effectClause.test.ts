@@ -313,6 +313,46 @@ describe("effectClauseForTiming", () => {
     expect(clause).not.toContain("RevealAdd");
   });
 
+  it("replaces a generated all-count delete summary with Destromon's printed clause", () => {
+    const clause = playerFacingEffectClause({
+      cardId: "P-094",
+      timing: "OnPlay",
+      description: "[OnPlay] Delete all target(s)",
+    });
+
+    expect(clause).toContain("Delete your opponent's Digimon and Tamers with a total play cost of 3");
+    expect(clause).not.toContain("target(s)");
+  });
+
+  it("shows the printed text when a watcher arrives named only by the event it watches", () => {
+    const clause = playerFacingEffectClause({
+      cardId: "AD1-017",
+      timing: "whenSecurityRemoved",
+      description: "whenSecurityRemoved",
+    });
+
+    expect(clause).toBeTruthy();
+    expect(clause).not.toBe("whenSecurityRemoved");
+    expect(clause).not.toContain("whenSecurityRemoved");
+  });
+
+  it("quotes the inherited text box when the same timing bracket exists in both boxes", () => {
+    const inherited = playerFacingEffectClause({
+      cardId: "AD1-014",
+      timing: "WhenAttacking",
+      description: "whenAttacking",
+      isInherited: true,
+    });
+    const printed = playerFacingEffectClause({
+      cardId: "AD1-014",
+      timing: "WhenAttacking",
+      description: "whenAttacking",
+    });
+
+    expect(inherited).toContain("If this Digimon has [Garurumon] or [Omnimon]");
+    expect(printed).toContain("Delete 1 of your opponent's level 5 or lower Digimon");
+  });
+
   it("preserves explicit human-readable effect descriptions", () => {
     const description = "[When Attacking][Inherited] You may play 1 [Sistermon].";
     expect(playerFacingEffectClause({ cardId: "ST12-08", timing: "OnAllyAttack", description })).toBe(description);

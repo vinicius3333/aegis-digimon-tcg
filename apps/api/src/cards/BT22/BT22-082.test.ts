@@ -26,6 +26,7 @@ describe("BT22-082 Eater Adam", () => {
         {
           event: "wouldLeavePlay",
           sourceFilter: { isSelfRef: true },
+          optional: true,
           actions: [{ kind: "PlayWithoutCost", from: ["digivolutionCards"], optional: true }],
         },
       ],

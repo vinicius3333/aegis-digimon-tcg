@@ -12,7 +12,7 @@ describe("BT9-111 Alphamon: Ouryuken", () => {
       evoCosts: [{ color: "Black", level: 6, memoryCost: 7 }], types: ["NODATA", "Royal Knight", "X Antibody"],
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], digivolutionRequirement: [{ names: ["Alphamon"], cost: 3, isAlternate: true, minNameStackCount: 1, minNameStackNames: ["Ouryumon"] }],
+      coverage: "full", residual: [], digivolutionRequirement: [{ namesExact: ["Alphamon"], cost: 3, isAlternate: true, minNameStackCount: 1, minNameStackNames: ["Ouryumon"] }],
       effects: [
         { trigger: "WhenDigivolving", actions: [{ kind: "Delete", target: { count: "all", filter: { superlative: "highestPlayCost" } } }] },
         { trigger: "EndOfYourTurn", frequency: "OncePerTurn", actions: [{ kind: "Return", to: "deckBottom", order: "any", optional: true, trackCount: "bt9-111-returned", target: { count: 7, upTo: true, filter: { zone: "digivolutionCards", excludeKind: ["Digi-Egg"] } } }, { kind: "GainMemory", scaling: { unit: "namedCount", countSource: "bt9-111-returned" } }] },

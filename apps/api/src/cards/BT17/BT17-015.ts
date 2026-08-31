@@ -71,6 +71,7 @@ const compiled: CompiledCard = {
                 target: {
                   filter: {
                     controller: "mine",
+                    kind: ["Digimon"],
                     nameOrTrait: [
                       {
                         tokens: ["Gabumon"],
@@ -82,6 +83,7 @@ const compiled: CompiledCard = {
                 },
                 into: {
                   controllerDefault: "mine",
+                  kind: ["Digimon"],
                   nameOrTrait: [
                     {
                       tokens: ["MetalGarurumon"],
@@ -93,6 +95,7 @@ const compiled: CompiledCard = {
                 from: ["hand"],
                 ignoreRequirements: true,
                 optional: true,
+                allowNoTarget: true,
               },
             ],
           ],
@@ -128,6 +131,7 @@ const compiled: CompiledCard = {
                 target: {
                   filter: {
                     controller: "mine",
+                    kind: ["Digimon"],
                     nameOrTrait: [
                       {
                         tokens: ["Gabumon"],
@@ -139,6 +143,7 @@ const compiled: CompiledCard = {
                 },
                 into: {
                   controllerDefault: "mine",
+                  kind: ["Digimon"],
                   nameOrTrait: [
                     {
                       tokens: ["MetalGarurumon"],
@@ -150,6 +155,7 @@ const compiled: CompiledCard = {
                 from: ["hand"],
                 ignoreRequirements: true,
                 optional: true,
+                allowNoTarget: true,
               },
             ],
           ],

@@ -27,6 +27,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [{ tokens: ["Veemon", "Veedramon"], match: "name" }],
             },
             count: 1,
+            sameTarget: true,
           },
           keyword: { keyword: "Evade", raw: "＜Evade＞" },
           duration: "untilOpponentTurnEnd",
@@ -45,16 +46,17 @@ export const compiled: CompiledCard = {
             nameOrTrait: [{ tokens: ["Veedramon"], match: "name" }],
           },
           actions: [
-            { kind: "Suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
+            {
+              kind: "Suspend",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              abortOnDecline: true,
+            },
             {
               kind: "ActivateEffect",
               target: {
-                filter: {
-                  controller: "mine",
-                  kind: ["Digimon"],
-                  nameOrTrait: [{ tokens: ["Veedramon"], match: "name" }],
-                },
+                filter: {},
                 count: 1,
+                sourceRef: "triggerSubject",
               },
               effectType: "WhenDigivolving",
               count: 1,

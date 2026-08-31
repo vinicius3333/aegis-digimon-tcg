@@ -63,7 +63,7 @@ describe("EX10-014 Weatherdramon", () => {
   it("battles in security first, then plays itself and resolves On Play", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT5-082", as: "attacker" }] },
+        0: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 7000 }] },
         1: { security: [{ card: CARD_ID, as: "weatherdramon" }] },
       },
       { autoSelectCards: true },

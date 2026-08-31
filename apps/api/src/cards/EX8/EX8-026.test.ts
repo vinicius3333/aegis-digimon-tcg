@@ -60,13 +60,25 @@ describe("EX8-026", () => {
   });
 
   it("blocks an opposing attack at +1 memory, including the Blitz legality path (Q3892–Q3893)", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "EX8-026", as: "metal" }] },
-      1: { battleArea: [{ card: "BT5-009", as: "blitz" }] },
-    });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX8-026", as: "metal" }] },
+        1: { battleArea: [{ card: "BT5-017", as: "blitz" }] },
+      },
+      { autoAcceptOptional: true },
+    );
     s.state.turnSeat = 1;
-    s.state.memory = 1;
+    // Memory is signed from the turn player's perspective; -1 means the
+    // non-turn owner (the MetalSeadramon controller) has 1 memory.
+    s.state.memory = -1;
     await s.ready();
+    // Crossed memory opens the engine's normal Blitz confirmation window;
+    // accept that window so the following intent reaches attack legality,
+    // where EX8-026's suspend prohibition is asserted.
+    (s.engine as unknown as { checkTurnEndAfterVerb: () => void }).checkTurnEndAfterVerb();
+    await settle(() => s.engine.hasAcceptedBlitzAttack(s.perm("blitz").permanentId));
+    expect(s.state.phase).toBe("Main");
+    expect(s.engine.hasAcceptedBlitzAttack(s.perm("blitz").permanentId)).toBe(true);
 
     expect(observe(s.engine).isRestricted(s.perm("blitz"), "suspend")).toBe(true);
     expect(
@@ -76,6 +88,18 @@ describe("EX8-026", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: false, reason: "illegal-target" });
+  });
+
+  it("uses the source owner's side of the memory gauge off-turn (Q3892)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX8-026", as: "metal" }] },
+      1: { battleArea: [{ card: "BT5-009", as: "opponent" }] },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = -1;
+    await advance(s.engine).recompute();
+
+    expect(observe(s.engine).isRestricted(s.perm("opponent"), "suspend")).toBe(true);
   });
 
   it("uses the level-5 DS route for 3 and resolves the same removal sequence", async () => {

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT4-102.js";
+import "../BT6/BT6-002.js";
 
 describe("BT4-102 Aqua Viper", () => {
   it("returns one own and up to two opposing level 4 stacks", async () => {
@@ -38,5 +39,33 @@ describe("BT4-102 Aqua Viper", () => {
     const id = s.inst("securityOption").instanceId;
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === id)).toBe(true);
+  });
+
+  it("does not fire source-trash inherited effects during return teardown (Q1399)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT4-023", as: "mine" },
+            { card: "BT6-025", as: "watcher", under: ["BT6-002"] },
+          ],
+          deck: [{ card: "BT1-010", as: "notDrawn" }],
+          hand: [{ card: "BT4-102", as: "option" }],
+        },
+        1: {
+          battleArea: [{ card: "BT4-009", as: "target", under: [{ card: "BT4-001", as: "source" }] }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("watcher"));
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("notDrawn").instanceId)).toBe(false);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(s.inst("notDrawn").instanceId);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("source").instanceId)).toBe(true);
   });
 });

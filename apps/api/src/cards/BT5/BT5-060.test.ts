@@ -1,9 +1,21 @@
 import { describe, expect, it } from "vitest";
 import type { PlayerState } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT5-060.js";
 
 describe("BT5-060 Monitamon", () => {
+  it("uses exact-name matching for the revealed Monitamon play", () => {
+    expect(runtimeCompiledCard("BT5-060")?.effects[1]?.actions[0]).toMatchObject({
+      add: [
+        expect.objectContaining({
+          filter: expect.objectContaining({ nameOrTrait: [{ tokens: ["Monitamon"], match: "nameExact" }] }),
+        }),
+      ],
+    });
+  });
+
   it("looks at the top card without moving or publicly revealing it", async () => {
     const s = setupEngine({
       0: { hand: [{ card: "BT5-060", as: "source" }], deck: [{ card: "BT5-061", as: "deckTop" }] },
@@ -26,8 +38,8 @@ describe("BT5-060 Monitamon", () => {
           battleArea: [{ card: "BT5-060", as: "source" }],
           deck: [
             { card: "BT5-060", as: "played" },
+            { card: "BT5-060", as: "unselected" },
             { card: "BT5-061", as: "remainderA" },
-            { card: "BT5-062", as: "remainderB" },
             { card: "BT5-071", as: "untouched" },
           ],
         },
@@ -37,11 +49,48 @@ describe("BT5-060 Monitamon", () => {
     const player = s.state.players[0] as PlayerState;
     const playedId = s.inst("played").instanceId;
 
-    await (s.engine as any).primitives.deletePermanent([s.perm("source").permanentId], "byEffect");
+    await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId]);
     await settle(() => player.battleArea.some((permanent) => permanent.topCard.instanceId === playedId));
 
+    expect(player.battleArea).toHaveLength(1);
     expect(player.deck.map((card) => card.instanceId)).toEqual([
       s.inst("untouched").instanceId,
+      s.inst("unselected").instanceId,
+      s.inst("remainderA").instanceId,
+    ]);
+  });
+
+  it("may decline the revealed Monitamon and bottom all three revealed cards", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT5-060", as: "source" }],
+        deck: [
+          { card: "BT5-060", as: "candidate" },
+          { card: "BT5-061", as: "remainderA" },
+          { card: "BT5-062", as: "remainderB" },
+          { card: "BT5-071", as: "untouched" },
+        ],
+      },
+    });
+    const player = s.state.players[0] as PlayerState;
+
+    const deletion = advance(s.engine).verb.deletePermanent([s.perm("source").permanentId]);
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const choice = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: choice.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await deletion;
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(player.battleArea).toHaveLength(0);
+    expect(player.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("untouched").instanceId,
+      s.inst("candidate").instanceId,
       s.inst("remainderA").instanceId,
       s.inst("remainderB").instanceId,
     ]);
@@ -53,9 +102,28 @@ describe("BT5-060 Monitamon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const player = s.state.players[0] as PlayerState;
-    await (s.engine as any).primitives.deletePermanent([s.perm("source").permanentId], "byEffect");
+    await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId]);
     await settle(() => player.deck.length === 3);
     expect(player.battleArea).toHaveLength(0);
     expect(player.deck).toHaveLength(3);
+  });
+
+  it("does not treat Hi-VisionMonitamon as an exact Monitamon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT5-060", as: "source" }],
+          deck: ["BT10-063", "BT5-061", "BT5-062"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const player = s.state.players[0] as PlayerState;
+
+    await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId]);
+    await settle(() => player.deck.length === 3);
+
+    expect(player.battleArea).toHaveLength(0);
+    expect(player.deck.some(({ cardId }) => cardId === "BT10-063")).toBe(true);
   });
 });

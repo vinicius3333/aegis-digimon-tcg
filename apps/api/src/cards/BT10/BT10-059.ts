@@ -27,6 +27,7 @@ export const compiled: CompiledCard = {
           },
           amount: 1,
           stopAtLevel: 3,
+          allowCostWithoutTarget: true,
           cost: {
             kind: "place",
             target: {

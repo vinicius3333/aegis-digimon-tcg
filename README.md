@@ -6,7 +6,7 @@
 
 [Play now](https://aegis-digi.online) &nbsp;·&nbsp; [Discord](https://discord.gg/4EDa5Hhd6f) &nbsp;·&nbsp; [Architecture](./docs/ARCHITECTURE.md) &nbsp;·&nbsp; [API contract](./docs/API-CONTRACT.md)
 
-<img src="./docs/images/match.jpg" alt="An Aegis match in progress: board, memory gauge, phase tracker and match log" width="900">
+<img src="./docs/images/match.jpg" alt="An Aegis match in progress: board, memory gauge, phase tracker and an attack being declared" width="900">
 
 </div>
 
@@ -27,9 +27,9 @@
 
 |                                                                Lobby                                                                |                                                                Deck builder                                                                |
 | :---------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------: |
-|      <img src="./docs/images/lobby.jpg" alt="Lobby: quick match, practice vs AI, private match, and preset decks" width="440">      | <img src="./docs/images/deck-builder.jpg" alt="Deck builder with card pool filters, deck list, level curve and color balance" width="440"> |
+|      <img src="./docs/images/lobby.jpg" alt="Lobby: quick match, practice vs AI, private match, and preset decks" width="440">      | <img src="./docs/images/deck-builder.jpg" alt="Deck builder with card pool filters, search and the deck list" width="440"> |
 |                                                          **Card library**                                                           |                                                                  **Home**                                                                  |
-| <img src="./docs/images/collection.jpg" alt="Card library with 4,388 cards and filters for color, type, level and set" width="440"> |                <img src="./docs/images/home.jpg" alt="Home screen with active deck, quick match and shortcuts" width="440">                |
+| <img src="./docs/images/collection.jpg" alt="Card library with 4,388 cards and filters for color, type, level and set" width="440"> |                <img src="./docs/images/home.jpg" alt="Home screen: play now, build a deck, and Discord account sync" width="440">                |
 
 ## Architecture
 

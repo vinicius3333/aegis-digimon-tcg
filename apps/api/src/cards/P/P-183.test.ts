@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./P-183.js";
 
 describe("P-183 Gaiomon", () => {
@@ -32,5 +34,39 @@ describe("P-183 Gaiomon", () => {
         },
       ],
     });
+  });
+
+  it("exposes Reboot and Blocker on the live Gaiomon", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "P-183", as: "gaiomon" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("gaiomon"), "Reboot")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("gaiomon"), "Blocker")).toBe(true);
+  });
+
+  it("trashes the opponent's security when Blocker switches a real attack target", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "P-183", as: "gaiomon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }], security: ["BT1-001", "BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("gaiomon").permanentId }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 });

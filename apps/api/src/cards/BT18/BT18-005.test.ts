@@ -15,6 +15,7 @@ describe("BT18-005 Kozenimon", () => {
         {
           kind: "SubTrigger",
           event: "whenDeletesInBattle",
+          sourceFilter: { isSelfRef: true, zone: "battleArea" },
           actions: [{ kind: "Draw", controller: "mine", amount: 1 }],
         },
       ],
@@ -23,34 +24,72 @@ describe("BT18-005 Kozenimon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-030", dp: 3000, as: "host", under: ["BT18-005"] }],
-          deck: [{ card: "BT1-001", as: "drawn" }, { card: "BT1-002" }],
+          battleArea: [
+            {
+              card: "BT11-059",
+              dp: 13000,
+              as: "host",
+              under: ["BT18-005", "BT12-058", "BT12-061", "BT12-069"],
+            },
+            { card: "BT1-030", dp: 3000, as: "other" },
+          ],
+          deck: [
+            { card: "BT1-001", as: "drawn" },
+            { card: "BT1-002", as: "notDrawn" },
+          ],
         },
         1: {
-          battleArea: [{ card: "BT1-030", dp: 2000, suspended: true, as: "target" }],
+          battleArea: [
+            { card: "BT1-030", dp: 2000, suspended: true, as: "targetA" },
+            { card: "BT1-030", dp: 2000, suspended: true, as: "targetB" },
+            { card: "BT1-030", dp: 2000, suspended: true, as: "targetC" },
+          ],
         },
       },
-      { autoSelectCards: true },
+      { autoOrderTriggers: true },
     );
     await s.ready();
-    expect(
+    const targetAId = s.perm("targetA").permanentId;
+    const targetCId = s.perm("targetC").permanentId;
+
+    const attack = (targetAlias: string) =>
       s.engine.applyIntent(0, {
-        type: "attack",
+        type: "attack" as const,
+        attackerPermanentId: s.perm("other").permanentId,
+        target: { kind: "permanent" as const, permanentId: s.perm(targetAlias).permanentId },
+      });
+    expect(attack("targetA")).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetAId));
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+
+    const hostAttack = (targetAlias: string) =>
+      s.engine.applyIntent(0, {
+        type: "attack" as const,
         attackerPermanentId: s.perm("host").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
-      }),
-    ).toEqual({ ok: true });
+        target: { kind: "permanent" as const, permanentId: s.perm(targetAlias).permanentId },
+      });
+    expect(hostAttack("targetB")).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001"));
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
-    const handSize = s.state.players[0]!.hand.length;
-    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", { attackerPermanentId: s.perm("host").permanentId });
-    expect(s.state.players[0]!.hand.length).toBe(handSize);
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+
+    expect(hostAttack("targetC")).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetCId));
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-002")).toBe(false);
   });
 
   it("does not draw when its host loses the battle", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-030", dp: 3000, as: "host", under: ["BT18-005"] }],
+        battleArea: [
+          {
+            card: "BT11-059",
+            dp: 3000,
+            as: "host",
+            under: ["BT18-005", "BT12-058", "BT12-061", "BT12-069"],
+          },
+        ],
         deck: [{ card: "BT1-001", as: "top" }],
       },
       1: { battleArea: [{ card: "BT1-030", dp: 4000, suspended: true, as: "target" }] },

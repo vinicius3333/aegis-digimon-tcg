@@ -31,6 +31,7 @@ describe("EX6-009 Duramon", () => {
         {
           kind: "SubTrigger",
           event: "whenAttackTargetSwitched",
+          sourceFilter: { isSelfRef: true },
           actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent", amount: 1 }],
         },
       ],

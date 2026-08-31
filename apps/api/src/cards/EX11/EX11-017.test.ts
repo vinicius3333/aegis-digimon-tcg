@@ -212,7 +212,7 @@ describe("EX11-017 Skadimon", () => {
     }
   });
 
-  it("uses Barrier to spend the top security and prevent effect deletion", async () => {
+  it("uses Barrier to spend the top security and prevent battle deletion", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: cardId, as: "source", suspended: true }], security: ["BT1-029"] },
     });
@@ -220,7 +220,7 @@ describe("EX11-017 Skadimon", () => {
     const sourceId = s.perm("source").permanentId;
     expect(observe(s.engine).hasKeyword(s.perm("source"), "Barrier")).toBe(true);
 
-    const deletion = advance(s.engine).verb.deletePermanent([sourceId], "byEffect");
+    const deletion = advance(s.engine).verb.deletePermanent([sourceId], "byBattle");
     await settle(() => s.events.some(({ kind }) => kind === "barrierPrompt"));
     expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: sourceId, accept: true })).toEqual({
       ok: true,

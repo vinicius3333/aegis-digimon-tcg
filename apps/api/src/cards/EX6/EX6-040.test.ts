@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-040.js";
 
-describe("EX6-040 Ludomon", () => {
+describe("EX6-040 TiaLudomon", () => {
   it("places itself under a level 4 or Legend-Arms Digimon for +2000 DP", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "Main")?.actions[0]).toMatchObject({
       kind: "ModifyDP",
@@ -14,6 +14,7 @@ describe("EX6-040 Ludomon", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")?.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "onAddDigivolutionCards",
+      sourceFilter: { isSelfRef: true },
       actions: [
         { kind: "GainKeyword", keyword: { keyword: "Blocker" } },
         { kind: "GainKeyword", keyword: { keyword: "Reboot" } },

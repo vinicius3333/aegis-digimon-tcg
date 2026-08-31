@@ -106,6 +106,14 @@ interface PlayerKeywordGrant {
   duration: EffectDuration;
 }
 
+interface PlayerCustomEffectGrant {
+  seat: Seat;
+  ownerSeat: Seat;
+  token: string;
+  duration: EffectDuration;
+  matches: (permanentId: string) => boolean;
+}
+
 /**
  * A positive attack-legality grant: the attacker MAY also attack an opponent's
  * unsuspended Digimon (rule implementation, e.g. ST12-08). The base
@@ -213,7 +221,7 @@ interface LinkMaxGrant {
  * matching grant rather than their sum. Real authoritative state, never client-supplied; cleared
  * and re-derived each continuous-recompute pass (CR-01) like every other continuous grant.
  */
-interface LinkCostReductionGrant {
+export interface LinkCostReductionGrant {
   /** The link recipient the reduction is installed on. */
   permanentId: string;
   /** Magnitude of the reduction (positive). */
@@ -222,6 +230,10 @@ interface LinkCostReductionGrant {
   traits: string[];
   duration: EffectDuration;
   continuous?: boolean;
+  sourceInstanceId?: string;
+  controllerSeat?: Seat;
+  optional?: boolean;
+  oncePerTurnKey?: string;
 }
 
 interface KindGrant {
@@ -304,6 +316,8 @@ export interface StackEffectConferral {
   continuous?: boolean;
   /** Limit the copied effects to the printed trigger (for example, only [Main]). */
   trigger?: string;
+  /** When true, do not confer inherited effects from the matched stack card. */
+  excludeInherited?: boolean;
   inheritedOnly?: boolean;
   /** Physical source of the grant; distinct grant sources confer distinct effect copies (Q1943). */
   granterInstanceId?: string;
@@ -404,6 +418,11 @@ export interface PlayMatch {
   kinds?: ("Digimon" | "Tamer" | "Option" | "DigiEgg")[];
   /** Upper DP bound for the "Digimon with N DP or less" form (printed DP). */
   dpAtMost?: number;
+  /**
+   * Treat synthetic Digimon tokens as matching the Digimon kind. Most play prohibitions
+   * exempt tokens, but cards whose ruling explicitly includes them (BT14-017/Q2381) opt in.
+   */
+  allowTokens?: boolean;
   /** Loose-card origin zones matched by the prohibition; undefined means every origin. */
   fromZones?: ZoneRef[];
 }
@@ -492,6 +511,7 @@ export class ContinuousEffectLedger {
   private colorWaivers: ColorWaiver[] = [];
   private keywordGrants: KeywordGrant[] = [];
   private playerKeywordGrants: PlayerKeywordGrant[] = [];
+  private playerCustomEffectGrants: PlayerCustomEffectGrant[] = [];
   /** Break dependency cycles while a conditional grant asks about other live keywords. */
   private evaluatingKeywordGrants = new Set<KeywordGrant>();
   private linkMaxGrants: LinkMaxGrant[] = [];
@@ -570,8 +590,18 @@ export class ContinuousEffectLedger {
     sourceKind?: string,
     opts?: { byOpponentEffect?: boolean },
   ): boolean {
+    // Printed "can't suspend" effects are recorded as `beSuspended` by the
+    // interpreter so effect-driven suspension can honor them. The combat
+    // legality reader uses the public `suspend` vocabulary for the implicit
+    // suspend that starts a normal attack. Treat the two spellings as the
+    // same prohibition at this read boundary; otherwise cards such as
+    // EX8-026 would block effect suspension but still allow attacks.
+    const equivalentRestrictions =
+      restriction === "suspend" || restriction === "beSuspended"
+        ? new Set<Restriction>(["suspend", "beSuspended"])
+        : new Set<Restriction>([restriction]);
     const individuallyRestricted = this.restrictions.some((r) => {
-      if (r.permanentId !== permanentId || r.restriction !== restriction) return false;
+      if (r.permanentId !== permanentId || !equivalentRestrictions.has(r.restriction)) return false;
       if (r.byOpponentEffectsOnly === true && opts?.byOpponentEffect === false) return false;
       if (r.fromSourceKind === undefined) return true;
       // Qualified entry: block only when sourceKind is known and matches.
@@ -788,7 +818,8 @@ export class ContinuousEffectLedger {
    * own ACTION or EFFECT is performing the play/move — for a manual play that is the playing
    * player; for an effect-driven play it is the seat the resolving effect is attributed to
    * (so a "your opponent can't play" effect blocks the opponent's actions and effects, but
-   * NOT the source player's effects: KB EX7-014 Q4675/Q4676). Token plays are EXEMPT (Q3834).
+   * NOT the source player's effects: KB EX7-014 Q4675/Q4676). Token plays are exempt by default
+   * (Q3834), unless the active match explicitly opts into them.
    * `requestedMode` is "play" (play / enter-field, incl. breeding) or "move" (effect-driven
    * or breeding move); a "playOrMove" prohibition matches either.
    * `effectPlay` true means the caller is an effect-driven play path — prohibitions with
@@ -802,7 +833,6 @@ export class ContinuousEffectLedger {
     effectPlay?: boolean,
     fromZone?: ZoneRef,
   ): boolean {
-    if (cardDef.isToken === true) return false; // Q3834: token plays are exempt
     return this.playProhibitions.some(
       (p) =>
         p.seat === seat &&
@@ -1031,6 +1061,22 @@ export class ContinuousEffectLedger {
     this.playerKeywordGrants.push({ seat, keyword, amount, duration });
   }
 
+  /** Grant a named custom effect to every matching current/future permanent controlled by `seat`. */
+  addPlayerCustomEffectGrant(
+    seat: Seat,
+    ownerSeat: Seat,
+    token: string,
+    duration: EffectDuration,
+    matches: (permanentId: string) => boolean,
+  ): void {
+    this.playerCustomEffectGrants.push({ seat, ownerSeat, token, duration, matches });
+  }
+
+  /** Return active player-scoped named grants that match a newly entered permanent. */
+  playerCustomEffectsFor(permanentId: string, seat: Seat): readonly PlayerCustomEffectGrant[] {
+    return this.playerCustomEffectGrants.filter((grant) => grant.seat === seat && grant.matches(permanentId));
+  }
+
   /** Keywords currently granted to a permanent (with optional amounts). */
   grantedKeywords(permanentId: string): { keyword: string; amount?: number }[] {
     const direct = this.keywordGrants
@@ -1137,7 +1183,13 @@ export class ContinuousEffectLedger {
     amount: number,
     traits: string[],
     duration: EffectDuration,
-    opts?: { continuous?: boolean },
+    opts?: {
+      continuous?: boolean;
+      sourceInstanceId?: string;
+      controllerSeat?: Seat;
+      optional?: boolean;
+      oncePerTurnKey?: string;
+    },
   ): void {
     this.linkCostReductionGrants.push({
       permanentId,
@@ -1145,6 +1197,10 @@ export class ContinuousEffectLedger {
       traits: traits.map((t) => t.toLowerCase()),
       duration,
       continuous: opts?.continuous,
+      sourceInstanceId: opts?.sourceInstanceId,
+      controllerSeat: opts?.controllerSeat,
+      optional: opts?.optional,
+      oncePerTurnKey: opts?.oncePerTurnKey,
     });
   }
 
@@ -1155,13 +1211,23 @@ export class ContinuousEffectLedger {
    * no `traits` (empty) applies to any would-link card.
    */
   linkCostReduction(recipientId: string, cardTraits: readonly string[]): number {
+    return this.linkCostReductionGrant(recipientId, cardTraits)?.amount ?? 0;
+  }
+
+  /** Highest matching declaration-time grant that has not been consumed. */
+  linkCostReductionGrant(
+    recipientId: string,
+    cardTraits: readonly string[],
+    used: (key: string) => boolean = () => false,
+  ): LinkCostReductionGrant | undefined {
     const lowered = cardTraits.map((t) => t.toLowerCase());
-    let best = 0;
+    let best: LinkCostReductionGrant | undefined;
     for (const g of this.linkCostReductionGrants) {
       if (g.permanentId !== recipientId) continue;
+      if (g.oncePerTurnKey !== undefined && used(g.oncePerTurnKey)) continue;
       const traitOk = g.traits.length === 0 || g.traits.some((t) => lowered.includes(t));
       if (!traitOk) continue;
-      if (g.amount > best) best = g.amount;
+      if (best === undefined || g.amount > best.amount) best = g;
     }
     return best;
   }
@@ -1301,7 +1367,13 @@ export class ContinuousEffectLedger {
   conferStackEffects(
     targetPermanentId: string,
     stackInstanceId: string,
-    opts?: { continuous?: boolean; trigger?: string; inheritedOnly?: boolean; granterInstanceId?: string },
+    opts?: {
+      continuous?: boolean;
+      trigger?: string;
+      excludeInherited?: boolean;
+      inheritedOnly?: boolean;
+      granterInstanceId?: string;
+    },
   ): void {
     const exists = this.stackEffectConferrals.some(
       (c) =>
@@ -1317,6 +1389,7 @@ export class ContinuousEffectLedger {
       stackInstanceId,
       continuous: opts?.continuous,
       trigger: opts?.trigger,
+      excludeInherited: opts?.excludeInherited,
       inheritedOnly: opts?.inheritedOnly,
       granterInstanceId: opts?.granterInstanceId,
     });
@@ -1399,6 +1472,9 @@ export class ContinuousEffectLedger {
     );
     this.playerKeywordGrants = this.playerKeywordGrants.filter(
       (grant) => !clearsAt(grant.duration, boundary, grant.seat, sweepSeat),
+    );
+    this.playerCustomEffectGrants = this.playerCustomEffectGrants.filter(
+      (grant) => !clearsAt(grant.duration, boundary, grant.ownerSeat, sweepSeat),
     );
     this.linkMaxGrants = this.linkMaxGrants.filter(
       (g) => !clearsAt(g.duration, boundary, ownerOf(g.permanentId), sweepSeat),
@@ -1501,6 +1577,7 @@ export class ContinuousEffectLedger {
     this.colorWaivers = [];
     this.keywordGrants = [];
     this.playerKeywordGrants = [];
+    this.playerCustomEffectGrants = [];
     this.linkMaxGrants = [];
     this.linkCostReductionGrants = [];
     this.kindGrants = [];
@@ -1528,6 +1605,7 @@ function modeMatches(mode: "play" | "move" | "playOrMove", requested: "play" | "
 
 /** Does a card definition satisfy a PlayMatch predicate (kind AND optional DP cap)? */
 function playMatchesCard(match: PlayMatch, def: CardDefinition): boolean {
+  if (def.isToken === true && match.allowTokens !== true) return false;
   if (match.kinds !== undefined && match.kinds.length > 0) {
     if (!match.kinds.some((k) => def.kinds.includes(k as CardKind))) return false;
   }

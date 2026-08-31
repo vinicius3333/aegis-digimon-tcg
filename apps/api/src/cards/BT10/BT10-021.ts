@@ -1,6 +1,7 @@
 // @ts-nocheck
 // HAND-FIXED IR for BT10-021 — do not regenerate.
 // WhenAttacking: added block Restrict; condition changed to raw covering Blue Flare + opponent 2+.
+// Explicit battle-area zones preserve the printed "in play" scope for all three conditions.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
@@ -28,6 +29,7 @@ export const compiled: CompiledCard = {
             kind: "youHave",
             filter: {
               controllerDefault: "mine",
+              zone: "battleArea",
               nameOrTrait: [
                 {
                   tokens: ["Kiriha Aonuma"],
@@ -59,6 +61,7 @@ export const compiled: CompiledCard = {
             kind: "youHaveNone",
             filter: {
               controllerDefault: "mine",
+              zone: "battleArea",
               nameOrTrait: [{ tokens: ["Kiriha Aonuma"], match: "nameExact" }],
             },
             raw: "you don't have a [Kiriha Aonuma] in play",
@@ -111,7 +114,7 @@ export const compiled: CompiledCard = {
             kind: "allOf",
             conditions: [
               { kind: "selfHasTrait", filter: { nameOrTrait: [{ tokens: ["Blue Flare"], match: "trait" }] } },
-              { kind: "opponentHas", filter: { kind: ["Digimon"] }, countMin: 2 },
+              { kind: "opponentHas", filter: { zone: "battleArea", kind: ["Digimon"] }, countMin: 2 },
             ],
             raw: "this Digimon has [Blue Flare] in its traits and your opponent has 2 or more Digimon in play",
           },
@@ -129,7 +132,7 @@ export const compiled: CompiledCard = {
             kind: "allOf",
             conditions: [
               { kind: "selfHasTrait", filter: { nameOrTrait: [{ tokens: ["Blue Flare"], match: "trait" }] } },
-              { kind: "opponentHas", filter: { kind: ["Digimon"] }, countMin: 2 },
+              { kind: "opponentHas", filter: { zone: "battleArea", kind: ["Digimon"] }, countMin: 2 },
             ],
             raw: "this Digimon has [Blue Flare] in its traits and your opponent has 2 or more Digimon in play",
           },

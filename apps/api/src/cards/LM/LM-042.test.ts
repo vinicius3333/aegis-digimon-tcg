@@ -50,6 +50,49 @@ describe("LM-042 Rasielmon", () => {
     expect(observe(s.engine).isRestricted(s.perm("first"), "cannotActivateWhenDigivolving")).toBe(false);
   });
 
+  it("lets the Then lock choose a different opponent permanent than the suspension", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "LM-042", as: "rasielmon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-055", as: "suspendedTarget" },
+            { card: "BT1-056", as: "lockedTarget" },
+          ],
+        },
+      },
+      { autoSelectCards: false },
+    );
+    await s.ready();
+
+    const resolving = advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("rasielmon"));
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const suspendChoice = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: suspendChoice.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("suspendedTarget").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const lockChoice = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: lockChoice.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("lockedTarget").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await resolving;
+
+    expect(s.perm("suspendedTarget").isSuspended).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("suspendedTarget"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("lockedTarget"), "unsuspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("lockedTarget"), "cannotActivateWhenDigivolving")).toBe(true);
+  });
+
   it("places itself as the bottom security card when deleted", async () => {
     const s = setupEngine(
       {

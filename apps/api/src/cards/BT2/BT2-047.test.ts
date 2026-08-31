@@ -36,7 +36,7 @@ describe("BT2-047 Argomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT2-047", as: "attacker", under: ["BT2-047"] }],
+          battleArea: [{ card: "BT2-050", as: "attacker", under: ["BT2-047"] }],
           hand: [{ card: "BT2-043", as: "played" }],
         },
         1: { security: ["BT1-010"] },

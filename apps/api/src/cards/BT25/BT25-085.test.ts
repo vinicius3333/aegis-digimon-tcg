@@ -3,10 +3,19 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
+import { compiled } from "./BT25-085.js";
 
 const CARD_ID = "BT25-085";
 
 describe("BT25-085 BeelStarmon", () => {
+  it("places the Option-side Three Musketeers card as the bottom digivolution card", () => {
+    const optionMain = compiled.effects.find((effect) => effect.trigger === "Main");
+    expect(optionMain?.actions.find((action) => action.kind === "PlaceUnder")).toMatchObject({
+      underFilter: { controller: "mine", kind: ["Digimon"] },
+      position: "bottom",
+    });
+  });
+
   it("preserves both alternate evolution requirements and its DUAL Option identity (Q6404)", () => {
     expect(digivolutionRequirementsFor(CARD_ID)).toEqual(
       expect.arrayContaining([

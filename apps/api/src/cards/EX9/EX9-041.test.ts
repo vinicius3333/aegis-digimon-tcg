@@ -33,6 +33,7 @@ describe("EX9-041", () => {
         {
           kind: "SubTrigger",
           event: "whenDeletesInBattle",
+          sourceFilter: { isSelfRef: true },
           actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent" }],
         },
       ],
@@ -68,5 +69,31 @@ describe("EX9-041", () => {
     expect(s.perm("source").stack[0]!.faceUp).toBe(true);
     expect(s.state.players[1]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT1-010")).toBe(true);
+  });
+
+  it("does not trash security when another allied Digimon deletes in battle", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-009", as: "host", dp: 10000, under: ["EX9-041"] },
+          { card: "BT1-009", as: "ally", dp: 10000 },
+        ],
+      },
+      1: {
+        battleArea: [{ card: "BT1-010", as: "target", dp: 1000, suspended: true }],
+        security: [{ card: "BT1-011" }, { card: "BT1-012" }],
+      },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ally").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.players[1]!.security).toHaveLength(2);
   });
 });

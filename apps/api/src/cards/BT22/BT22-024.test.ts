@@ -19,15 +19,16 @@ describe("BT22-024 MarineBullmon", () => {
       underFilter: { controller: "mine", nameOrTrait: [{ tokens: ["Sangomon"], match: "name" }] },
       position: "bottom",
       optional: true,
+      bindHostAs: "marineBullmonHost",
     });
     expect(main?.actions[1]).toMatchObject({
       kind: "Digivolve",
       target: {
+        fromSelectionRef: "marineBullmonHost",
         filter: {
           controller: "mine",
           kind: ["Digimon"],
           nameOrTrait: [{ tokens: ["Sangomon"], match: "name" }],
-          sameAsPlaceUnderTarget: true,
         },
         count: 1,
       },
@@ -41,11 +42,42 @@ describe("BT22-024 MarineBullmon", () => {
         keywords: [{ keyword: "Decode", raw: "＜Decode (Lv.4 w/[Aqua]/[Sea Animal] in any trait)＞" }],
       }),
     );
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "AllTurns",
+        actions: [
+          {
+            kind: "Replacement",
+            event: "wouldLeavePlay",
+            leaveCause: "otherThanBattle",
+            sourceFilter: { isSelfRef: true },
+            actions: [
+              {
+                kind: "PlayWithoutCost",
+                fromOwnDigivolutionStack: true,
+                payCost: false,
+                playedByDecode: true,
+                optional: true,
+                target: {
+                  filter: {
+                    controller: "mine",
+                    kind: ["Digimon"],
+                    levelComparison: { op: "eq", value: 4 },
+                    nameOrTrait: [{ tokens: ["Aqua", "Sea Animal"], match: "traitContains" }],
+                  },
+                  count: 1,
+                },
+              },
+            ],
+          },
+        ],
+      }),
+    );
     const inherited = compiled.effects.find((entry) => entry.trigger === "EndOfAttack");
     expect(inherited).toMatchObject({ isInherited: true, frequency: "OncePerTurn" });
     expect(inherited?.actions[0]).toMatchObject({
       kind: "PlayWithoutCost",
-      from: ["digivolutionCards"],
+      fromOwnDigivolutionStack: true,
       target: { source: "thisDigimon", filter: { levelComparison: { op: "lte", value: 4 } }, count: 1 },
       optional: true,
     });
@@ -56,7 +88,7 @@ describe("BT22-024 MarineBullmon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT21-031", as: "sangomon" },
+            { card: "BT4-022", as: "sangomon" },
             { card: "BT22-086", as: "yao" },
           ],
           hand: [{ card: "BT22-024", as: "marineBullmon" }],
@@ -82,7 +114,7 @@ describe("BT22-024 MarineBullmon", () => {
 
     expect(s.state.memory).toBe(2);
     expect(s.perm("sangomon").topCard?.cardId).toBe("BT22-024");
-    expect(s.perm("sangomon").stack.map((card) => card.cardId)).toEqual(["BT22-021", "BT21-031"]);
+    expect(s.perm("sangomon").stack.map((card) => card.cardId)).toEqual(["BT22-021", "BT4-022"]);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("invalid").instanceId]);
   });
 
@@ -141,5 +173,18 @@ describe("BT22-024 MarineBullmon", () => {
     await advance(s.engine).fire(EffectTiming.OnEndAttack, s.perm("host"));
     await settle();
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
+  });
+
+  it("executes Decode from its own stack on a non-battle leave", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT22-024", under: ["BT22-021"], as: "host" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-021"));
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT22-021"]);
   });
 });

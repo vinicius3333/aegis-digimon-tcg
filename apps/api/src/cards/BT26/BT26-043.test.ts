@@ -19,7 +19,7 @@ describe("BT26-043 Piximon", () => {
       trigger: "OnPlay",
       actions: [
         { kind: "Suspend" },
-        { kind: "PlaceUnder", from: ["deck"], faceDown: true, position: "bottom" },
+        { kind: "PlaceUnder", fromDeckTop: true, faceDown: true, position: "bottom" },
         { kind: "Restrict", restriction: "unsuspend", scaling: { unit: "selfFaceDownDigivolutionCards", per: 1 } },
       ],
     });
@@ -43,6 +43,35 @@ describe("BT26-043 Piximon", () => {
       ok: true,
     });
     await settle(() => observe(s.engine).isRestricted(s.perm("target"), "unsuspend"));
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(true);
+  });
+
+  it("retains the catalog green Lv.4 evolution route for cost 3", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-070", as: "greenBase" }],
+        hand: [{ card: "BT26-043", as: "piximon" }],
+        deck: ["BT1-009", "BT1-010"],
+      },
+      1: { battleArea: [{ card: "BT1-085", as: "target" }] },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("greenBase").permanentId,
+        instanceId: s.inst("piximon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("greenBase").topCard.cardId === "BT26-043");
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "unsuspend"));
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("greenBase").stack.map(({ cardId }) => cardId)).toEqual(["BT1-010", "BT1-070"]);
+    expect(s.perm("greenBase").stack[0]?.faceUp).toBe(false);
     expect(s.perm("target").isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(true);
   });
@@ -124,5 +153,27 @@ describe("BT26-043 Piximon", () => {
     await settle(() => s.perm("target").isSuspended);
 
     expect(s.perm("target").isSuspended).toBe(true);
+  });
+
+  it("may decline the inherited suspension when another Digimon is played", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-044", as: "host", under: ["BT26-043"] }],
+          hand: [{ card: "BT1-009", as: "played" }],
+        },
+        1: { battleArea: [{ card: "BT5-022", as: "target" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+
+    expect(s.perm("target").isSuspended).toBe(false);
   });
 });

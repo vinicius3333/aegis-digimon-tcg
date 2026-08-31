@@ -44,7 +44,7 @@ describe("EX10-019 Warudamon", () => {
                 kind: ["Digimon"],
                 levelComparison: { op: "lte", value: 4 },
                 hasLinkRequirement: true,
-                hostFilter: { isSelfRef: true },
+                or: [{ zone: "trash" }, { zone: "digivolutionCards", hostFilter: { isSelfRef: true } }],
               },
             },
             recipient: { filter: { isSelfRef: true }, count: 1, isSelf: true },

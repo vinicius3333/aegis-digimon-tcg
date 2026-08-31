@@ -36,7 +36,8 @@ describe("BT21-092 Can't Turn My Back!", () => {
               card: "BT10-008",
               as: "xrosHost",
               under: [
-                { card: "BT1-009", as: "digimonSource" },
+                { card: "BT1-009", as: "digimonSourceA" },
+                { card: "BT1-010", as: "digimonSourceB" },
                 { card: "BT21-083", as: "tamerSource" },
               ],
             },
@@ -63,13 +64,16 @@ describe("BT21-092 Can't Turn My Back!", () => {
       setup.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === playedId),
     );
 
-    expect(setup.perm("xrosHost").stack.map((card) => card.instanceId)).toEqual([setup.inst("tamerSource").instanceId]);
+    expect(setup.perm("xrosHost").stack.map((card) => card.instanceId)).toEqual([
+      setup.inst("tamerSource").instanceId,
+    ]);
     expect(setup.perm("destination").stack.map((card) => card.instanceId)).toEqual([
-      setup.inst("digimonSource").instanceId,
+      setup.inst("digimonSourceA").instanceId,
+      setup.inst("digimonSourceB").instanceId,
       setup.inst("existing").instanceId,
     ]);
-    // 10 - option cost 2 - (Shoutmon cost 4 - 1 placed Digimon card) = 5.
-    expect(setup.state.memory).toBe(5);
+    // 10 - option cost 2 - (Shoutmon cost 4 - 2 placed Digimon cards) = 6.
+    expect(setup.state.memory).toBe(6);
   });
 
   it("waives color with a Xros Heart Digimon and rejects the option without one", async () => {

@@ -27,11 +27,13 @@ const compiled: CompiledCard = {
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],
-            nameOrTrait: [
-              { tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "trait" },
-              { tokens: ["CS"], match: "trait" },
+            or: [
+              {
+                nameOrTrait: [{ tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "trait" }],
+                excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }],
+              },
+              { nameOrTrait: [{ tokens: ["CS"], match: "trait" }] },
             ],
-            excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }],
           },
           actions: [
             {

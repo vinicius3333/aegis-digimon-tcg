@@ -14,8 +14,8 @@ export const compiled: CompiledCard = {
             kind: "PlayWithoutCost",
             target: {
               filter: {
-                name: "Ravemon",
                 controller: "mine",
+                nameOrTrait: [{ tokens: ["Ravemon"], match: "nameExact" }],
               },
               count: 1,
             },
@@ -59,7 +59,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Falcomon", "Keenan Crier"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },

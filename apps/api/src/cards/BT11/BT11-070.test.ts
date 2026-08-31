@@ -74,7 +74,10 @@ describe("BT11-070 Destromon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT11-111", as: "galacticmon", under: ["BT11-070", "BT11-061", "BT11-061"] }],
+          battleArea: [
+            { card: "BT11-111", as: "galacticmon", under: ["BT11-070", "BT11-061", "BT11-061"] },
+            { card: "BT11-111", as: "otherGalacticmon", under: ["BT11-061", "BT11-061"] },
+          ],
         },
         1: { battleArea: [{ card: "BT1-010", as: "attacker" }] },
       },
@@ -93,6 +96,11 @@ describe("BT11-070 Destromon", () => {
     await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.state.players[0]!.deck.filter(({ cardId }) => cardId === "BT11-061")).toHaveLength(2);
+    expect(
+      [s.perm("galacticmon"), s.perm("otherGalacticmon")].filter(
+        (permanent) => permanent.stack.filter(({ cardId }) => cardId === "BT11-061").length === 0,
+      ),
+    ).toHaveLength(1);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-010");
   });

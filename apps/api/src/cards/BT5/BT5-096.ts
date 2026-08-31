@@ -2,13 +2,28 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const target = { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 3000 } }, count: "all" };
+const target = {
+  filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 3000 } },
+  count: "all",
+};
 const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Main",
       actions: [
-        { kind: "Return", target, to: "hand" },
+        {
+          kind: "Return",
+          target,
+          to: "hand",
+          condition: {
+            kind: "youHaveNone",
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Garurumon", "Omnimon"], match: "name" }],
+            },
+          },
+        },
         {
           kind: "Return",
           target: {

@@ -31,7 +31,7 @@ const compiled: CompiledCard = {
                 op: "lte",
                 value: 4,
               },
-              keywords: ["Retaliation"],
+              effectTextContains: ["＜Retaliation＞", "<Retaliation>"],
             },
             count: 1,
           },

@@ -95,6 +95,7 @@ const compiled: CompiledCard = {
       keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
       actions: [
         {
+          requiresDelayArmed: true,
           kind: "Digivolve",
           target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
           into: {
@@ -103,6 +104,7 @@ const compiled: CompiledCard = {
             nameOrTrait: [{ tokens: ["LIBERATOR"], match: "trait" }],
           },
           from: ["hand"],
+          payCost: true,
           reduceCost: 3,
           optional: true,
         },

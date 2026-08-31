@@ -5,6 +5,7 @@ import {
   Permanent,
   CardInstance,
   EffectTiming,
+  getCardDefinition,
   type Seat,
   type ServerEvent,
   type CompiledCard,
@@ -16,6 +17,7 @@ import { createPrimitives, type PrimitivesEngine, type SelectionPort } from "../
 import { createCardSource, type CardStateLookup } from "../../engine/cards/CardSource.js";
 import { createGameAccess, createEffectContext } from "../../engine/effects/context.js";
 import { irCardModule } from "../../engine/effects/interpreter.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 // The REAL authored IR (the hand-override exports it so the A3 asserts against the on-disk source).
 import { compiled as BT25_004 } from "./BT25-004.js";
 // Boot side-effect: self-register every compiled-IR card module.
@@ -63,6 +65,7 @@ function card(cardId: string, seat: Seat): CardInstance {
 interface RunResult {
   memoryPaid: number;
   linkedCount: number;
+  optionalPrompts: number;
 }
 
 /**
@@ -79,6 +82,8 @@ async function runLinkWithGrant(opts: {
   installTimes?: number;
   linkCardId?: string;
   compiledForInstall?: CompiledCard;
+  linkAttempts?: number;
+  optionalAnswers?: boolean[];
 }): Promise<RunResult> {
   seq = 0;
   const state = new GameState();
@@ -100,8 +105,8 @@ async function runLinkWithGrant(opts: {
   recipient.currentDP = 3000;
   state.players[0]!.battleArea.push(recipient);
 
-  const linkCard = card(opts.linkCardId ?? LINKABLE, 0);
-  state.players[0]!.hand.push(linkCard);
+  const linkAttempts = opts.linkAttempts ?? 1;
+  for (let i = 0; i < linkAttempts; i++) state.players[0]!.hand.push(card(opts.linkCardId ?? LINKABLE, 0));
 
   const modifiers = new ModifierLedger();
   const continuous = new ContinuousEffectLedger();
@@ -124,14 +129,20 @@ async function runLinkWithGrant(opts: {
   const ask: SelectionPort = {
     selectInstances: async (_seat, candidates, _min, max) => candidates.slice(0, max),
   };
+  let optionalPrompts = 0;
+  const optionalAnswers = [...(opts.optionalAnswers ?? [true])];
   const decisionApi = {
     selectPermanents: async () => [],
-    optional: async () => true,
+    optional: async () => {
+      optionalPrompts += 1;
+      return optionalAnswers.shift() ?? true;
+    },
     chooseTargets: async (_ctx: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max),
     selectCards: async (_ctx: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max),
     chooseOption: async () => 0,
   };
 
+  const usedReductions = new Set<string>();
   const engine: PrimitivesEngine = {
     state,
     emit: (e) => events.push(e),
@@ -141,6 +152,8 @@ async function runLinkWithGrant(opts: {
     continuous,
     ask,
     controllerSeat: () => state.turnSeat,
+    barrierFired: (key) => usedReductions.has(key),
+    markBarrierFired: (key) => usedReductions.add(key),
   };
   const fx = createPrimitives(engine);
   // The grant-backed GameAccess: linkCostReduction reads the continuous ledger (the live-engine
@@ -149,6 +162,18 @@ async function runLinkWithGrant(opts: {
     state,
     (id) => continuous.linkMaxDelta(id),
     (id, traits) => continuous.linkCostReduction(id, traits),
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    (id, traits) => continuous.linkCostReductionGrant(id, traits, (key) => usedReductions.has(key)),
   );
 
   const src = createCardSource(recipient.topCard!, stateLookup);
@@ -191,11 +216,13 @@ async function runLinkWithGrant(opts: {
   const linkEffects = linkModule.effectsForTiming(EffectTiming.OnDeclaration, src);
 
   const before = state.memory;
-  for (const e of linkEffects) {
-    const ctx = createEffectContext({ source: src, trigger: {}, game, fx, ask: decisionApi });
-    await e.resolve(ctx);
+  for (let attempt = 0; attempt < linkAttempts; attempt++) {
+    for (const e of linkEffects) {
+      const ctx = createEffectContext({ source: src, trigger: {}, game, fx, ask: decisionApi });
+      await e.resolve(ctx);
+    }
   }
-  return { memoryPaid: before - state.memory, linkedCount: recipient.linked.length };
+  return { memoryPaid: before - state.memory, linkedCount: recipient.linked.length, optionalPrompts };
 }
 
 /**
@@ -213,16 +240,45 @@ function withoutGrant(compiled: CompiledCard): CompiledCard {
 }
 
 describe("BT25-004 Tapmon — cross-actor WhenWouldLink link-cost reduction (documented behavior documented rule)", () => {
+  it("matches the catalog identity and Appmon Tool traits", () => {
+    expect(getCardDefinition("BT25-004")).toMatchObject({
+      cardId: "BT25-004",
+      nameEn: "Tapmon",
+      colors: ["Green"],
+      kinds: ["DigiEgg"],
+      level: 2,
+      playCost: -1,
+      forms: ["Appmon"],
+      attributes: ["Tool"],
+      types: ["Tap"],
+    });
+  });
+
   it("authors a GrantLinkCostReduction action (amount 1, Social/Tool/Game) on its [Your Turn] clause", () => {
     const grants = (BT25_004.effects ?? [])
       .flatMap((e) => e.actions ?? [])
       .filter((a) => (a as { kind?: string }).kind === "GrantLinkCostReduction") as {
       amount?: number;
       whenLinkingTrait?: string[];
+      optionalAtDeclaration?: boolean;
+      oncePerTurn?: boolean;
     }[];
     expect(grants.length).toBeGreaterThan(0);
     expect(grants.some((g) => g.amount === 1)).toBe(true);
     expect(grants[0]?.whenLinkingTrait).toEqual(["Social", "Tool", "Game"]);
+    expect(grants[0]).toMatchObject({ optionalAtDeclaration: true, oncePerTurn: true });
+  });
+
+  it("offers the reduction at declaration and consumes it only when accepted", async () => {
+    const accepted = await runLinkWithGrant({ installGrant: true, linkAttempts: 2, optionalAnswers: [true] });
+    expect(accepted).toMatchObject({ memoryPaid: 1, linkedCount: 2, optionalPrompts: 1 });
+
+    const declinedThenAccepted = await runLinkWithGrant({
+      installGrant: true,
+      linkAttempts: 2,
+      optionalAnswers: [false, true],
+    });
+    expect(declinedThenAccepted).toMatchObject({ memoryPaid: 1, linkedCount: 2, optionalPrompts: 2 });
   });
 
   it("a [Social] card pays exactly 1 less memory to link to this Digimon with the grant active", async () => {
@@ -251,5 +307,31 @@ describe("BT25-004 Tapmon — cross-actor WhenWouldLink link-cost reduction (doc
     const reverted = await runLinkWithGrant({ installGrant: true, compiledForInstall: withoutGrant(BT25_004) });
     // With the grant action neutered, no recipient reduction is installed => full cost paid.
     expect(reverted.memoryPaid).toBe(1);
+  });
+
+  it("works from a legal evolution stack through the live engine", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-009", as: "host", under: ["BT25-004"] }],
+          hand: [{ card: "BT21-009", as: "link" }],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    const result = s.engine.applyIntent(0, {
+      type: "linkCard",
+      instanceId: s.inst("link").instanceId,
+      targetPermanentId: s.perm("host").permanentId,
+    });
+    expect(result).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.length === 1);
+
+    // BT21-009 costs 1 to link; the inherited Tapmon grant reduces this legal stack's link to 0.
+    expect(s.state.memory).toBe(10);
+    expect(s.perm("host").stack.map((stackCard) => stackCard.cardId)).toEqual(["BT25-004"]);
   });
 });

@@ -3,7 +3,10 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const tbHand = { controllerDefault: "mine", zone: "hand", nameOrTrait: [{ tokens: ["TB"], match: "trait" }] };
-const tbDigimon = { ...tbHand, kind: ["Digimon"] };
+// "play ... 1 [TB] trait card" covers every card kind that is PLAYED — Digimon and Tamer.
+// BT26-104 Kunlun is the printed [TB] Tamer this branch has to reach; Options are "used"
+// through the sibling branch instead.
+const tbPlayable = { ...tbHand, kind: ["Digimon", "Tamer"] };
 const tbOption = { ...tbHand, kind: ["Option"] };
 
 export const compiled: CompiledCard = {
@@ -20,7 +23,7 @@ export const compiled: CompiledCard = {
             [
               {
                 kind: "PlayWithoutCost",
-                target: { filter: tbDigimon, count: 1 },
+                target: { filter: tbPlayable, count: 1 },
                 from: ["hand"],
                 payCost: true,
                 reduceCostBy: 2,

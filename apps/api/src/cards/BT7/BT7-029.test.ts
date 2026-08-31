@@ -2,9 +2,21 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./BT7-029.js";
 
 describe("BT7-029 MagnaGarurumon", () => {
+  it("shares one once-per-turn bounce identity and aborts when its optional source return is declined", () => {
+    const compiled = runtimeCompiledCard("BT7-029");
+    const bounceEffects = compiled?.effects.filter((effect) => effect.sharedUseKey === "bounce-hybrid");
+    expect(bounceEffects).toHaveLength(2);
+    expect(bounceEffects?.map((effect) => effect.trigger)).toEqual(["WhenDigivolving", "WhenAttacking"]);
+    for (const effect of bounceEffects ?? []) {
+      expect(effect.frequency).toBe("OncePerTurn");
+      expect(effect.actions[0]).toMatchObject({ kind: "Return", abortOnDecline: true });
+    }
+  });
+
   it("uses the same bounce effect when digivolving", async () => {
     const s = setupEngine(
       {
@@ -67,6 +79,26 @@ describe("BT7-029 MagnaGarurumon", () => {
 
     expect(s.state.players[1]!.hand.some((card) => card.instanceId === targetId)).toBe(true);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("targetSource").instanceId)).toBe(true);
+  });
+
+  it("does not use a Hybrid source under a different Digimon as the bounce cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT7-029", under: ["BT1-010"], as: "magna" },
+            { card: "BT1-010", under: [{ card: "BT6-049", as: "otherHybrid" }], as: "other" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT6-049", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("magna"));
+
+    expect(s.perm("other").stack.some((card) => card.instanceId === s.inst("otherHybrid").instanceId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("target").permanentId)).toBe(true);
   });
 
   it("Q1550 shares once-per-turn use between When Digivolving and When Attacking", async () => {

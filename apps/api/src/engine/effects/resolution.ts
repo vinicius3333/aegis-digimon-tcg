@@ -2,7 +2,7 @@ import { EffectTiming, type CardInstance, type Seat } from "@aegis/shared";
 import { createEffectContext, createGameAccess, gatherTriggeredEffects, type EffectEnvironment } from "./context.js";
 import type { CollectedEffect } from "./collect.js";
 import type { EffectContext } from "./EffectContext.js";
-import { effectiveKinds, effectiveTraits } from "./continuous.js";
+import { effectiveKinds, effectiveNames, effectiveTraits } from "./continuous.js";
 import { resolveTiming, type ResolutionEnv } from "./stack.js";
 
 /**
@@ -55,6 +55,9 @@ export interface ResolutionDeps {
 
   /** Observability seam: a triggered effect finished resolving (see ResolutionEnv.onResolved). */
   onResolved?: ResolutionEnv["onResolved"];
+
+  /** Observability seam: a triggered effect is about to resolve (see ResolutionEnv.onResolving). */
+  onResolving?: ResolutionEnv["onResolving"];
 
   /** Drain the engine's deferred queues between effects (see ResolutionEnv.betweenEffects). */
   betweenEffects?: ResolutionEnv["betweenEffects"];
@@ -129,6 +132,10 @@ export function buildResolutionEnv(env: EffectEnvironment, deps: ResolutionDeps)
           undefined,
           (permanentId, printedTraits) => effectiveTraits(env.continuous, permanentId, printedTraits),
           (permanentId, printedKinds) => effectiveKinds(env.continuous, permanentId, printedKinds),
+          undefined,
+          undefined,
+          (id, traits) => env.continuous.linkCostReductionGrant(id, traits),
+          (permanent, printedName) => effectiveNames(env.continuous, permanent, printedName),
         ),
         fx: env.fx,
         ask: env.ask,
@@ -148,6 +155,7 @@ export function buildResolutionEnv(env: EffectEnvironment, deps: ResolutionDeps)
     chooseOrder: deps.chooseOrder,
     askOptional: deps.askOptional,
     onResolved: deps.onResolved,
+    onResolving: deps.onResolving,
     betweenEffects: deps.betweenEffects,
   };
 }

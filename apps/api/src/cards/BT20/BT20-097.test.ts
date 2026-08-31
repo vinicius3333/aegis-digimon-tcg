@@ -5,7 +5,7 @@ describe("BT20-097 The Apostle of Doom Descends!", () => {
   it("uses the reduced-cost trash digivolution and then places itself", () => {
     expect(compiled.effects.find((entry) => entry.trigger === "Main" && !entry.keywords)).toMatchObject({
       actions: [
-        { kind: "Digivolve", from: ["trash"], reduceCostBy: 4, optional: true },
+        { kind: "Digivolve", from: ["trash"], payCost: true, reduceCost: 4, optional: true },
         { kind: "PlaceInBattleAreaSelf" },
       ],
     });
@@ -13,25 +13,62 @@ describe("BT20-097 The Apostle of Doom Descends!", () => {
 
   it("makes the DeathXmon play a Delay action paid by a stacked Dorumon", () => {
     const delay = compiled.effects.find(
-      (entry) => entry.trigger === "Main" && entry.keywords?.some((k) => k.keyword === "Delay"),
+      (entry) => entry.trigger === "AllTurns" && entry.keywords?.some((k) => k.keyword === "Delay"),
     );
     expect(delay).toMatchObject({
       actions: [
         {
-          kind: "PlayWithoutCost",
-          from: ["trash"],
-          optional: true,
-          abortOnDecline: true,
-          cost: {
-            kind: "return",
-            target: {
-              sourceRef: "triggerSubject",
-              filter: { zone: "digivolutionCards", nameOrTrait: [{ tokens: ["Dorumon"], match: "name" }] },
-            },
+          kind: "SubTrigger",
+          event: "whenDigimonWouldLeave",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["DexDorugoramon"], match: "nameExact" }],
           },
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: { nameOrTrait: [{ tokens: ["DeathXmon"], match: "nameExact" }] },
+              },
+              from: ["trash"],
+              optional: true,
+              abortOnDecline: true,
+              cost: {
+                kind: "return",
+                target: {
+                  filter: {
+                    controller: "mine",
+                    kind: ["Digimon"],
+                    zone: "digivolutionCards",
+                    hostFilter: { isTriggerSource: true },
+                    nameOrTrait: [{ tokens: ["Dorumon"], match: "nameExact" }],
+                  },
+                },
+              },
+            },
+          ],
         },
       ],
     });
-    expect(compiled.effects.find((entry) => entry.trigger === "AllTurns")?.actions).toHaveLength(1);
+    expect(compiled.effects.find((entry) => entry.trigger === "Security")).toMatchObject({
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Dorumon"], match: "nameExact" }],
+            },
+            count: 1,
+          },
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
+        },
+        { kind: "AddToHandSelf" },
+      ],
+    });
   });
 });

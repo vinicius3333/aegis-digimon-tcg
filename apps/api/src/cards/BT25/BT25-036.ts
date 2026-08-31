@@ -8,18 +8,53 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
-      trigger: "Security",
+      trigger: "WhenLinking",
+      isLinked: true,
       actions: [
         {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              isSelfRef: true,
+          kind: "Draw",
+          controller: "mine",
+          amount: 2,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "hand",
+                nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }],
+              },
+              count: 1,
             },
-            count: 1,
-            isSelf: true,
+            raw: "By trashing 1 [Appmon] trait card from your hand",
           },
-          payCost: false,
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      timing: "endOfBattle",
+      isSecurity: true,
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenSecurityBattleEnded",
+          once: true,
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  isSelfRef: true,
+                },
+                count: 1,
+                isSelf: true,
+              },
+              from: ["trash"],
+              payCost: false,
+            },
+          ],
         },
       ],
     },
@@ -64,6 +99,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  linkRequirement: [{ traits: ["Appmon"], cost: 2 }],
   appFusionRequirement: [
     {
       names: ["Kabemon", "Gomimon", "Ecomon", "Puzzlemon"],

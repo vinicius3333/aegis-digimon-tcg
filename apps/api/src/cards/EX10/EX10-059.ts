@@ -115,7 +115,7 @@ const compiled: CompiledCard = {
                 "This Digimon gains all [All Turns] effects on all level 6 [Bagra Army] trait Digimon cards in its digivolution cards",
             },
           },
-          duration: "forTheTurn",
+          duration: "permanent",
         },
       ],
     },

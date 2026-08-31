@@ -35,6 +35,7 @@ describe("BT22-039 Ouranosmon", () => {
               zone: "digivolutionCards",
               kind: ["Digimon"],
               nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }],
+              hostFilter: { isSelfRef: true },
             },
             count: 1,
           },
@@ -81,5 +82,32 @@ describe("BT22-039 Ouranosmon", () => {
     expect(
       s.state.players[0]!.battleArea.some((permanent) => permanent.linked.some((card) => card.cardId === "BT21-009")),
     ).toBe(true);
+  });
+
+  it("does not link an eligible Appmon from another Digimon's evolution stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT22-039", as: "ouranosmon" },
+            { card: "BT22-032", under: [{ card: "BT21-009", as: "foreignCandidate" }], as: "other" },
+          ],
+          hand: [{ card: "BT22-032", as: "played" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+
+    expect(s.perm("ouranosmon").linked).toHaveLength(0);
+    expect(s.perm("other").stack.some((card) => card.instanceId === s.inst("foreignCandidate").instanceId)).toBe(
+      true,
+    );
   });
 });

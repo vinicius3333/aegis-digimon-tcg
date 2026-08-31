@@ -131,11 +131,13 @@ function collectForeignCandidates(
       if (card.faceUp) sources.push({ instanceId: card.instanceId, cardId: card.cardId });
   } else if (action.zone === "digivolutionCards") {
     // The activating Digimon's OWN digivolution stack (EX8-054: "in this Digimon's
-    // digivolution cards"). A flipped (face-down) stack card is excluded.
+    // digivolution cards"). A flipped (face-down) stack card is excluded unless it is the
+    // card just placed by the preceding cost of a lastPlacedOnly activation (BT15-102).
     const self = ctx.source.permanent();
     if (self !== undefined) {
       for (const card of self.stack)
-        if (card.faceUp) sources.push({ instanceId: card.instanceId, cardId: card.cardId });
+        if (card.faceUp || (action.lastPlacedOnly === true && (ctx.lastPlacedUnderInstanceIds ?? []).includes(card.instanceId)))
+          sources.push({ instanceId: card.instanceId, cardId: card.cardId });
     }
   } else {
     // battleArea: a battle-area permanent's TOP card the right seat controls (BT24-102:
@@ -265,11 +267,24 @@ export async function runActivateForeignEffect(
       },
     };
   }
+  // A Q5331 override belongs only to the matching borrowed lender/effect. Clear any inherited
+  // marker at the loop boundary, then seed it per item so another eligible Zaxon On Play lender
+  // selected by this same activation retains its ordinary optional/source behavior.
+  runCtx = {
+    ...runCtx,
+    borrowedEffectOverrides: undefined,
+  };
   for (const borrowed of toRun.slice(0, action.count)) {
     const eff = borrowed.effect;
+    const borrowedEffectOverrides =
+      action.borrowedEffectOverrides?.sourceCardId === borrowed.sourceCardId &&
+      action.borrowedEffectOverrides.trigger === eff.trigger
+        ? action.borrowedEffectOverrides
+        : undefined;
     await runEffect(
       {
         ...runCtx,
+        borrowedEffectOverrides,
         activeTiming: eff.trigger,
         activeEffectText: eff.description ?? describeEffect(eff),
       },

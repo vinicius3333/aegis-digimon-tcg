@@ -20,7 +20,10 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
       const fireDeferredSuspensionTriggers = async (): Promise<void> => {
         if (suspensionTriggersFired || deferredCostSuspensions.length === 0) return;
         suspensionTriggersFired = true;
-        await ctx.fx.fireSuspensionTriggers?.(deferredCostSuspensions, { byEffectSeat: ctx.source.ownerSeat });
+        await ctx.fx.fireSuspensionTriggers?.(deferredCostSuspensions, {
+          byEffectSeat: ctx.source.ownerSeat,
+          byEffectCardId: ctx.source.cardId,
+        });
       };
       if (action.drainTimingWindowDuringAttack && ctx.fx.isAttackResolving?.()) {
         await fireDeferredSuspensionTriggers();
@@ -28,6 +31,7 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
       }
       const opts = {
         withoutSuspending: action.withoutSuspending ?? false,
+        ignoreSummoningSickness: true,
         attackPlayer:
           action.attackPlayer ??
           (action.target !== undefined &&
@@ -76,6 +80,13 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
       return false;
     }
     case "RedirectAttack": {
+      // Legacy generated IR encodes "end the attack" as a RedirectAttack mode with no
+      // target (BT13-088/BT16-032). Optional activation is handled by runAction before
+      // dispatch; once accepted, this is the same primitive as the canonical EndAttack.
+      if (action.mode === "endAttack") {
+        ctx.fx.endAttack();
+        return false;
+      }
       // "Change the target of the attack to 1 of your Digimon": resolve the candidate
       // permanents from the filter and let the CHOOSER pick which becomes the new attack
       // target. `chooser` defaults to "controller" (the source's controller); BT4-075 sets

@@ -28,7 +28,7 @@ const compiled: CompiledCard = {
             count: 1,
           },
           optional: true,
-          controller: "opponent",
+          chooser: "opponent",
         },
         {
           kind: "GainMemory",
@@ -54,7 +54,7 @@ const compiled: CompiledCard = {
             count: 1,
           },
           optional: true,
-          controller: "opponent",
+          chooser: "opponent",
         },
         {
           kind: "GainMemory",

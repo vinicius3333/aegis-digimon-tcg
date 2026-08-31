@@ -60,23 +60,10 @@ const compiled: CompiledCard = {
           kind: "Aura",
           target: {
             filter: {
-              controllerDefault: "mine",
-              nameOrTrait: [
-                {
-                  tokens: ["DigiPolice"],
-                  match: "trait",
-                },
-                {
-                  tokens: ["Numemon"],
-                  match: "name",
-                },
-                {
-                  tokens: ["Monzaemon"],
-                  match: "name",
-                },
-              ],
+              isSelfRef: true,
             },
             count: 1,
+            isSelf: true,
           },
           effect: {
             kind: "keyword",
@@ -101,23 +88,10 @@ const compiled: CompiledCard = {
           kind: "Aura",
           target: {
             filter: {
-              controllerDefault: "mine",
-              nameOrTrait: [
-                {
-                  tokens: ["DigiPolice"],
-                  match: "trait",
-                },
-                {
-                  tokens: ["Numemon"],
-                  match: "name",
-                },
-                {
-                  tokens: ["Monzaemon"],
-                  match: "name",
-                },
-              ],
+              isSelfRef: true,
             },
             count: 1,
+            isSelf: true,
           },
           effect: {
             kind: "keyword",
@@ -159,6 +133,7 @@ const compiled: CompiledCard = {
             count: 1,
           },
           from: ["digivolutionCards"],
+          fromOwnDigivolutionStack: true,
           payCost: false,
           optional: true,
         },

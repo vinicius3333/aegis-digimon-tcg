@@ -8,22 +8,6 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   effects: [
     {
-      trigger: "Main",
-      actions: [
-        {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
-          payCost: false,
-        },
-      ],
-    },
-    {
       trigger: "Security",
       actions: [
         {
@@ -38,6 +22,7 @@ const compiled: CompiledCard = {
           payCost: false,
         },
       ],
+      isSecurity: true,
     },
     {
       trigger: "StartOfYourTurn",
@@ -58,6 +43,10 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenEffectAddsToHand",
+          fireCondition: {
+            kind: "triggerByYourDigimonEffect",
+            raw: "one of your Digimon's effects adds cards to your hand",
+          },
           actions: [
             {
               kind: "GainMemory",

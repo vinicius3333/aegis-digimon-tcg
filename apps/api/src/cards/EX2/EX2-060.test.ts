@@ -179,6 +179,11 @@ describe("EX2-060 Rika Nonaka", () => {
     expect(effect?.actions[0]).toMatchObject({ kind: "SubTrigger", event: "whenAttacking" });
   });
 
+  it("does not impose an unprinted once-per-turn limit on attacks", () => {
+    const effect = registeredCompiledCards.get("EX2-060")?.effects.find((entry) => entry.trigger === "YourTurn");
+    expect(effect?.frequency).toBeUndefined();
+  });
+
   it("[Start of Your Turn] sets memory to 3 when ≤ 2", async () => {
     const recorder: Recorder = { calls: [] };
     const source = makeSource();

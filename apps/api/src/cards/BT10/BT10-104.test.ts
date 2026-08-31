@@ -76,6 +76,7 @@ function makeContext(opts: {
   ownerBattleArea?: Permanent[];
   ownerHand?: { instanceId: string; cardId: string }[];
   ownerTrash?: { instanceId: string; cardId: string }[];
+  ownerSecurity?: { instanceId: string; cardId: string; ownerSeat: Seat }[];
   ownerDeck?: { instanceId: string; cardId: string }[];
   definitions?: Record<string, Partial<CardDefinition>>;
   record?: FxRecord;
@@ -86,6 +87,7 @@ function makeContext(opts: {
     ownerBattleArea = [],
     ownerHand = [],
     ownerTrash = [],
+    ownerSecurity = [],
     ownerDeck = [],
     definitions = {},
     record = {
@@ -99,7 +101,14 @@ function makeContext(opts: {
   } = opts;
 
   const players = [
-    { seat: 0 as Seat, battleArea: ownerBattleArea, hand: ownerHand, trash: ownerTrash, security: [], deck: ownerDeck },
+    {
+      seat: 0 as Seat,
+      battleArea: ownerBattleArea,
+      hand: ownerHand,
+      trash: ownerTrash,
+      security: ownerSecurity,
+      deck: ownerDeck,
+    },
     { seat: 1 as Seat, battleArea: [], hand: [], trash: [], security: [], deck: [] },
   ];
   const state = { memory: 0, players, turnSeat: 0 as Seat } as unknown as GameState;
@@ -221,6 +230,7 @@ describe("BT10-104 (Immortal Ruler)", () => {
           deck: ["BT1-001", "BT1-002", "BT1-003"],
           trash: [
             { card: "BT10-066", as: "darkKnightmon" },
+            { card: "BT1-001", as: "invalidMaterial" },
             { card: "BT7-058", as: "skullKnightmon" },
             { card: "BT7-059", as: "deadlyAxemon" },
           ],
@@ -238,6 +248,7 @@ describe("BT10-104 (Immortal Ruler)", () => {
 
     const darkKnightmon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT10-066")!;
     expect(darkKnightmon.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT7-058", "BT7-059"]));
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
     expect(s.state.memory).toBe(6);
   });
 
@@ -389,7 +400,11 @@ describe("BT10-104 (Immortal Ruler)", () => {
       returnToHandCalls: [],
       waiveColorRequirementCalls: [],
     };
-    const ctx = makeContext({ source, record });
+    const ctx = makeContext({
+      source,
+      ownerSecurity: [{ instanceId: source.instanceId, cardId: source.cardId, ownerSeat: source.ownerSeat }],
+      record,
+    });
 
     await effects[0]!.resolve(ctx);
 

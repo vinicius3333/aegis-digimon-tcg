@@ -18,9 +18,11 @@ const suspendAndLock = [
   { kind: "Suspend", target: targets },
   { kind: "Restrict", target: targets, restriction: "unsuspend", duration: "untilOpponentTurnEnd" },
 ];
+// "1 of your [Insectoid] or [Titan] trait Digimon gains <Piercing> AND +3000 DP" is a single
+// chosen Digimon, so the DP boost reuses the keyword grant's selection instead of prompting again.
 const piercingAndDp = [
   { kind: "GainKeyword", keyword: { keyword: "Piercing" }, target: traitTarget, duration: "untilOpponentTurnEnd" },
-  { kind: "ModifyDP", amount: 3000, target: traitTarget, duration: "untilOpponentTurnEnd" },
+  { kind: "ModifyDP", amount: 3000, target: { ...traitTarget, sameTarget: true }, duration: "untilOpponentTurnEnd" },
 ];
 export const compiled: CompiledCard = {
   effects: [

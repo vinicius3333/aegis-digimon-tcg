@@ -3,11 +3,56 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
 const CARD_ID = "BT26-039";
 
 describe("BT26-039 Sunflowmon", () => {
+  it("compiles the two optional Yoshino windows and mandatory inherited restriction", () => {
+    const card = runtimeCompiledCard(CARD_ID);
+    expect(card).toMatchObject({ coverage: "full", residual: [] });
+    expect(card?.effects).toMatchObject([
+      {
+        trigger: "OnPlay",
+        actions: [
+          {
+            kind: "PlayWithoutCost",
+            from: ["hand"],
+            payCost: false,
+            optional: true,
+            target: { filter: { nameOrTrait: [{ tokens: ["Yoshino Fujieda"], match: "nameExact" }] } },
+          },
+        ],
+      },
+      {
+        trigger: "WhenDigivolving",
+        actions: [
+          {
+            kind: "PlayWithoutCost",
+            from: ["hand"],
+            payCost: false,
+            optional: true,
+            target: { filter: { nameOrTrait: [{ tokens: ["Yoshino Fujieda"], match: "nameExact" }] } },
+          },
+        ],
+      },
+      {
+        trigger: "WhenAttacking",
+        isInherited: true,
+        frequency: "OncePerTurn",
+        actions: [
+          {
+            kind: "Restrict",
+            restriction: "unsuspend",
+            duration: "untilOpponentTurnEnd",
+            target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"] } },
+          },
+        ],
+      },
+    ]);
+  });
+
   it("exposes the printed level-3 DATA SQUAD evolution", () => {
     expect(digivolutionRequirementsFor(CARD_ID)).toContainEqual({
       level: 3,
@@ -80,6 +125,23 @@ describe("BT26-039 Sunflowmon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT4-095")).toBe(true);
   });
 
+  it("On Play also plays Yoshino with zero existing Tamers", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "sunflowmon" }],
+          hand: [{ card: "BT4-095", as: "yoshino" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("sunflowmon"));
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT4-095")).toBe(true);
+  });
+
   it("When Digivolving chooses exactly one among multiple Yoshino printings", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -128,12 +190,44 @@ describe("BT26-039 Sunflowmon", () => {
     });
     await advance(noYoshino.engine).fire(EffectTiming.WhenDigivolving, noYoshino.perm("sunflowmon"));
     expect(noYoshino.state.players[0]!.hand).toHaveLength(1);
+
+    const compositeName = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "sunflowmon" }],
+          hand: [{ card: "ST24-14", as: "compositeYoshino" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(compositeName.engine).fire(EffectTiming.OnPlay, compositeName.perm("sunflowmon"));
+    expect(compositeName.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["ST24-14"]);
+    expect(compositeName.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST24-14")).toBe(
+      false,
+    );
+  });
+
+  it("may decline the Yoshino play when the condition is met", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "sunflowmon" }],
+          hand: [{ card: "BT4-095", as: "yoshino" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("sunflowmon"));
+
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT4-095"]);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT4-095")).toBe(false);
   });
 
   it("inherited When Attacking locks one opponent Digimon, including an already suspended one", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-082", as: "host", under: [CARD_ID] }] },
+        0: { battleArea: [{ card: "BT11-053", as: "host", under: [CARD_ID] }] },
         1: {
           battleArea: [{ card: "BT26-035", as: "target", suspended: true }],
           security: ["AD1-001"],
@@ -152,13 +246,19 @@ describe("BT26-039 Sunflowmon", () => {
     await settle(() => observe(s.engine).isRestricted(s.perm("target"), "unsuspend"));
 
     expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(true);
+    await advance(s.engine).verb.unsuspend([s.perm("target").permanentId]);
+    expect(s.perm("target").isSuspended).toBe(true);
+    advance(s.engine).ledgers.continuous.sweep(s.state, "ownerTurnEnd", 1);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(false);
+    await advance(s.engine).verb.unsuspend([s.perm("target").permanentId]);
+    expect(s.perm("target").isSuspended).toBe(false);
   });
 
   it("shares one inherited Once Per Turn budget across two attacks", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-082", as: "host", under: [CARD_ID] }] },
+        0: { battleArea: [{ card: "BT11-053", as: "host", under: [CARD_ID] }] },
         1: {
           battleArea: [
             { card: "BT26-035", as: "first" },
@@ -201,7 +301,7 @@ describe("BT26-039 Sunflowmon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT1-082", as: "host", under: [CARD_ID] },
+            { card: "BT11-053", as: "host", under: [CARD_ID] },
             { card: "BT26-035", as: "ally" },
           ],
         },

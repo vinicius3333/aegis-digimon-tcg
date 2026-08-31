@@ -40,6 +40,8 @@ export interface PayMemoryUpToAction extends ActionBase {
 export interface SetMemoryAction extends ActionBase {
   kind: "SetMemory";
   value: number;
+  /** Seat whose memory is set from the resolving source's perspective. */
+  controller?: "mine" | "opponent";
 }
 
 /** Raise the opponent-side memory required to end the active turn (BT14-081). */
@@ -143,6 +145,11 @@ export interface ReducePlayCostAction extends ActionBase {
         /** "By trashing 1 [Cyborg]/[Ver.5] card from your hand" (EX9-043). */
         kind: "trashFromHand";
         filter: Filter;
+      }
+    | {
+        /** Pay an ordinary IR cost to earn the fixed reduction (BT26-098). */
+        kind: "payCost";
+        cost: Cost;
       }
     | {
         /** "By deleting 1 of your play-cost-≤11 [Negamon] Digimon" (BT25-076). */

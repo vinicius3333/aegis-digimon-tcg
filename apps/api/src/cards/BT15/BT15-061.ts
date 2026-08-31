@@ -117,19 +117,14 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "Static",
-      actions: [
+      actions: [],
+      isInherited: true,
+      keywords: [
         {
-          kind: "Unsuspend",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
+          keyword: "Reboot",
+          raw: "＜Reboot＞",
         },
       ],
-      isInherited: true,
     },
   ],
   coverage: "full",

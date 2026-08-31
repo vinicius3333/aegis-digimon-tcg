@@ -1,12 +1,90 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./EX6-070.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { getEffectModule } from "../../engine/effects/registry.js";
+import "../index.js";
 
 describe("EX6-070 Phantom Pain", () => {
-  it("contains Main placement, Delay deletion, and Security deletion IR", () => {
-    const text = JSON.stringify(compiled);
-    expect(compiled.coverage).toBe("full");
+  it("requires an armed Delay and does not double-pay its delayed deletion", () => {
+    const runtime = runtimeCompiledCard("EX6-070");
+    const text = JSON.stringify(runtime);
+    expect(runtime).toMatchObject({ coverage: "full", residual: [] });
     expect(text).toContain("PlaceInBattleAreaSelf");
-    expect(text).toContain("deleteOwn");
-    expect(text).toContain("unsuspended");
+    expect(runtime?.effects?.find((entry) => entry.trigger === "EndOfOpponentsTurn")?.actions[0]).toMatchObject({
+      kind: "GainKeyword",
+      keyword: { keyword: "Delay" },
+    });
+    expect(runtime?.effects?.filter((entry) => entry.trigger === "Main").at(-1)).toMatchObject({
+      keywords: [{ keyword: "Delay" }],
+      actions: [
+        { kind: "Delete", optional: true, requiresDelayArmed: true, target: { filter: { unsuspended: true } } },
+      ],
+    });
+    expect(runtime?.effects?.filter((entry) => entry.trigger === "Main").at(-1)?.actions[0]?.cost).toBeUndefined();
+    expect(runtime).toEqual(compiled);
+  });
+
+  it("does not execute the armed Delete when Delay source trash is prevented", async () => {
+    const sourcePermanent = {
+      permanentId: "phantom-pain",
+      enterFieldTurnCount: 0,
+      controllerSeat: 0,
+      isSuspended: false,
+      inBreeding: false,
+      stack: [],
+      topCard: { instanceId: "phantom-pain-card", cardId: "EX6-070", ownerSeat: 0 },
+    };
+    const visibleOpponent = {
+      permanentId: "visible-unsuspended-opponent",
+      controllerSeat: 1,
+      isSuspended: false,
+      inBreeding: false,
+      stack: [],
+      topCard: { instanceId: "visible-opponent-card", cardId: "BT1-024", ownerSeat: 1 },
+    };
+    const players = [
+      { hand: [], trash: [], deck: [], security: [], battleArea: [sourcePermanent], breeding: undefined },
+      { hand: [], trash: [], deck: [], security: [], battleArea: [visibleOpponent], breeding: undefined },
+    ];
+    const source = {
+      cardId: "EX6-070",
+      instanceId: "phantom-pain-card",
+      ownerSeat: 0,
+      permanent: () => sourcePermanent,
+    } as never;
+    const effect = getEffectModule("EX6-070")?.effectsForTiming(EffectTiming.OnDeclaration, source)[0];
+    const deleted: string[][] = [];
+    const ctx = {
+      source,
+      activeEffectKey: undefined,
+      game: {
+        state: { turnCount: 1 },
+        player: (seat: number) => players[seat]!,
+        opponentOf: () => 1,
+        permanentById: (id: string) =>
+          [sourcePermanent, visibleOpponent].find((permanent) => permanent.permanentId === id),
+        definitionOf: ({ cardId }: { cardId: string }) => ({
+          cardId,
+          nameEn: cardId,
+          kinds: ["Digimon"],
+          colors: [],
+          playCost: 0,
+        }),
+      },
+      fx: {
+        grantedKeywords: () => [{ keyword: "Delay" }],
+        revokeKeyword: () => undefined,
+        deletePermanent: async (ids: string[]) => {
+          deleted.push(ids);
+          return 0;
+        },
+      },
+    } as never;
+
+    expect(effect).toBeDefined();
+    await effect!.resolve(ctx);
+    expect(deleted).toEqual([["phantom-pain"]]);
+    expect(players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual(["visible-unsuspended-opponent"]);
   });
 });

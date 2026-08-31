@@ -27,7 +27,7 @@ describe("BT21-017 Dimetromon", () => {
           {
             kind: "PlayWithoutCost",
             target: {
-              filter: { controller: "mine", nameOrTrait: [{ tokens: ["Owen Dreadnought"], match: "name" }] },
+              filter: { controller: "mine", nameOrTrait: [{ tokens: ["Owen Dreadnought"], match: "nameExact" }] },
               count: 1,
             },
             from: ["hand"],

@@ -10,7 +10,7 @@ const compiled: CompiledCard = {
         {
           kind: "Delete",
           target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 3000 } }, count: 1 },
-          attackPlayer: true,
+          condition: { kind: "attackTargetsPlayer", raw: "when this Digimon attacks a player" },
         },
       ],
       isInherited: true,

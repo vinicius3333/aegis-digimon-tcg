@@ -74,4 +74,12 @@ describe("BT2-058 Guardromon", () => {
       }),
     ).toEqual({ ok: false, reason: "illegal-target" });
   });
+
+  it("can attack during the opponent's turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT2-058", as: "guardromon" }] } });
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+
+    expect(observe(s.engine).isRestricted(s.perm("guardromon"), "attack")).toBe(false);
+  });
 });

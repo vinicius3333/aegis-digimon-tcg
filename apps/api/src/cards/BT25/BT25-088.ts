@@ -23,8 +23,8 @@ export const compiled: CompiledCard = {
           event: "whenSecurityRemoved",
           optional: true,
           actions: [
-            { kind: "PlaceUnder", target: { filter: {}, count: 1 }, fromDeckTop: true, position: "top" },
-            { kind: "PlaceUnder", target: { filter: {}, count: 1 }, fromDeckTop: true, position: "top" },
+            { kind: "PlaceUnder", target: { filter: {}, count: 1 }, fromDeckTop: true, position: "bottom" },
+            { kind: "PlaceUnder", target: { filter: {}, count: 1 }, fromDeckTop: true, position: "bottom" },
           ],
           cost: {
             kind: "suspend",
@@ -36,7 +36,7 @@ export const compiled: CompiledCard = {
       ],
     },
     {
-      trigger: "Static",
+      trigger: "YourTurn",
       actions: [
         {
           kind: "Replacement",

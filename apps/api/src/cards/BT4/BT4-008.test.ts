@@ -32,14 +32,28 @@ describe("BT4-008 Agumon", () => {
         effectKey: effectKey!,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("agumon").instanceId));
+    await settle(
+      () =>
+        s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("agumon").instanceId) &&
+        !s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("target").permanentId),
+    );
 
     expect(s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("agumon").instanceId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("target").permanentId)).toBe(false);
   });
 
   it("does not return to hand when its host is deleted outside Digi-Burst", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT3-081", dp: 1000, as: "host", under: [{ card: "BT4-008", as: "agumon" }] }] },
+      0: {
+        battleArea: [
+          {
+            card: "BT4-012",
+            dp: 1000,
+            as: "host",
+            under: ["BT1-001", { card: "BT4-008", as: "agumon" }],
+          },
+        ],
+      },
       1: { battleArea: [{ card: "BT1-057", dp: 5000, suspended: true, as: "target" }] },
     });
     const hostId = s.perm("host").permanentId;

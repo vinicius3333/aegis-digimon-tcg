@@ -5,7 +5,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./LM-036.js";
 
-// "Blue also meets this card's colour requirements" (Q4063/Q4064): the printed requirement
+// "Blue also meets this card's colour requirements" (Q4069/Q4070): the printed requirement
 // still has to be met — by Green or by Blue — it is not waived outright.
 describe("LM-036 Jade Memory Boost!", () => {
   it("reveals three, adds a green or blue Digimon, bottoms the rest and places itself", async () => {
@@ -51,7 +51,7 @@ describe("LM-036 Jade Memory Boost!", () => {
     });
   });
 
-  it("counts a blue Digimon in the breeding area too, per Q4064", async () => {
+  it("counts a blue Digimon in the breeding area too, per Q4070", async () => {
     const s = setupEngine(
       {
         0: {

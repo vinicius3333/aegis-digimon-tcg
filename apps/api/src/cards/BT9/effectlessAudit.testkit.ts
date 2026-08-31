@@ -28,7 +28,8 @@ export function auditEffectlessDigimon({
       expect(compiled).toEqual({ effects: [], coverage: "full", residual: [] });
     });
     it("digivolves through the printed recipe and pays its exact cost", async () => {
-      const evolution = expected.evoCosts?.[0]!;
+      const evolution = expected.evoCosts?.[0];
+      if (evolution === undefined) throw new Error(`${cardId} has no catalog evolution recipe`);
       const baseEvolutionCost = validEgg === undefined ? 0 : getCardDefinition(validBase)?.evoCosts?.[0]?.memoryCost;
       const directBaseIsEgg =
         validEgg === undefined && getCardDefinition(validBase)?.kinds.includes("DigiEgg" as never);
@@ -51,14 +52,16 @@ export function auditEffectlessDigimon({
               },
       });
       s.state.memory = baseEvolutionCost + evolution.memoryCost;
+      const legalBaseResult =
+        validEgg === undefined
+          ? { ok: true }
+          : s.engine.applyIntent(0, {
+              type: "digivolve",
+              permanentId: s.perm("base").permanentId,
+              instanceId: s.inst("legalBase").instanceId,
+            });
+      expect(legalBaseResult).toEqual({ ok: true });
       if (validEgg !== undefined) {
-        expect(
-          s.engine.applyIntent(0, {
-            type: "digivolve",
-            permanentId: s.perm("base").permanentId,
-            instanceId: s.inst("legalBase").instanceId,
-          }),
-        ).toEqual({ ok: true });
         await settle(() => s.perm("base").topCard.instanceId === s.inst("legalBase").instanceId);
       }
       expect(
@@ -70,9 +73,10 @@ export function auditEffectlessDigimon({
       ).toEqual({ ok: true });
       await settle(() => s.perm("base").topCard.instanceId === s.inst("evolving").instanceId);
       expect(s.state.memory).toBe(0);
-      if (validEgg !== undefined) {
-        expect(s.perm("base").stack.map((card) => card.cardId)).toEqual([validEgg, validBase]);
-      }
+      const expectedStack = validEgg === undefined ? undefined : [validEgg, validBase];
+      expect(expectedStack === undefined ? undefined : s.perm("base").stack.map((card) => card.cardId)).toEqual(
+        expectedStack,
+      );
     });
     it("plays for the printed cost and reaches the battle area without opening an effect", async () => {
       const playCost = expected.playCost!;
@@ -87,7 +91,8 @@ export function auditEffectlessDigimon({
       expect(s.state.pendingDecision).toBeUndefined();
     });
     it("rejects a same-level base outside the printed color recipe", () => {
-      const evolution = expected.evoCosts?.[0]!;
+      const evolution = expected.evoCosts?.[0];
+      if (evolution === undefined) throw new Error(`${cardId} has no catalog evolution recipe`);
       const invalidBaseIsEgg = getCardDefinition(invalidBase)?.kinds.includes("DigiEgg" as never);
       const s = setupEngine({
         0: {

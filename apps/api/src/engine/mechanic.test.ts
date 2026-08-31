@@ -791,37 +791,26 @@ describe("A3 turn ownership — turn-scoped statics fire only on the owning play
 
 describe("A3 BT15-020 — [Start of Your Main Phase] grants Blocker", () => {
   it("grants Blocker to one friendly Digimon and then draws with a Matt Ishida Tamer", async () => {
-    const s = setup();
-    const p0 = s.state.players[0] as PlayerState;
-    const target = digimon(0, 3000, "AD1-001");
-    const source = digimon(0, 1000, "BT15-020");
-    const matt = digimon(0, 2000, "BT15-083");
-    p0.battleArea.push(target, source, matt);
-    p0.deck.push(instance("AD1-001", 0, false));
-
-    const resolution = (s.engine as unknown as { fireTiming(timing: EffectTiming): Promise<void> }).fireTiming(
-      EffectTiming.OnStartMainPhase,
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "BT15-020", as: "gabumon" },
+            { card: "BT1-086", as: "matt" },
+          ],
+          deck: [{ card: "BT1-001", as: "drawn" }],
+        },
+      },
+      { autoSelectCards: true },
     );
-    await settle(() => s.decisions.length > 0);
-    const request = s.decisions[0]?.req;
-    expect(request?.kind).toBe("chooseTargets");
-    if (request?.kind === "chooseTargets") {
-      expect(
-        s.engine.applyIntent(0, {
-          type: "respondDecision",
-          decisionId: request.decisionId,
-          response: {
-            kind: "chooseTargets",
-            instanceIds: request.options?.candidateInstanceIds?.slice(0, 1) ?? [],
-          },
-        }),
-      ).toEqual({ ok: true });
-    }
-    await resolution;
-    await settle(() => ledger(s).hasKeyword(target.permanentId, "Blocker"));
+    s.state.turnSeat = 0;
+    const gabumon = s.perm("gabumon");
 
-    expect(ledger(s).hasKeyword(target.permanentId, "Blocker")).toBe(true);
-    expect(p0.deck).toHaveLength(0);
+    await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, gabumon);
+    await settle(() => ledger(s).hasKeyword(gabumon.permanentId, "Blocker") && s.state.players[0]!.hand.length === 1);
+
+    expect(ledger(s).hasKeyword(gabumon.permanentId, "Blocker")).toBe(true);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
     assertNoLoudGap(s);
   });
 });
@@ -1053,20 +1042,10 @@ describe("A3 activated [Main] — the activateEffect verb (OnDeclaration window)
     target.stack.push(targetUnder);
     p1.battleArea.push(target);
 
-    // The cost both gates and pays at resolution (Aegis has no pre-activation cost check, so
-    // the affordance is still surfaced — mirroring the activateEffect verb). Activating runs
-    // payCost, which fails on the too-short stack, so the De-Digivolve never fires and nothing
-    // moves: the source stack and the opponent's Digimon are untouched (no free activation).
+    // The activation affordance is suppressed when its required Digi-Burst payment cannot be
+    // made, so the client cannot offer a dead activation.
     const entry = activatableEffects(s, source).find((e) => e.instanceId === sourceInstanceId);
-    expect(entry, "the affordance is surfaced; the cost is enforced at resolution").toBeDefined();
-    expect(
-      s.engine.applyIntent(0, {
-        type: "activateEffect",
-        sourceInstanceId,
-        effectKey: entry!.effectKey,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => false, 50);
+    expect(entry, "the affordance is absent when Digi-Burst 2 cannot be paid").toBeUndefined();
 
     expect(source.stack).toHaveLength(1); // the lone digivolution card was NOT trashed
     expect(p0.trash.some((c) => c.instanceId === lone.instanceId)).toBe(false);
@@ -1128,15 +1107,7 @@ describe("A3 activated [Main] — the activateEffect verb (OnDeclaration window)
     p1.battleArea.push(opp);
 
     const entry = activatableEffects(s, source).find((e) => e.instanceId === sourceInstanceId);
-    expect(entry, "the affordance is surfaced; the cost is enforced at resolution").toBeDefined();
-    expect(
-      s.engine.applyIntent(0, {
-        type: "activateEffect",
-        sourceInstanceId,
-        effectKey: entry!.effectKey,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => false, 50);
+    expect(entry, "the affordance is absent when Digi-Burst 3 cannot be paid").toBeUndefined();
 
     // payCost fails (2 < 3): nothing is trashed and the opponent keeps full DP (no free -4000).
     expect(source.stack).toHaveLength(2);
@@ -1271,7 +1242,7 @@ describe("A3 DisableTimingEffect — a disabled [When Digivolving] effect does N
     for (let i = 0; i < 6; i++) p1.deck.push(instance("BT1-028", 1, false));
 
     s.state.turnSeat = 1;
-    s.state.memory = 5; // affords cost 2; stays >= 1 after, so EX8-035's gate holds
+    s.state.memory = -5; // source owner seat 0 has +5; seat 1 can still afford cost 2
     return { s, base, evolver, p1 };
   }
 
@@ -1532,6 +1503,7 @@ describe("A3 SubTrigger — whenPlayed fires Draw ONLY when a green Tamer enters
     for (let i = 0; i < 3; i++) p0.deck.push(instance("BT1-009", 0, false));
     const deckBefore = p0.deck.length;
     s.state.memory = 5;
+    await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: tamer.instanceId })).toEqual({
       ok: true,
@@ -1558,6 +1530,7 @@ describe("A3 SubTrigger — whenPlayed fires Draw ONLY when a green Tamer enters
     for (let i = 0; i < 3; i++) p0.deck.push(instance("BT1-009", 0, false));
     const deckBefore = p0.deck.length;
     s.state.memory = 5;
+    await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: tamer.instanceId })).toEqual({
       ok: true,
@@ -2673,6 +2646,7 @@ describe("INRT-01 — no dead stores: each wired store fails-if-empty (anti-dead
       for (let i = 0; i < 3; i++) p0.deck.push(instance("BT1-009", 0, false));
       const deckBefore = p0.deck.length;
       s.state.memory = 5;
+      await s.ready();
       expect(s.engine.applyIntent(0, { type: "playCard", instanceId: tamer.instanceId })).toEqual({
         ok: true,
       });
@@ -3118,9 +3092,11 @@ describe("A3 Digi-Burst BT7-040 — <Digi-Burst up to 4> scales -3000 DP per car
   });
 });
 
-describe("IDigiBurst cost shape — all 28 cards keep a targeted digivolutionCards cost (BLK-04)", () => {
-  // Regression guard (T-01-01): the runtime record change is scoped to the two failing branches;
-  // every IDigiBurst card must still carry a `cost.target.filter.zone === "digivolutionCards"`.
+describe("IDigiBurst payment shape — all 28 cards keep a targeted digivolution-card payment (BLK-04)", () => {
+  // Regression guard (T-01-01): every IDigiBurst card must carry either a targeted
+  // `cost` or the specialized `TrashDigivolution` payment action. The latter performs
+  // the payment itself and must not also receive a generic cost, which would make
+  // affordance preflight require (and resolution attempt) the same payment twice.
   // The authoritative roster is the set of documented behavior files containing `new IDigiBurst(` (28 cards).
   // Before the fix BT4-054 (no cost) and BT7-040 (targetless raw cost) FAIL this assertion;
   // after the fix all 28 pass and the 26 already-correct cards must not regress.
@@ -3159,15 +3135,23 @@ describe("IDigiBurst cost shape — all 28 cards keep a targeted digivolutionCar
     const card = getCompiledCard(cardId);
     if (!card) return false;
     for (const effect of card.effects ?? []) {
-      for (const action of (effect as { actions?: { cost?: unknown }[] }).actions ?? []) {
-        const cost = (action as { cost?: { target?: { filter?: { zone?: string } } } }).cost;
+      for (const action of (effect as { actions?: unknown[] }).actions ?? []) {
+        const typedAction = action as {
+          kind?: string;
+          target?: { filter?: { isSelfRef?: boolean; zone?: string } };
+          cost?: { target?: { filter?: { zone?: string } } };
+        };
+        if (typedAction.kind === "TrashDigivolution" && typedAction.target?.filter?.isSelfRef === true) {
+          return true;
+        }
+        const cost = typedAction.cost;
         if (cost?.target?.filter?.zone === "digivolutionCards") return true;
       }
     }
     return false;
   }
 
-  it("every IDigiBurst card carries a targeted digivolutionCards trash cost", () => {
+  it("every IDigiBurst card carries a targeted digivolutionCards payment", () => {
     const missing = IDIGIBURST_CARDS.filter((id) => !hasTargetedDigiBurstCost(id));
     expect(missing, `cards lacking a targeted digivolutionCards cost: ${missing.join(", ")}`).toEqual([]);
   });
@@ -3319,8 +3303,8 @@ describe("A3 Tamer-onto digivolve — 'digivolve from hand onto a <color> Tamer 
     });
   });
 
-  it("multicolor BT17-022 digivolves onto either of its colors' Tamers", () => {
-    // BT17-022 is Blue/Yellow with evo {Blue,Lv.3,3} and {Yellow,Lv.3,3}.
+  it("multicolor BT17-022 uses only its printed yellow Tamer route", () => {
+    // BT17-022 is Blue/Yellow, but its special Tamer clause explicitly says yellow.
     const onto = (tamerId: string) => {
       const s = setup();
       const p0 = s.state.players[0] as PlayerState;
@@ -3331,7 +3315,7 @@ describe("A3 Tamer-onto digivolve — 'digivolve from hand onto a <color> Tamer 
       s.state.memory = 3;
       return digivolve(s, 0, base.permanentId, evolving);
     };
-    expect(onto("BT1-086")).toEqual({ ok: true }); // Blue Tamer
+    expect(onto("BT1-086")).toEqual({ ok: false, reason: "invalid-evolution" }); // Blue Tamer
     expect(onto("BT1-087")).toEqual({ ok: true }); // Yellow Tamer
     expect(onto("BT1-088")).toEqual({ ok: false, reason: "invalid-evolution" }); // Green Tamer
   });
@@ -4070,7 +4054,7 @@ describe("A3 SubTrigger — BT14-004 whenEffectSuspends fires ONLY for an effect
   });
 });
 
-describe("A3 Evade/Barrier — effect-deletion path prompts the controller (Comprehensive Rules §16-22-3/§16-25-3)", () => {
+describe("A3 Evade/Barrier — effect-deletion and battle-deletion paths (Comprehensive Rules §16-22-3/§16-25-3)", () => {
   // BT13-011's [On Play] deletes the lone opponent Digimon with DP<=3000 (used elsewhere in
   // this file as the plain-Delete oracle). Reused here as the "an effect would delete this
   // Digimon" trigger for ＜Evade＞/＜Barrier＞, granted via the continuous ledger the same way
@@ -4140,7 +4124,7 @@ describe("A3 Evade/Barrier — effect-deletion path prompts the controller (Comp
     assertNoLoudGap(s);
   });
 
-  it("Barrier ACCEPT: the effect-deletion prompt fires and, when accepted, trashes the top security card and the Digimon survives", async () => {
+  it("Barrier does not offer an effect-deletion prompt because it is battle-only", async () => {
     const s = setup({ autoSelectCards: true });
     const p1 = s.state.players[1] as PlayerState;
     const target = digimon(1, 3000);
@@ -4150,46 +4134,13 @@ describe("A3 Evade/Barrier — effect-deletion path prompts the controller (Comp
     p1.security.push(securityCard);
 
     playDeleteEffect(s);
-    await settle(() => barrierPromptFor(s, target.permanentId));
-
-    expect(barrierPromptFor(s, target.permanentId)).toBe(true);
-
-    expect(s.engine.applyIntent(1, { type: "respondBarrier", permanentId: target.permanentId, accept: true })).toEqual({
-      ok: true,
-    });
-    await settle(() => p1.security.length === 0);
-
-    expect(p1.battleArea.some((p) => p.permanentId === target.permanentId)).toBe(true);
-    expect(s.events).toContainEqual({ kind: "barrierResolved", permanentId: target.permanentId, accepted: true });
-    expect(p1.security).toHaveLength(0);
-    expect(p1.trash.some((c) => c.instanceId === securityCard.instanceId)).toBe(true);
-    expect(p1.trash.some((c) => c.instanceId === target.topCard?.instanceId)).toBe(false);
-    assertNoLoudGap(s);
-  });
-
-  it("Barrier DECLINE: the controller may refuse to trash security, and the Digimon is deleted with security untouched", async () => {
-    const s = setup({ autoSelectCards: true });
-    const p1 = s.state.players[1] as PlayerState;
-    const target = digimon(1, 3000);
-    p1.battleArea.push(target);
-    ledgerWrite(s).addKeywordGrant(target.permanentId, "Barrier", EffectDuration.Permanent);
-    const securityCard = instance("BT1-010", 1, false);
-    p1.security.push(securityCard);
-
-    playDeleteEffect(s);
-    await settle(() => barrierPromptFor(s, target.permanentId));
-
-    expect(s.engine.applyIntent(1, { type: "respondBarrier", permanentId: target.permanentId, accept: false })).toEqual(
-      { ok: true },
-    );
     await settle(() => !p1.battleArea.some((p) => p.permanentId === target.permanentId));
 
+    expect(barrierPromptFor(s, target.permanentId)).toBe(false);
     expect(p1.battleArea.some((p) => p.permanentId === target.permanentId)).toBe(false);
-    expect(s.events).toContainEqual({ kind: "barrierResolved", permanentId: target.permanentId, accepted: false });
-    expect(p1.trash.some((c) => c.instanceId === target.topCard?.instanceId)).toBe(true);
-    // Declining does NOT pay the cost: security stays intact.
     expect(p1.security).toHaveLength(1);
     expect(p1.security[0]).toBe(securityCard);
+    expect(p1.trash.some((c) => c.instanceId === target.topCard?.instanceId)).toBe(true);
     assertNoLoudGap(s);
   });
 });

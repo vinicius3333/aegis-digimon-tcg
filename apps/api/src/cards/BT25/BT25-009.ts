@@ -44,6 +44,7 @@ export const compiled: CompiledCard = {
           optional: true,
           condition: {
             kind: "memoryAtMost",
+            controller: "mine",
             value: 4,
           },
         },

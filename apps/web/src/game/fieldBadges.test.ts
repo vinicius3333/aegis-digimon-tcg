@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ArraySchema } from "@colyseus/schema";
 import { CardInstance, Permanent } from "@aegis/shared";
-import { BLOCKER_KEYWORD, dpChipColors, hasBlocker, sourceCountBadge } from "./fieldBadges";
+import { BLOCKER_KEYWORD, dpChipColors, hasBlocker, restrictionBadges, sourceCountBadge } from "./fieldBadges";
 
 function permanent({
   cardId,
@@ -61,5 +61,36 @@ describe("dpChipColors", () => {
     const chip = dpChipColors(permanent({ cardId: "NOT-A-CARD" }));
     expect(chip.split).toBe(false);
     expect(chip.from).toBeTruthy();
+  });
+});
+
+describe("restrictionBadges", () => {
+  function restricted(flags: Partial<Record<string, boolean>>): Permanent {
+    return Object.assign(permanent({ cardId: "ST1-07" }), flags);
+  }
+
+  it("wears nothing while no restriction is imposed", () => {
+    expect(restrictionBadges(restricted({}))).toEqual([]);
+  });
+
+  it("wears a chip for each of the server's blanket locks, in reading order", () => {
+    const badges = restrictionBadges(
+      restricted({ cannotActivateWhenDigivolving: true, cannotAttack: true, cannotUnsuspend: true }),
+    );
+    expect(badges.map((badge) => badge.kind)).toEqual([
+      "cannotAttack",
+      "cannotUnsuspend",
+      "cannotActivateWhenDigivolving",
+    ]);
+    expect(badges.every((badge) => badge.labelKey.startsWith("game.restriction."))).toBe(true);
+  });
+
+  it("reads the unsuspend and [When Digivolving] locks apart from each other", () => {
+    expect(restrictionBadges(restricted({ cannotUnsuspend: true })).map((badge) => badge.kind)).toEqual([
+      "cannotUnsuspend",
+    ]);
+    expect(restrictionBadges(restricted({ cannotActivateWhenDigivolving: true })).map((badge) => badge.kind)).toEqual([
+      "cannotActivateWhenDigivolving",
+    ]);
   });
 });

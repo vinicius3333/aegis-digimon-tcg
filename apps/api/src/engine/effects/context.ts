@@ -24,7 +24,7 @@ import { grantedTokenEffectsForTiming } from "./interpreter.js";
 import { UseTracker } from "./kernel.js";
 import { linkMax } from "./mindLink.js";
 import { findPermanentInState } from "../state/access.js";
-import { effectiveKinds, effectiveTraits, type ContinuousEffectLedger } from "./continuous.js";
+import { effectiveKinds, effectiveNames, effectiveTraits, type ContinuousEffectLedger } from "./continuous.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives, TriggerInfo } from "./EffectContext.js";
 
 /**
@@ -136,6 +136,11 @@ export function createGameAccess(
   ) => import("@aegis/shared").CardKind[],
   baseGrantedDigivolve?: (seat: Seat, base: Permanent, evolving: CardDefinition) => { cost: number } | undefined,
   effectiveDP?: (permanentId: string) => number,
+  linkCostReductionGrant?: (
+    recipientId: string,
+    cardTraits: readonly string[],
+  ) => { amount: number; controllerSeat?: Seat; optional?: boolean; oncePerTurnKey?: string } | undefined,
+  effectiveNamesResolver?: (permanent: Permanent, printedName: string) => string[],
 ): GameAccess {
   const player = (seat: Seat): PlayerState => {
     const p = state.players[seat];
@@ -157,6 +162,7 @@ export function createGameAccess(
     // resolver is supplied (guard-only contexts) the reduction is 0, leaving the base link cost.
     linkCostReduction: (recipientId: string, cardTraits: readonly string[]): number =>
       (linkCostReduction ?? (() => 0))(recipientId, cardTraits),
+    linkCostReductionGrant,
     hasKeyword: (permanentId: string, keyword: string): boolean => (hasKeyword ?? (() => false))(permanentId, keyword),
     canDeclareAttack,
     digivolvedThisTurn: (seat: Seat): boolean => (digivolvedThisTurn ?? (() => false))(seat),
@@ -179,6 +185,14 @@ export function createGameAccess(
       const permanent = permanentById(permanentId);
       const printed = permanent?.topCard === undefined ? [] : requireCardDefinition(permanent.topCard.cardId).kinds;
       return (effectiveKindsResolver ?? ((_id, kinds) => [...kinds]))(permanentId, printed);
+    },
+    effectiveNames: (permanent): string[] => {
+      const printedName =
+        permanent.topCard === undefined ? "" : (requireCardDefinition(permanent.topCard.cardId).nameEn ?? "");
+      return (effectiveNamesResolver ?? ((_permanent, name) => (name === "" ? [] : [name.toLowerCase()])))(
+        permanent,
+        printedName,
+      );
     },
     effectiveDP,
     colorRequirementWaived: (instanceId): boolean => (colorRequirementWaived ?? (() => false))(instanceId),
@@ -403,6 +417,7 @@ export function gatherTriggeredEffects(
       targetPermanentId: string;
       stackInstanceId: string;
       trigger?: string;
+      excludeInherited?: boolean;
       inheritedOnly?: boolean;
       granterInstanceId?: string;
     }[];
@@ -430,6 +445,10 @@ export function gatherTriggeredEffects(
         permanent?.topCard === undefined ? printedKinds : requireCardDefinition(permanent.topCard.cardId).kinds,
       );
     },
+    undefined,
+    undefined,
+    (id, traits) => env.continuous.linkCostReductionGrant(id, traits),
+    (permanent, printedName) => effectiveNames(env.continuous, permanent, printedName),
   );
   const lookup = createCardStateLookup(env.state);
 

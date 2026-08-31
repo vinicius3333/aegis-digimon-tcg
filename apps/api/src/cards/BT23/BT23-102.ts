@@ -49,6 +49,7 @@ export const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
+              kind: ["Digimon"],
               colors: ["Yellow", "Purple"],
               levelComparison: { op: "lte", value: 5 },
             },

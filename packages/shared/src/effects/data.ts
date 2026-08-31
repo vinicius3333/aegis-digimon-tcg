@@ -107,7 +107,12 @@ export const ASSEMBLY_REQUIREMENT_OVERRIDES: Record<string, AssemblyRequirement[
   ],
   "BT26-014": [{ reduceCost: 2, materials: [{ traits: ["TB"], levelMax: 4, count: 1 }] }],
   "BT26-017": [{ reduceCost: 4, materials: [{ traits: ["Shambala"], levelMax: 5, count: 2, differentLevels: true }] }],
-  "BT26-028": [{ reduceCost: 2, materials: [{ traits: ["Life", "System", "Seven Code"], level: 3, count: 1 }] }],
+  "BT26-028": [
+    {
+      reduceCost: 2,
+      materials: [{ kinds: ["Digimon"], traits: ["Life", "System", "Seven Code"], level: 3, count: 1 }],
+    },
+  ],
   "BT26-037": [{ reduceCost: 2, materials: [{ traits: ["Navi", "System", "Seven Code"], level: 3, count: 1 }] }],
   "BT26-047": [
     { reduceCost: 6, materials: [{ traits: ["Larva", "Insectoid", "Titan"], count: 4, differentLevels: true }] },
@@ -172,6 +177,22 @@ export function getCompiledCard(cardId: string): CompiledCard | undefined {
  * one source of truth.
  */
 export const DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES: Record<string, DnaDigivolveRequirement[]> = {
+  // BT13-059's bracketed DNA sources are exact card names. The generated record's substring
+  // names gate would incorrectly admit name extensions as DNA materials.
+  "BT13-059": [
+    {
+      cost: 4,
+      materials: [{ namesExact: ["Slayerdramon"] }, { namesExact: ["Breakdramon"] }],
+    },
+  ],
+  // EX5-073 prints a name-specific zero-cost DNA route. The generated effect record has
+  // no structured requirement, which would otherwise allow the ordinary-evolution fallback.
+  "EX5-073": [
+    {
+      cost: 0,
+      materials: [{ names: ["Apollomon"] }, { names: ["Dianamon"] }],
+    },
+  ],
   "BT24-037": [
     {
       cost: 0,
@@ -438,6 +459,10 @@ export function dnaDigivolutionRequirementsFor(cardId: string): DnaDigivolveRequ
  * the CLIENT (digivolve-target highlighting + cost labels) read ONE source of truth.
  */
 export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequirement[]> = {
+  // BT18-101's bracketed [Lucemon: Chaos Mode] source is an exact card name;
+  // retain that exactness in the shared legality/highlighting source while the generated
+  // effects.json record remains read-only and historically used a substring `names` gate.
+  "BT18-101": [{ namesExact: ["Lucemon: Chaos Mode"], cost: 6, isAlternate: true }],
   // BT12-012: the Takuya clause treats that Tamer as a level 3 red Digimon, so it uses
   // Agunimon's ordinary red Lv.3 cost 2. The generated record incorrectly assigned cost 0.
   "BT12-012": [
@@ -455,11 +480,12 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
     { level: 4, traitSubstrings: ["Aqua", "Sea Animal"], cost: 3, isAlternate: true },
     { level: 4, traits: ["TS"], cost: 3, isAlternate: true },
   ],
-  // BT19-102: the Nene path requires a Shademon card already under that Tamer.
+  // BT19-102: the bracketed [Luminamon]/[Nene Amano] paths are exact names; the Nene path
+  // also requires the exact [Shademon] name under that Tamer (minNameStackNames is exact).
   "BT19-102": [
-    { names: ["Luminamon"], cost: 2, isAlternate: true },
+    { namesExact: ["Luminamon"], cost: 2, isAlternate: true },
     {
-      names: ["Nene Amano"],
+      namesExact: ["Nene Amano"],
       cost: 3,
       isAlternate: true,
       minNameStackCount: 1,
@@ -552,14 +578,14 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
   ],
   // BT18-102 (Susanoomon): "[Digivolve] Takuya Kanbara / Koji Minamoto: Cost 6 (if this Digimon
   // has 10 or more [Hybrid]-trait cards in its digivolution stack)". The effects.json entry has the
-  // `names` gate but lacks `requiredDigivolutionCardCount` and `incompatibleWithBlastDigivolve`
+  // substring `names` gate but lacks `requiredDigivolutionCardCount` and `incompatibleWithBlastDigivolve`
   // (KB Q3055/Q3056). Override here so the server's digivolve-legality validator enforces the
   // 10-[Hybrid] stack count gate and excludes this path from Blast Digivolve candidates.
   "BT18-102": [
     {
       cost: 6,
       isAlternate: true,
-      names: ["Takuya Kanbara", "Koji Minamoto"],
+      namesExact: ["Takuya Kanbara", "Koji Minamoto"],
       requiredDigivolutionCardCount: { trait: "Hybrid", min: 10 },
       incompatibleWithBlastDigivolve: true,
     },
@@ -589,14 +615,13 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
       traits: ["Night Claw", "Light Fang"],
     },
   ],
-  // BT19-101 (ZeedMillenniummon): "[Digivolve]MoonMillenniummon: Cost 2". The printed name is
-  // NOT bracketed, so the text parser cannot extract the name gate and emits a gateless entry
-  // that would match any base of any level. Gate it on the base name explicitly.
+  // BT19-101 (ZeedMillenniummon): "[Digivolve][MoonMillenniummon]: Cost 2". The generated
+  // record was gateless; preserve the bracketed exact-name gate explicitly.
   "BT19-101": [
     {
       cost: 2,
       isAlternate: true,
-      names: ["MoonMillenniummon"],
+      namesExact: ["MoonMillenniummon"],
     },
   ],
   // BT22-063/067 may evolve from their named CS Tamers only while their owner has at most
@@ -942,7 +967,7 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
     {
       cost: 0,
       isAlternate: true,
-      names: ["ShineGreymon"],
+      namesExact: ["ShineGreymon"],
       burstDigivolve: { returnTamerNamesExact: ["Marcus Damon"] },
     },
   ],
@@ -950,12 +975,25 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
     {
       cost: 0,
       isAlternate: true,
-      names: ["MirageGaogamon"],
+      namesExact: ["MirageGaogamon"],
       burstDigivolve: { returnTamerNamesExact: ["Thomas H. Norstein"] },
     },
   ],
+  "BT13-060": [
+    {
+      cost: 0,
+      isAlternate: true,
+      namesExact: ["Rosemon"],
+      burstDigivolve: { returnTamerNamesExact: ["Yoshino Fujieda"] },
+    },
+  ],
   "BT13-092": [
-    { cost: 0, isAlternate: true, names: ["Ravemon"], burstDigivolve: { returnTamerNamesExact: ["Keenan Crier"] } },
+    {
+      cost: 0,
+      isAlternate: true,
+      namesExact: ["Ravemon"],
+      burstDigivolve: { returnTamerNamesExact: ["Keenan Crier"] },
+    },
   ],
   "BT25-104": [
     { cost: 5, isAlternate: true, level: 6, traits: ["DATA SQUAD"] },
@@ -1183,6 +1221,25 @@ export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[
       count: 2,
     },
   ],
+  // BT19-063: [DigiXros -2] [SkullKnightmon] x [DeadlyAxemon]. The generated aggregate retained
+  // only the first named slot, so the server could not accept the complete printed recipe.
+  "BT19-063": [{ materials: [{ names: ["SkullKnightmon"] }, { names: ["DeadlyAxemon"] }], count: 2 }],
+  // BT19-065: [DigiXros -1] 5 Lv.5-or-lower [Cyborg]/[Composite] Digimon cards with different
+  // card numbers. The generated parser retained unrelated header tokens as traits and dropped
+  // the five-card cap, while also encoding 1 as the requirement's material-count field.
+  "BT19-065": [
+    {
+      materials: [
+        {
+          levelComparison: { op: "lte", value: 5 },
+          nameOrTrait: [{ tokens: ["Cyborg", "Composite"], match: "trait" }],
+          differentCardNumbers: true,
+        },
+      ],
+      count: 1,
+      maxMaterials: 5,
+    },
+  ],
   // ST19-10: [Tyrannomon]/[Raremon] in name plus a Lv.4 [Puppet] Digimon.
   "ST19-10": [
     {
@@ -1336,6 +1393,21 @@ export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[
     {
       materials: [{ names: ["MetalGreymon"], colors: ["Blue"] }, { names: ["DarkKnightmon"] }],
       count: 2,
+    },
+  ],
+  // BT19-070: [DigiXros -1] 3 Lv.4 [Composite] Digimon cards with different card numbers. The
+  // generated parser omitted the level/different-number predicates and the three-card cap.
+  "BT19-070": [
+    {
+      materials: [
+        {
+          levelComparison: { op: "eq", value: 4 },
+          nameOrTrait: [{ tokens: ["Composite"], match: "trait" }],
+          differentCardNumbers: true,
+        },
+      ],
+      count: 1,
+      maxMaterials: 3,
     },
   ],
 };

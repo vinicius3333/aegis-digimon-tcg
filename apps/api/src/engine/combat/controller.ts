@@ -566,6 +566,7 @@ export class CombatController {
       };
       const attackSubTriggerPayload: TriggerInfo = {
         attackerPermanentId: attacker.permanentId,
+        attackerDPAtDeclaration: attacker.currentDP,
         attackSequence,
         ...(attackTrigger.defenderPermanentId !== undefined
           ? { defenderPermanentId: attackTrigger.defenderPermanentId }
@@ -612,6 +613,19 @@ export class CombatController {
               this.hooks.addDpModifier?.(attacker.permanentId, ally.currentDP);
               this.hooks.addSecurityAttack?.(attacker.permanentId);
               await this.fireSuspended(ally, allySuspended);
+              // Alliance suspends its chosen ally as an effect cost (§16-24), so the
+              // effect-suspension bus must observe the actual transition after the keyword's
+              // DP/security benefit has been installed. Carry the attacking card as the
+              // producer so watchers such as EX4-032/033/034 can distinguish Alliance from
+              // an unrelated suspension effect.
+              if (allySuspended) {
+                await this.hooks.fireSubTrigger?.("whenEffectSuspends", {
+                  subjectPermanentId: ally.permanentId,
+                  suspendedPermanentId: ally.permanentId,
+                  effectSuspendSeat: attackerSeat,
+                  byEffectCardId: attacker.topCard.cardId,
+                });
+              }
             }
           }
         }
@@ -708,6 +722,17 @@ export class CombatController {
       }
 
       if (!this.attackerStillValid(attacker)) {
+        await this.hooks.fireTiming(EffectTiming.OnEndAttack, {
+          ...attackTrigger,
+          target: effectiveTarget,
+        });
+        return;
+      }
+
+      // An effect may end the attack specifically because the block switched its target
+      // (BT16-032). That trigger resolves inside switchDefenderToBlocker, after the earlier
+      // pre-block endRequested check, so honor the newly-requested end before comparing DP.
+      if (this.endRequested) {
         await this.hooks.fireTiming(EffectTiming.OnEndAttack, {
           ...attackTrigger,
           target: effectiveTarget,
@@ -890,10 +915,14 @@ export class CombatController {
       return Promise.resolve(null);
     }
 
+    // ＜Collision＞ forces the block (§16-30), and `resolveBlock` rejects a decline while a
+    // blocker is left. The window says so, so the defender is never offered that refusal.
+    const mustBlock = hasCollision(attacker, this.hooks.continuous);
     this.hooks.emit({
       kind: "blockWindowOpened",
       attackerPermanentId: attacker.permanentId,
       eligibleBlockerIds,
+      ...(mustBlock ? { mustBlock: true } : {}),
     });
 
     return new Promise<string | null>((resolve) => {
@@ -993,9 +1022,9 @@ export class CombatController {
    * exactly here: "suspending from an attack declaration is due to the rules", so it is a
    * real suspension but NOT an effect-driven one — `whenEffectSuspends` stays unfired.
    *
-   * ＜Alliance＞ and ＜Evade＞ suspend as a keyword-effect cost rather than by the rules, so
-   * they arguably also owe `whenEffectSuspends`. No ruling settles the seat attribution, so
-   * they fire only the generic event here rather than guessing.
+   * ＜Alliance＞ and ＜Evade＞ suspend as a keyword-effect cost rather than by the rules. Alliance
+   * explicitly carries its effect attribution through the dedicated call site, while Evade's
+   * battle-only path remains a combat transition without an effect producer.
    */
   private suspendInCombat(permanent: Permanent): boolean {
     if (permanent.isSuspended) return false;
@@ -1324,6 +1353,7 @@ export class CombatController {
         deletedPermanentIds: postCardPreventionDeletedIds,
         deletedControllerSeat: this.access.permanentById(permanentId)?.controllerSeat,
         deletedTopCardId: this.access.permanentById(permanentId)?.topCard?.cardId,
+        removalCause: "byBattle",
       });
       // whenLeavesPlay is the delete∪bounce superset; fire it here too so a watcher reacts to
       // a battle deletion, matching the effect-path primitive (otherwise a card works when
@@ -1452,6 +1482,7 @@ export class CombatController {
         subjectPermanentId: attacker.permanentId,
         attackerPermanentId: attacker.permanentId,
         deletedPermanentId: defender.permanentId,
+        deletedControllerSeat: defender.controllerSeat,
         ...(defenderTopCardId !== undefined ? { deletedTopCardId: defenderTopCardId } : {}),
         deletedInstanceIds,
         deletedWasStackInstanceIds,
@@ -1487,6 +1518,7 @@ export class CombatController {
         subjectPermanentId: defender.permanentId,
         attackerPermanentId: defender.permanentId,
         deletedPermanentId: attacker.permanentId,
+        deletedControllerSeat: attacker.controllerSeat,
         ...(attackerTopCardId !== undefined ? { deletedTopCardId: attackerTopCardId } : {}),
         deletedInstanceIds,
         deletedWasStackInstanceIds,

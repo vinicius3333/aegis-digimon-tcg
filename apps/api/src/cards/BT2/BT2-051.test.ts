@@ -116,4 +116,43 @@ describe("BT2-051 RustTyrannomon", () => {
 
     expect(s.perm("other").isSuspended).toBe(false);
   });
+
+  it("retains both clauses through a legal green evolution stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT2-046", as: "base" }, { card: "BT1-089", as: "greenTamer" }],
+          hand: [{ card: "BT2-051", as: "evolving" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "defender", dp: 1000 },
+            { card: "BT1-011", as: "other" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("evolving").instanceId);
+
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT2-046"]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1 && s.perm("other").isSuspended);
+
+    expect(s.perm("other").isSuspended).toBe(true);
+  });
 });

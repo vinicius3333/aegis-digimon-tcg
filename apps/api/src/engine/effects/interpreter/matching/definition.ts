@@ -12,6 +12,10 @@ export interface DefinitionFacts {
   kinds: CardKind[];
   colors: CardColor[];
   level?: number;
+  /** Additional levels a card is treated as having in a temporary zone context. */
+  treatedAsLevels?: number[];
+  /** Additional names a card is treated as having in a temporary zone context. */
+  nameAliases?: string[];
   nameEn: string;
   types?: string[];
   forms?: string[];
@@ -64,6 +68,7 @@ export function parseCopyEffectsFilterText(raw: string): Filter | undefined {
  * (e.g. `hasLevel` excludes Lv.- cards from a level-budget delete).
  */
 export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean {
+  if (filter.cardId !== undefined && def.cardId !== filter.cardId) return false;
   if (filter.forms && filter.forms.length > 0 && !filter.forms.some((form) => def.forms?.includes(form))) return false;
   // A small set of catalog records still uses the legacy `cardType`/`trait`
   // spelling inside `orFilters` (notably BT25-085's dual Option clause).
@@ -107,6 +112,10 @@ export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean
     const wanted = filter.colors.map((c) => COLOR_MAP[c]);
     if (!wanted.some((c) => def.colors.includes(c))) return false;
   }
+  if (filter.colorsAll && filter.colorsAll.length > 0) {
+    const wanted = filter.colorsAll.map((c) => COLOR_MAP[c]);
+    if (!wanted.every((c) => def.colors.includes(c))) return false;
+  }
   // Color EXCLUSION ("non-red Option", "non-white Digimon"): reject when the card carries ANY of
   if (filter.excludeColors && filter.excludeColors.length > 0) {
     const banned = filter.excludeColors.map((c) => COLOR_MAP[c]);
@@ -115,9 +124,11 @@ export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean
   // Multicolored: two or more colors. With `colors` also set, the card must be
   // multicolored AND include one of those colors (handled by the `colors` check above).
   if (filter.multicolor && def.colors.length < 2) return false;
+  if (filter.colorCount !== undefined && def.colors.length !== filter.colorCount) return false;
   if (filter.singleColor === true && def.colors.length !== 1) return false;
   if (filter.levels && filter.levels.length > 0) {
-    if (def.level === undefined || !filter.levels.includes(def.level)) return false;
+    const levels = [...(def.level === undefined ? [] : [def.level]), ...(def.treatedAsLevels ?? [])];
+    if (!filter.levels.some((level) => levels.includes(level))) return false;
   }
   // "HAS a level" gate (BT17-051 level-budget delete, BT18-019 different-levels select): exclude
   // Lv.- cards (Digi-Eggs / level-less Digimon), where `def.level` is undefined or 0 (KB Q2807).
@@ -181,7 +192,7 @@ export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean
   // Keyword-presence ("with ＜Save＞ in its text", "Digimon with ＜Blocker＞"). Matched
   // against the printed effect text (the source "contains ＜KW＞ in text" check).
   if (filter.keywords && filter.keywords.length > 0) {
-    if (!filter.keywords.every((kw) => textHasKeyword(def, kw))) return false;
+    if (!filter.keywords.every((kw) => definitionHasKeyword(def, kw))) return false;
   }
   // Keyword-exclusion ("without ＜Blocker＞"). Static definition path for loose cards;
   // live permanents also account for granted keywords below.
@@ -245,6 +256,27 @@ export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean
   return true;
 }
 
+/**
+ * Prefer structured compiled keyword metadata when available, then fall back to printed text.
+ * This preserves keywords stripped by catalog sanitization (Alliance on EX4-031) while keeping
+ * legacy definitions usable. Digi-Burst still requires a declaration rather than a mere mention.
+ */
+export function definitionHasKeyword(def: DefinitionFacts, keyword: string | { keyword?: string }): boolean {
+  const requested = (typeof keyword === "string" ? keyword : (keyword.keyword ?? ""))
+    .replace(/[^a-z0-9]/gi, "")
+    .toLowerCase();
+  if (def.cardId !== undefined) {
+    const compiled = runtimeCompiledCard(def.cardId);
+    if (compiled !== undefined) {
+      const declared = compiled.effects.some((effect) =>
+        (effect.keywords ?? []).some((entry) => entry.keyword.replace(/[^a-z0-9]/gi, "").toLowerCase() === requested),
+      );
+      if (declared || requested === "digiburst") return declared;
+    }
+  }
+  return textHasKeyword(def, keyword);
+}
+
 /** Does a card's printed text declare a keyword ability (e.g. ＜Save＞, ＜Blocker＞)? */
 export function textHasKeyword(
   def: { effectText?: string; inheritedEffectText?: string },
@@ -275,6 +307,7 @@ export function matchNameOrTrait(
     linkRequirement?: string;
     dualEffect?: string;
     optionEffect?: string;
+    nameAliases?: string[];
   },
   ref: {
     tokens: string[];
@@ -297,6 +330,7 @@ export function matchNameOrTrait(
   const names = [
     normalizeName(def.nameEn ?? ""),
     ...(def.cardId ? effectiveStaticNames(def as CardDefinition).map(normalizeName) : []),
+    ...(def.nameAliases ?? []).map(normalizeName),
   ];
   const normalizeTrait = (value: string) => value.toLowerCase().replace(/[\s-]+/g, "");
   const traits = staticTraitsOf(def as CardDefinition).map(normalizeTrait);

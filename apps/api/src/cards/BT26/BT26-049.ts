@@ -44,6 +44,7 @@ const playOrUseDataSquad = {
         filter: dataSquadOption,
         from: ["hand"],
         payCost: false,
+        allowMultiColor: true,
         playCostCeiling,
       },
     ],

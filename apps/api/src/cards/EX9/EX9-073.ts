@@ -14,6 +14,7 @@ export const compiled: CompiledCard = {
         {
           kind: "ActivateEffect",
           effectType: "OnPlay",
+          lastPlacedOnly: true,
           target: {
             filter: {
               controller: "mine",
@@ -57,6 +58,7 @@ export const compiled: CompiledCard = {
         {
           kind: "ActivateEffect",
           effectType: "OnPlay",
+          lastPlacedOnly: true,
           target: {
             filter: {
               controller: "mine",
@@ -100,6 +102,7 @@ export const compiled: CompiledCard = {
         {
           kind: "ActivateEffect",
           effectType: "OnPlay",
+          lastPlacedOnly: true,
           target: {
             filter: {
               controller: "mine",

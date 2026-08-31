@@ -69,7 +69,7 @@ const compiled: CompiledCard = {
         },
         {
           kind: "DelayedDeletePlayed",
-          timing: "opponentTurnEnd",
+          timing: "endOfOpponentTurn",
           raw: "deleted at turn end (opponent's turn end)",
         },
       ],
@@ -117,7 +117,7 @@ const compiled: CompiledCard = {
         },
         {
           kind: "DelayedDeletePlayed",
-          timing: "yourTurnEnd",
+          timing: "endOfOwnerTurn",
           raw: "delete the Digimon this effect played at end of your turn",
         },
       ],

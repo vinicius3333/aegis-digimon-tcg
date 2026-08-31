@@ -58,7 +58,7 @@ describe("BT23-025 MarineAngemon", () => {
         },
         1: { battleArea: [{ card: "BT23-016", as: "target" }] },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
     const marine = s.inst("marine");
@@ -105,6 +105,36 @@ describe("BT23-025 MarineAngemon", () => {
     ).toMatchObject({ ok: false });
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(marine.instanceId);
     expect(s.state.players[0]!.security).toHaveLength(0);
+  });
+
+  it("may decline the hand Main processing condition before paying 5", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-017", as: "cs" }],
+          hand: [{ card: "BT23-025", as: "marine" }],
+          security: [{ card: "BT1-009", as: "oldTop" }],
+        },
+        1: { battleArea: [{ card: "BT23-016", as: "target" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    const marine = s.inst("marine");
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: marine.instanceId,
+        effectKey: handMainEffectKey(s, marine),
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(marine.instanceId);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(0);
   });
 
   it("returns exactly one opposing Digimon tied for the lowest level on play", async () => {

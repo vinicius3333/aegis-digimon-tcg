@@ -11,6 +11,7 @@ export interface Condition {
   kind:
     | "true" // for Aura records whose target filter already carries the condition
     | "youHave"
+    | "anyHas" // a matching permanent may belong to either player unless the filter names a controller
     | "youHaveGreenLevelAtLeastInBattle"
     | "breedingActionAvailable"
     | "opponentHas"
@@ -33,6 +34,7 @@ export interface Condition {
     | "lastTargetDpAtMostSelf" // every permanent the preceding action selected has DP <= this Digimon
     | "lastTargetDpGreaterThanSelf" // every permanent the preceding action selected has DP > this Digimon
     | "lastTargetCanTrashDigivolution" // the previous target still has stack cards and is not level 3 (EX5-055)
+    | "lastTargetPlayCostAtMost" // the preceding target's current printed play cost (BT3-107)
     | "triggerRevealedFromDeck" // the source card is among the cards this effect revealed from a deck
     | "triggerRevealedMatchesFilter" // any card in the current reveal window matches `filter`
     | "triggerAllRevealedMatchFilter"
@@ -44,6 +46,7 @@ export interface Condition {
     | "digivolutionCardCount" // matching cards in the SOURCE Digimon's stack (EX11-046)
     | "triggerPlayCostAtMostStackCount" // the triggered card's play cost <= a matching stack count
     | "selfDigivolutionStackHasTrait" // `filter.nameOrTrait` vs each stack card's Form ∪ Attribute ∪ Type (BT7-024)
+    | "selfLacksInDigivolutionCards" // true when no SOURCE stack card matches `filter` (P-144)
     | "selfDigivolutionStackDistinctNameCount" // distinct names in the SOURCE stack (EX6-006)
     | "selfDigivolutionStackMatchesFilter" // any SOURCE stack card matches the full filter (BT17-101)
     | "selfDigivolutionStackHasColor" // BT8-082
@@ -71,6 +74,7 @@ export interface Condition {
     | "ifThisEffectActed" // the prior branch moved >=1 card; a declined optional selection leaves it false (BT16-094)
     | "ifThisEffectDidNotAct" // complement of ifThisEffectActed (EX4-070; KB Q3514)
     | "ifOpponentDeclined"
+    | "opponentDeclinedTrash" // legacy alias used by the prose compiler (BT3-102/BT13-102)
     // SubTrigger fire-time payload gates; only meaningful inside a watcher body.
     | "triggerSecurityIsYours"
     | "triggerSecurityIsOpponents"
@@ -100,6 +104,7 @@ export interface Condition {
     | "triggerHandTrashedSeat"
     | "triggeredByEffect" // whenSuspended was produced by an effect, not attack/block rules (EX11-062)
     | "triggerRemovalCause"
+    | "triggerDeletedIsOpponent"
     | "triggerDeletedByDpZero"
     | "triggerIsFirstDeletedPermanent"
     | "noTamerInDigivolution"
@@ -177,10 +182,7 @@ export interface Condition {
   minimum?: number;
   /** For `triggerPlayedByEffectSource`. */
   sourceCardId?: string;
-  /**
-   * For `allOf`/`anyOf`. A true AND of independent checks — P-116 requires three distinct named
-   * Digimon in play, which a single multi-name filter would express as an OR.
-   */
+  /** For `allOf`/`anyOf`: a true AND of independent checks. */
   conditions?: Condition[];
   /** For `not`. */
   condition?: Condition;

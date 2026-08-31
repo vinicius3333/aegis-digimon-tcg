@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-authored override for BT3-073 (CresGarurumon).
 // runtime-effect fix:
 // - revealCount scales by opponent's Digimon count in play (1 card per opponent Digimon);

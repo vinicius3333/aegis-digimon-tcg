@@ -29,6 +29,17 @@ describe("BT23-102 Mastemon", () => {
 
   it("trashes both security stacks down to three with the same-level condition", () => {
     const effect = compiled.effects.find((entry) => entry.trigger === "WhenDigivolving") as any;
+    expect(effect.actions[0]).toMatchObject({
+      kind: "PlayWithoutCost",
+      from: ["hand", "trash"],
+      target: {
+        filter: {
+          kind: ["Digimon"],
+          colors: ["Yellow", "Purple"],
+          levelComparison: { op: "lte", value: 5 },
+        },
+      },
+    });
     expect(effect.actions[1]).toMatchObject({
       kind: "SecurityManipulation",
       op: "trashTop",

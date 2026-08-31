@@ -53,10 +53,8 @@ describe("EX8-069", () => {
   it("grants Alliance to a live NSp Digimon", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [
-          { card: "EX8-069", as: "source" },
-          { card: "EX7-015", as: "nsp" },
-        ],
+        battleArea: [{ card: "EX7-015", as: "nsp" }],
+        security: [{ card: "EX8-069", as: "source", faceUp: true }],
       },
     });
     await s.ready();

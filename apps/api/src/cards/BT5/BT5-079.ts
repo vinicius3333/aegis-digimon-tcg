@@ -11,6 +11,30 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          amount: 0,
+          duration: "forTheTurn",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                isSelfRef: true,
+                zone: "digivolutionCards",
+              },
+              count: 3,
+            },
+            raw: "＜Digi-Burst 3＞",
+          },
+          abortOnDecline: true,
+        },
+        {
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -25,12 +49,6 @@ const compiled: CompiledCard = {
           payCost: false,
           optional: true,
           bindResultAs: "playedByBlackWarGrowlmon",
-          cost: {
-            kind: "trash",
-            target: { filter: { isSelfRef: true, zone: "digivolutionCards" }, count: 3 },
-            raw: "＜Digi-Burst 3＞",
-          },
-          abortOnDecline: true,
           suppressOnPlayEffects: true,
         },
       ],

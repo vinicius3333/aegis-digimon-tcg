@@ -23,7 +23,7 @@ describe("BT15-008", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT15-008", as: "muchomon" },
+          { card: "BT15-008", as: "muchomon", under: ["BT15-001"] },
           { card: "BT1-009", as: "redAttacker" },
         ],
         deck: [
@@ -62,7 +62,7 @@ describe("BT15-008", () => {
       const s = setupEngine({
         0: {
           battleArea: [
-            { card: "BT15-008", as: "muchomon" },
+            { card: "BT15-008", as: "muchomon", under: ["BT15-001"] },
             { card: attackPlayer ? "BT1-045" : "BT1-009", as: "attacker" },
           ],
           deck: [{ card: "BT1-001", as: "top" }],

@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,6 +7,25 @@ import { compiled as BT24_071 } from "./BT24-071.js";
 import "../index.js";
 
 describe("BT24-071 Raidramon", () => {
+  it("matches the immutable catalog identity", () => {
+    expect(getCardDefinition("BT24-071")).toMatchObject({
+      cardId: "BT24-071",
+      nameEn: "Raidramon",
+      colors: ["Purple", "Red"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 6,
+      dp: 6000,
+      forms: ["Sup.", "Appmon"],
+      attributes: ["System"],
+      types: ["Super Hacking"],
+      evoCosts: [
+        { color: "Purple", level: 3, memoryCost: 3 },
+        { color: "Red", level: 3, memoryCost: 3 },
+      ],
+    });
+  });
+
   it("grants Security Attack +1 to one eligible trait Digimon and revives level 3 Appmon", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       expect(BT24_071.effects?.find((entry) => entry.trigger === trigger)?.actions?.[0]).toMatchObject({

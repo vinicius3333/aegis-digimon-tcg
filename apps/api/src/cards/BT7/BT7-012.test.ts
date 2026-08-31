@@ -1,6 +1,7 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine } from "../../engine/testkit/harness.js";
+import "./BT7-012.js";
 
 describe("BT7-012 Brachiomon", () => {
   it("matches its official effectless card metadata", () => {

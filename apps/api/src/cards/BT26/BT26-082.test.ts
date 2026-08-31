@@ -23,7 +23,9 @@ describe("BT26-082 compiled behavior", () => {
       { namesExact: ["Crowmon"], cost: 3, isAlternate: true },
       { level: 5, traits: ["DATA SQUAD"], cost: 3, isAlternate: true },
     ]);
-    expect(compiled.effects.find((effect) => effect.trigger === "Security")).toMatchObject({ isSecurity: true });
+    // Q7117/Q7122: the printed clause is a {Security} [End of Opponent's Turn] effect, not the
+    // check-triggered [Security] tag, so no effect may be filed under the security-check timing.
+    expect(compiled.effects.find((effect) => effect.trigger === "Security")).toBeUndefined();
     expect(compiled.effects.find((effect) => effect.trigger === "EndOfOpponentsTurn")).toMatchObject({
       isSecurity: true,
     });
@@ -134,6 +136,27 @@ describe("BT26-082 compiled behavior", () => {
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT1-010")).toBe(true);
   });
 
+  it("resolves the same delete modal at End of Attack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-082", as: "ravemon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-084", as: "highest" },
+            { card: "BT1-010", as: "lower" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.EndOfAttack, s.perm("ravemon"));
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT1-010"]);
+  });
+
   it("may decline the by-cost activation without deleting either Digimon", async () => {
     const s = setupEngine(
       {
@@ -221,7 +244,7 @@ describe("BT26-082 compiled behavior", () => {
     );
   });
 
-  it("Q7119/Q7120 triggers the Security effect when the face-up card is checked", async () => {
+  it("Q7119 checks the face-up card like a standard security card instead of playing it", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "AD1-001", as: "attacker" }] },
       1: { security: [{ card: "BT26-082", as: "securityRavemon", faceUp: true }] },
@@ -238,7 +261,8 @@ describe("BT26-082 compiled behavior", () => {
     await settle(() => s.events.some(({ kind }) => kind === "combatResolved"));
 
     expect(s.state.players[1]!.security).toHaveLength(0);
-    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT26-082");
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT26-082");
   });
 
   it("Q7122 still loses when an end-of-turn attack succeeds after Ravemon leaves the last security", async () => {
@@ -351,6 +375,33 @@ describe("BT26-082 compiled behavior", () => {
     expect(await advance(s.engine).verb.deletePermanent([s.perm("ravemon").permanentId], "byEffect")).toBe(1);
 
     expect(s.state.players[1]!.hand).toHaveLength(8);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-082");
+  });
+
+  it("may decline the optional bottom-security placement at 7 opponent cards", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-082", as: "ravemon" }] },
+        1: {
+          hand: [
+            { card: "BT1-001", as: "chosen" },
+            "BT1-002",
+            "BT1-003",
+            "BT1-004",
+            "BT1-005",
+            "BT1-006",
+            "BT1-007",
+            "BT1-008",
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("ravemon").permanentId], "byEffect")).toBe(1);
+    expect(s.state.players[1]!.hand).toHaveLength(7);
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-082");
   });

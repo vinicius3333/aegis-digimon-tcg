@@ -1,10 +1,27 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled as BT24_061 } from "./BT24-061.js";
 import "../index.js";
 
 describe("BT24-061 Vademon", () => {
+  it("matches the immutable catalog identity", () => {
+    expect(getCardDefinition("BT24-061")).toMatchObject({
+      cardId: "BT24-061",
+      nameEn: "Vademon",
+      colors: ["Black"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 6,
+      dp: 7000,
+      forms: ["Ultimate"],
+      attributes: ["Virus"],
+      types: ["Alien", "Iliad", "TS"],
+      evoCosts: [{ color: "Black", level: 4, memoryCost: 3 }],
+    });
+  });
+
   it("returns a low-play-cost opponent Digimon or Tamer to deck top", () => {
     const effects = BT24_061.effects?.filter((entry) => ["OnPlay", "WhenDigivolving"].includes(entry.trigger));
     expect(effects).toHaveLength(2);

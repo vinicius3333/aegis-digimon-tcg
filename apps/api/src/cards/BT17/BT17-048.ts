@@ -8,10 +8,23 @@ export const compiled: CompiledCard = {
       trigger: "Static",
       actions: [
         {
-          kind: "CostModifier",
-          mode: "reduce",
-          costType: "digivolution",
-          amount: { kind: "perSuspendedTamer", max: 5 },
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          actions: [
+            {
+              kind: "Replacement",
+              event: "wouldDigivolve",
+              mode: "reduceCost",
+              amount: 1,
+              cost: {
+                kind: "suspend",
+                target: { filter: { kind: ["Tamer"] }, count: 5, upTo: true },
+                raw: "By suspending up to 5 Tamers",
+              },
+              raw: "for each Tamer suspended by this effect, reduce the digivolution cost by 1",
+            },
+          ],
+          raw: "When digivolving into this card, by suspending up to 5 Tamers, for each Tamer suspended by this effect, reduce the digivolution cost by 1.",
         },
       ],
     },
@@ -68,6 +81,14 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [
+    {
+      level: 4,
+      names: ["Argomon"],
+      cost: 4,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT17-048", compiled);

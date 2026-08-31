@@ -19,7 +19,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Thomas H. Norstein"],
-                  match: "trait",
+                  match: "name",
                 },
               ],
             },
@@ -53,7 +53,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Thomas H. Norstein"],
-                  match: "trait",
+                  match: "name",
                 },
               ],
             },

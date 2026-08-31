@@ -157,7 +157,7 @@ describe("BT25-094 Cosmic Area", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("area"));
@@ -167,5 +167,21 @@ describe("BT25-094 Cosmic Area", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("wrongColor").instanceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("tooHigh").instanceId);
     expect(s.state.memory).toBe(0);
+  });
+
+  it("allows declining the optional Security play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT25-094", faceUp: true, as: "area" }],
+          trash: [{ card: "BT25-009", as: "eligible" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("area"));
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("eligible").instanceId);
   });
 });

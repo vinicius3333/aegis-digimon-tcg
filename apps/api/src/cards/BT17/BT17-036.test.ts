@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-036.js";
+import "../BT18/BT18-040.js";
 
 describe("BT17-036 Boutmon", () => {
   it("once per turn prevents opponent-effect removal by trashing security", () => {
@@ -24,7 +26,7 @@ describe("BT17-036 Boutmon", () => {
       frequency: "OncePerTurn",
       actions: [
         {
-          event: "whenEffectRemovesFromSecurity",
+          event: "whenEffectTrashesFromSecurity",
           actions: [
             {
               kind: "Digivolve",
@@ -52,5 +54,35 @@ describe("BT17-036 Boutmon", () => {
         },
       ],
     });
+  });
+
+  it("naturally digivolves for free when its inherited attack effect trashes security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT17-036", under: ["BT17-086"], as: "boutmon" },
+            { card: "BT18-040", as: "attacker" },
+          ],
+          hand: [{ card: "BT16-047", as: "pulsemonText" }],
+          security: 1,
+        },
+        1: { battleArea: [{ card: "BT1-009", suspended: true, as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("boutmon").topCard.cardId === "BT16-047");
+
+    expect(s.perm("boutmon").topCard.cardId).toBe("BT16-047");
+    expect(s.state.players[0]!.security).toHaveLength(0);
   });
 });

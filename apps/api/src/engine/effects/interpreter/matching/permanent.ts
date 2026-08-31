@@ -13,8 +13,10 @@ import type { CardColor, Condition, Filter, Permanent, Seat } from "@aegis/share
  * Whether a card matching the trait `filter` is in the SOURCE permanent's digivolution stack
  * (BT7-024 "while a card with [Hybrid] in its traits is in this Digimon's digivolution cards").
  * Matches each stack card's definition against `filter.nameOrTrait` via the shared
- * `matchNameOrTrait` (Form ∪ Attribute ∪ Type union). Returns false when there is no source
- * permanent or no trait filter (conservative; we never invent a gate).
+ * `matchNameOrTrait` (Form ∪ Attribute ∪ Type union). On a post-deletion timing window the
+ * source permanent is already gone; use the deletion snapshot's stack instance ids and the
+ * owner's trash to recover the same stack facts (P-145's conditional On Deletion). Returns
+ * false when no live/source snapshot or trait filter is available.
  */
 export function selfStackMatchesTrait(ctx: EffectContext, filter: Filter | undefined): boolean {
   if (filter === undefined) return false;
@@ -22,8 +24,14 @@ export function selfStackMatchesTrait(ctx: EffectContext, filter: Filter | undef
     (filter.nameOrTrait?.length ?? 0) > 0 || (filter.or?.length ?? 0) > 0 || (filter.and?.length ?? 0) > 0;
   if (!hasPredicate) return false;
   const self = ctx.source.permanent();
-  if (self === undefined) return false;
-  return self.stack.some((card) => definitionMatches(filter, ctx.game.definitionOf(card)));
+  if (self !== undefined) return self.stack.some((card) => definitionMatches(filter, ctx.game.definitionOf(card)));
+  const deletedStackIds = ctx.trigger.deletedWasStackInstanceIds;
+  if (deletedStackIds === undefined || deletedStackIds.length === 0) return false;
+  const trash = ctx.game.player(ctx.source.ownerSeat).trash;
+  return deletedStackIds.some((instanceId) => {
+    const card = trash.find((candidate) => candidate.instanceId === instanceId);
+    return card !== undefined && definitionMatches(filter, ctx.game.definitionOf(card));
+  });
 }
 
 /**
@@ -85,11 +93,11 @@ export function compareNumber(actual: number, op: Condition["op"] | undefined, e
   }
 }
 
-export function sourceStackHasSameLevelCards(ctx: EffectContext, minCount: number): boolean {
-  const self = ctx.source.permanent();
-  if (self === undefined) return false;
+export function permanentStackHasSameLevelCards(ctx: EffectContext, permanent: Permanent, minCount: number): boolean {
   const levelCounts = new Map<number, number>();
-  const cards = [self.topCard, ...self.stack].filter((card): card is NonNullable<typeof card> => card !== undefined);
+  const cards = [permanent.topCard, ...permanent.stack].filter(
+    (card): card is NonNullable<typeof card> => card !== undefined,
+  );
   for (const card of cards) {
     const level = ctx.game.definitionOf(card).level;
     if (typeof level !== "number") continue;
@@ -98,6 +106,11 @@ export function sourceStackHasSameLevelCards(ctx: EffectContext, minCount: numbe
     levelCounts.set(level, next);
   }
   return false;
+}
+
+export function sourceStackHasSameLevelCards(ctx: EffectContext, minCount: number): boolean {
+  const self = ctx.source.permanent();
+  return self !== undefined && permanentStackHasSameLevelCards(ctx, self, minCount);
 }
 
 // ---------------------------------------------------------------------------
@@ -144,6 +157,13 @@ function lastDeletedLevelBound(ctx: EffectContext): number | undefined {
   return level !== undefined && level > 0 ? level : undefined;
 }
 
+function lastDeletedDPBound(ctx: EffectContext): number | undefined {
+  if (ctx.lastDeletedDP !== undefined) return ctx.lastDeletedDP;
+  const id = ctx.trigger.deletedPermanentId ?? ctx.trigger.subjectPermanentId;
+  if (id === undefined) return undefined;
+  return ctx.game.permanentById(id)?.currentDP;
+}
+
 export function permanentMatchesFilter(
   ctx: EffectContext,
   permanent: Permanent,
@@ -151,12 +171,19 @@ export function permanentMatchesFilter(
   source: CardSource,
 ): boolean {
   if (permanent.topCard === undefined) return false;
+  // Controller is a live permanent property, not part of the card definition. Keep
+  // watcher-side matching (for example, a later entrant to an opponent-only aura)
+  // subject to the same source-relative seat scope used during target enumeration.
+  if (!seatsForController(ctx, filter).includes(permanent.controllerSeat)) return false;
   // A permanent filter naming a field zone must distinguish the breeding area from
   // the battle area. Cost-modifier predicates receive both kinds of permanent directly,
   // so relying on the caller's candidate scan would let battle-area-only reducers apply
   // in breeding (BT2-088 Q1038).
-  if (filter.zone === "battleArea" && permanent.inBreeding) return false;
-  if (filter.zone === "breeding" && !permanent.inBreeding) return false;
+  if (filter.zone !== undefined) {
+    const zones = Array.isArray(filter.zone) ? filter.zone : [filter.zone];
+    const fieldZones = zones.filter((zone) => zone === "battleArea" || zone === "breeding");
+    if (fieldZones.length > 0 && !fieldZones.includes(permanent.inBreeding ? "breeding" : "battleArea")) return false;
+  }
   if (filter.excludeLeavingSubject === true && ctx.trigger.deletedPermanentId === permanent.permanentId) return false;
   const stackKeywords = (filter as Filter & { stackKeywords?: string[] }).stackKeywords;
   if (stackKeywords !== undefined) {
@@ -227,6 +254,11 @@ export function permanentMatchesFilter(
     const { isTriggerSource: _omit, ...rest } = filter;
     filter = rest;
   }
+  if (filter.stackHasSameLevelCards !== undefined) {
+    if (!permanentStackHasSameLevelCards(ctx, permanent, filter.stackHasSameLevelCards)) return false;
+    const { stackHasSameLevelCards: _sameLevel, ...rest } = filter;
+    filter = rest;
+  }
   // Disjunctive sub-filter ("black or has [Legend-Arms] in its traits"): the permanent matches
   // the OR group if it satisfies ANY alternative. Each alternative is a full Filter, so it is
   // evaluated against the LIVE permanent (recursing) — an alternative may itself constrain DP,
@@ -258,13 +290,39 @@ export function permanentMatchesFilter(
     return false;
   }
 
+  // Dynamic level bounds such as "level >= the total cards in both security stacks"
+  // carry their live counting filter as the comparison value. Resolve that count before
+  // delegating to definitionMatches; treating the object as a numeric bound silently rejects
+  // every candidate (EX5-033 / KB Q3597-Q3599).
+  const levelComparison = filter.levelComparison as
+    | { op?: Condition["op"]; value?: number | { kind?: string; filter?: Filter } }
+    | undefined;
+  const dynamicCount = levelComparison?.value;
+  if (typeof dynamicCount === "object" && dynamicCount !== null && dynamicCount.kind === "dynamicCount") {
+    const bound = scaleFactor(ctx, {
+      per: 1,
+      unit: "cards",
+      filter: dynamicCount.filter ?? {},
+    });
+    if (
+      def.level === undefined ||
+      levelComparison?.op === undefined ||
+      !compareNumber(def.level, levelComparison.op, bound)
+    )
+      return false;
+    const { levelComparison: _levelComparison, ...rest } = filter;
+    filter = rest;
+  }
+
   // DP threshold needs the live permanent, so it lives here (not in definitionMatches).
   // Strip dp from filter after evaluation so definitionMatches doesn't double-check using
   // the printed (static) dp, which may differ from currentDP after ModifyDP effects.
   if (filter.dp) {
     const cmp = filter.dp;
     let bound: number | undefined;
-    if (cmp.relativeToSource) {
+    if (cmp.relativeTo === "lastDeleted") {
+      bound = lastDeletedDPBound(ctx);
+    } else if (cmp.relativeToSource) {
       bound = source.permanent()?.currentDP;
     } else if (cmp.relativeToFilter !== undefined) {
       const referenceDps = seatsForController(ctx, cmp.relativeToFilter).flatMap((seat) =>
@@ -472,19 +530,27 @@ export function permanentMatchesFilter(
   // Digivolution-stack name/trait gate: unlike the ordinary `nameOrTrait` predicate (which
   // inspects the permanent's TOP card), this requires a matching card UNDER that top card.
   if (filter.digivolutionStackNameOrTrait && filter.digivolutionStackNameOrTrait.length > 0) {
-    const hit = permanent.stack.some((card) =>
-      definitionMatches({ nameOrTrait: filter.digivolutionStackNameOrTrait }, ctx.game.definitionOf(card)),
-    );
-    if (!hit) return false;
+    const refs = filter.digivolutionStackNameOrTrait;
+    const hit = permanent.stack.some((card) => {
+      const stackDefinition = ctx.game.definitionOf(card);
+      return refs.some((ref) => definitionMatches({ nameOrTrait: [{ ...ref, negate: false }] }, stackDefinition));
+    });
+    // A negated stack predicate means that NONE of the stacked cards may match the
+    // referenced name/trait (EX5-070: without [X Antibody] in its digivolution cards).
+    if (refs.every((ref) => ref.negate === true)) {
+      if (hit) return false;
+    } else if (!hit) {
+      return false;
+    }
   }
 
   // Digivolution-stack NAME exclusion ("[Diaboromon] without [Doomsday Clock] in its
-  // digivolution cards", BT17-100): reject if any stacked card's name matches an excluded token.
+  // digivolution cards", BT17-100): reject if any stacked card has an excluded exact name.
   if (filter.excludeCardsNamed && filter.excludeCardsNamed.length > 0) {
     const excluded = filter.excludeCardsNamed.map((n) => n.toLowerCase());
     const hasExcluded = permanent.stack.some((card) => {
       const name = (ctx.game.definitionOf(card).nameEn ?? "").toLowerCase();
-      return excluded.some((n) => name.includes(n));
+      return excluded.some((n) => name === n);
     });
     if (hasExcluded) return false;
   }
@@ -504,10 +570,14 @@ export function permanentMatchesFilter(
     const selectedId = ctx.selections?.get(filter.sameNameAsSelection);
     const selected = selectedId === undefined ? undefined : ctx.game.permanentById(selectedId);
     const selectedTop = selected?.topCard;
-    if (selectedTop === undefined || permanent.topCard === undefined) return false;
-    const selectedName = (ctx.game.definitionOf(selectedTop).nameEn ?? "").toLowerCase();
+    if (permanent.topCard === undefined) return false;
+    const selectedName = (
+      selectedTop === undefined
+        ? ctx.selectionFacts?.get(filter.sameNameAsSelection)?.name
+        : ctx.game.definitionOf(selectedTop).nameEn
+    )?.toLowerCase();
     const candidateName = (def.nameEn ?? "").toLowerCase();
-    if (selectedName === "" || selectedName !== candidateName) return false;
+    if (selectedName === undefined || selectedName === "" || selectedName !== candidateName) return false;
   }
 
   // Comparative digivolution-stack-size filter relative to the effect source ("a Digimon with as
@@ -593,25 +663,78 @@ export function permanentMatchesFilter(
     }
   }
 
+  // Text-presence references such as "with an [On Deletion] effect" observe live
+  // inherited text and named effects granted by another card (EX1-021 Q3208), not
+  // merely the printed text of the permanent's top card.  Keep name/trait matching
+  // definition-based; a live text hit satisfies the whole OR-list.
+  if (filter.nameOrTrait?.some((reference) => reference.match === "text")) {
+    const textRefs = filter.nameOrTrait.filter((reference) => reference.match === "text");
+    const inheritedText = permanent.stack
+      .map((card) => ctx.game.definitionOf(card).inheritedEffectText ?? "")
+      .join("\n")
+      .toLowerCase();
+    const normalizedInheritedText = inheritedText.replace(/[\s-]+/g, "");
+    const grantedTokens = ctx.fx.customEffectGrants?.(permanent.permanentId) ?? [];
+    const liveMatches = textRefs.some((reference) =>
+      reference.tokens.some((token) => {
+        const normalizedToken = token.toLowerCase().replace(/[\s-]+/g, "");
+        const inheritedHeader = new RegExp(
+          `(?:^|\\n)\\s*\\[${token.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}\\]`,
+          "i",
+        );
+        return (
+          inheritedHeader.test(inheritedText) ||
+          normalizedInheritedText.includes(`[${normalizedToken}]`) ||
+          grantedTokens.some((grant) => {
+            const granted = grant.token.toLowerCase();
+            return (
+              granted.includes(`[${token.toLowerCase()}]`) || granted.replace(/[\s-]+/g, "").includes(normalizedToken)
+            );
+          })
+        );
+      }),
+    );
+    if (liveMatches) {
+      // nameOrTrait is a union (OR), so a live text hit satisfies the whole field;
+      // retaining non-text alternatives here would accidentally turn it into AND.
+      const { nameOrTrait: _nameOrTrait, ...rest } = filter;
+      filter = rest;
+    }
+  }
+
   // Color predicates on a LIVE permanent must observe "also treated as <color>" grants.
   // Definition-only filters still use printed colors, but board predicates such as `youHave`
   // and effect targets see the permanent's effective set (printed union active grants).
   if (
     (filter.colors && filter.colors.length > 0) ||
+    (filter.colorsAll && filter.colorsAll.length > 0) ||
     (filter.excludeColors && filter.excludeColors.length > 0) ||
-    filter.multicolor === true
+    filter.multicolor === true ||
+    filter.colorCount !== undefined
   ) {
     const effective = typeof ctx.game.effectiveColors === "function" ? ctx.game.effectiveColors(permanent) : def.colors;
     if (filter.colors && filter.colors.length > 0) {
       const wanted = filter.colors.map((color) => COLOR_MAP[color]);
       if (!wanted.some((color) => effective.includes(color))) return false;
     }
+    if (filter.colorsAll && filter.colorsAll.length > 0) {
+      const wanted = filter.colorsAll.map((color) => COLOR_MAP[color]);
+      if (!wanted.every((color) => effective.includes(color))) return false;
+    }
     if (filter.excludeColors && filter.excludeColors.length > 0) {
       const banned = filter.excludeColors.map((color) => COLOR_MAP[color]);
       if (banned.some((color) => effective.includes(color))) return false;
     }
     if (filter.multicolor === true && new Set(effective).size < 2) return false;
-    const { colors: _colors, excludeColors: _excludeColors, multicolor: _multicolor, ...rest } = filter;
+    if (filter.colorCount !== undefined && new Set(effective).size !== filter.colorCount) return false;
+    const {
+      colors: _colors,
+      colorsAll: _colorsAll,
+      excludeColors: _excludeColors,
+      multicolor: _multicolor,
+      colorCount: _colorCount,
+      ...rest
+    } = filter;
     return definitionMatches(rest, def);
   }
 
@@ -655,11 +778,10 @@ export function permanentMatchesFilter(
       return (
         liveKeyword === true ||
         granted.has(token) ||
-        (liveKeyword === undefined &&
-          (printedKeywordsOf(def.effectText).includes(token) ||
-            permanent.stack.some((card) =>
-              printedKeywordsOf(ctx.game.definitionOf(card).inheritedEffectText).includes(token),
-            )))
+        printedKeywordsOf(def.effectText).includes(token) ||
+        permanent.stack.some((card) =>
+          printedKeywordsOf(ctx.game.definitionOf(card).inheritedEffectText).includes(token),
+        )
       );
     };
     if (!filter.keywords.every(hasKeyword)) return false;
@@ -674,11 +796,10 @@ export function permanentMatchesFilter(
       return (
         liveKeyword === true ||
         granted.has(token) ||
-        (liveKeyword === undefined &&
-          (printedKeywordsOf(def.effectText).includes(token) ||
-            permanent.stack.some((card) =>
-              printedKeywordsOf(ctx.game.definitionOf(card).inheritedEffectText).includes(token),
-            )))
+        printedKeywordsOf(def.effectText).includes(token) ||
+        permanent.stack.some((card) =>
+          printedKeywordsOf(ctx.game.definitionOf(card).inheritedEffectText).includes(token),
+        )
       );
     };
     if (filter.excludeKeywords.some(hasKeyword)) return false;

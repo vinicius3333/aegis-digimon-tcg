@@ -7,8 +7,9 @@ describe("EX5-060 Dragomon", () => {
       kind: "PlayWithoutCost",
       controller: "opponent",
       suspend: true,
-      ignoreOnPlay: true,
-      target: { filter: { location: "trash", controller: "opponent", level: { max: 4 } } },
+      from: ["trash"],
+      suppressOnPlayEffects: true,
+      target: { filter: { controller: "opponent", kind: ["Digimon"], levels: [3, 4] } },
     });
   });
   it("revives one of your purple Digimon from trash when an opponent plays a Digimon and inherits Piercing", () => {

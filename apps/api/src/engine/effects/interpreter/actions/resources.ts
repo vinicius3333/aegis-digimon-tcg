@@ -7,8 +7,10 @@ import { permanentMatchesFilter, seatsForController } from "../matching/permanen
 import { countMatching } from "../scaling.js";
 import { toDuration } from "../duration.js";
 import { evaluateCondition } from "../conditions.js";
+import { payCost } from "../costs.js";
 import { candidateLooseInstances, pickLoose } from "../targeting/loose.js";
 import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
+import { unsupported } from "../errors.js";
 import { CardKind } from "@aegis/shared";
 import type { Action, CardDefinition, Permanent, Seat, Target } from "@aegis/shared";
 
@@ -76,9 +78,19 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
       }
       return false;
     }
-    case "SetMemory":
-      ctx.fx.setMemory(action.value);
+    case "SetMemory": {
+      if (action.controller === undefined) {
+        ctx.fx.setMemory(action.value);
+        return false;
+      }
+      const seat = action.controller === "mine" ? ctx.source.ownerSeat : ctx.game.opponentOf(ctx.source.ownerSeat);
+      if (ctx.fx.setMemoryForSeat === undefined) {
+        unsupported(ctx, action, "SetMemory targeted at a specific seat has no memory-seat primitive");
+        return false;
+      }
+      ctx.fx.setMemoryForSeat(seat, action.value);
       return false;
+    }
     case "SetTurnEndMemory":
       ctx.fx.setTurnEndMinMemory?.(ctx.source.ownerSeat, action.minimum);
       return false;
@@ -134,6 +146,13 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
       if (!payment) return false;
       if (payment.kind === "automatic") {
         if (!evaluateCondition(ctx, payment.condition)) return false;
+        const delta = action.amount.kind === "fixed" ? action.amount.value : 0;
+        ctx.playCostDelta = (ctx.playCostDelta ?? 0) + Math.max(0, delta);
+        return false;
+      }
+      if (payment.kind === "payCost") {
+        if (!(await ctx.ask.optional(ctx, `Pay cost: ${payment.cost.raw ?? payment.cost.kind}?`))) return false;
+        if (!(await payCost(ctx, payment.cost))) return false;
         const delta = action.amount.kind === "fixed" ? action.amount.value : 0;
         ctx.playCostDelta = (ctx.playCostDelta ?? 0) + Math.max(0, delta);
         return false;
@@ -253,6 +272,18 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
         }
         return false;
       }
+      // Level-ceiling modifiers are transient context for the following play action and do
+      // not target a permanent. Handle them before the generic target requirement below;
+      // otherwise valid effects such as PawnChessmon's conditional level increase silently
+      // return without recording the delta.
+      if (action.costType === "level") {
+        let delta = action.amount;
+        if (setMode) delta = scale !== undefined ? scale : action.amount;
+        else if (scale !== undefined) delta = action.amount * scale;
+        if (!setMode && action.mode === "reduce") delta = -Math.abs(delta);
+        ctx.playLevelCeilingDelta = (ctx.playLevelCeilingDelta ?? 0) + delta;
+        return false;
+      }
       const want = action.target;
       if (!want) {
         if (
@@ -274,9 +305,15 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
             consumeOnActivate: true,
             expiresOnTurnEndOf: ownerSeat,
             description: action.raw ?? `Reduce the next digivolution cost by ${Math.abs(action.amount)}`,
-            activate: async (runtimeCtx, target, _into, evolvingInstanceId) => {
+            activate: async (runtimeCtx, target, _into, evolvingInstanceId, materials) => {
               if (target.controllerSeat !== ownerSeat || target.inBreeding) return false;
-              const colors = new Set(runtimeCtx.game.definitionOf(target.topCard).colors);
+              const colors = new Set(
+                (materials ?? [target]).flatMap(
+                  (material) =>
+                    runtimeCtx.game.effectiveColors?.(material) ??
+                    runtimeCtx.game.definitionOf(material.topCard).colors,
+                ),
+              );
               const candidates = runtimeCtx.game.player(ownerSeat).hand.filter((card) => {
                 if (card.instanceId === evolvingInstanceId) return false;
                 const definition = runtimeCtx.game.definitionOf(card);
@@ -428,10 +465,6 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
           };
         }
         ctx.fx.changeEvoCost(predicate, delta, modifierOpts);
-        return false;
-      }
-      if (action.costType === "level") {
-        ctx.playLevelCeilingDelta = (ctx.playLevelCeilingDelta ?? 0) + delta;
         return false;
       }
       // An interactive self-reduction resolved in the card's BeforePayCost window must

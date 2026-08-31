@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "./P-114.js";
 
 describe("P-114 Diaboromon", () => {
@@ -35,5 +37,16 @@ describe("P-114 Diaboromon", () => {
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT22-071")).toBe(true);
     assertNoLoudGap(s);
+  });
+
+  it("plays a Diaboromon Token from the When Attacking effect", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "P-114", as: "diaboromon" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("diaboromon"));
+    await settle();
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId.startsWith("TOKEN-Diaboromon"))).toBe(true);
   });
 });

@@ -3,11 +3,24 @@ import { describe, expect, it } from "vitest";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { compiled } from "./BT8-029.js";
 import "./BT8-029.js";
 import "./BT8-022.js";
 import "../ST5/ST5-13.js";
 
 describe("BT8-029 Frozomon", () => {
+  it("keeps the inherited trash watcher once-per-turn instead of permanently one-shot", () => {
+    const inherited = compiled.effects.find((effect) => effect.isInherited)!;
+    const watcher = inherited.actions[0] as any;
+    expect(inherited.frequency).toBe("OncePerTurn");
+    expect(watcher).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenDigivolutionTrashed",
+      sourceFilter: { controller: "opponent", kind: ["Digimon"] },
+    });
+    expect(watcher).not.toHaveProperty("once");
+  });
+
   it("has Blocker and can't attack while the opponent has a Digimon with sources", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT8-029", as: "frozomon" }] },

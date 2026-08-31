@@ -16,23 +16,34 @@ export const compiled: CompiledCard = {
           sourceFilter: {
             isSelfRef: true,
           },
-          actions: [],
-          cost: {
-            kind: "trash",
-            target: {
-              filter: {
-                controller: "mine",
-                nameOrTrait: [
-                  {
-                    tokens: ["Cyborg", "Ver.2"],
-                    match: "trait",
+          actions: [
+            {
+              kind: "Replacement",
+              event: "wouldBePlayed",
+              mode: "reduceCost",
+              amount: 2,
+              raw: "reduce the play cost by 2",
+              cost: {
+                kind: "trash",
+                target: {
+                  filter: {
+                    zone: "hand",
+                    controller: "mine",
+                    nameOrTrait: [
+                      {
+                        tokens: ["Cyborg", "Ver.2"],
+                        match: "trait",
+                      },
+                    ],
                   },
-                ],
+                  count: 1,
+                },
+                raw: "by trashing 1 [Cyborg] or [Ver.2] trait card from your hand",
               },
-              count: 1,
+              optional: true,
+              abortOnDecline: true,
             },
-            raw: "by trashing 1 [Cyborg] or [Ver.2] trait card from your hand, reduce the play cost by 2",
-          },
+          ],
         },
       ],
     },
@@ -45,12 +56,14 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
+              digivolutionCards: "hasAny",
             },
             count: 1,
             upTo: false,
           },
           amount: 1,
-          position: "any",
+          choose: true,
+          abortOnDecline: true,
           cost: {
             kind: "place",
             target: {
@@ -101,12 +114,14 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
+              digivolutionCards: "hasAny",
             },
             count: 1,
             upTo: false,
           },
           amount: 1,
-          position: "any",
+          choose: true,
+          abortOnDecline: true,
           cost: {
             kind: "place",
             target: {

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT10-006.js";
+import { compiled } from "./BT10-006.js";
 
 // A3 for BT10-006 (Tokomon) — inherited rider:
 //   "[Opponent's Turn] When an effect trashes this digivolution card, Draw 1."
@@ -17,6 +17,13 @@ import "./BT10-006.js";
 //     on the controller's OWN turn too).
 
 describe("BT10-006 [Opponent's Turn] this digivolution card trashed by effect → Draw 1", () => {
+  it("requires an effect-driven stack discard rather than a rule-driven discard", () => {
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "OpponentsTurn",
+      actions: [{ kind: "SubTrigger", event: "onDigivolutionCardsDiscardedBatch", requireByEffect: true }],
+    });
+  });
+
   it("draws 1 when its host's BT10-006 is trashed during the OPPONENT's turn (positive)", async () => {
     const s = setupEngine({
       0: {

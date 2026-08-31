@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-043.js";
 import "./index.js";
 
@@ -13,7 +12,7 @@ describe("BT17-043 Terriermon", () => {
       sourceFilter: {
         controller: "mine",
         byEffect: true,
-        orFilters: [
+        or: [
           { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Terriermon", "Lopmon"], match: "name" }] },
           { kind: ["Tamer"], colors: ["Green"] },
         ],
@@ -33,32 +32,53 @@ describe("BT17-043 Terriermon", () => {
         0: {
           battleArea: [
             { card: "BT17-043", as: "terriermon" },
-            { card: "BT17-044", as: "playedLopmon" },
+            { card: "EX4-025", as: "turuiemon" },
           ],
+          trash: [{ card: "BT17-043", as: "playedTerriermon" }],
+          hand: [{ card: "BT17-049", as: "antylamon" }],
         },
         1: { battleArea: [{ card: "BT1-020", as: "target" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 3;
     await s.ready();
-    const payload = { subjectPermanentId: s.perm("playedLopmon").permanentId };
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("turuiemon").permanentId,
+        instanceId: s.inst("antylamon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").isSuspended);
 
-    await advance(s.engine).fireSubTrigger("whenPlayed", payload);
-    expect(s.perm("target").isSuspended).toBe(false);
-
-    await advance(s.engine).fireSubTrigger("whenPlayed", { ...payload, playedByEffect: true });
+    expect(
+      s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("playedTerriermon").instanceId),
+    ).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-043")).toBe(true);
     expect(s.perm("target").isSuspended).toBe(true);
   });
 
   it("grants inherited DP only while the host is suspended", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT17-046", dp: 6000, under: ["BT17-043"], as: "host" }] },
-    });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT17-046", dp: 6000, under: ["BT17-043"], as: "host" }] },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true },
+    );
     await s.ready();
     expect(s.perm("host").currentDP).toBe(6000);
 
-    s.perm("host").isSuspended = true;
-    await advance(s.engine).recompute();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").isSuspended);
     expect(s.perm("host").currentDP).toBe(7000);
   });
 });

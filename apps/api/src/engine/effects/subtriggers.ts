@@ -1,4 +1,4 @@
-import type { CardDefinition, Permanent, Seat } from "@aegis/shared";
+import { CardKind, type CardDefinition, type Permanent, type Seat } from "@aegis/shared";
 import type { EffectContext, RemovalCause, ReplacementEventName, SubTriggerEventName } from "./EffectContext.js";
 
 /**
@@ -32,6 +32,9 @@ export type SubTriggerRootZone = "trash" | "hand" | "security";
 export interface SubTriggerSubscription {
   id: number;
   event: SubTriggerEventName;
+  /** Stable action identity used to collapse duplicate installs without collapsing
+   * distinct clauses that intentionally share one once-per-turn budget. */
+  dedupeKey?: string;
   /** Printed placement class of the effect that installed this watcher. */
   isInheritedSource?: boolean;
   isLinkedSource?: boolean;
@@ -142,6 +145,14 @@ export interface SubTriggerSubscription {
   description: string;
 }
 
+/**
+ * Told that a watcher body is about to run, once every gate has passed. A watcher is a
+ * triggered effect and can stop the game to ask its controller something, so the caller uses
+ * this to announce it to the players the way the effect stack announces the effects it
+ * resolves. Called immediately before the body, never for a watcher that was skipped.
+ */
+export type SubTriggerAnnounce = (sub: SubTriggerSubscription, ctx: EffectContext | undefined) => void;
+
 /** The per-turn firing ledger `fire` consults/updates for `oncePerTurnKey`-gated watchers. */
 export interface SubTriggerTurnLedger {
   /** True when `key` has already fired a watcher this turn. */
@@ -219,6 +230,7 @@ export interface ReplacementSubscriptionReduceCost extends ReplacementSubscripti
     target: Permanent,
     into: CardDefinition,
     evolvingInstanceId?: string,
+    materials?: readonly Permanent[],
   ) => Promise<boolean | number>;
   /** Remove this replacement after its first successful activation. */
   consumeOnActivate?: boolean;
@@ -376,7 +388,10 @@ export class SubTriggerRegistry {
     }
     if (sub.oncePerTurnKey !== undefined) {
       const existing = this.subs.find(
-        (candidate) => candidate.event === sub.event && candidate.oncePerTurnKey === sub.oncePerTurnKey,
+        (candidate) =>
+          candidate.event === sub.event &&
+          candidate.oncePerTurnKey === sub.oncePerTurnKey &&
+          (candidate.dedupeKey ?? "") === (sub.dedupeKey ?? ""),
       );
       if (existing !== undefined) return existing.id;
     }
@@ -440,9 +455,10 @@ export class SubTriggerRegistry {
     windowToken?: unknown,
     turnLedger?: SubTriggerTurnLedger,
     skip?: (sub: SubTriggerSubscription) => boolean,
+    announce?: SubTriggerAnnounce,
   ): Promise<number> {
     const matching = this.subscriptionsFor(event, sourcePermanentId);
-    return this.fireSnapshot(matching, makeContext, windowToken, turnLedger, skip);
+    return this.fireSnapshot(matching, makeContext, windowToken, turnLedger, skip, announce);
   }
 
   /**
@@ -456,8 +472,24 @@ export class SubTriggerRegistry {
     windowToken?: unknown,
     turnLedger?: SubTriggerTurnLedger,
     skip?: (sub: SubTriggerSubscription) => boolean,
+    announce?: SubTriggerAnnounce,
+    oncePerTurnSnapshotKeys?: ReadonlySet<string>,
+    oncePerTurnSuccessfulKeys?: Set<string>,
   ): Promise<number> {
     let fired = 0;
+    const successfulOncePerTurnKeys = oncePerTurnSuccessfulKeys ?? new Set<string>();
+    // A snapshot represents one event. Capture shared [Once Per Turn] budget once at entry so
+    // distinct action-path clauses with the same key can all resolve in this event; the ledger
+    // remains authoritative for every later event. GameEngine passes its ordered-window capture
+    // explicitly because those bodies resolve through separate fireSnapshot calls.
+    const snapshotKeys =
+      oncePerTurnSnapshotKeys ??
+      new Set(
+        matching
+          .filter((sub) => sub.oncePerTurnKey !== undefined && !turnLedger?.hasFired(sub.oncePerTurnKey))
+          .map((sub) => sub.oncePerTurnKey!)
+          .filter((key, index, keys) => keys.indexOf(key) === index),
+      );
     for (const sub of matching) {
       // Already resolved by the caller: the timing window that shares this event resolved it
       // through the same ledgers (GameEngine.withPendingSubTriggers). Filtered here rather than
@@ -474,7 +506,12 @@ export class SubTriggerRegistry {
       }
       // oncePerTurnKey: skip when this (stable, recompute-surviving) key already fired a
       // watcher this turn.
-      if (sub.oncePerTurnKey !== undefined && turnLedger?.hasFired(sub.oncePerTurnKey)) continue;
+      if (
+        sub.oncePerTurnKey !== undefined &&
+        turnLedger?.hasFired(sub.oncePerTurnKey) &&
+        !snapshotKeys.has(sub.oncePerTurnKey)
+      )
+        continue;
       // A watcher whose anchor source has left the field yields no context — skip it
       // (its subscription should already have been dropped on leave; this is a guard).
       const ctx = makeContext(sub);
@@ -488,17 +525,40 @@ export class SubTriggerRegistry {
         // by that combination only when it is the intentional, contextless BT1-021 shape.
         if (sub.sourcePermanentId === undefined && sub.sourceInstanceId === undefined && sub.matches === undefined) {
           this.markFired(sub, windowToken, turnLedger);
+          announce?.(sub, undefined);
           await sub.run(undefined as unknown as EffectContext);
+          if (sub.oncePerTurnKey !== undefined) successfulOncePerTurnKeys.add(sub.oncePerTurnKey);
           fired += 1;
         }
         continue;
       }
-      if (sub.matches !== undefined && !sub.matches(ctx)) continue;
+      if (sub.matches !== undefined && !sub.matches(ctx)) {
+        continue;
+      }
       this.markFired(sub, windowToken, turnLedger);
-      await sub.run(ctx);
+      announce?.(sub, ctx);
+      // Every triggered watcher is an effect resolution. Keep the resolving seat/kinds on
+      // the same stack used by ordinary timing effects so nested verbs retain effect
+      // provenance (for example, a Tamer's PlaceUnder must publish byEffectSeat). A linked
+      // card's watcher remains an effect of its host Digimon even when the linked card itself
+      // is an Option (BT25-100/101, KB Q6471/Q6476).
+      const sourceKinds = sub.isLinkedSource === true ? [CardKind.Digimon] : [...(ctx.source?.definition?.kinds ?? [])];
+      ctx.effectSourceKinds = sourceKinds;
+      ctx.fx?.enterEffectResolution?.(ctx.source.ownerSeat, sourceKinds);
+      try {
+        await sub.run(ctx);
+      } finally {
+        ctx.fx?.leaveEffectResolution?.();
+      }
       if (sub.oncePerTurnKey !== undefined && ctx.oncePerTurnActivationDeclined === true) {
-        turnLedger?.unmarkFired?.(sub.oncePerTurnKey);
+        // A shared same-event snapshot may contain several action-path clauses. A declined
+        // sibling rolls back only its provisional mark; once any sibling has succeeded, the
+        // shared [Once Per Turn] budget must remain consumed even with a Set-backed ledger that
+        // cannot represent multiple provisional marks.
+        if (!successfulOncePerTurnKeys.has(sub.oncePerTurnKey)) turnLedger?.unmarkFired?.(sub.oncePerTurnKey);
         ctx.oncePerTurnActivationDeclined = false;
+      } else if (sub.oncePerTurnKey !== undefined) {
+        successfulOncePerTurnKeys.add(sub.oncePerTurnKey);
       }
       fired += 1;
     }
@@ -639,6 +699,7 @@ export class SubTriggerRegistry {
     evolvingInstanceId: string | undefined,
     buildContext: (sourcePermanentId: string, sourceInstanceId?: string) => EffectContext | undefined,
     turnBudget?: SubTriggerTurnLedger,
+    materials?: readonly Permanent[],
   ): Promise<number> {
     let reduction = 0;
     const consumed = new Set<number>();
@@ -659,7 +720,7 @@ export class SubTriggerRegistry {
       if (ctx === undefined) continue;
       if (replacement.activationTiming !== undefined) ctx.activeTiming = replacement.activationTiming;
       if (replacement.activationEffectText !== undefined) ctx.activeEffectText = replacement.activationEffectText;
-      const activated = await replacement.activate(ctx, target, into, evolvingInstanceId);
+      const activated = await replacement.activate(ctx, target, into, evolvingInstanceId, materials);
       if (!activated) continue;
       reduction += typeof activated === "number" ? activated : (replacement.amount ?? 0);
       if (replacement.oncePerTurnKey !== undefined) turnBudget?.markFired(replacement.oncePerTurnKey);

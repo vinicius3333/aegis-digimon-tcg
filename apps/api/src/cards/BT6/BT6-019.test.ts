@@ -4,6 +4,28 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT6-019.js";
 
 describe("BT6-019 Gabumon", () => {
+  it("lets each Gabumon copy gain memory once when the same Matt Ishida is played", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT6-019", as: "firstGabumon" },
+            { card: "BT6-019", as: "secondGabumon" },
+          ],
+          hand: [{ card: "BT1-086", as: "matt" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("matt").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.memory === 9);
+  });
+
   it("gains memory only once per turn when matching Matt Ishida Tamers are played", async () => {
     const s = setupEngine(
       {
@@ -35,7 +57,12 @@ describe("BT6-019 Gabumon", () => {
   it("unsuspends Gabumon - Bond of Friendship after attacking", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT6-030", under: ["BT6-019"], as: "bond" }, "BT1-085"] },
+        0: {
+          battleArea: [
+            { card: "BT6-030", under: ["BT6-019", "BT6-023", "BT6-026", "BT6-028"], as: "bond" },
+            "BT1-085",
+          ],
+        },
         1: { security: ["BT1-010", "BT1-010"] },
       },
       { autoAcceptOptional: true, autoOrderTriggers: true, autoSelectCards: true },

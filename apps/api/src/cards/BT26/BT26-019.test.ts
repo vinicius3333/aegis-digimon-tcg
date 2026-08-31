@@ -22,7 +22,14 @@ describe("BT26-019 Mailmon", () => {
           {
             kind: "SubTrigger",
             event: "whenLinked",
-            actions: [{ kind: "Restrict", restriction: "suspend", duration: "untilOpponentTurnEnd" }],
+            actions: [
+              {
+                kind: "Restrict",
+                restriction: "suspend",
+                blocksCombatSuspend: true,
+                duration: "untilOpponentTurnEnd",
+              },
+            ],
           },
         ],
       },
@@ -211,6 +218,7 @@ describe("BT26-019 Mailmon", () => {
       new Set([s.perm("opponentDigimon").permanentId, s.perm("opponentTamer").permanentId]),
     );
     expect(observe(s.engine).isRestricted(s.perm("opponentTamer"), "suspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("opponentTamer"), "beSuspended")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("opponentDigimon"), "suspend")).toBe(false);
     expect(observe(s.engine).isRestricted(s.perm("ownTamer"), "suspend")).toBe(false);
 

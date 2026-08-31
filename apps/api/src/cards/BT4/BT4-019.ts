@@ -11,27 +11,6 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "Trash",
-          target: {
-            filter: {
-              controllerDefault: "mine",
-              kind: ["Digimon"],
-            },
-            count: 2,
-          },
-          cost: {
-            kind: "trash",
-            target: {
-              filter: {
-                isSelfRef: true,
-                zone: "digivolutionCards",
-              },
-              count: 2,
-            },
-            raw: "＜Digi-Burst 2＞",
-          },
-        },
-        {
           kind: "Delete",
           target: {
             filter: {
@@ -43,6 +22,17 @@ const compiled: CompiledCard = {
               },
             },
             count: 1,
+          },
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                isSelfRef: true,
+                zone: "digivolutionCards",
+              },
+              count: 2,
+            },
+            raw: "＜Digi-Burst 2＞",
           },
         },
       ],

@@ -8,12 +8,13 @@ describe("BT6-109 Fly Bullet", () => {
   it("deletes an opposing level 6 or lower Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: ["BT6-068"], hand: [{ card: "BT6-109", as: "option" }] },
+        0: { battleArea: ["BT6-017"], hand: [{ card: "BT6-109", as: "option" }] },
         1: { battleArea: ["BT6-070"] },
       },
       { autoSelectCards: true },
     );
     s.state.memory = 9;
+    await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,

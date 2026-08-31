@@ -121,7 +121,11 @@ const module: EffectModule = {
               ctx.fx.placeUnder(targetPermId, [chosenId], { belowTop: false });
             }
 
-            let remaining = revealed.filter((c) => c.instanceId !== chosenId).map((c) => c.instanceId);
+            // If no Mother D-Reaper is available, the selected Searcher cannot be placed;
+            // it remains part of the revealed cards and must also return to deck bottom.
+            let remaining = revealed
+              .filter((c) => targetPermId === undefined || c.instanceId !== chosenId)
+              .map((c) => c.instanceId);
             if (remaining.length > 1 && ctx.ask.orderCards !== undefined) {
               remaining = await ctx.ask.orderCards(ctx, {
                 candidates: remaining,

@@ -1,4 +1,4 @@
-import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectDuration, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -175,13 +175,13 @@ describe("EX11-020 Hanimon", () => {
     assertNoLoudGap(s);
   });
 
-  it("cannot end the attack when Barrier prevents payment of the deletion cost (Q5803)", async () => {
+  it("cannot end the attack when another effect prevents payment of the deletion cost (Q5803)", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "BT1-032", as: "host", under: [cardId] },
-            { card: "BT1-032", as: "protectedFodder", under: ["EX11-019"] },
+            { card: "BT1-032", as: "protectedFodder" },
           ],
           security: ["BT1-010", "BT1-011"],
         },
@@ -192,6 +192,7 @@ describe("EX11-020 Hanimon", () => {
     s.state.turnSeat = 1;
     await s.ready();
     const protectedId = s.perm("protectedFodder").permanentId;
+    advance(s.engine).ledgers.continuous.addRestriction(protectedId, "beDeleted", EffectDuration.Permanent);
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -199,14 +200,10 @@ describe("EX11-020 Hanimon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some(({ kind }) => kind === "barrierPrompt"));
-    expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: protectedId, accept: true })).toEqual({
-      ok: true,
-    });
-    await settle(() => s.state.players[0]!.security.length === 0);
+    await settle(() => s.state.players[0]!.security.length === 1);
 
     expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === protectedId)).toBe(true);
-    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.security).toHaveLength(1);
     assertNoLoudGap(s);
   });
 

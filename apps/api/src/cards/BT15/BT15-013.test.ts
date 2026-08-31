@@ -71,6 +71,27 @@ describe("BT15-013", () => {
     );
   });
 
+  it("gains memory from an actual player attack removing the opponent's security", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT15-013"] }] },
+      1: { security: ["BT1-001", "BT1-001"] },
+    });
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+
+    expect(s.state.memory).toBe(1);
+  });
+
   it("gains memory once only for opposing security removed during its owner's turn", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT15-013"] }] },

@@ -140,7 +140,7 @@ describe("EX12-063 Karakurumon", () => {
         0: {
           battleArea: [{ card: CARD_ID, as: "source" }],
           trash: [
-            { card: "EX12-062", as: "valid" },
+            { card: "BT26-012", as: "valid" },
             { card: "BT1-010", as: "invalid" },
           ],
         },
@@ -150,9 +150,9 @@ describe("EX12-063 Karakurumon", () => {
 
     const sourceId = s.perm("source").permanentId;
     expect(await advance(s.engine).verb.deletePermanent([sourceId], "byEffect")).toBe(1);
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-062"));
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT26-012"));
 
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-062")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT26-012")).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-010")).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX12-062")).toBe(false);
   });
@@ -162,7 +162,7 @@ describe("EX12-063 Karakurumon", () => {
       {
         0: {
           battleArea: [{ card: "EX12-064", as: "host", under: [CARD_ID] }],
-          trash: [{ card: "EX12-062", as: "valid" }],
+          trash: [{ card: "BT26-012", as: "valid" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -171,11 +171,11 @@ describe("EX12-063 Karakurumon", () => {
     const hostId = s.perm("host").permanentId;
     expect(await advance(s.engine).verb.deletePermanent([hostId], "byEffect")).toBe(1);
     await settle(
-      () => s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "EX12-062").length === 1,
+      () => s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT26-012").length === 1,
     );
 
-    expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX12-062")).toBe(false);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-062")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT26-012")).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT26-012")).toBe(true);
   });
 
   it("assembles for 5 memory with a legal level 4 Puppet/TB material", async () => {

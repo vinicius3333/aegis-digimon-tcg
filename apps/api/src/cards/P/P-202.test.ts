@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./P-202.js";
 
 describe("P-202 Tyrannomon", () => {
@@ -35,5 +39,36 @@ describe("P-202 Tyrannomon", () => {
     expect(runtimeCompiledCard("P-202")!.effects.find((effect) => effect.isInherited)).toMatchObject({
       keywords: [{ keyword: "Piercing", raw: "＜Piercing＞" }],
     });
+  });
+
+  it("exposes Training on the live Tyrannomon", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "P-202", as: "tyranno" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("tyranno"), "Training")).toBe(true);
+  });
+
+  it("reduces a real suspended Tyrannomon digivolution by one memory", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT1-016", as: "evolver" }],
+        battleArea: [
+          { card: "P-202", as: "tyranno" },
+          { card: "BT1-009", suspended: true, as: "base" },
+        ],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("tyranno"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolver").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.memory).toBe(9);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("evolver").instanceId);
   });
 });

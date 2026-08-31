@@ -26,12 +26,12 @@ const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Sistermon Blanc"],
-                    match: "name",
+                    match: "nameExact",
                   },
                 ],
               },
               count: 1,
-              from: ["hand", "trash", "digivolutionCards"],
+              from: ["hand", "trash"],
             },
             raw: "by placing 1 [Sistermon Blanc] from your hand or trash at the bottom of this Digimon's digivolution cards",
             destination: "digivolutionStack",

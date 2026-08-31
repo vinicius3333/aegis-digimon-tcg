@@ -548,8 +548,12 @@
   flex-direction: column;
   gap: var(--ds-space-2);
   width: min(19rem, 42vw);
-  max-height: min(28rem, 82%);
+  /* Bounded by the stage alone so the whole clause shows; if a decision's text
+     still outgrows the screen, the rail scrolls rather than losing its
+     actions — they are the decision's only exit. */
+  max-height: 92%;
   padding: var(--ds-space-4);
+  overflow-y: auto;
   color: var(--ds-fg);
   border: 2px solid var(--ds-accent);
   border-radius: var(--ds-radius-lg);
@@ -599,13 +603,9 @@
   font-weight: 700;
   line-height: 1.35;
 }
-/* Only the printed clause scrolls: the prompt and its actions must never be
-   pushed out of the rail, because they are the decision's only exit. */
 .board-prompt__clause {
   margin: 0;
-  max-height: 7rem;
   padding: var(--ds-space-2) var(--ds-space-3);
-  overflow-y: auto;
   color: var(--ds-fg-secondary);
   border-radius: var(--ds-radius-md);
   background: var(--ds-surface-muted);
@@ -651,7 +651,19 @@
   font-weight: 600;
   box-shadow: var(--ds-shadow-lg);
   translate: -50% 0;
-  animation: battle-board-prompt-in var(--t-board-prompt-in, 200ms) ease-out both;
+  /* Its own keyframes, not battle-board-prompt-in: that one fills to `translate:
+     0 -50%`, which would cancel the horizontal centring above for good. */
+  animation: aegis-opponent-pill-in var(--t-board-prompt-in, 200ms) ease-out both;
+}
+@keyframes aegis-opponent-pill-in {
+  from {
+    opacity: 0;
+    translate: -50% -8px;
+  }
+  to {
+    opacity: 1;
+    translate: -50% 0;
+  }
 }
 .board-opponent-pill__dots {
   display: flex;
@@ -1401,6 +1413,16 @@
 /* The field dims behind the dock, so the only lit things are the raising slot,
    the hand that digivolves into it and the turn control on the memory band.
    It sits under the band (z 5) and far under every notice, panel and dialog. */
+/* Pointer input off, for the play surfaces only: the header, the log and surrender are
+   outside it. `cursor: progress` is the whole of its appearance — the security scene
+   itself is what says why the board stopped answering. */
+.game-input-lock {
+  position: absolute;
+  z-index: 9;
+  inset: 0;
+  cursor: progress;
+}
+
 .game-breeding-mode {
   position: absolute;
   inset: 0;
@@ -2905,8 +2927,6 @@ button.side-panel__name:focus-visible {
 }
 
 .match-notice__text {
-  overflow-y: auto;
-  max-height: 7rem;
   margin: 0;
   font-size: 0.72rem;
   line-height: 1.45;
@@ -3035,7 +3055,13 @@ button.side-panel__name:focus-visible {
      1283ms   outcome beat, per resolution                (350ms)
      1633ms   scene fades out                             (160ms)
    Everything from 1283ms on is a separate, skippable queue step: a click through
-   the scene takes the board back at the outcome rather than at the fade. */
+   the scene takes the board back at the outcome rather than at the fade.
+
+   A check the server has not closed yet holds at `data-resolution="pending"`: the
+   entrance plays, the cards stay up, and nothing that belongs to the outcome is
+   applied. When the close finally lands, the scene sets `--t-clash-outcome-at` to
+   zero, so the outcome beat and the fade after it run from that moment rather than
+   from a clock that started at the reveal. */
 .battle-clash {
   position: absolute;
   z-index: calc(var(--ds-z-dialog) - 5);
@@ -3050,7 +3076,17 @@ button.side-panel__name:focus-visible {
      to win against it. The dim travels with the scene's own fade, and the layer
      stays pointer-transparent, so nothing under it stops being clickable. */
   background: radial-gradient(ellipse at center, rgb(4 8 20 / 74%) 0%, rgb(4 8 20 / 58%) 55%, rgb(4 8 20 / 28%) 100%);
-  animation: battle-clash-scene var(--t-clash-total, 1793ms) linear both;
+  animation: battle-clash-in var(--t-clash-enter, 150ms) linear both;
+}
+
+/* The exit is its own animation rather than the tail of one long scene keyframe, so a
+   scene that held through a still-resolving check leaves on the outcome it was given
+   instead of on the clock it was mounted at. */
+.battle-clash:not([data-resolution="pending"]) {
+  animation:
+    battle-clash-in var(--t-clash-enter, 150ms) linear both,
+    battle-clash-out var(--t-clash-exit, 160ms) linear
+      calc(var(--t-clash-outcome-at, 1283ms) + var(--t-clash-outcome, 350ms)) both;
 }
 
 .battle-clash__badge {
@@ -3205,19 +3241,20 @@ button.side-panel__name:focus-visible {
   box-shadow: 0 4px 18px rgb(4 8 20 / 70%);
 }
 
-/* Percentages of the 1793ms scene: up at 150ms with the attacker (8%), and starting to
-   go at 1633ms, where the outcome beat ends and `clashExit` begins (91%). */
-@keyframes battle-clash-scene {
-  0% {
+@keyframes battle-clash-in {
+  from {
     opacity: 0;
   }
-  8% {
+  to {
     opacity: 1;
   }
-  91% {
+}
+
+@keyframes battle-clash-out {
+  from {
     opacity: 1;
   }
-  100% {
+  to {
     opacity: 0;
   }
 }
@@ -3567,7 +3604,7 @@ button.side-panel__name:focus-visible {
    only needs these touch surfaces — sheets, zoom, confirmations — to exist. */
 @media (width < 600px), (height < 520px) and (orientation: landscape) {
   /* The board is the whole screen here, so the rail takes only what the prompt
-     and its actions need; the printed clause keeps its own short scroll. */
+     and its actions need; a clause taller than the rail scrolls with it. */
   .board-prompt {
     width: min(15rem, 46vw);
     max-height: 92%;
@@ -3576,9 +3613,6 @@ button.side-panel__name:focus-visible {
   }
   .board-prompt__text {
     font-size: var(--ds-text-sm);
-  }
-  .board-prompt__clause {
-    max-height: 4.5rem;
   }
   .board-opponent-pill {
     top: 3.5rem;
@@ -4487,17 +4521,11 @@ button.side-panel__name:focus-visible {
     align-content: start;
   }
 
-  .match-notice-stack,
-  .side-panel-stack {
-    max-height: 7rem;
-    overflow: hidden;
-  }
-  /* A card panel is one thumbnail tall plus its heading, so its band has to be
-     deeper than a notice's band of text. 9rem is the most the two bands can each
-     take before they meet in the middle of a tall phone. */
-  .side-panel-stack {
-    max-height: 9rem;
-  }
+  /* The stacks and their text are not capped on a phone: every cap tried here
+     — 7rem, then a dvh split — ended up decapitating a notice's clause or a
+     revealed card's art while screen space sat empty next to it. The whole
+     notice and the whole card matter more than the board they briefly cover,
+     and each stack grows from its own screen edge toward the middle. */
   .side-panel-stack[data-side="opp"] {
     top: calc(17rem + env(safe-area-inset-top, 0px));
   }
@@ -4531,7 +4559,9 @@ button.side-panel__name:focus-visible {
     left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
     z-index: calc(var(--ds-z-dialog) - 3);
     width: auto;
-    max-height: 38dvh;
+    /* All the height between the sheet's resting place and the top of the
+       screen: only a clause that literally outgrows the viewport scrolls. */
+    max-height: calc(100dvh - var(--game-hand-h) - 11.5rem - env(safe-area-inset-bottom, 0px));
     overflow-y: auto;
     translate: none;
     animation-name: battle-board-sheet-in;
@@ -5217,6 +5247,51 @@ button.side-panel__name:focus-visible {
    the reference client feedback port — pending fate, prediction, spotlight, impact, result
    ========================================================================== */
 
+/* --- Restriction (debuff) chips ------------------------------------------ */
+
+/* The blanket "can't ..." locks an effect has imposed, worn along the card's
+   bottom edge for as long as the restriction holds — the standing counterpart to
+   the one-off freeze jolt. Danger-toned so they never read as a granted keyword,
+   which wears the light chips along the top edge. */
+.game-restriction-badges {
+  position: absolute;
+  bottom: -0.5rem;
+  left: 50%;
+  z-index: 4;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.125rem;
+  justify-content: center;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.game-restriction-badge {
+  display: inline-flex;
+  gap: 0.15rem;
+  align-items: center;
+  padding: 0.06rem 0.25rem;
+  font-family: var(--ds-font-sans);
+  font-size: 0.5rem;
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--ds-on-danger);
+  background: var(--ds-danger);
+  border-radius: 0.3rem;
+  box-shadow:
+    0 0 0 1px rgb(6 10 18 / 55%),
+    0 1px 4px rgb(0 0 0 / 40%);
+}
+
+.game-restriction-badge i {
+  font-style: normal;
+  font-size: 0.6rem;
+  line-height: 1;
+}
+
 /* --- Pending-fate badge -------------------------------------------------- */
 
 /* The reference client stacks its fate pills above the card's top edge in a
@@ -5373,6 +5448,19 @@ button.side-panel__name:focus-visible {
   100% {
     translate: 0 0;
   }
+}
+
+/* --- Field battle ghost --------------------------------------------------- */
+
+/* A battle loser's stand-in: the board has already dropped the permanent, so its
+   card is held where it stood while the arrow, the lunge and the claw play out.
+   `translate` animations (lunge, shake) compose with the left/top placement. */
+.game-field-clash-ghost {
+  position: absolute;
+  z-index: 61;
+  pointer-events: none;
+  border-radius: 9px;
+  overflow: hidden;
 }
 
 /* --- Combat claw --------------------------------------------------------- */
@@ -6374,6 +6462,26 @@ button.side-panel__name:focus-visible {
   color: var(--ds-fg-disabled);
   border-style: dashed;
 }
+/* The imposed "can't ..." locks, kept visibly apart from the keyword pills above:
+   those say what the position gained, these say what it lost. */
+.opponent-permanent-inspector__restrictions,
+.stack-viewer-state__restrictions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.opponent-permanent-inspector__restrictions li,
+.stack-viewer-state__restrictions li {
+  padding: 1px 7px;
+  color: var(--ds-on-danger);
+  font-size: 10.5px;
+  font-weight: 700;
+  border-radius: 999px;
+  background: var(--ds-danger);
+}
 .opponent-permanent-inspector__fate,
 .stack-viewer-state__fate {
   display: flex;
@@ -6483,6 +6591,11 @@ button.side-panel__name:focus-visible {
   opacity: 0;
   animation: battle-clash-shatter-in var(--t-clash-outcome, 350ms) steps(1, end) var(--t-clash-outcome-at, 1283ms)
     forwards;
+  /* The shards break on the outcome beat's clock rather than the longer one a field
+     deletion uses: the scene starts fading when the beat ends, so anything still in
+     flight would simply be cut off. The stagger that starts the last shard is already
+     taken out of this number. */
+  --t-card-shatter: var(--t-clash-shatter, 260ms);
 }
 
 @keyframes battle-clash-shatter-in {
@@ -6501,6 +6614,16 @@ button.side-panel__name:focus-visible {
   animation:
     battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
     battle-clash-impact var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both,
+    battle-clash-spent var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+}
+
+/* A card the check simply trashes breaks apart the same way, so a security card
+   leaving play always reads as a deletion. It takes no impact, and it breaks instead
+   of falling: the shatter replaces the `battle-clash-fall` the resolution otherwise
+   carries, which is why the chain is restated here. */
+.battle-clash[data-resolution="trashed"] .battle-clash__card[data-spent="true"] .battle-clash__art {
+  animation:
+    battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
     battle-clash-spent var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
 }
 
@@ -6593,6 +6716,7 @@ button.side-panel__name:focus-visible {
   }
 
   .battle-clash[data-resolution="battle"] .battle-clash__card[data-spent="true"] .battle-clash__art,
+  .battle-clash[data-resolution="trashed"] .battle-clash__card[data-spent="true"] .battle-clash__art,
   .battle-clash__card[data-fate="beaten"],
   .battle-clash__card[data-fate="beaten"] .battle-clash__frame,
   .battle-clash__card[data-fate="stands"] {

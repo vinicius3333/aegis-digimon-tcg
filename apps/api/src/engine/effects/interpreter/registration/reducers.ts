@@ -5,8 +5,8 @@ import { evaluateCondition } from "../conditions.js";
 import { payCost } from "../costs.js";
 import { runAction } from "../dispatch.js";
 import { scaleFactor } from "../scaling.js";
-import { candidateLooseInstances, zoneList } from "../targeting/loose.js";
-import { resolvePermanentTargets } from "../targeting/permanents.js";
+import { candidateLooseInstances } from "../targeting/loose.js";
+import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
 import { definitionMatches } from "../matching/definition.js";
 import type { Action, CardEffect, Condition, Cost, Permanent, Scaling, ZoneRef } from "@aegis/shared";
@@ -27,8 +27,12 @@ export interface WouldBePlayedSelfReducer {
   /** Cost reduction earned for each card committed by a deferred self-placement cost. */
   amountPerPaid?: number;
   raw: string;
-  /** Hand-written payment hook for costs whose card-selection/movement shape is not representable as Cost. */
-  pay?: (ctx: EffectContext) => Promise<boolean>;
+  /**
+   * Hand-written payment hook for costs whose card-selection/movement shape is not representable as
+   * Cost. Returning a boolean grants `amount` once when true; returning a number reports how many
+   * cards were committed and grants `amountPerPaid` for each (BT15-102's "up to 3, -4 each").
+   */
+  pay?: (ctx: EffectContext) => Promise<boolean | number>;
   cost?: Cost;
   costActions?: Action[];
   condition?: Condition;
@@ -64,11 +68,18 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "AD1-017", // 4+ Lucemon/Witchelny-text cards in trash -> self play cost -5
   "AD1-018", // 4+ Knightmon/Lucemon-text cards in trash -> self play cost -5
   "BT13-045", // 8+ Chessmon-name Digimon cards in trash -> self play cost -8
+  "BT13-080", // delete one own level-2 Digimon in breeding -> self play cost -2
+  "BT13-083", // delete one own level-3 Digimon -> self play cost -4
+  "BT13-111", // no battle-area Digimon; -2 per 5 combined trash cards (KB Q2364; §15-1-7)
   "BT2-099", // self Option use cost -1 per yellow Tamer
   "BT2-112", // opponent has a 10000+ DP Digimon -> -6
   "EX8-074", // suspend 2 Digimon -> -4
   "EX10-048", // delete 1 own Myotismon-text Digimon -> -4 (Q5130/Q5131)
   "BT17-068", // return 1 [Apocalymon] from trash -> -3
+  "BT17-015", // Tai Kamiya in play -> self play cost -3
+  "BT17-027", // Matt Ishida in play -> self play cost -3
+  "BT17-060", // return up to 13 Unidentified/Diaboromon-text cards -> -1 each
+  "BT18-073", // delete 1 own [Composite] Digimon -> -4
   "EX9-011", // trash 1 [Cyborg]/[Ver.1] from hand -> -2
   "EX9-018", // trash 1 [Cyborg]/[Ver.x] from hand -> -2
   "EX9-030", // trash 1 [Cyborg]/[Ver.x] from hand -> -2
@@ -78,6 +89,7 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "P-171", // face-up [Deep Savers] in security -> -4
   "P-172", // face-up [Nature Spirits] in security -> -4
   "P-174", // face-up [Nightmare Soldiers] in security -> -4
+  "P-186", // 13000+ DP Digimon present -> self play cost -2 per five total trash cards
   "ST14-09", // reduce this card's play cost by 4 for every 10 cards in your trash
   "BT12-112", // place 1 [Shoutmon] as digivolution material -> -1 (KB Q2249-Q2256)
   "BT21-030", // place 1 [Shoutmon] under itself -> -1 and enable trash DigiXros materials
@@ -89,6 +101,8 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "ST9-04", // condition: you have a green Digimon in play -> -1
   "ST9-09", // condition: you have a blue Digimon in play -> -1
   "EX2-045", // condition: you have Guilmon/Terriermon/Renamon/Impmon in play -> -2
+  "EX5-012", // qualifying 3+ source Light Fang/Night Claw/Galaxy stack -> self play cost -2 (Q3549)
+  "EX5-072", // -1 per distinct Deva/Four Sovereigns name in trash -> self Option cost reduction
   "BT9-112", // scaling: -3 per opponent Digimon/Tamer in play (KB Q1928)
   "BT10-098", // condition: opponent has 2+ Digimon -> Option use cost -2
   "BT10-103", // condition: you have 2+ suspended green Digimon -> Option use cost -2
@@ -103,6 +117,9 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "BT20-043", // condition: you have an [ACCEL] Digimon -> self play cost -5
   "BT20-057", // condition: you have a Huckmon/Jesmon/Sistermon-named Digimon -> self play cost -4
   "BT8-097", // scaling: Option use cost -1 per opposing Digimon (floor applied by play path)
+  "BT25-018", // opponent has a 12000+ DP Digimon -> self play cost -5
+  "BT25-028", // opponent has a level 6+ Digimon -> self play cost -5
+  "BT25-020", // any Digimon has 13000+ DP -> self play cost -5
   "BT25-044", // 6 or fewer total security cards -> -5 (Q7004 effect-driven stacking)
   "BT25-059", // 2+ suspended Digimon -> -5 (Q6306/Q6350)
   "BT25-075", // fewer Digimon than your opponent -> -5 (Q6370-Q6372)
@@ -117,6 +134,7 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "BT21-026", // scaling: self play cost -2 per opposing Digimon
   "BT25-096", // trash the bottom face-down card under a Tamer -> Option use cost -2 (Q6456)
   "EX10-061", // place one of each face-up Dark Masters name from security -> -4 each (Q5783/Q5784)
+  "BT15-102", // place up to 3 distinct Dark Masters names from trash/battle-area top -> -4 each (Q2599/Q6241)
   "BT22-041", // condition: total cards in both security stacks <= 6 -> self play cost -6
   "BT11-096", // condition: you have a red Tamer -> Option use cost -1
   "BT11-099", // condition: you have a blue Tamer -> Option use cost -1
@@ -142,6 +160,7 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
  */
 /** A sourceFilter that gates which PLAYED card a wouldBePlayed reaction watches. */
 type SourceFilter = {
+  isSelfRef?: boolean;
   names?: unknown;
   nameOrTrait?: unknown;
   traits?: unknown;
@@ -195,6 +214,7 @@ function captureReducer(
     raw?: string;
     condition?: unknown;
     target?: unknown;
+    amountFromPaidCost?: boolean;
   },
   scaling: Scaling | undefined,
   fallbackRaw: string,
@@ -209,7 +229,12 @@ function captureReducer(
   if (a.cost !== undefined) {
     if (condition !== undefined) return;
     if (!STRUCTURED_REDUCER_COSTS.has(a.cost.kind)) return;
-    out.push({ cost: a.cost, amount, raw });
+    out.push({
+      cost: a.cost,
+      amount: a.amountFromPaidCost === true ? 0 : amount,
+      raw,
+      ...(a.amountFromPaidCost === true ? { amountPerPaid: amount } : {}),
+    });
     return;
   }
   if (costActionsRaw.length > 0) {
@@ -260,17 +285,25 @@ export function collectWouldBePlayedSelfReducers(cardId: string, effects: readon
             (item as { mode?: string }).mode === "reduceCost",
         ) as Record<string, unknown> | undefined;
         if (inner === undefined) continue;
+        const placementCost =
+          a.cost?.kind === "place"
+            ? a.cost
+            : (inner.cost as Cost | undefined)?.kind === "place"
+              ? (inner.cost as Cost)
+              : undefined;
         if (
-          a.cost?.kind === "place" &&
-          a.cost.target !== undefined &&
-          a.cost.underFilter?.isSelfRef === true &&
+          placementCost !== undefined &&
+          placementCost.target !== undefined &&
+          (a.sourceFilter?.isSelfRef === true ||
+            placementCost.host === "self" ||
+            placementCost.underFilter?.isSelfRef === true) &&
           typeof inner.amountPerPlaced === "number"
         ) {
           out.push({
             amount: 0,
             amountPerPaid: inner.amountPerPlaced,
-            cost: a.cost,
-            raw: a.cost.raw ?? a.raw ?? "Place cards under this card to reduce its play cost.",
+            cost: placementCost,
+            raw: placementCost.raw ?? a.raw ?? "Place cards under this card to reduce its play cost.",
           });
           continue;
         }
@@ -283,7 +316,13 @@ export function collectWouldBePlayedSelfReducers(cardId: string, effects: readon
           ...inner,
           condition: inner.condition ?? a.condition,
         };
-        captureReducer(costActions, innerWithGate as never, a.scaling, "Reduce the play cost.", out);
+        captureReducer(
+          costActions,
+          innerWithGate as never,
+          (inner.scaling as Scaling | undefined) ?? a.scaling,
+          "Reduce the play cost.",
+          out,
+        );
       }
     }
   }
@@ -312,8 +351,38 @@ const VERIFIED_DIGIVOLVE_SELF_REDUCER_CARDS = new Set([
   "BT22-038", // -1 for each face-down digivolution card on the Ver.1 base (KB Q4884/Q5196)
   "BT8-112", // return a white level 7 from trash to the deck bottom -> -4
   "BT3-111", // Paildramon/Dinobeemon would digivolve into this card -> -2 (KB card ruling)
+  "BT7-025", // Beowolfmon: this card's own digivolution cost -2 with a Tamer source
+  "BT7-051", // RhinoKabuterimon: this card's own digivolution cost -2 with a Tamer source
   "BT11-059", // -1 per green/black Tamer when one of your Digimon digivolves into this card (Q2092)
+  "EX5-012", // qualifying 3+ source Light Fang/Night Claw/Galaxy stack -> self evo cost -2 (Q3549)
+  "BT17-048", // suspend up to 5 Tamers to reduce this card's own evo cost per Tamer
 ]);
+
+/**
+ * A Static nested wouldDigivolve reducer whose source card is the imminent hand target. The
+ * reducer is consumed by the digivolve pay-time path below, so leaving the marker in the
+ * ordinary continuous ledger would arm the same reduction again after BT17-048 is already on
+ * the field. This mirrors the intrinsic Digisorption marker path.
+ */
+export function isIntrinsicWouldDigivolveSelfReducerMarker(cardId: string, effect: CardEffect): boolean {
+  if (effect.trigger !== "Static" || !VERIFIED_DIGIVOLVE_SELF_REDUCER_CARDS.has(cardId)) return false;
+  const actions = effect.actions ?? [];
+  return (
+    actions.length > 0 &&
+    actions.every(
+      (outer) =>
+        outer.kind === "Replacement" &&
+        outer.event === "wouldDigivolve" &&
+        (outer.actions ?? []).some(
+          (inner) =>
+            inner.kind === "Replacement" &&
+            inner.event === "wouldDigivolve" &&
+            inner.mode === "reduceCost" &&
+            typeof inner.amount === "number",
+        ),
+    )
+  );
+}
 
 export function collectWouldDigivolveSelfReducers(cardId: string, effects: readonly CardEffect[]): void {
   if (!VERIFIED_DIGIVOLVE_SELF_REDUCER_CARDS.has(cardId)) return;
@@ -384,6 +453,10 @@ export function potentialWouldDigivolveSelfReduction(
   if (reducer.cost.target?.upTo !== true || typeof reducer.cost.target.count !== "number") {
     return reducer.amount * scale;
   }
+  if (reducer.cost.kind === "suspend") {
+    const candidates = candidatePermanents(ctx, reducer.cost.target).filter((permanent) => !permanent.isSuspended);
+    return reducer.amount * scale * Math.min(reducer.cost.target.count, candidates.length);
+  }
   const zones: ZoneRef[] = reducer.cost.target.filter.zone === "trash" ? ["trash"] : [];
   if (zones.length === 0) return 0;
   const candidates = candidateLooseInstances(ctx, reducer.cost.target, zones);
@@ -430,7 +503,10 @@ async function runWouldBePlayedCostActions(ctx: EffectContext, actions: readonly
     if (raw.kind === "PlaceUnder" && (raw as { targetIsPermanent?: boolean }).targetIsPermanent === true) {
       const sourceIds = await resolvePermanentTargets(ctx, (raw as Extract<Action, { kind: "PlaceUnder" }>).target);
       if (sourceIds.length === 0) return false;
-      ctx.pendingSelfReducerRelocations = [...(ctx.pendingSelfReducerRelocations ?? []), ...sourceIds];
+      ctx.pendingSelfReducerRelocations = [
+        ...(ctx.pendingSelfReducerRelocations ?? []),
+        ...sourceIds.map((permanentId) => ({ permanentId })),
+      ];
       sawDeferredRelocation = true;
       continue;
     }
@@ -458,8 +534,15 @@ export async function applyWouldBePlayedSelfReducer(
 ): Promise<void> {
   if (reducer.pay !== undefined) {
     if (!(await ctx.ask.optional(ctx, reducer.raw))) return;
-    if (await reducer.pay(ctx)) {
-      ctx.playCostDelta = (ctx.playCostDelta ?? 0) + Math.max(0, reducer.amount);
+    const paid = await reducer.pay(ctx);
+    const reduction =
+      typeof paid === "number"
+        ? Math.max(0, paid) * Math.max(0, reducer.amountPerPaid ?? 0)
+        : paid
+          ? Math.max(0, reducer.amount)
+          : 0;
+    if (reduction > 0) {
+      ctx.playCostDelta = (ctx.playCostDelta ?? 0) + reduction;
     }
     return;
   }
@@ -469,37 +552,94 @@ export async function applyWouldBePlayedSelfReducer(
       reducer.amountPerPaid !== undefined &&
       reducer.cost.kind === "place" &&
       reducer.cost.target !== undefined &&
-      reducer.cost.underFilter?.isSelfRef === true
+      (reducer.cost.host === "self" || reducer.cost.underFilter?.isSelfRef === true)
     ) {
-      const zones = zoneList(reducer.cost.target.filter.zone ?? "security");
-      const candidates = candidateLooseInstances(ctx, reducer.cost.target, zones);
-      const byName = new Map<string, typeof candidates>();
-      for (const candidate of candidates) {
-        const name = (ctx.game.definitionOf(candidate as never).nameEn ?? candidate.cardId).toLowerCase();
-        byName.set(name, [...(byName.get(name) ?? []), candidate]);
+      const target = reducer.cost.target;
+      const declaredZones = [
+        ...(target.from ?? []),
+        ...((Array.isArray(target.filter.zone) ? target.filter.zone : [target.filter.zone]).filter(
+          (zone): zone is ZoneRef => zone !== undefined,
+        ) ?? []),
+      ];
+      const sourceZones = new Set(
+        declaredZones.flatMap((zone) => (zone === "trashOrBattleArea" ? ["trash", "battleArea"] : [zone])),
+      );
+      const candidateFilter = { ...target.filter, zone: undefined };
+      const candidates: { instanceId: string; cardId: string; permanentId?: string }[] = [];
+      if (sourceZones.has("trash")) {
+        candidates.push(
+          ...candidateLooseInstances(ctx, { ...target, filter: { ...candidateFilter, zone: "trash" } }, ["trash"]),
+        );
       }
-      if (byName.size === 0) return;
-      const chosen: string[] = [];
-      for (const group of byName.values()) {
-        const instanceId =
-          group.length === 1
-            ? group[0]!.instanceId
-            : (
-                await ctx.ask.selectCards(ctx, {
-                  candidates: group.map((candidate) => candidate.instanceId),
-                  min: 1,
-                  max: 1,
-                })
-              )[0];
-        if (instanceId === undefined) return;
-        chosen.push(instanceId);
+      if (sourceZones.has("battleArea")) {
+        for (const permanent of candidatePermanents(ctx, {
+          ...target,
+          filter: { ...candidateFilter, zone: "battleArea" },
+        })) {
+          if (permanent.topCard !== undefined) {
+            candidates.push({
+              instanceId: permanent.topCard.instanceId,
+              cardId: permanent.topCard.cardId,
+              permanentId: permanent.permanentId,
+            });
+          }
+        }
       }
-      ctx.pendingSelfReducerPlacements = [...(ctx.pendingSelfReducerPlacements ?? []), ...chosen];
-      ctx.playCostDelta = (ctx.playCostDelta ?? 0) + chosen.length * reducer.amountPerPaid;
+      const looseZones = [...sourceZones].filter((zone) => zone !== "trash" && zone !== "battleArea") as ZoneRef[];
+      if (looseZones.length > 0) {
+        candidates.push(...candidateLooseInstances(ctx, { ...target, filter: candidateFilter }, looseZones));
+      }
+      if (candidates.length === 0) return;
+
+      const maxPlacements = typeof target.count === "number" ? target.count : candidates.length;
+      const minimumPerPick = target.upTo === true ? 0 : 1;
+      const chosenInstanceIds = new Set<string>();
+      const chosenPermanentIds = new Set<string>();
+      const chosenNames = new Set<string>();
+      const chosenPlacements: string[] = [];
+      const chosenRelocations: { permanentId: string; shedOwnCards?: boolean }[] = [];
+      for (let pick = 0; pick < maxPlacements; pick += 1) {
+        const available = candidates.filter((candidate) => {
+          if (chosenInstanceIds.has(candidate.instanceId)) return false;
+          if (candidate.permanentId !== undefined && chosenPermanentIds.has(candidate.permanentId)) return false;
+          const name = (ctx.game.definitionOf(candidate as never).nameEn ?? candidate.cardId).toLowerCase();
+          return !chosenNames.has(name);
+        });
+        if (available.length === 0) break;
+        const [chosenId] = await ctx.ask.selectCards(ctx, {
+          candidates: available.map(({ instanceId }) => instanceId),
+          min: minimumPerPick,
+          max: 1,
+          visibleCards: available.map(({ instanceId, cardId }) => ({ instanceId, cardId })),
+        });
+        if (chosenId === undefined) break;
+        const selected = available.find(({ instanceId }) => instanceId === chosenId);
+        if (selected === undefined) return;
+        const name = (ctx.game.definitionOf(selected as never).nameEn ?? selected.cardId).toLowerCase();
+        chosenNames.add(name);
+        chosenInstanceIds.add(selected.instanceId);
+        if (selected.permanentId !== undefined) {
+          chosenPermanentIds.add(selected.permanentId);
+          chosenRelocations.push({ permanentId: selected.permanentId, shedOwnCards: true });
+        } else {
+          chosenPlacements.push(selected.instanceId);
+        }
+      }
+      if (chosenPlacements.length > 0) {
+        ctx.pendingSelfReducerPlacements = [...(ctx.pendingSelfReducerPlacements ?? []), ...chosenPlacements];
+      }
+      if (chosenRelocations.length > 0) {
+        ctx.pendingSelfReducerRelocations = [...(ctx.pendingSelfReducerRelocations ?? []), ...chosenRelocations];
+      }
+      const placedCount = chosenPlacements.length + chosenRelocations.length;
+      ctx.playCostDelta = (ctx.playCostDelta ?? 0) + placedCount * reducer.amountPerPaid;
       return;
     }
-    if (await payCost(ctx, reducer.cost)) {
-      ctx.playCostDelta = (ctx.playCostDelta ?? 0) + Math.max(0, reducer.amount);
+    const receipt = { paidCount: 0 };
+    if (await payCost(ctx, reducer.cost, receipt)) {
+      const reduction =
+        reducer.amountPerPaid === undefined ? reducer.amount : reducer.amountPerPaid * receipt.paidCount;
+      ctx.playCostDelta = (ctx.playCostDelta ?? 0) + Math.max(0, reduction);
     }
     return;
   }
@@ -513,4 +653,19 @@ export async function applyWouldBePlayedSelfReducer(
   if (reducer.condition !== undefined && !evaluateCondition(ctx, reducer.condition)) return;
   const scale = reducer.scaling !== undefined ? scaleFactor(ctx, reducer.scaling) : 1;
   ctx.playCostDelta = (ctx.playCostDelta ?? 0) + Math.max(0, reducer.amount * scale);
+}
+
+/**
+ * Read the reduction which automatically applies while this card remains in hand.
+ *
+ * This deliberately excludes every reducer with a payment or choice: targeting effects such
+ * as LM-023 need the card's current use cost, not a speculative cost after a player might pay
+ * an optional reducer. It is therefore the read-only counterpart to the final automatic branch
+ * of {@link applyWouldBePlayedSelfReducer}.
+ */
+export function potentialWouldBePlayedSelfReduction(ctx: EffectContext, reducer: WouldBePlayedSelfReducer): number {
+  if (reducer.pay !== undefined || reducer.cost !== undefined || reducer.costActions !== undefined) return 0;
+  if (reducer.condition !== undefined && !evaluateCondition(ctx, reducer.condition)) return 0;
+  const scale = reducer.scaling !== undefined ? scaleFactor(ctx, reducer.scaling) : 1;
+  return Math.max(0, reducer.amount * scale);
 }

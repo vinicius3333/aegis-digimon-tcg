@@ -8,6 +8,7 @@ import {
   breeding,
   colorWaiverStatic,
   digivolveCostStatic,
+  handCounter,
   inTrash,
   onAddHand,
   onDiscardSecurity,
@@ -17,6 +18,7 @@ import {
   securityStatic,
   staticModifier,
   turnTiming,
+  whenMoving,
   whenAttacking,
   whenDigivolving,
   whenTrashedFromBattleArea,
@@ -25,7 +27,7 @@ import type { BuilderOptions } from "../builders.js";
 import { canAttemptDnaDigivolve } from "./actions/dna.js";
 import { canAttemptDigivolve } from "./actions/digivolve.js";
 import { canAttemptPlaceUnder } from "./actions/placeUnder.js";
-import { canAttemptLink } from "./actions/link.js";
+import { canAttemptLink, canAttemptMindLink } from "./actions/link.js";
 import { evaluateCondition } from "./conditions.js";
 import { canPayCost } from "./costs.js";
 import { installEffectRunner, runAction } from "./dispatch.js";
@@ -318,6 +320,7 @@ export function builderForTrigger(effect: CardEffect): (opts: BuilderOptions) =>
   // trigger with every ordinary activated ability, so it cannot be routed by builder
   // selection alone.
   if (effect.isFromTrash && effect.trigger !== "Main") return inTrash;
+  if (effect.trigger === "Counter" && effect.isFromHand) return handCounter;
   switch (effect.trigger) {
     case "OnPlay":
       return onPlay;
@@ -327,6 +330,8 @@ export function builderForTrigger(effect: CardEffect): (opts: BuilderOptions) =>
       return whenDigivolving;
     case "WhenAttacking":
       return whenAttacking;
+    case "WhenMoving":
+      return whenMoving;
     case "OnDeletion":
       return onDeletion;
     case "OnDiscardSecurity":
@@ -489,6 +494,7 @@ export function turnOwnerGuard(trigger: CardEffect["trigger"]): ((ctx: EffectCon
 const RESULT_BINDING_KEYS = [
   "lastDeleteCount",
   "lastDeletedLevel",
+  "lastDeletedDP",
   "lastDigivolveResult",
   "lastOptionUsed",
   "lastEffectActed",
@@ -570,7 +576,10 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
         ? "permanent"
         : "forTheTurn";
     for (const keyword of effect.keywords ?? []) {
-      if (keyword.keyword === "Reboot" || ACTION_TYPE_KEYWORDS.has(keyword.keyword)) continue;
+      // Delay on a continuous trigger is an activation marker whose trash cost is
+      // installed by `withIntrinsicDelayGate`; it is not a resident keyword grant.
+      if (keyword.keyword === "Reboot" || keyword.keyword === "Delay" || ACTION_TYPE_KEYWORDS.has(keyword.keyword))
+        continue;
       await runAction(ctxWithSelections, {
         kind: "GainKeyword",
         target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
@@ -590,6 +599,12 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
       ctxWithSelections.fx.grantKeyword(self.permanentId, "Reboot", EffectDuration.Permanent);
     }
   }
+  // `placedCards` is scoped to this CardEffect resolution, not to the lifetime of a reusable
+  // context. Most callers create a fresh context, but pay-time and nested effect paths may seed
+  // `selections` and intentionally reuse one; reset here so a prior PlaceUnder cannot inflate a
+  // later effect's count. Restore the caller's outer accumulator after nested resolution.
+  const outerPlacedUnderInstanceIds = ctxWithSelections.placedUnderInstanceIdsThisEffect;
+  ctxWithSelections.placedUnderInstanceIdsThisEffect = [];
   try {
     for (const [actionIndex, action] of actions.entries()) {
       // Legacy compiled Reboot records carry a self-Unsuspend action beside the keyword
@@ -610,6 +625,7 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
   } finally {
     // `activeTiming` / `activeEffectText` deliberately survive: they are the provenance a decision
     // raised by this resolution is stamped with, and it is read after the resolution returns.
+    ctxWithSelections.placedUnderInstanceIdsThisEffect = outerPlacedUnderInstanceIds;
     ctxWithSelections.effectRestrictions = outerRestrictions;
     mirrorResultBindings(ctxWithSelections, ctx);
   }
@@ -666,6 +682,7 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
     action.kind === "Digivolve" ||
     action.kind === "DnaDigivolve" ||
     action.kind === "PlaceUnder" ||
+    action.kind === "MindLink" ||
     (action.kind !== "ConditionalBranch" && action.condition !== undefined) ||
     action.cost !== undefined ||
     action.additionalCost !== undefined ||
@@ -692,6 +709,7 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
       return costProducedTarget || canAttemptDigivolve(ctx, action);
     }
     if (action.kind === "PlaceUnder") return canAttemptPlaceUnder(ctx, action);
+    if (action.kind === "MindLink") return canAttemptMindLink(ctx, action);
     return action.kind === "DnaDigivolve"
       ? canAttemptDnaDigivolve(ctx, action)
       : action.kind !== "Link" || canAttemptLink(ctx, action);

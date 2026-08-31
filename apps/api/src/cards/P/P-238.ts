@@ -80,6 +80,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          requiresDelayArmed: true,
           kind: "Delete",
           target: {
             filter: {

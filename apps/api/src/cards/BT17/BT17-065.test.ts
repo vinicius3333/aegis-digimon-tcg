@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT17-065.js";
 import "./index.js";
 
@@ -11,14 +12,13 @@ describe("BT17-065 DexDorugamon", () => {
       kind: "Replacement",
       event: "wouldBeDeleted",
       target: {
-        filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Dorugamon"], match: "name" }] },
+        filter: { controller: "mine", nameOrTrait: [{ tokens: ["Dorugamon"], match: "name" }] },
       },
-      actions: [
-        { kind: "Digivolve", target: { sourceRef: "triggerSubject" }, from: ["trash"], payCost: false },
-        { kind: "Prevent", condition: { kind: "bindingExists", ref: "digivolvedToPreventDeletion" } },
-      ],
+      sourceFilter: { zone: "trash", controller: "mine" },
+      leaveCause: "any",
+      digivolveFromTrash: true,
+      abortOnDecline: true,
     });
-    expect(replacement?.actions[0]).not.toHaveProperty("ignoreRequirements");
   });
 
   it("trashes one hand card, then branches to draw or play-cost deletion", () => {
@@ -62,5 +62,28 @@ describe("BT17-065 DexDorugamon", () => {
     expect(protectedDigimon?.topCard.cardId).toBe("BT17-065");
     expect(protectedDigimon?.stack.some((card) => card.cardId === "BT7-062")).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
+  });
+
+  it("allows Dorugamon's deletion when DexDorugamon is unavailable in trash", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT7-062", as: "dorugamon" }] },
+      1: { battleArea: [{ card: "BT17-025", as: "target" }] },
+    });
+    const dorugamonId = s.perm("dorugamon").permanentId;
+    const targetId = s.perm("target").permanentId;
+
+    expect(await advance(s.engine).verb.deletePermanent([dorugamonId], "byEffect")).toBe(1);
+    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === dorugamonId));
+
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(true);
+  });
+
+  it("grants inherited Reboot to a legal level-5 host", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT14-078", under: ["BT17-065"], as: "host" }] } });
+    await s.ready();
+
+    expect(s.perm("host").topCard.cardId).toBe("BT14-078");
+    expect(s.perm("host").stack.some((card) => card.cardId === "BT17-065")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Reboot")).toBe(true);
   });
 });

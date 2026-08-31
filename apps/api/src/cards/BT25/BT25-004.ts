@@ -50,6 +50,8 @@ export const compiled: CompiledCard = {
           amount: 1,
           whenLinkingTrait: ["Social", "Tool", "Game"],
           duration: "permanent",
+          optionalAtDeclaration: true,
+          oncePerTurn: true,
         },
       ],
     },

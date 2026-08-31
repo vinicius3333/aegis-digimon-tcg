@@ -18,6 +18,7 @@ export const compiled: CompiledCard = {
           kind: "Suspend",
           target: { filter: { controller: "opponent", kind: ["Digimon"], suspended: false }, count: 1 },
           scaling: { per: 1, unit: "namedCount", countSource: "titamonTrashedCards" },
+          condition: { kind: "ifThisEffectActed", raw: "you do" },
         },
         {
           kind: "GainMemory",

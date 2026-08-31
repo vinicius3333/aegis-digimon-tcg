@@ -25,18 +25,41 @@ const BT12_112 = "BT12-112"; // cost 15
 const SHOUTMON = "BT12-008"; // Lv.3 Shoutmon, a valid material for the SelectBind filter
 
 describe("BT12-112 ＜when played＞ cost reduction (place 1 [Shoutmon] → -1)", () => {
+  it("registers the complete DigiXros and declarative replacement IR", async () => {
+    const { runtimeCompiledCard } = await import("../../engine/effects/interpreter/compiledCards.js");
+    const card = runtimeCompiledCard(BT12_112)!;
+    expect(card.coverage).toBe("full");
+    expect(card.residual).toEqual([]);
+    expect(card.digiXrosRequirement).toEqual([
+      { materials: [{ traits: ["Xros Heart", "Blue Flare"], differentCardNumbers: true }], count: "infinity" },
+    ]);
+    expect(card.effects.some((effect) => effect.trigger === "Static")).toBe(true);
+    const yourTurn = card.effects.find((effect) => effect.trigger === "YourTurn");
+    expect(yourTurn?.actions).toEqual([
+      expect.objectContaining({
+        kind: "DisableSecurityEffect",
+        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+        sourceKind: "option",
+        scope: "seat",
+        duration: "forTheTurn",
+      }),
+    ]);
+  });
+
   it("registers the printed On Play, opponent-action, and turn security-lock effects", () => {
     const module = getEffectModule(BT12_112);
     const source = { instanceId: "source-112", cardId: BT12_112, ownerSeat: 0, isOnBattleArea: () => true } as never;
     expect(module!.effectsForTiming(EffectTiming.OnPlay, source)).toHaveLength(1);
-    expect(module!.effectsForTiming(EffectTiming.None, source)).toHaveLength(1);
+    expect(module!.effectsForTiming(EffectTiming.None, source)).toHaveLength(2);
   });
 
   it("plays at cost 14 (15 - 1), placing the [Shoutmon] as a digivolution card", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: SHOUTMON, dp: 3000, as: "shoutmon" }],
+          battleArea: [
+            { card: SHOUTMON, dp: 3000, as: "shoutmon", under: [{ card: "BT1-009", as: "source-stack" }] },
+          ],
           hand: [{ card: BT12_112, as: "card" }],
         },
       },
@@ -49,6 +72,7 @@ describe("BT12-112 ＜when played＞ cost reduction (place 1 [Shoutmon] → -1)"
     expect(res).toEqual({ ok: true });
 
     const shoutmonPermanentId = s.perm("shoutmon").permanentId;
+    const sourceStackId = s.inst("source-stack").instanceId;
     await settle(
       () => (p0?.battleArea.some((p) => p.topCard?.cardId === BT12_112) ?? false) && s.state.memory === 0,
       400,
@@ -61,15 +85,19 @@ describe("BT12-112 ＜when played＞ cost reduction (place 1 [Shoutmon] → -1)"
     // The [Shoutmon] permanent is gone from the top-level battle area (relocated as a digivolution
     // card) — the actions body actually ran, not just the amount.
     expect(p0?.battleArea.some((p) => p.permanentId === shoutmonPermanentId)).toBe(false);
-    // It now lives under BT12-112 as a digivolution card.
-    expect(played?.stack.some((c) => c.cardId === SHOUTMON)).toBe(true);
+    // It now lives under BT12-112 as the only placed digivolution card; its own source stack was
+    // trashed by the would-be-played effect before placement (KB Q2250).
+    expect(played?.stack.map((c) => c.cardId)).toEqual([SHOUTMON]);
+    expect(s.state.players[0]?.trash.map(({ instanceId }) => instanceId)).toContain(sourceStackId);
   });
 
   it("declining the optional cost plays at the full cost (15), with the [Shoutmon] untouched", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: SHOUTMON, dp: 3000, as: "shoutmon" }],
+          battleArea: [
+            { card: SHOUTMON, dp: 3000, as: "shoutmon", under: [{ card: "BT1-009", as: "source-stack" }] },
+          ],
           hand: [{ card: BT12_112, as: "card" }],
         },
       },
@@ -82,6 +110,7 @@ describe("BT12-112 ＜when played＞ cost reduction (place 1 [Shoutmon] → -1)"
     expect(res).toEqual({ ok: true });
 
     const shoutmonPermanentId = s.perm("shoutmon").permanentId;
+    const sourceStackId = s.inst("source-stack").instanceId;
     // The harness's `autoAcceptOptional` only ever answers "yes" — declining requires
     // responding to the captured decision by hand.
     await settle(() => s.decisions.some((d) => d.req.kind === "optional"), 400);
@@ -104,14 +133,22 @@ describe("BT12-112 ＜when played＞ cost reduction (place 1 [Shoutmon] → -1)"
     // No discount was granted and the [Shoutmon] was left as its own permanent, untouched.
     expect(p0?.battleArea.some((p) => p.permanentId === shoutmonPermanentId)).toBe(true);
     expect(played?.stack.length ?? 0).toBe(0);
+    expect(s.perm("shoutmon").stack.map(({ instanceId }) => instanceId)).toEqual([sourceStackId]);
   });
 });
 
-it("suppresses Option Security effects for every opposing attacker", async () => {
+it("suppresses opponent Option Security effects only for source-owner attackers", async () => {
   const s = setupEngine({
-    0: { battleArea: [{ card: BT12_112, as: "x7" }] },
+    0: {
+      battleArea: [
+        { card: BT12_112, as: "x7" },
+        { card: "BT1-009", as: "owner-attacker" },
+      ],
+    },
     1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
   });
   await s.ready();
-  expect(observe(s.engine).suppressesSecurityEffect(s.perm("attacker"), "BT12-101")).toBe(true);
+  const security = observe(s.engine);
+  expect(security.suppressesSecurityEffect(s.perm("owner-attacker"), "BT12-101")).toBe(true);
+  expect(security.suppressesSecurityEffect(s.perm("attacker"), "BT12-101")).toBe(false);
 });

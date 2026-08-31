@@ -61,6 +61,41 @@ describe("BT11-041 Etemon", () => {
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-1);
   });
 
+  it("uses the printed alternate Sukamon evolution and can trash that evolution card for its effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-040", as: "base" }],
+          hand: [{ card: "BT11-041", as: "etemon" }],
+          deck: ["BT1-001"],
+        },
+        1: { battleArea: [{ card: "ST15-11", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    const baseInstanceId = s.perm("base").topCard.instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("etemon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("base").topCard.cardId === "BT11-041" &&
+        s.perm("target").currentDP === 5000 &&
+        s.state.players[0]!.trash.some(({ instanceId }) => instanceId === baseInstanceId),
+    );
+
+    expect(s.state.memory).toBe(7);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(baseInstanceId);
+    expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-1);
+  });
+
   it.each([
     ["a friendly Sukamon", 0],
     ["an opponent's Sukamon (Q2075)", 1],
@@ -87,5 +122,29 @@ describe("BT11-041 Etemon", () => {
     expect(s.state.players[costSeat]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(
       costPermanentId,
     );
+  });
+
+  it("Q2076: does not recursively reactivate a would-be-deleted prevention during its own resolution", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-043", as: "a", under: ["BT11-041"] },
+            { card: "BT11-043", as: "b", under: ["BT11-041"] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds },
+    );
+    const aId = s.perm("a").permanentId;
+    const bId = s.perm("b").permanentId;
+    preferInstanceIds.push(s.inst("b").instanceId, s.inst("a").instanceId);
+
+    await advance(s.engine).verb.deletePermanent([aId], "byEffect");
+
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === aId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === bId)).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });

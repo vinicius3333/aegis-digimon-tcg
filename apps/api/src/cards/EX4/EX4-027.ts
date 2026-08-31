@@ -43,7 +43,7 @@ export const compiled: CompiledCard = {
           restriction: "attackOrBlock",
           duration: "untilOpponentTurnEnd",
           condition: {
-            kind: "or",
+            kind: "orConditions",
             conditions: [
               {
                 kind: "youHave",
@@ -79,7 +79,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Veemon"],
+      namesExact: ["Veemon"],
       cost: 2,
       isAlternate: true,
     },

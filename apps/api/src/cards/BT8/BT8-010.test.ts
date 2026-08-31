@@ -54,7 +54,7 @@ describe("BT8-010 Aquilamon", () => {
   it("deletes a 5000-DP-or-lower Digimon when its host attacks while you have a yellow Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT8-017", as: "host", under: ["BT8-010"] }, "BT8-034"] },
+        0: { battleArea: [{ card: "BT8-014", as: "host", under: ["BT8-010"] }, "BT8-034"] },
         1: { security: ["BT8-034"], battleArea: [{ card: "BT8-023", as: "target" }] },
       },
       { autoSelectCards: true },
@@ -74,7 +74,7 @@ describe("BT8-010 Aquilamon", () => {
   it("does not delete above 5000 DP or without a yellow Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT8-017", as: "host", under: ["BT8-010"] }] },
+        0: { battleArea: [{ card: "BT8-014", as: "host", under: ["BT8-010"] }] },
         1: { security: ["BT8-034"], battleArea: [{ card: "BT8-023", as: "target", dp: 5001 }] },
       },
       { autoSelectCards: true },

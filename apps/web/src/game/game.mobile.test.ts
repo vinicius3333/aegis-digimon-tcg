@@ -145,11 +145,11 @@ describe("mobile portrait match layout", () => {
 
   it("shrinks the board-mode decision rail so the phone board stays readable", () => {
     // The rail is the only way to answer a board-mode decision, so its actions must
-    // never be pushed off: it takes a fraction of the width and lets only the
-    // printed clause scroll.
+    // never be pushed off: it takes a fraction of the width, shows the printed
+    // clause whole, and only the rail itself scrolls when it outgrows the screen.
     expect(portraitRules).toMatch(/\.board-prompt \{[^}]*width:\s*min\(15rem, 46vw\)/);
-    expect(portraitRules).toMatch(/\.board-prompt__clause \{[^}]*max-height:\s*4\.5rem/);
-    expect(gameCss).toMatch(/\.board-prompt__clause \{[^}]*overflow-y:\s*auto/);
+    expect(gameCss).not.toMatch(/\.board-prompt__clause \{[^}]*max-height/);
+    expect(gameCss).toMatch(/\.board-prompt \{[^}]*overflow-y:\s*auto/);
     // The opponent pill clears the phone opponent bar instead of painting over it.
     expect(portraitRules).toMatch(/\.board-opponent-pill \{[^}]*top:\s*3\.5rem/);
   });
@@ -291,15 +291,17 @@ describe("nothing on the phone board is clipped by its neighbour", () => {
 
 describe("floating chrome keeps clear of the hand and the memory band", () => {
   // Both stacks span the width on a phone in portrait, so "notices left, panels
-  // right" no longer separates them: they landed on the same pixels. Each gets a
-  // band of its own, and neither may grow out of it.
-  it("gives the notice stack and the side panels separate bands in portrait", () => {
+  // right" no longer separates them: each anchors to its own screen edge and
+  // grows toward the middle, uncapped, showing its content whole.
+  it("lets the notice stack and the side panels show whole from their own edges", () => {
     expect(phonePortraitRules).toBeDefined();
-    expect(phonePortraitRules).toMatch(
-      /\.match-notice-stack,\s*\.side-panel-stack \{[^}]*max-height:\s*7rem[^}]*overflow:\s*hidden/,
-    );
-    // The card panels take the deeper of the two bands: a thumbnail plus a heading.
-    expect(phonePortraitRules).toMatch(/\.side-panel-stack \{[^}]*max-height:\s*9rem/);
+    // No cap on either stack or on the notice text: every cap tried here
+    // (7rem, then a dvh split) decapitated a notice's clause or a revealed
+    // card's art while screen space sat empty next to it. Nothing may
+    // reintroduce one.
+    expect(phonePortraitRules).not.toMatch(/\.match-notice-stack[^{]*\{[^}]*max-height/);
+    expect(phonePortraitRules).not.toMatch(/\.side-panel-stack \{[^}]*max-height/);
+    expect(gameCss).not.toMatch(/\.match-notice__text \{[^}]*max-height/);
     expect(phonePortraitRules).toMatch(/\.side-panel-stack\[data-side="opp"\] \{[^}]*top:\s*calc\(17rem/);
     expect(phonePortraitRules).toMatch(/\.side-panel-stack\[data-side="you"\] \{[^}]*bottom:\s*calc\(17rem/);
     // The notices keep the corner they already had.

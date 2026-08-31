@@ -82,6 +82,45 @@ describe("BT26-050 Rosemon: Burst Mode", () => {
     expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toContain("BT26-036");
   });
 
+  it("resolves the same return-then-trash sequence from When Attacking", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-050", as: "attacker" }] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "returned", suspended: true }],
+          security: [{ card: "BT1-010", as: "security" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("attacker"));
+
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.deck.map(({ cardId }) => cardId)).toContain("BT1-009");
+  });
+
+  it("does not trash security when the optional suspended-Digimon return is declined", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-050", as: "attacker" }] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "returned", suspended: true }],
+          security: [{ card: "BT1-010", as: "security" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("attacker"));
+
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
   it("Q7052/Q7053: may suspend either player's cards and locks independently selected opponents", async () => {
     const preferred: string[] = [];
     const s = setupEngine(

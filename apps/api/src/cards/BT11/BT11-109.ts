@@ -19,6 +19,7 @@ export const compiled: CompiledCard = {
             from: ["trash"],
           },
           underFilter: { controller: "mine", kind: ["Digimon", "Tamer"] },
+          position: "bottom",
           optional: true,
         },
         {
@@ -31,6 +32,8 @@ export const compiled: CompiledCard = {
           target: { filter: {}, count: 1, fromSelectionRef: "movedDigimon" },
           targetIsPermanent: true,
           underFilter: { controller: "opponent", kind: ["Digimon"] },
+          position: "bottom",
+          shedOwnCards: true,
           optional: true,
           condition: {
             kind: "youHave",

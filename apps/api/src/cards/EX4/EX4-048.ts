@@ -34,10 +34,7 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
-              costComparison: {
-                op: "gte",
-                value: 13,
-              },
+              playCostGte: 13,
             },
             count: 1,
           },
@@ -74,10 +71,7 @@ export const compiled: CompiledCard = {
                 match: "name",
               },
             ],
-            costComparison: {
-              op: "gte",
-              value: 13,
-            },
+            playCostGte: 13,
           },
           payCost: false,
           from: ["hand"],

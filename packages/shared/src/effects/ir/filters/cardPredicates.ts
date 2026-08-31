@@ -9,6 +9,8 @@ import type { Filter } from "./filter.js";
 export type FilterKeyword = Keyword;
 
 export interface CardPredicates {
+  /** Exact card-number match, used when printed text says "this card" rather than a name family. */
+  cardId?: string;
   /**
    * Restricts the match to token permanents (`true`) or excludes them (`false`). Absent ⇒ tokens
    * match on the same terms as printed cards.
@@ -29,6 +31,8 @@ export interface CardPredicates {
   /** Any printed trait contains any token (case-insensitive). */
   traitContains?: string[];
   colors?: ("Red" | "Blue" | "Yellow" | "Green" | "White" | "Black" | "Purple")[];
+  /** Every listed color must be present (conjunctive counterpart to the OR-matched `colors`). */
+  colorsAll?: ("Red" | "Blue" | "Yellow" | "Green" | "White" | "Black" | "Purple")[];
   /**
    * "non-X" predicate, applied after `colors`. A 3+ color card carrying X is still excluded,
    * which is why this is not expressed by listing the other six colors (P-155, BT14-097, EX4-070).
@@ -71,6 +75,14 @@ export interface CardPredicates {
   /** Runtime bonus added to the printed-DP ceiling for hand/deck candidates. */
   dpAtMostScaling?: Scaling;
   playCostLte?: number;
+  /**
+   * Use-cost ceiling evaluated with active hand-use reductions, rather than the
+   * card's printed play cost (LM-023 Q5516).
+   *
+   * This is intentionally limited to loose-card selection. Permanent targets
+   * continue to use `playCostLte`, whose contract is the printed play cost.
+   */
+  effectiveUseCostLte?: number;
   /** "with a play/use cost of N or more" (EX9-068). */
   playCostGte?: number;
   /** OR-of-exact-values ("a memory cost of 1 or 7", ST6-04). There is no OR-of-ranges. */

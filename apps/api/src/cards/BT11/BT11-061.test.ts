@@ -18,7 +18,17 @@ describe("BT11-061 Vemmon", () => {
       maxCountInDeck: 50,
     });
     expect(compiled.effects).toMatchObject([
-      { trigger: "Main", actions: [{ kind: "RevealAdd", revealCount: 3, rest: "deckBottom" }] },
+      {
+        trigger: "Main",
+        actions: [
+          {
+            kind: "RevealAdd",
+            revealCount: 3,
+            rest: "deckBottom",
+            add: [{ upTo: true, to: "hand" }, { to: "placeUnder" }],
+          },
+        ],
+      },
       { trigger: "YourTurn", isInherited: true, frequency: "OncePerTurn" },
     ]);
   });
@@ -43,6 +53,44 @@ describe("BT11-061 Vemmon", () => {
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("vemmon"));
     await settle(() => s.perm("vemmon").stack.length === 1);
+    expect(s.perm("vemmon").stack[0]?.cardId).toBe("BT11-061");
+  });
+
+  it("may decline the named add while still placing a revealed Vemmon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-061", as: "vemmon" }],
+          deck: ["BT11-105", { card: "BT11-061", as: "revealedVemmon" }, "BT1-009"],
+        },
+      },
+      { autoOrderCards: true },
+    );
+    await s.ready();
+    const resolving = advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("vemmon"));
+    await settle(() => s.decisions.some(({ req }) => req.kind === "selectCards"));
+    const addSelection = s.decisions.filter(({ req }) => req.kind === "selectCards").at(-1);
+    expect(addSelection?.req.options).toMatchObject({ min: 0, max: 1 });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: addSelection!.req.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.filter(({ req }) => req.kind === "selectCards").length >= 2);
+    const placeSelection = s.decisions.filter(({ req }) => req.kind === "selectCards").at(-1);
+    expect(placeSelection?.req.options).toMatchObject({ min: 1, max: 1 });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: placeSelection!.req.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("revealedVemmon").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await resolving;
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.perm("vemmon").stack[0]?.cardId).toBe("BT11-061");
   });
 

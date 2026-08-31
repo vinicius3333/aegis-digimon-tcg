@@ -25,7 +25,7 @@ const revealAndPlaceVemmon = [
       filter: {
         zone: "trash" as const,
         controller: "mine" as const,
-        nameOrTrait: [{ tokens: ["Vemmon"], match: "name" as const }],
+        nameOrTrait: [{ tokens: ["Vemmon"], match: "nameExact" as const }],
       },
       count: 2,
       upTo: true,
@@ -50,7 +50,7 @@ export const compiled: CompiledCard = {
           kind: "SubTrigger",
           event: "onDigivolutionCardReturnToDeckBottom",
           raw: "When any [Vemmon] are returned to the bottom of the deck from this Digimon's digivolution cards",
-          sourceFilter: { nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }] },
+          sourceFilter: { nameOrTrait: [{ tokens: ["Vemmon"], match: "nameExact" }] },
           actions: [
             {
               kind: "Delete",

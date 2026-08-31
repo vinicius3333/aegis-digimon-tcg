@@ -44,8 +44,6 @@ const compiled: CompiledCard = {
             },
             raw: "by trashing the top or bottom card of your security stack",
           },
-          optional: true,
-          abortOnDecline: true,
         },
       ],
     },

@@ -23,7 +23,7 @@ export const compiled: CompiledCard = {
               kind: "Digivolve",
               target: { filter: { isSelfRef: true }, count: 1 },
               from: ["hand"],
-              into: { kind: ["Digimon"], nameOrTrait: watchedTraits },
+              into: { controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: watchedTraits },
               payCost: false,
               optional: true,
             },

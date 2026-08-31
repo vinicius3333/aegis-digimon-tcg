@@ -52,6 +52,8 @@ export const compiled: CompiledCard = {
                 to: "deckBottom",
               },
               optional: true,
+              abortOnDecline: true,
+              allowCostWithoutTarget: true,
             },
           ],
         },

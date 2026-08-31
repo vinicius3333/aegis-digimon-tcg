@@ -2,7 +2,11 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const sevenCode = { controller: "mine", nameOrTrait: [{ tokens: ["Seven Code"], match: "trait" }] };
+const sevenCode = {
+  controller: "mine",
+  kind: ["Digimon", "Tamer"],
+  nameOrTrait: [{ tokens: ["Seven Code"], match: "trait" }],
+};
 const appmon = {
   controller: "mine",
   kind: ["Digimon", "Tamer"],
@@ -45,6 +49,7 @@ export const compiled: CompiledCard = {
           },
           bindHostAs: "sevenCodeHost",
           mixedSources: { battleAreaPermanents: true, linkedCards: true, trash: true },
+          position: "bottom",
           order: "any",
           trackCount: "sevenCodeMaterials",
           optional: true,

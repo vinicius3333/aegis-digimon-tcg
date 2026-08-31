@@ -167,6 +167,28 @@ describe("ST12-15 From Master to Disciple", () => {
     expect(s.state.players[0]!.trash).toHaveLength(2);
   });
 
+  it("places itself even when the reveal has no matching card (Q762)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["ST12-04"],
+          hand: [{ card: "ST12-15", as: "option" }],
+          deck: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 2;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST12-15"));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST12-15")).toBe(true);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.trash).toHaveLength(3);
+  });
+
   it("performs the reveal and placement from security", async () => {
     const s = setupEngine(
       { 0: { security: [{ card: "ST12-15", as: "option", faceUp: true }], deck: ["ST12-10", "BT1-001", "BT1-002"] } },
@@ -181,10 +203,11 @@ describe("ST12-15 From Master to Disciple", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "ST12-08", as: "base" }, "ST12-04"],
+          battleArea: [{ card: "ST12-08", as: "base" }, { card: "ST12-08", as: "base2" }, "ST12-04"],
           hand: [
             { card: "ST12-15", as: "option" },
             { card: "ST12-10", as: "evolving" },
+            { card: "ST12-10", as: "evolving2" },
           ],
           deck: ["ST12-10", "BT1-001", "BT1-002"],
         },
@@ -222,6 +245,62 @@ describe("ST12-15 From Master to Disciple", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "ST12-10");
+    expect(s.state.memory).toBe(2);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base2").permanentId,
+        instanceId: s.inst("evolving2").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base2").topCard.cardId === "ST12-10");
+    expect(s.state.memory).toBe(-2);
+  });
+
+  it("applies Delay to a paid effect-driven digivolution (Q763)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST12-08", as: "base" }, "ST12-04"],
+          hand: [
+            { card: "ST12-15", as: "option" },
+            { card: "ST12-10", as: "evolving" },
+          ],
+          deck: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 7;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST12-15"));
+    const delay = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "ST12-15")!;
+    s.state.turnCount += 1;
+    await s.engine.recomputeContinuousEffects();
+    const delayEffect = (
+      JSON.parse(delay.activatableEffectsJson || "[]") as Array<{
+        instanceId: string;
+        effectKey: string;
+        description: string;
+      }>
+    ).find((entry) => entry.instanceId === delay.topCard.instanceId && /delay/i.test(entry.description));
+    expect(delayEffect).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: delay.topCard.instanceId,
+        effectKey: delayEffect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === delay.topCard.instanceId));
+    await advance(s.engine).verb.digivolveFromInstance(s.perm("base").permanentId, s.inst("evolving").instanceId, {
+      payCost: true,
+    });
+
+    expect(s.perm("base").topCard.cardId).toBe("ST12-10");
     expect(s.state.memory).toBe(2);
   });
 });

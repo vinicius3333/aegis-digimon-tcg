@@ -28,13 +28,17 @@ describe("BT11-024 Penguinmon", () => {
               amount: 1,
               optional: true,
               abortOnDecline: true,
-              cost: { kind: "place", target: { count: 1, from: ["hand"] } },
+              cost: { kind: "place", position: "bottom", target: { count: 1, from: ["hand"] } },
             },
           ],
         },
       ],
       coverage: "full",
       residual: [],
+    });
+    expect(compiled.effects[0]?.actions[0]).toMatchObject({
+      kind: "Draw",
+      cost: { kind: "place", position: "bottom" },
     });
   });
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT16-064.js";
 import "../index.js";
@@ -15,12 +15,41 @@ describe("BT16-064", () => {
     });
   });
 
-  it("optionally unsuspends itself once per turn when another of yours is deleted", () => {
+  it("optionally unsuspends itself once per turn when another Digimon is deleted", () => {
     expect(compiled.effects?.[2]).toMatchObject({
       trigger: "AllTurns",
       frequency: "OncePerTurn",
       actions: [{ kind: "SubTrigger", event: "onDeletionOf", actions: [{ kind: "Unsuspend", optional: true }] }],
     });
+    expect(compiled.effects?.[2]?.actions?.[0]).toMatchObject({
+      sourceFilter: { excludeSelf: true, kind: ["Digimon"] },
+    });
+  });
+
+  it("unsuspends after naturally deleting an opponent Digimon in battle", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT16-064", as: "dorugora" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "victim", suspended: true, dp: 3000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("dorugora").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("victim").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("victim").permanentId) &&
+        !s.perm("dorugora").isSuspended,
+    );
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.perm("dorugora").isSuspended).toBe(false);
   });
 
   it("keeps Collision active on a live permanent", async () => {

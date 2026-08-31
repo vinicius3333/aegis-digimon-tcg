@@ -3,7 +3,7 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // [On Play][When Digivolving]: Delete 1 level 5 or lower Digimon (any controller per KB Q3128).
-// DigiXros -1: exactly 5 Lv.5-or-lower [Cyborg] or [Composite] trait Digimon cards
+// DigiXros -1: up to 5 Lv.5-or-lower [Cyborg] or [Composite] trait Digimon cards
 // with different card numbers (each contributing -1 memory to the play cost).
 const compiled: CompiledCard = {
   effects: [
@@ -110,8 +110,8 @@ const compiled: CompiledCard = {
           differentCardNumbers: true,
         },
       ],
-      count: 5,
-      costReduction: 1,
+      count: 1,
+      maxMaterials: 5,
     },
   ],
 };

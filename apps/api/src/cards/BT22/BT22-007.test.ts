@@ -259,7 +259,7 @@ describe("BT22-007 inherited leave-play replacement", () => {
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === leavingId)).toBe(false);
-    expect(s.perm("breedingHost").stack.at(-1)?.instanceId).toBe(leavingId);
+    expect(s.perm("breedingHost").stack[0]?.instanceId).toBe(leavingId);
   });
 });
 

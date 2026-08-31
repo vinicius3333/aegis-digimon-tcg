@@ -62,26 +62,22 @@ export const compiled: CompiledCard = {
       trigger: "EndOfYourTurn",
       actions: [
         {
-          kind: "GainKeyword",
+          kind: "SelectBind",
           target: {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
             },
             count: 1,
+            bindAs: "magnaAttackTarget",
           },
-          keyword: {
-            keyword: "SecurityAttack",
-            amount: 1,
-            raw: "＜Security Attack +1＞",
-          },
-          duration: "forTheTurn",
           cost: {
             kind: "trash",
             target: {
               filter: {
                 zone: "digivolutionCards",
                 kind: ["Option"],
+                hostFilter: { isSelfRef: true },
               },
               count: 1,
             },
@@ -91,14 +87,18 @@ export const compiled: CompiledCard = {
           abortOnDecline: true,
         },
         {
-          kind: "Attack",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-            },
-            count: 1,
+          kind: "GainKeyword",
+          target: { fromSelectionRef: "magnaAttackTarget", filter: {}, count: 1 },
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: 1,
+            raw: "＜Security Attack +1＞",
           },
+          duration: "forTheTurn",
+        },
+        {
+          kind: "Attack",
+          target: { fromSelectionRef: "magnaAttackTarget", filter: {}, count: 1 },
           withoutSuspending: false,
           optional: false,
         },

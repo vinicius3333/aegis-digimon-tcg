@@ -7,6 +7,12 @@ import { compiled } from "./EX4-020.js";
 import "../index.js";
 
 describe("EX4-020 MetalGreymon", () => {
+  it("publishes Material Save 2", () => {
+    expect(compiled.effects?.find((entry) => entry.trigger === "Static")?.keywords).toMatchObject([
+      { keyword: "MaterialSave", amount: 2 },
+    ]);
+  });
+
   it("gains Rush and trashes up to two opposing Digimon while DigiXrosing", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions).toMatchObject([
       { kind: "GainKeyword", keyword: { keyword: "Rush" } },

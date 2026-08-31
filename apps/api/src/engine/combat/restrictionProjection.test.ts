@@ -71,6 +71,57 @@ describe("Permanent combat-restriction projection", () => {
   });
 });
 
+describe("Permanent non-combat restriction projection", () => {
+  it("publishes the unsuspend lock the unsuspend step itself reads", async () => {
+    const s = setup();
+    const p0 = s.state.players[0] as PlayerState;
+    const perm = digimon(0, 5000, VANILLA_CARD);
+    p0.battleArea.push(perm);
+    const { continuous } = internalsOf(s.engine);
+
+    await s.engine.recomputeContinuousEffects();
+    expect(perm.cannotUnsuspend).toBe(false);
+
+    continuous.addRestriction(perm.permanentId, "unsuspend", EffectDuration.UntilEachTurnEnd);
+    await s.engine.recomputeContinuousEffects();
+    expect(perm.cannotUnsuspend).toBe(true);
+    // Neither combat lock rides along with it.
+    expect(perm.cannotAttack).toBe(false);
+    expect(perm.cannotBlock).toBe(false);
+    expect(perm.cannotActivateWhenDigivolving).toBe(false);
+  });
+
+  it("publishes the [When Digivolving] lock on its own (BT19-038, KB Q5541-Q5545)", async () => {
+    const s = setup();
+    const p0 = s.state.players[0] as PlayerState;
+    const perm = digimon(0, 5000, VANILLA_CARD);
+    p0.battleArea.push(perm);
+    internalsOf(s.engine).continuous.addRestriction(
+      perm.permanentId,
+      "cannotActivateWhenDigivolving",
+      EffectDuration.UntilEachTurnEnd,
+    );
+
+    await s.engine.recomputeContinuousEffects();
+    expect(perm.cannotActivateWhenDigivolving).toBe(true);
+    expect(perm.cannotUnsuspend).toBe(false);
+  });
+
+  it("projects a raising-area permanent too, where both locks still apply", async () => {
+    const s = setup();
+    const p0 = s.state.players[0] as PlayerState;
+    p0.breeding = digimon(0, 3000, VANILLA_CARD);
+    internalsOf(s.engine).continuous.addRestriction(
+      p0.breeding.permanentId,
+      "unsuspend",
+      EffectDuration.UntilEachTurnEnd,
+    );
+
+    await s.engine.recomputeContinuousEffects();
+    expect(p0.breeding.cannotUnsuspend).toBe(true);
+  });
+});
+
 describe("Permanent.securityAttack projection", () => {
   it("reads 1 with no modifier at all", async () => {
     const s = setup();

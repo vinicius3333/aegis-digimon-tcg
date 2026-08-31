@@ -15,6 +15,7 @@ describe("BT7-019 Strabimon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 3;
 
     await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
     await settle(() =>
@@ -24,6 +25,7 @@ describe("BT7-019 Strabimon", () => {
     expect(
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("koji").instanceId),
     ).toBe(true);
+    expect(s.state.memory).toBe(3);
   });
 
   it("adds an eligible Hybrid, Susanoomon or Koji card", async () => {

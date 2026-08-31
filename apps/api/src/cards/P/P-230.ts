@@ -75,7 +75,7 @@ const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Winr"],
-                match: "trait",
+                match: "name",
               },
             ],
           },
@@ -109,6 +109,7 @@ const compiled: CompiledCard = {
       ],
       actions: [
         {
+          requiresDelayArmed: true,
           kind: "Digivolve",
           target: {
             filter: {
@@ -131,6 +132,7 @@ const compiled: CompiledCard = {
             ],
           },
           from: ["hand"],
+          payCost: true,
           reduceCost: 3,
           optional: true,
         },

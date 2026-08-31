@@ -11,6 +11,7 @@ import type {
   Seat,
   TargetFate,
   ZoneRef,
+  ActivateForeignEffectOverrides,
 } from "@aegis/shared";
 import type { CardSource } from "./CardSource.js";
 import type { PlayMatch } from "./continuous.js";
@@ -68,6 +69,9 @@ export type Restriction = EnforcedRestriction | DeprecatedRestriction;
 
 /** Future events a delayed/triggered sub-effect can watch (delayed-and-rule-effects). */
 export type SubTriggerEventName =
+  // Every actual entry into the battle area; mirrors OnEnterFieldAnyone rather
+  // than the narrower whenPlayed bus (which excludes breeding movement/digivolve).
+  | "onEnterFieldAnyone"
   | "whenAttacking"
   | "whenOpponentAttacks"
   | "whenBlocked"
@@ -86,6 +90,7 @@ export type SubTriggerEventName =
   | "onDeletionOf"
   | "whenSecurityRemoved"
   | "whenCardTrashedFromSecurity"
+  | "whenEffectTrashesFromSecurity"
   | "whenEffectRemovesFromSecurity"
   | "whenAddSecurity"
   | "whenFaceUpCardsAddedToOpponentSecurity"
@@ -156,6 +161,7 @@ export interface TriggerInfo {
     targetPermanentId: string;
     stackInstanceId: string;
     trigger?: string;
+    excludeInherited?: boolean;
     inheritedOnly?: boolean;
   }[];
   /** Named effect grants captured at the same pre-deletion boundary. */
@@ -173,6 +179,8 @@ export interface TriggerInfo {
   /** Whether the pay-time declaration is using the card as an Option rather than playing a permanent. */
   wouldBePlayedAsOption?: boolean;
   attackerPermanentId?: string;
+  /** Attacker's effective DP immediately after declaration/suspension, before [When Attacking] effects. */
+  attackerDPAtDeclaration?: number;
   /** Stable identity for this attack across all reactive attack sub-trigger fires. */
   attackSequence?: number;
   /** Named attack procedure that caused the current attack watcher, when applicable. */
@@ -187,6 +195,8 @@ export interface TriggerInfo {
   deletedPermanentId?: string;
   /** Every permanent in the same simultaneous deletion action, captured before movement. */
   deletedPermanentIds?: string[];
+  /** Controller and top-card facts for every permanent in the simultaneous deletion action. */
+  deletedPermanentSnapshots?: Array<{ permanentId: string; controllerSeat: Seat; topCardId: string }>;
   /** Physical cards that became link cards in the current linking operation. */
   linkedInstanceIds?: string[];
   deletedInstanceIds?: string[];
@@ -269,8 +279,8 @@ export interface TriggerInfo {
   playedPlayCost?: number;
   /** Permanent that just moved breeding -> battle area (OnMove). */
   movedPermanentId?: string;
-  /** Why an OnEnterFieldAnyone subject entered: a play or a digivolution. */
-  entryCause?: "play" | "digivolve";
+  /** Why an OnEnterFieldAnyone subject entered the battle area. */
+  entryCause?: "play" | "digivolve" | "move";
   /**
    * The permanent whose ENTRY drove this SubTrigger event — the played card
    * (whenPlayed), the linked/host card (whenLinked / whenOneOfYoursDigivolves), or the
@@ -496,6 +506,17 @@ export interface GameAccess {
    * live engine always supplies it via createGameAccess from the continuous ledger.
    */
   linkCostReduction?(recipientId: string, cardTraits: readonly string[]): number;
+  linkCostReductionGrant?(
+    recipientId: string,
+    cardTraits: readonly string[],
+  ):
+    | {
+        amount: number;
+        controllerSeat?: Seat;
+        optional?: boolean;
+        oncePerTurnKey?: string;
+      }
+    | undefined;
   /**
    * A permanent's EFFECTIVE card kinds (static def.kinds ∪ continuous KindGrants).
    * A Tamer granted Digimon kind via grantKind is a Digimon for type-check gates
@@ -513,6 +534,8 @@ export interface GameAccess {
     permanentId: string,
     printedKinds?: readonly import("@aegis/shared").CardKind[],
   ): import("@aegis/shared").CardKind[];
+  /** A permanent's effective name set, including dynamic aliases from its digivolution stack. */
+  effectiveNames?(permanent: Permanent): string[];
   /** Effective printed-plus-granted colors used by Option color requirements. */
   effectiveColors?(permanent: Permanent): import("@aegis/shared").CardColor[];
   /** Current DP including active continuous modifiers during effect recomputation. */
@@ -554,8 +577,9 @@ export interface Primitives {
    * Record a seat-level play/move prohibition (rule implementation / rule implementation /
    * rule implementation): the restricted `seat` may not play/move a card matching `match` for
    * `duration`. Only the RESTRICTED seat's own actions/effects are blocked (the source
-   * player's effects may still play such cards), and token plays are exempt (KB EX7-014
-   * Q4673-4676/Q3834). Consulted by play-card / breeding-move legality and effect-driven plays.
+   * player's effects may still play such cards), and token plays are exempt unless the match
+   * opts into them (KB EX7-014 Q4673-4676/Q3834; BT14-017/Q2381). Consulted by play-card /
+   * breeding-move legality and effect-driven plays.
    * When `byEffectOnly` is true the prohibition applies only to effect-driven plays, leaving
    * normal hand play unaffected (KB Q4665–Q4668, Q6245 BT20-020).
    */
@@ -572,7 +596,8 @@ export interface Primitives {
    * right now by an active RestrictPlay prohibition? Used by the interpreter to gate an
    * EFFECT-driven play attributed to the resolving effect's owner seat — so a "your opponent
    * can't play <X>" effect blocks the opponent's effects (Q4676) but not the source player's
-   * (Q4675). Token plays return false (exempt, Q3834). Optional on the port (test fakes skip).
+   * (Q4675). Token plays return false (exempt by default, Q3834) unless the active match opts into tokens
+   * (BT14-017/Q2381). Optional on the port (test fakes skip).
    */
   isPlayProhibited?(seat: Seat, cardId: string, mode: "play" | "move", fromZone?: ZoneRef): boolean;
   /**
@@ -596,6 +621,8 @@ export interface Primitives {
   isTimingEffectDisabled?(permanentId: string, timing: DisableTiming): boolean;
   declareWinner(seat: Seat): void;
   setMemory(v: number): void;
+  /** Raise/set a specific seat's memory from that seat's perspective when the action targets it. */
+  setMemoryForSeat?(seat: Seat, value: number): void;
   /** Raise the active turn-end threshold for this effect's controller (BT14-081). */
   setTurnEndMinMemory?(seat: Seat, minimum: number): void;
   modifyDP(
@@ -631,6 +658,11 @@ export interface Primitives {
   /** Current play cost of a live permanent after active play-cost modifiers. */
   effectivePlayCost?(permanent: Permanent): number;
   /**
+   * Current cost of a loose card when used by its controller, after the same
+   * continuous hand-use reductions as an ordinary Option use.
+   */
+  effectiveLooseUseCost?(instanceId: string, controllerSeat: Seat): number | undefined;
+  /**
    * Play specific loose card instances as new battle-area permanents, locating each
    * one wherever it currently sits (hand, trash, deck, security, breeding, or as a
    * digivolution/linked card under another permanent). Generalizes `playFromHand` to
@@ -646,6 +678,8 @@ export interface Primitives {
       suspended?: boolean;
       breeding?: boolean;
       costDelta?: number;
+      /** Set the paid play's base cost to this value before continuous modifiers. */
+      costOverride?: number;
       suppressOnPlayEffects?: boolean;
       /** Card whose resolving effect initiated this play. */
       effectSourceCardId?: string;
@@ -939,19 +973,37 @@ export interface Primitives {
   /** Returns the permanent IDs that actually transitioned to suspended. */
   suspend(
     permanentIds: string[],
-    opts?: { byEffectSeat?: Seat; deferTriggers?: boolean; suppressWhenEffectSuspends?: boolean },
+    opts?: {
+      byEffectSeat?: Seat;
+      byEffectCardId?: string;
+      deferTriggers?: boolean;
+      suppressWhenEffectSuspends?: boolean;
+    },
   ): Promise<string[]>;
-  fireSuspensionTriggers?(permanentIds: string[], opts?: { byEffectSeat?: Seat }): Promise<void>;
+  fireSuspensionTriggers?(
+    permanentIds: string[],
+    opts?: { byEffectSeat?: Seat; byEffectCardId?: string },
+  ): Promise<void>;
   unsuspend(permanentIds: string[]): Promise<void>;
   /**
    * Return cards to their owners' hands. Async because a permanent bounce consults the
    * leave-the-battle-area PREVENT reactions first (a "would leave" reaction voids hand
-   * bounce too, not just deletion); a prevented permanent is left in play.
+   * bounce too, not just deletion); a prevented permanent is left in play. When
+   * `detachPermanentTop` is set, each id names a permanent's visible top card and only that
+   * card returns while its underlying stack card is promoted in place.
    */
-  returnToHand(instanceIds: string[], opts?: { silent?: boolean; byEffectSeat?: Seat }): Promise<CardInstance[]>;
+  returnToHand(
+    instanceIds: string[],
+    opts?: { silent?: boolean; byEffectSeat?: Seat; detachPermanentTop?: boolean },
+  ): Promise<CardInstance[]>;
   returnToDeck(
     instanceIds: string[],
-    opts?: { toTop?: boolean; byEffectSeat?: Seat; byEffectCardId?: string },
+    opts?: {
+      toTop?: boolean;
+      byEffectSeat?: Seat;
+      byEffectCardId?: string;
+      suppressWhenEffectAddsToDeck?: boolean;
+    },
   ): Promise<CardInstance[]>;
   /**
    * Return the named top cards of one or more Digimon stacks to their owners' deck tops while
@@ -961,7 +1013,7 @@ export interface Primitives {
    */
   returnStackTopsToDeck(
     instanceIds: string[],
-    opts?: { byEffectSeat?: Seat; byEffectCardId?: string },
+    opts?: { byEffectSeat?: Seat; byEffectCardId?: string; position?: "top" | "bottom" },
   ): Promise<CardInstance[]>;
   /** Return loose cards to the bottom of their owners' Digi-Egg decks, face-down. */
   returnToEggDeck?(instanceIds: string[]): Promise<CardInstance[]>;
@@ -1169,7 +1221,20 @@ export interface Primitives {
    * `rule implementation`): while active, a card carrying one of `traits` that would link
    * to this permanent has its link cost reduced by `amount`. `runLink`/`linkCostOf` read it.
    */
-  grantLinkCostReduction(permanentId: string, amount: number, traits: string[], duration: EffectDuration): void;
+  grantLinkCostReduction(
+    permanentId: string,
+    amount: number,
+    traits: string[],
+    duration: EffectDuration,
+    opts?: {
+      sourceInstanceId?: string;
+      controllerSeat?: Seat;
+      optional?: boolean;
+      oncePerTurnKey?: string;
+    },
+  ): void;
+  linkCostReductionUsed?(key: string): boolean;
+  markLinkCostReductionUsed?(key: string): void;
   /**
    * Grant a card kind to a permanent for a duration ("this Tamer is also treated as
    * a Digimon"). Recorded on the ContinuousEffectLedger; the permanent's effective
@@ -1199,6 +1264,16 @@ export interface Primitives {
    * parallel/inert path. Duration-scoped: lapses at its boundary or when the host leaves play.
    */
   grantCustomEffect?(instanceId: string, ownerSeat: Seat, token: string, duration: EffectDuration): void;
+  /** Grant a named effect to every matching current/future permanent controlled by `seat`. */
+  grantPlayerCustomEffect?(
+    seat: Seat,
+    ownerSeat: Seat,
+    token: string,
+    duration: EffectDuration,
+    matches: (permanentId: string) => boolean,
+  ): void;
+  /** Active named effects granted to a permanent, for live text-presence filters. */
+  customEffectGrants?(permanentId: string): readonly { token: string }[];
   /**
    * Record a seat-level "can't ignore digivolution requirements" rule (documented behavior
    * `rule implementation`). Normal and effect-driven digivolve legality
@@ -1230,13 +1305,14 @@ export interface Primitives {
     targetPermanentId: string,
     stackInstanceId: string,
     duration: EffectDuration,
-    opts?: { trigger?: string; inheritedOnly?: boolean; granterInstanceId?: string },
+    opts?: { trigger?: string; excludeInherited?: boolean; inheritedOnly?: boolean; granterInstanceId?: string },
   ): void;
   /** Read the currently active stack-effect conferrals (for effects that borrow another card's skills). */
   stackEffectConferrals?(): readonly {
     targetPermanentId: string;
     stackInstanceId: string;
     trigger?: string;
+    excludeInherited?: boolean;
     inheritedOnly?: boolean;
     granterInstanceId?: string;
   }[];
@@ -1295,6 +1371,7 @@ export interface Primitives {
     attackerPermanentId: string,
     opts?: {
       withoutSuspending?: boolean;
+      ignoreSummoningSickness?: boolean;
       attackPlayer?: boolean;
       attackPlayerOnly?: boolean;
       attackMechanic?: string;
@@ -1445,6 +1522,8 @@ export interface Primitives {
 /** Args for installing a delayed/triggered sub-effect via the primitives. */
 export interface SubTriggerInstall {
   event: SubTriggerEventName;
+  /** Stable action identity used to avoid duplicate installs while preserving distinct clauses. */
+  dedupeKey?: string;
   /** Printed placement class retained so a pending watcher passes the same kernel guard. */
   isInheritedSource?: boolean;
   isLinkedSource?: boolean;
@@ -1552,6 +1631,7 @@ export interface ReplacementInstallReduceCost extends ReplacementInstallBase {
     target: Permanent,
     into: CardDefinition,
     evolvingInstanceId?: string,
+    materials?: readonly Permanent[],
   ) => Promise<boolean | number>;
   consumeOnActivate?: boolean;
 }
@@ -1735,6 +1815,11 @@ export interface EffectContext {
   continuousPass?: boolean;
   /** Exact rules clause currently resolving, including inherited/security provenance. Display-only. */
   activeEffectText?: string;
+  /**
+   * Context-specific rules applied while a borrowed CardEffect resolves. This is seeded only by
+   * an ActivateForeignEffect action and never mutates the lender's compiled IR.
+   */
+  borrowedEffectOverrides?: ActivateForeignEffectOverrides;
   /** Stable compiled effect identity used by installed reactive actions; never derived from prose. */
   activeEffectKey?: string;
   /** Stable zero-based action path within the active compiled effect. */
@@ -1771,7 +1856,10 @@ export interface EffectContext {
    * opponent's Digimon with as much or less DP as it" — BT16-070) still needs those attributes
    * after the permanent has left the board, where `selections` alone resolves to nothing.
    */
-  selectionFacts?: Map<string, { dp?: number; level?: number; playCost?: number; digivolutionCount?: number }>;
+  selectionFacts?: Map<
+    string,
+    { dp?: number; level?: number; playCost?: number; digivolutionCount?: number; name?: string }
+  >;
   /**
    * When set, this effect is conferred from a digivolution-stack card onto
    * `conferredToPermanentId` (GrantStatic grant:"effects").
@@ -1808,6 +1896,8 @@ export interface EffectContext {
    * Undefined => no Digimon with a level was deleted in this resolution.
    */
   lastDeletedLevel?: number;
+  /** Live DP captured before the most recent deletion, for DP-bounded follow-up targets. */
+  lastDeletedDP?: number;
   lastDigivolveResult?: boolean;
   lastOptionUsed?: boolean;
   lastOptionUsedInstanceId?: string;
@@ -1854,9 +1944,11 @@ export interface EffectContext {
    * real destination id, so the relocation itself can't run yet). The engine reads this list once the
    * played permanent is created and performs the deferred `relocatePermanent` calls then (mirrors the
    * BT10-093 cross-permanent reducer's `pendingPlayReducerPlacements` queue). Undefined / empty =>
-   * no self-reducer requested a relocation this play.
+   * no self-reducer requested a relocation this play. `shedOwnCards` relocates only the source
+   * permanent's top card and trashes the rest of its stack (BT15-102 places battle-area top cards
+   * per KB Q2599); without it the whole permanent moves under the played card (BT12-112).
    */
-  pendingSelfReducerRelocations?: string[];
+  pendingSelfReducerRelocations?: { permanentId: string; shedOwnCards?: boolean }[];
   /** Loose card instance ids committed under the card being played once its permanent exists. */
   pendingSelfReducerPlacements?: string[];
   /**
@@ -1872,6 +1964,11 @@ export interface EffectContext {
   lastMemoryGainAmount?: number;
   /** Loose card instances moved by the immediately preceding PlaceUnder action. */
   lastPlacedUnderInstanceIds?: string[];
+  /**
+   * Loose card instances moved by all PlaceUnder actions in this effect resolution. Reset at the
+   * action-bearing runEffect boundary; nested resolutions restore their caller's accumulator.
+   */
+  placedUnderInstanceIdsThisEffect?: string[];
   /**
    * The permanent ids resolved by the most recent primary-target action in this effect
    * resolution. Written after each `resolvePermanentTargets` call for a non-sameTarget target;

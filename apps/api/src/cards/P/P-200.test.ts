@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-200.js";
 
 describe("P-200 Kanan Yuki", () => {
@@ -37,5 +40,17 @@ describe("P-200 Kanan Yuki", () => {
       isSecurity: true,
       actions: [{ kind: "PlayWithoutCost", payCost: false, target: { isSelf: true } }],
     });
+  });
+
+  it("suspends an opposing Digimon at the four-memory boundary", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "P-200", as: "kanan" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+    });
+    s.state.memory = 4;
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("kanan"));
+    await settle();
+    expect(s.perm("target").isSuspended).toBe(true);
   });
 });

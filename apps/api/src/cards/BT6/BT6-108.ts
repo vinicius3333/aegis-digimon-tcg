@@ -13,6 +13,7 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenTrashedFromHand",
+          bySourceController: "mine",
           sourceFilter: {
             isSelfRef: true,
           },

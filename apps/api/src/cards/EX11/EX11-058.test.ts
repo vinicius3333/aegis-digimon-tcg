@@ -108,7 +108,9 @@ describe("EX11-058 Yao Qinglan", () => {
       playedByDecode: true,
     });
 
-    expect(observe(s.engine).isRestricted(s.perm("target"), "suspend")).toBe(true);
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "beSuspended"));
+
+    expect(observe(s.engine).isRestricted(s.perm("target"), "beSuspended")).toBe(true);
     assertNoLoudGap(s);
   });
 

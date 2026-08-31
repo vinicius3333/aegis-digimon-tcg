@@ -31,7 +31,7 @@ describe("EX9-069", () => {
         {
           kind: "SubTrigger",
           event: "onAddDigivolutionCards",
-          sourceFilter: { controller: "mine", kind: ["Digimon"] },
+          sourceFilter: { controller: "mine", kind: ["Digimon"], zone: "battleArea" },
           addedDigivolutionCardFilter: { faceDown: true },
           cost: { kind: "suspend", target: { filter: { isSelfRef: true } } },
           actions: [
@@ -89,7 +89,7 @@ describe("EX9-069", () => {
       {
         0: {
           battleArea: [{ card: "EX9-069", as: "source" }],
-          breeding: { card: "EX9-065", as: "breeding" },
+          breeding: { card: "EX9-065", as: "breeding", under: [{ card: "BT1-009", faceUp: false }] },
           deck: ["BT1-010"],
         },
       },
@@ -99,7 +99,7 @@ describe("EX9-069", () => {
 
     await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
       subjectPermanentId: s.perm("breeding").permanentId,
-      addedDigivolutionCardInstanceIds: [],
+      addedDigivolutionCardInstanceIds: [s.perm("breeding").stack[0]!.instanceId],
     });
 
     expect(s.perm("source").isSuspended).toBe(false);

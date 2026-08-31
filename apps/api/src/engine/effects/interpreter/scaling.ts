@@ -157,8 +157,18 @@ function countLinkCards(ctx: EffectContext, filter: Filter): number {
 export function scaleFactor(ctx: EffectContext, scaling: Scaling): number {
   let raw = 0;
   const filter = scaling.filter ?? {};
-  if ((filter as { deletedByTrigger?: boolean }).deletedByTrigger === true) {
-    raw = ctx.trigger.deletedPermanentIds?.length ?? 0;
+  if (filter.deletedByTrigger === true) {
+    const snapshots = ctx.trigger.deletedPermanentSnapshots;
+    if (snapshots === undefined) {
+      raw = ctx.trigger.deletedPermanentIds?.length ?? 0;
+    } else {
+      const allowedSeats = seatsForController(ctx, filter);
+      raw = snapshots.filter(
+        ({ controllerSeat, topCardId }) =>
+          allowedSeats.includes(controllerSeat) &&
+          definitionMatches(filter, ctx.game.definitionOf({ cardId: topCardId } as never)),
+      ).length;
+    }
     const per = scaling.per > 0 ? scaling.per : 1;
     return Math.floor(raw / per);
   }
@@ -188,6 +198,9 @@ export function scaleFactor(ctx: EffectContext, scaling: Scaling): number {
     return Math.floor(ids.length / per);
   }
   switch (scaling.unit) {
+    case "lastDeletedLevel":
+      raw = ctx.lastDeletedLevel ?? 0;
+      break;
     case "memory": {
       const ownPerspective =
         ctx.source.ownerSeat === ctx.game.state.turnSeat ? ctx.game.state.memory : -ctx.game.state.memory;
@@ -203,6 +216,9 @@ export function scaleFactor(ctx: EffectContext, scaling: Scaling): number {
       } else {
         raw = countMatching(ctx, filter);
       }
+      break;
+    case "placedCards":
+      raw = ctx.placedUnderInstanceIdsThisEffect?.length ?? 0;
       break;
     case "colors":
       raw = countColors(ctx, filter);

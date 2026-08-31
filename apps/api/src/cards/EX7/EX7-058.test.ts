@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { Phase } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
+import { compiled } from "./EX7-058.js";
 
 /**
  * A3 — Q1f: EX7-058 (LadyDevimon (X Antibody)) [On Play] [When Digivolving] "1 of your
@@ -34,6 +35,17 @@ import "../index.js";
  */
 
 describe('A3 EX7-058 — granted "[End of Attack] Delete this Digimon." (malformed-shape crash)', () => {
+  it("uses the canonical Volée & Zerdrücken token identity in both entry effects", () => {
+    const tokenEffects = compiled.effects?.filter(
+      (effect) => effect.trigger === "OnPlay" || effect.trigger === "WhenDigivolving",
+    );
+    expect(tokenEffects).toHaveLength(2);
+    expect(tokenEffects?.map((effect) => effect.actions[1])).toEqual([
+      expect.objectContaining({ kind: "PlayToken", tokens: ["Volée & Zerdrücken"] }),
+      expect.objectContaining({ kind: "PlayToken", tokens: ["Volée & Zerdrücken"] }),
+    ]);
+  });
+
   it("POSITIVE: the granted recipient's own attack (which suspends it) completes without throwing", async () => {
     const s = setupEngine(
       {

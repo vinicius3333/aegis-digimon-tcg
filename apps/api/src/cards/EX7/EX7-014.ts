@@ -26,9 +26,10 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "Restrict",
-          target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 6000 } }, count: 0 },
-          restriction: "playOrMove",
+          kind: "RestrictPlay",
+          seat: "opponent",
+          filter: { kind: ["Digimon"], dpAtMost: 6000 },
+          mode: "playOrMove",
           duration: "untilOpponentTurnEnd",
         },
       ],

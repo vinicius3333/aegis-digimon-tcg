@@ -31,6 +31,7 @@ export const compiled: CompiledCard = {
             zone: "trash",
           },
           from: ["trash"],
+          payCost: true,
           reduceCost: 1,
           optional: true,
           cost: {

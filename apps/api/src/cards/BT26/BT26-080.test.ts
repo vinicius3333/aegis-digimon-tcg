@@ -17,6 +17,7 @@ describe("BT26-080 compiled behavior", () => {
       types: ["Shaman", "Olympos XII", "Iliad", "TS"],
       isDualCard: true,
       dualEffect: "Reversal of the Dead",
+      optionColorRequirements: ["Purple"],
     });
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toHaveLength(0);
@@ -227,6 +228,20 @@ describe("BT26-080 compiled behavior", () => {
 
     expect(s.state.memory).toBe(0);
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual(["BT1-080"]);
+  });
+
+  it("enforces the DUAL Option's Purple color requirement when no TS card is in play", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "BT26-080", as: "option" }] } });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+        useAs: "option",
+      } as never),
+    ).toEqual({ ok: false, reason: "color-requirement-unmet" });
   });
 
   it("Q7114 may unsuspend your Digimon before deleting all opposing lowest-DP unsuspended Digimon", async () => {

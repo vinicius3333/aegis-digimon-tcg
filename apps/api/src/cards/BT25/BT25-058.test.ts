@@ -101,6 +101,20 @@ describe("BT25-058 Callismon", () => {
     expect(triggered).toHaveLength(3);
     expect(triggered.every((effect) => effect.frequency === "OncePerTurn")).toBe(true);
     expect(triggered.map((effect) => effect.sharedUseKey)).toEqual(["ir-shared-0", "ir-shared-0", "ir-shared-0"]);
+    for (const effect of triggered) {
+      expect(effect.actions[0]).toMatchObject({
+        kind: "Suspend",
+        target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 1 },
+        optional: true,
+      });
+      expect(effect.actions[1]).toMatchObject({
+        kind: "Restrict",
+        target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 1 },
+        restriction: "unsuspend",
+        duration: "untilOpponentTurnEnd",
+      });
+      expect(effect.actions[1]).not.toHaveProperty("condition");
+    }
     expect(
       compiled.effects.find((effect) => effect.trigger === "Static")?.keywords?.map((keyword) => keyword.keyword),
     ).toEqual(["Reboot", "Blocker", "Fortitude"]);
@@ -220,7 +234,7 @@ describe("BT25-058 Callismon", () => {
     expect(s.perm("suspendTarget").isSuspended).toBe(false);
   });
 
-  it("On Play can suspend one opponent and restrict a different Digimon/Tamer, then declines cleanly", async () => {
+  it("On Play can suspend one opponent and restrict a different Digimon/Tamer", async () => {
     const s = setupEngine(
       {
         0: { hand: [{ card: "BT25-058", as: "callismon" }] },
@@ -276,9 +290,9 @@ describe("BT25-058 Callismon", () => {
     expect(
       declined.engine.applyIntent(0, { type: "playCard", instanceId: declined.inst("callismon").instanceId }),
     ).toEqual({ ok: true });
-    await settle(() => declined.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-058"));
+    await settle(() => observe(declined.engine).hasRestriction(declined.perm("target"), "unsuspend"));
     expect(declined.perm("target").isSuspended).toBe(false);
-    expect(observe(declined.engine).hasRestriction(declined.perm("target").permanentId, "unsuspend")).toBe(false);
+    expect(observe(declined.engine).hasRestriction(declined.perm("target").permanentId, "unsuspend")).toBe(true);
   });
 
   it("When Attacking includes opponent Tamers and Digimon, with the player attack as the combat boundary", async () => {

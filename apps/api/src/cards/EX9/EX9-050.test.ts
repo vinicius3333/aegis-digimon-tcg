@@ -26,7 +26,11 @@ describe("EX9-050", () => {
         target: {
           count: 3,
           from: ["trash"],
-          filter: { zone: "trash", nameOrTrait: [{ tokens: ["Ver.1"], match: "trait" }] },
+          filter: {
+            zone: "trash",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Ver.1"], match: "trait" }],
+          },
         },
         destination: "digivolutionStack",
         position: "bottom",

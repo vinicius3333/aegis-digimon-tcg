@@ -52,6 +52,26 @@ describe("BT12-081 Astamon", () => {
     expect(s.perm("astamon").topCard?.cardId).toBe("BT12-057");
   });
 
+  it("does not resolve Quartzmon after the optional Save play branch acts", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT12-081", as: "astamon", under: ["BT12-008", "BT12-009", "BT12-010", "BT12-011"] },
+            { card: "BT12-094", as: "tamer", under: ["BT12-008"] },
+          ],
+          hand: ["BT12-057"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("astamon"));
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("astamon").topCard?.cardId).toBe("BT12-081");
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT12-057");
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-008")).toBe(true);
+  });
+
   it("does not offer Quartzmon with fewer than four digivolution cards", async () => {
     const s = setupEngine(
       {

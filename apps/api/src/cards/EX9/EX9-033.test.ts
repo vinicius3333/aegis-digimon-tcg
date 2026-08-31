@@ -30,6 +30,17 @@ describe("EX9-033", () => {
         },
       ],
     }));
+  it("watches deletion of any other Digimon", () =>
+    expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns" && entry.frequency === "OncePerTurn"))
+      .toMatchObject({
+        actions: [
+          {
+            kind: "SubTrigger",
+            event: "onDeletionOf",
+            sourceFilter: { controller: "any", excludeSelf: true, kind: ["Digimon"] },
+          },
+        ],
+      }));
 
   it("grants both keywords to an own Puppet and not an opposing Digimon", async () => {
     const s = setupEngine({
@@ -69,6 +80,25 @@ describe("EX9-033", () => {
     await settle(() => s.state.players[0]!.battleArea.every((p) => p.topCard.cardId !== "EX9-024"));
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT1-009")).toBe(false);
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "EX9-032")).toBe(true);
+  });
+
+  it("also triggers when an opposing Digimon is deleted", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX9-033", as: "source" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "lowest" },
+            { card: "EX9-032", as: "deleted" },
+          ],
+        },
+      },
+      { autoOrderTriggers: true },
+    );
+
+    await advance(s.engine).verb.deletePermanent([s.perm("deleted").permanentId]);
+    await settle(() => s.state.players[1]!.battleArea.every((p) => p.topCard.cardId !== "BT1-009"));
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT1-009")).toBe(false);
   });
 
   it("plays a level-four-or-lower Puppet from trash at end of turn without cost", async () => {

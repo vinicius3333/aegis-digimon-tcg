@@ -9,21 +9,6 @@ export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
-      actions: [],
-      keywords: [{ keyword: "Reboot", raw: "＜Reboot＞" }],
-    },
-    {
-      trigger: "Static",
-      actions: [],
-      keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }],
-    },
-    {
-      trigger: "Static",
-      actions: [],
-      keywords: [{ keyword: "Fortitude", raw: "＜Fortitude＞" }],
-    },
-    {
-      trigger: "Static",
       actions: [
         {
           kind: "Replacement",

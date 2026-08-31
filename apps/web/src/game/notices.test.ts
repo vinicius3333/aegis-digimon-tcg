@@ -34,7 +34,7 @@ function notice(overrides: Partial<MatchNotice> = {}): MatchNotice {
 }
 
 const resolved = (seat: Seat): ServerEvent => ({
-  kind: "effectResolved",
+  kind: "effectTriggered",
   seat,
   sourceCardId: "BT1-010",
   effectKey: "k",
@@ -79,6 +79,11 @@ describe("effectNoticeFromEvent", () => {
 
   it("marks an effect a security card raised", () => {
     expect(effectNoticeFromEvent(resolved(0), VIEWER, "a", 0, true)?.fromSecurity).toBe(true);
+  });
+
+  it("marks an effect the server stamped as fired mid-check", () => {
+    const event: ServerEvent = { ...resolved(0), duringSecurityCheck: true } as ServerEvent;
+    expect(effectNoticeFromEvent(event, VIEWER, "a", 0)?.fromSecurity).toBe(true);
   });
 
   it("ignores other events", () => {

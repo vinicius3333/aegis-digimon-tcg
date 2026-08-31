@@ -21,7 +21,14 @@ describe("EX7-019 Sorcermon", () => {
   it("inherits once-per-turn top evolution trash", () =>
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
       frequency: "OncePerTurn",
-      actions: [{ kind: "TrashDigivolution", amount: 1, fromTop: true }],
+      actions: [
+        {
+          kind: "TrashDigivolution",
+          amount: 1,
+          fromTop: true,
+          target: { filter: { digivolutionCards: "hasAny" } },
+        },
+      ],
     }));
 
   it("unsuspends one of my Digimon when the opponent has no digivolution cards", async () => {

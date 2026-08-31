@@ -15,7 +15,8 @@ describe("BT17-060 Armageddemon", () => {
           kind: "Replacement",
           mode: "reduceCost",
           amount: 1,
-          cost: { kind: "place", target: { count: 13, upTo: true, from: ["trash"] } },
+          amountFromPaidCost: true,
+          cost: { kind: "return", to: "deckBottom", target: { count: 13, upTo: true, from: ["trash"] } },
           scaling: { per: 1, unit: "cards" },
         },
       ],
@@ -65,6 +66,7 @@ describe("BT17-060 Armageddemon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 16;
+    const reducedCardIds = [s.inst("costOne").instanceId, s.inst("costTwo").instanceId, s.inst("costThree").instanceId];
     const unsuspendedTargetId = s.perm("unsuspendedTarget").permanentId;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("armageddemon").instanceId })).toEqual({
@@ -77,7 +79,9 @@ describe("BT17-060 Armageddemon", () => {
         ),
     );
 
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.trash.some((card) => reducedCardIds.includes(card.instanceId))).toBe(false);
+    expect(s.state.players[0]!.deck.some((card) => reducedCardIds.includes(card.instanceId))).toBe(true);
     const armageddemon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT17-060")!;
     expect(observe(s.engine).hasKeyword(armageddemon, "Rush")).toBe(true);
     expect(observe(s.engine).hasKeyword(armageddemon, "Blocker")).toBe(true);

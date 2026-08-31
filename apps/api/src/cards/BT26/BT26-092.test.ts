@@ -50,6 +50,8 @@ describe("BT26-092 Shota Kuroi", () => {
             {
               kind: "RedirectAttack",
               optional: true,
+              abortOnDecline: true,
+              allowCostWithoutTarget: true,
               target: {
                 filter: {
                   controller: "mine",
@@ -145,7 +147,7 @@ describe("BT26-092 Shota Kuroi", () => {
     expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("BT26-092");
   });
 
-  it("does not return a TS Tamer when no TS Digimon can receive the attack", async () => {
+  it("may return a TS Tamer even when no TS Digimon can receive the attack", async () => {
     const s = setupEngine(
       {
         0: {
@@ -171,8 +173,8 @@ describe("BT26-092 Shota Kuroi", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 0);
 
-    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-092")).toBe(true);
-    expect(s.state.players[0]!.deck.some(({ cardId }) => cardId === "BT26-092")).toBe(false);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-092")).toBe(false);
+    expect(s.state.players[0]!.deck.some(({ cardId }) => cardId === "BT26-092")).toBe(true);
   });
 
   it("may decline the redirect without paying the Tamer return cost", async () => {

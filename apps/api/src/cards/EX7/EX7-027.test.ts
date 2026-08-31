@@ -22,8 +22,26 @@ describe("EX7-027", () => {
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
       trigger: "AllTurns",
       frequency: "OncePerTurn",
-      actions: [{ kind: "Replacement", event: "wouldLeavePlay" }],
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          leaveCause: "otherThanYourEffect",
+          cost: { target: { filter: { allowTokens: true } } },
+        },
+      ],
     }));
+
+  it("uses the errata-mandated mandatory Overclock attack", () => {
+    const attack = compiled.effects?.find((entry) => entry.trigger === "EndOfYourTurn")?.actions[0];
+    expect(attack).toMatchObject({
+      kind: "Attack",
+      attackPlayer: true,
+      withoutSuspending: true,
+      cost: { kind: "deleteOwn", target: { filter: { allowTokens: true } } },
+    });
+    expect(attack).not.toHaveProperty("optional");
+  });
 
   it("plays a level 3 Puppet from hand when digivolving", async () => {
     const s = setupEngine(

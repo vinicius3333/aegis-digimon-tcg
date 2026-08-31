@@ -47,11 +47,11 @@ const compiled: CompiledCard = {
                   },
                   count: 5,
                   upTo: true,
+                  allowZero: true,
                 },
                 raw: "by returning up to 5 cards with [D-Brigade] in their traits from your trash to the top of your deck",
               },
-              optional: true,
-              abortOnDecline: true,
+              optional: false,
             },
           ],
           scaling: {

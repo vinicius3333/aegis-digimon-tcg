@@ -27,7 +27,7 @@ describe("BT13-049 Lalamon", () => {
                 ],
               },
             },
-            { count: 1, to: "hand", filter: { nameOrTrait: [{ match: "name", tokens: ["Yoshino Fujieda"] }] } },
+            { count: 1, to: "hand", filter: { nameOrTrait: [{ match: "nameExact", tokens: ["Yoshino Fujieda"] }] } },
           ],
         },
       ],
@@ -77,6 +77,29 @@ describe("BT13-049 Lalamon", () => {
     expect(s.state.players[0]!.deck.at(-1)!.instanceId).toBe(s.inst("nonmatch").instanceId);
   });
 
+  it("does not treat a longer Yoshino name as the exact Yoshino Fujieda Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-049", as: "lalamon" }],
+          deck: [
+            { card: "BT13-050", as: "vegetation" },
+            { card: "ST24-14", as: "long-yoshino" },
+            { card: "BT13-047", as: "nonmatch" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("lalamon"));
+    await settle(() => s.state.players[0]!.hand.length === 1);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("vegetation").instanceId]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId).sort()).toEqual(
+      [s.inst("long-yoshino").instanceId, s.inst("nonmatch").instanceId].sort(),
+    );
+  });
+
   it("reduces its host's digivolution cost by 1 with an own green Tamer", async () => {
     const s = setupEngine({
       0: {
@@ -89,27 +112,34 @@ describe("BT13-049 Lalamon", () => {
     });
     await s.ready();
     s.state.memory = 3;
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("host").permanentId,
-      instanceId: s.inst("sunflow").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("sunflow").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard.cardId === "BT13-050");
     expect(s.state.memory).toBe(2);
   });
 
   it("does not reduce without an own green Tamer", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT13-047", as: "host", under: ["BT13-049"] }], hand: [{ card: "BT13-050", as: "sunflow" }] },
+      0: {
+        battleArea: [{ card: "BT13-047", as: "host", under: ["BT13-049"] }],
+        hand: [{ card: "BT13-050", as: "sunflow" }],
+      },
       1: { battleArea: [{ card: "BT13-100", as: "opponent-yoshino" }] },
     });
     await s.ready();
     s.state.memory = 3;
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("host").permanentId,
-      instanceId: s.inst("sunflow").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("sunflow").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard.cardId === "BT13-050");
     expect(s.state.memory).toBe(1);
   });
@@ -119,11 +149,13 @@ describe("BT13-049 Lalamon", () => {
       0: { battleArea: [{ card: "BT13-004", as: "base" }], hand: [{ card: "BT13-049", as: "lalamon" }] },
     });
     s.state.memory = 1;
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("lalamon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("lalamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT13-049");
     expect(s.state.memory).toBe(1);
   });

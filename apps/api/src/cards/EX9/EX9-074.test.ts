@@ -25,7 +25,7 @@ describe("EX9-074", () => {
       kind: "ModifyDP",
       amount: 1000,
       duration: "permanent",
-      scaling: { unit: "colors", per: 1 },
+      scaling: { unit: "digivolutionCardColors", per: 1 },
     });
   });
 

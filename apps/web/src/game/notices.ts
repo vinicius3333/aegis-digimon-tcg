@@ -36,8 +36,9 @@ export type NoticeHorizontal = "left" | "right";
 export type NoticeAnchor = `${NoticeVertical}-${NoticeHorizontal}`;
 
 export type NoticeBody =
-  | { variant: "effect"; cardId: string; timing?: string; description?: string }
+  | { variant: "effect"; cardId: string; timing?: string; description?: string; isInherited?: boolean }
   | { variant: "recovery"; amount: number }
+  | { variant: "securityGain"; amount: number }
   | { variant: "rejection"; reason: string }
   | { variant: "keyword"; keyword: NoticeKeyword; cardId: string };
 
@@ -59,7 +60,11 @@ function sideOf(seat: Seat, viewerSeat: Seat): NoticeSide {
   return seat === viewerSeat ? "you" : "opp";
 }
 
-/** The notice a resolved effect deserves, for either seat. */
+/**
+ * The notice an effect deserves as it starts resolving, for either seat.
+ * Driven by `effectTriggered` rather than `effectResolved`, so the clause is
+ * readable before any selection the effect asks its controller for.
+ */
 export function effectNoticeFromEvent(
   event: ServerEvent,
   viewerSeat: Seat,
@@ -67,12 +72,18 @@ export function effectNoticeFromEvent(
   nowMs: number,
   fromSecurity = false,
 ): MatchNotice | null {
-  if (event.kind !== "effectResolved") return null;
+  if (event.kind !== "effectTriggered") return null;
   return {
     id,
     side: sideOf(event.seat, viewerSeat),
-    fromSecurity,
-    body: { variant: "effect", cardId: event.sourceCardId, timing: event.timing, description: event.description },
+    fromSecurity: fromSecurity || event.duringSecurityCheck === true,
+    body: {
+      variant: "effect",
+      cardId: event.sourceCardId,
+      timing: event.timing,
+      description: event.description,
+      isInherited: event.isInherited,
+    },
     createdAt: nowMs,
   };
 }
@@ -92,6 +103,15 @@ export function recoveryNoticeFromEvent(
     body: { variant: "recovery", amount: event.amount },
     createdAt: nowMs,
   };
+}
+
+/**
+ * The notice a security stack deserves when an effect adds to it outside a recovery —
+ * a card placed there from the hand, the deck or the trash. The stack is face-down,
+ * so the notice carries only the count; on the stacking player's side.
+ */
+export function securityGainNotice(side: NoticeSide, amount: number, id: string, nowMs: number): MatchNotice {
+  return { id, side, fromSecurity: false, body: { variant: "securityGain", amount }, createdAt: nowMs };
 }
 
 /**
@@ -162,6 +182,22 @@ export function nextNoticeExpiry(notices: readonly MatchNotice[], nowMs: number)
 
 export function dismissNotice(notices: readonly MatchNotice[], id: string): MatchNotice[] {
   return notices.filter((notice) => notice.id !== id);
+}
+
+/**
+ * Drop the viewer's own effect notices for `cardId`.
+ *
+ * The decision dialog that asks the viewer whether to activate their own effect already
+ * names the card and prints the clause, so the notice would repeat it word for word in the
+ * corner. The opponent's notices stay: their dialog is not on this screen.
+ */
+export function dismissOwnEffectNotices(notices: readonly MatchNotice[], cardId: string): readonly MatchNotice[] {
+  const kept = notices.filter(
+    (notice) => !(notice.side === "you" && notice.body.variant === "effect" && notice.body.cardId === cardId),
+  );
+  // Same array back when nothing matched, so a caller storing this in state re-renders
+  // only when a notice was actually dropped.
+  return kept.length === notices.length ? notices : kept;
 }
 
 /** The notices sharing one anchor, oldest first — which is how they stack. */

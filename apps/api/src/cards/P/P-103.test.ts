@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming, type CardDefinition, type GameState, type Permanent, type Seat } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import "./P-103.js";
@@ -373,5 +375,68 @@ describe("P-103 (Offense Training)", () => {
     // When the player declines the optional digivolve, digivolveFromInstance must not fire.
     const digivolves = recorder.calls.filter((c) => c.verb === "digivolveFromInstance");
     expect(digivolves).toHaveLength(0);
+  });
+
+  it("places itself in the battle area when revealed as Security", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "P-103", as: "training" }] } });
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("training"));
+    await settle();
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("training").instanceId)).toBe(
+      true,
+    );
+  });
+  it("reveals and adds its color card before placing itself in the battle area", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "P-103", as: "source" }],
+          battleArea: [{ card: "BT1-009", as: "color" }],
+          deck: [{ card: "BT1-009", as: "match" }, "BT1-037"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("match").instanceId));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("match").instanceId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("source").instanceId),
+    ).toBe(true);
+  });
+
+  it("uses Delay to digivolve a Digimon into a red card from hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-103", as: "delay" },
+            { card: "BT1-009", as: "host" },
+          ],
+          hand: [{ card: "BT1-016", as: "target" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    s.state.turnCount = 1;
+    await s.ready();
+    const delayAbility = JSON.parse(s.perm("delay").activatableEffectsJson) as { effectKey: string }[];
+    expect(delayAbility).toHaveLength(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("delay").instanceId,
+        effectKey: delayAbility[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("delay").instanceId)).toBe(true);
+    expect(s.perm("host").topCard.cardId).toBe("BT1-016");
+    expect(s.state.memory).toBe(10);
   });
 });

@@ -3,6 +3,7 @@ import { EffectTiming, type CardInstance, type Seat } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT7-100.js";
 
@@ -63,6 +64,7 @@ function makeCtx(
     ? [
         {
           permanentId: rasenmonPermanentId,
+          controllerSeat: 0 as Seat,
           topCard: card("rasenmon-top", RASENMON_ID, 0),
           isSuspended: false,
           stack: [] as CardInstance[],
@@ -76,6 +78,7 @@ function makeCtx(
     ? [
         {
           permanentId: opponentDigimonPermanentId,
+          controllerSeat: 1 as Seat,
           topCard: card("opp-top", OTHER_DIGIMON_ID, 1),
           isSuspended: false,
           stack: [] as CardInstance[],
@@ -171,6 +174,20 @@ function makeCtx(
 describe("BT7-100 Qualialise Blast", () => {
   const module = getEffectModule("BT7-100");
 
+  it("uses exact matching for the bracket-only Rasenmon name", () => {
+    expect(runtimeCompiledCard("BT7-100")?.effects.find((effect) => effect.trigger === "Main")).toMatchObject({
+      actions: [
+        {},
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: { nameOrTrait: [{ tokens: ["Rasenmon"], match: "nameExact" }] },
+          },
+        },
+      ],
+    });
+  });
+
   it("is registered on import", () => {
     expect(module, "BT7-100 must self-register").toBeDefined();
   });
@@ -201,6 +218,18 @@ describe("BT7-100 Qualialise Blast", () => {
     expect(changePlayCostCalls).toHaveLength(1);
     // The second arg is the cost value (security count = 3)
     expect(changePlayCostCalls[0]!.args[1]).toBe(3);
+  });
+
+  it("[Static] sets the cost to zero when the owner's security stack is empty", async () => {
+    // FAILS-WHEN-REVERTED: an invented floor of 1 makes this zero-security case cost 1.
+    const { ctx, recorder } = makeCtx({ securityCount: 0, inHand: true });
+    const source = makeSource(true);
+    const effects = module!.effectsForTiming(EffectTiming.None, source);
+    await effects[0]!.resolve(ctx);
+
+    const changePlayCostCalls = recorder.calls.filter((c) => c.verb === "changePlayCost");
+    expect(changePlayCostCalls).toHaveLength(1);
+    expect(changePlayCostCalls[0]!.args[1]).toBe(0);
   });
 
   it("[Security] adds this card to owner's hand via returnToHand", async () => {

@@ -49,4 +49,28 @@ describe("EX1-069 Ultimate Connection!", () => {
     expect(s.state.players[1]!.hand.some((c) => c.instanceId === drawnId)).toBe(true);
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });
+
+  it("does not resolve the gain/draw payload when the optional trash cost is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX1-069", as: "option" },
+            { card: "EX1-008", as: "cost" },
+          ],
+          battleArea: [{ card: "EX1-047", as: "blackSource" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 1;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
+    expect(s.state.memory).toBe(-2);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(false);
+  });
 });

@@ -31,14 +31,13 @@ export const compiled: CompiledCard = {
           },
           effectText: "[When Attacking] Lose 4 memory",
           duration: "untilOpponentTurnEnd",
+          includeLaterEntrants: true,
           condition: {
             kind: "selfDigivolutionStackHasTrait",
             filter: {
               nameOrTrait: [
-                {
-                  tokens: ["MetalGarurumon", "X Antibody"],
-                  match: "name",
-                },
+                { tokens: ["MetalGarurumon"], match: "name" },
+                { tokens: ["X Antibody"], match: "trait" },
               ],
             },
             raw: "[MetalGarurumon] or [X Antibody] is in this Digimon's digivolution cards",

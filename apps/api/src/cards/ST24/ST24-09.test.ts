@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("ST24-09 Sunflowmon", () => {
@@ -25,5 +26,29 @@ describe("ST24-09 Sunflowmon", () => {
       amount: 1000,
       duration: "permanent",
     });
+  });
+
+  it("suspends the chosen opponent and places the deck top face down under the Tamer on play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST24-13", as: "tamer" }],
+          hand: [{ card: "ST24-09", as: "sunflowmon" }],
+          deck: [{ card: "BT1-001", as: "deckTop" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const deckTopId = s.inst("deckTop").instanceId;
+    s.state.memory = 4;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sunflowmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("tamer").stack.some(({ instanceId }) => instanceId === deckTopId));
+
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.perm("tamer").stack).toContainEqual(expect.objectContaining({ instanceId: deckTopId, faceUp: false }));
   });
 });

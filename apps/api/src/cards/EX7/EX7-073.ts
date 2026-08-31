@@ -46,6 +46,7 @@ export const compiled: CompiledCard = {
             target: {
               filter: {
                 zone: "digivolutionCards",
+                isSelfRef: true,
                 nameOrTrait: [
                   {
                     tokens: ["Three Musketeers"],
@@ -91,6 +92,7 @@ export const compiled: CompiledCard = {
             target: {
               filter: {
                 zone: "digivolutionCards",
+                isSelfRef: true,
                 nameOrTrait: [
                   {
                     tokens: ["Three Musketeers"],

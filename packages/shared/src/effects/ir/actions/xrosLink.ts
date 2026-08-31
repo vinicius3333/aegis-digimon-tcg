@@ -43,6 +43,8 @@ export interface LinkAction extends ActionBase {
    * ("to this Digimon").
    */
   recipient?: Target;
+  /** Bind the selected recipient permanent for downstream relative filters in this effect. */
+  bindRecipientAs?: string;
   /**
    * Some card effects explicitly link to a Digimon "on the field", which includes the
    * breeding area (BT24-097 Q5707). Normal Link declarations must leave this false.
@@ -70,6 +72,10 @@ export interface GrantLinkCostReductionAction extends ActionBase {
   /** Traits a would-link card must carry, e.g. Social/Tool/Game. */
   whenLinkingTrait: string[];
   duration: EffectDurationRef;
+  /** Offer the reduction only when a matching Link is declared, not while installing the grant. */
+  optionalAtDeclaration?: boolean;
+  /** Consume this grant at most once per turn, at the matching Link declaration. */
+  oncePerTurn?: boolean;
 }
 
 /** ＜Mind Link＞ — place this Tamer as the bottom digivolution card of a chosen Digimon. */

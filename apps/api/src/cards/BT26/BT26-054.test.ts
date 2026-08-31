@@ -15,9 +15,19 @@ describe("BT26-054 Andromon", () => {
     });
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "OnPlay",
-      actions: [{ kind: "PlayWithoutCost", payCost: false, optional: true }],
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          payCost: false,
+          optional: true,
+          target: { filter: { excludeSameNameAsOwnTamers: true } },
+        },
+      ],
     });
-    expect(compiled.effects?.[1]).toMatchObject({ trigger: "WhenDigivolving" });
+    expect(compiled.effects?.[1]).toMatchObject({
+      trigger: "WhenDigivolving",
+      actions: [{ kind: "PlayWithoutCost", target: { filter: { excludeSameNameAsOwnTamers: true } } }],
+    });
     expect(compiled.effects?.[2]).toMatchObject({
       trigger: "AllTurns",
       frequency: "OncePerTurn",

@@ -45,6 +45,23 @@ export const compiled: CompiledCard = {
         },
       ],
     },
+    {
+      trigger: "WhenLinking",
+      isLinked: true,
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: { op: "lte", value: 3000 },
+            },
+            count: 1,
+          },
+        },
+      ],
+    },
   ],
   coverage: "full",
   residual: [],
@@ -56,6 +73,7 @@ export const compiled: CompiledCard = {
       isAlternate: true,
     },
   ],
+  linkRequirement: [{ traits: ["Appmon"], cost: 1 }],
 };
 
 registerIrCard("BT25-007", compiled);

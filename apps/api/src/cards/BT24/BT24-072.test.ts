@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,6 +7,22 @@ import { compiled as BT24_072 } from "./BT24-072.js";
 import "../index.js";
 
 describe("BT24-072 SkullGreymon", () => {
+  it("matches the immutable catalog identity", () => {
+    expect(getCardDefinition("BT24-072")).toMatchObject({
+      cardId: "BT24-072",
+      nameEn: "SkullGreymon",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
+      forms: ["Ultimate"],
+      attributes: ["Virus"],
+      types: ["Undead", "Titan", "TS"],
+      evoCosts: [{ color: "Purple", level: 4, memoryCost: 3 }],
+    });
+  });
+
   it("requires the hand-trash cost before granting both keywords", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       const actions = BT24_072.effects?.find((entry) => entry.trigger === trigger)?.actions ?? [];

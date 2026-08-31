@@ -42,14 +42,12 @@ describe("BT26-098 compiled fidelity", () => {
     const beforePayCost = card?.effects?.find((effect) => effect.trigger === "BeforePayCost")?.actions ?? [];
     expect(beforePayCost).toMatchObject([
       {
-        kind: "CostModifier",
-        costType: "use",
-        mode: "reduce",
-        amount: 2,
-        handResident: true,
-        cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine" },
-        optional: true,
-        abortOnDecline: true,
+        kind: "ReducePlayCost",
+        payment: {
+          kind: "payCost",
+          cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine" },
+        },
+        amount: { kind: "fixed", value: 2 },
       },
     ]);
 
@@ -99,13 +97,14 @@ describe("BT26-098 compiled fidelity", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 3;
+    const memoryBefore = s.state.memory;
     const optionId = s.inst("option").instanceId;
     await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === optionId));
 
-    expect(s.state.memory).toBe(0);
+    expect(memoryBefore - s.state.memory).toBe(3);
     expect(s.state.players[0]!.trash).toContainEqual(
       expect.objectContaining({ instanceId: s.inst("bottom").instanceId, faceUp: true }),
     );
@@ -130,13 +129,14 @@ describe("BT26-098 compiled fidelity", () => {
       { autoDeclineOptional: true },
     );
     s.state.memory = 5;
+    const memoryBefore = s.state.memory;
     const optionId = s.inst("option").instanceId;
     await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === optionId));
 
-    expect(s.state.memory).toBe(0);
+    expect(memoryBefore - s.state.memory).toBe(5);
     expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("bottom").instanceId]);
   });
 

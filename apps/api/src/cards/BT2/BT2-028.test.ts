@@ -15,6 +15,7 @@ describe("BT2-028 AeroVeedramon", () => {
             { card: "BT1-086" },
             { card: "BT2-024", as: "base" },
             { card: "BT2-025", as: "target", suspended: true },
+            { card: "BT1-010", as: "wrongColor", suspended: true },
           ],
           hand: [{ card: "BT2-028", as: "evolving" }],
         },
@@ -32,6 +33,7 @@ describe("BT2-028 AeroVeedramon", () => {
     ).toEqual({ ok: true });
     await settle(() => !s.perm("target").isSuspended);
     expect(s.perm("target").isSuspended).toBe(false);
+    expect(s.perm("wrongColor").isSuspended).toBe(true);
   });
 
   it("Q1003 can unsuspend itself after digivolving over a suspended blue Digimon", async () => {

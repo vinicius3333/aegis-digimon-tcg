@@ -94,6 +94,7 @@ export const compiled: CompiledCard = {
       ],
       actions: [
         {
+          requiresDelayArmed: true,
           kind: "DnaDigivolve",
           materials: {
             filter: {
@@ -107,7 +108,7 @@ export const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Examon"],
-                match: "name",
+                match: "nameExact",
               },
             ],
             zone: "hand",

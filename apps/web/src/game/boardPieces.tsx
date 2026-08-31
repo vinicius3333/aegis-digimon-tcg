@@ -21,7 +21,7 @@ import {
 import { pressGesture } from "./pressGesture";
 import { turnControlLabelKey, type TurnControlState } from "./turnControl";
 import { formatKeyword } from "./keywordDisplay";
-import { hasBlocker, sourceCountBadge } from "./fieldBadges";
+import { hasBlocker, restrictionBadges, sourceCountBadge } from "./fieldBadges";
 import { deckLayerCount } from "./deckChrome";
 import type { PendingFateBadge } from "./pendingFate";
 import type { DpPulse } from "./dpPulse";
@@ -282,6 +282,17 @@ export function Pile({
   );
 }
 
+/**
+ * The pane that takes the play surfaces' pointer input away while a security check owns
+ * the screen. It draws nothing and says nothing: it exists so a click on a card, a stack
+ * or the turn control during the check cannot become an action on a board the other
+ * player is still watching resolve. The board's own capture-phase listener sits above it,
+ * so clicking through the scene still fast-forwards whatever part of it is skippable.
+ */
+export function BoardInputLock() {
+  return <div className="game-input-lock" data-testid="board-input-lock" aria-hidden="true" />;
+}
+
 /** The three gashes of the claw, each a little behind the one above it. */
 const CLAW_TINE_INDEXES = [0, 1, 2];
 
@@ -415,6 +426,10 @@ export function PermanentView({
   // never read off the printed art.
   const blocker = hasBlocker(perm);
   const sources = sourceCountBadge(perm);
+  // Server truth as well (`Permanent.cannotAttack` and friends): the standing debuffs
+  // an effect has imposed, worn for as long as they hold rather than only jolting the
+  // card once when they land.
+  const restrictions = restrictionBadges(perm);
 
   const cardName = def?.nameEn ?? topId;
   const activate = onKeyboardActivate ?? onClick;
@@ -422,6 +437,7 @@ export function PermanentView({
   const states = [
     perm.isSuspended ? t("overlay.suspended") : undefined,
     perm.summoningSick ? t("overlay.summoningSick") : undefined,
+    ...restrictions.map((restriction) => t(restriction.labelKey)),
     // The coming fate joins the spoken state list rather than labelling the pill
     // itself: a nested aria-label would rewrite the card's own accessible name.
     fate ? t(fate.labelKey) : undefined,
@@ -728,6 +744,18 @@ export function PermanentView({
               +{hiddenKeywordCount}
             </span>
           ) : null}
+        </div>
+      ) : null}
+      {restrictions.length > 0 ? (
+        /* Spoken through the wrapper's own state list above, so the chips
+           themselves stay out of the accessibility tree rather than repeating it. */
+        <div className="game-restriction-badges" aria-hidden="true">
+          {restrictions.map((restriction) => (
+            <span key={restriction.kind} className="game-restriction-badge">
+              <i aria-hidden="true">⊘</i>
+              {t(restriction.labelKey)}
+            </span>
+          ))}
         </div>
       ) : null}
     </div>

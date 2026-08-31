@@ -83,6 +83,8 @@ export interface DigivolveAction extends ActionBase {
   ignoreDigivolutionRequirements?: boolean;
   /** Ignore only the level requirement, preserving the action's explicit filters. */
   ignoreLevelRequirement?: boolean;
+  /** Allow a printed optional digivolution branch to activate and end cleanly with no target. */
+  allowNoTarget?: boolean;
   /** The card digivolved into must share a color with the chosen base. */
   colorsMatchDigivolvingSource?: boolean;
   /** Destination name must include the selected base permanent's name (EX4-072). */
@@ -134,6 +136,8 @@ export interface PlaceUnderAction extends ActionBase {
    * rather than loose cards from hand or trash.
    */
   targetIsPermanent?: boolean;
+  /** When relocating a permanent, attach only its top card and trash its existing sources/links. */
+  shedOwnCards?: boolean;
   /** Move every Digimon card from one selected permanent's stack under a selected host. */
   fromSelectedPermanentDigivolutionCards?: boolean;
   /**
@@ -142,6 +146,8 @@ export interface PlaceUnderAction extends ActionBase {
    */
   underSelectionRef?: string;
   position?: string;
+  /** Store the number of distinct printed names actually placed by this action (EX6-073). */
+  trackDistinctNames?: string;
   /** Let the controller arrange multiple selected cards before they enter the stack. */
   order?: "any";
   /**
@@ -189,12 +195,16 @@ export interface PlaceUnderAction extends ActionBase {
 export interface TrashDigivolutionAction extends ActionBase {
   kind: "TrashDigivolution";
   target: Target;
+  /** Restrict which cards in each selected digivolution stack may be trashed. */
+  cardFilter?: Filter;
   /** Default 1. */
   amount?: number | "all";
   /** Lower bound for an "up to `amount`" trash; the payment fails below it. */
   minAmount?: number;
   /** The default source form. */
   fromTop?: boolean;
+  /** Allow choosing fewer than `amount`; when sources exist, at least one is required. */
+  upTo?: boolean;
   position?: string;
   /**
    * `"acrossDigimon"` pools digivolution cards from ALL matching permanents and lets the

@@ -34,4 +34,29 @@ describe("EX1-009 WarGreymon", () => {
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === blockerId));
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
+
+  it("does not delete a Blocker when the attack targets a Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX1-009", as: "attacker" },
+            { card: "ST1-12", as: "tamer" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-072", as: "blocker", suspended: true }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("blocker").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => false, 40);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
 });

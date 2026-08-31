@@ -57,7 +57,10 @@ const compiled: CompiledCard = {
               kind: "Prevent",
               cost: {
                 kind: "trash",
-                target: { filter: { zone: "digivolutionCards", kind: ["Digimon"], levels: [5] }, count: 2 },
+                target: {
+                  filter: { zone: "digivolutionCards", isSelfRef: true, kind: ["Digimon"], levels: [5] },
+                  count: 2,
+                },
               },
               optional: true,
               abortOnDecline: true,

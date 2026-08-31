@@ -79,6 +79,14 @@ export interface ContextPredicates {
    * plays a Digimon" watcher, which omits this field and fires on any play.
    */
   byEffect?: boolean;
+  /**
+   * Inherited digivolution-card watcher only: match the exact source stack-card instance that
+   * was discarded by this event. The interpreter captures the source instance at install time
+   * and compares it with the event payload after the card has moved, while the normal host anchor
+   * keeps the subscription alive. This is intentionally separate from `isSelfRef`, which means
+   * the current source permanent rather than a discarded stack card.
+   */
+  matchTrashedSource?: boolean;
   placedByThisEffect?: boolean;
   /**
    * An Option permanent that reached the battle area via a "place this card in the battle area"
@@ -91,6 +99,12 @@ export interface ContextPredicates {
    * `ctx.lastDeletedByThisEffectIds` and further narrowed by any other predicates here.
    */
   deletedByThisEffect?: boolean;
+  /**
+   * Count/match permanents from the simultaneous deletion snapshot carried by the current
+   * `onDeletionOf` trigger. Unlike a live-board count, this remains available after the
+   * deleted permanents have moved and can still be narrowed by controller/card predicates.
+   */
+  deletedByTrigger?: boolean;
   /**
    * Level equals the current attacker's, resolved at activation time; false when no attack is
    * in progress (EX12-069).

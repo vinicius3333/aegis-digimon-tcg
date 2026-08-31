@@ -8,6 +8,17 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
+      trigger: "Static",
+      actions: [],
+      keywords: [
+        {
+          keyword: "MaterialSave",
+          amount: 2,
+          raw: "＜Material Save 2＞",
+        },
+      ],
+    },
+    {
       trigger: "OnPlay",
       actions: [
         {

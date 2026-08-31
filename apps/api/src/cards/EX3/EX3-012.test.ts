@@ -1,4 +1,4 @@
-import { getCardDefinition, Phase, Zone } from "@aegis/shared";
+import { getCardDefinition, Zone } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -114,9 +114,7 @@ describe("EX3-012 Volcanicdramon", () => {
         deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
       },
     });
-    s.state.memory = 10;
-    const controllerTurn = s.engine.runOneTurn();
-    await advance(s.engine).waitForMainPhase(0);
+    await s.ready();
     s.state.memory = 12;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("volcanicdramon").instanceId })).toEqual({
       ok: true,
@@ -124,10 +122,11 @@ describe("EX3-012 Volcanicdramon", () => {
     await settle(
       () =>
         s.state.pendingDecision === undefined &&
-        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX3-012"),
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX3-012") &&
+        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX3-012"),
     );
-    advance(s.engine).endMainPhaseIfOpen(0);
-    await controllerTurn;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(0);
 
     s.state.turnSeat = 1;
     s.state.memory = 10;

@@ -4,7 +4,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
@@ -40,6 +40,8 @@ const compiled: CompiledCard = {
             kind: "youHave",
             filter: {
               controllerDefault: "mine",
+              zone: "battleArea",
+              kind: ["Digimon", "Tamer"],
               nameOrTrait: [
                 {
                   tokens: ["TS"],
@@ -76,14 +78,14 @@ const compiled: CompiledCard = {
         },
         {
           kind: "Link",
-          recipient: {
+          target: {
             filter: {
-              controller: "mine",
-              kind: ["Digimon"],
+              isSelfRef: true,
             },
             count: 1,
+            isSelf: true,
           },
-          target: {
+          recipient: {
             filter: {
               controller: "mine",
               zone: ["battleArea", "breeding"],

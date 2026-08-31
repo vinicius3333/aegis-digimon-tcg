@@ -105,6 +105,29 @@ describe("BT21-066 Arresterdramon", () => {
     );
   });
 
+  it("still performs mandatory Save when the optional first placement is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-066", as: "arrester" },
+            { card: "BT21-080", as: "tamer" },
+          ],
+          hand: [{ card: "BT21-063", as: "saved" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const selfId = s.perm("arrester").topCard.instanceId;
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("arrester").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.perm("tamer").stack.some((card) => card.instanceId === selfId));
+
+    expect(s.perm("tamer").stack.map((card) => card.instanceId)).toContain(selfId);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("saved").instanceId)).toBe(true);
+  });
+
   it("gives its evolution host +2000 DP only during its controller's turn", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT21-068", as: "host", under: [{ card: "BT21-066", as: "source" }] }] },

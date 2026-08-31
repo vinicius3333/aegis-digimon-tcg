@@ -97,6 +97,7 @@ export const compiled: CompiledCard = {
                 },
               ],
             },
+            count: "all",
           },
           restriction: "cannotReturnToHandOrDeck",
           duration: "permanent",

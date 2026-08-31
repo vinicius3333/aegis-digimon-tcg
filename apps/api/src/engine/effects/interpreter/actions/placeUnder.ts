@@ -3,11 +3,22 @@
 import type { EffectContext } from "../../EffectContext.js";
 import { relocateByEffect } from "../costs.js";
 import { unsupported } from "../errors.js";
-import { matchNameOrTrait } from "../matching/definition.js";
+import { definitionMatches, matchNameOrTrait } from "../matching/definition.js";
+import { scaleFactor } from "../scaling.js";
 import { LooseCandidate, candidateLooseInstances, pickLoose, zoneList } from "../targeting/loose.js";
 import { candidatePermanents, effectiveTargetCount, resolvePermanentTargets } from "../targeting/permanents.js";
 import { EffectDuration } from "@aegis/shared";
 import type { Action, Target, ZoneRef } from "@aegis/shared";
+
+function rememberPlacedUnder(ctx: EffectContext, instanceIds: string[]): void {
+  ctx.lastPlacedUnderInstanceIds = instanceIds;
+  if (instanceIds.length > 0) {
+    ctx.placedUnderInstanceIdsThisEffect = [
+      ...(ctx.placedUnderInstanceIdsThisEffect ?? []),
+      ...instanceIds,
+    ];
+  }
+}
 
 /**
  * "Place [X] under <permanent>" / "place as the bottom digivolution card". The common
@@ -132,11 +143,26 @@ export async function runPlaceUnder(
     return;
   }
   // "Place [a battle-area permanent A] under another permanent B" (the cross-select
-  // IPlacePermanentToDigivolutionCards form): relocating a whole permanent-with-stack under
-  // another is a mechanic the placeUnder primitive (loose cards only) does not yet implement.
-  // The IR captures it; execution is a loud gap until the relocate-permanent primitive exists.
+  // IPlacePermanentToDigivolutionCards form): relocate the whole permanent through the shared
+  // effect relocation primitive, preserving its stack unless shedOwnCards requests the
+  // DigiXros-style source shedding required by the printed effect.
   if (action.targetIsPermanent) {
-    const sourceIds = await resolvePermanentTargets(ctx, action.target);
+    const levelCeilingTarget =
+      action.scaling?.levelCeilingAdd !== undefined && action.target.filter.levelComparison?.value !== undefined
+        ? {
+            ...action.target,
+            filter: {
+              ...action.target.filter,
+              levelComparison: {
+                ...action.target.filter.levelComparison,
+                value:
+                  action.target.filter.levelComparison.value +
+                  scaleFactor(ctx, action.scaling) * action.scaling.levelCeilingAdd,
+              },
+            },
+          }
+        : action.target;
+    const sourceIds = await resolvePermanentTargets(ctx, levelCeilingTarget);
     if (sourceIds.length === 0) return;
     let destId: string | undefined;
     if (action.underSelectionRef && ctx.selections?.has(action.underSelectionRef)) {
@@ -161,7 +187,10 @@ export async function runPlaceUnder(
     }
     if (destId === undefined) return;
     for (const sourcePermanentId of sourceIds) {
-      await relocateByEffect(ctx, destId, sourcePermanentId, { belowTop: action.position !== "bottom" });
+      await relocateByEffect(ctx, destId, sourcePermanentId, {
+        belowTop: action.position !== "bottom",
+        ...(action.shedOwnCards === true ? { shedOwnCards: true } : {}),
+      });
     }
     return;
   }
@@ -184,8 +213,11 @@ export async function runPlaceUnder(
         destination: "stackBottom",
       });
     }
-    await ctx.fx.placeUnder(hostId, chosen, { belowTop: action.position !== "bottom" });
-    ctx.lastPlacedUnderInstanceIds = chosen;
+    // The primitive inserts bottom placements one card at a time with unshift,
+    // so reverse the logical bottom-to-top order before handing it off.
+    const placementIds = action.position === "bottom" ? [...chosen].reverse() : chosen;
+    await ctx.fx.placeUnder(hostId, placementIds, { belowTop: action.position !== "bottom" });
+    rememberPlacedUnder(ctx, chosen);
     ctx.lastEffectActed = chosen.length > 0;
     if (action.trackCount !== undefined) {
       ctx.namedCounts ??= new Map();
@@ -268,23 +300,36 @@ export async function runPlaceUnder(
       destId = self.permanentId;
     }
     if (destId === undefined) return;
-    // `position: "top"` is the printed "under ... as its top card" form; the default is the
-    // true bottom used by BT25-088 and other "top of deck under this Tamer" effects.
-    await ctx.fx.placeUnder(destId, [top.instanceId], { belowTop: action.position !== "top", faceUp: false });
+    await ctx.fx.placeUnder(destId, [top.instanceId], { belowTop: action.position !== "bottom", faceUp: false });
     return;
   }
   // Cards to place: loose cards matching the target filter.
   // Priority: action.from (top-level) > action.target.from > target.filter.zone (for non-default
   // zones like "underTamer" used by BT19-081) > legacy hand/trash/deck sweep.
+  const levelCeilingTarget =
+    action.scaling?.levelCeilingAdd !== undefined && action.target.filter.levelComparison?.value !== undefined
+      ? {
+          ...action.target,
+          filter: {
+            ...action.target.filter,
+            levelComparison: {
+              ...action.target.filter.levelComparison,
+              value:
+                action.target.filter.levelComparison.value +
+                scaleFactor(ctx, action.scaling) * action.scaling.levelCeilingAdd,
+            },
+          },
+        }
+      : action.target;
   const zones: ZoneRef[] =
     (action.from?.length ?? 0) > 0
       ? (action.from as ZoneRef[])
-      : (action.target.from?.length ?? 0) > 0
-        ? (action.target.from as ZoneRef[])
-        : action.target.filter.zone !== undefined
-          ? zoneList(action.target.filter.zone)
+      : (levelCeilingTarget.from?.length ?? 0) > 0
+        ? (levelCeilingTarget.from as ZoneRef[])
+        : levelCeilingTarget.filter.zone !== undefined
+          ? zoneList(levelCeilingTarget.filter.zone)
           : ["hand", "trash", "deck"];
-  const candidates = candidateLooseInstances(ctx, action.target, zones);
+  const candidates = candidateLooseInstances(ctx, levelCeilingTarget, zones);
   if (candidates.length === 0) return;
   // Destination host (priority): explicit `destination` selector (BT19-038: place a card
   // from hand/trash under a chosen Tamer) > `underFilter` > the source permanent itself.
@@ -334,10 +379,10 @@ export async function runPlaceUnder(
   // EX10-025 require 2 when 2 exist but still permit the single available card (Q5078-Q5079).
   const placementTarget =
     typeof action.count === "number"
-      ? { ...action.target, count: Math.min(action.count, candidates.length) }
+      ? { ...levelCeilingTarget, count: Math.min(action.count, candidates.length) }
       : action.count === "all"
-        ? { ...action.target, count: candidates.length }
-        : action.target;
+        ? { ...levelCeilingTarget, count: candidates.length }
+        : levelCeilingTarget;
   let chosen = await pickLoose(
     ctx,
     placementTarget,
@@ -356,7 +401,7 @@ export async function runPlaceUnder(
       destination: "stackBottom",
     });
   }
-  ctx.lastPlacedUnderInstanceIds = chosen;
+  rememberPlacedUnder(ctx, chosen);
   // `asDigiXrosMaterial: true` marks placed cards as DigiXros materials for the host Digimon.
   // The placeUnder primitive records them as material cards in the host's stack (belowTop as
   // the DigiXros convention; the flag is structural metadata for the DigiXros system to read).
@@ -394,6 +439,18 @@ export async function runPlaceUnder(
   if (action.trackCount !== undefined) {
     if (ctx.namedCounts === undefined) ctx.namedCounts = new Map();
     ctx.namedCounts.set(action.trackCount, chosen.length);
+  }
+  if (action.trackDistinctNames !== undefined) {
+    const names = new Set(
+      chosen.map((instanceId) => {
+        const candidate = candidates.find((entry) => entry.instanceId === instanceId);
+        return candidate === undefined
+          ? instanceId
+          : ctx.game.definitionOf({ cardId: candidate.cardId } as never).nameEn;
+      }),
+    );
+    ctx.namedCounts ??= new Map();
+    ctx.namedCounts.set(action.trackDistinctNames, names.size);
   }
 }
 
@@ -463,9 +520,7 @@ export function canAttemptPlaceUnder(ctx: EffectContext, action: Extract<Action,
   const eligibleLooseCandidates =
     requiredNamesExactUpTo.length > 0
       ? looseCandidates.filter((candidate) =>
-          requiredNamesExactUpTo.includes(
-            ctx.game.definitionOf({ cardId: candidate.cardId } as never).nameEn ?? "",
-          ),
+          requiredNamesExactUpTo.includes(ctx.game.definitionOf({ cardId: candidate.cardId } as never).nameEn ?? ""),
         )
       : looseCandidates;
   // A named "up to one of each" selection may legitimately contain only the names
@@ -517,6 +572,10 @@ export async function runTrashDigivolution(
   ctx: EffectContext,
   action: Extract<Action, { kind: "TrashDigivolution" }>,
 ): Promise<boolean> {
+  // Generic scaling is computed once by runAction and folded into `amount` by
+  // runDigivolutionAction. Recomputing it here squared the multiplier for pooled
+  // TrashDigivolution actions (BT25-103: 2 source cards incorrectly trashed 4).
+  // targetColors remains per-host and is handled below after each target is known.
   const amount = action.amount ?? 1;
   const fromTop = action.fromTop ?? true;
   const minimum = action.minAmount;
@@ -526,6 +585,8 @@ export async function runTrashDigivolution(
     byEffectCardId: ctx.source.cardId,
     ...(isDigiBurst ? { isDigiBurst: true } : {}),
   };
+  const stackCardMatches = (card: { cardId: string }): boolean =>
+    action.cardFilter === undefined || definitionMatches(action.cardFilter, ctx.game.definitionOf(card));
 
   // "acrossDigimon": pool all digivolution cards from every matching permanent and let
   // the controller pick `amount` from the combined pool (EX12-035 "any 4 digivolution
@@ -539,6 +600,7 @@ export async function runTrashDigivolution(
     const pool: { instanceId: string; permanentId: string }[] = [];
     for (const permanent of permanents) {
       for (const card of permanent.stack) {
+        if (!stackCardMatches(card)) continue;
         pool.push({ instanceId: card.instanceId, permanentId: permanent.permanentId });
       }
     }
@@ -550,19 +612,19 @@ export async function runTrashDigivolution(
       action.optional === true &&
       action.abortOnDecline === true &&
       typeof amount === "number" &&
-      pool.length < amount
+      pool.length < (action.upTo === true ? (action.minAmount ?? 1) : amount)
     ) {
       ctx.lastEffectActed = false;
       return false;
     }
     const take = amount === "all" ? pool.length : Math.min(amount, pool.length);
     let chosen: string[];
-    if (pool.length <= take) {
+    if (pool.length <= take && action.upTo !== true) {
       chosen = pool.map((c) => c.instanceId);
     } else {
       chosen = await ctx.ask.selectCards(ctx, {
         candidates: pool.map((c) => c.instanceId),
-        min: take,
+        min: action.upTo === true ? Math.min(action.minAmount ?? 1, pool.length) : take,
         max: take,
       });
     }
@@ -583,7 +645,7 @@ export async function runTrashDigivolution(
       if (ctx.namedCounts === undefined) ctx.namedCounts = new Map();
       ctx.namedCounts.set(action.trackCount, chosen.length);
     }
-    return amount === "all" ? chosen.length > 0 : chosen.length === amount;
+    return amount === "all" || action.upTo === true ? chosen.length > 0 : chosen.length === amount;
   }
 
   // Default: single-target path — resolve 1 permanent, trash `amount` from its stack.
@@ -602,7 +664,10 @@ export async function runTrashDigivolution(
   // Check the supply only after replacement chooses the actual host. Q2007 explicitly
   // permits SnowAgumon to choose a source-free Digimon and have Tactimon supply the
   // digivolution card instead; checking the original host would suppress that window.
-  if (minimum !== undefined && permanentIds.some((id) => (ctx.game.permanentById(id)?.stack.length ?? 0) < minimum)) {
+  if (
+    minimum !== undefined &&
+    permanentIds.some((id) => (ctx.game.permanentById(id)?.stack.filter(stackCardMatches).length ?? 0) < minimum)
+  ) {
     ctx.lastEffectActed = false;
     return false;
   }
@@ -615,7 +680,7 @@ export async function runTrashDigivolution(
     action.optional === true &&
     action.abortOnDecline === true &&
     typeof amount === "number" &&
-    permanentIds.some((pid) => (ctx.game.permanentById(pid)?.stack.length ?? 0) < amount)
+    permanentIds.some((pid) => (ctx.game.permanentById(pid)?.stack.filter(stackCardMatches).length ?? 0) < amount)
   ) {
     ctx.lastEffectActed = false;
     return false;
@@ -630,19 +695,34 @@ export async function runTrashDigivolution(
   for (const pid of permanentIds) {
     const permanent = ctx.game.permanentById(pid);
     if (permanent === undefined) continue;
-    const stack = permanent.stack;
+    const stack = permanent.stack.filter(stackCardMatches);
     const targetAmount =
       action.scaling?.unit === "targetColors" ? new Set(ctx.game.definitionOf(permanent.topCard).colors).size : amount;
-    const take = targetAmount === "all" ? stack.length : Math.min(targetAmount, stack.length);
+    let take = targetAmount === "all" ? stack.length : Math.min(targetAmount, stack.length);
+    if (action.upTo === true && action.choose !== true && typeof targetAmount === "number" && take > 1) {
+      // "up to" source trash still requires one card under CR 1-3-6, then lets the
+      // controller decline each additional card. Asking one card at a time preserves
+      // the printed bottom/top prefix; a free multi-card selection could skip a card.
+      for (let i = 1; i < take; i++) {
+        if (!(await ctx.ask.optional(ctx, `Trash another digivolution card (${i + 1} of ${take})?`))) {
+          take = i;
+          break;
+        }
+      }
+    }
     let ids: string[];
     if (action.choose === true) {
       // "trash any 1 card under [permanent]" (RB1-016, KB Q4094): the controller picks freely
       // from the whole stack rather than a deterministic top/bottom slice.
       const candidateIds = stack.map((card) => card.instanceId);
       ids =
-        candidateIds.length <= take
+        candidateIds.length <= take && action.upTo !== true
           ? candidateIds
-          : await ctx.ask.selectCards(ctx, { candidates: candidateIds, min: take, max: take });
+          : await ctx.ask.selectCards(ctx, {
+              candidates: candidateIds,
+              min: action.upTo === true ? Math.min(action.minAmount ?? 1, candidateIds.length) : take,
+              max: take,
+            });
     } else {
       ids = [];
       for (let i = 0; i < take; i++) {
@@ -663,7 +743,7 @@ export async function runTrashDigivolution(
     ctx.namedCounts ??= new Map();
     ctx.namedCounts.set(action.trackCount, totalTrashed);
   }
-  if (amount === "all") return totalTrashed > 0;
+  if (amount === "all" || action.upTo === true) return totalTrashed > 0;
   if (action.scaling?.unit === "targetColors") return totalTrashed > 0;
   return totalTrashed === amount * permanentIds.length;
 }

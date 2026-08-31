@@ -20,6 +20,7 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
+              unsuspended: true,
             },
             count: 1,
           },
@@ -95,7 +96,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Leopardmon"],
+      namesExact: ["Leopardmon"],
       cost: 1,
       isAlternate: true,
     },

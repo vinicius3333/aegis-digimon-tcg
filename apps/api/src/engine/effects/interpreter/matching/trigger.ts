@@ -74,6 +74,24 @@ export function matchingSubjectPermanentIds(subCtx: EffectContext, filter: Filte
       if (self === undefined || self.permanentId !== subject.permanentId) return false;
     }
     if (!allowedSeats.includes(subject.controllerSeat)) return false;
+    // Attack watchers evaluate a DP threshold at attack declaration. The combat seam captures
+    // the post-suspension value before [When Attacking] effects resolve (KB Q6263); otherwise
+    // a later self-boost could incorrectly make a 12000 DP attacker satisfy a 13000+ watcher.
+    if (
+      effectiveFilter.dp !== undefined &&
+      subjectId === t.attackerPermanentId &&
+      t.attackerDPAtDeclaration !== undefined
+    ) {
+      const { dp, ...withoutDp } = effectiveFilter;
+      const actual = t.attackerDPAtDeclaration;
+      const threshold = dp.relativeToSource ? subCtx.source.permanent()?.currentDP : dp.value;
+      const dpMatches =
+        threshold !== undefined &&
+        ((dp.op === "gte" && actual >= threshold) ||
+          (dp.op === "lte" && actual <= threshold) ||
+          (dp.op === "eq" && actual === threshold));
+      return dpMatches && permanentMatchesFilter(subCtx, subject, withoutDp, subCtx.source);
+    }
     return permanentMatchesFilter(subCtx, subject, effectiveFilter, subCtx.source);
   });
 }

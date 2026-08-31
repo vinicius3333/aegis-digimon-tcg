@@ -30,15 +30,14 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
+          bindResultAs: "playedByStartEffect",
           from: ["hand"],
           payCost: false,
           condition: {
-            kind: "youHave",
-            filter: {
-              zone: "battleArea",
-              controllerDefault: "mine",
-              kind: ["Digimon"],
-            },
+            kind: "permanentCount",
+            op: "lte",
+            value: 1,
+            filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Digimon"] },
             raw: "you have 1 or fewer Digimon in play",
           },
           optional: true,
@@ -47,16 +46,14 @@ export const compiled: CompiledCard = {
           kind: "Restrict",
           target: {
             filter: {
-              targetPlayedByThisEffect: true,
+              boundRef: "playedByStartEffect",
             },
             count: 1,
           },
           restriction: "digivolve",
           duration: "permanent",
         },
-        {
-          kind: "DelayedDelete",
-        },
+        { kind: "DelayedDelete", timing: "endOfOpponentTurn" },
       ],
     },
     {

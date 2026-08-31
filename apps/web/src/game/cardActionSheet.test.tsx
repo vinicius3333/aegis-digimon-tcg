@@ -4,7 +4,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { I18nProvider } from "../i18n";
-import { CardActionMenu, TrashViewerOverlay } from "./overlays";
+import { CardActionMenu, StackViewerOverlay, TrashViewerOverlay } from "./overlays";
 import { parseActivatable } from "./boardModel";
 
 afterEach(() => cleanup());
@@ -217,6 +217,38 @@ describe("desktop field card action menu", () => {
     expect(document.activeElement).toBe(screen.getByRole("button", { name: "View stack" }));
     fireEvent.keyDown(window, { key: "Escape" });
     expect(onClose).toHaveBeenCalledOnce();
+  });
+});
+
+describe("view-gated card identity", () => {
+  // Colyseus decodes a card the viewer is not authorized to identify with
+  // `cardId === undefined` (CARD_ID_VIEW_TAG), so every card surface must
+  // survive an id-less card instead of crashing the board.
+  const gatedId = undefined as unknown as string;
+
+  it("renders the action sheet when the top card's identity is view-gated", () => {
+    renderSheet({ cardId: gatedId });
+    expect(document.querySelector(".card-action-sheet")).toBeTruthy();
+  });
+
+  it("renders the action sheet when a stack card's identity is view-gated", () => {
+    renderSheet({ stackCards: [{ cardId: gatedId, role: "stack" }] });
+    expect(document.querySelector(".card-action-sheet__stack")).toBeTruthy();
+  });
+
+  it("renders the stack viewer when a stack card's identity is view-gated", () => {
+    render(
+      <I18nProvider>
+        <StackViewerOverlay
+          title="Stack"
+          cards={[{ cardId: gatedId, role: "top" }]}
+          canAttack={false}
+          onAttack={noop}
+          onClose={noop}
+        />
+      </I18nProvider>,
+    );
+    expect(document.querySelector(".trash-viewer-dialog")).toBeTruthy();
   });
 });
 

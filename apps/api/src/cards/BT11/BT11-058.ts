@@ -20,7 +20,7 @@ export const compiled: CompiledCard = {
             kind: "selfHasInDigivolutionCards",
             nameOrTrait: [
               { tokens: ["HerculesKabuterimon"], match: "name" },
-              { tokens: ["X Antibody"], match: "name" },
+              { tokens: ["X Antibody"], match: "trait" },
             ],
             raw: "this Digimon has [HerculesKabuterimon] or [X Antibody] in its digivolution cards",
           },
@@ -30,6 +30,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [{ names: ["HerculesKabuterimon"], cost: 1, isAlternate: true }],
 };
 
 registerIrCard("BT11-058", compiled);

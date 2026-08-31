@@ -103,6 +103,43 @@ describe("EX2-055 BeforePayCost: trash 7+ from a Mother D-Reaper's bottom → se
     expect(s.state.memory).toBe(10);
   });
 
+  it("trashes the bottom seven digivolution cards rather than the top seven", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "EX2-007",
+              as: "mother",
+              under: [
+                { card: "BT1-009", as: "bottom" },
+                "BT1-010",
+                "BT1-011",
+                "BT1-012",
+                "BT1-013",
+                "BT1-014",
+                "BT1-015",
+                { card: "BT1-016", as: "top" },
+              ],
+            },
+          ],
+          hand: [{ card: "EX2-055", as: "reaper" }],
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("reaper").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX2-055"));
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("bottom").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("top").instanceId);
+    expect(s.perm("mother").stack.map((card) => card.instanceId)).toEqual([s.inst("top").instanceId]);
+  });
+
   it("places exactly 2 ADR-02 Searchers from trash at the bottom, then unsuspends itself", async () => {
     const s = setupEngine(
       {

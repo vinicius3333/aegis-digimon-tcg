@@ -13,9 +13,8 @@ describe("EX9-067", () => {
       rest: "deckBottom",
       add: [{ to: "hand", filter: { nameOrTrait: [{ tokens: ["Puppet", "LIBERATOR"], match: "trait" }] } }],
     }));
-  it("once per turn returns itself to deck bottom to play a Puppet or Arisa after a Puppet digivolves", () =>
+  it("returns itself to deck bottom to play a Puppet or Arisa after a Puppet digivolves", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")).toMatchObject({
-      frequency: "OncePerTurn",
       actions: [
         {
           kind: "SubTrigger",
@@ -35,7 +34,7 @@ describe("EX9-067", () => {
       kind: "SubTrigger",
       event: "whenOneOfYoursDigivolves",
       sourceFilter: { controllerDefault: "mine", kind: ["Digimon"] },
-      resultFilter: { nameOrTrait: [{ tokens: ["Puppet"], match: "trait" }] },
+      digivolveIntoFilter: { nameOrTrait: [{ tokens: ["Puppet"], match: "trait" }] },
       cost: { kind: "return", to: "deckBottom", target: { isSelf: true, count: 1 } },
       actions: [
         {
@@ -57,6 +56,8 @@ describe("EX9-067", () => {
         },
       ],
     }));
+  it("does not add an unprinted once-per-turn restriction", () =>
+    expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")).not.toHaveProperty("frequency"));
 
   it("reveals three and adds a Puppet card while returning the rest to the deck bottom", async () => {
     const s = setupEngine(

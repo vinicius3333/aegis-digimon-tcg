@@ -1,4 +1,5 @@
 import { type DecisionRequest, type DecisionResponse, type GameState, type Seat, PendingDecision } from "@aegis/shared";
+import { decisionCardIdentities } from "./visibleIdentities.js";
 
 /**
  * Pending player-decision queue: the coroutine replacement (ARCHITECTURE.md
@@ -111,12 +112,13 @@ export class DecisionManager {
     this.seq += 1;
     const decisionId = `dec-${this.seq}`;
 
+    const options = withCardIdentities(this.state, spec.seat, spec.options);
     const req: DecisionRequest = {
       decisionId,
       seat: spec.seat,
       kind: spec.kind,
       promptText: spec.promptText,
-      ...(spec.options !== undefined ? { options: spec.options } : {}),
+      ...(options !== undefined ? { options } : {}),
       ...(spec.sourceCardId !== undefined ? { sourceCardId: spec.sourceCardId } : {}),
     };
 
@@ -127,7 +129,7 @@ export class DecisionManager {
     pending.seat = spec.seat;
     pending.kind = spec.kind;
     pending.promptText = spec.promptText;
-    pending.payloadJson = spec.options !== undefined ? JSON.stringify(spec.options) : "";
+    pending.payloadJson = options !== undefined ? JSON.stringify(options) : "";
     this.state.pendingDecision = pending;
 
     return new Promise<DecisionResponse>((resolve) => {
@@ -293,6 +295,26 @@ function satisfiesMin(open: OpenDecision, response: DecisionResponse): boolean {
   const allowed = new Set(candidates);
   const validCount = new Set(ids.filter((id) => allowed.has(id))).size;
   return validCount >= requiredMin;
+}
+
+/**
+ * The decision's options with every card the deciding seat cannot otherwise name added to
+ * `visibleCards`. A card module that supplied its own entry keeps it — this only fills the
+ * gaps, so the identities the client draws from stay the ones the engine published. See
+ * {@link decisionCardIdentities} for which cards qualify and why the rest must not.
+ */
+function withCardIdentities(state: GameState, seat: Seat, options: DecisionSpec["options"]): DecisionSpec["options"] {
+  if (options === undefined) return options;
+  const offered = [...(options.candidateInstanceIds ?? []), ...(options.visibleInstanceIds ?? [])];
+  if (offered.length === 0) return options;
+  const alreadyNamed = new Set((options.visibleCards ?? []).map((card) => card.instanceId));
+  const filled = decisionCardIdentities(
+    state,
+    seat,
+    offered.filter((instanceId) => !alreadyNamed.has(instanceId)),
+  );
+  if (filled.length === 0) return options;
+  return { ...options, visibleCards: [...(options.visibleCards ?? []), ...filled] };
 }
 
 /**

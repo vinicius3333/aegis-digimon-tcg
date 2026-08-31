@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
@@ -6,6 +6,17 @@ import { compiled } from "./BT24-001.js";
 import "../index.js";
 
 describe("BT24-001 Gigimon", () => {
+  it("matches the catalog identity", () => {
+    expect(getCardDefinition("BT24-001")).toMatchObject({
+      cardId: "BT24-001",
+      nameEn: "Gigimon",
+      colors: ["Red"],
+      kinds: ["DigiEgg"],
+      level: 2,
+      types: ["Lesser", "LIBERATOR"],
+    });
+  });
+
   it("may delete an opponent's 3000-DP-or-less Digimon when their security is removed", () => {
     const inherited = compiled.effects.find((effect) => effect.isInherited) as any;
     expect(inherited.frequency).toBe("OncePerTurn");

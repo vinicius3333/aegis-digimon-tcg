@@ -18,11 +18,21 @@ describe("EX7-013 MagnaKidmon", () => {
       frequency: "OncePerTurn",
       actions: [
         {
-          kind: "GainKeyword",
-          keyword: { keyword: "SecurityAttack", amount: 1 },
-          cost: { kind: "trash", target: { filter: { zone: "digivolutionCards" } } },
+          kind: "SelectBind",
+          target: { bindAs: "magnaAttackTarget", filter: { controller: "mine", kind: ["Digimon"] } },
+          cost: {
+            kind: "trash",
+            target: { filter: { zone: "digivolutionCards", kind: ["Option"], hostFilter: { isSelfRef: true } } },
+          },
+          optional: true,
+          abortOnDecline: true,
         },
-        { kind: "Attack", optional: false },
+        {
+          kind: "GainKeyword",
+          target: { fromSelectionRef: "magnaAttackTarget" },
+          keyword: { keyword: "SecurityAttack", amount: 1 },
+        },
+        { kind: "Attack", target: { fromSelectionRef: "magnaAttackTarget" }, optional: false },
       ],
     }));
 

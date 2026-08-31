@@ -21,7 +21,7 @@ describe("BT22-057 Kurisarimon", () => {
       actions: [
         {
           event: "wouldLeavePlay",
-          sourceFilter: { isSelfRef: true },
+          sourceFilter: { isSelfRef: true, zone: "battleArea" },
           actions: [{ kind: "Prevent", mode: "leavePlay" }],
         },
       ],

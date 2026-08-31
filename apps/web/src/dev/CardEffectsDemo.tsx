@@ -713,7 +713,7 @@ function hinaKuriharaDemo(effect: string | null, step: string | null): CardEffec
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-065",
           effectKey: "EX3-065/digivolve-dragon-trait-reactivate-onplay",
@@ -2358,7 +2358,7 @@ function toropiamonDemo(effect: string | null): CardEffectsFixture {
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-042",
           effectKey: "EX3-042/q3416-evade",
@@ -2445,7 +2445,7 @@ function groundramonDemo(effect: string | null, step: string | null): CardEffect
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-041",
           effectKey: "EX3-041/end-turn-dna",
@@ -2490,7 +2490,7 @@ function groundramonDemo(effect: string | null, step: string | null): CardEffect
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-041",
           effectKey: "EX3-041/inherited-blocker",
@@ -2596,7 +2596,7 @@ function coredramonDemo(effect: string | null): CardEffectsFixture {
       events: eligible
         ? [
             {
-              kind: "effectResolved",
+              kind: "effectTriggered",
               seat: 0,
               sourceCardId: "EX3-039",
               effectKey: "EX3-039/inherited-blocker",
@@ -2611,7 +2611,7 @@ function coredramonDemo(effect: string | null): CardEffectsFixture {
           ]
         : [
             {
-              kind: "effectResolved",
+              kind: "effectTriggered",
               seat: 0,
               sourceCardId: "EX3-039",
               effectKey: "EX3-039/inherited-blocker",
@@ -2633,7 +2633,7 @@ function coredramonDemo(effect: string | null): CardEffectsFixture {
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-039",
           effectKey: "EX3-039/armor-purge-promoted-blocker",
@@ -2709,7 +2709,7 @@ function pomumonDemo(effect: string | null): CardEffectsFixture {
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-038",
           effectKey: "EX3-038/your-turn-suspend",
@@ -2725,7 +2725,7 @@ function pomumonDemo(effect: string | null): CardEffectsFixture {
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-038",
           effectKey: `EX3-038/${effect}`,
@@ -2824,7 +2824,7 @@ function parasaurmonDemo(effect: string | null): CardEffectsFixture {
           reason: "Goblimon foi jogado por custo 1 após a redução de Parasaurmon",
         },
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-040",
           effectKey: "EX3-040/play-cost-reducer",
@@ -2859,7 +2859,7 @@ function parasaurmonDemo(effect: string | null): CardEffectsFixture {
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-040",
           effectKey: "EX3-040/inherited-suspend",
@@ -2939,7 +2939,7 @@ function entmonDemo(effect: string | null): CardEffectsFixture {
       events: [
         { kind: "memoryChanged", from: 1, to: 0, reason: "Entmon: Digisorption reduziu o custo de evolução em 3" },
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-043",
           effectKey: "EX3-043/when-digivolving-unsuspend",
@@ -3033,7 +3033,7 @@ function breakdramonDemo(effect: string | null): CardEffectsFixture {
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-044",
           effectKey: "EX3-044/security-trash",
@@ -3062,7 +3062,7 @@ function breakdramonDemo(effect: string | null): CardEffectsFixture {
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-044",
           effectKey: "EX3-044/inherited-security-trash",
@@ -3299,7 +3299,7 @@ function goldramonDemo(effect: string | null, step: string | null): CardEffectsF
         state,
         events: [
           {
-            kind: "effectResolved",
+            kind: "effectTriggered",
             seat: 0,
             sourceCardId: "EX3-035",
             effectKey: `EX3-035/${effect}`,
@@ -3374,7 +3374,7 @@ function goldramonDemo(effect: string | null, step: string | null): CardEffectsF
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-035",
           effectKey: `EX3-035/${effect}`,
@@ -3494,7 +3494,7 @@ function magnadramonDemo(effect: string | null, step: string | null): CardEffect
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-036",
           effectKey: effect === "expired" ? "EX3-036/on-play-expired" : "EX3-036/on-play-security-attack",
@@ -3522,7 +3522,7 @@ function magnadramonDemo(effect: string | null, step: string | null): CardEffect
       events: [
         { kind: "cardsMoved", instanceIds: [firstTrial.instanceId], from: "hand", to: "battleArea" },
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-036",
           effectKey: "EX3-036/on-deletion-place-trial",
@@ -3542,7 +3542,7 @@ function magnadramonDemo(effect: string | null, step: string | null): CardEffect
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-036",
           effectKey: "EX3-036/on-deletion-gated",
@@ -3561,7 +3561,7 @@ function magnadramonDemo(effect: string | null, step: string | null): CardEffect
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-036",
           effectKey: "EX3-036/on-deletion-no-card",
@@ -3581,7 +3581,7 @@ function magnadramonDemo(effect: string | null, step: string | null): CardEffect
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-036",
           effectKey: "EX3-036/on-deletion-declined",
@@ -3708,7 +3708,7 @@ function angewomonDemo(effect: string | null): CardEffectsFixture {
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-034",
           effectKey: `EX3-034/${effect}`,
@@ -3731,7 +3731,7 @@ function angewomonDemo(effect: string | null): CardEffectsFixture {
       events: [
         { kind: "cardsMoved", instanceIds: [firstTrial.instanceId], from: "hand", to: "battleArea" },
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-034",
           effectKey: "EX3-034/when-digivolving-place-trial",
@@ -3752,7 +3752,7 @@ function angewomonDemo(effect: string | null): CardEffectsFixture {
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-034",
           effectKey: "EX3-034/gated",
@@ -3771,7 +3771,7 @@ function angewomonDemo(effect: string | null): CardEffectsFixture {
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-034",
           effectKey: "EX3-034/declined",
@@ -3879,7 +3879,7 @@ function majiramonDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "EX3-032",
         effectKey: `EX3-032/${effect}`,
@@ -3970,7 +3970,7 @@ function veedramonDemo(effect: string | null, step: string | null): CardEffectsF
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-031",
           effectKey: `EX3-031/${effect}`,
@@ -4020,7 +4020,7 @@ function veedramonDemo(effect: string | null, step: string | null): CardEffectsF
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-031",
           effectKey: "EX3-031/when-digivolving",
@@ -4160,7 +4160,7 @@ function gatomonDemo(effect: string | null, step: string | null): CardEffectsFix
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-030",
           effectKey: `EX3-030/${effect}`,
@@ -4206,7 +4206,7 @@ function gatomonDemo(effect: string | null, step: string | null): CardEffectsFix
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-030",
           effectKey: "EX3-030/on-play",
@@ -4360,7 +4360,7 @@ function airdramonDemo(effect: string | null): CardEffectsFixture {
         ? []
         : ([{ kind: "cardRevealed", seat: 0, cardId: revealedCardId, sourceCardId: "EX3-029" }] as const)),
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "EX3-029",
         effectKey: `EX3-029/${effect}`,
@@ -4434,7 +4434,7 @@ function patamonDemo(effect: string | null, step: string | null): CardEffectsFix
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-028",
           effectKey: "EX3-028/on-play",
@@ -4578,7 +4578,7 @@ function agumonInheritedDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "EX3-027",
         effectKey: `EX3-027/${mode}`,
@@ -4716,7 +4716,7 @@ function aegisdramonDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "EX3-026",
         effectKey: `EX3-026/${mode}`,
@@ -4767,7 +4767,7 @@ function azulongmonDemo(effect: string | null): CardEffectsFixture {
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-025",
           effectKey: `EX3-025/${mode}`,
@@ -4833,7 +4833,7 @@ function azulongmonDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "EX3-025",
         effectKey: `EX3-025/${mode}`,
@@ -4872,7 +4872,7 @@ function slayerdramonDemo(effect: string | null): CardEffectsFixture {
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-024",
           effectKey: "EX3-024/alternate",
@@ -4897,7 +4897,7 @@ function slayerdramonDemo(effect: string | null): CardEffectsFixture {
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-024",
           effectKey: `EX3-024/${mode}`,
@@ -5003,7 +5003,7 @@ function slayerdramonDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "EX3-024",
         effectKey: `EX3-024/${mode}`,
@@ -5052,7 +5052,7 @@ function wingdramonDemo(effect: string | null): CardEffectsFixture {
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-020",
           effectKey: "EX3-020/resolved",
@@ -5099,7 +5099,7 @@ function wingdramonDemo(effect: string | null): CardEffectsFixture {
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-020",
           effectKey: `EX3-020/${mode}`,
@@ -5171,7 +5171,7 @@ function wingdramonDemo(effect: string | null): CardEffectsFixture {
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-020",
           effectKey: `EX3-020/${mode}`,
@@ -5337,7 +5337,7 @@ function crysPaledramonDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "EX3-021",
         effectKey: `EX3-021/${mode}`,
@@ -5448,7 +5448,7 @@ function megaSeadramonDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "EX3-022",
         effectKey: `EX3-022/${mode}`,
@@ -5612,7 +5612,7 @@ function plesiomonDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "EX3-023",
         effectKey: `EX3-023/${mode}`,
@@ -5675,7 +5675,7 @@ function aeroVeedramonDemo(effect: string | null): CardEffectsFixture {
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-033",
           effectKey: `EX3-033/${effect}`,
@@ -5710,7 +5710,7 @@ function aeroVeedramonDemo(effect: string | null): CardEffectsFixture {
         state,
         events: [
           {
-            kind: "effectResolved",
+            kind: "effectTriggered",
             seat: 0,
             sourceCardId: "EX3-033",
             effectKey: "EX3-033/inherited-blocker",
@@ -5731,7 +5731,7 @@ function aeroVeedramonDemo(effect: string | null): CardEffectsFixture {
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-033",
           effectKey: `EX3-033/${effect}`,
@@ -5775,7 +5775,7 @@ function aeroVeedramonDemo(effect: string | null): CardEffectsFixture {
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-033",
           effectKey: `EX3-033/${effect}`,
@@ -5857,7 +5857,7 @@ function dracomonDemo(effect: string | null, step: string | null): CardEffectsFi
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-037",
           effectKey: "EX3-037/inherited-dp",
@@ -5894,7 +5894,7 @@ function dracomonDemo(effect: string | null, step: string | null): CardEffectsFi
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "EX3-037",
           effectKey: "EX3-037/on-play-reveal",
@@ -6099,7 +6099,7 @@ function seasarmonDemo(effect: string | null): CardEffectsFixture {
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "BT1-052",
           effectKey: "BT1-052/jamming",
@@ -6138,7 +6138,7 @@ function darcmonDemo(effect: string | null): CardEffectsFixture {
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "BT1-053",
           effectKey: "BT1-053/yellow-rookie-draw",
@@ -6175,7 +6175,7 @@ function kokuwamonDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-068",
         effectKey: "BT1-068/level-six-security-attack",
@@ -6205,7 +6205,7 @@ function ogremonDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-069",
         effectKey: "BT1-069/jamming",
@@ -6238,7 +6238,7 @@ function kuwagamonDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-070",
         effectKey: "BT1-070/suspend",
@@ -6287,7 +6287,7 @@ function woodmonDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-072",
         effectKey: "BT1-072/attack-cost",
@@ -6326,7 +6326,7 @@ function kabuterimonDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-073",
         effectKey: "BT1-073/suspended-dp",
@@ -6418,7 +6418,7 @@ function digitamamonDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-075",
         effectKey: "BT1-075/memory-loan",
@@ -6460,7 +6460,7 @@ function megaKabuterimonDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-076",
         effectKey: "BT1-076/memory",
@@ -6496,7 +6496,7 @@ function okuwamonDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-077",
         effectKey: "BT1-077/battle-memory",
@@ -6538,7 +6538,7 @@ function jagamonDemo(step: string | null): CardEffectsFixture {
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "BT1-078",
           effectKey: "BT1-078/reveal-digivolve",
@@ -6606,7 +6606,7 @@ function lillymonDemo(effect: string | null): CardEffectsFixture {
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "BT1-079",
           effectKey: "BT1-079/suspend",
@@ -6683,7 +6683,7 @@ function herculesKabuterimonDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-081",
         effectKey: effect === "piercing" ? "BT1-081/piercing" : "BT1-081/unsuspend",
@@ -6724,7 +6724,7 @@ function rosemonDemo(effect: string | null): CardEffectsFixture {
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "BT1-082",
           effectKey: "BT1-082/suspend-opponent-digimon",
@@ -6784,7 +6784,7 @@ function granKuwagamonDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-083",
         effectKey: effect === "piercing" ? "BT1-083/piercing" : "BT1-083/dp",
@@ -6857,7 +6857,7 @@ function omnimonDemo(effect: string | null, step: string | null): CardEffectsFix
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "BT1-084",
           effectKey:
@@ -6953,7 +6953,7 @@ function taiKamiyaDemo(effect: string | null): CardEffectsFixture {
       effect === "security-play"
         ? { kind: "cardsMoved", instanceIds: [tai.topCard.instanceId], from: "security", to: "battleArea" }
         : {
-            kind: "effectResolved",
+            kind: "effectTriggered",
             seat: 0,
             sourceCardId: "BT1-085",
             effectKey: effect === "memory-set" ? "BT1-085/memory-setter" : "BT1-085/red-security-attack",
@@ -7011,7 +7011,7 @@ function mattIshidaDemo(effect: string | null, step: string | null): CardEffects
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "BT1-086",
           effectKey: effect === "memory-set" ? "BT1-086/memory" : "BT1-086/blue-play",
@@ -7132,7 +7132,7 @@ function tkTakaishiDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-087",
         effectKey: effect === "memory-set" ? "BT1-087/memory" : "BT1-087/security-search",
@@ -7192,7 +7192,7 @@ function izzyIzumiDemo(effect: string | null): CardEffectsFixture {
       effect === "security-play"
         ? { kind: "cardsMoved", instanceIds: [izzy.topCard.instanceId], from: "security", to: "battleArea" }
         : {
-            kind: "effectResolved",
+            kind: "effectTriggered",
             seat: 0,
             sourceCardId: "BT1-088",
             effectKey: "BT1-088/reveal",
@@ -7261,7 +7261,7 @@ function mimiTachikawaDemo(effect: string | null): CardEffectsFixture {
       effect === "security-play"
         ? { kind: "cardsMoved", instanceIds: [mimi.topCard.instanceId], from: "security", to: "battleArea" }
         : {
-            kind: "effectResolved",
+            kind: "effectTriggered",
             seat: 0,
             sourceCardId: "BT1-089",
             effectKey: effect === "memory-set" ? "BT1-089/memory" : "BT1-089/breeding",
@@ -7314,7 +7314,7 @@ function gravityCrushDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-090",
         effectKey: effect === "memory-gained" ? "BT1-090/memory-loan" : "BT1-090/end-loss",
@@ -7388,7 +7388,7 @@ function scrapClawDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-091",
         effectKey: "BT1-091/piercing",
@@ -7457,7 +7457,7 @@ function nuclearLaserDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-092",
         effectKey: "BT1-092/draw-and-dp",
@@ -7536,7 +7536,7 @@ function greatTornadoDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-093",
         effectKey: effect === "security-added" ? "BT1-093/security" : "BT1-093/main",
@@ -7606,7 +7606,7 @@ function oblivionBirdDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-094",
         effectKey: effect === "security-deleted" ? "BT1-094/security" : "BT1-094/main",
@@ -7681,7 +7681,7 @@ function braveShieldDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-095",
         effectKey: effect.startsWith("security-") ? "BT1-095/security" : "BT1-095/main",
@@ -7754,7 +7754,7 @@ function madDogFireDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-096",
         effectKey: effect === "security-resolved" ? "BT1-096/security" : "BT1-096/main",
@@ -7801,7 +7801,7 @@ function boringStormDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-097",
         effectKey: effect === "main-draw" ? "BT1-097/main-draw" : "BT1-097/security-draw",
@@ -7879,7 +7879,7 @@ function vNovaBlastDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-098",
         effectKey: effect === "security-added" ? "BT1-098/security" : "BT1-098/main",
@@ -7953,7 +7953,7 @@ function heartsAttackDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-099",
         effectKey: "BT1-099/main",
@@ -8014,7 +8014,7 @@ function argomonUltimateBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-047",
         effectKey: effect === "digisorption" ? "BT2-047/digisorption" : "BT2-047/inherited-play",
@@ -8075,7 +8075,7 @@ function cherrymonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-048",
         effectKey: "BT2-048/blocker-unavailable",
@@ -8125,7 +8125,7 @@ function puppetmonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-049",
         effectKey: effect === "attack-memory" ? "BT2-049/when-attacking" : "BT2-049/on-play",
@@ -8180,7 +8180,7 @@ function argomonMegaBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-050",
         effectKey:
@@ -8237,7 +8237,7 @@ function rustTyrannomonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-051",
         effectKey: effect === "battle-win" ? "BT2-051/after-battle" : "BT2-051/attack-ready",
@@ -8285,7 +8285,7 @@ function hagurumonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-052",
         effectKey: `BT2-052/${effect}`,
@@ -8341,7 +8341,7 @@ function keramonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-053",
         effectKey: "BT2-053/inherited-draw",
@@ -8407,7 +8407,7 @@ function gotsumonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-054",
         effectKey: "BT2-054/when-attacking",
@@ -8450,7 +8450,7 @@ function toyAgumonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-055",
         effectKey: "BT2-055/inherited-reboot",
@@ -8498,7 +8498,7 @@ function numemonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-056",
         effectKey: `BT2-056/${effect}`,
@@ -8548,7 +8548,7 @@ function greymonBlackBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-057",
         effectKey: "BT2-057/inherited-jamming",
@@ -8610,7 +8610,7 @@ function guardromonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-058",
         effectKey: "BT2-058/cannot-attack",
@@ -8655,7 +8655,7 @@ function kurisarimonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-059",
         effectKey: `BT2-059/${effect ?? "different"}`,
@@ -8703,7 +8703,7 @@ function megadramonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-060",
         effectKey: `BT2-060/${effect}`,
@@ -8760,7 +8760,7 @@ function andromonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-061",
         effectKey: `BT2-061/${effect}`,
@@ -8804,7 +8804,7 @@ function infermonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-062",
         effectKey: `BT2-062/${effect ?? "reduced"}`,
@@ -8849,7 +8849,7 @@ function metalGreymonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-063",
         effectKey: `BT2-063/${selected}`,
@@ -8897,7 +8897,7 @@ function hiAndromonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-064",
         effectKey: `BT2-064/${effect}`,
@@ -8951,7 +8951,7 @@ function warGreymonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-065",
         effectKey: `BT2-065/${effect}`,
@@ -9026,7 +9026,7 @@ function machinedramonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-066",
         effectKey: `BT2-066/${selected}`,
@@ -9076,7 +9076,7 @@ function demiDevimonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-067",
         effectKey: `BT2-067/${effect}`,
@@ -9119,7 +9119,7 @@ function impmonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-068",
         effectKey: `BT2-068/${selected}`,
@@ -9198,7 +9198,7 @@ function gabumonPurpleBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-069",
         effectKey: `BT2-069/${effect}`,
@@ -9241,7 +9241,7 @@ function tapirmonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-070",
         effectKey: `BT2-070/${selected}`,
@@ -9292,7 +9292,7 @@ function wizardmonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-071",
         effectKey: `BT2-071/${selected}`,
@@ -9349,7 +9349,7 @@ function vilemonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-072",
         effectKey: `BT2-072/${selected}`,
@@ -9396,7 +9396,7 @@ function garurumonPurpleBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-073",
         effectKey: `BT2-073/${selected}`,
@@ -9440,7 +9440,7 @@ function devimonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-074",
         effectKey: `BT2-074/${selected}`,
@@ -9488,7 +9488,7 @@ function myotismonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-075",
         effectKey: `BT2-075/${effect}`,
@@ -9567,7 +9567,7 @@ function pumpkinmonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-076",
         effectKey: `BT2-076/${effect}`,
@@ -9667,7 +9667,7 @@ function kimeramonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-077",
         effectKey: `BT2-077/${effect}`,
@@ -9752,7 +9752,7 @@ function wereGarurumonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-078",
         effectKey: `BT2-078/${effect}`,
@@ -9809,7 +9809,7 @@ function venomMyotismonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-079",
         effectKey: `BT2-079/${selected}`,
@@ -9842,7 +9842,7 @@ function zubamonBt3Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-008",
         effectKey: `BT3-008/${effect ?? "both-categories"}`,
@@ -9876,7 +9876,7 @@ function metalGreymonBt3Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-015",
         effectKey: `BT3-015/${effect ?? "resolved"}`,
@@ -9908,7 +9908,7 @@ function durandamonBt3Demo(_effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-016",
         effectKey: "BT3-016/inherited-piercing",
@@ -9937,7 +9937,7 @@ function valkyrimonBt3Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-017",
         effectKey: `BT3-017/${effect ?? "resolved"}`,
@@ -9972,7 +9972,7 @@ function blitzGreymonBt3Demo(_effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-018",
         effectKey: "BT3-018/de-digivolve-2",
@@ -10001,7 +10001,7 @@ function ragnaLoardmonBt3Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-019",
         effectKey: `BT3-019/${effect ?? "resolved"}`,
@@ -10030,7 +10030,7 @@ function patamonBt3Demo(_effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-020",
         effectKey: "BT3-020/vanilla",
@@ -10058,7 +10058,7 @@ function veemonBt3Demo(_effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-021",
         effectKey: "BT3-021/jamming",
@@ -10084,7 +10084,7 @@ function penguinmonBt3Demo(_effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-022",
         effectKey: "BT3-022/vanilla",
@@ -10115,7 +10115,7 @@ function angemonBt3Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-023",
         effectKey: `BT3-023/${effect ?? "resolved"}`,
@@ -10145,7 +10145,7 @@ function airdramonBt3Demo(_effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-024",
         effectKey: "BT3-024/security",
@@ -10174,7 +10174,7 @@ function exVeemonBt3Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-025",
         effectKey: `BT3-025/${effect ?? "resolved"}`,
@@ -10205,7 +10205,7 @@ function magnaAngemonBt3Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-026",
         effectKey: `BT3-026/${effect ?? "resolved"}`,
@@ -10238,7 +10238,7 @@ function paildramonBt3Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-027",
         effectKey: `BT3-027/${effect ?? "resolved"}`,
@@ -10267,7 +10267,7 @@ function bastemonBt3Demo(_effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-028",
         effectKey: "BT3-028/vanilla",
@@ -10295,7 +10295,7 @@ function goldramonBt3Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-029",
         effectKey: `BT3-029/${effect ?? "resolved"}`,
@@ -10329,7 +10329,7 @@ function leopardmonBt3Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-030",
         effectKey: `BT3-030/${effect ?? "resolved"}`,
@@ -10366,7 +10366,7 @@ function imperialdramonBt3Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-031",
         effectKey: `BT3-031/${effect ?? "resolved"}`,
@@ -10395,7 +10395,7 @@ function armadillomonBt3Demo(_effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-032",
         effectKey: "BT3-032/vanilla",
@@ -10426,7 +10426,7 @@ function salamonBt3Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-033",
         effectKey: `BT3-033/${effect ?? "resolved"}`,
@@ -10459,7 +10459,7 @@ function lopmonBt3Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-034",
         effectKey: `BT3-034/${effect ?? "resolved"}`,
@@ -10492,7 +10492,7 @@ function gatomonBt3Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-035",
         effectKey: `BT3-035/${effect ?? "resolved"}`,
@@ -10519,7 +10519,7 @@ function ankylomonBt3Demo(_effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-036",
         effectKey: "BT3-036/security",
@@ -10545,7 +10545,7 @@ function turuiemonBt3Demo(_effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-037",
         effectKey: "BT3-037/vanilla",
@@ -10571,7 +10571,7 @@ function antylamonBt3Demo(_effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-038",
         effectKey: "BT3-038/vanilla",
@@ -10610,7 +10610,7 @@ function angewomonBt3Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-039",
         effectKey: `BT3-039/${effect ?? "resolved"}`,
@@ -10644,7 +10644,7 @@ function shakkoumonBt3Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-040",
         effectKey: `BT3-040/${effect ?? "opponent-turn"}`,
@@ -10686,7 +10686,7 @@ function cherubimonBt3Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-041",
         effectKey: `BT3-041/${effect ?? "resolved"}`,
@@ -10731,7 +10731,7 @@ function clavisAngemonBt3Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-042",
         effectKey: `BT3-042/${effect ?? "resolved"}`,
@@ -10768,7 +10768,7 @@ function kentaurosmonBt3Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-043",
         effectKey: `BT3-043/${effect ?? "digivolving"}`,
@@ -10797,7 +10797,7 @@ function aruraumonBt3Demo(_effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-044",
         effectKey: "BT3-044/vanilla",
@@ -10823,7 +10823,7 @@ function kunemonBt3Demo(_effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-045",
         effectKey: "BT3-045/vanilla",
@@ -10850,7 +10850,7 @@ function terriermonBt3Demo(_effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-046",
         effectKey: "BT3-046/restrict-memory",
@@ -10882,7 +10882,7 @@ function wormmonBt3Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-047",
         effectKey: `BT3-047/${effect ?? "resolved"}`,
@@ -10915,7 +10915,7 @@ function gargomonBt3Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-048",
         effectKey: `BT3-048/${effect ?? "your-turn"}`,
@@ -10945,7 +10945,7 @@ function flymonBt3Demo(_effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-049",
         effectKey: "BT3-049/security",
@@ -10974,7 +10974,7 @@ function stingmonBt3Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-050",
         effectKey: `BT3-050/${effect ?? "resolved"}`,
@@ -11005,7 +11005,7 @@ function dokugumonBt3Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-051",
         effectKey: `BT3-051/${effect ?? "resolved"}`,
@@ -11039,7 +11039,7 @@ function rapidmonBt3Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-052",
         effectKey: `BT3-052/${effect ?? "your-turn"}`,
@@ -11068,7 +11068,7 @@ function vanillaBt3Demo(cardId: string, name: string, dp: number): CardEffectsFi
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: cardId,
         effectKey: `${cardId}/no-effect`,
@@ -11095,7 +11095,7 @@ function effectBt3Demo(cardId: string, name: string, dp: number, description: st
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: cardId,
         effectKey: `${cardId}/resolved`,
@@ -11145,7 +11145,7 @@ function silphymonBt3Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-014",
         effectKey: `BT3-014/${effect ?? "resolved"}`,
@@ -11220,7 +11220,7 @@ function greymonBt3Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-011",
         effectKey: "BT3-011/security",
@@ -11251,7 +11251,7 @@ function duramonBt3Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-013",
         effectKey: `BT3-013/${effect ?? "level-seven"}`,
@@ -11284,7 +11284,7 @@ function zubaEagermonBt3Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-010",
         effectKey: `BT3-010/${effect ?? "level-seven"}`,
@@ -11315,7 +11315,7 @@ function hawkmonBt3Demo(_effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-009",
         effectKey: "BT3-009/vanilla",
@@ -11341,7 +11341,7 @@ function agumonBt3Demo(_effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-007",
         effectKey: "BT3-007/vanilla",
@@ -11381,7 +11381,7 @@ function demiMeramonBt3Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-006",
         effectKey: `BT3-006/${effect ?? "resolved"}`,
@@ -11416,7 +11416,7 @@ function kakkinmonBt3Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-005",
         effectKey: `BT3-005/${effect ?? "level-seven"}`,
@@ -11457,7 +11457,7 @@ function minomonBt3Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-004",
         effectKey: `BT3-004/${effect ?? "attack-digimon"}`,
@@ -11492,7 +11492,7 @@ function upamonBt3Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-003",
         effectKey: `BT3-003/${effect ?? "three-security"}`,
@@ -11529,7 +11529,7 @@ function demiVeemonBt3Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-002",
         effectKey: `BT3-002/${effect ?? "jamming-draw"}`,
@@ -11588,7 +11588,7 @@ function poromonBt3Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT3-001",
         effectKey: `BT3-001/${effect}`,
@@ -11648,7 +11648,7 @@ function blackWarGreymonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-112",
         effectKey: `BT2-112/${selected}`,
@@ -11709,7 +11709,7 @@ function beelzemonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-111",
         effectKey: `BT2-111/${effect ?? "shortcut-ready"}`,
@@ -11768,7 +11768,7 @@ function trumpSwordBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-110",
         effectKey: `BT2-110/${effect}`,
@@ -11849,7 +11849,7 @@ function heatViperBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-109",
         effectKey: `BT2-109/${effect}`,
@@ -11907,7 +11907,7 @@ function nightRaidBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-108",
         effectKey: `BT2-108/${effect}`,
@@ -11958,7 +11958,7 @@ function darknessClawBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-107",
         effectKey: `BT2-107/${effect}`,
@@ -12023,7 +12023,7 @@ function infinityCannonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-106",
         effectKey: `BT2-106/${effect}`,
@@ -12079,7 +12079,7 @@ function spiderShooterBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-105",
         effectKey: `BT2-105/${effect}`,
@@ -12146,7 +12146,7 @@ function atomicRayBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-104",
         effectKey: `BT2-104/${effect}`,
@@ -12237,7 +12237,7 @@ function spiralSwordBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-103",
         effectKey: `BT2-103/${effect}`,
@@ -12317,7 +12317,7 @@ function terrorsClusterBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-102",
         effectKey: `BT2-102/${effect}`,
@@ -12359,7 +12359,7 @@ function cherryBlastBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-101",
         effectKey: `BT2-101/${selected}`,
@@ -12451,7 +12451,7 @@ function puppetPummelBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-100",
         effectKey: `BT2-100/${effect}`,
@@ -12529,7 +12529,7 @@ function gloriousBurstBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-099",
         effectKey: `BT2-099/${effect}`,
@@ -12603,7 +12603,7 @@ function edensJavelinBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-098",
         effectKey: `BT2-098/${effect}`,
@@ -12679,7 +12679,7 @@ function lightningPawBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-097",
         effectKey: `BT2-097/${effect}`,
@@ -12732,7 +12732,7 @@ function rayOfVictoryBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-096",
         effectKey: `BT2-096/${selected}`,
@@ -12808,7 +12808,7 @@ function riverOfPowerBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-095",
         effectKey: `BT2-095/${effect}`,
@@ -12888,7 +12888,7 @@ function arcticBlizzardBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-094",
         effectKey: `BT2-094/${effect}`,
@@ -12940,7 +12940,7 @@ function shieldOfTheJustBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-093",
         effectKey: `BT2-093/${selected}`,
@@ -13007,7 +13007,7 @@ function radiationBladeBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-092",
         effectKey: `BT2-092/${effect}`,
@@ -13074,7 +13074,7 @@ function volcanicFlareBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-091",
         effectKey: `BT2-091/${effect}`,
@@ -13149,7 +13149,7 @@ function mattIshidaPurpleBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-090",
         effectKey: `BT2-090/${selected}`,
@@ -13194,7 +13194,7 @@ function taiKamiyaBlackBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-089",
         effectKey: `BT2-089/${selected}`,
@@ -13249,7 +13249,7 @@ function taigaBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-088",
         effectKey: `BT2-088/${selected}`,
@@ -13285,7 +13285,7 @@ function kariKamiyaBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-087",
         effectKey: `BT2-087/${selected}`,
@@ -13345,7 +13345,7 @@ function rinaShinomiyaBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-086",
         effectKey: `BT2-086/${selected}`,
@@ -13398,7 +13398,7 @@ function joeKidoBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-085",
         effectKey: `BT2-085/${selected}`,
@@ -13456,7 +13456,7 @@ function soraTakenouchiBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-084",
         effectKey: `BT2-084/${selected}`,
@@ -13507,7 +13507,7 @@ function millenniummonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-083",
         effectKey: `BT2-083/${selected}`,
@@ -13558,7 +13558,7 @@ function diaboromonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-082",
         effectKey: `BT2-082/${selected}`,
@@ -13635,7 +13635,7 @@ function metalGarurumonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-081",
         effectKey: `BT2-081/${effect}`,
@@ -13664,7 +13664,7 @@ function piedmonBt2Demo(effect: string | null): CardEffectsFixture {
       state,
       events: [
         {
-          kind: "effectResolved",
+          kind: "effectTriggered",
           seat: 0,
           sourceCardId: "BT2-080",
           effectKey: "BT2-080/retaliation-battle",
@@ -13733,7 +13733,7 @@ function piedmonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-080",
         effectKey: `BT2-080/${effect}`,
@@ -13782,7 +13782,7 @@ function metalTyrannomonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-046",
         effectKey: "BT2-046/inherited-unsuspend",
@@ -13816,7 +13816,7 @@ function argomonChampionBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-045",
         effectKey: "BT2-045/digisorption",
@@ -13859,7 +13859,7 @@ function tyrannomonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-044",
         effectKey: "BT2-044/when-digivolving-reveal",
@@ -13896,7 +13896,7 @@ function agumonGreenBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-043",
         effectKey: "BT2-043/inherited-dp-boost",
@@ -13969,7 +13969,7 @@ function shineGreymonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-041",
         effectKey: effect.startsWith("q10") ? "BT2-041/when-digivolving" : "BT2-041/tamer-dp-boost",
@@ -14006,7 +14006,7 @@ function ophanimonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-040",
         effectKey: effect === "q1013-security-battle" ? "BT2-040/security-battle" : "BT2-040/on-deletion",
@@ -14058,7 +14058,7 @@ function magnadramonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-039",
         effectKey: effect.startsWith("q101") ? "BT2-039/when-attacking-play" : "BT2-039/on-play-recovery",
@@ -14114,7 +14114,7 @@ function rizeGreymonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-038",
         effectKey: effect === "played-tamer" ? "BT2-038/play-tamer" : "BT2-038/inherited-security-attack",
@@ -14158,7 +14158,7 @@ function gatomonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-036",
         effectKey: effect === "ally-deleted" ? "BT2-036/ally-deletion-boost" : "BT2-036/on-play-dp-minus",
@@ -14209,7 +14209,7 @@ function geoGreymonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-035",
         effectKey: "BT2-035/inherited-dp-minus",
@@ -14250,7 +14250,7 @@ function salamonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-034",
         effectKey: "BT2-034/on-deletion-recovery",
@@ -14293,7 +14293,7 @@ function agumonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-033",
         effectKey: "BT2-033/inherited-draw",
@@ -14336,7 +14336,7 @@ function ulforceVeedramonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-032",
         effectKey: "BT2-032/unsuspend-and-memory",
@@ -14382,7 +14382,7 @@ function vikemonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-031",
         effectKey: "BT2-031/conditional-bonuses",
@@ -14448,7 +14448,7 @@ function metalSeadramonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-030",
         effectKey: effect === "on-play-return" ? "BT2-030/on-play-return" : "BT2-030/source-less-unblockable",
@@ -14492,7 +14492,7 @@ function megaSeadramonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-029",
         effectKey: "BT2-029/source-less-unblockable",
@@ -14554,7 +14554,7 @@ function aeroVeedramonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-028",
         effectKey: inherited ? "BT2-028/main-phase-jamming" : "BT2-028/blue-unsuspend",
@@ -14606,7 +14606,7 @@ function veedramonJammingBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-026",
         effectKey: "BT2-026/blue-tamer-jamming",
@@ -14657,7 +14657,7 @@ function ikkakumonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-025",
         effectKey: "BT2-025/trash-top-source",
@@ -14722,7 +14722,7 @@ function gomamonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-023",
         effectKey: "BT2-023/source-less-play-reduction",
@@ -14771,7 +14771,7 @@ function veemonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-021",
         effectKey: "BT2-021/main-phase-unsuspend-draw",
@@ -14849,7 +14849,7 @@ function gallantmonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-020",
         effectKey:
@@ -14900,7 +14900,7 @@ function phoenixmonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-019",
         effectKey: "BT2-019/player-attack-memory",
@@ -14957,7 +14957,7 @@ function volcanicdramonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-018",
         effectKey: effect === "security-attack" ? "BT2-018/security-attack" : "BT2-018/on-play-delete",
@@ -15021,7 +15021,7 @@ function warGrowlmonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-017",
         effectKey: inherited ? "BT2-017/opponent-trash-dp" : "BT2-017/red-tamer-delete",
@@ -15071,7 +15071,7 @@ function garudamonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-015",
         effectKey: "BT2-015/player-attack-draw",
@@ -15117,7 +15117,7 @@ function growlmonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-013",
         effectKey: "BT2-013/delete-2000-dp",
@@ -15163,7 +15163,7 @@ function birdramonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-012",
         effectKey: "BT2-012/player-attack-dp",
@@ -15207,7 +15207,7 @@ function biyomonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-010",
         effectKey: "BT2-010/on-deletion-memory",
@@ -15258,7 +15258,7 @@ function guilmonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-009",
         effectKey: "BT2-009/opponent-trash-threshold",
@@ -15308,7 +15308,7 @@ function yaamonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-008",
         effectKey: "BT2-008/own-trash-threshold",
@@ -15354,7 +15354,7 @@ function pagumonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-007",
         effectKey: "BT2-007/trash-top-deck",
@@ -15403,7 +15403,7 @@ function tsumemonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-006",
         effectKey: "BT2-006/same-name-dp",
@@ -15443,7 +15443,7 @@ function kapurimonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-005",
         effectKey: "BT2-005/reboot-dp",
@@ -15485,7 +15485,7 @@ function argomonEggBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-004",
         effectKey: "BT2-004/active-phase-unsuspend",
@@ -15528,7 +15528,7 @@ function nyaromonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-003",
         effectKey: "BT2-003/opponent-turn-security-dp",
@@ -15573,7 +15573,7 @@ function demiVeemonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-002",
         effectKey: "BT2-002/main-phase-unsuspend",
@@ -15617,7 +15617,7 @@ function gigimonBt2Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT2-001",
         effectKey: "BT2-001/your-turn-trash-threshold",
@@ -15669,7 +15669,7 @@ function veedramonBt1Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-115",
         effectKey:
@@ -15726,7 +15726,7 @@ function metalGreymonBt1Demo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-114",
         effectKey: effect.startsWith("inherited") ? "BT1-114/your-turn-dp" : "BT1-114/attack-cost",
@@ -15797,7 +15797,7 @@ function forbiddenTemptationDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-113",
         effectKey: effect === "security-active" || effect === "q989-active" ? "BT1-113/security" : "BT1-113/main",
@@ -15880,7 +15880,7 @@ function dimensionScissorDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-112",
         effectKey: effect === "security-hand" ? "BT1-112/security" : "BT1-112/main",
@@ -15957,7 +15957,7 @@ function gigaBlasterDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-111",
         effectKey: effect === "security-mode-two" ? "BT1-111/security" : "BT1-111/main",
@@ -16020,7 +16020,7 @@ function flowerCannonDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-110",
         effectKey:
@@ -16116,7 +16116,7 @@ function smashedPotatoesDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-109",
         effectKey: effect === "security-trashed" ? "BT1-109/no-security-effect" : "BT1-109/main",
@@ -16179,7 +16179,7 @@ function hornBusterDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-108",
         effectKey:
@@ -16259,7 +16259,7 @@ function holyWaveDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-107",
         effectKey: effect === "main-recovered" || effect === "empty-deck" ? "BT1-107/main" : "BT1-107/security",
@@ -16309,7 +16309,7 @@ function polyphonyDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-106",
         effectKey: effect === "security-trashed" ? "BT1-106/no-security-effect" : "BT1-106/dp-minus",
@@ -16384,7 +16384,7 @@ function blastFireDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-105",
         effectKey: effect === "security-trashed" ? "BT1-105/no-security-effect" : "BT1-105/main",
@@ -16457,7 +16457,7 @@ function goldenRipperDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-104",
         effectKey: effect === "security-trashed" ? "BT1-104/no-security-effect" : "BT1-104/main",
@@ -16510,7 +16510,7 @@ function testamentDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-103",
         effectKey: effect === "security-resolved" ? "BT1-103/security-draw-return" : "BT1-103/main-gain-blocker",
@@ -16560,7 +16560,7 @@ function bladeOfTheTrueDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-102",
         effectKey: effect === "security-drew-two" ? "BT1-102/security" : "BT1-102/main",
@@ -16619,7 +16619,7 @@ function howlingCrusherDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-101",
         effectKey: effect === "main-trashed" ? "BT1-101/main" : "BT1-101/security",
@@ -16681,7 +16681,7 @@ function graceCrossFreezerDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-100",
         effectKey: effect.startsWith("security-") ? "BT1-100/security" : "BT1-100/main",
@@ -16716,7 +16716,7 @@ function palmonDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-067",
         effectKey: "BT1-067/reveal-level-four",
@@ -16755,7 +16755,7 @@ function tentomonDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-066",
         effectKey: "BT1-066/suspend",
@@ -16794,7 +16794,7 @@ function seraphimonDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-063",
         effectKey: "BT1-063/recovery",
@@ -16836,7 +16836,7 @@ function slashAngemonDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-062",
         effectKey: "BT1-062/dp-minus",
@@ -16868,7 +16868,7 @@ function mistymonDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-061",
         effectKey: "BT1-061/dp-minus",
@@ -16905,7 +16905,7 @@ function magnaAngemonDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-060",
         effectKey: "BT1-060/recovery",
@@ -16939,7 +16939,7 @@ function chirinmonDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-058",
         effectKey: "BT1-058/memory-loan",
@@ -16974,7 +16974,7 @@ function petermonDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-056",
         effectKey: "BT1-056/play-tinkermon",
@@ -17005,7 +17005,7 @@ function angemonDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-055",
         effectKey: "BT1-055/dp-minus",
@@ -17039,7 +17039,7 @@ function liamonDemo(effect: string | null): CardEffectsFixture {
     state,
     events: [
       {
-        kind: "effectResolved",
+        kind: "effectTriggered",
         seat: 0,
         sourceCardId: "BT1-054",
         effectKey: "BT1-054/dp-minus",

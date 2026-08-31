@@ -6,6 +6,7 @@ export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Security",
+      isSecurity: true,
       actions: [
         {
           kind: "PlayWithoutCost",

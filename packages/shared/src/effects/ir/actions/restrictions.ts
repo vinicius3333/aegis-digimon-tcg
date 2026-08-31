@@ -42,6 +42,14 @@ export interface RestrictAction extends ActionBase {
   kind: "Restrict";
   target: Target;
   restriction: RestrictionKind | string;
+  /**
+   * Also record the combat-facing `suspend` prohibition when the canonical
+   * effect-facing restriction is `beSuspended`. Printed "can't suspend"
+   * clauses cover both effect suspension and attack declaration suspension;
+   * older generated IR uses `restriction: "suspend"` for both wordings, so
+   * this opt-in keeps that compatibility while exposing the complete rule.
+   */
+  blocksCombatSuspend?: boolean;
   /** The permanent the restriction is ON. Defaults to the source. */
   on?: Target;
   duration: EffectDurationRef;
@@ -149,7 +157,8 @@ export interface RestrictCostReductionAction extends ActionBase {
  *
  * It binds only the restricted seat's OWN actions and effects: the SOURCE player's effects may
  * still play such a card into the restricted seat's area (KB EX7-014 Q4675/Q4676). Token plays
- * are exempt (Q3834); breeding-area plays and effect-driven moves are blocked (Q3835/Q6509).
+ * are exempt unless the filter opts into them (Q3834; BT14-017/Q2381); breeding-area plays and
+ * effect-driven moves are blocked (Q3835/Q6509).
  * Delay/Security activations of Options already in play are not "playing" and are unaffected
  * (BT8-057 Q1736/Q1737, EX1-072 Q3265/Q3266).
  */

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-050.js";
 
-describe("EX6-050 Diaboromon", () => {
+describe("EX6-050 Feresmon", () => {
   it("has Blocker and gains memory/trashes the opponent's hand on digivolving/deletion based on hand size", () => {
     expect(compiled.effects?.find((entry) => !entry.isInherited)?.keywords?.[0]?.keyword).toBe("Blocker");
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions).toMatchObject([

@@ -42,10 +42,11 @@ export class Permanent extends Schema {
   // True while the current top card entered this permanent by an effect. Used by cards whose
   // later effects condition on having been played/digivolved by an effect (BT25-080).
   @type("boolean") enteredByEffect = false;
-  // Set when an effect peels a Digimon stack down to a non-Digimon/non-DigiEgg card. The
-  // position was a Digimon immediately before the move, so the promoted no-DP card is an
-  // invalid Digimon remnant to trash at the next rule check; an ordinarily played Tamer must
-  // remain legal and therefore cannot be inferred from its current top kind alone.
+  // Set when an effect peels a Digimon stack down to an invalid no-DP remnant. The position was
+  // a Digimon immediately before the move, so a promoted non-Digimon/non-DigiEgg or ordinary
+  // no-DP Digi-Egg is trashed at the next rule check; a DP-bearing Digi-Egg remains legal. An
+  // ordinarily played Tamer must remain legal and therefore cannot be inferred from its current
+  // top kind alone.
   @type("boolean") invalidNoDpStackTop = false;
   // JSON array of {instanceId,effectKey,description} — populated server-side for the
   // turn player's battle-area permanents during Main phase; empty string otherwise.
@@ -79,6 +80,15 @@ export class Permanent extends Schema {
   // which already resolve them; surfacing them here too would double-count.
   @type("boolean") cannotAttack = false;
   @type("boolean") cannotBlock = false;
+  // The two non-combat blanket restrictions the client shows as standing debuff badges,
+  // projected from the same ledger entries the rules read: the unsuspend step skips a
+  // permanent with `cannotUnsuspend` (GameEngine's unsuspend phase), and a [When
+  // Digivolving] effect is refused for one with `cannotActivateWhenDigivolving`
+  // (BT19-038, KB Q5541-Q5545). Published for both seats and every phase, like
+  // `cannotAttack`/`cannotBlock`, because they are facts about the permanent rather than
+  // about an action being declared right now.
+  @type("boolean") cannotUnsuspend = false;
+  @type("boolean") cannotActivateWhenDigivolving = false;
   // Number of security cards an attack by this Digimon checks: base 1 plus every resolved
   // ＜Security Attack ±N＞ grant, floored at 0 (Comprehensive Rules §16-4-4). Projected from
   // the same helper the security-check loop uses (`securityStrikeCount`) so the inspector can

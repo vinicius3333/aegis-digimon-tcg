@@ -10,7 +10,7 @@ describe("BT5-075 Musyamon", () => {
   });
 
   it("has Jamming", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-075", as: "musya" }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-075", as: "musya", under: ["BT5-073"] }] } });
     await s.engine.recomputeContinuousEffects();
     expect(observe(s.engine).hasKeyword(s.perm("musya"), "Jamming")).toBe(true);
   });

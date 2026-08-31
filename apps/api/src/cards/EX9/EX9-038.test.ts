@@ -41,4 +41,19 @@ describe("EX9-038", () => {
     expect(s.perm("source").stack.map((card) => card.faceUp)).toEqual([false]);
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "unsuspend")).toBe(true);
   });
+
+  it("still restricts the selected Digimon when it was already suspended (Q4792)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX9-038", as: "source" }], hand: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", suspended: true }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, autoOrderTriggers: true },
+    );
+    s.state.turnSeat = 0;
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("source"));
+    await settle(() => observe(s.engine).isRestricted(s.perm("opponent"), "unsuspend"));
+    expect(observe(s.engine).isRestricted(s.perm("opponent"), "unsuspend")).toBe(true);
+  });
 });

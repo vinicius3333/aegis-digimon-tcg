@@ -58,6 +58,7 @@ describe("BT26-058 HiAndromon", () => {
             { card: "BT26-058", as: "hiAndromon" },
             { card: "BT26-054", as: "chosen" },
             { card: "BT26-054", as: "other" },
+            { card: "BT1-009", as: "nonCs" },
           ],
         },
       },
@@ -69,6 +70,7 @@ describe("BT26-058 HiAndromon", () => {
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("hiAndromon"));
     expect(observe(s.engine).isRestrictedByEffect(s.perm("chosen"), "beAffected", "Digimon")).toBe(true);
     expect(observe(s.engine).isRestrictedByEffect(s.perm("other"), "beAffected", "Digimon")).toBe(false);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("nonCs"), "beAffected", "Digimon")).toBe(false);
 
     advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
     await advance(s.engine).verb.modifyDP(s.perm("chosen").permanentId, -3000, EffectDuration.UntilOpponentTurnEnd);

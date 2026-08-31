@@ -13,7 +13,7 @@ describe("BT1-100 Grace Cross Freezer", () => {
         1: {
           battleArea: [
             { card: "BT1-010", as: "noSources" },
-            { card: "BT2-047", as: "withSource", under: ["BT1-001"] },
+            { card: "BT1-010", as: "withSource", under: ["BT1-001"] },
           ],
         },
       },
@@ -80,7 +80,7 @@ describe("BT1-100 Grace Cross Freezer", () => {
       1: {
         battleArea: [
           { card: "BT1-010", as: "noSources" },
-          { card: "BT2-047", as: "withSource", under: ["BT1-001"] },
+          { card: "BT1-010", as: "withSource", under: ["BT1-001"] },
         ],
       },
     });

@@ -9,6 +9,7 @@ describe("P-137 Flamedramon", () => {
       0: { battleArea: [{ card: "BT11-023", as: "veemon" }], hand: [{ card: "P-137", as: "flamedramon" }] },
     });
     s.state.memory = 10;
+    await s.ready();
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -32,6 +33,7 @@ describe("P-137 Flamedramon", () => {
             {
               kind: "SubTrigger",
               event: "whenAttackTargetSwitched",
+              sourceFilter: { isSelfRef: true },
               actions: [{ kind: "SecurityManipulation", op: "toHand", controller: "opponent", amount: 1 }],
             },
           ],
@@ -39,5 +41,62 @@ describe("P-137 Flamedramon", () => {
       ]),
     );
     assertNoLoudGap(s);
+  });
+
+  it("moves the opponent's top security card to hand when its attack target switches", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "P-137", as: "flamedramon" }] },
+        1: { battleArea: [{ card: "ST18-07", as: "blocker" }], security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("flamedramon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.hand.some((card) => card.cardId === "BT1-001"));
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
+  });
+
+  it("does not react when another Digimon's attack target switches", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-137", as: "flamedramon" },
+            { card: "ST18-08", as: "ally" },
+          ],
+        },
+        1: { battleArea: [{ card: "ST18-07", as: "blocker" }], security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ally").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 });

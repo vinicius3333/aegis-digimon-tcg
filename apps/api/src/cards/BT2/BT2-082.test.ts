@@ -27,7 +27,9 @@ describe("BT2-082 Diaboromon", () => {
       isToken: true,
     });
     expect(definition.colors).toContain("White");
-    expect(definition.types).toEqual(expect.arrayContaining(["Unknown", "Unidentified"]));
+    expect(definition.forms).toEqual(["Mega"]);
+    expect(definition.attributes).toEqual(["Unknown"]);
+    expect(definition.types).toEqual(["Unidentified"]);
   });
 
   it("may decline to play a token when attacking", async () => {

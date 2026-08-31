@@ -15,7 +15,7 @@ import {
 import { ContinuousEffectLedger } from "./continuous.js";
 import type { CardSource } from "./CardSource.js";
 import type { Effect } from "./Effect.js";
-import type { EffectContext, TriggerInfo } from "./EffectContext.js";
+import type { EffectContext } from "./EffectContext.js";
 
 // Importing the cards barrel registers the example EffectModules as a side effect
 // (card-module contract) — the same path apps/api/src/index.ts uses at boot.
@@ -82,8 +82,9 @@ describe("collectTriggeredEffects (kernel canTrigger applied)", () => {
   });
 
   it("respects maxPerTurn across collection (BT15-002 once-per-turn)", () => {
-    // BT15-002 inherited effect: source must be a STACK card under a Digimon top,
-    // on its owner's turn, with addedToHand caused by the owner's Digimon effect.
+    // BT15-002 installs its inherited watcher from the continuous timing. The future
+    // whenEffectAddsToHand payload is gated by the subscription, not collected directly
+    // at OnAddHand.
     // BT7-089 is any Digimon top card.
     const s = setupEngine({
       0: { battleArea: [{ card: "BT7-089", as: "top", under: [{ card: "BT15-002", as: "ess" }] }] },
@@ -94,29 +95,26 @@ describe("collectTriggeredEffects (kernel canTrigger applied)", () => {
     const gameAccess = createGameAccess(s.state);
     const source = createCardSource(s.inst("ess"), lookup);
 
-    const trigger: TriggerInfo = {
-      addedToHand: { instanceIds: ["x#1"], byEffect: { ownerSeat: 0, isDigimonEffect: true } },
-    };
     const makeContext = (src: CardSource, _e: Effect): EffectContext =>
       createEffectContext({
         source: src,
-        trigger,
+        trigger: {},
         game: gameAccess,
         fx: unimplementedPrimitives(),
         ask: unimplementedDecisions(),
       });
 
     const tracker = new UseTracker();
-    const first = collectTriggeredEffects(EffectTiming.OnAddHand, [source], makeContext, tracker);
-    expect(first.map((c) => c.effect.effectKey)).toEqual(["BT15-002/ir-5-0"]);
+    const first = collectTriggeredEffects(EffectTiming.None, [source], makeContext, tracker);
+    expect(first.map((c) => c.effect.effectKey)).toEqual(["BT15-002/ir-35-0"]);
 
     // Record a use; the once-per-turn effect should no longer trigger.
-    tracker.register(source.instanceId, "BT15-002/ir-5-0");
-    const second = collectTriggeredEffects(EffectTiming.OnAddHand, [source], makeContext, tracker);
+    tracker.register(source.instanceId, "BT15-002/ir-35-0");
+    const second = collectTriggeredEffects(EffectTiming.None, [source], makeContext, tracker);
     expect(second).toEqual([]);
   });
 
-  it("does NOT collect BT15-002 when the add-to-hand was not caused by the owner's Digimon effect", () => {
+  it("does not expose BT15-002 as a direct OnAddHand effect", () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT7-089", as: "top", under: [{ card: "BT15-002", as: "ess" }] }] },
     });
@@ -125,7 +123,6 @@ describe("collectTriggeredEffects (kernel canTrigger applied)", () => {
     const lookup = createCardStateLookup(s.state);
     const gameAccess = createGameAccess(s.state);
     const source = createCardSource(s.inst("ess"), lookup);
-    // byEffect undefined => the `when` predicate is false.
     const makeContext = (src: CardSource, _e: Effect): EffectContext =>
       createEffectContext({
         source: src,
@@ -136,6 +133,7 @@ describe("collectTriggeredEffects (kernel canTrigger applied)", () => {
       });
 
     expect(collectTriggeredEffects(EffectTiming.OnAddHand, [source], makeContext, new UseTracker())).toEqual([]);
+    expect(collectTriggeredEffects(EffectTiming.None, [source], makeContext, new UseTracker())).toHaveLength(1);
   });
 });
 

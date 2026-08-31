@@ -5,6 +5,32 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   effects: [
     {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldBeDeleted",
+          mode: "prevent",
+          sourceFilter: {
+            isSelfRef: true,
+          },
+          cost: {
+            kind: "suspend",
+            target: {
+              filter: {
+                isSelfRef: true,
+              },
+              count: 1,
+              isSelf: true,
+            },
+            raw: "By suspending this Digimon, prevent that deletion",
+          },
+          optional: true,
+          actions: [],
+        },
+      ],
+    },
+    {
       trigger: "Main",
       actions: [
         {
@@ -110,6 +136,7 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [{ names: ["Gabumon"], cost: 4, isAlternate: true }],
 };
 
 registerIrCard("BT15-101", compiled);

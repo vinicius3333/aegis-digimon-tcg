@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX4-018.js";
 import "../index.js";
 
@@ -17,6 +18,12 @@ describe("EX4-018 MailBirdramon", () => {
   it("has Save on deletion", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OnDeletion")?.keywords).toMatchObject([
       { keyword: "Save" },
+    ]);
+  });
+
+  it("has inherited Jamming", () => {
+    expect(compiled.effects?.find((entry) => entry.trigger === "Static" && entry.isInherited)?.keywords).toMatchObject([
+      { keyword: "Jamming" },
     ]);
   });
 
@@ -44,5 +51,27 @@ describe("EX4-018 MailBirdramon", () => {
       attackerPermanentId: s.perm("lowest").permanentId,
     });
     expect(s.state.memory).toBe(-5);
+  });
+
+  it("survives a stronger Security Digimon through inherited Jamming", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["EX4-018"] }] },
+      1: { security: ["BT1-081"] },
+    });
+    await s.ready();
+
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Jamming")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("host").permanentId),
+    ).toBe(true);
   });
 });

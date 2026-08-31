@@ -43,6 +43,9 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenEffectSuspends",
+          sourceFilter: {
+            kind: ["Digimon", "Tamer"],
+          },
           actions: [
             {
               kind: "Unsuspend",

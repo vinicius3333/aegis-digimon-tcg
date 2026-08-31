@@ -52,6 +52,29 @@ describe("BT26-042 Okuwamon", () => {
     ).toEqual(expect.objectContaining({ ok: false }));
   });
 
+  it("retains the catalog green Lv.4 evolution route for cost 3", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-070", as: "greenBase" }],
+        hand: [{ card: CARD_ID, as: "okuwamon" }],
+      },
+    });
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("greenBase").permanentId,
+        instanceId: s.inst("okuwamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("greenBase").topCard.cardId === CARD_ID);
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("greenBase").topCard.cardId).toBe(CARD_ID);
+    expect(s.perm("greenBase").stack.map(({ cardId }) => cardId)).toEqual(["BT1-070"]);
+  });
+
   it("resolves its two simultaneous On Play effects and grants the full long-duration buff", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -196,6 +219,36 @@ describe("BT26-042 Okuwamon", () => {
       subjectPermanentId: s.perm("second").permanentId,
     });
     expect(s.perm("target").currentDP).toBe(8000);
+  });
+
+  it("activates the [When Attacking] buff on its own real attack", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "attacker" },
+            { card: "BT1-066", as: "target" },
+          ],
+        },
+        1: { security: ["BT1-009", "BT1-009"] },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("target").permanentId);
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).hasPierce(s.perm("target")));
+
+    expect(s.perm("target").currentDP).toBe(5000);
+    expect(observe(s.engine).hasPierce(s.perm("target"))).toBe(true);
   });
 
   it("trashes the top security only for a surviving battle winner carrying Okuwamon as inherited (Q7032)", async () => {

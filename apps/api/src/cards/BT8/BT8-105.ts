@@ -14,6 +14,7 @@ const compiled: CompiledCard = {
             kind: ["Digimon"],
           },
           budget: 15,
+          minimum: 1,
           upTo: true,
         },
       ],

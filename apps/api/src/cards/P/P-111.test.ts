@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "./P-111.js";
 
 describe("P-111 Knightmon", () => {
@@ -55,5 +57,20 @@ describe("P-111 Knightmon", () => {
     );
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("rookie").instanceId)).toBe(true);
     assertNoLoudGap(s);
+  });
+
+  it("also applies the -3000 DP and Blocker grant on When Digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "P-111", as: "knightmon" }] },
+        1: { battleArea: [{ card: "BT1-025", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("knightmon"));
+    await settle();
+    expect(s.perm("target").currentDP).toBe(8000);
+    expect(s.perm("knightmon").keywords).toContain("Blocker");
   });
 });

@@ -26,4 +26,27 @@ describe("BT1-029 Gabumon", () => {
     expect(player.deck).toHaveLength(1);
     expect(player.deck[0]!.instanceId).toBe(s.inst("remaining").instanceId);
   });
+
+  it("does not activate its On Play effect when digivolving", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-003", as: "base" }],
+        hand: [{ card: "BT1-029", as: "gabumon" }],
+        deck: [{ card: "BT1-030", as: "drawn" }, { card: "BT1-031", as: "remaining" }],
+      },
+    });
+    s.state.memory = 0;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gabumon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("gabumon").instanceId);
+
+    expect(s.state.players[0]!.hand[0]!.instanceId).toBe(s.inst("drawn").instanceId);
+    expect(s.state.players[0]!.deck[0]!.instanceId).toBe(s.inst("remaining").instanceId);
+  });
 });

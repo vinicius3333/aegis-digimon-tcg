@@ -7,7 +7,11 @@ describe("BT11-056 Jijimon", () => {
   it("maps the green mega and both reveal/play clauses", () => {
     expect(getCardDefinition("BT11-056")).toMatchObject({ cardId: "BT11-056", colors: ["Green"], level: 6, playCost: 11, dp: 11000, types: ["Ancient"] });
     expect(compiled.effects[0]).toMatchObject({ trigger: "WhenDigivolving", actions: [{ kind: "RevealAdd", revealCount: 3, rest: "deckTopOrBottom" }] });
-    expect(compiled.effects[1]).toMatchObject({ trigger: "WhenAttacking", actions: [{ kind: "RevealAdd", frequency: "OncePerTurn" }] });
+    expect(compiled.effects[1]).toMatchObject({
+      trigger: "WhenAttacking",
+      frequency: "OncePerTurn",
+      actions: [{ kind: "RevealAdd", add: [{ totalPlayCostBudget: 10 }] }],
+    });
   });
 
   it("reveals 3 and plays a revealed Tamer when digivolving", async () => {
@@ -74,5 +78,36 @@ describe("BT11-056 Jijimon", () => {
     );
 
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("notRevealed").instanceId);
+  });
+
+  it("Q2089: may play a lower-cost revealed subset instead of filling the budget", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-056", as: "jijimon" },
+            { card: "BT1-088", as: "greenTamer" },
+            { card: "BT1-089", as: "secondGreenTamer" },
+          ],
+          deck: [
+            { card: "BT1-081", as: "overBudget" },
+            { card: "BT1-064", as: "chosen" },
+          ],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("jijimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("chosen").instanceId));
+
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("overBudget").instanceId);
   });
 });

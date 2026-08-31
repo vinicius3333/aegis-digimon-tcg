@@ -43,4 +43,33 @@ describe("BT4-047 Rasielmon", () => {
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("top").instanceId)).toBe(true);
   });
+
+  it("trashes one security card for each Rasielmon copy", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT4-047", as: "rasielA" },
+          { card: "BT4-047", as: "rasielB" },
+        ],
+        security: [
+          { card: "BT1-001", as: "top" },
+          { card: "BT1-002", as: "next" },
+          "BT1-003",
+        ],
+        deck: ["BT1-009"],
+      },
+      1: { deck: ["BT1-009"], hand: ["BT1-010"] },
+    });
+    s.state.turnSeat = 1;
+    const turn = s.engine.runOneTurn();
+    const mainPhase = (s.engine as any).mainPhase as { isOpen: boolean };
+    await settle(() => mainPhase.isOpen);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
+
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("top").instanceId, s.inst("next").instanceId]),
+    );
+  });
 });

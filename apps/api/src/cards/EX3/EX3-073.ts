@@ -7,14 +7,8 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
-      actions: [
-        {
-          kind: "GainKeyword",
-          target: self,
-          keyword: { keyword: "Piercing", raw: "＜Piercing＞" },
-          duration: "untilEachTurnEnd",
-        },
-      ],
+      actions: [],
+      keywords: [{ keyword: "Piercing", raw: "＜Piercing＞" }],
     },
     {
       trigger: "WhenDigivolving",
@@ -48,7 +42,7 @@ const compiled: CompiledCard = {
     {
       trigger: "OnDeletion",
       condition: {
-        kind: "allOf",
+        kind: "anyOf",
         conditions: [
           { kind: "selfHasMinTrash", count: 1, filter: { nameOrTrait: [{ tokens: ["Wormmon"], match: "nameExact" }] } },
           { kind: "selfHasMinTrash", count: 1, filter: { nameOrTrait: [{ tokens: ["Veemon"], match: "nameExact" }] } },

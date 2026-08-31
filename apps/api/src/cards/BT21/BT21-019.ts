@@ -18,7 +18,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Hiro Amanokawa"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -62,7 +62,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Gammamon"],
+      namesExact: ["Gammamon"],
       cost: 2,
       isAlternate: true,
     },

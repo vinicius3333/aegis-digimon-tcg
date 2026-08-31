@@ -39,7 +39,9 @@ import { useBattlefieldStyle } from "../design/battlefield";
 import "./game.css";
 import {
   AttackArrow,
+  BoardInputLock,
   BreedingSlot,
+  ClawSlash,
   Hand,
   HAND_CARD_WIDTH,
   HAND_CARD_WIDTH_COMPACT,
@@ -120,8 +122,7 @@ import {
   type DigiXrosEligibleExpander,
   type StackCard,
 } from "./overlays";
-import { OpponentActionFeed, PlayLogSidebar } from "./OpponentActionFeedView";
-import { hasOpenCombatPrompt } from "./opponentActionFeed";
+import { PlayLogSidebar } from "./OpponentActionFeedView";
 import { AttackAnnouncementBanner, SidePanelStack } from "./SidePanelStack";
 import { NoticeStack } from "./NoticeStack";
 import { CardOpenerProvider } from "./cardLinks";
@@ -134,13 +135,13 @@ import { useMatchCues } from "./useMatchCues";
 import { BATTLE_TIMING_STYLE, TIMINGS } from "./timings";
 import { ownPermanentTapDestination } from "./ownPermanentStack";
 import { pressGesture, swallowNextClick } from "./pressGesture";
-import { useOpponentActionFeed } from "./useOpponentActionFeed";
 import { COARSE_POINTER_QUERY, useMediaQuery } from "../design/useMediaQuery";
 import { TargetingSpotlight } from "./TargetingSpotlight";
 import type { SpotlightSubject } from "./spotlight";
 import { pendingFateBadges } from "./pendingFate";
 import { buildPermanentDetail } from "./permanentDetail";
 import { hasFaceUpSecurity, securityAttackLabelKey } from "./securityChrome";
+import { shieldSecurityCount } from "./securityClash";
 import { activeAttackArrow, effectTargetArrow, type ArrowEndpoint, type TrackingArrow } from "./trackingArrow";
 import { predictedMemory } from "./memoryArc";
 import { memoryCostPreview, type MemoryDropTarget } from "./memoryCostPreview";
@@ -154,6 +155,10 @@ import {
 } from "./decisionPresentation";
 
 const PHASES: Phase[] = [Phase.Active, Phase.Draw, Phase.Breeding, Phase.Main, Phase.End];
+
+/** A battle loser's stand-in card, sized to the shatter that takes over from it. */
+const FIELD_CLASH_GHOST_WIDTH = 72;
+const FIELD_CLASH_GHOST_HEIGHT = Math.round(FIELD_CLASH_GHOST_WIDTH * 1.4);
 
 /**
  * Phone layout: touch sheets, compact everything. Mirrors the CSS blocks of the
@@ -261,6 +266,7 @@ export function GameScreen({
   identityAvatarUrl,
   startMode = "casual",
   roomCode,
+  botDeckId,
   onExit,
   signedIn = false,
   demoConnection,
@@ -271,6 +277,8 @@ export function GameScreen({
   identityAvatarUrl?: string | null;
   startMode?: StartMode;
   roomCode?: string;
+  /** Famous-deck preset the seated bot should play; absent means the server picks at random. */
+  botDeckId?: string;
   onExit: (screen: Screen) => void;
   /** Only shapes what the report dialog says about follow-up questions; reporting needs no account. */
   signedIn?: boolean;
@@ -316,14 +324,14 @@ export function GameScreen({
   useEffect(() => {
     if (!vsBot || botCalledRef.current || !room || status !== "connected") return;
     botCalledRef.current = true;
-    void joinWithBot(room.roomId).catch((botJoinError: unknown) => {
+    void joinWithBot(room.roomId, botDeckId).catch((botJoinError: unknown) => {
       console.error("[BOT_JOIN_CLIENT] failed", {
         roomId: room.roomId,
         error: botJoinError instanceof Error ? botJoinError.message : String(botJoinError),
       });
       setBotError(t("game.botConnectionFailedDetail"));
     });
-  }, [vsBot, room, status, t]);
+  }, [vsBot, room, status, botDeckId, t]);
 
   const [handSel, setHandSel] = useState<string | null>(null); // selected hand instanceId
   const [handPreview, setHandPreview] = useState<string | null>(null); // instanceId shown in the mobile tap preview
@@ -434,6 +442,9 @@ export function GameScreen({
     state,
     viewerSeat,
     mulliganOpen: decision?.kind === "mulligan",
+    // A security check the server stopped to ask the viewer something cannot close until it
+    // is answered, so the cue sequence needs to know a question is waiting.
+    decisionPending: decision?.seat === viewerSeat && decision.kind !== "mulligan",
     anchors: {
       board: boardRef,
       permanentCenter: (permanentId) => permCentersRef.current[permanentId],
@@ -445,10 +456,20 @@ export function GameScreen({
     },
     onActionRejected: (reason) => ping(rejectionMessage(reason, t)),
   });
+  // The dialog that asks the viewer whether to activate their own effect already names the
+  // card and prints its clause, so the matching corner notice would only repeat it.
+  const promptedOwnEffectCardId = decision?.seat === viewerSeat ? decision.sourceCardId : undefined;
+  const dismissOwnEffectNoticeRef = useRef(cues.dismissOwnEffectNotice);
+  dismissOwnEffectNoticeRef.current = cues.dismissOwnEffectNotice;
+  useEffect(() => {
+    if (promptedOwnEffectCardId === undefined) return;
+    dismissOwnEffectNoticeRef.current(promptedOwnEffectCardId);
+  }, [promptedOwnEffectCardId]);
   const {
     attackAnnouncement,
     attackLunge,
     combatImpactIds,
+    fieldClash,
     cutIn,
     deckRiffles,
     effectSources,
@@ -466,6 +487,7 @@ export function GameScreen({
     securityClash,
     securityRevealPending,
     securityHitSeat,
+    heldSecurityCounts,
     sidePanels,
     turnTransition,
     unsuspendSweep,
@@ -487,35 +509,23 @@ export function GameScreen({
     setVortexMode(false);
   };
 
-  const feedPaused = Boolean(
-    decision ||
-    handPreview ||
-    cardMenu ||
-    stackView ||
-    trashView ||
-    securityView ||
-    evoCostChoice ||
-    digiXrosPick ||
-    actionConfirm ||
-    securityClash ||
-    historyOpen ||
-    hasOpenCombatPrompt(events) ||
-    state?.gameOver,
-  );
-  const opponentFeed = useOpponentActionFeed({
-    events,
-    viewerSeat,
-    paused: feedPaused,
-    trailCapacity: narrowGameLayout ? 1 : 2,
-    matchKey: room?.roomId ?? roomCode ?? "pending-match",
-  });
-
   useEffect(
     () => () => {
       if (inspectorTimerRef.current) window.clearTimeout(inspectorTimerRef.current);
     },
     [],
   );
+
+  // A locked board keeps no half-built action: the contextual action bar pins itself
+  // to the viewport on a phone, which puts it outside the pane that takes the input,
+  // and a selection left standing there would offer buttons that answer nothing.
+  useEffect(() => {
+    if (!securityRevealPending) return;
+    clearSel();
+    setCardMenu(null);
+    setDigiXrosPick(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [securityRevealPending]);
 
   // Clear local selections whenever a decision opens or the turn flips.
   useEffect(() => {
@@ -542,7 +552,18 @@ export function GameScreen({
       ),
     ),
   );
+  // A battle that declares and resolves in one batch never has an open attack in
+  // the log, so the scene keeps its own arrow up while it plays.
+  const fieldClashArrow: TrackingArrow | null = fieldClash
+    ? {
+        kind: "attack",
+        key: `clash:${fieldClash.key}`,
+        from: { kind: "permanent", permanentId: fieldClash.attacker.permanentId },
+        to: [{ kind: "permanent", permanentId: fieldClash.defender.permanentId }],
+      }
+    : null;
   const trackingArrowRequest =
+    fieldClashArrow ??
     activeAttackArrow(events) ??
     effectTargetArrow({
       decision,
@@ -568,7 +589,11 @@ export function GameScreen({
           : end.seat === viewerSeat
             ? yourSecRef.current
             : oppSecRef.current;
-      if (!element?.isConnected) return undefined;
+      // A permanent deleted by the battle has left the board, but the arrow must
+      // still reach where it stood, so its last measurement stands in.
+      if (!element?.isConnected) {
+        return end.kind === "permanent" ? permCentersRef.current[end.permanentId] : undefined;
+      }
       const rect = element.getBoundingClientRect();
       if (!rect.width) return undefined;
       return { x: rect.left + rect.width / 2 - board.left, y: rect.top + rect.height / 2 - board.top };
@@ -862,15 +887,22 @@ export function GameScreen({
   }
 
   const isMyTurn = state.turnSeat === viewerSeat;
+  /* A security check owns the board for as long as its scene plays. The reveal is on
+     both screens at the same time, so an action sent inside that window lands on a
+     board the other player is still watching resolve (docs/battle-animation-spec.md
+     §4b). The lock covers the play surfaces only — the header, the play log, the
+     card blow-ups and surrender all stay live, and a click still fast-forwards
+     whatever part of the scene is skippable. */
+  const boardLocked = securityRevealPending && !state.gameOver;
   const breedingWindow = isBreedingWindow({ phase: state.phase, turnSeat: state.turnSeat, viewerSeat });
   // The breeding step is answered on the board rather than in a dialog: the egg
   // deck hatches, the raising slot moves out and the turn control ends the step.
   // These drive the highlights and the hint that stand in for the old modal.
   const canHatchEgg = you.eggDeckCount > 0 && !you.breeding;
   const canMoveOutOfBreeding = canMoveFromBreeding(you.breeding);
-  // The clash is a pointer-transparent overlay, so the breeding actions stay live
-  // underneath it: only an open decision or the end of the match takes them away.
-  const breedingActionsOpen = breedingWindow && !decision && !state.gameOver;
+  // An open decision, the end of the match, and the security check that has the board
+  // locked each take the breeding actions away; nothing else does.
+  const breedingActionsOpen = breedingWindow && !decision && !state.gameOver && !boardLocked;
   const memory = displayMemory(state, viewerSeat);
   const instanceIndex = buildInstanceIndex(state, viewerSeat);
   const youColor = identityColor;
@@ -891,6 +923,7 @@ export function GameScreen({
 
   // ----- intent senders (no-op safely if the room dropped) -----
   const playCard = (instanceId: string, confirmDrop = false) => {
+    if (boardLocked) return;
     const entry = handEntries.find((h) => h.instanceId === instanceId);
     if (entry) {
       const dnaMaterials = findDnaMaterialCombination(entry.cardId, you.battleArea);
@@ -989,6 +1022,7 @@ export function GameScreen({
     clearSel();
   };
   const digivolve = (permanentId: string, instanceId: string, useAlternateCost?: boolean) => {
+    if (boardLocked) return;
     if (room) {
       lastPlayAttemptRef.current = instanceId;
       playGameCue("digivolve");
@@ -997,6 +1031,7 @@ export function GameScreen({
     clearSel();
   };
   const attack = (attackerPermanentId: string, target: AttackTarget, vortex?: boolean) => {
+    if (boardLocked) return;
     if (room) {
       playGameCue("attackDeclare");
       intents.attack(room, attackerPermanentId, target, vortex);
@@ -1020,6 +1055,7 @@ export function GameScreen({
     }
   };
   const activateEffect = (instanceId: string, effectKey: string) => {
+    if (boardLocked) return;
     if (room) {
       playSound("confirm");
       intents.activateEffect(room, instanceId, effectKey);
@@ -1463,6 +1499,7 @@ export function GameScreen({
   };
 
   const onBreeding = () => {
+    if (boardLocked) return;
     if (selCardId && you.breeding && eligibleBase(you.breeding))
       return digivolveWithChoice(you.breeding.permanentId, handSel!, selCardId!, you.breeding);
     if (you.breeding) {
@@ -1777,7 +1814,10 @@ export function GameScreen({
         />
       ) : null}
 
-      {state.pendingDecision && state.pendingDecision.seat !== viewerSeat && !state.gameOver ? (
+      {/* Held back while a played card is still showcased centre-screen, so the
+          effect notice (queued behind that showcase) is readable before the wait
+          it explains is announced. */}
+      {state.pendingDecision && state.pendingDecision.seat !== viewerSeat && !state.gameOver && !cues.zoneShowcase ? (
         <OpponentSelectingPill />
       ) : null}
 
@@ -1790,6 +1830,7 @@ export function GameScreen({
             currentDP: findPermanentInState(state, pid)?.currentDP ?? 0,
             sourceCount: findPermanentInState(state, pid)?.stack.length ?? 0,
           }))}
+          mustBlock={blockWindow.mustBlock}
           onBlock={(pid) => (room ? intents.declareBlock(room, pid) : demoConnection?.acknowledgeBlockWindow?.(pid))}
           onDecline={() => (room ? intents.declineBlock(room) : demoConnection?.acknowledgeBlockWindow?.())}
         />
@@ -2272,16 +2313,6 @@ export function GameScreen({
             )}
           </header>
 
-          {!feedPaused && !state.gameOver ? (
-            <OpponentActionFeed
-              current={opponentFeed.current}
-              trail={opponentFeed.trail}
-              pendingCount={opponentFeed.pending.length}
-              onOpenHistory={() => setHistoryOpen(true)}
-              onOpenCard={setZoomCardId}
-            />
-          ) : null}
-
           {!state.gameOver ? <SidePanelStack panels={sidePanels} onDismiss={cues.dismissPanel} /> : null}
 
           {!state.gameOver ? <NoticeStack notices={cues.notices} onDismiss={cues.dismissNotice} /> : null}
@@ -2334,6 +2365,10 @@ export function GameScreen({
             className="game-field"
             style={{ flex: 1, minWidth: 0, minHeight: 0, display: "flex", overflow: "hidden", position: "relative" }}
           >
+            {/* The play surfaces refuse pointer input while a security check owns the
+                screen. Drawn twice — once here, once over the dock — so the header,
+                the log and surrender are never covered by it. */}
+            {boardLocked ? <BoardInputLock /> : null}
             {/* The breeding step is about one slot: the field dims behind the dock,
                 which keeps the raising area, the hand that digivolves into it and
                 the turn control lit. Notices, panels and dialogs all sit above. */}
@@ -2387,7 +2422,7 @@ export function GameScreen({
               <Pile
                 className={`game-security-pile${securityHitSeat === viewerSeat ? " game-security-shield--hit" : ""}`}
                 compact={compactPiles}
-                count={you.securityCount}
+                count={shieldSecurityCount(you.securityCount, heldSecurityCounts.get(viewerSeat))}
                 shield="you"
                 armed={securityBreak?.seat === viewerSeat && securityBreak.phase === "arm"}
                 breaking={securityBreak?.seat === viewerSeat && securityBreak.phase === "break"}
@@ -2482,7 +2517,7 @@ export function GameScreen({
                 />
                 <TurnControl
                   state={turnControlState({ phase: state.phase, turnSeat: state.turnSeat, viewerSeat })}
-                  onEndPhase={() => room && intents.endPhase(room)}
+                  onEndPhase={() => !boardLocked && room && intents.endPhase(room)}
                 />
               </div>
               <div
@@ -2591,7 +2626,7 @@ export function GameScreen({
                 <Pile
                   className={`game-security-pile${securityHitSeat === otherSeat(viewerSeat) ? " game-security-shield--hit" : ""}`}
                   compact={compactPiles}
-                  count={opp.securityCount}
+                  count={shieldSecurityCount(opp.securityCount, heldSecurityCounts.get(otherSeat(viewerSeat)))}
                   shield="opp"
                   armed={securityBreak?.seat === otherSeat(viewerSeat) && securityBreak.phase === "arm"}
                   breaking={securityBreak?.seat === otherSeat(viewerSeat) && securityBreak.phase === "break"}
@@ -2645,6 +2680,7 @@ export function GameScreen({
           <footer
             className="game-player-dock"
             style={{
+              position: "relative",
               flexShrink: 0,
               borderTop: "1px solid var(--ds-border)",
               background: "var(--ds-surface)",
@@ -2652,6 +2688,7 @@ export function GameScreen({
               alignItems: "stretch",
             }}
           >
+            {boardLocked ? <BoardInputLock /> : null}
             {/* breeding area (bottom-left) */}
             <div
               className="game-breeding-dock"
@@ -2794,6 +2831,42 @@ export function GameScreen({
             />
           ) : null}
 
+          {/* A battle's loser has already left the live state, so a ghost of its card
+              stands where it stood, takes the lunge or the claw, and hands the spot to
+              the shatter burst when the scene ends. Combatants still on the board play
+              the same beats on their own PermanentView instead. */}
+          {fieldClash
+            ? [fieldClash.attacker, fieldClash.defender].flatMap((combatant) => {
+                if (permRefs.current[combatant.permanentId]?.isConnected) return [];
+                const center = permCentersRef.current[combatant.permanentId];
+                const cardId = combatant.cardId ?? permCardIdsRef.current[combatant.permanentId];
+                if (!center || !cardId) return [];
+                const struck = combatImpactIds.has(combatant.permanentId);
+                return [
+                  <span
+                    key={`clash-ghost-${fieldClash.key}-${combatant.permanentId}`}
+                    aria-hidden="true"
+                    className={[
+                      "game-field-clash-ghost",
+                      attackLunge?.permanentId === combatant.permanentId
+                        ? `game-permanent-lunge--${attackLunge.direction}`
+                        : "",
+                      struck ? "game-permanent-shake" : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                    style={{
+                      left: center.x - FIELD_CLASH_GHOST_WIDTH / 2,
+                      top: center.y - FIELD_CLASH_GHOST_HEIGHT / 2,
+                    }}
+                  >
+                    <CardFull cardId={cardId} width={FIELD_CLASH_GHOST_WIDTH} zoomOnHover={false} />
+                    {struck ? <ClawSlash /> : null}
+                  </span>,
+                ];
+              })
+            : null}
+
           {deleteBursts.map((burst) => (
             <span
               key={burst.key}
@@ -2840,7 +2913,7 @@ export function GameScreen({
         </div>
 
         {/* Desktop plays without the sidebar — its controls moved to the header
-            cluster and the end-turn orb; the log opens from the header/action feed.
+            cluster and the end-turn orb; the log opens from the header.
             The narrow layout keeps it: there it collapses into the touch strip. */}
         {narrowGameLayout ? (
           <Sidebar

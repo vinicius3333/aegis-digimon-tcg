@@ -77,6 +77,27 @@ describe("BT26-077 compiled behavior", () => {
     expect(s.state.memory).toBe(0);
   });
 
+  it("rejects the alternate evolution from a level-5 Digimon without the DM trait", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-074", as: "nonDmBase" }],
+        hand: [{ card: "BT26-077", as: "reapermon" }],
+        deck: ["BT1-001"],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("nonDmBase").permanentId,
+        instanceId: s.inst("reapermon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toMatchObject({ ok: false });
+  });
+
   it("raises the printed play-cost ceiling only for each face-down card in this stack", () => {
     const action = compiled.effects.find((effect) => effect.trigger === "OnPlay")!.actions[0];
     expect(irNode(action).playCostCeiling).toEqual({
@@ -121,22 +142,27 @@ describe("BT26-077 compiled behavior", () => {
               as: "otherStack",
               under: [{ card: "BT1-003", as: "otherFaceDown", faceUp: false }],
             },
+            { card: "BT26-040", as: "otherVer3" },
           ],
           trash: [
             { card: "BT26-055", as: "cost7Ver3" },
             { card: "EX9-031", as: "cost8Ver3" },
+            { card: "BT26-074", as: "cost7NonVer3" },
           ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("cost7Ver3").instanceId);
+    preferred.push(s.perm("otherVer3").permanentId);
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("reapermon"));
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT26-055");
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("EX9-031");
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["EX9-031", "BT26-074"]),
+    );
   });
 
   it("shares one use across On Play, When Digivolving, and When Attacking", async () => {

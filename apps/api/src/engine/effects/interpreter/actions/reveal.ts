@@ -11,10 +11,16 @@ import { candidatePermanents, effectiveTargetCount, resolvePermanentTargets } fr
 import { CardKind, isDigimon } from "@aegis/shared";
 import type { Action, Filter, Target } from "@aegis/shared";
 
-/** Cards whose rule text changes their level only while they are revealed from deck. */
+/** Cards whose rule text changes a static fact only while they are revealed from deck. */
 export function revealedDefinition(ctx: EffectContext, card: import("@aegis/shared").CardInstance): DefinitionFacts {
   const def = ctx.game.definitionOf(card) as DefinitionFacts;
-  return card.cardId === "BT17-068" ? { ...def, level: 6 } : def;
+  const withOmekamonAlias = card.cardId === "BT15-060" ? { nameAliases: ["Omnimon"] } : {};
+  // BT17-068 is printed Lv5 and is also treated as Lv6 while revealed. Keep the
+  // printed level available so effects such as BT3-051 can fill both slots with
+  // two copies (KB Q2827), while retaining level 6 for level-gated effects.
+  return card.cardId === "BT17-068"
+    ? { ...def, level: 6, treatedAsLevels: [5, 6], ...withOmekamonAlias }
+    : { ...def, ...withOmekamonAlias };
 }
 
 /**
@@ -104,12 +110,19 @@ export async function runHandRevealAdd(
  */
 export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, { kind: "RevealAdd" }>): Promise<void> {
   ctx.lastEffectActed = false;
-  const seat = ctx.source.ownerSeat;
+  let seat = ctx.source.ownerSeat;
+  if (action.controller === "opponent") {
+    seat = ctx.game.opponentOf(ctx.source.ownerSeat);
+  } else if (action.controller === "any") {
+    const choice = await ctx.ask.chooseOption(ctx, ["Your deck", "Opponent's deck"]);
+    seat = choice === 0 ? ctx.source.ownerSeat : ctx.game.opponentOf(ctx.source.ownerSeat);
+  }
   if (action.trackCount !== undefined) {
     ctx.namedCounts ??= new Map();
     ctx.namedCounts.set(action.trackCount, 0);
   }
-  const revealed = await ctx.fx.reveal(seat, action.revealCount);
+  const revealMultiplier = action.revealScaling === undefined ? 1 : scaleFactor(ctx, action.revealScaling);
+  const revealed = await ctx.fx.reveal(seat, Math.max(0, action.revealCount * revealMultiplier));
   if (revealed.length === 0) return;
   ctx.lastRevealedCards = revealed.map((card) => ({
     instanceId: card.instanceId,
@@ -449,6 +462,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
   }
   // "place N [X] as the bottom digivolution card of one of your [Y] Digimon"
   if (toPlaceUnder.length > 0) {
+    let placedAny = false;
     for (const { instanceId, underFilter, faceDown } of toPlaceUnder) {
       const candidates = ctx.game.player(seat).battleArea.filter((p) => {
         if (!p.topCard || (underFilter === undefined && !isDigimon(ctx.game.definitionOf(p.topCard)))) return false;
@@ -456,7 +470,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
       });
       if (candidates.length === 0) {
         // No legal host; return to deck bottom (the effect can't fire without a valid host).
-        await ctx.fx.returnToDeck([instanceId], { toTop: false });
+        await ctx.fx.returnToDeck([instanceId], { toTop: false, suppressWhenEffectAddsToDeck: true });
         continue;
       }
       let hostPermanentId = candidates[0]!.permanentId;
@@ -469,8 +483,12 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
         if (chosen.length > 0) hostPermanentId = chosen[0]!;
       }
       // Move the revealed card from the revealed pool to the host's digivolution stack (bottom).
-      await ctx.fx.placeUnder(hostPermanentId, [instanceId], { faceUp: faceDown === true ? false : undefined });
+      const placed = await ctx.fx.placeUnder(hostPermanentId, [instanceId], {
+        faceUp: faceDown === true ? false : undefined,
+      });
+      if ((placed?.length ?? 0) > 0) placedAny = true;
     }
+    if (placedAny) ctx.lastEffectActed = true;
   }
   // "place N [X] under one of your Tamer permanents" (BT19-055 `to:"underTamer"`):
   // controller chooses which of their Tamer permanents receives the card.
@@ -485,7 +503,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
         (p) => underFilter === undefined || permanentMatchesFilter(ctx, p, underFilter, ctx.source),
       );
       if (candidates.length === 0) {
-        await ctx.fx.returnToDeck([instanceId], { toTop: false });
+        await ctx.fx.returnToDeck([instanceId], { toTop: false, suppressWhenEffectAddsToDeck: true });
         continue;
       }
       let hostPermanentId = candidates[0]!.permanentId;
@@ -522,7 +540,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
       const toTop = choice === 0;
       await ctx.fx.returnToDeck(
         toTop ? [...rest].reverse() : action.reverseBottomOrder === true ? [...rest].reverse() : rest,
-        { toTop },
+        { toTop, suppressWhenEffectAddsToDeck: true },
       );
     } else {
       if (rest.length > 1) {
@@ -538,7 +556,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
       const toTop = action.rest === "deckTop";
       await ctx.fx.returnToDeck(
         toTop ? [...rest].reverse() : action.reverseBottomOrder === true ? [...rest].reverse() : rest,
-        { toTop },
+        { toTop, suppressWhenEffectAddsToDeck: true },
       );
     }
   };
@@ -693,10 +711,16 @@ export async function runRevealChooseDeleteBudget(
   } else if (action.returnRevealed === "deckTopOrBottom") {
     const choice = await ctx.ask.chooseOption(ctx, ["Top of deck", "Bottom of deck"]);
     const toTop = choice === 0;
-    await ctx.fx.returnToDeck(toTop ? [...ordered].reverse() : ordered, { toTop });
+    await ctx.fx.returnToDeck(toTop ? [...ordered].reverse() : ordered, {
+      toTop,
+      suppressWhenEffectAddsToDeck: true,
+    });
   } else {
     const toTop = action.returnRevealed === "deckTop";
-    await ctx.fx.returnToDeck(toTop ? [...ordered].reverse() : ordered, { toTop });
+    await ctx.fx.returnToDeck(toTop ? [...ordered].reverse() : ordered, {
+      toTop,
+      suppressWhenEffectAddsToDeck: true,
+    });
   }
 }
 
@@ -711,17 +735,19 @@ export async function runRevealAction(ctx: EffectContext, action: Action): Promi
         const candidates = security.filter((card) =>
           definitionMatches(definitionFilter, revealedDefinition(ctx, card)),
         );
-        const maximum = action.count === "all" ? candidates.length : action.count;
-        const selectedIds = await ctx.ask.selectCards(ctx, {
-          candidates: candidates.map((card) => card.instanceId),
-          min: 0,
-          max: Math.min(maximum, candidates.length),
-          visible: security.map((card) => card.instanceId),
-          visibleCards: security.map((card) => ({
-            instanceId: card.instanceId,
-            cardId: card.cardId,
-          })),
-        });
+        const selectedIds =
+          action.to === "revealed"
+            ? candidates.map((card) => card.instanceId)
+            : await ctx.ask.selectCards(ctx, {
+                candidates: candidates.map((card) => card.instanceId),
+                min: 0,
+                max: Math.min(action.count === "all" ? candidates.length : action.count, candidates.length),
+                visible: security.map((card) => card.instanceId),
+                visibleCards: security.map((card) => ({
+                  instanceId: card.instanceId,
+                  cardId: card.cardId,
+                })),
+              });
         const selected = candidates.filter((card) => selectedIds.includes(card.instanceId));
         for (const card of selected) card.faceUp = true;
         ctx.lastRevealedCards = selected.map((card) => ({

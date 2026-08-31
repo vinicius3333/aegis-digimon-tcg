@@ -19,6 +19,19 @@ describe("BT21-074 Satellamon", () => {
         ],
       }),
     );
+    expect(
+      compiled.effects
+        .filter((e) => e.trigger === "OnPlay" || e.trigger === "WhenDigivolving")
+        .flatMap((effect) => effect.actions)
+        .filter((action) => action.kind === "Restrict" && action.restriction === "beReturned"),
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          target: expect.objectContaining({ fromSelectionRef: "protectedHost" }),
+          cost: expect.objectContaining({ bindHostAs: "protectedHost" }),
+        }),
+      ]),
+    );
     expect(compiled.effects).toContainEqual(
       expect.objectContaining({
         trigger: "WhenLinking",

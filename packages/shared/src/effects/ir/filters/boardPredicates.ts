@@ -29,12 +29,16 @@ export interface BoardPredicates {
   singleColor?: boolean;
   /** Cost-only: the stack card's level must be represented at least twice. */
   sameLevelPair?: boolean;
+  /** The live permanent's top card and digivolution cards contain N cards sharing a level. */
+  stackHasSameLevelCards?: number;
   suspended?: boolean;
   unsuspended?: boolean;
   /** Candidate has the same suspended/unsuspended orientation as the live effect source. */
   sameOrientationAsSource?: boolean;
   /** "this Digimon" / "this card". */
   isSelfRef?: boolean;
+  /** Match the permanent that drove the enclosing watcher when this filter is nested as a host filter. */
+  sourceRef?: "triggerSubject";
   /** "another", "other". */
   excludeSelf?: boolean;
   /**
@@ -96,7 +100,7 @@ export interface BoardPredicates {
     orPrevious?: boolean;
     negate?: boolean;
   }[];
-  /** Reject the permanent if any card under its top matches these names (BT17-100). */
+  /** Reject the permanent if any card under its top has one of these exact names (BT17-100). */
   excludeCardsNamed?: string[];
   /**
    * Compare stack size against the effect source's ("as many or fewer digivolution cards as

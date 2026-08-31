@@ -299,6 +299,22 @@ export async function runSecurityManipulation(
       const fromLoose =
         action.from && (action.from.includes("hand") || action.from.includes("trash") || action.from.includes("deck"));
       if (fromLoose) {
+        if (action.source === "revealed") {
+          // A preceding reveal cost binds the exact hand card(s) that were exposed. Resolve
+          // those instance ids in their current loose zones; do not re-run a filter/pick, since
+          // another card can satisfy the same filter (EX4-023).
+          const candidates = (ctx.lastRevealedCards ?? []).flatMap((revealed) =>
+            action.from!.flatMap((zone) =>
+              looseCardsInZone(ctx, revealed.ownerSeat, zone).filter(
+                (candidate) => candidate.instanceId === revealed.instanceId,
+              ),
+            ),
+          );
+          const chosen = [...new Set(candidates.map((candidate) => candidate.instanceId))];
+          if (chosen.length > 0)
+            await ctx.fx.addSecurity(seat, chosen, { toTop: await placementToTop(), faceUp: action.faceUp });
+          return;
+        }
         if (action.source === undefined || typeof action.source === "string") {
           unsupported(ctx, action, "SecurityManipulation placeAsSecurity from a loose zone without a source target");
           return;
@@ -556,6 +572,17 @@ async function runSecurityAdd(
       const candidates = candidateLooseInstances(ctx, source, zones);
       const chosen = await pickLoose(ctx, source, candidates);
       if (chosen.length > 0) await ctx.fx.addSecurity(seat, chosen, opts);
+      // A follow-up action may depend on the number of cards actually placed (BT18-102).
+      // The source can be a digivolution stack, so derive the receipt from the destination
+      // after the move rather than treating selection as proof that the primitive accepted it.
+      const moved = chosen.filter((instanceId) =>
+        ctx.game.player(seat).security.some((card) => card.instanceId === instanceId),
+      );
+      ctx.lastEffectActed = moved.length > 0;
+      if (action.trackCount !== undefined) {
+        ctx.namedCounts ??= new Map();
+        ctx.namedCounts.set(action.trackCount, moved.length);
+      }
       return;
     }
     const ids = topInstanceIds(ctx, await resolvePermanentTargets(ctx, source));

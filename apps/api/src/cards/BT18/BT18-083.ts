@@ -53,7 +53,7 @@ export const compiled: CompiledCard = {
           kind: "GainKeyword",
           target: {
             filter: {
-              controllerDefault: "mine",
+              controllerDefault: "any",
               kind: ["Digimon"],
               dp: {
                 op: "lte",

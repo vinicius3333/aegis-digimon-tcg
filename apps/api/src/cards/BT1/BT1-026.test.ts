@@ -48,4 +48,26 @@ describe("BT1-026 Breakdramon", () => {
 
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
+
+  it("retains Piercing after evolving from a red level 5", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-021", as: "base" }],
+        hand: [{ card: "BT1-026", as: "evolving" }],
+        deck: [{ card: "BT1-010", as: "drawn" }],
+      },
+    });
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("evolving").instanceId);
+
+    expect(observe(s.engine).hasPierce(s.perm("base"))).toBe(true);
+  });
 });

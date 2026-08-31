@@ -29,7 +29,11 @@ export const compiled: CompiledCard = {
             {
               kind: "SelectBind",
               target: {
-                filter: { names: ["Shoutmon"], controller: "mine", zone: "battleArea" },
+                filter: {
+                  nameOrTrait: [{ tokens: ["Shoutmon"], match: "nameExact" }],
+                  controller: "mine",
+                  zone: "battleArea",
+                },
                 count: 1,
                 bindAs: "bt21030Shoutmon",
               },
@@ -43,7 +47,7 @@ export const compiled: CompiledCard = {
               kind: "PlaceUnder",
               target: { fromSelectionRef: "bt21030Shoutmon", filter: {}, count: 1 },
               targetIsPermanent: true,
-              underFilter: { names: ["Shoutmon X7: Superior Mode"] },
+              underFilter: { isTriggerSource: true },
             },
           ],
           additionalEffects: [

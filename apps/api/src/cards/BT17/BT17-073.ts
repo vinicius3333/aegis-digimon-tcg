@@ -14,25 +14,26 @@ export const compiled: CompiledCard = {
           kind: "Replacement",
           event: "wouldBeDeleted",
           sourceFilter: {
+            zone: "trash",
             controller: "mine",
-            nameOrTrait: [
-              {
-                tokens: ["Dorugoramon"],
-                match: "name",
-              },
-            ],
           },
-          actions: [
-            {
-              kind: "Prevent",
-              cost: {
-                kind: "digivolveSelf",
-                raw: "by digivolving it into this card without paying the cost",
-              },
-              optional: true,
-              abortOnDecline: true,
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["Dorugoramon"],
+                  match: "name",
+                },
+              ],
             },
-          ],
+          },
+          mode: "prevent",
+          leaveCause: "any",
+          digivolveFromTrash: true,
+          optional: true,
+          abortOnDecline: true,
+          raw: "By digivolving it into this card without paying the cost",
         },
       ],
       isFromTrash: true,

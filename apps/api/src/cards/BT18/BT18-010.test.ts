@@ -23,7 +23,16 @@ describe("BT18-010 [Your Turn][Once Per Turn] digivolve into [Hybrid] → gain 1
         trigger: "YourTurn",
         frequency: "OncePerTurn",
         actions: [
-          { kind: "SubTrigger", event: "whenOneOfYoursDigivolves", actions: [{ kind: "GainMemory", amount: 1 }] },
+          {
+            kind: "SubTrigger",
+            event: "whenOneOfYoursDigivolves",
+            sourceFilter: {
+              controllerDefault: "mine",
+              kind: ["Digimon", "Tamer"],
+              nameOrTrait: [{ tokens: ["Hybrid", "Ten Warriors"], match: "trait" }],
+            },
+            actions: [{ kind: "GainMemory", amount: 1 }],
+          },
         ],
       },
     ]);
@@ -35,9 +44,13 @@ describe("BT18-010 [Your Turn][Once Per Turn] digivolve into [Hybrid] → gain 1
         0: {
           battleArea: [
             { card: "BT18-010", dp: 3000, as: "bokomon" },
-            { card: "BT1-009", as: "base" },
+            { card: "BT1-009", as: "base1" },
+            { card: "BT1-009", as: "base2" },
           ],
-          hand: [{ card: "BT18-011", as: "agunimon" }],
+          hand: [
+            { card: "BT18-011", as: "agunimon1" },
+            { card: "BT18-011", as: "agunimon2" },
+          ],
         },
       },
       { autoAcceptOptional: true },
@@ -51,29 +64,32 @@ describe("BT18-010 [Your Turn][Once Per Turn] digivolve into [Hybrid] → gain 1
     expect(
       engine.applyIntent(0, {
         type: "digivolve",
-        permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("agunimon").instanceId,
+        permanentId: s.perm("base1").permanentId,
+        instanceId: s.inst("agunimon1").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard.cardId === "BT18-011" && state.memory === 8);
-    expect(state.memory).toBe(8);
+    await settle(() => s.perm("base1").topCard.cardId === "BT18-011" && state.memory === 8);
 
-    await (engine as unknown as { fireSubTrigger: (event: string, payload: unknown) => Promise<void> }).fireSubTrigger(
-      "whenOneOfYoursDigivolves",
-      { subjectPermanentId: s.perm("base").permanentId },
-    );
-    expect(state.memory).toBe(8);
+    expect(
+      engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base2").permanentId,
+        instanceId: s.inst("agunimon2").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base2").topCard.cardId === "BT18-011" && state.memory === 5);
+    expect(state.memory).toBe(5);
   });
 
   it("does NOT gain memory when a non-Hybrid Digimon digivolves", async () => {
-    // BT1-021 (MetalGreymon) — no [Hybrid] trait.
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "BT18-010", dp: 3000, as: "bokomon" },
-            { card: "BT1-021", dp: 8000, as: "nonHybridPerm", under: ["BT1-012"] },
+            { card: "BT1-009", as: "base" },
           ],
+          hand: [{ card: "BT1-016", as: "nonHybrid" }],
         },
       },
       { autoAcceptOptional: true },
@@ -81,20 +97,18 @@ describe("BT18-010 [Your Turn][Once Per Turn] digivolve into [Hybrid] → gain 1
     const { engine, state } = s;
     await engine.recomputeContinuousEffects();
 
-    state.memory = 0;
-    const nonHybridPermId = s.perm("nonHybridPerm").permanentId;
+    state.memory = 10;
+    expect(
+      engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("nonHybrid").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT1-016" && state.memory === 8);
 
-    await (engine as unknown as { fireSubTrigger: (event: string, payload: unknown) => Promise<void> }).fireSubTrigger(
-      "whenOneOfYoursDigivolves",
-      {
-        subjectPermanentId: nonHybridPermId,
-      },
-    );
-
-    await settle(() => state.memory !== 0, 50);
-
-    // No [Hybrid] trait → no memory gain.
-    expect(state.memory).toBe(0);
+    // No [Hybrid] trait → no memory gain beyond the printed evolution cost.
+    expect(state.memory).toBe(8);
   });
 
   it("reveals three and mandatorily adds both printed categories", async () => {

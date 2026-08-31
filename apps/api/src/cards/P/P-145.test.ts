@@ -1,9 +1,50 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "./P-145.js";
 
 describe("P-145 Myotismon (X Antibody)", () => {
+  it("plays a level-6 Myotismon from trash when deleted with Myotismon in its stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-145", as: "host", under: ["BT8-080"] }],
+          trash: [{ card: "BT15-080", as: "level6" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("level6").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("level6").instanceId)).toBe(
+      true,
+    );
+    assertNoLoudGap(s);
+  });
+
+  it("does not revive without Myotismon or X Antibody in its stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-145", as: "host", under: ["BT1-009"] }],
+          trash: [{ card: "BT15-080", as: "level6" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
+    await settle();
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("level6").instanceId)).toBe(true);
+    assertNoLoudGap(s);
+  });
+
   it("deletes an opposing level 4 Digimon on play", async () => {
     const s = setupEngine(
       {
@@ -13,6 +54,7 @@ describe("P-145 Myotismon (X Antibody)", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
+    await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
       ok: true,
@@ -37,12 +79,51 @@ describe("P-145 Myotismon (X Antibody)", () => {
               kind: "PlayWithoutCost",
               from: ["trash"],
               optional: true,
-              condition: expect.objectContaining({ kind: "selfDigivolutionStackHasTrait" }),
               target: expect.objectContaining({ filter: expect.objectContaining({ levels: [6] }) }),
+              condition: expect.objectContaining({
+                kind: "selfDigivolutionStackHasTrait",
+                filter: {
+                  or: [
+                    { nameOrTrait: [{ tokens: ["Myotismon"], match: "name" }] },
+                    { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] },
+                  ],
+                },
+              }),
             }),
           ],
         }),
       ]),
     );
+  });
+
+  it("revives with an X Antibody trait-only digivolution card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-145", as: "host", under: ["EX5-070"] }],
+          trash: [{ card: "BT15-080", as: "level6" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("level6").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("level6").instanceId)).toBe(
+      true,
+    );
+  });
+
+  it("deletes an opposing level-4 Digimon on When Digivolving", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "P-145", as: "source" }] },
+      1: { battleArea: [{ card: "BT1-033", as: "target" }] },
+    });
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    await settle();
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });

@@ -100,7 +100,10 @@ describe("BT26-104 compiled fidelity", () => {
             { card: "BT26-104", as: "kunlun" },
             { card: "EX12-036", as: "tentei" },
           ],
-          hand: [{ card: "EX12-070", as: "option" }],
+          hand: [
+            { card: "EX12-070", as: "option" },
+            { card: "BT26-100", as: "nonShambalaOption" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -113,6 +116,46 @@ describe("BT26-104 compiled fidelity", () => {
 
     expect(s.perm("kunlun").isSuspended).toBe(true);
     expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT26-100")).toBe(true);
+  });
+
+  it("does not use a Shambala Option when no Tentei Hachibushu Digimon is present", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-104", as: "kunlun" }],
+          hand: [{ card: "EX12-070", as: "option" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("kunlun"));
+
+    expect(s.perm("kunlun").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "EX12-070")).toBe(true);
+  });
+
+  it("may decline the End of Your Turn Option use", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-104", as: "kunlun" },
+            { card: "EX12-036", as: "tentei" },
+          ],
+          hand: [{ card: "EX12-070", as: "option" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("kunlun"));
+
+    expect(s.perm("kunlun").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "EX12-070")).toBe(true);
   });
 
   it("does not suspend when no eligible Shambala Option can be used", async () => {
@@ -134,6 +177,27 @@ describe("BT26-104 compiled fidelity", () => {
 
     expect(s.perm("kunlun").isSuspended).toBe(false);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-009");
+  });
+
+  it("does not offer the free Option use without a Tentei Hachibushu Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-104", as: "kunlun" },
+            { card: "BT1-009", as: "plainDigimon" },
+          ],
+          hand: [{ card: "EX12-070", as: "option" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("kunlun"));
+
+    expect(s.perm("kunlun").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("option").instanceId);
   });
 
   it("plays itself without cost from security", async () => {

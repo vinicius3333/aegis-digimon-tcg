@@ -8,12 +8,12 @@ export const compiled: CompiledCard = {
       actions: [],
       keywords: [{ keyword: "SecurityAttack", amount: 2, raw: "＜Security Attack +2＞" }],
     },
+    { trigger: "WhenAttacking", actions: [{ kind: "GainMemory", amount: -5 }] },
     {
       trigger: "YourTurn",
       isInherited: true,
       actions: [{ kind: "ModifyDP", target: { isSelf: true }, amount: 3000, duration: "forTheTurn" }],
     },
-    { trigger: "WhenAttacking", actions: [{ kind: "GainMemory", amount: -5 }] },
   ],
   coverage: "full",
   residual: [],

@@ -41,6 +41,7 @@ export const compiled: CompiledCard = {
               filter: {
                 zone: "trash",
                 controller: "mine",
+                kind: ["Digimon"],
                 nameOrTrait: [
                   {
                     tokens: ["Ver.1"],

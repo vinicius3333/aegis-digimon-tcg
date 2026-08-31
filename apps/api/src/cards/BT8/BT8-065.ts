@@ -20,10 +20,6 @@ export const compiled: CompiledCard = {
                   tokens: ["Mamemon"],
                   match: "name",
                 },
-                {
-                  tokens: ["Mamemon"],
-                  match: "trait",
-                },
               ],
             },
             count: 4,

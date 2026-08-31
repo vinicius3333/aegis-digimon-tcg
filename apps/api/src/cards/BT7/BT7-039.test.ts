@@ -4,15 +4,16 @@ import { effectsOf } from "../../engine/effects/collect.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "../BT4/BT4-026.js";
 import "./BT7-039.js";
+import "./BT7-040.js";
 
 describe("BT7-039 Stefilmon", () => {
   it("places up to 2 yellow level-4-or-lower Digimon under itself and draws per card placed", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT7-039", under: ["BT1-048"], as: "stefilmon" }],
+          // Legal yellow stack: L4 Filmon -> L5 Stefilmon.
+          battleArea: [{ card: "BT7-039", under: ["BT7-034"], as: "stefilmon" }],
           hand: ["BT1-048", "BT1-049"],
           deck: ["BT1-001", "BT1-002", "BT1-003"],
         },
@@ -34,7 +35,7 @@ describe("BT7-039 Stefilmon", () => {
           battleArea: [
             {
               card: "BT7-039",
-              under: [{ card: "BT1-048", as: "existingSource" }],
+              under: [{ card: "BT7-034", as: "existingSource" }],
               as: "stefilmon",
             },
           ],
@@ -90,18 +91,19 @@ describe("BT7-039 Stefilmon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT4-026", under: [{ card: "BT7-039", as: "stefilmon" }, "BT1-001"], as: "host" },
+            // Legal yellow stack: L4 Filmon -> L5 Stefilmon -> L6 Rasenmon.
+            { card: "BT7-040", under: ["BT7-034", { card: "BT7-039", as: "stefilmon" }], as: "host" },
             { card: "BT1-010", as: "ally" },
           ],
-          deck: ["BT1-011"],
         },
+        1: { battleArea: [{ card: "BT1-010", as: "target" }] },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("stefilmon").instanceId);
     const source = (s.engine as any).cardSourceOf(s.perm("host").topCard!);
     const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
-      effect.effectKey.startsWith("BT4-026/"),
+      effect.effectKey.startsWith("BT7-040/"),
     )!.effectKey;
     await s.ready();
 

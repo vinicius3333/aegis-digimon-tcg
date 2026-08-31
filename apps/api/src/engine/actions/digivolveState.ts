@@ -1,5 +1,5 @@
 import { CardInstance, Zone, type GameState, type PlayerState, type Permanent, type Seat } from "@aegis/shared";
-import { extractCardAt, findPermanentInPlayer } from "../state/access.js";
+import { extractCardAt, findPermanentInPlayer, pushOnStack, setTopCard } from "../state/access.js";
 
 /**
  * Small, pure, source-faithful state helpers the digivolve action composes from
@@ -77,13 +77,13 @@ export function zoneOfInstance(player: PlayerState, instanceId: string): Zone | 
  */
 export function pushDigivolution(permanent: Permanent, newTop: CardInstance): CardInstance {
   const priorTop = permanent.topCard;
-  permanent.stack.push(priorTop);
+  pushOnStack(permanent, priorTop);
   // The new top of an in-play permanent is public: flip it face-up. The evolving card
   // comes from a face-down zone (the hand starts face-down — setup.ts), and unless it is
   // flipped here `isDigimonCard(topCard)` is false, so the engine stops recognising the
   // whole permanent as a Digimon (can't attack/block/be targeted).
   newTop.faceUp = true;
-  permanent.topCard = newTop;
+  setTopCard(permanent, newTop);
   return priorTop;
 }
 

@@ -15,7 +15,7 @@ describe("EX7-073", () => {
     expect(digivolving[0]).toMatchObject({
       kind: "Delete",
       target: { filter: { superlative: "highestLevel" } },
-      cost: { kind: "trash", target: { count: 2 } },
+      cost: { kind: "trash", target: { count: 2, filter: { isSelfRef: true, zone: "digivolutionCards" } } },
     });
     expect(digivolving[1]).toMatchObject({
       kind: "SecurityManipulation",
@@ -26,5 +26,9 @@ describe("EX7-073", () => {
       condition: { kind: "ifThisEffectActed" },
     });
     expect(attacking).toHaveLength(2);
+    expect(attacking[0]).toMatchObject({
+      kind: "Delete",
+      cost: { kind: "trash", target: { count: 2, filter: { isSelfRef: true, zone: "digivolutionCards" } } },
+    });
   });
 });

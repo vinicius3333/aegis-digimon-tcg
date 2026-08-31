@@ -8,14 +8,19 @@ describe("BT6-070 Elecmon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT6-070", as: "elecmon" }] },
-        1: { battleArea: [{ card: "BT1-010", as: "target" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "targetAtLevel3" },
+            { card: "BT6-071", as: "targetAtLevel4" },
+          ],
+        },
       },
       { autoSelectCards: true },
     );
 
     await advance(s.engine).verb.deletePermanent([s.perm("elecmon").permanentId], "byEffect");
-    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
 
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea[0]?.topCard?.cardId).toBe("BT6-071");
   });
 });

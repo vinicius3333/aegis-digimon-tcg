@@ -121,7 +121,7 @@ describe("EX3-035 Goldramon", () => {
           ],
         },
       },
-      { autoOrderTriggers: false },
+      { autoAcceptOptional: false, autoSelectCards: false, autoOrderTriggers: false },
     );
     s.state.memory = 2;
     await s.ready();
@@ -164,6 +164,7 @@ describe("EX3-035 Goldramon", () => {
     await settle(
       () => s.state.pendingDecision?.kind === "selectCards" && s.decisions.at(-1)?.req.sourceCardId === "EX3-035",
     );
+    expect(s.state.pendingDecision?.kind).toBe("selectCards");
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
@@ -189,6 +190,7 @@ describe("EX3-035 Goldramon", () => {
     await settle(
       () => s.state.pendingDecision?.kind === "selectCards" && s.decisions.at(-1)?.req.sourceCardId === "BT16-014",
     );
+    expect(s.state.pendingDecision?.kind).toBe("selectCards");
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",

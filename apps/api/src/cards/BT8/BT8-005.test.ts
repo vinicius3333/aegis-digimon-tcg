@@ -11,11 +11,11 @@ describe("BT8-005 Kyokyomon", () => {
         0: {
           battleArea: [
             { card: "BT8-092", as: "yuji" },
-            { card: "BT8-063", as: "host", under: ["BT8-005"] },
+            { card: "BT8-060", as: "host", under: ["BT8-005"] },
           ],
           hand: [{ card: "BT8-060", as: "placed" }],
         },
-        1: { security: ["BT8-033"] },
+        1: { security: ["BT1-093"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -37,7 +37,7 @@ describe("BT8-005 Kyokyomon", () => {
   it("applies only once when two effects place cards under the host in the same turn", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT8-063", as: "host", under: ["BT8-005"] }],
+        battleArea: [{ card: "BT8-060", as: "host", under: ["BT8-005"] }],
         hand: [
           { card: "BT8-060", as: "placedOne" },
           { card: "BT8-060", as: "placedTwo" },
@@ -61,12 +61,12 @@ describe("BT8-005 Kyokyomon", () => {
         0: {
           battleArea: [
             { card: "BT8-092", as: "yuji" },
-            { card: "BT8-063", as: "host", under: ["BT8-005"] },
+            { card: "BT8-060", as: "host", under: ["BT8-005"] },
             { card: "BT8-063", as: "other" },
           ],
           hand: [{ card: "BT8-060", as: "placed" }],
         },
-        1: { security: ["BT8-033"] },
+        1: { security: ["BT1-093"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

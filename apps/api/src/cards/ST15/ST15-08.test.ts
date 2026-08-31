@@ -1,7 +1,5 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./ST15-08.js";
 
 describe("ST15-08 Greymon security effect", () => {
@@ -9,14 +7,27 @@ describe("ST15-08 Greymon security effect", () => {
     const s = setupEngine(
       {
         0: {
-          security: [{ card: "ST15-08", as: "greymon", faceUp: true }],
+          security: [{ card: "ST15-08", as: "greymon", faceUp: true }, "BT1-001"],
           hand: [{ card: "BT1-010", as: "agumon" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "attacker" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("greymon"));
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("agumon").instanceId),
+    );
 
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("agumon").instanceId)).toBe(
       true,
@@ -27,14 +38,25 @@ describe("ST15-08 Greymon security effect", () => {
     const s = setupEngine(
       {
         0: {
-          security: [{ card: "ST15-08", as: "greymon", faceUp: true }],
+          security: [{ card: "ST15-08", as: "greymon", faceUp: true }, "BT1-001"],
           hand: [{ card: "BT1-085", as: "tai" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "attacker" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("greymon"));
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("tai").instanceId));
 
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("tai").instanceId)).toBe(true);
   });
@@ -42,16 +64,22 @@ describe("ST15-08 Greymon security effect", () => {
   it("grants its inherited memory only once when any attack target switches", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "ST15-12", as: "host", under: ["BT1-009", "ST15-08"] }] },
-      1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      1: { battleArea: [{ card: "ST15-12", as: "blocker" }] },
     });
     s.state.memory = 0;
 
-    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
-      attackerPermanentId: s.perm("opponent").permanentId,
-    });
-    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
-      attackerPermanentId: s.perm("opponent").permanentId,
-    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
 
     expect(s.state.memory).toBe(1);
   });

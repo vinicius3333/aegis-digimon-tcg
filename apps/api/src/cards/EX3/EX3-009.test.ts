@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./EX3-009.js";
+import { compiled } from "./EX3-009.js";
 
 describe("EX3-009 Volcdramon", () => {
   it("matches its official identity and inherited text", () => {
@@ -17,6 +17,14 @@ describe("EX3-009 Volcdramon", () => {
       types: ["Dragon"],
     });
     expect(getCardDefinition("EX3-009")!.inheritedEffectText).toContain("[Dragon], [saur], or [Ceratopsian]");
+  });
+  it("keeps the saur clause trait-only", () => {
+    const effect = compiled.effects.find((entry) => entry.trigger === "WhenAttacking");
+    const condition = effect?.actions[0]?.condition;
+    expect(condition).toMatchObject({
+      kind: "selfHasTrait",
+      filter: { nameOrTrait: expect.arrayContaining([{ tokens: ["saur"], match: "trait" }]) },
+    });
   });
   it("draws once when its attacking carrier has the Dragonkin trait", async () => {
     const s = setupEngine({
@@ -54,7 +62,6 @@ describe("EX3-009 Volcdramon", () => {
 
   it.each([
     ["Dragon", "BT11-022"],
-    ["saur", "AD1-001"],
     ["Ceratopsian", "BT10-050"],
     ["Dragonkin (Q3376)", "EX3-008"],
   ])("draws for the %s trait family", async (_family, carrier) => {

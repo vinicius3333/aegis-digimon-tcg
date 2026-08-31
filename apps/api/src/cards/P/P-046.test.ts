@@ -3,6 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT2/BT2-107.js";
+import "../BT2/BT2-075.js";
 import "./P-036.js";
 import "./P-046.js";
 
@@ -11,7 +12,7 @@ describe("P-046 Wizardmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT2-081", as: "host", under: ["P-046"] }],
+          battleArea: [{ card: "BT2-081", as: "host", under: ["P-046", "BT2-075"] }],
           hand: [
             { card: "BT2-107", as: "first" },
             { card: "BT2-107", as: "second" },
@@ -40,7 +41,7 @@ describe("P-046 Wizardmon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT2-081", as: "host", under: ["P-046"] },
+          { card: "BT2-081", as: "host", under: ["P-046", "BT2-075"] },
           { card: "P-036", as: "delay" },
         ],
       },
@@ -67,7 +68,7 @@ describe("P-046 Wizardmon", () => {
   it("Q5519: does not trigger when an Option's Security effect activates", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT2-081", as: "host", under: ["P-046"] }],
+        battleArea: [{ card: "BT2-081", as: "host", under: ["P-046", "BT2-075"] }],
         security: [{ card: "P-036", as: "securityOption", faceUp: true }],
       },
     });

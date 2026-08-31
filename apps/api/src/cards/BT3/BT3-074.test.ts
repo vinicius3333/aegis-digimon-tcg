@@ -9,9 +9,15 @@ describe("BT3-074 MetalEtemon", () => {
 
     await s.engine.recomputeContinuousEffects();
     expect(observe(s.engine).isRestricted(s.perm("metalEtemon"), "cantBeBlocked")).toBe(true);
+    expect(s.perm("metalEtemon").currentDP).toBe(s.perm("metalEtemon").baseDP);
 
     s.state.turnSeat = 1;
     await s.engine.recomputeContinuousEffects();
     expect(s.perm("metalEtemon").currentDP).toBe(s.perm("metalEtemon").baseDP + 2000);
+    expect(observe(s.engine).isRestricted(s.perm("metalEtemon"), "cantBeBlocked")).toBe(false);
+
+    s.state.turnSeat = 0;
+    await s.engine.recomputeContinuousEffects();
+    expect(s.perm("metalEtemon").currentDP).toBe(s.perm("metalEtemon").baseDP);
   });
 });

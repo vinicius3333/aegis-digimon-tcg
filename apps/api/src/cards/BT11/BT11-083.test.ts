@@ -45,6 +45,37 @@ describe("BT11-083 LadyDevimon", () => {
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("discard").instanceId);
   });
 
+  it("can return the matching card that its hand-trash step just discarded", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-079", as: "base" }],
+          hand: [
+            { card: "BT11-083", as: "lady" },
+            { card: "BT11-080", as: "discarded-fallen-angel" },
+            { card: "BT1-009", as: "keep" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.inst("discarded-fallen-angel").instanceId);
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("lady").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("discarded-fallen-angel").instanceId));
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("discarded-fallen-angel").instanceId);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toContain(s.inst("discarded-fallen-angel").instanceId);
+  });
+
   it("does not return a card when the optional hand trash is declined", async () => {
     const s = setupEngine(
       {

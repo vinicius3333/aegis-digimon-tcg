@@ -1,8 +1,21 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./BT7-053.js";
 
 describe("BT7-053 Dinorexmon", () => {
+  it("binds the unsuspend restriction to the Digimon it suspended", () => {
+    const actions = runtimeCompiledCard("BT7-053")?.effects[0]?.actions;
+
+    expect(actions).toHaveLength(2);
+    expect(actions?.[1]).toMatchObject({
+      kind: "Restrict",
+      target: { sameTarget: true },
+      restriction: "unsuspend",
+      duration: "untilOpponentTurnEnd",
+    });
+  });
+
   it("suspends one opposing Digimon and prevents that same Digimon from unsuspending", async () => {
     const preferred: string[] = [];
     const s = setupEngine(

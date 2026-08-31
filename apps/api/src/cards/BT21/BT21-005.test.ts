@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-005.js";
 import "../index.js";
 
@@ -39,6 +39,33 @@ describe("BT21-005 Swipemon", () => {
     await advance(s.engine).fireSubTrigger("whenLinked", { subjectPermanentId: s.perm("host").permanentId });
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT21-005", "BT21-009"]);
+  });
+
+  it("draws when the stack gets linked through the public link action", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-018", as: "host", under: ["BT21-005", "BT21-009"] }],
+          hand: [{ card: "BT21-009", as: "link" }],
+          deck: [{ card: "BT1-001", as: "drawn" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
+
+    expect(s.perm("host").linked.map((card) => card.instanceId)).toContain(s.inst("link").instanceId);
+    expect(s.state.memory).toBe(1);
   });
 
   it("ignores another Digimon getting linked and draws only once for its own stack", async () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
+import { Phase } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-082.js";
 import "../index.js";
@@ -19,25 +19,31 @@ describe("BT16-082 Ukkomon", () => {
     });
   });
 
-  it("adds a Digimon or Tamer and bottoms the rest after a friendly move", async () => {
+  it("adds a Digimon or Tamer, bottoms the rest, and may hatch after a natural move", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT16-082", as: "ukko" },
-            { card: "BT1-009", as: "moved" },
-          ],
-          deck: ["BT16-090", "BT1-009", "BT1-001"],
+          battleArea: [{ card: "BT16-082", as: "ukko" }],
+          breeding: { card: "BT1-009", as: "moved" },
+          deck: ["BT16-090", "BT1-009", "BT1-090"],
+          eggDeck: ["BT1-001"],
         },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
+    s.state.phase = Phase.Breeding;
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenMovedFromBreeding", {
-      subjectPermanentId: s.perm("moved").permanentId,
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("moved").permanentId })).toEqual({
+      ok: true,
     });
-    await settle(() => s.state.players[0]?.hand.length === 1);
+    await settle(
+      () =>
+        s.state.players[0]?.hand.length === 1 &&
+        s.state.players[0]?.deck.length === 2 &&
+        s.state.players[0]?.breeding?.topCard?.cardId === "BT1-001",
+    );
     expect(s.state.players[0]?.hand).toHaveLength(1);
-    expect(s.state.players[0]?.deck).toHaveLength(1);
+    expect(s.state.players[0]?.deck).toHaveLength(2);
+    expect(s.state.players[0]?.breeding?.topCard?.cardId).toBe("BT1-001");
   });
 });

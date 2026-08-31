@@ -11,6 +11,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "onAddDigivolutionCards",
+          sourceFilter: { byEffect: true },
           triggerFilter: { isSelfRef: true },
           addedDigivolutionCardFilter: { traits: ["Legend-Arms"] },
           actions: [{ kind: "GainMemory", amount: 1 }],

@@ -84,6 +84,7 @@ export const compiled: CompiledCard = {
             destination: "digivolutionStack",
             position: "bottom",
             host: "self",
+            targetIsPermanent: true,
           },
           optional: true,
           abortOnDecline: true,

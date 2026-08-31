@@ -64,6 +64,7 @@ export const compiled: CompiledCard = {
             },
             count: 1,
             isSelf: false,
+            fromSelectionRef: "paidHost",
           },
           into: {
             controllerDefault: "mine",
@@ -89,19 +90,18 @@ export const compiled: CompiledCard = {
               count: 1,
               from: ["hand"],
             },
-            host: {
-              filter: {
-                controller: "mine",
-                kind: ["Digimon"],
-                nameOrTrait: [
-                  {
-                    tokens: ["DM"],
-                    match: "trait",
-                  },
-                ],
-              },
-              count: 1,
+            host: "target",
+            underFilter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["DM"],
+                  match: "trait",
+                },
+              ],
             },
+            bindHostAs: "paidHost",
             raw: "By placing 1 card from your hand face down as any of your [DM] trait Digimon's bottom digivolution card",
             destination: "digivolutionStack",
             position: "bottom",

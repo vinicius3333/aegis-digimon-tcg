@@ -30,6 +30,7 @@ describe("BT26-090 compiled behavior", () => {
       kind: "UseOptionWithoutCost",
       from: ["hand"],
       payCost: true,
+      allowMultiColor: true,
       reduceCostByOpponentMemory: true,
       optional: true,
       target: {
@@ -90,6 +91,59 @@ describe("BT26-090 compiled behavior", () => {
 
     expect(s.perm("kanan").isSuspended).toBe(true);
     expect(s.state.memory).toBe(-5);
+  });
+
+  it("can use a multicolor TS Option when both color requirements are met", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-090", as: "kanan" },
+            { card: "BT1-045", as: "yellowSource" },
+          ],
+          hand: [{ card: "BT24-094", as: "multicolorOption" }],
+          security: [{ card: "BT1-001", as: "oldSecurity", faceUp: true }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = -3;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("kanan"));
+    await settle(() =>
+      s.state.players[0]!.security.some(({ instanceId }) => instanceId === s.inst("multicolorOption").instanceId),
+    );
+
+    expect(s.perm("kanan").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(-3);
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("multicolorOption").instanceId,
+    );
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("oldSecurity").instanceId);
+  });
+
+  it("still requires every color of a multicolor TS Option", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-090", as: "kanan" }],
+          hand: [{ card: "BT24-094", as: "multicolorOption" }],
+          security: [{ card: "BT1-001", faceUp: true }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = -3;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("kanan"));
+
+    expect(s.perm("kanan").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(-3);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("multicolorOption").instanceId,
+    );
   });
 
   it("floors the opponent-memory reduction at zero instead of gaining memory", async () => {

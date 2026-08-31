@@ -2,8 +2,21 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
+    {
+      trigger: "WhenLinking",
+      isLinked: true,
+      actions: [
+        {
+          kind: "Suspend",
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon", "Tamer"] },
+            count: 1,
+          },
+        },
+      ],
+    },
     {
       trigger: "Main",
       actions: [
@@ -22,6 +35,7 @@ const compiled: CompiledCard = {
               ],
             },
             count: 1,
+            source: "thisDigimon",
           },
           from: ["hand", "digivolutionCards"],
           costDelta: -1,
@@ -36,6 +50,11 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenLinked",
+          on: {
+            filter: { isSelfRef: true },
+            count: 1,
+            isSelf: true,
+          },
           actions: [
             {
               kind: "PlayWithoutCost",
@@ -74,6 +93,7 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  linkRequirement: [{ traits: ["Appmon"], cost: 2 }],
   appFusionRequirement: [
     {
       names: ["Onmon", "Gatchmon"],

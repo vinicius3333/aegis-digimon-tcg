@@ -133,6 +133,7 @@ export const compiled: CompiledCard = {
           },
           restriction: "unsuspend",
           duration: "untilOpponentTurnEnd",
+          whileMatchesTargetFilter: true,
         },
       ],
     },

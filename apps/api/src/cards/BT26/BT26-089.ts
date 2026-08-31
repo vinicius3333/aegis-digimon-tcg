@@ -13,7 +13,13 @@ const placeHandCost = {
   position: "bottom",
   faceDown: true,
 };
-const placeDeckTop = { kind: "PlaceUnder", fromDeckTop: true, target: { filter: {}, count: 1 }, faceDown: true };
+const placeDeckTop = {
+  kind: "PlaceUnder",
+  fromDeckTop: true,
+  target: { filter: {}, count: 1 },
+  position: "bottom",
+  faceDown: true,
+};
 const removalGate = { kind: "triggerRemovedSecuritySeat", seat: "mine" };
 const nonEffectRemovalGate = {
   kind: "allOf",

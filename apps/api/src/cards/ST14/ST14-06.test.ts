@@ -1,7 +1,5 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./ST14-06.js";
 
 describe("ST14-06 Witchmon", () => {
@@ -10,12 +8,22 @@ describe("ST14-06 Witchmon", () => {
       0: {
         battleArea: [
           { card: "BT10-010", as: "host", under: ["ST14-06"] },
-          { card: "ST14-06", as: "witch" },
+          { card: "ST14-03", as: "base" },
         ],
-        deck: ["BT1-009", "BT1-010", "BT1-011"],
+        hand: [{ card: "ST14-06", as: "witch" }],
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
       },
     });
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("witch"));
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("witch").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.length === 3);
     expect(s.state.players[0]!.trash).toHaveLength(3);
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 2000);
   });

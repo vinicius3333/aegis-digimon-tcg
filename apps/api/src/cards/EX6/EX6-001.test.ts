@@ -8,6 +8,7 @@ describe("EX6-001 Sakuttomon", () => {
     const text = JSON.stringify(compiled);
     expect(compiled.coverage).toBe("full");
     expect(text).toContain("onAddDigivolutionCards");
+    expect(text).toContain("byEffect");
     expect(text).toContain("Legend-Arms");
     expect(text).toContain("OncePerTurn");
   });
@@ -29,6 +30,11 @@ describe("EX6-001 Sakuttomon", () => {
     expect(s.state.memory).toBe(0);
 
     await advance(s.engine).verb.placeUnder(s.perm("host").permanentId, [s.inst("legendArms").instanceId]);
+    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
+      subjectPermanentId: s.perm("host").permanentId,
+      addedDigivolutionCardInstanceIds: [s.inst("legendArms").instanceId],
+      byEffectSeat: 0,
+    });
     expect(s.state.memory).toBe(1);
   });
 });
