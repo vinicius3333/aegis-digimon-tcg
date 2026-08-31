@@ -24,6 +24,23 @@ const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
+          kind: "GainMemory",
+          amount: 1,
+          condition: {
+            kind: "youHave",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                { tokens: ["Huckmon"], match: "name" },
+                { tokens: ["Royal Knight"], match: "trait" },
+              ],
+            },
+            raw: "you have a Digimon with [Huckmon] in its name or [Royal Knight] in its traits in play",
+          },
+        },
+        {
           kind: "GainKeyword",
           target: {
             filter: {
@@ -52,23 +69,6 @@ const compiled: CompiledCard = {
                   tokens: ["Royal Knight"],
                   match: "trait",
                 },
-              ],
-            },
-            raw: "you have a Digimon with [Huckmon] in its name or [Royal Knight] in its traits in play",
-          },
-        },
-        {
-          kind: "GainMemory",
-          amount: 1,
-          condition: {
-            kind: "youHave",
-            filter: {
-              zone: "battleArea",
-              controllerDefault: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [
-                { tokens: ["Huckmon"], match: "name" },
-                { tokens: ["Royal Knight"], match: "trait" },
               ],
             },
             raw: "you have a Digimon with [Huckmon] in its name or [Royal Knight] in its traits in play",

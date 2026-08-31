@@ -1,8 +1,11 @@
 // Card modules for this set.
 import "./ST12-01.js";
+import "./ST12-02.js";
 import "./ST12-03.js";
 import "./ST12-04.js";
+import "./ST12-05.js";
 import "./ST12-06.js";
+import "./ST12-07.js";
 import "./ST12-08.js";
 import "./ST12-09.js";
 import "./ST12-10.js";
