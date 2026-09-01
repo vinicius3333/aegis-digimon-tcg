@@ -100,6 +100,7 @@ const compiled: CompiledCard = {
           sourceFilter: {
             controller: "opponent",
             kind: ["Digimon"],
+            byEffect: true,
           },
           actions: [
             {
