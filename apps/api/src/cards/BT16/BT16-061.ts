@@ -39,9 +39,16 @@ export const compiled: CompiledCard = {
       ],
     },
     {
-      trigger: "WhenBattleDeleteOpponent",
+      trigger: "OnDestroyedAnyone",
       isInherited: true,
       frequency: "OncePerTurn",
+      condition: {
+        kind: "allOf",
+        conditions: [
+          { kind: "triggerDeleterIsSelf" },
+          { kind: "triggerDeletedMatchesFilter", filter: { kind: ["Digimon"] } },
+        ],
+      },
       actions: [
         {
           kind: "PlayWithoutCost",

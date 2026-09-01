@@ -717,6 +717,10 @@ export class GameEngine {
               blockerPermanentId: trigger.blockerPermanentId,
               ...(trigger.target?.kind === "permanent" ? { targetPermanentId: trigger.target.permanentId } : {}),
               deletedPermanentId: trigger.deletedPermanentId,
+              deletedPermanentIds: trigger.deletedPermanentIds,
+              deletedPermanentSnapshots: trigger.deletedPermanentSnapshots,
+              deletingPermanentId: trigger.deletingPermanentId,
+              removalCause: trigger.removalCause,
               deletedTopCardId: trigger.deletedTopCardId,
               deletedEffectiveColorsByInstanceId: trigger.deletedEffectiveColorsByInstanceId,
               deletedInstanceIds: trigger.deletedInstanceIds,
@@ -737,6 +741,10 @@ export class GameEngine {
           blockerPermanentId: trigger.blockerPermanentId,
           ...(trigger.target?.kind === "permanent" ? { targetPermanentId: trigger.target.permanentId } : {}),
           deletedPermanentId: trigger.deletedPermanentId,
+          deletedPermanentIds: trigger.deletedPermanentIds,
+          deletedPermanentSnapshots: trigger.deletedPermanentSnapshots,
+          deletingPermanentId: trigger.deletingPermanentId,
+          removalCause: trigger.removalCause,
           deletedTopCardId: trigger.deletedTopCardId,
           deletedEffectiveColorsByInstanceId: trigger.deletedEffectiveColorsByInstanceId,
           deletedInstanceIds: trigger.deletedInstanceIds,
@@ -5750,7 +5758,8 @@ export class GameEngine {
         return ctx;
       },
       tracker: this.tracker,
-      enterEffectResolution: (seat, sourceKinds) => this.primitives.enterEffectResolution?.(seat, sourceKinds),
+      enterEffectResolution: (seat, sourceKinds, sourcePermanentId) =>
+        this.primitives.enterEffectResolution?.(seat, sourceKinds, sourcePermanentId),
       leaveEffectResolution: () => this.primitives.leaveEffectResolution?.(),
     };
   }

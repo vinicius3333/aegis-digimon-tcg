@@ -370,14 +370,17 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   const subTriggers = engine.subTriggers ?? new SubTriggerRegistry();
   const effectSeatStack: Seat[] = [];
   const effectSourceKindsStack: string[][] = [];
-  const enterEffectResolution: Primitives["enterEffectResolution"] = (seat, sourceKinds = []) => {
+  const effectSourcePermanentIdStack: (string | undefined)[] = [];
+  const enterEffectResolution: Primitives["enterEffectResolution"] = (seat, sourceKinds = [], sourcePermanentId) => {
     effectSeatStack.push(seat);
     effectSourceKindsStack.push(sourceKinds);
+    effectSourcePermanentIdStack.push(sourcePermanentId);
     engine.beginEffectBody?.();
   };
   const leaveEffectResolution: Primitives["leaveEffectResolution"] = () => {
     effectSeatStack.pop();
     effectSourceKindsStack.pop();
+    effectSourcePermanentIdStack.pop();
     engine.finishEffectBody?.();
   };
   const currentHandAddProvenance = () => {
@@ -1810,6 +1813,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     opts?: { belowTop?: boolean; shedOwnCards?: boolean; faceUp?: boolean },
   ): boolean => {
     if (destPermanentId === sourcePermanentId) return false;
+    if (isRestricted(sourcePermanentId, "leaveBattleAreaExceptByDeletion")) return false;
     // The host may sit in the battle area OR the breeding area: BT13-007's [Breeding] effect
     // gathers battle-area [Royal Knight] Digimon UNDER the breeding-area King Drasil itself.
     // access.permanentById scans only the battle area, so fall back to the breeding slot.
@@ -1912,6 +1916,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
    */
   const movePermanentZone = async (permanentId: string, direction: "toBreeding" | "toBattle"): Promise<boolean> => {
     if (direction === "toBreeding") {
+      if (isRestricted(permanentId, "leaveBattleAreaExceptByDeletion")) return false;
       for (const owner of state.players) {
         const idx = owner.battleArea.findIndex((perm) => perm.permanentId === permanentId);
         if (idx < 0) continue;
@@ -1985,6 +1990,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     for (const owner of state.players) {
       const idx = owner.battleArea.findIndex((p) => p.topCard?.instanceId === instanceId);
       if (idx < 0) continue;
+      const sourcePermanentId = owner.battleArea[idx]?.permanentId;
+      if (sourcePermanentId === undefined || isRestricted(sourcePermanentId, "leaveBattleAreaExceptByDeletion")) {
+        return undefined;
+      }
       const source = extractPermanentAt(owner, idx);
       if (source === undefined || source.topCard === undefined) return undefined;
       dropPermanentLedgers(source.permanentId);
@@ -2803,6 +2812,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     cause: import("./EffectContext.js").RemovalCause = "byEffect",
     opts?: { mechanic?: "Overclock" },
   ): Promise<number> => {
+    // Snapshot the producer before prevention/replacement bodies can open nested effect frames.
+    // A rule or battle deletion is not attributed to the currently resolving card effect here;
+    // CombatController supplies the surviving battle participant on its own final event.
+    const deletingPermanentId = cause === "byEffect" ? effectSourcePermanentIdStack.at(-1) : undefined;
     // "Can't be deleted" (Comprehensive Rules §15-1-3: a prohibiting effect takes precedence).
     // Filtered FIRST: an outright prohibition means the deletion never approaches, so neither
     // the would-be-deleted timing nor the ＜Evade＞/＜Barrier＞ cost prompts should fire for it.
@@ -3067,19 +3080,19 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // STILL a live permanent — so a watcher's captured sourceFilter ("a [Puppet] Digimon")
     // can resolve and gate on the deleted card's live traits/controller before it leaves the
     // field. The body (e.g. draw) runs immediately; OnDestroyedAnyone (System A) follows below.
+    const deletedPermanentSnapshots = toDelete.flatMap((permanentId) => {
+      const permanent = access.permanentById(permanentId);
+      return permanent?.topCard === undefined
+        ? []
+        : [
+            {
+              permanentId,
+              controllerSeat: permanent.controllerSeat,
+              topCardId: permanent.topCard.cardId,
+            },
+          ];
+    });
     if (engine.fireSubTrigger) {
-      const deletedPermanentSnapshots = toDelete.flatMap((permanentId) => {
-        const permanent = access.permanentById(permanentId);
-        return permanent?.topCard === undefined
-          ? []
-          : [
-              {
-                permanentId,
-                controllerSeat: permanent.controllerSeat,
-                topCardId: permanent.topCard.cardId,
-              },
-            ];
-      });
       for (const permanentId of toDelete) {
         const deleted = access.permanentById(permanentId);
         if (deleted?.topCard === undefined) continue;
@@ -3272,6 +3285,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         ...deletionGrantSnapshot,
         deletedPermanentId: allMoved[0],
         deletedPermanentIds: toDelete,
+        deletedPermanentSnapshots,
         deletedTopCardId: topCardIdsByPermanent.find((cardId) => cardId !== undefined),
         deletedEffectiveColorsByInstanceId,
         deletedByDpZero,
@@ -3284,6 +3298,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         deletedWasStackInstanceIds: allStackInstanceIds,
         deletedWasLinkedInstanceIds: allLinkedInstanceIds,
         deletedLinkHostInstanceByLinkedInstanceId,
+        ...(deletingPermanentId === undefined ? {} : { deletingPermanentId }),
         removalCause: cause,
         removalMechanic: opts?.mechanic,
       };
@@ -3541,13 +3556,15 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         }
       }
     }
-    // "Can't be returned to hands or decks" (§15-1-3). Both return verbs funnel through here,
-    // so gating once covers hand and deck alike — which is what every printed instance of this
-    // protection says ("…to hands or decks"). Applied before the prevent-reaction consult so a
-    // prohibited bounce never asks anyone to pay a prevention cost.
+    // Ordinary return protection and the broader BT16-051 Q2642 leave lock both funnel through
+    // here. Applied before the prevent-reaction consult so a prohibited move never asks anyone
+    // to pay a prevention cost. addSecurity also uses this seam for whole-permanent placement.
     instanceIds = instanceIds.filter((id) => {
       const permId = permByInstance.get(id);
-      return permId === undefined || !isRestricted(permId, "beReturned");
+      return (
+        permId === undefined ||
+        (!isRestricted(permId, "beReturned") && !isRestricted(permId, "leaveBattleAreaExceptByDeletion"))
+      );
     });
     if (!engine.consultLeavePrevention) return instanceIds;
     for (const [instanceId] of [...permByInstance]) {
@@ -4255,6 +4272,14 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     opts?: { toTop?: boolean; faceUp?: boolean; detachPermanentTop?: boolean },
   ): Promise<void> => {
     if (continuous.cannotAddSecurityFromEffect(effectSeatStack.at(-1))) return;
+    // The detach form bypasses filterBouncePrevented below. It still cannot peel the top card
+    // from a Digimon carrying BT16-051's broader non-deletion leave lock.
+    if (opts?.detachPermanentTop === true) {
+      instanceIds = instanceIds.filter((instanceId) => {
+        const permanentId = permanentByTopInstance(instanceId);
+        return permanentId === undefined || !isRestricted(permanentId, "leaveBattleAreaExceptByDeletion");
+      });
+    }
     // A permanent's top-card id here means the whole permanent is LEAVING the battle
     // area for security — mirrors returnToHand/returnToDeck's leave-prevention consult.
     // filterBouncePrevented only matches battle-area permanent top-cards, so ids sourced

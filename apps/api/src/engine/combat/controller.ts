@@ -100,6 +100,12 @@ export interface CombatTrigger {
   target?: AttackTarget;
   /** A permanent deleted by the battle (OnDestroyedAnyone). */
   deletedPermanentId?: string;
+  /** Every permanent deleted by the same simultaneous battle outcome. */
+  deletedPermanentIds?: string[];
+  /** Controller and top-card facts captured before the battle losers leave play. */
+  deletedPermanentSnapshots?: TriggerInfo["deletedPermanentSnapshots"];
+  /** The sole surviving battle participant that caused the deletion; absent for ties. */
+  deletingPermanentId?: string;
   /** Why the permanent left play, for deletion-condition gates. */
   removalCause?: RemovalCause;
   deletedTopCardId?: string;
@@ -1364,6 +1370,12 @@ export class CombatController {
 
     const attackerTopCardId = attacker.topCard?.cardId;
     const defenderTopCardId = defender.topCard?.cardId;
+    const deletedPermanentSnapshots = postCardPreventionDeletedIds.flatMap((permanentId) => {
+      const permanent = this.access.permanentById(permanentId);
+      return permanent?.topCard === undefined
+        ? []
+        : [{ permanentId, controllerSeat: permanent.controllerSeat, topCardId: permanent.topCard.cardId }];
+    });
     const deleted: string[] = [];
     const deletedInstanceIds: string[] = [];
     const deletedWasStackInstanceIds: string[] = [];
@@ -1438,14 +1450,24 @@ export class CombatController {
     // battle outcome is fixed. A single fire lets resolveTiming batch a both-combatants tie and
     // order the triggers turn-player-first; the trashed cards become [On Deletion] candidates.
     if (deleted.length > 0) {
+      const deletingPermanentId = deleted.includes(attacker.permanentId)
+        ? deleted.includes(defender.permanentId)
+          ? undefined
+          : defender.permanentId
+        : deleted.includes(defender.permanentId)
+          ? attacker.permanentId
+          : undefined;
       const deletionTrigger = {
         deletedPermanentId: deleted[0],
+        deletedPermanentIds: deleted,
+        deletedPermanentSnapshots,
         deletedInstanceIds,
         deletedWasStackInstanceIds,
         deletedWasLinkedInstanceIds,
         deletedLinkHostInstanceByLinkedInstanceId,
         deletedEffectiveColorsByInstanceId,
         battleOpponentPermanentIdByInstanceId,
+        ...(deletingPermanentId === undefined ? {} : { deletingPermanentId }),
         removalCause: "byBattle" as const,
       };
       if (this.hooks.resolveDeletionReactions) {

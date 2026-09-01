@@ -60,7 +60,7 @@ export interface ActivateEffectDeps {
   /** Per-turn use ledger (engine-owned; shared with the effect stack). */
   tracker: UseTracker;
   /** Attribute nested effect-driven events to this direct activation while it resolves. */
-  enterEffectResolution?(seat: Seat, sourceKinds?: string[]): void;
+  enterEffectResolution?(seat: Seat, sourceKinds?: string[], sourcePermanentId?: string): void;
   leaveEffectResolution?(): void;
 }
 
@@ -141,7 +141,7 @@ export async function applyActivateEffect(
   const { source, effect, ctx } = check;
   const sourceKinds = effect.isLinked ? ["Digimon"] : [...(source.definition.kinds ?? [])];
   ctx.effectSourceKinds = sourceKinds;
-  deps.enterEffectResolution?.(source.ownerSeat, sourceKinds);
+  deps.enterEffectResolution?.(source.ownerSeat, sourceKinds, source.permanent()?.permanentId);
   try {
     await effect.resolve(ctx);
   } finally {

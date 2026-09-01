@@ -516,10 +516,11 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
         return false;
       }
       // "cantLeaveExceptByOwnerOrDeletion" (BT16-051): "can't leave the battle area other than
-      // by deletion" — unscoped bounce protection, the already enforced `beReturned` restriction.
+      // by deletion" — one unscoped restriction consumed by every non-deletion whole-permanent
+      // movement seam (Q2642: hand/deck, security, and placement under another permanent).
       if (action.grant === "cantLeaveExceptByOwnerOrDeletion") {
         const grantDuration = toDuration(action.duration ?? "untilOpponentTurnEnd");
-        for (const id of ids) ctx.fx.restrict(id, "beReturned", grantDuration);
+        for (const id of ids) ctx.fx.restrict(id, "leaveBattleAreaExceptByDeletion", grantDuration);
         return false;
       }
       // "canBeAttackedWhileUnsuspended" (BT21-096) — the compiler's alternate label for the SAME

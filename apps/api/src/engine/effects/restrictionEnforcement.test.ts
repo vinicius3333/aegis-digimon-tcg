@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectDuration, type PlayerState, type Seat } from "@aegis/shared";
 import { setupEngine, type EngineSetup } from "../testkit/index.js";
 import { advance } from "../testkit/advance.js";
+import type { Primitives } from "./EffectContext.js";
 import "../../cards/index.js";
 
 /**
@@ -18,6 +19,10 @@ import "../../cards/index.js";
  */
 
 const player = (s: EngineSetup, seat: Seat): PlayerState => s.state.players[seat] as PlayerState;
+
+function primitivesOf(setup: EngineSetup): Primitives {
+  return (setup.engine as unknown as { primitives: Primitives }).primitives;
+}
 
 /** A board where seat 0 is the turn player, so seat 1's permanent is the opponent's. */
 function twoDigimon(): EngineSetup {
@@ -152,6 +157,51 @@ describe("beReturned", () => {
     await advance(s.engine).verb.returnToHand([target.topCard!.instanceId]);
 
     expect(player(s, 0).battleArea).toHaveLength(0);
+  });
+});
+
+describe("leaveBattleAreaExceptByDeletion", () => {
+  it("blocks security placement and relocation under another permanent", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT16-051", as: "protected" },
+          { card: "BT1-019", as: "destination" },
+        ],
+      },
+    });
+    const target = s.perm("protected");
+    advance(s.engine).ledgers.continuous.addRestriction(
+      target.permanentId,
+      "leaveBattleAreaExceptByDeletion",
+      EffectDuration.Permanent,
+    );
+
+    await primitivesOf(s).addSecurity(0, [target.topCard!.instanceId]);
+    expect(primitivesOf(s).relocatePermanent(s.perm("destination").permanentId, target.permanentId)).toBe(false);
+
+    expect(player(s, 0).security).toHaveLength(0);
+    expect(player(s, 0).battleArea.some((permanent) => permanent.permanentId === target.permanentId)).toBe(true);
+  });
+
+  it("allows deletion and the Q2643 invalid-position rule trash", async () => {
+    const deleted = twoDigimon();
+    advance(deleted.engine).ledgers.continuous.addRestriction(
+      deleted.perm("theirs").permanentId,
+      "leaveBattleAreaExceptByDeletion",
+      EffectDuration.Permanent,
+    );
+    expect(await advance(deleted.engine).verb.deletePermanent([deleted.perm("theirs").permanentId])).toBe(1);
+
+    const ruleTrashed = twoDigimon();
+    advance(ruleTrashed.engine).ledgers.continuous.addRestriction(
+      ruleTrashed.perm("theirs").permanentId,
+      "leaveBattleAreaExceptByDeletion",
+      EffectDuration.Permanent,
+    );
+    expect(await primitivesOf(ruleTrashed).trashPermanentByRule([ruleTrashed.perm("theirs").permanentId])).toHaveLength(
+      1,
+    );
   });
 });
 
