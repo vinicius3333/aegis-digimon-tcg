@@ -58,9 +58,9 @@ function mirror(state: GameState) {
   return { client, patch };
 }
 
-const ids = (cards: readonly { instanceId: string }[]): string[] => cards.map((c) => c.instanceId);
+const ids = (cards: Iterable<{ instanceId: string }>): string[] => [...cards].map((c) => c.instanceId);
 /** Undefined for an entry the client decoded without an identity — the blank-card symptom. */
-const decodedIds = (cards: readonly (CardInstance | undefined)[]): (string | undefined)[] =>
+const decodedIds = (cards: Iterable<CardInstance | undefined>): (string | undefined)[] =>
   [...cards].map((c) => c?.instanceId);
 
 describe("inserting into synchronized arrays", () => {
