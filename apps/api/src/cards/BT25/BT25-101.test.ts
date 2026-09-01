@@ -247,4 +247,27 @@ describe("BT25-101 Divine Arms Version Ω", () => {
     expect(await primitives(s).deletePermanent([permanentId], "byEffect")).toBe(1);
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === permanentId)).toBe(false);
   });
+
+  it("protects only the Vulcanusmon host carrying this linked Option", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-075", as: "target", linked: [{ card: CARD_ID, as: "targetLink" }] },
+            { card: "BT25-075", as: "other", linked: [{ card: CARD_ID, as: "otherLink" }] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    const targetId = s.perm("target").permanentId;
+    preferred.push(s.inst("otherLink").instanceId);
+    await s.ready();
+
+    expect(await primitives(s).deletePermanent([targetId], "byEffect")).toBe(0);
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === targetId)).toBe(true);
+    expect(s.perm("target").linked).toHaveLength(0);
+    expect(s.perm("other").linked).toHaveLength(1);
+  });
 });
