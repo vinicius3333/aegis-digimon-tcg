@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { compiled as BT25_043 } from "./BT25-043.js";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("BT25-043 Habakirimon", () => {
@@ -51,6 +51,33 @@ describe("BT25-043 Habakirimon", () => {
       noEligiblePlayer.perm("habakiri"),
     );
     expect(noEligiblePlayer.perm("habakiri").isSuspended).toBe(true);
+  });
+
+  it("naturally resolves Recovery, most-security trash, and unsuspend during an attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-043", as: "habakiri" }],
+          security: [{ card: "BT1-001", as: "security" }],
+          deck: [{ card: "BT1-002", as: "recovery" }],
+        },
+        1: { security: [] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("habakiri").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.perm("habakiri").isSuspended && s.state.players[0]!.trash.length === 1);
+
+    expect(s.perm("habakiri").isSuspended).toBe(false);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("recovery").instanceId);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("security").instanceId]);
   });
 
   it("prevents all matching Glowing Dawn Digimon from leaving with one once-per-turn replacement", () => {

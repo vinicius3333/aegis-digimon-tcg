@@ -78,6 +78,30 @@ describe("BT25-068 Deltamon", () => {
     expect(target().stack).toHaveLength(before - 1);
   });
 
+  it("naturally De-Digivolves an opponent Digimon when Deltamon attacks", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: CARD_ID, as: "delta" }] },
+        1: {
+          battleArea: [{ card: "BT25-073", as: "target", under: ["BT24-009", "BT24-011"] }],
+          security: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("delta").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").stack.length === 1);
+
+    expect(s.perm("delta").isSuspended).toBe(true);
+    expect(s.perm("target").stack).toHaveLength(1);
+  });
+
   it("gives separate copies independent OPT budgets", async () => {
     const s = setupEngine({
       0: {
