@@ -2,6 +2,49 @@
 
 This ledger records only independently reproduced, card-scoped verification. Historical batch output, prior ledger entries, and green collection tests are inputs only and do not establish a score.
 
+## Final collection status — 2026-09-01
+
+Status: **112/112 cards have reproducible 10/10 evidence.** This final gate supersedes the provisional execution scores in `BT13-STATIC-AUDIT.md`; the card-by-card entries below remain the detailed catalog, rules, IR, and behavioral trace.
+
+### Corrections from the final pass
+
+- `BT13-019`: restricted the Sistermon/Royal Knight play selector to Digimon cards, as printed.
+- `BT13-030`: removed the unprinted duplicate `OnPlay` return workaround and allowed the genuine Your Turn watcher to observe UlforceVeedramon's own play, per Q2282/Q2283.
+- `BT13-092`: made the Burst Mode controller choose the opponent's discarded hand card and changed the second clause from adding a card to security to moving the opponent's top security card to hand, per Q2336.
+- Replaced direct timing shortcuts with public digivolve/play/attack/turn/security flows for BT13-029, BT13-057, BT13-072, BT13-074, BT13-078, BT13-079, BT13-082, BT13-091, BT13-092, BT13-094, BT13-097, BT13-098, BT13-099, BT13-102, and BT13-109.
+- Updated the shared BT13-074 regression assertion to recognize its dynamic `Aura` keyword representation rather than the obsolete one-shot `GainKeyword` shape.
+
+### Persisted IR synchronization
+
+`effects.json` is generated for this scope with:
+
+```text
+pnpm effects:sync:set -- --set BT13
+pnpm effects:check:set -- --set BT13 --base origin/main
+```
+
+The scoped check reports **93 semantic BT13 changes and zero changes outside BT13**, with all 112 records synchronized to their runtime registrations. The synchronizer imports each built module and reads the runtime IR registry, so it supports both legacy modules with private `compiled` constants and newer modules that export them.
+
+### Reproducible gates
+
+All Vitest commands used one worker, disabled file parallelism, used 15-second test/hook limits, and ran under explicit external timeouts.
+
+| Gate                                     | Result                                          |
+| ---------------------------------------- | ----------------------------------------------- |
+| Changed and evidence-focused card suites | 17 files, 99 tests passed                       |
+| BT13 persisted IR catalog contract       | 1 file, 115 tests passed                        |
+| Full BT13 collection                     | 113 files, 727 tests passed                     |
+| Shared mechanism suites                  | 11 files, 700 tests passed                      |
+| Synchronized-array state regressions     | 2 files, 7 tests passed                         |
+| Synchronizer unit tests                  | 5 tests passed                                  |
+| Workspace typecheck                      | shared, API, and web passed serially            |
+| Scoped effects check                     | 112 synchronized; 93 BT13 changes; zero outside |
+| Oxfmt and Oxlint                         | changed source, tests, tools, and docs passed   |
+| Generated JSON raw-scope check           | 93 BT13 records; zero records outside the set   |
+| `git diff --check`                       | passed on the delivered scope                   |
+
+Every production module `BT13-001` through `BT13-112` contains exactly one matching `registerIrCard(cardId, compiled)` call and no `registerCard` registration.
+
 ## Verified before this pass
 
 - BT13-001 through BT13-006: 10/10, retained from the accepted prior audit evidence.
