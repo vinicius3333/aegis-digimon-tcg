@@ -37,7 +37,7 @@ describe("BT11-038 Angemon", () => {
             {
               kind: "PlayWithoutCost",
               target: {
-                filter: { controller: "mine", nameOrTrait: [{ tokens: ["Devimon"], match: "name" }] },
+                filter: { controller: "mine", nameOrTrait: [{ tokens: ["Devimon"], match: "nameExact" }] },
                 count: 1,
               },
               from: ["trash"],

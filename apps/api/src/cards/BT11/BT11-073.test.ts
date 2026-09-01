@@ -18,6 +18,7 @@ describe("BT11-073 Justimon: Accel Arm", () => {
       { trigger: "WhenDigivolving", actions: [{ kind: "GainKeyword", keyword: { keyword: "SecurityAttack" } }, { kind: "GainKeyword", keyword: { keyword: "Piercing" } }] },
       { trigger: "WhenAttacking", actions: [{ kind: "Digivolve", costOverride: 2, ignoreRequirements: true }] },
     ]);
+    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Justimon"], cost: 1, isAlternate: true }]);
   });
 
   it("returns a level 6 source when its digivolving effect is accepted", async () => {

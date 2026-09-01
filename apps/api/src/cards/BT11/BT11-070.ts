@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -12,10 +11,10 @@ export const compiled: CompiledCard = {
           revealCount: 3,
           add: [
             {
-              filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }] },
+              filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Vemmon"], match: "nameExact" }] },
               count: 1,
               to: "placeUnder",
-              asTop: false,
+              underFilter: { isSelfRef: true },
             },
           ],
           rest: "trash",
@@ -25,7 +24,7 @@ export const compiled: CompiledCard = {
           target: { filter: { controller: "opponent", kind: ["Tamer"] }, count: 1 },
           condition: {
             kind: "selfDigivolutionStackCountAtLeast",
-            filter: { nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }] },
+            filter: { nameOrTrait: [{ tokens: ["Vemmon"], match: "nameExact" }] },
             count: 5,
           },
         },
@@ -47,10 +46,10 @@ export const compiled: CompiledCard = {
                   filter: {
                     zone: "digivolutionCards",
                     controller: "mine",
-                    nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }],
+                    nameOrTrait: [{ tokens: ["Vemmon"], match: "nameExact" }],
                     hostFilter: {
                       controller: "mine",
-                      nameOrTrait: [{ tokens: ["Galacticmon"], match: "name" }],
+                      nameOrTrait: [{ tokens: ["Galacticmon"], match: "nameExact" }],
                     },
                     sameHost: true,
                   },
@@ -71,7 +70,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [{ names: ["Vemmon"], cost: 6, isAlternate: true }],
+  digivolutionRequirement: [{ namesExact: ["Vemmon"], cost: 6, isAlternate: true }],
 };
 
 registerIrCard("BT11-070", compiled);

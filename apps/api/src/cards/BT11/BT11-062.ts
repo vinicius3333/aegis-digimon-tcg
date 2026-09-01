@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -48,7 +47,7 @@ export const compiled: CompiledCard = {
                 zone: "digivolutionCards",
                 controller: "mine",
                 kind: ["Option"],
-                nameOrTrait: [{ tokens: ["X Antibody"], match: "name" }],
+                nameOrTrait: [{ tokens: ["X Antibody"], match: "nameExact" }],
                 hostFilter: { isSelfRef: true },
               },
               count: 1,
@@ -64,7 +63,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [{ names: ["Agumon"], cost: 0, isAlternate: true }],
+  digivolutionRequirement: [{ namesExact: ["Agumon"], cost: 0, isAlternate: true }],
 };
 
 registerIrCard("BT11-062", compiled);

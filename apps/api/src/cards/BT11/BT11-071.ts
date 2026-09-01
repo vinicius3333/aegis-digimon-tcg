@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -27,7 +26,7 @@ const enterActions: any[] = [
     amount: 1,
     condition: {
       kind: "selfDigivolutionStackHasTrait",
-      filter: { nameOrTrait: [{ tokens: ["Tuwarmon"], match: "name" }] },
+      filter: { nameOrTrait: [{ tokens: ["Tuwarmon"], match: "nameExact" }] },
     },
   },
 ];

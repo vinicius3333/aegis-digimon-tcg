@@ -11,10 +11,11 @@ describe("BT11-058 HerculesKabuterimon (X Antibody)", () => {
     expect(compiled.effects[1]).toMatchObject({
       trigger: "WhenDigivolving",
       actions: [{ kind: "Return", to: "deckBottom", condition: { kind: "selfHasInDigivolutionCards", nameOrTrait: [
-        { tokens: ["HerculesKabuterimon"], match: "name" },
-        { tokens: ["X Antibody"], match: "trait" },
+        { tokens: ["HerculesKabuterimon"], match: "nameExact" },
+        { tokens: ["X Antibody"], match: "nameExact" },
       ] } }],
     });
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["HerculesKabuterimon"], cost: 1, isAlternate: true }]);
   });
 
   it("bottom-decks a suspended Digimon when HerculesKabuterimon is in its stack", async () => {
@@ -52,11 +53,11 @@ describe("BT11-058 HerculesKabuterimon (X Antibody)", () => {
     expect(observe(s.engine).keywordAmount(s.perm("base"), "SecurityAttack")).toBe(1);
   });
 
-  it("also recognizes the X Antibody trait in its digivolution stack", async () => {
+  it("also recognizes the X Antibody Option name in its digivolution stack", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-075", as: "base", under: ["BT15-045"] }],
+          battleArea: [{ card: "BT1-075", as: "base", under: ["BT9-109"] }],
           hand: [{ card: "BT11-058", as: "x-antibody" }],
         },
         1: {

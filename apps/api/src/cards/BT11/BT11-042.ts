@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -39,7 +38,7 @@ export const compiled: CompiledCard = {
           event: "whenPlayed",
           sourceFilter: {
             controllerDefault: "mine",
-            nameOrTrait: [{ tokens: ["LadyDevimon", "Mirei Mikagura"], match: "name" }],
+            nameOrTrait: [{ tokens: ["LadyDevimon", "Mirei Mikagura"], match: "nameExact" }],
           },
           actions: [{ kind: "GainMemory", amount: 1 }],
         },

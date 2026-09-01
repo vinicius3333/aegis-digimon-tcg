@@ -19,6 +19,7 @@ describe("BT11-062 Agumon (X Antibody)", () => {
       { trigger: "WhenDigivolving", actions: [{ kind: "RevealAdd", revealCount: 3 }] },
       { trigger: "AllTurns", isInherited: true, actions: [{ kind: "Replacement", event: "wouldLeavePlay" }] },
     ]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Agumon"], cost: 0, isAlternate: true }]);
   });
 
   it("reveals 3 and independently adds a Greymon/X Antibody card and a black Tamer", async () => {

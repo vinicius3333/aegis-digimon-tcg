@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -19,7 +18,7 @@ export const compiled: CompiledCard = {
           target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 6000 } }, count: 1 },
           condition: {
             kind: "selfDigivolutionStackHasTrait",
-            filter: { nameOrTrait: [{ tokens: ["MetalGreymon", "X Antibody"], match: "name" }] },
+            filter: { nameOrTrait: [{ tokens: ["MetalGreymon", "X Antibody"], match: "nameExact" }] },
           },
         },
       ],

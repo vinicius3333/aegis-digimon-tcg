@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -19,8 +18,8 @@ export const compiled: CompiledCard = {
           condition: {
             kind: "selfHasInDigivolutionCards",
             nameOrTrait: [
-              { tokens: ["HerculesKabuterimon"], match: "name" },
-              { tokens: ["X Antibody"], match: "trait" },
+              { tokens: ["HerculesKabuterimon"], match: "nameExact" },
+              { tokens: ["X Antibody"], match: "nameExact" },
             ],
             raw: "this Digimon has [HerculesKabuterimon] or [X Antibody] in its digivolution cards",
           },
@@ -30,7 +29,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [{ names: ["HerculesKabuterimon"], cost: 1, isAlternate: true }],
+  digivolutionRequirement: [{ namesExact: ["HerculesKabuterimon"], cost: 1, isAlternate: true }],
 };
 
 registerIrCard("BT11-058", compiled);

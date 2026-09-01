@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -13,7 +12,7 @@ export const compiled: CompiledCard = {
             filter: {
               zone: "trash",
               controller: "mine",
-              nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }],
+              nameOrTrait: [{ tokens: ["Vemmon"], match: "nameExact" }],
             },
             count: 2,
             upTo: true,
@@ -29,14 +28,14 @@ export const compiled: CompiledCard = {
             filter: {
               zone: "trash",
               controller: "mine",
-              nameOrTrait: [{ tokens: ["Fusionize"], match: "name" }],
+              nameOrTrait: [{ tokens: ["Fusionize"], match: "nameExact" }],
             },
             count: 1,
           },
           to: "hand",
           condition: {
             kind: "selfDigivolutionStackCountAtLeast",
-            filter: { nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }] },
+            filter: { nameOrTrait: [{ tokens: ["Vemmon"], match: "nameExact" }] },
             count: 4,
           },
         },
@@ -48,7 +47,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "onDigivolutionCardReturnToDeckBottom",
-          sourceFilter: { isSelfRef: true, nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }] },
+          sourceFilter: { isSelfRef: true, nameOrTrait: [{ tokens: ["Vemmon"], match: "nameExact" }] },
           actions: [
             { kind: "Unsuspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
             {

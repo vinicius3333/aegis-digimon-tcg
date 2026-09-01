@@ -6,7 +6,7 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT11-041.js";
 
 describe("BT11-041 Etemon", () => {
-  it("maps the catalog, alternate Sukamon evolution, and unrestricted other-Digimon prevention cost", () => {
+  it("maps the catalog, alternate Sukamon evolution, and this-stack trash cost", () => {
     expect(getCardDefinition("BT11-041")).toMatchObject({
       cardId: "BT11-041",
       nameEn: "Etemon",
@@ -21,6 +21,12 @@ describe("BT11-041 Etemon", () => {
       types: ["Puppet"],
     });
     expect(compiled.digivolutionRequirement).toEqual([{ level: 4, names: ["Sukamon"], cost: 3, isAlternate: true }]);
+    const cost = compiled.effects[0]!.actions[0]!;
+    if (cost.kind !== "ModifyDP") throw new Error("BT11-041 effect is not ModifyDP");
+    expect(cost.cost).toMatchObject({
+      kind: "trash",
+      target: { filter: { controller: "mine", hostFilter: { isSelfRef: true } } },
+    });
     expect(compiled.effects[2]).toMatchObject({
       trigger: "AllTurns",
       isInherited: true,
