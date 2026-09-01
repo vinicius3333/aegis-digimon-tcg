@@ -26,7 +26,7 @@ describe("BT11-089 [On Play] reveal 4 -> add 1 red Vaccine Digimon to hand", () 
           {
             kind: "SubTrigger",
             event: "whenPlayed",
-            sourceFilter: { excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }] },
+            sourceFilter: { excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "traitContains" }] },
           },
         ],
       },
@@ -66,7 +66,7 @@ describe("BT11-089 [On Play] reveal 4 -> add 1 red Vaccine Digimon to hand", () 
         0: {
           battleArea: [
             { card: "BT11-089", as: "akiho" },
-            { card: "BT1-012", as: "played-bird" },
+            { card: "BT1-017", as: "played-bird" },
             { card: "BT11-008", as: "other-beast" },
           ],
         },

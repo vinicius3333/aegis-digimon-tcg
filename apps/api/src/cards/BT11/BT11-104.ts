@@ -37,7 +37,12 @@ export const compiled: CompiledCard = {
           duration: "forTheTurn",
           alsoGainKeywords: [{ keyword: "Rush", raw: "＜Rush＞" }],
         },
-        { kind: "Attack", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 }, optional: true },
+        {
+          kind: "Attack",
+          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+          optional: true,
+          attackPlayer: false,
+        },
       ],
     },
     { trigger: "Security", actions: [{ kind: "AddToHandSelf" }], isSecurity: true },
