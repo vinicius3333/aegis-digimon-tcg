@@ -38,7 +38,8 @@ with per-card evidence live in `internal-docs/audits/EX12/`; the collection ledg
   EX12-071 to -075 (＜Use Req.＞ counted battle-area Options, CR 16-42-3); EX12-072 (＜Guard＞
   was an inert keyword flag, now an executable replacement); EX12-077 (placement cost limited
   to Digimon cards and pool limited to the host's stack).
-- Engine and shared seams: SubTrigger grants reach permanents already unaffected by effects
+- Engine and shared seams: every ＜Decode＞ play now defaults to the resolving permanent's own
+  digivolution cards (CR 16-36-1); SubTrigger grants reach permanents already unaffected by effects
   (Q6740); bracketed `[Rule] Name:` aliases are parsed (KB Q759); `Guard` joined the keyword
   union; `// @ts-nocheck` removed from all 77 modules and every resulting type error resolved.
 - Persistence: 23 `effects.json` records had drifted from their modules; all 77 EX12 records

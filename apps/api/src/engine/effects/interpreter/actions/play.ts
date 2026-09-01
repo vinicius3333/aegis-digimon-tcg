@@ -69,6 +69,22 @@ function paidReduction(ctx: EffectContext, action: Extract<Action, { kind: "Play
   );
 }
 
+/**
+ * ＜Decode＞ plays from "that Digimon's digivolution cards" (CR 16-36-1). A Decode play whose
+ * target names no host scope would otherwise pool every digivolution card the controller owns,
+ * so scope it to the resolving source permanent unless the IR already scopes the host.
+ */
+export function applyDecodeHostScope(action: Extract<Action, { kind: "PlayWithoutCost" }>, target: Target): Target {
+  const zones = action.from && action.from.length > 0 ? action.from : DEFAULT_PLAY_ZONES;
+  const sources = target.source === undefined ? [] : Array.isArray(target.source) ? target.source : [target.source];
+  const alreadyScoped =
+    target.filter.hostFilter !== undefined ||
+    sources.includes("thisDigimon") ||
+    action.fromOwnDigivolutionStack === true;
+  if (action.playedByDecode !== true || alreadyScoped || !zones.includes("digivolutionCards")) return target;
+  return { ...target, filter: { ...target.filter, hostFilter: { isSelfRef: true } } };
+}
+
 export function applyPlayCostCeiling(
   ctx: EffectContext,
   action: Extract<Action, { kind: "PlayWithoutCost" }>,
@@ -402,7 +418,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
       // Counts cards matching filter.zone/controller across all applicable seats, then computes:
       //   ceiling = base + Math.floor(totalCards / per) * raise
       // and overrides the target filter's playCostLte with the result. (CAP-E16, BT21-079)
-      const adjustedTarget = applyPlayCostCeiling(ctx, action, scaledCostAdjustedTarget);
+      const adjustedTarget = applyDecodeHostScope(action, applyPlayCostCeiling(ctx, action, scaledCostAdjustedTarget));
       const playCostAdjustedTarget =
         action.ignorePlayCostLimit === true
           ? {

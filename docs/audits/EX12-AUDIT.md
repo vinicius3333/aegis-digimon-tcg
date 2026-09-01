@@ -59,7 +59,7 @@ because no engine primitive removes a trait; the reachable half, trait grants re
   so it never enters the `orderTriggers` pool. Q6866 lets the player resolve it first and strand
   the card's other pending effects. Affects every ＜Fortitude＞ card.
 
-- Every other set's ＜Decode＞ card that states neither `hostFilter` nor `source: "thisDigimon"` is board-wide (BT24-023, BT24-027 at least). A compiler default that emits `hostFilter` with `playedByDecode` would remove the class.
+- Resolved on this branch: `applyDecodeHostScope` in `interpreter/actions/play.ts` scopes every `playedByDecode` play from digivolution cards to the resolving permanent unless the IR already scopes the host. BT19-024, BT19-027, BT22-015, EX11-018, and P-214 relied on the unscoped default; BT19-024 carries the regression test.
 - 176 `kind: "return"` activation costs across the catalog are mandatory; CR 15-7-4 makes them declinable. Only EX12-047 was corrected here.
 - Declining an optional cost without `abortOnDecline` lets the payload run for free in `runAction.ts`; EX12-047 sets the flag explicitly. Consider making the flag implicit.
 - `Target.fromSelectionRef` and `ReplacementAction.target` require `count`, which the interpreter never reads for those shapes.
