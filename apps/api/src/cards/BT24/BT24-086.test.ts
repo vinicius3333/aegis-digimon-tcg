@@ -137,7 +137,22 @@ describe("BT24-086 The Crossroad Witch", () => {
     expect(withoutOpponent.state.memory).toBe(2);
   });
 
+  it("naturally mind-links after a qualifying Digimon is played", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT24-086", as: "witch" }], hand: [{ card: "BT13-063", as: "target" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("target").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").stack.some((card) => card.instanceId === s.inst("witch").instanceId));
+    expect(s.perm("target").stack.map((card) => card.cardId)).toContain("BT24-086");
+  });
+
   it("plays itself from security without paying the cost", async () => {
+    expect(BT24_086.effects?.[0]).toMatchObject({ trigger: "Security", isSecurity: true });
     const s = setupEngine({ 0: { security: [{ card: "BT24-086", as: "witch" }] } });
     await s.ready();
 

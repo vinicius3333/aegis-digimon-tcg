@@ -140,6 +140,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenHandTrashed",
+          fireCondition: { kind: "triggerHandTrashedSeat", seat: "mine" },
           actions: [
             {
               kind: "Delete",

@@ -19,9 +19,17 @@ describe("BT24-042 Goblimon", () => {
   it("keeps the inherited once-per-turn trash-triggered digivolution", () => {
     const inherited = BT24_042.effects?.find((entry) => entry.isInherited);
     expect(inherited).toMatchObject({ trigger: "YourTurn", frequency: "OncePerTurn" });
-    expect((inherited?.actions?.[0] as any).event).toBe("whenHandTrashed");
-    expect((inherited?.actions?.[0] as any).sourceFilter).toEqual({ controller: "mine" });
-    expect((inherited?.actions?.[0] as any).actions[0].target).toMatchObject({
+    const watcher = inherited?.actions?.[0];
+    expect(watcher).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenHandTrashed",
+      sourceFilter: { controller: "mine" },
+    });
+    if (watcher?.kind !== "SubTrigger") throw new Error("expected inherited hand-trash watcher");
+    const digivolve = watcher.actions[0];
+    expect(digivolve).toMatchObject({ kind: "Digivolve", payCost: true, costDelta: -1 });
+    if (digivolve?.kind !== "Digivolve") throw new Error("expected inherited digivolution action");
+    expect(digivolve.target).toMatchObject({
       filter: {
         isSelfRef: true,
         nameOrTrait: [{ tokens: ["Demon", "Titan"], match: "trait" }],
@@ -95,7 +103,7 @@ describe("BT24-042 Goblimon", () => {
         },
         1: { battleArea: [{ card: "BT1-010", as: "suspendTarget" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 10;
     await s.ready();

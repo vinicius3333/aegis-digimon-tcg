@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT25-087.js";
+import "../BT15/BT15-090.js";
 import "../index.js";
 
 const CARD_ID = "BT25-087";
@@ -49,6 +50,34 @@ describe("BT25-087 Thomas H. Norstein", () => {
       s.inst("oldBottom").instanceId,
     ]);
     expect(s.perm("thomas").stack.every((c) => c.faceUp !== true)).toBe(true);
+  });
+
+  it("publicly using Fox Fire returns an opponent Digimon and triggers Thomas", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "thomas" }],
+          hand: [{ card: "BT15-090", as: "foxFire" }],
+          deck: ["AD1-001", "AD1-002"],
+        },
+        1: { battleArea: [{ card: "BT1-013", as: "returned" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("foxFire").instanceId,
+        useAs: "option",
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("thomas").stack.length === 2);
+
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-013")).toBe(false);
+    expect(s.perm("thomas").isSuspended).toBe(true);
+    expect(s.perm("thomas").stack.map((card) => card.cardId)).toEqual(["AD1-002", "AD1-001"]);
   });
 
   it("does not react when the effect adds to its controller's hand", async () => {

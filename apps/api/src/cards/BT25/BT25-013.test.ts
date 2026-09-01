@@ -136,7 +136,7 @@ describe("BT25-013 Firamon", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 0 },
     );
     s.state.memory = 5;
     await s.ready();

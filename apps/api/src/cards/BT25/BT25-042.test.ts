@@ -90,6 +90,26 @@ describe("BT25-042 ClavisAngemon", () => {
     expect(observe(s.engine).isRestrictedByEffect(s.perm("clavis"), "beAffected", "Digimon")).toBe(false);
   });
 
+  it("naturally blocks an opponent Digimon effect after paying the On Play security cost", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT25-042", as: "clavis" }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 12;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("clavis").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).isRestrictedByEffect(s.perm("clavis"), "beAffected", "Digimon"));
+
+    advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
+    await advance(s.engine).verb.suspend([s.perm("clavis").permanentId], 1);
+    advance(s.engine).verb.leaveEffectResolution();
+    expect(s.perm("clavis").isSuspended).toBe(false);
+  });
+
   it("plays a qualifying Angel/Iliad card and grants both keywords to the same two Digimon only after own security removal", async () => {
     const s = setupEngine(
       {
@@ -139,7 +159,10 @@ describe("BT25-042 ClavisAngemon", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "BT25-042", as: "clavis" }, { card: "BT25-034", as: "angel" }],
+          hand: [
+            { card: "BT25-042", as: "clavis" },
+            { card: "BT25-034", as: "angel" },
+          ],
           security: ["BT1-001", "BT1-002"],
         },
         1: { security: ["BT1-002"] },
@@ -149,7 +172,9 @@ describe("BT25-042 ClavisAngemon", () => {
     await s.ready();
     s.state.memory = 12;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("clavis").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("clavis").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT25-034"));
 
     expect(s.state.players[0]!.security).toHaveLength(1);

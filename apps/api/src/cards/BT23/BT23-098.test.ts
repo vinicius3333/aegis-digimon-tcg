@@ -1,7 +1,7 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./BT23-087.js";
 import { compiled } from "./BT23-098.js";
 
 describe("BT23-098 Unique Emblem: Soul Banquet", () => {
@@ -24,20 +24,35 @@ describe("BT23-098 Unique Emblem: Soul Banquet", () => {
         0: {
           battleArea: [
             { card: "BT23-098", as: "option" },
-            { card: "BT23-087", as: "violet", suspended: true },
-            { card: "BT23-061", as: "ghost" },
+            { card: "BT23-087", as: "violet" },
+            { card: "BT23-061", as: "naturalGhost" },
+            { card: "BT23-061", as: "delayGhost" },
           ],
-          hand: [{ card: "BT23-064", as: "evolver" }],
+          hand: [
+            { card: "BT20-068", as: "naturalEvolver" },
+            { card: "BT20-068", as: "delayEvolver" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const optionId = s.perm("option").topCard!.instanceId;
+    s.perm("option").placedByEffect = true;
+    s.state.memory = 5;
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenSuspended", { subjectPermanentId: s.perm("violet").permanentId });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("naturalGhost").permanentId,
+        instanceId: s.inst("naturalEvolver").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === optionId));
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
-    expect(s.perm("ghost").topCard?.cardId).toBe("BT23-064");
-    expect(s.state.memory).toBe(0);
+    expect(s.perm("naturalGhost").topCard?.cardId).toBe("BT20-068");
+    expect(s.perm("delayGhost").topCard?.cardId).toBe("BT20-068");
+    expect(s.perm("violet").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(3);
   });
 
   it("does not pay Delay when the only hand evolution is Ghost without LIBERATOR", async () => {
@@ -46,19 +61,64 @@ describe("BT23-098 Unique Emblem: Soul Banquet", () => {
         0: {
           battleArea: [
             { card: "BT23-098", as: "option" },
-            { card: "BT23-087", as: "violet", suspended: true },
-            { card: "BT23-061", as: "ghost" },
+            { card: "BT23-087", as: "violet" },
+            { card: "BT23-061", as: "naturalGhost" },
+            { card: "BT23-061", as: "delayGhost" },
           ],
-          hand: [{ card: "BT11-078", as: "ghostOnly" }],
+          hand: [
+            { card: "BT20-068", as: "naturalEvolver" },
+            { card: "BT11-078", as: "ghostOnly" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const optionId = s.perm("option").topCard!.instanceId;
+    s.perm("option").placedByEffect = true;
+    s.state.memory = 5;
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenSuspended", { subjectPermanentId: s.perm("violet").permanentId });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("naturalGhost").permanentId,
+        instanceId: s.inst("naturalEvolver").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("naturalGhost").topCard?.cardId === "BT20-068");
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
-    expect(s.perm("ghost").topCard?.cardId).toBe("BT23-061");
+    expect(s.perm("delayGhost").topCard?.cardId).toBe("BT23-061");
+    expect(s.perm("violet").isSuspended).toBe(true);
+  });
+
+  it("ignores an opponent-controlled Violet Inboots suspension", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT23-098", as: "option" }] },
+        1: {
+          battleArea: [
+            { card: "BT23-087", as: "violet" },
+            { card: "BT23-061", as: "naturalGhost" },
+          ],
+          hand: [{ card: "BT20-068", as: "naturalEvolver" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const optionId = s.perm("option").topCard!.instanceId;
+    s.perm("option").placedByEffect = true;
+    s.state.turnSeat = 1;
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("naturalGhost").permanentId,
+        instanceId: s.inst("naturalEvolver").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("violet").isSuspended);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(false);
   });
 
   it("places itself after the optional Ghostmon/Violet Inboots play", () => {

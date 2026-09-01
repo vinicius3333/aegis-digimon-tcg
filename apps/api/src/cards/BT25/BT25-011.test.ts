@@ -57,6 +57,34 @@ describe("BT25-011 Aquilamon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("silphymon").instanceId);
   });
 
+  it("uses the printed Raid keyword on a public player-directed attack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT25-011", as: "aquilamon", dp: 4000 }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "raidTarget", dp: 3000 },
+            { card: "BT1-010", as: "untouched", dp: 1000 },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const raidTargetId = s.perm("raidTarget").permanentId;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("aquilamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === raidTargetId));
+
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT1-010"]);
+  });
+
   it("keeps the printed catalog identity and alternate evolution route", () => {
     expect(getCardDefinition("BT25-011")).toMatchObject({
       colors: ["Red", "Green"],

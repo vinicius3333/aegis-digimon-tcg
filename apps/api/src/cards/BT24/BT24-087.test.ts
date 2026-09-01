@@ -194,6 +194,37 @@ describe("BT24-087 Rei Katsura public behavior", () => {
     expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 
+  it("naturally triggers when a friendly Digimon gets linked", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-087", as: "rei" },
+            { card: "BT24-067", as: "host" },
+          ],
+          hand: [
+            { card: "BT24-032", as: "link" },
+            { card: "BT1-001", as: "discard" },
+          ],
+          deck: [{ card: "BT1-002", as: "drawn" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("rei").isSuspended);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("discard").instanceId);
+  });
+
   it("does not draw, trash, or App Fuse when Rei cannot pay the suspension cost (Q5675)", async () => {
     const s = setupEngine(
       {

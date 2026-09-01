@@ -23,6 +23,7 @@ export const compiled: CompiledCard = {
         {
           kind: "Link",
           target: {
+            source: "thisDigimon",
             filter: {
               controller: "mine",
               kind: ["Digimon"],
@@ -46,6 +47,7 @@ export const compiled: CompiledCard = {
         {
           kind: "Link",
           target: {
+            source: "thisDigimon",
             filter: {
               controller: "mine",
               kind: ["Digimon"],

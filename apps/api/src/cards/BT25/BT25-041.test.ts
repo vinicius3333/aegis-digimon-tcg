@@ -98,6 +98,33 @@ describe("BT25-041 Murasamemon", () => {
     expect(s.perm("tamer").stack).toHaveLength(0);
   });
 
+  it("naturally resolves the inherited unsuspend at the end of an attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-049", as: "host", dp: 8000, under: [{ card: "BT25-041", as: "source" }] },
+            { card: "ST23-13", as: "tamer", under: [{ card: "BT1-009", as: "bottomCost", faceUp: false }] },
+          ],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.perm("host").isSuspended && s.state.players[0]!.trash.length === 1);
+
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("bottomCost").instanceId);
+  });
+
   it("does not unsuspend a non-Glowing Dawn host through the inherited effect", async () => {
     const s = setupEngine(
       {
