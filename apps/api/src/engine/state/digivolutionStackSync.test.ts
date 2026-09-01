@@ -47,8 +47,8 @@ function seatViews(engine: ReturnType<typeof setupEngine>["engine"], state: Game
   };
 }
 
-const identify = (cards: readonly (CardInstance | undefined)[]): string[] =>
-  [...cards].map((card) => `${card?.instanceId ?? "<no instanceId>"}:${card?.cardId ?? "<no cardId>"}`);
+const identify = (cards: Iterable<CardInstance | undefined>): string[] =>
+  Array.from(cards, (card) => `${card?.instanceId ?? "<no instanceId>"}:${card?.cardId ?? "<no cardId>"}`);
 
 describe("BT11-111 Galacticmon board sync", () => {
   it("shows both seats the same digivolution stack the server holds", async () => {
