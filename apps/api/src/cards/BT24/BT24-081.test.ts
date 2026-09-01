@@ -79,6 +79,35 @@ describe("BT24-081 Titamon + SkullBaluchimon", () => {
     expect(s.state.players[1]!.trash).toHaveLength(0);
   });
 
+  it("naturally plays from hand and resolves the printed On Play deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT24-081", as: "titamon" },
+            { card: "BT1-001", as: "cost" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "low" },
+            { card: "BT1-014", as: "high" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 15;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("titamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT1-009"));
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
   it("revives exact Titamon without admitting the composite name", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
