@@ -105,6 +105,31 @@ describe("BT24-082 Owen Dreadnought", () => {
     ).toBe(true);
   });
 
+  it("runs the Start of Your Main Phase effect through the natural turn window", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-082", as: "source" }],
+          hand: [{ card: "BT21-081", as: "replacement" }],
+          trash: [{ card: "BT24-008", as: "elizamon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("elizamon").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("elizamon").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.deck.some((card) => card.cardId === "BT24-082")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
   it("suspends Owen to give the digivolved Reptile 3000 DP and let it attack", async () => {
     const s = setupEngine(
       {
