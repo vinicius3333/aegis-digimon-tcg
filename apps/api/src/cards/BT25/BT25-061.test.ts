@@ -98,9 +98,9 @@ describe("BT25-061 Offmon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("offmon"));
+    await advance(s.engine).runTurn(0);
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId));
-    expect(s.state.memory).toBe(1);
+    expect(s.state.memory).toBe(-3); // runTurn completes the phase transition after the +1 effect.
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("plain").instanceId, s.inst("drawn").instanceId]),
     );

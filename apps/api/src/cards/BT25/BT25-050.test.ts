@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled as BT25_050 } from "./BT25-050.js";
@@ -82,6 +83,8 @@ describe("BT25-050 Kiwimon", () => {
     await settle(() => observe(s.engine).isRestricted(s.perm("opponent").permanentId, "unsuspend"));
     expect(s.perm("opponent").isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("opponent").permanentId, "unsuspend")).toBe(true);
+    await advance(s.engine).verb.unsuspend([s.perm("opponent").permanentId]);
+    expect(s.perm("opponent").isSuspended).toBe(true);
   });
 
   it("does not restrict when the optional suspension is declined and the threshold is unmet", async () => {

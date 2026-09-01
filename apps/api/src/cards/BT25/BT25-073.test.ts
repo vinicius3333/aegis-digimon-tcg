@@ -121,6 +121,30 @@ describe("A3 BT25-073 — pay by trashing a link card, then free-play a [TS] cos
     expect(p0.hand.some((c) => c.cardId === TS_CARD)).toBe(false); // and left the hand
   });
 
+  it("publicly playing Dragomon from hand opens the same On Play clause", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: DRAGOMON, as: "dragomon" },
+            { card: TS_CARD, as: "payload" },
+          ],
+          battleArea: [{ card: LINK_CARD, as: "host", linked: [{ card: LINK_CARD, as: "linkCard" }] }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 0 },
+    );
+    s.state.memory = 7;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dragomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => inArea(s.state.players[0] as PlayerState, TS_CARD));
+
+    expect(s.perm("host").linked).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("linkCard").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("payload").instanceId)).toBe(false);
+  });
+
   it("When Digivolving: same link-trash cost pays and plays the [TS] card free", async () => {
     const s = setupEngine(
       {

@@ -73,6 +73,33 @@ describe("BT25-066 Guardromon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === linkId)).toBe(true);
   });
 
+  it("naturally replaces deletion from a losing battle with its linked-card cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "guard", suspended: true, linked: [{ card: "BT1-013", as: "link" }] }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 13000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("guard").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("link").instanceId));
+
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("guard").permanentId),
+    ).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("link").instanceId);
+  });
+
   it("can decline the replacement, preserving the cost until normal deletion", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: CARD_ID, as: "guard", linked: [{ card: "BT1-013", as: "link" }] }] },

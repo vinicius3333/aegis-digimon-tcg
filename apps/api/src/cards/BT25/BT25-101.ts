@@ -49,15 +49,16 @@ export const compiled: CompiledCard = {
           mode: "prevent",
           target: {
             filter: {
-              controller: "mine",
+              isSelfRef: true,
               kind: ["Digimon"],
               nameOrTrait: [{ tokens: ["Vulcanusmon"], match: "name" }],
             },
             count: 1,
+            isSelf: true,
           },
           cost: {
             kind: "trash",
-            target: { filter: { zone: "linked" }, count: 1 },
+            target: { filter: { zone: "linked", isSelfRef: true }, count: 1 },
             raw: "by trashing 1 of its link cards",
           },
           raw: "When this [Vulcanusmon] would leave the battle area, by trashing 1 of its link cards, it doesn't leave.",

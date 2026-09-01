@@ -379,6 +379,31 @@ describe("BT25-045 Onmon — recipient-scoped link-cost reduction", () => {
     expect(s.state.memory).toBe(2);
   });
 
+  it("naturally allows declining the optional reduction while still linking", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-045", as: "onmon" }],
+          hand: [{ card: "BT21-009", as: "link" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("onmon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("onmon").linked.length === 1);
+
+    expect(s.perm("onmon").linked.map((linkedCard) => linkedCard.instanceId)).toContain(s.inst("link").instanceId);
+    expect(s.state.memory).toBe(0);
+  });
+
   it("digivolves for zero from a level-2 Appmon", async () => {
     const s = setupEngine({
       0: {

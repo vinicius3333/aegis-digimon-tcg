@@ -35,7 +35,13 @@ describe("BT25-003 Frimon", () => {
         },
         1: { security: ["BT1-001", "BT1-002"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        preferOptionIndex: 1,
+        preferInstanceIds: preferred,
+      },
     );
     preferred.push(s.inst("glowingDawn").instanceId);
     s.state.memory = 5;
@@ -51,9 +57,7 @@ describe("BT25-003 Frimon", () => {
     await settle(() => s.perm("host").topCard?.cardId === "BT25-035" && !observe(s.engine).isAttacking());
 
     expect(s.state.memory).toBe(4);
-    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
-      s.inst("bottomSecurity").instanceId,
-    ]);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("bottomSecurity").instanceId]);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("topSecurity").instanceId);
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT25-003", "BT25-032"]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("nearMatch").instanceId);

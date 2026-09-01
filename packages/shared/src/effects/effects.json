@@ -90199,7 +90199,7 @@
           {
             "kind": "Replacement",
             "event": "wouldDigivolve",
-            "sourceFilter": { "isSelfRef": true },
+            "sourceFilter": { "isSelfRef": true, "zone": "battleArea" },
             "into": {
               "controllerDefault": "mine",
               "kind": ["Digimon"],
@@ -98189,6 +98189,10 @@
           {
             "kind": "SubTrigger",
             "event": "whenHandTrashed",
+            "fireCondition": {
+              "kind": "triggerHandTrashedSeat",
+              "seat": "mine"
+            },
             "actions": [
               {
                 "kind": "Delete",
@@ -101503,7 +101507,7 @@
             "mode": "prevent",
             "target": {
               "filter": {
-                "controller": "mine",
+                "isSelfRef": true,
                 "kind": [
                   "Digimon"
                 ],
@@ -101516,13 +101520,15 @@
                   }
                 ]
               },
-              "count": 1
+              "count": 1,
+              "isSelf": true
             },
             "cost": {
               "kind": "trash",
               "target": {
                 "filter": {
-                  "zone": "linked"
+                  "zone": "linked",
+                  "isSelfRef": true
                 },
                 "count": 1
               },

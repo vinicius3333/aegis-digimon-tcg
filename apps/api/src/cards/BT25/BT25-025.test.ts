@@ -56,6 +56,29 @@ describe("BT25-025 Aegiochusmon: Blue", () => {
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT25-025");
   });
 
+  it("Decodes after a real opponent play effect deletes the source", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-025", as: "source", under: [{ card: "BT25-033", as: "aegiomon" }] }],
+        },
+        1: { hand: [{ card: "BT25-019", as: "destroyer" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 13;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("destroyer").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT25-033"));
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toContain("BT25-033");
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT25-025");
+  });
+
   it("does not Decode from battle deletion", async () => {
     const s = setupEngine(
       {
@@ -109,5 +132,35 @@ describe("BT25-025 Aegiochusmon: Blue", () => {
     await advance(s.engine).verb.suspend([s.perm("shaman").permanentId]);
     await advance(s.engine).verb.trashFromSecurity(0, 1);
     expect(s.perm("shaman").isSuspended).toBe(true);
+  });
+
+  it("unsuspends a Shaman when a public attack removes security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: ["BT1-013"],
+          battleArea: [
+            { card: "BT25-026", as: "host", under: [{ card: "BT25-025", as: "inherited" }] },
+            { card: "BT25-053", as: "shaman", suspended: true },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-013", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.perm("shaman").isSuspended);
+
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.perm("shaman").isSuspended).toBe(false);
   });
 });

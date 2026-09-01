@@ -117,7 +117,7 @@ describe("BT25-017 Flaremon", () => {
           hand: [{ card: "BT25-018", as: "apollomon" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 0 },
     );
     s.state.memory = 2;
     await s.ready();

@@ -82,7 +82,7 @@ describe("BT25-067 Sealsdramon", () => {
           deck: ["BT1-001"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 0 },
     );
     s.state.memory = 6;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("seals").instanceId })).toEqual({ ok: true });
@@ -108,7 +108,7 @@ describe("BT25-067 Sealsdramon", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 0 },
     );
     await valid.ready();
     await advance(valid.engine).verb.playInstances([valid.inst("accelTrigger").instanceId], CARD_ID);
