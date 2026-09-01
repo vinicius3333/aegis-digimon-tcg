@@ -281,7 +281,17 @@ export async function runReplacement(
           return false;
         }
         if (action.optional !== false) {
-          const yes = await subCtx.ask.optional(subCtx, `Prevent leaving the battle area? (${action.raw})`);
+          // The printed clause is what makes the prompt answerable ("...by returning 4 [Vemmon]
+          // from its digivolution cards"). A Prevent compiled without its own `raw` still has
+          // the cost's, so fall back through both before asking a bare question — never
+          // interpolate an absent one and ask "(undefined)".
+          const preventReason = action.raw ?? preventCost?.raw ?? subCtx.activeEffectText;
+          const yes = await subCtx.ask.optional(
+            subCtx,
+            preventReason === undefined
+              ? "Prevent leaving the battle area?"
+              : `Prevent leaving the battle area? (${preventReason})`,
+          );
           if (!yes) return false;
         }
         if (action.digivolveFromTrash === true) {

@@ -161,6 +161,39 @@ function zoneArrayOf(player: PlayerState, zone: CardZone): ArraySchema<CardInsta
   }
 }
 
+/**
+ * Insert `card` into a synchronized array at `index`, rebuilding the tail.
+ *
+ * NEVER use `ArraySchema#unshift` (or a growing `splice`) to insert into synchronized state.
+ * @colyseus/schema 3.0.76's `unshift` shifts the change indexes but never calls `setParent` on
+ * the items it inserts, so the client decodes an identity-less placeholder where the card
+ * should be — a blank card carrying no instanceId and no cardId — and the entries around it
+ * end up reordered or dropped. Four such inserts in one patch (a Digimon taking 4 bottom
+ * digivolution cards) leave the client with a stack of blank look-alike slots; a later
+ * removal from that array can then delete the wrong entries. A growing `splice` is not the
+ * alternative: it throws ("insertCount must be equal or lower than deleteCount").
+ *
+ * Appends and deletions DO encode correctly, so an insertion is expressed as: delete
+ * everything from `index` onwards, then re-append the new order. `notify` runs for every card
+ * the rebuild re-attaches, not just the new one — a card that left the state tree needs its
+ * view exposure (and its detached child-schema repair) redone before the next encode.
+ */
+function insertIntoSyncedArray(
+  arr: ArraySchema<CardInstance>,
+  card: CardInstance,
+  index: number,
+  notify: (card: CardInstance) => void,
+): void {
+  const tail = arr.slice(index);
+  arr.splice(index, tail.length);
+  arr.push(card);
+  notify(card);
+  for (const displaced of tail) {
+    arr.push(displaced);
+    notify(displaced);
+  }
+}
+
 /** Insert a card into a loose zone at the top or bottom (default bottom). */
 export function insertCard(
   player: PlayerState,
@@ -169,8 +202,11 @@ export function insertCard(
   position: ZonePosition = "bottom",
 ): void {
   const arr = zoneArrayOf(player, zone);
-  if (position === "top") arr.unshift(instance);
-  else arr.push(instance);
+  if (position === "top") {
+    insertIntoSyncedArray(arr, instance, 0, (card) => notifyCardEntered(player, zone, card));
+    return;
+  }
+  arr.push(instance);
   notifyCardEntered(player, zone, instance);
 }
 
@@ -250,8 +286,7 @@ export function pushOnStack(permanent: Permanent, card: CardInstance): void {
 
 /** Add a card to the BOTTOM of the digivolution stack. */
 export function unshiftOnStack(permanent: Permanent, card: CardInstance): void {
-  permanent.stack.unshift(card);
-  notifyPermanentCard(permanent, card);
+  insertIntoSyncedArray(permanent.stack, card, 0, (inserted) => notifyPermanentCard(permanent, inserted));
 }
 
 /** Take the card directly beneath the top card off the stack; undefined when the stack is empty. */
@@ -265,10 +300,19 @@ export function removeFromStackAt(permanent: Permanent, index: number): CardInst
   return permanent.stack.splice(index, 1)[0];
 }
 
-/** Replace the whole digivolution stack, bottom-first. */
+/**
+ * Replace the whole digivolution stack, bottom-first.
+ *
+ * Cleared and re-appended rather than spliced in place: a `splice` that inserts more than it
+ * deletes throws, so a replacement that GROWS the stack (a reorder that also adds a card) is
+ * not expressible as one splice — see {@link insertIntoSyncedArray}.
+ */
 export function replaceStack(permanent: Permanent, cards: readonly CardInstance[]): void {
-  permanent.stack.splice(0, permanent.stack.length, ...cards);
-  for (const card of cards) notifyPermanentCard(permanent, card);
+  permanent.stack.splice(0, permanent.stack.length);
+  for (const card of cards) {
+    permanent.stack.push(card);
+    notifyPermanentCard(permanent, card);
+  }
 }
 
 /**
@@ -277,8 +321,11 @@ export function replaceStack(permanent: Permanent, cards: readonly CardInstance[
  * linked cards in board order passes "bottom" to keep the written order.
  */
 export function linkCard(permanent: Permanent, card: CardInstance, position: ZonePosition = "top"): void {
-  if (position === "top") permanent.linked.unshift(card);
-  else permanent.linked.push(card);
+  if (position === "top") {
+    insertIntoSyncedArray(permanent.linked, card, 0, (inserted) => notifyPermanentCard(permanent, inserted));
+    return;
+  }
+  permanent.linked.push(card);
   notifyPermanentCard(permanent, card);
 }
 
