@@ -1,9 +1,9 @@
 # EX12 Card Audit Ledger
 
-Overall completion: **77/77 cards (100%) at 10/10**.
+Overall completion: **76/77 cards (98.7%) at 10/10**.
 
-This versioned ledger records the card-by-card audit judgment delivered on branch
-`audit-ex12-luna-revalidation`. It complements executable evidence; it does not replace
+This versioned ledger records the card-by-card audit judgment first delivered on branch
+`audit-ex12-luna-revalidation` and revalidated on `audit/ex12-card-by-card-20260901`. It complements executable evidence; it does not replace
 the catalog, knowledge-base rulings, direct IR inspection, or behavioral tests.
 
 ## Scoring rubric
@@ -16,17 +16,49 @@ Each card receives two points in each independently reviewed area:
 - **Peer and stack proof (2/2):** applicable trait, neighboring-card, ownership, and realistic evolution-stack risks were checked in focused or comparative scenarios.
 - **Delivery gates (2/2):** focused, mechanism, collection, typecheck, style, and diff validation passed on the delivered branch.
 
-A row may remain at 10/10 only while all five areas remain 2/2. The executable audit
+A row may remain at 10/10 only while all five areas remain 2/2. Every row below 10/10 must be
+named in the Exceptions section with the unresolved risk and where it is tracked. The executable audit
 test requires exactly one row for every committed EX12 card, validates the catalog name,
 all five component scores, the final score, and direct links to its module and focused test.
 
+## Revalidation 2026-09-01
+
+Branch `audit/ex12-card-by-card-20260901` re-audited every card with eight independent
+batch auditors and treated the previous 10/10 ledger as a claim to falsify. Range reports
+with per-card evidence live in `internal-docs/audits/EX12/`; the collection ledger is
+`docs/audits/EX12-AUDIT.md`. Corrections delivered:
+
+- Module defects: EX12-014, -016, -017, -028, -031, -032, -035, -036, -044 (＜Decode＞ played
+  from every controlled stack instead of the host's own digivolution cards, CR 16-36-1);
+  EX12-018 and -060 (Digi-Egg cards excluded from "digivolution cards" and "cards" counts);
+  EX12-021 (memory gain wrongly gated on a draw; hand cost lacked its zone); EX12-026
+  (restriction chain and dropped digivolution-card filter); EX12-041, -043, -050 (hidden
+  cost-5 ceiling and multicolor rejection on Option use); EX12-047 ("by returning" cost was
+  not declinable, CR 15-7-4); EX12-052 (mandatory DP and battle clause was declinable, Q6836);
+  EX12-071 to -075 (＜Use Req.＞ counted battle-area Options, CR 16-42-3); EX12-072 (＜Guard＞
+  was an inert keyword flag, now an executable replacement); EX12-077 (placement cost limited
+  to Digimon cards and pool limited to the host's stack).
+- Engine and shared seams: SubTrigger grants reach permanents already unaffected by effects
+  (Q6740); bracketed `[Rule] Name:` aliases are parsed (KB Q759); `Guard` joined the keyword
+  union; `// @ts-nocheck` removed from all 77 modules and every resulting type error resolved.
+- Persistence: 23 `effects.json` records had drifted from their modules; all 77 EX12 records
+  were regenerated from the modules and `EX12-catalog-sync.test.ts` now enforces equality.
+
+## Exceptions
+
+- **EX12-065 Kaguyamon, 9/10 (peer and stack 1/2).** Q6866 says a player who resolves
+  ＜Fortitude＞ first strands the card's other pending `[On Deletion]` effects. The engine replays
+  ＜Fortitude＞ unconditionally after every deletion timing has fired (`primitives.ts`), so the
+  keyword never enters the trigger-ordering pool. The card's own IR and its player-ordered
+  `[On Deletion]` sequencing are proven; the deviation is a shared ＜Fortitude＞ seam recorded in
+  `docs/audits/EX12-AUDIT.md`.
+
 ## Reproducible collection evidence
 
-- Audit invariant: `pnpm --filter @aegis/api exec vitest run src/cards/EX12/EX12.audit.test.ts`.
-- Focused collection: all 77 colocated suites, 720 tests passed.
-- Shared mechanisms: `builders.test.ts`, `kernel.test.ts`, and this audit suite, 32 tests passed before this documentation clause was added.
-- Static verification: `pnpm typecheck`, targeted Oxlint/Oxfmt, and `git diff --check` passed.
-- Registration inventory: 77 catalog IDs, 77 direct modules, 77 focused suites, 77 exclusive `registerIrCard` registrations, and 0 `registerCard` registrations.
+- Audit invariants: `pnpm --filter @aegis/api exec vitest run src/cards/EX12/EX12.audit.test.ts src/cards/EX12/EX12-catalog-sync.test.ts`.
+- Focused collection: `pnpm --filter @aegis/api exec vitest run src/cards/EX12/`, 79 files, 858 tests passed.
+- Static verification: `pnpm typecheck` (14 pre-existing errors in two engine sync test files unrelated to EX12), `oxlint`, `oxfmt --check`, and `git diff --check` passed on every changed file.
+- Registration inventory: 77 catalog IDs, 77 direct modules, 77 focused suites, 77 exclusive `registerIrCard` registrations, 0 `registerCard` registrations, 0 `// @ts-nocheck` directives.
 
 ## Card scores
 
@@ -96,7 +128,7 @@ all five component scores, the final score, and direct links to its module and f
 | EX12-062 | Kokeshimon                       |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX12-062.ts`](./EX12-062.ts) · [`EX12-062.test.ts`](./EX12-062.test.ts) |
 | EX12-063 | Karakurumon                      |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX12-063.ts`](./EX12-063.ts) · [`EX12-063.test.ts`](./EX12-063.test.ts) |
 | EX12-064 | Megadramon                       |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX12-064.ts`](./EX12-064.ts) · [`EX12-064.test.ts`](./EX12-064.test.ts) |
-| EX12-065 | Kaguyamon                        |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX12-065.ts`](./EX12-065.ts) · [`EX12-065.test.ts`](./EX12-065.test.ts) |
+| EX12-065 | Kaguyamon                        |            2/2 |      2/2 |              2/2 |        1/2 |   2/2 |  9/10 | [`EX12-065.ts`](./EX12-065.ts) · [`EX12-065.test.ts`](./EX12-065.test.ts) |
 | EX12-066 | Hiro Amanokawa                   |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX12-066.ts`](./EX12-066.ts) · [`EX12-066.test.ts`](./EX12-066.test.ts) |
 | EX12-067 | Kiyoshiro Higashimitarai         |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX12-067.ts`](./EX12-067.ts) · [`EX12-067.test.ts`](./EX12-067.test.ts) |
 | EX12-068 | Ruli Tsukiyono                   |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX12-068.ts`](./EX12-068.ts) · [`EX12-068.test.ts`](./EX12-068.test.ts) |
