@@ -201,4 +201,23 @@ describe("EX12-001 Nyaromon", () => {
     ]);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX12-044")).toBe(true);
   });
+
+  it("does not use an opponent's Digimon as the other DNA material", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-042", as: "source", under: ["EX12-001"] }],
+          hand: [{ card: "EX12-044", as: "result", faceUp: false }],
+        },
+        1: { battleArea: [{ card: "EX12-054", as: "opponentPartner" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnEndTurn, s.perm("source"));
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["EX12-042"]);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["EX12-054"]);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX12-044")).toBe(true);
+  });
 });

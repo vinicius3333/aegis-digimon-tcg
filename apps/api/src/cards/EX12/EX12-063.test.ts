@@ -157,6 +157,44 @@ describe("EX12-063 Karakurumon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX12-062")).toBe(false);
   });
 
+  it("excludes a level 5 Puppet/TB card from the deletion pool and refuses the play with no legal card", async () => {
+    const boundary = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "source" }],
+          // Same [Puppet]/[TB] traits as the eligible card, one level above the printed ceiling.
+          trash: [{ card: CARD_ID, as: "overLevel" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    expect(await advance(boundary.engine).verb.deletePermanent([boundary.perm("source").permanentId], "byEffect")).toBe(
+      1,
+    );
+    await settle(() => boundary.state.players[0]!.trash.some(({ cardId }) => cardId === CARD_ID));
+
+    expect(boundary.state.players[0]!.battleArea).toHaveLength(0);
+    expect(boundary.state.players[0]!.trash.filter(({ cardId }) => cardId === CARD_ID)).toHaveLength(2);
+  });
+
+  it("may decline the optional On Deletion play and leaves the card in the trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "source" }],
+          trash: [{ card: "BT26-012", as: "valid" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.state.players[0]!.trash.some(({ cardId }) => cardId === CARD_ID));
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("valid").instanceId)).toBe(true);
+  });
+
   it("plays the inherited deletion target when the host is deleted", async () => {
     const s = setupEngine(
       {

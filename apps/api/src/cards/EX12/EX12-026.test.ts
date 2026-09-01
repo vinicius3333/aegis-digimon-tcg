@@ -68,6 +68,38 @@ describe("EX12-026 Shellmon", () => {
     expect(observe(s.engine).isRestricted(s.perm("restricted"), "block")).toBe(true);
   });
 
+  it("restricts nothing when every opposing Digimon still has two or more sources after the trash", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX12-026", as: "source" }] },
+      1: {
+        battleArea: [{ card: "EX12-024", as: "target", under: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"] }],
+      },
+    });
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    await settle();
+
+    expect(s.perm("target").stack.map((card) => card.cardId)).toEqual(["BT1-011", "BT1-012"]);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "block")).toBe(false);
+  });
+
+  it("still restricts a source-less Digimon when no opposing Digimon has sources to trash", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX12-026", as: "source" }] },
+      1: { battleArea: [{ card: "EX12-024", as: "bare" }] },
+    });
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    await settle(() => observe(s.engine).isRestricted(s.perm("bare"), "attack"));
+
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(observe(s.engine).isRestricted(s.perm("bare"), "attack")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("bare"), "block")).toBe(true);
+  });
+
   it("applies the same trash-and-restrict sequence from When Digivolving", async () => {
     const s = setupEngine(
       {
@@ -154,26 +186,28 @@ describe("EX12-026 Shellmon", () => {
             kind: "TrashDigivolution",
             amount: 2,
             fromTop: false,
-            target: { count: 1, filter: { controller: "opponent", kind: [CardKind.Digimon] } },
-          },
-          {
-            kind: "SelectBind",
-            target: { bindAs: "restrictTarget", count: 1, filter: { digivolutionCardsAtMost: 1 } },
-          },
-          {
-            kind: "Restrict",
-            restriction: "attack",
-            duration: "untilOpponentTurnEnd",
-            target: { fromSelectionRef: "restrictTarget" },
+            target: {
+              count: 1,
+              filter: { controller: "opponent", kind: [CardKind.Digimon], digivolutionCards: "hasAny" },
+            },
           },
           {
             kind: "Restrict",
-            restriction: "block",
+            restriction: "attackOrBlock",
             duration: "untilOpponentTurnEnd",
-            target: { fromSelectionRef: "restrictTarget" },
+            target: {
+              count: 1,
+              filter: { controller: "opponent", kind: [CardKind.Digimon], digivolutionCardsAtMost: 1 },
+            },
           },
         ],
       });
+      // Q6753: the prohibition survives later digivolution cards, so it must not be
+      // re-evaluated against the target filter or gated on a continuous condition.
+      const restrict = compiled.effects.find((effect) => effect.trigger === trigger)!.actions[1]!;
+      expect(restrict).not.toHaveProperty("while");
+      expect(restrict).not.toHaveProperty("whileMatchesTargetFilter");
+      expect(compiled.effects.find((effect) => effect.trigger === trigger)!.actions).toHaveLength(2);
     }
     expect(compiled.effects.find((effect) => effect.trigger === "Rule")).toMatchObject({
       actions: [{ kind: "GrantStatic", grant: "trait", tokens: ["Aquatic"] }],
