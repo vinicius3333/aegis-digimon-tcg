@@ -406,34 +406,43 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
       const base = ctx.game.permanentById(pid);
       const chosenCandidate = candidates.find((candidate) => candidate.instanceId === chosen[0]);
       const intoDef = chosenCandidate ? ctx.game.definitionOf({ cardId: chosenCandidate.cardId } as never) : undefined;
-      const baseDef = base?.topCard ? ctx.game.definitionOf(base.topCard) : undefined;
-      if (
-        intoDef !== undefined &&
-        baseDef !== undefined &&
-        matchingEvoCost(intoDef, baseDef) === undefined &&
-        matchingAlternateDigivolutionRequirement(intoDef, baseDef) !== undefined
-      ) {
-        // Effect-driven digivolution still uses a printed alternate requirement when it is
-        // the only legal route (notably Hybrid-over-Tamer). Leaving this undefined makes the
-        // legality pre-filter offer the Tamer, then the production verb silently reject it.
-        useAlternateCost = true;
-      }
-    }
-    if (ignoreLevel && useAlternateCost === undefined) {
-      const base = ctx.game.permanentById(pid);
-      const chosenCandidate = candidates.find((candidate) => candidate.instanceId === chosen[0]);
-      const intoDef = chosenCandidate ? ctx.game.definitionOf({ cardId: chosenCandidate.cardId } as never) : undefined;
-      const baseDef = base?.topCard ? ctx.game.definitionOf(base.topCard) : undefined;
-      if (intoDef !== undefined && baseDef !== undefined) {
-        const printed = matchingEvoCostIgnoringLevel(intoDef, baseDef);
-        const alternate = matchingAlternateDigivolutionRequirement(intoDef, baseDef, { ignoreLevel: true });
-        if (printed !== undefined && alternate !== undefined) {
+      const actualBaseDef = base?.topCard ? ctx.game.definitionOf(base.topCard) : undefined;
+      if (chosenCandidate !== undefined && intoDef !== undefined && actualBaseDef !== undefined) {
+        const baseDef =
+          action.virtualBase === undefined
+            ? actualBaseDef
+            : { ...actualBaseDef, level: action.virtualBase.level, colors: action.virtualBase.colors };
+        const sourceZone = zones.find((zone) =>
+          looseCardsInZone(ctx, chosenCandidate.ownerSeat, zone).some(
+            (candidate) => candidate.instanceId === chosenCandidate.instanceId,
+          ),
+        );
+        const printed = ignoreLevel
+          ? matchingEvoCostIgnoringLevel(intoDef, baseDef)
+          : matchingEvoCost(intoDef, baseDef);
+        const alternate =
+          action.virtualBase === undefined
+            ? matchingAlternateDigivolutionRequirement(intoDef, baseDef, {
+                ...(ignoreLevel ? { ignoreLevel: true } : {}),
+                ...(sourceZone === undefined ? {} : { sourceZone }),
+              })
+            : undefined;
+        if (printed !== undefined && alternate !== undefined && pays) {
+          // Effect-driven digivolution follows the same declaration rule as the public
+          // digivolve intent: when both a printed EvoCost and an alternate requirement match,
+          // the controller chooses which requirement to use. Defaulting to the printed path
+          // silently charged the wrong cost for cards such as BT26-001 evolving a TS stack.
+          // A cost-free effect still enforces that at least one requirement matches, but the
+          // two routes have no different payable outcome and must not open a dead choice.
           const choice = await ctx.ask.chooseOption(ctx, [
             `Printed digivolution requirement (cost ${printed.memoryCost})`,
             `Alternate digivolution requirement (cost ${alternate.cost})`,
           ]);
           useAlternateCost = choice === 1;
         } else if (alternate !== undefined) {
+          // Effect-driven digivolution still uses a printed alternate requirement when it is
+          // the only legal route (notably Hybrid-over-Tamer). Leaving this undefined makes the
+          // legality pre-filter offer the Tamer, then the production verb silently reject it.
           useAlternateCost = true;
         }
       }

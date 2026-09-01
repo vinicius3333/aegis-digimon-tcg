@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -29,23 +29,59 @@ describe("BT26-015 compiled fidelity", () => {
   it("digivolves for 3 over an off-color TS Lv.4 and rejects a non-TS peer", async () => {
     const legal = setupEngine({
       0: {
-        battleArea: [{ card: "BT24-022", as: "tsBase" }],
-        hand: [{ card: "BT26-015", as: "butenmon" }],
+        breeding: { card: "BT24-002", as: "tsEgg" },
+        hand: [
+          { card: "BT26-009", as: "tsRookie" },
+          { card: "BT24-022", as: "tsBase" },
+          { card: "BT26-015", as: "butenmon" },
+        ],
         deck: ["BT1-009"],
       },
     });
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("tsEgg").permanentId,
+        instanceId: legal.inst("tsRookie").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.perm("tsEgg").topCard.cardId === "BT26-009");
+    expect(legal.perm("tsEgg").stack.map((card) => card.cardId)).toEqual(["BT24-002"]);
+
+    legal.state.memory = 2;
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("tsEgg").permanentId,
+        instanceId: legal.inst("tsBase").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.perm("tsEgg").topCard.cardId === "BT24-022");
+    expect(legal.perm("tsEgg").stack.map((card) => card.cardId)).toEqual(["BT24-002", "BT26-009"]);
+
     legal.state.memory = 3;
     expect(
       legal.engine.applyIntent(0, {
         type: "digivolve",
-        permanentId: legal.perm("tsBase").permanentId,
+        permanentId: legal.perm("tsEgg").permanentId,
         instanceId: legal.inst("butenmon").instanceId,
         useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
-    await settle(() => legal.perm("tsBase").topCard.cardId === "BT26-015");
-    expect(legal.perm("tsBase").stack.at(-1)?.cardId).toBe("BT24-022");
+    await settle(() => legal.perm("tsEgg").topCard.cardId === "BT26-015");
+    expect(legal.perm("tsEgg").stack.map((card) => card.cardId)).toEqual(["BT24-002", "BT26-009", "BT24-022"]);
     expect(legal.state.memory).toBe(0);
+
+    legal.state.phase = Phase.Breeding;
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "moveFromBreeding",
+        permanentId: legal.perm("tsEgg").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.state.phase === Phase.Main && legal.perm("tsEgg").topCard.cardId === "BT26-015");
 
     const illegal = setupEngine({
       0: {
@@ -186,7 +222,7 @@ describe("BT26-015 compiled fidelity", () => {
         0: {
           battleArea: [
             { card: "BT26-015", as: "butenmon" },
-            { card: "BT26-014", as: "sourceHost", under: [{ card: "BT26-009" }] },
+            { card: "BT26-011", as: "sourceHost", under: [{ card: "BT26-009" }] },
             { card: "BT26-014", as: "attacker" },
           ],
           hand: [{ card: "BT1-009", as: "bottom" }, "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
@@ -199,15 +235,23 @@ describe("BT26-015 compiled fidelity", () => {
     preferred.push(s.inst("bottom").instanceId, s.perm("attacker").permanentId);
     await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("sourceHost"), {
-      attackerPermanentId: s.perm("sourceHost").permanentId,
-    });
-    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("sourceHost").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some(({ kind }) => kind === "combatResolved"));
 
     expect(s.state.players[0]!.deck).toHaveLength(1);
     expect(s.state.players[0]!.hand).toHaveLength(5);
     expect(s.perm("attacker").currentDP).toBe(10000);
-    expect(s.perm("attacker").isSuspended).toBe(true);
+    // CR 11-2-4: the reactive attack is mandatory only when possible. This trigger
+    // occurs during sourceHost's open attack, so another declaration can't be made.
+    expect(s.perm("attacker").isSuspended).toBe(false);
+    expect(s.perm("sourceHost").isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
   it("Q6973 does not react when a revealed card is merely restored to the deck", async () => {

@@ -60,25 +60,44 @@ describe("BT26-048 BloomLordmon", () => {
     });
   });
 
-  it("publicly trashes a bottom face-down card, plays an eligible Ver.4 Digimon, and debuffs an opponent", async () => {
+  it("publicly digivolves, pays the face-down cost, plays Ver.4, and applies its debuff", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "BT26-048", as: "bloomLordmon" },
-            { card: "BT1-009", as: "host", under: [{ card: "BT1-010", as: "faceDown", faceUp: false }] },
+            {
+              card: "BT26-043",
+              as: "host",
+              under: [{ card: "BT1-010", as: "faceDown", faceUp: false }],
+            },
           ],
-          hand: [{ card: "BT26-023", as: "ver4" }],
+          hand: [
+            { card: "BT26-048", as: "bloomLordmon" },
+            { card: "EX9-008", as: "ver4" },
+          ],
+          deck: ["BT1-001"],
         },
         1: { battleArea: [{ card: "BT1-011", as: "opponent", dp: 10000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await s.ready();
+    s.state.memory = 3;
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("bloomLordmon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("bloomLordmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX9-008") &&
+        s.perm("opponent").currentDP === 4000,
+    );
 
-    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-023");
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("EX9-008");
     expect(s.perm("host").stack.map(({ cardId }) => cardId)).not.toContain("BT1-010");
     expect(s.perm("opponent").currentDP).toBe(4000);
   });

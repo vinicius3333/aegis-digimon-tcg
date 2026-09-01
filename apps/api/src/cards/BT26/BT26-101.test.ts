@@ -66,6 +66,24 @@ describe("BT26-101 compiled fidelity", () => {
     expect(withTs.state.memory).toBe(0);
   });
 
+  it("does not waive the white use requirement for a TS card still in hand", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "BT26-101", as: "option" },
+          { card: "BT26-009", as: "tsInHand" },
+        ],
+      },
+    });
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: false,
+      reason: "color-requirement-unmet",
+    });
+  });
+
   it("publicly plays an eligible TS card from hand during the Security effect", async () => {
     const s = setupEngine(
       {

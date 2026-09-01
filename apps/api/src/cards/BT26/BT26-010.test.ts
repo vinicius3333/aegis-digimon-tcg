@@ -123,17 +123,26 @@ describe("BT26-010 Roleplaymon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: CARD_ID, as: "roleplay" }],
+          battleArea: [{ card: CARD_ID, as: "roleplay", under: [{ card: "BT21-005", as: "appmonEgg" }] }],
           hand: [{ card: "BT21-054", as: "cost" }],
           deck: [
             { card: "BT1-009", as: "one" },
             { card: "BT1-010", as: "two" },
           ],
         },
+        1: { security: ["BT1-001"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("roleplay"));
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("roleplay").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some(({ kind }) => kind === "combatResolved"));
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
       s.inst("one").instanceId,

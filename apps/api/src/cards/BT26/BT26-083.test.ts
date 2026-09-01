@@ -35,7 +35,7 @@ describe("BT26-083 compiled fidelity", () => {
       },
     ]);
     expect(card?.digivolutionRequirement).toEqual([{ level: 6, traits: ["TS"], cost: 4, isAlternate: true }]);
-    expect(card.assemblyRequirement).toEqual([{ reduceCost: 4, materials: [{ names: ["Junomon"], count: 1 }] }]);
+    expect(card.assemblyRequirement).toEqual([{ reduceCost: 4, materials: [{ namesExact: ["Junomon"], count: 1 }] }]);
     expect(card?.residual).toEqual([]);
     expect(card?.effects?.[0]?.actions).toMatchObject([
       {
@@ -52,7 +52,7 @@ describe("BT26-083 compiled fidelity", () => {
             optional: true,
             target: {
               filter: {
-                nameOrTrait: [{ tokens: ["Junomon"], match: "name" }],
+                nameOrTrait: [{ tokens: ["Junomon"], match: "nameExact" }],
               },
               orFilters: [
                 {
@@ -123,6 +123,24 @@ describe("BT26-083 compiled fidelity", () => {
     expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 
+  it("rejects Junomon: Hysteric Mode as the exact [Junomon] Assembly material", () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT26-083", as: "hysteric" }],
+        trash: [{ card: "BT26-083", as: "nearName" }],
+      },
+    });
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("hysteric").instanceId,
+        assembly: { materialInstanceIds: [s.inst("nearName").instanceId] },
+      } as never),
+    ).toEqual(expect.objectContaining({ ok: false }));
+  });
+
   it("recovers three even when it has no security to trash (Q7124)", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT26-083", as: "junomon" }], deck: ["BT1-010", "BT1-011", "BT1-012"] },
@@ -149,7 +167,7 @@ describe("BT26-083 compiled fidelity", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-083", as: "junomon" }],
+          hand: [{ card: "BT26-083", as: "junomon" }],
           security: ["BT1-001", "BT1-002"],
           deck: ["BT1-010", "BT1-011", "BT1-012"],
         },
@@ -163,8 +181,12 @@ describe("BT26-083 compiled fidelity", () => {
       },
       { autoSelectCards: true },
     );
+    s.state.memory = 14;
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("junomon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("junomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.length === 3 && s.state.players[1]!.battleArea.length === 1);
 
     expect(s.state.players[0]!.security).toHaveLength(3);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);

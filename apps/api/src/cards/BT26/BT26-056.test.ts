@@ -10,7 +10,7 @@ describe("BT26-056 Cerberusmon: Werewolf Mode", () => {
   it("encodes the three keywords, Dark Animal rule trait, deletion play, TS waiver, and empty-hand-safe De-Digivolve Main", () => {
     expect(digivolutionRequirementsFor("BT26-056")).toEqual(
       expect.arrayContaining([
-        { names: ["Cerberusmon"], cost: 1, isAlternate: true },
+        { namesExact: ["Cerberusmon"], cost: 1, isAlternate: true },
         { level: 4, traits: ["TS"], cost: 3, isAlternate: true },
       ]),
     );
@@ -138,6 +138,25 @@ describe("BT26-056 Cerberusmon: Werewolf Mode", () => {
     expect(trait.state.memory).toBe(0);
   });
 
+  it("does not treat Cerberusmon variants as the exact [Cerberusmon] evolution base", () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX5-061", as: "xAntibody" }],
+        hand: [{ card: "BT26-056", as: "werewolf" }],
+      },
+    });
+    s.state.memory = 1;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("xAntibody").permanentId,
+        instanceId: s.inst("werewolf").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+  });
+
   it("uses Inferno Divide by mandatorily trashing a hand card before De-Digivolve 3", async () => {
     const s = setupEngine(
       {
@@ -150,7 +169,11 @@ describe("BT26-056 Cerberusmon: Werewolf Mode", () => {
         },
         1: {
           battleArea: [
-            { card: "BT26-060", as: "target", under: ["BT26-059", "BT26-058", "BT26-057", "BT26-055"] },
+            {
+              card: "BT26-060",
+              as: "target",
+              under: ["BT24-031", "BT24-034", "BT26-015", "BT26-016"],
+            },
           ],
         },
       },
@@ -209,7 +232,9 @@ describe("BT26-056 Cerberusmon: Werewolf Mode", () => {
           battleArea: [{ card: "BT25-071", as: "ts" }],
           hand: [{ card: "BT26-056", as: "infernoDivide" }],
         },
-        1: { battleArea: [{ card: "BT26-060", as: "target", under: ["BT26-059", "BT26-058", "BT26-057"] }] },
+        1: {
+          battleArea: [{ card: "BT26-060", as: "target", under: ["BT24-034", "BT26-015", "BT26-016"] }],
+        },
       },
       { autoSelectCards: true },
     );

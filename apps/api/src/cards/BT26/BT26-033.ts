@@ -2,7 +2,11 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const ts = { controller: "mine", nameOrTrait: [{ tokens: ["TS"], match: "trait" }] };
+const ts = {
+  controller: "mine",
+  kind: ["Digimon", "Tamer"],
+  nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
+};
 const iliad = { controller: "mine", zone: "hand", nameOrTrait: [{ tokens: ["Iliad"], match: "trait" }] };
 const opponentLowestDpDigimon = {
   controller: "opponent",

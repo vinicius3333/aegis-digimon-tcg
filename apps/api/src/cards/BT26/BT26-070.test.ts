@@ -195,6 +195,31 @@ describe("BT26-070 bottom face-down Tamer cost", () => {
     expect(observe(s.engine).hasKeyword(s.perm("top"), "Retaliation")).toBe(false);
   });
 
+  it("publicly plays from hand and resolves Draw 1 then hand trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: CARD_ID, as: "nightchiropmon" },
+            { card: "BT1-002", as: "discarded" },
+          ],
+          deck: [{ card: "BT1-001", as: "drawn" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nightchiropmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
+
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-001"]);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-002");
+  });
+
   it("executes inherited Retaliation after losing a battle", async () => {
     const s = setupEngine(
       {

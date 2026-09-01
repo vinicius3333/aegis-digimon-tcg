@@ -151,7 +151,18 @@ describe("BT26-099 compiled fidelity", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX9-064", as: "host", under: [{ card: "BT1-009", as: "faceDown", faceUp: false }] }],
+          // Legal stack: a face-down bottom card, then Lv.3 Soundbirdmon → Lv.4 DM/Cyborg Raremon → Lv.5 Megadramon.
+          battleArea: [
+            {
+              card: "EX9-064",
+              as: "host",
+              under: [
+                { card: "BT1-009", as: "faceDown", faceUp: false },
+                { card: "EX9-046", as: "base" },
+                { card: "EX9-052", as: "intermediary" },
+              ],
+            },
+          ],
           hand: [{ card: "BT26-099", as: "manual" }],
           deck: [
             { card: "BT26-077", as: "reapermon" },
@@ -164,6 +175,7 @@ describe("BT26-099 compiled fidelity", () => {
     );
     s.state.memory = 10;
     await s.ready();
+    expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual(["BT1-009", "EX9-046", "EX9-052"]);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("manual").instanceId })).toEqual({
       ok: true,
     });

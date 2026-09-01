@@ -40,7 +40,7 @@ describe("BT26-055 Giromon", () => {
 
   it("publicly trashes the opponent's top security when the inherited source leaves play", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: [{ card: "BT26-055", as: "giromon" }] }] },
+      0: { battleArea: [{ card: "EX9-073", as: "host", under: [{ card: "BT26-055", as: "giromon" }] }] },
       1: { security: [{ card: "BT1-001", as: "security" }] },
     });
     await s.ready();
@@ -52,7 +52,7 @@ describe("BT26-055 Giromon", () => {
   it("requires choosing an own Ver.3 Digimon before deleting all opposing lowest-play-cost Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-055", as: "giromon" }] },
+        0: { hand: [{ card: "BT26-055", as: "giromon" }] },
         1: {
           battleArea: [
             { card: "BT1-009", as: "lowA" },
@@ -63,12 +63,40 @@ describe("BT26-055 Giromon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await s.ready();
+    s.state.memory = 7;
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("giromon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("giromon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual([]);
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual(["BT1-082"]);
+  });
+
+  it("uses the exact off-color Lv.4 [DM] cost-3 evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX9-009", as: "redDm" }],
+          hand: [{ card: "BT26-055", as: "giromon" }],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("redDm").permanentId,
+        instanceId: s.inst("giromon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("redDm").topCard.cardId === "BT26-055");
+    expect(s.state.memory).toBe(0);
   });
 
   it("doesn't delete opposing Digimon when the combined deletion is declined", async () => {

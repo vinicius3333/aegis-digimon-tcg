@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import type { Action } from "@aegis/shared";
 import { compiled } from "./BT26-005.js";
@@ -35,11 +34,18 @@ describe("BT26-005 Pinamon", () => {
           ],
           trash: [{ card: "BT1-013", as: "avian" }],
         },
+        1: { battleArea: [{ card: "BT26-014", as: "opponent", dp: 7000, suspended: true }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("opponent").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-013"));
 
     expect(
@@ -53,34 +59,50 @@ describe("BT26-005 Pinamon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT1-009", as: "host", under: [{ card: "BT26-005", as: "pinamon" }] },
+            { card: "BT26-065", as: "host", under: [{ card: "BT26-005", as: "pinamon" }] },
             { card: "BT26-091", as: "tamer", under: [{ card: "BT26-039", as: "cost", faceUp: false }] },
           ],
           trash: [{ card: "BT26-072", as: "avian" }],
         },
+        1: { battleArea: [{ card: "BT26-060", as: "opponent", dp: 16000, suspended: true }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: [] },
     );
-    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("opponent").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("tamer").stack.length === 0);
     expect(s.perm("tamer").stack).toHaveLength(0);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT26-072")).toBe(true);
   });
 
   it("Q6958 may play the eligible card that was just trashed from under the Tamer", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "BT1-009", as: "host", under: [{ card: "BT26-005" }] },
+            { card: "BT26-065", as: "host", under: [{ card: "BT26-005" }] },
             { card: "BT26-091", as: "tamer", under: [{ card: "BT26-072", as: "costAndTarget", faceUp: false }] },
           ],
         },
+        1: { battleArea: [{ card: "BT26-060", as: "opponent", dp: 16000, suspended: true }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.inst("costAndTarget").instanceId);
 
-    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("opponent").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() =>
       s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("costAndTarget").instanceId),
     );
@@ -97,7 +119,7 @@ describe("BT26-005 Pinamon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT1-009", as: "host", under: [{ card: "BT26-005" }] },
+            { card: "BT26-065", as: "host", under: [{ card: "BT26-005" }] },
             { card: "BT26-091", as: "costTamer", under: [{ card: "BT1-010", as: "cost", faceUp: false }] },
           ],
           trash: [
@@ -106,12 +128,19 @@ describe("BT26-005 Pinamon", () => {
             { card: "BT1-089", as: "unrelated" },
           ],
         },
+        1: { battleArea: [{ card: "BT26-060", as: "opponent", dp: 16000, suspended: true }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("eligibleTamer").instanceId);
 
-    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("opponent").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() =>
       s.state.players[0]!.battleArea.some(
         (permanent) => permanent.topCard.instanceId === s.inst("eligibleTamer").instanceId,
@@ -129,17 +158,24 @@ describe("BT26-005 Pinamon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT1-009", as: "host", under: [{ card: "BT26-005" }] },
+            { card: "BT26-065", as: "host", under: [{ card: "BT26-005" }] },
             { card: "BT26-091", as: "tamer", under: [{ card: "BT26-039", as: "cost", faceUp: false }] },
           ],
           trash: [{ card: "BT26-072", as: "candidate" }],
         },
+        1: { battleArea: [{ card: "BT26-060", as: "opponent", dp: 16000, suspended: true }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
 
-    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
-    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("opponent").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT26-065"));
 
     expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual([s.inst("cost").instanceId]);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("candidate").instanceId)).toBe(true);

@@ -58,6 +58,18 @@ describe("BT26-066 Salamon", () => {
         }),
       ]),
     );
+    const inherited = compiled.effects.find((effect) => effect.isInherited);
+    expect(inherited?.actions?.[0]).toMatchObject({
+      kind: "SubTrigger",
+      actions: [
+        {
+          kind: "Digivolve",
+          into: {
+            nameOrTrait: expect.arrayContaining([{ tokens: ["Titamon"], match: "nameExact" }]),
+          },
+        },
+      ],
+    });
     expect(JSON.stringify(compiled)).not.toContain("ignoreRequirements");
   });
 
@@ -136,7 +148,7 @@ describe("BT26-066 Salamon", () => {
     const titan = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-074", as: "host", under: ["BT26-066", "BT26-068"] }],
+          battleArea: [{ card: "BT26-074", as: "host", under: ["BT26-066", "BT26-021"] }],
           trash: [{ card: "P-209", as: "titamon" }],
         },
       },
@@ -168,7 +180,7 @@ describe("BT26-066 Salamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-074", as: "host", under: ["BT26-066", "BT26-068"] }],
+          battleArea: [{ card: "BT26-074", as: "host", under: ["BT26-066", "BT26-021"] }],
           trash: [{ card: "P-209", as: "titamon" }],
         },
       },

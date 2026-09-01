@@ -2,6 +2,7 @@ import { EffectDuration, EffectTiming, Zone } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT26-012.js";
 import "../index.js";
 
@@ -94,7 +95,7 @@ describe("BT26-012 Manekimon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: CARD_ID, as: "manekimon" }],
+          battleArea: [{ card: CARD_ID, as: "manekimon", under: [{ card: "BT26-008", as: "shambalaSource" }] }],
           hand: [
             { card: "BT26-014", as: "tb" },
             { card: "BT1-009", as: "nonTb" },
@@ -105,15 +106,30 @@ describe("BT26-012 Manekimon", () => {
     );
     s.state.memory = 5;
     preferred.push(s.inst("tb").instanceId);
+    await s.ready();
+    const [mainEffect] = observe(s.engine).activatableEffects(s.perm("manekimon")) as Array<{ effectKey: string }>;
 
-    await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("manekimon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("manekimon").topCard.instanceId,
+        effectKey: mainEffect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-014"));
 
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-014")).toBe(true);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("nonTb").instanceId]);
 
     s.give(0, Zone.Hand, { card: "BT26-008", as: "secondTb" });
-    await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("manekimon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("manekimon").topCard.instanceId,
+        effectKey: mainEffect!.effectKey,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("secondTb").instanceId)).toBe(true);
   });
 

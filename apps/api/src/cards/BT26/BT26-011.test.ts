@@ -1,4 +1,4 @@
-import { EffectTiming, digivolutionRequirementsFor } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -9,13 +9,63 @@ const CARD_ID = "BT26-011";
 
 describe("BT26-011 Buraimon", () => {
   it("compiles both Raid keywords and the two draw-two triggers", () => {
+    expect(getCardDefinition(CARD_ID)).toMatchObject({
+      cardId: CARD_ID,
+      nameEn: "Buraimon",
+      colors: ["Red"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 5,
+      dp: 5000,
+      types: ["Birdkin", "Iliad", "TS"],
+      effectText: expect.stringContaining("By trashing 1 card with [Chronomon] in its text or the [Shaman] trait"),
+      inheritedEffectText: "＜Raid＞ ",
+    });
+    expect(digivolutionRequirementsFor(CARD_ID)).toEqual([{ level: 3, traits: ["TS"], cost: 2, isAlternate: true }]);
     expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
     expect(compiled.effects.map((effect) => [effect.trigger, effect.isInherited])).toEqual([
       ["Static", undefined],
       ["OnPlay", undefined],
       ["WhenDigivolving", undefined],
       ["Static", true],
     ]);
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "Static",
+      keywords: [{ keyword: "Raid", raw: "＜Raid＞" }],
+    });
+    for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
+      expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
+        actions: [
+          {
+            kind: "Draw",
+            controller: "mine",
+            amount: 2,
+            optional: true,
+            abortOnDecline: true,
+            cost: {
+              kind: "trash",
+              target: {
+                filter: {
+                  zone: "hand",
+                  controller: "mine",
+                  nameOrTrait: [
+                    { tokens: ["Chronomon"], match: "text" },
+                    { tokens: ["Shaman"], match: "trait" },
+                  ],
+                },
+                count: 1,
+              },
+            },
+          },
+        ],
+      });
+    }
+    expect(compiled.effects[3]).toMatchObject({
+      trigger: "Static",
+      isInherited: true,
+      keywords: [{ keyword: "Raid", raw: "＜Raid＞" }],
+    });
   });
   it("evolves from an off-color Lv.3 TS Digimon for 2 and rejects a non-TS peer", async () => {
     const positive = setupEngine({
@@ -125,17 +175,43 @@ describe("BT26-011 Buraimon", () => {
   });
 
   it("publishes Raid both as the top card and inherited from a real stack", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: CARD_ID, as: "top" },
-          { card: "ST8-07", as: "host", under: [{ card: CARD_ID, as: "source" }] },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-078", as: "base" }],
+          hand: [
+            { card: CARD_ID, as: "buraimon" },
+            { card: "BT1-022", as: "host" },
+          ],
+        },
       },
-    });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
     await s.ready();
-    expect(observe(s.engine).hasKeyword(s.perm("top"), "Raid")).toBe(true);
-    expect(observe(s.engine).hasKeyword(s.perm("host"), "Raid")).toBe(true);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("buraimon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === CARD_ID);
+
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("host").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT1-022");
+
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Raid")).toBe(true);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT25-078", CARD_ID]);
   });
 
   it("accepts a card that mentions Chronomon only in inherited text", async () => {

@@ -132,9 +132,9 @@ export const ASSEMBLY_REQUIREMENT_OVERRIDES: Record<string, AssemblyRequirement[
       ],
     },
   ],
-  "BT26-079": [{ reduceCost: 2, materials: [{ names: ["Plutomon"], count: 1 }] }],
-  "BT26-081": [{ reduceCost: 5, materials: [{ names: ["Minervamon"], count: 1 }] }],
-  "BT26-083": [{ reduceCost: 4, materials: [{ names: ["Junomon"], count: 1 }] }],
+  "BT26-079": [{ reduceCost: 2, materials: [{ namesExact: ["Plutomon"], count: 1 }] }],
+  "BT26-081": [{ reduceCost: 5, materials: [{ namesExact: ["Minervamon"], count: 1 }] }],
+  "BT26-083": [{ reduceCost: 4, materials: [{ namesExact: ["Junomon"], count: 1 }] }],
   "BT26-085": [
     {
       reduceCost: 5,
@@ -1038,11 +1038,46 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
     },
   ],
 
+  // BT26-073's bracket-only [Aegiomon] requirement names exactly that card.
+  "BT26-073": [{ namesExact: ["Aegiomon"], cost: 3, isAlternate: true }],
+
+  // Bracket-only names in BT26 evolution headers are exact card names. Keep the
+  // hand-authored legality SSoT ahead of the generator's historical substring entries.
+  "BT26-029": [{ namesExact: ["Aegiomon"], cost: 3, isAlternate: true }],
+  "BT26-032": [{ namesExact: ["Ceresmon"], basePlayCost: 12, cost: 2, isAlternate: true }],
+  "BT26-049": [
+    { namesExact: ["Lilamon"], cost: 3, isAlternate: true },
+    { level: 5, traits: ["DATA SQUAD"], cost: 3, isAlternate: true },
+  ],
+  "BT26-056": [
+    { namesExact: ["Cerberusmon"], cost: 1, isAlternate: true },
+    { level: 4, traits: ["TS"], cost: 3, isAlternate: true },
+  ],
+  "BT26-080": [{ namesExact: ["Bacchusmon"], basePlayCost: 12, cost: 2, isAlternate: true }],
+
+  // BT26-079's bracket-only [Plutomon] requirement is an exact name, not a
+  // substring match that would also admit ZombiePlutomon.
+  "BT26-079": [
+    { namesExact: ["Plutomon"], cost: 1, isAlternate: true },
+    { level: 5, traits: ["TS"], cost: 3, isAlternate: true },
+  ],
+
+  // BT26-081 also names bracket-only [Minervamon] exactly in its alternate route.
+  "BT26-081": [
+    { namesExact: ["Minervamon"], cost: 2, isAlternate: true },
+    { level: 5, traits: ["TS"], cost: 4, isAlternate: true },
+  ],
+
   // BT26-050 combines an ordinary alternate path with a Burst Digivolve clause, so its
   // complete requirements are kept together here instead of in the committed data below.
   "BT26-050": [
     { level: 6, traits: ["DATA SQUAD"], cost: 5, isAlternate: true },
-    { cost: 0, isAlternate: true, names: ["Rosemon"], burstDigivolve: { returnTamerNamesExact: ["Yoshino Fujieda"] } },
+    {
+      cost: 0,
+      isAlternate: true,
+      namesExact: ["Rosemon"],
+      burstDigivolve: { returnTamerNamesExact: ["Yoshino Fujieda"] },
+    },
   ],
 };
 

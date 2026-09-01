@@ -135,7 +135,25 @@ describe("digivolutionRequirementsFor / BT26 alternate digivolve coverage", () =
 
   it("BT26-032 (Ceresmon) carries the base-play-cost gate, not just a name gate", () => {
     const reqs = digivolutionRequirementsFor("BT26-032");
-    expect(reqs).toEqual([{ names: ["Ceresmon"], basePlayCost: 12, cost: 2, isAlternate: true }]);
+    expect(reqs).toEqual([{ namesExact: ["Ceresmon"], basePlayCost: 12, cost: 2, isAlternate: true }]);
+  });
+
+  it.each([
+    ["BT26-029", "Aegiomon"],
+    ["BT26-032", "Ceresmon"],
+    ["BT26-049", "Lilamon"],
+    ["BT26-050", "Rosemon"],
+    ["BT26-056", "Cerberusmon"],
+    ["BT26-073", "Aegiomon"],
+    ["BT26-079", "Plutomon"],
+    ["BT26-080", "Bacchusmon"],
+    ["BT26-081", "Minervamon"],
+  ] as const)("%s preserves bracket-only [%s] as an exact name", (cardId, name) => {
+    const namedRequirement = digivolutionRequirementsFor(cardId)?.find((requirement) =>
+      requirement.namesExact?.includes(name),
+    );
+    expect(namedRequirement).toBeDefined();
+    expect(namedRequirement).not.toHaveProperty("names");
   });
 
   it("BT26-050 (Rosemon) keeps its hand-curated Burst Digivolve addition alongside the generated trait alternate", () => {
@@ -145,7 +163,7 @@ describe("digivolutionRequirementsFor / BT26 alternate digivolve coverage", () =
       {
         cost: 0,
         isAlternate: true,
-        names: ["Rosemon"],
+        namesExact: ["Rosemon"],
         burstDigivolve: { returnTamerNamesExact: ["Yoshino Fujieda"] },
       },
     ]);

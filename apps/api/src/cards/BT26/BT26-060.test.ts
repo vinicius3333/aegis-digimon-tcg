@@ -50,7 +50,7 @@ describe("BT26-060 Chronomon: Destroy Mode", () => {
   it("uses each exact alternate evolution path and rejects a non-matching Lv.6", async () => {
     const chronomon = setupEngine({
       0: {
-        battleArea: [{ card: "BT26-016", as: "chronomonBase" }],
+        battleArea: [{ card: "BT26-078", as: "textBase" }],
         hand: [{ card: CARD_ID, as: "destroyMode" }],
       },
     });
@@ -59,12 +59,12 @@ describe("BT26-060 Chronomon: Destroy Mode", () => {
     expect(
       chronomon.engine.applyIntent(0, {
         type: "digivolve",
-        permanentId: chronomon.perm("chronomonBase").permanentId,
+        permanentId: chronomon.perm("textBase").permanentId,
         instanceId: chronomon.inst("destroyMode").instanceId,
         alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
-    await settle(() => chronomon.perm("chronomonBase").topCard.cardId === CARD_ID);
+    await settle(() => chronomon.perm("textBase").topCard.cardId === CARD_ID);
     expect(chronomon.state.memory).toBe(0);
 
     const giantSlayer = setupEngine({
@@ -107,7 +107,7 @@ describe("BT26-060 Chronomon: Destroy Mode", () => {
   it("Q7079/Q7081 returns the current top and at most 4 sources from exactly 3 targets, leaving one card", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: CARD_ID, as: "destroyMode" }] },
+        0: { hand: [{ card: CARD_ID, as: "destroyMode" }] },
         1: {
           battleArea: [
             {
@@ -137,10 +137,14 @@ describe("BT26-060 Chronomon: Destroy Mode", () => {
       },
       { autoDeclineOptional: true, autoSelectCards: true, autoOrderCards: true },
     );
+    s.state.memory = 16;
     const untouchedTop = s.perm("fourth").topCard.instanceId;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("destroyMode"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("destroyMode").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("deep").stack.length === 1);
 
     expect(s.perm("deep").topCard.instanceId).toBe(s.inst("deepRemainingTop").instanceId);
     expect(s.perm("deep").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("deepBottom").instanceId]);

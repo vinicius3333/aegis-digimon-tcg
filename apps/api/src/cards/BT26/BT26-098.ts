@@ -6,33 +6,33 @@ const lalamon = {
   controller: "mine",
   zone: "battleArea",
   kind: ["Digimon"],
-  nameOrTrait: [{ tokens: ["Lalamon"], match: "name" }],
+  nameOrTrait: [{ tokens: ["Lalamon"], match: "nameExact" }],
 };
 const sunflowmon = {
   controller: "mine",
   zone: "trash",
   kind: ["Digimon"],
-  nameOrTrait: [{ tokens: ["Sunflowmon"], match: "name" }],
+  nameOrTrait: [{ tokens: ["Sunflowmon"], match: "nameExact" }],
 };
 const lilamon = {
   controller: "mine",
   zone: "trash",
   kind: ["Digimon"],
-  nameOrTrait: [{ tokens: ["Lilamon"], match: "name" }],
+  nameOrTrait: [{ tokens: ["Lilamon"], match: "nameExact" }],
 };
 const rosemon = {
   controller: "mine",
   zone: "hand",
   kind: ["Digimon"],
-  nameOrTrait: [{ tokens: ["Rosemon"], match: "name" }],
+  nameOrTrait: [{ tokens: ["Rosemon"], match: "nameExact" }],
 };
 const securityPlayable = {
   controller: "mine",
   zone: ["hand", "trash"],
   kind: ["Digimon", "Tamer"],
   orFilters: [
-    { nameOrTrait: [{ tokens: ["Lalamon"], match: "name" }] },
-    { nameOrTrait: [{ tokens: ["Yoshino Fujieda"], match: "name" }] },
+    { nameOrTrait: [{ tokens: ["Lalamon"], match: "nameExact" }] },
+    { nameOrTrait: [{ tokens: ["Yoshino Fujieda"], match: "nameExact" }] },
   ],
 };
 

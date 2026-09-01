@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, digivolutionRequirementsFor } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectTiming, Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-009.js";
@@ -23,7 +23,10 @@ describe("BT26-009 Hyokomon", () => {
     const legal = setupEngine({
       0: {
         breeding: { card: "BT24-002", as: "tsEgg" },
-        hand: [{ card: "BT26-009", as: "hyokomon" }],
+        hand: [
+          { card: "BT26-009", as: "hyokomon" },
+          { card: "BT24-011", as: "intermediary" },
+        ],
         deck: ["BT1-009"],
       },
     });
@@ -38,6 +41,35 @@ describe("BT26-009 Hyokomon", () => {
     await settle(() => legal.perm("tsEgg").topCard.cardId === "BT26-009");
     expect(legal.perm("tsEgg").stack.map((card) => card.cardId)).toEqual(["BT24-002"]);
     expect(legal.state.memory).toBe(0);
+
+    expect(digivolutionRequirementsFor("BT24-011")).toContainEqual({
+      level: 3,
+      traits: ["TS"],
+      cost: 2,
+      isAlternate: true,
+    });
+    legal.state.memory = 2;
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("tsEgg").permanentId,
+        instanceId: legal.inst("intermediary").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.perm("tsEgg").topCard.cardId === "BT24-011");
+    expect(legal.perm("tsEgg").stack.map((card) => card.cardId)).toEqual(["BT24-002", "BT26-009"]);
+    expect(legal.state.memory).toBe(0);
+
+    legal.state.phase = Phase.Breeding;
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "moveFromBreeding",
+        permanentId: legal.perm("tsEgg").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.state.phase === Phase.Main && legal.perm("tsEgg").topCard.cardId === "BT24-011");
+    expect(legal.perm("tsEgg").stack.map((card) => card.cardId)).toEqual(["BT24-002", "BT26-009"]);
 
     const illegal = setupEngine({
       0: {
@@ -72,7 +104,9 @@ describe("BT26-009 Hyokomon", () => {
     );
     preferred.push(s.inst("chronomonText").instanceId);
 
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("hyokomon"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.state.memory === 1 && s.state.players[0]!.trash.length === 1);
 
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("chronomonText").instanceId);
@@ -80,6 +114,8 @@ describe("BT26-009 Hyokomon", () => {
       expect.arrayContaining([s.inst("unrelated").instanceId, s.inst("drawn").instanceId]),
     );
     expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
   });
 
   it("accepts the alternative Shaman-trait cost while rejecting an unrelated hand card", async () => {
@@ -152,18 +188,27 @@ describe("BT26-009 Hyokomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-014", as: "host", under: [{ card: "BT26-009" }] }],
+          battleArea: [{ card: "BT24-011", as: "host", under: [{ card: "BT26-009" }] }],
           hand: [{ card: "BT1-009", as: "bottom" }, "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
           deck: [{ card: "BT1-014", as: "drawn" }],
+        },
+        1: {
+          security: ["BT1-001"],
         },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("bottom").instanceId);
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), {
-      attackerPermanentId: s.perm("host").permanentId,
-    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.deck.at(-1)?.instanceId === s.inst("bottom").instanceId);
 
     expect(s.state.players[0]!.hand).toHaveLength(5);
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("drawn").instanceId)).toBe(true);
@@ -175,7 +220,7 @@ describe("BT26-009 Hyokomon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT26-014", as: "host", under: [{ card: "BT26-009" }] },
+          { card: "BT24-011", as: "host", under: [{ card: "BT26-009" }] },
           { card: "BT1-009", as: "ally" },
         ],
         hand: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],

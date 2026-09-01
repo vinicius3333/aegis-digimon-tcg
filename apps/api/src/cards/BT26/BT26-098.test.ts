@@ -29,8 +29,8 @@ describe("BT26-098 compiled fidelity", () => {
             filter: {
               kind: ["Digimon", "Tamer"],
               orFilters: [
-                { nameOrTrait: [{ tokens: ["Lalamon"], match: "name" }] },
-                { nameOrTrait: [{ tokens: ["Yoshino Fujieda"], match: "name" }] },
+                { nameOrTrait: [{ tokens: ["Lalamon"], match: "nameExact" }] },
+                { nameOrTrait: [{ tokens: ["Yoshino Fujieda"], match: "nameExact" }] },
               ],
             },
           },
@@ -59,14 +59,26 @@ describe("BT26-098 compiled fidelity", () => {
       cost: {
         kind: "compound",
         costs: [
-          { kind: "place", position: "bottom", bindHostAs: "lalamonHost" },
-          { kind: "place", position: "bottom", host: { filter: { boundRef: "lalamonHost" } } },
+          {
+            kind: "place",
+            position: "bottom",
+            bindHostAs: "lalamonHost",
+            target: { filter: { nameOrTrait: [{ tokens: ["Sunflowmon"], match: "nameExact" }] } },
+            host: { filter: { nameOrTrait: [{ tokens: ["Lalamon"], match: "nameExact" }] } },
+          },
+          {
+            kind: "place",
+            position: "bottom",
+            target: { filter: { nameOrTrait: [{ tokens: ["Lilamon"], match: "nameExact" }] } },
+            host: { filter: { boundRef: "lalamonHost" } },
+          },
         ],
       },
       actions: [
         {
           kind: "Digivolve",
           target: { fromSelectionRef: "lalamonHost" },
+          into: { filter: { nameOrTrait: [{ tokens: ["Rosemon"], match: "nameExact" }] } },
           from: ["hand"],
           payCost: false,
           ignoreRequirements: true,

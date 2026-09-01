@@ -6,7 +6,11 @@ const opponentSuspendedDigimon = { controller: "opponent", kind: ["Digimon"], su
 const playable = { controller: "mine", zone: "hand", nameOrTrait: [{ tokens: ["Vegetation", "TS"], match: "trait" }] };
 const ts = { controller: "mine", nameOrTrait: [{ tokens: ["TS"], match: "trait" }] };
 const opponentDigimonOrTamer = { controller: "opponent", kind: ["Digimon", "Tamer"] };
-const ceresmon = { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Ceresmon"], match: "name" }] };
+const ceresmon = {
+  controller: "mine",
+  kind: ["Digimon"],
+  nameOrTrait: [{ tokens: ["Ceresmon"], match: "nameExact" }],
+};
 const digivolveBody = [
   {
     kind: "ModifyDP",
@@ -102,7 +106,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [{ names: ["Ceresmon"], basePlayCost: 12, cost: 2, isAlternate: true }],
+  digivolutionRequirement: [{ namesExact: ["Ceresmon"], basePlayCost: 12, cost: 2, isAlternate: true }],
 };
 
 registerIrCard("BT26-032", compiled);

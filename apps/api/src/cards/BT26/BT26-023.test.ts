@@ -32,7 +32,7 @@ describe("BT26-023 Mojyamon", () => {
     });
     const legal = setupEngine({
       0: {
-        battleArea: [{ card: "EX9-007", as: "redDm" }],
+        battleArea: [{ card: "EX9-007", as: "redDm", under: ["EX9-001"] }],
         hand: [{ card: "BT26-023", as: "mojyamon" }],
         deck: ["AD1-001"],
       },
@@ -48,7 +48,7 @@ describe("BT26-023 Mojyamon", () => {
     ).toEqual({ ok: true });
     await settle(() => legal.perm("redDm").topCard.cardId === "BT26-023");
     expect(legal.state.memory).toBe(0);
-    expect(legal.perm("redDm").stack.map(({ cardId }) => cardId)).toEqual(["EX9-007"]);
+    expect(legal.perm("redDm").stack.map(({ cardId }) => cardId)).toEqual(["EX9-001", "EX9-007"]);
 
     const illegal = setupEngine({
       0: {
@@ -158,9 +158,15 @@ describe("BT26-023 Mojyamon", () => {
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("mojyamon"), {
-      attackerPermanentId: s.perm("mojyamon").permanentId,
-    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("mojyamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
@@ -226,7 +232,7 @@ describe("BT26-023 Mojyamon", () => {
   it("inherited When Attacking draws at 7 cards and not at 8", async () => {
     const eligible = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-060", as: "host", under: ["BT26-023"] }],
+        battleArea: [{ card: "BT1-038", as: "host", under: ["BT26-023"] }],
         hand: Array.from({ length: 7 }, () => "BT1-001"),
         deck: ["BT1-002"],
       },
@@ -238,7 +244,7 @@ describe("BT26-023 Mojyamon", () => {
 
     const ineligible = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-060", as: "host", under: ["BT26-023"] }],
+        battleArea: [{ card: "BT1-038", as: "host", under: ["BT26-023"] }],
         hand: Array.from({ length: 8 }, () => "BT1-001"),
         deck: ["BT1-002"],
       },

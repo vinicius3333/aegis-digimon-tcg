@@ -39,6 +39,41 @@ describe("BT26-051 Gomimon", () => {
     });
   });
 
+  it("uses the exact Lv.2 [Appmon] cost-0 evolution and rejects a same-level near-match", async () => {
+    const legal = setupEngine({
+      0: {
+        breeding: { card: "BT21-005", as: "appmonEgg" },
+        hand: [{ card: "BT26-051", as: "gomimon" }],
+        deck: ["BT1-001"],
+      },
+    });
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("appmonEgg").permanentId,
+        instanceId: legal.inst("gomimon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.perm("appmonEgg").topCard.cardId === "BT26-051");
+    expect(legal.state.memory).toBe(0);
+
+    const illegal = setupEngine({
+      0: {
+        breeding: { card: "BT1-007", as: "plainEgg" },
+        hand: [{ card: "BT26-051", as: "gomimon" }],
+      },
+    });
+    expect(
+      illegal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: illegal.perm("plainEgg").permanentId,
+        instanceId: illegal.inst("gomimon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+  });
+
   it("publicly grants Collision and +3000 DP to an eligible Digimon when linked", async () => {
     const s = setupEngine(
       {

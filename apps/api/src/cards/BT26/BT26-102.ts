@@ -63,7 +63,7 @@ export const compiled: CompiledCard = {
               controller: "mine",
               zone: "hand",
               kind: ["Digimon"],
-              nameOrTrait: [{ tokens: ["Dantemon"], match: "name" }],
+              nameOrTrait: [{ tokens: ["Dantemon"], match: "nameExact" }],
             },
             count: 1,
           },

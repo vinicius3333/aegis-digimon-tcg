@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
 import { irNode } from "../../engine/testkit/irNode.js";
 import { compiled } from "./BT26-049.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -8,9 +8,10 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 describe("BT26-049 Rosemon", () => {
   it("encodes the shared suspend budget and both All Turns reaction routes", () => {
     expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["Lilamon"], cost: 3, isAlternate: true },
+      { namesExact: ["Lilamon"], cost: 3, isAlternate: true },
       { level: 5, traits: ["DATA SQUAD"], cost: 3, isAlternate: true },
     ]);
+    expect(digivolutionRequirementsFor("BT26-049")).toEqual(compiled.digivolutionRequirement);
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "WhenDigivolving",
       frequency: "OncePerTurn",

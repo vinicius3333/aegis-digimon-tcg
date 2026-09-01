@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { Phase } from "@aegis/shared";
 import { irNode } from "../../engine/testkit/irNode.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-003.js";
@@ -17,12 +18,40 @@ describe("BT26-003 Kyaromon", () => {
     });
   });
 
+  it("reaches the inherited source through the legal black Glowing Dawn evolution route", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT26-003", as: "egg" },
+        hand: [{ card: "BT26-052", as: "pristimon" }],
+      },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("pristimon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.cardId === "BT26-052");
+    expect(s.perm("egg").stack.map(({ cardId }) => cardId)).toEqual(["BT26-003"]);
+    expect(s.state.memory).toBe(0);
+
+    s.state.phase = Phase.Breeding;
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("egg").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT26-052"));
+    expect(s.perm("egg").stack.map(({ cardId }) => cardId)).toEqual(["BT26-003"]);
+  });
+
   it("trashes the bottom face-down Tamer card and redirects to Glowing Dawn", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "BT26-010", as: "host", under: [{ card: "BT26-003", as: "egg" }] },
+            { card: "BT26-052", as: "host", under: [{ card: "BT26-003", as: "egg" }] },
             {
               card: "BT26-090",
               as: "tamer",
@@ -59,7 +88,7 @@ describe("BT26-003 Kyaromon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT26-010", as: "host", under: [{ card: "BT26-003" }] },
+            { card: "BT26-052", as: "host", under: [{ card: "BT26-003" }] },
             { card: "BT26-090", as: "tamer", under: [{ card: "BT1-009", as: "cost", faceUp: false }] },
           ],
         },
@@ -86,7 +115,7 @@ describe("BT26-003 Kyaromon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT26-010", as: "host", under: [{ card: "BT26-003" }] },
+            { card: "BT26-052", as: "host", under: [{ card: "BT26-003" }] },
             { card: "BT26-090", as: "tamer", under: [{ card: "BT1-009", as: "cost", faceUp: false }] },
             { card: "BT26-075", as: "redirect", dp: 12000 },
           ],
@@ -116,7 +145,7 @@ describe("BT26-003 Kyaromon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT26-010", as: "host", under: [{ card: "BT26-003" }] },
+            { card: "BT26-052", as: "host", under: [{ card: "BT26-003" }] },
             { card: "BT26-090", as: "tamer", under: [{ card: "BT1-009", as: "cost", faceUp: false }] },
             { card: "BT26-075", as: "redirect", dp: 8000 },
           ],
@@ -146,7 +175,7 @@ describe("BT26-003 Kyaromon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT26-010", as: "host", under: [{ card: "BT26-003" }] },
+            { card: "BT26-052", as: "host", under: [{ card: "BT26-003" }] },
             {
               card: "BT26-090",
               as: "tamer",
@@ -198,7 +227,7 @@ describe("BT26-003 Kyaromon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT26-010", as: "host", under: [{ card: "BT26-003" }] },
+            { card: "BT26-052", as: "host", under: [{ card: "BT26-003" }] },
             { card: "BT26-090", as: "tamer", under: [{ card: "BT1-009", as: "faceUp", faceUp: true }] },
             { card: "BT26-075", as: "redirect", dp: 8000 },
           ],

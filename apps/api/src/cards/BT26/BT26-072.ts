@@ -15,7 +15,11 @@ const deleteWithKeenan = {
   cost: {
     kind: "place",
     target: { filter: handCard, count: 1 },
-    underFilter: { controller: "mine", kind: ["Tamer"], nameOrTrait: [{ tokens: ["Keenan Crier"], match: "name" }] },
+    underFilter: {
+      controller: "mine",
+      kind: ["Tamer"],
+      nameOrTrait: [{ tokens: ["Keenan Crier"], match: "nameExact" }],
+    },
     host: "target",
     position: "bottom",
     faceDown: true,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT26-080.js";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -22,8 +22,9 @@ describe("BT26-080 compiled behavior", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toHaveLength(0);
     expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["Bacchusmon"], basePlayCost: 12, cost: 2, isAlternate: true },
+      { namesExact: ["Bacchusmon"], basePlayCost: 12, cost: 2, isAlternate: true },
     ]);
+    expect(digivolutionRequirementsFor("BT26-080")).toEqual(compiled.digivolutionRequirement);
     expect(compiled.keywords).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ keyword: "SecurityAttack", amount: 1 }),
@@ -36,6 +37,16 @@ describe("BT26-080 compiled behavior", () => {
           kind: "Attack",
           withoutSuspending: true,
           cost: { kind: "suspend", target: { filter: { kind: ["Digimon"] }, count: 1 } },
+        },
+      ],
+    });
+    expect(
+      compiled.effects.find((effect) => effect.trigger === "Static" && effect.actions?.[0]?.kind === "GrantStatic"),
+    ).toMatchObject({
+      actions: [
+        {
+          grant: "effects",
+          filter: { nameOrTrait: [{ tokens: ["Bacchusmon"], match: "nameExact" }] },
         },
       ],
     });

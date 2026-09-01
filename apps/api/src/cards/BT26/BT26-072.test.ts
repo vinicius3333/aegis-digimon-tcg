@@ -41,7 +41,9 @@ describe("BT26-072 Peckmon", () => {
                   kind: "place",
                   faceDown: true,
                   position: "bottom",
-                  underFilter: expect.objectContaining({ nameOrTrait: [{ tokens: ["Keenan Crier"], match: "name" }] }),
+                  underFilter: expect.objectContaining({
+                    nameOrTrait: [{ tokens: ["Keenan Crier"], match: "nameExact" }],
+                  }),
                 }),
               }),
             ],
@@ -104,7 +106,10 @@ describe("BT26-072 Peckmon", () => {
       {
         0: {
           battleArea: [{ card: "BT26-036", as: "base" }],
-          hand: [{ card: "BT26-072", as: "peckmon" }, { card: "BT1-001", as: "cost" }],
+          hand: [
+            { card: "BT26-072", as: "peckmon" },
+            { card: "BT1-001", as: "cost" },
+          ],
         },
         1: { battleArea: [{ card: "BT1-014", as: "victim" }] },
       },

@@ -27,11 +27,14 @@ export interface AppFusionRequirement {
   cost: number;
 }
 
-/** One Assembly material slot: `count` cards matching `names`/`traits`. */
+/** One Assembly material slot: `count` cards matching its name/trait predicates. */
 export interface AssemblyMaterial {
   /** Card kinds allowed as materials when the header says, for example, "Digimon cards". */
   kinds?: ("Digimon" | "Tamer" | "Option" | "DigiEgg")[];
+  /** Name substrings for headers that explicitly say "in name". */
   names?: string[];
+  /** Exact card names for bracket-only named materials such as `[Plutomon]`. */
+  namesExact?: string[];
   traits?: string[];
   level?: number;
   levelMax?: number;

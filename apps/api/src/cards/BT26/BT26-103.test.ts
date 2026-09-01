@@ -36,7 +36,13 @@ describe("BT26-103 compiled fidelity", () => {
       sharedUseKey: "BT26-103/trash-recover",
     });
     expect(card?.effects?.[2]?.actions).toMatchObject([
-      { kind: "GrantStatic", grant: "effects", topmostOnly: true, duration: "permanent" },
+      {
+        kind: "GrantStatic",
+        grant: "effects",
+        topmostOnly: true,
+        duration: "permanent",
+        filter: { nameOrTrait: [{ tokens: ["Jupitermon"], match: "nameExact" }] },
+      },
     ]);
     expect(card?.effects?.[3]).toMatchObject({
       trigger: "AllTurns",
@@ -111,6 +117,7 @@ describe("BT26-103 compiled fidelity", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.deck.length === 2);
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-001");
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
 
     const securityAfterCounter = s.state.players[1]!.security.length;
     await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("wrathMode"));
@@ -119,20 +126,23 @@ describe("BT26-103 compiled fidelity", () => {
   });
 
   it("Succession gains the topmost Jupitermon's effects", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT26-103", as: "wrathMode", under: [{ card: "BT24-101", as: "jupitermon" }] }],
-        security: ["BT1-001"],
-        deck: ["BT1-002", "BT1-003"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-103", as: "wrathMode", under: [{ card: "BT24-101", as: "jupitermon" }] }],
+          security: ["BT1-001"],
+          deck: ["BT1-002", "BT1-003"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 14000 }] },
       },
-      1: { battleArea: [{ card: "BT1-009", as: "target", dp: 14000 }] },
-    });
+      { autoSelectCards: true },
+    );
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("wrathMode"));
 
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-001");
-    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-009");
+    expect(s.perm("target").currentDP).toBe(0);
   });
 
   it("Succession excludes lower Jupitermon cards when a different Jupitermon is topmost", async () => {
@@ -190,18 +200,34 @@ describe("BT26-103 compiled fidelity", () => {
     expect(s.perm("second").currentDP).toBe(16000);
   });
 
-  it("reacts when the opponent's security stack is removed", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT26-103", as: "wrathMode" }] },
-      1: {
-        security: ["BT1-001"],
-        battleArea: [{ card: "BT1-009", as: "opponent", dp: 16000 }],
+  it("reacts to an opponent security card removed by a public attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-103", as: "wrathMode" },
+            { card: "BT1-010", as: "attacker" },
+          ],
+        },
+        1: {
+          security: ["BT1-001"],
+          battleArea: [{ card: "BT1-009", as: "opponent", dp: 16000 }],
+        },
       },
-    });
+      { autoSelectCards: true },
+    );
     await s.ready();
 
-    await advance(s.engine).verb.trashFromSecurity(1, 1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("opponent").currentDP === 1000);
 
+    expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.perm("opponent").currentDP).toBe(1000);
   });
 });

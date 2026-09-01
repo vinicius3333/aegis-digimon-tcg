@@ -126,13 +126,19 @@ describe("BT26-078 compiled behavior", () => {
   it("publicly deletes itself to play a qualifying Titan from trash", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-078", as: "cherubimon" }], trash: [{ card: "BT26-021", as: "titan" }] },
+        0: {
+          hand: [{ card: "BT26-078", as: "cherubimon" }],
+          trash: [{ card: "BT26-021", as: "titan" }],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await s.ready();
+    s.state.memory = 13;
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("cherubimon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cherubimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-021"));
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-021");
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).not.toContain("BT26-078");
@@ -202,7 +208,7 @@ describe("BT26-078 compiled behavior", () => {
       {
         0: {
           trash: [{ card: "BT26-078", as: "cherubimon" }],
-          battleArea: [{ card: "BT26-021", as: "playedTitan", enteredThisTurn: true }],
+          hand: [{ card: "BT24-010", as: "playedTitan" }],
           deck: [{ card: "BT1-001", as: "deckTop" }],
         },
         1: { battleArea: [{ card: "BT1-009", as: "executeTarget" }] },
@@ -210,10 +216,16 @@ describe("BT26-078 compiled behavior", () => {
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("executeTarget").permanentId);
-    s.state.memory = -5;
-    await s.ready();
+    s.state.memory = 0;
 
-    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("playedTitan").permanentId });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("playedTitan").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.deck.at(-1)?.cardId === "BT26-078" &&
+        observe(s.engine).hasKeyword(s.perm("playedTitan"), "Execute"),
+    );
 
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).not.toContain("BT26-078");
     expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("BT26-078");
@@ -224,10 +236,10 @@ describe("BT26-078 compiled behavior", () => {
     );
 
     await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
-    await settle(() => !s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-021"));
+    await settle(() => !s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT24-010"));
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-021");
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT24-010");
   });
 
   it("Q7106 respects the optional return condition and grants nothing when declined", async () => {

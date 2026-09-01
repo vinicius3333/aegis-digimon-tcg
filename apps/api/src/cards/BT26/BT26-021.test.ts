@@ -286,7 +286,7 @@ describe("BT26-021 public engine behavior", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-009", as: "host", under: [{ card: CARD_ID, as: "source" }] }],
+          battleArea: [{ card: "BT25-008", as: "host", under: [{ card: CARD_ID, as: "source" }] }],
           hand: [
             { card: "BT1-010", as: "firstCost" },
             { card: "BT1-011", as: "secondCost" },

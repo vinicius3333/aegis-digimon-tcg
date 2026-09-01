@@ -5,6 +5,7 @@ import type { CardSource } from "./CardSource.js";
 import type { EffectContext, GameAccess, Primitives } from "./EffectContext.js";
 import { irCardModule } from "./interpreter.js";
 import { definitionOf } from "../cards/cardData.js";
+import "../../cards/BT26/BT26-016.js";
 
 /**
  * Effect-driven digivolve (e.g. BT24-009 Shamanmon's inherited "this [Demon] or [Titan]
@@ -224,5 +225,116 @@ describe("runDigivolve candidate legality", () => {
     // payCost:N normalizes to a cost override but does NOT waive the requirement on its own.
     const recorded = await runTrashDigivolve("P-209", ["BT24-013"], { payCost: 3 });
     expect(recorded).toHaveLength(0);
+  });
+
+  it("lets an effect controller choose the alternate requirement when both paths are legal", async () => {
+    const base = permanent("BT26-015");
+    const into = { instanceId: "BT26-016#hand", cardId: "BT26-016", ownerSeat: 0, faceUp: true };
+    const players = [
+      { seat: 0, battleArea: [base], security: [], hand: [into], deck: [], trash: [] },
+      { seat: 1, battleArea: [], security: [], hand: [], deck: [], trash: [] },
+    ];
+    const choices: string[][] = [];
+    const calls: Array<{ permanentId: string; instanceId: string; useAlternateCost?: boolean }> = [];
+    const source: CardSource = {
+      instanceId: "BT26-001#source",
+      cardId: "BT26-001",
+      ownerSeat: 0 as Seat,
+      definition: definitionOf("BT26-001") as CardDefinition,
+      permanent: () => base as never,
+      isOnBattleArea: () => true,
+      isOwnersTurn: () => true,
+      hasColor: () => false,
+    } as CardSource;
+    const ctx = {
+      game: {
+        state: { memory: 10, players, turnSeat: 0 } as never,
+        player: (seat: Seat) => players[seat] as never,
+        opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0),
+        permanentById: (id: string) => (id === base.permanentId ? base : undefined),
+        definitionOf: (card: { cardId: string }) => definitionOf(card.cardId) as CardDefinition,
+        linkMax: () => 1,
+      } as GameAccess,
+      fx: {
+        digivolveFromInstance: async (
+          permanentId: string,
+          instanceId: string,
+          options?: { useAlternateCost?: boolean },
+        ) => {
+          calls.push({ permanentId, instanceId, useAlternateCost: options?.useAlternateCost });
+          return base;
+        },
+      } as unknown as Primitives,
+      ask: {
+        selectCards: async (_context: unknown, options: { candidates: string[]; max: number }) =>
+          options.candidates.slice(0, options.max),
+        chooseOption: async (_context: unknown, options: string[]) => {
+          choices.push(options);
+          return 1;
+        },
+      },
+      source,
+      ownerSeat: 0 as Seat,
+    } as unknown as EffectContext;
+    const module = irCardModule("Z-DIGI-CHOICE", {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "Digivolve",
+              target: { filter: { controllerDefault: "mine", kind: ["Digimon"] }, count: 1 },
+              into: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Chronomon"], match: "text" }],
+              },
+              from: ["hand"],
+              payCost: true,
+              costDelta: -1,
+            },
+          ],
+        },
+      ],
+    });
+
+    for (const effect of module.effectsForTiming(EffectTiming.OnPlay, source)) await effect.resolve(ctx);
+
+    expect(choices).toEqual([
+      ["Printed digivolution requirement (cost 4)", "Alternate digivolution requirement (cost 3)"],
+    ]);
+    expect(calls).toEqual([{ permanentId: base.permanentId, instanceId: into.instanceId, useAlternateCost: true }]);
+
+    choices.length = 0;
+    calls.length = 0;
+    const freeModule = irCardModule("Z-DIGI-FREE-CHOICE", {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "Digivolve",
+              target: { filter: { controllerDefault: "mine", kind: ["Digimon"] }, count: 1 },
+              into: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Chronomon"], match: "text" }],
+              },
+              from: ["hand"],
+              payCost: false,
+            },
+          ],
+        },
+      ],
+    });
+
+    for (const effect of freeModule.effectsForTiming(EffectTiming.OnPlay, source)) await effect.resolve(ctx);
+
+    expect(choices).toEqual([]);
+    expect(calls).toEqual([{ permanentId: base.permanentId, instanceId: into.instanceId, useAlternateCost: true }]);
   });
 });

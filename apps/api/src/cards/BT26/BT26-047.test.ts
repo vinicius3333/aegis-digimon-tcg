@@ -98,9 +98,7 @@ describe("BT26-047 TyrantKabuterimon", () => {
         4,
     );
 
-    const tyrant = s.state.players[0]!.battleArea.find(
-      (permanent) => permanent.topCard?.cardId === "BT26-047",
-    )!;
+    const tyrant = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT26-047")!;
     expect(s.state.memory).toBe(0);
     expect(tyrant.stack.map((card) => card.instanceId)).toEqual([...materials].reverse());
     expect(tyrant.stack.every((card) => card.faceUp)).toBe(true);
@@ -156,23 +154,29 @@ describe("BT26-047 TyrantKabuterimon", () => {
     expect(observe(s.engine).isRestrictedByEffect(s.perm("eligible"), "beAffected", "Option")).toBe(false);
   });
 
-  it("publicly buffs suspended Insectoid or Titan Digimon and protects them from opposing Options", async () => {
+  it("publicly plays, buffs only suspended Insectoid or Titan Digimon, and protects them from opposing Options", async () => {
     const s = setupEngine(
       {
         0: {
+          hand: [{ card: "BT26-047", as: "tyrant" }],
           battleArea: [
-            { card: "BT26-047", as: "tyrant" },
             { card: "BT26-045", as: "eligible", suspended: true },
+            { card: "BT1-065", as: "nonMatching", suspended: true },
           ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 13;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tyrant"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tyrant").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("tyrant").topCard.cardId === "BT26-047" && s.perm("eligible").currentDP === 14000);
 
     expect(s.perm("eligible").currentDP).toBe(14000);
+    expect(s.perm("nonMatching").currentDP).toBe(4000);
     const continuous = (
       s.engine as unknown as { continuous: { hasRestriction: (id: string, kind: string, source?: string) => boolean } }
     ).continuous;

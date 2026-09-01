@@ -46,7 +46,7 @@ export const compiled: CompiledCard = {
                   controller: "mine",
                   zone: "digivolutionCards",
                   kind: ["Digimon"],
-                  nameOrTrait: [{ tokens: ["Junomon"], match: "name" }],
+                  nameOrTrait: [{ tokens: ["Junomon"], match: "nameExact" }],
                 },
                 orFilters: [
                   {
@@ -85,7 +85,7 @@ export const compiled: CompiledCard = {
   coverage: "full",
   residual: [],
   digivolutionRequirement: [{ level: 6, traits: ["TS"], cost: 4, isAlternate: true }],
-  assemblyRequirement: [{ reduceCost: 4, materials: [{ names: ["Junomon"], count: 1 }] }],
+  assemblyRequirement: [{ reduceCost: 4, materials: [{ namesExact: ["Junomon"], count: 1 }] }],
 };
 
 registerIrCard("BT26-083", compiled);

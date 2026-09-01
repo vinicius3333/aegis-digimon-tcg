@@ -24,46 +24,100 @@ describe("BT26-001 Yokomon", () => {
     ]);
   });
 
-  it("Q6948/Q6951 publicly evolves after its effect adds an opponent's card to their deck, pays printed cost -1, and draws", async () => {
+  it("Q6948 publicly evolves from a legal stack after a public effect adds a card to a deck", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-013", as: "host", under: [{ card: CARD_ID, as: "yokomon" }] }],
+          battleArea: [
+            {
+              card: "BT24-015",
+              as: "host",
+              under: [
+                { card: CARD_ID, as: "yokomon" },
+                { card: "BT26-008", as: "kotemon" },
+                { card: "BT26-013", as: "musyamon" },
+              ],
+            },
+          ],
           hand: [
             { card: "BT26-060", as: "illegalChronomonText" },
-            { card: "BT26-015", as: "chronomonText" },
+            { card: "BT26-016", as: "chronomonText" },
+            { card: "BT26-073", as: "publicOrigin" },
           ],
-          deck: [{ card: "BT1-001", as: "bonusDraw" }],
+          trash: [{ card: "BT26-074", as: "returnable" }],
         },
-        1: { trash: [{ card: "BT1-009", as: "opponentCard" }] },
+        1: { battleArea: [{ card: "BT26-014", as: "opponentTarget" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1 },
     );
-    s.state.memory = 3;
+    s.state.memory = 10;
     await s.ready();
 
-    await advance(s.engine).verb.returnToDeck([s.inst("opponentCard").instanceId]);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("publicOrigin").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("host").topCard.cardId === "BT26-016");
 
-    expect(s.perm("host").topCard.cardId).toBe("BT26-015");
+    expect(s.perm("host").topCard.cardId).toBe("BT26-016");
     expect(s.state.memory).toBe(0);
-    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("bonusDraw").instanceId);
-    expect(s.state.players[1]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("opponentCard").instanceId);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toContain(
+      s.inst("returnable").instanceId,
+    );
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(
       s.inst("illegalChronomonText").instanceId,
     );
+  });
+
+  it("Q6951 publicly evolves when its effect adds an opponent's card to their deck", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-013", as: "host", under: [CARD_ID, "BT26-008"] },
+            { card: "ST18-03", as: "greenSource" },
+          ],
+          hand: [
+            { card: "ST18-15", as: "publicOrigin" },
+            { card: "BT26-015", as: "candidate" },
+          ],
+          deck: [{ card: "BT1-001", as: "evolutionDraw" }],
+        },
+        1: { battleArea: [{ card: "ST18-03", as: "opponentTarget", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1 },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const returnedId = s.perm("opponentTarget").topCard.instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("publicOrigin").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.perm("host").topCard.cardId === "BT26-015" &&
+        s.state.players[1]!.deck.some(({ instanceId }) => instanceId === returnedId),
+    );
+
+    expect(s.perm("host").topCard.cardId).toBe("BT26-015");
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.deck.at(-1)?.instanceId).toBe(returnedId);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("evolutionDraw").instanceId);
+    expect(s.state.memory).toBe(3);
   });
 
   it("does not offer a Chronomon-text Digimon that cannot evolve onto the current stack top", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-013", as: "host", under: [CARD_ID] }],
+          battleArea: [{ card: "BT26-013", as: "host", under: [CARD_ID, "BT26-008"] }],
           hand: [{ card: "BT26-060", as: "illegalChronomonText" }],
           trash: [{ card: "BT1-001", as: "moved" }],
           deck: ["BT1-002"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 10;
     await s.ready();
@@ -80,7 +134,7 @@ describe("BT26-001 Yokomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-013", as: "host", under: [CARD_ID] }],
+          battleArea: [{ card: "BT26-013", as: "host", under: [CARD_ID, "BT26-008"] }],
           hand: [{ card: "BT26-015", as: "candidate" }],
           trash: [{ card: "BT1-001", as: "moved" }],
           deck: ["BT1-002"],
@@ -102,7 +156,7 @@ describe("BT26-001 Yokomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-013", as: "host", under: [CARD_ID] }],
+          battleArea: [{ card: "BT26-013", as: "host", under: [CARD_ID, "BT26-008"] }],
           hand: [{ card: "BT26-015", as: "candidate" }],
           trash: [{ card: "BT1-009", as: "moved" }],
           deck: ["BT1-010"],
@@ -126,7 +180,7 @@ describe("BT26-001 Yokomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-013", as: "host", under: [CARD_ID] }],
+          battleArea: [{ card: "BT26-013", as: "host", under: [CARD_ID, "BT26-008"] }],
           hand: [
             { card: "BT26-015", as: "first" },
             { card: "BT26-015", as: "second" },
@@ -138,7 +192,7 @@ describe("BT26-001 Yokomon", () => {
           deck: ["BT1-003", "BT1-004"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 10;
     await s.ready();
@@ -154,7 +208,7 @@ describe("BT26-001 Yokomon", () => {
   it("does not react when a revealed deck card is simply restored without a cards-moved event (Q6949)", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT26-013", as: "host", under: [CARD_ID] }],
+        battleArea: [{ card: "BT26-013", as: "host", under: [CARD_ID, "BT26-008"] }],
         hand: [{ card: "BT26-015", as: "candidate" }],
         deck: [{ card: "BT1-001", as: "revealed" }],
       },
@@ -173,7 +227,7 @@ describe("BT26-001 Yokomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-013", as: "host", under: [CARD_ID] }],
+          battleArea: [{ card: "BT26-013", as: "host", under: [CARD_ID, "BT26-008"] }],
           hand: [
             { card: "BT26-036", as: "revealer" },
             { card: "BT26-015", as: "candidate" },

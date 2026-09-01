@@ -1,13 +1,9 @@
 # BT26 Audit Ledger
 
-> **Historical ledger — superseded for current status.** This file records an
-> earlier audit/execution pass. Its 10/10 labels, PASS results, and closeout
-> language are not the current BT26 audit status. The authoritative 2026-08-29
-> static campaign ledger is `docs/audits/BT26-STATIC-AUDIT.md`, supported by the 11 reports
-> under `internal-docs/audits/BT26/`: 104/104 cards have provisional static
-> coverage, the subtotal is 765/1040, 59 cards are below 8/10, two net semantic
-> corrections were integrated, and Executed delivery gates remain 0/2 for every
-> card. No current collection-complete claim is made.
+> **Historical detailed ledger.** This file preserves the card-by-card notes
+> from an earlier pass. The authoritative executed closeout, current scores,
+> corrections, and reproducible test evidence are in
+> `docs/audits/BT26-STATIC-AUDIT.md`.
 
 Cards are audited independently in ascending card-ID order. A card receives 10/10 only when its complete catalog and local knowledge-base contract maps to compiled IR, all relevant shared semantics are traced, and observable behavioral tests prove every applicable boundary.
 
@@ -3073,9 +3069,8 @@ No unresolved BT26-072 limitation remains. Only its focused test and ledger chan
 - Proof: existing tests cover catalog/IR, evolution, Option face, cost payment, Security, On Deletion, Ascension ordering, Security lock, lowest-level deletion, Execute, and Ascension. No gap required a change.
 - Verification: automation not run by user instruction; `git diff --check` passed before the ledger-only commit. No files besides this ledger changed; no unresolved limitation remains.
 
-## Collection closeout — BT26 — 104/104 at 10/10
+## Historical collection closeout
 
-- Every card from BT26-001 through BT26-104 has reproducible catalog, rules/KB, implementation, registration, and behavioral evidence recorded above.
-- Full collection regression after merging `origin/main`: PASS, 104 files and 952 tests.
-- Cost-reduction mechanism regression: PASS, 7 files and 68 tests, including BT26-098 and existing peer consumers.
-- Gates: `pnpm typecheck` PASS; Oxlint and Oxfmt PASS for all changed files; `git diff --check` PASS. Repository-wide lint/format checks remain blocked only by pre-existing findings outside this BT26 audit diff.
+This section's former results are superseded by the authoritative executed
+ledger in `docs/audits/BT26-STATIC-AUDIT.md`. The final re-audit passed 104
+files and 972 tests, plus the documented shared-mechanism and delivery gates.

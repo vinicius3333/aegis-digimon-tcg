@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectDuration, EffectTiming } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectDuration, EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -9,6 +9,8 @@ import "../index.js";
 describe("BT26-029 compiled fidelity", () => {
   it("encodes Decode/Ascension, security-paid protection, both removal watchers, and the Angel rule trait", () => {
     const card = compiled;
+    expect(card.digivolutionRequirement).toEqual([{ namesExact: ["Aegiomon"], cost: 3, isAlternate: true }]);
+    expect(digivolutionRequirementsFor("BT26-029")).toEqual(card.digivolutionRequirement);
     expect(card?.coverage).toBe("full");
     expect(card?.residual).toEqual([]);
     expect(
@@ -33,7 +35,18 @@ describe("BT26-029 compiled fidelity", () => {
       {
         kind: "Replacement",
         event: "wouldLeavePlay",
-        actions: [{ kind: "PlayWithoutCost", fromOwnDigivolutionStack: true, payCost: false }],
+        actions: [
+          {
+            kind: "PlayWithoutCost",
+            target: {
+              filter: {
+                nameOrTrait: [{ tokens: ["Aegiomon"], match: "nameExact" }],
+              },
+            },
+            fromOwnDigivolutionStack: true,
+            payCost: false,
+          },
+        ],
       },
     ]);
     expect(card?.effects?.[4]?.actions).toMatchObject([

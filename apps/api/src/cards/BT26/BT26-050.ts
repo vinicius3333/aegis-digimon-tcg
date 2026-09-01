@@ -71,7 +71,12 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     { level: 6, traits: ["DATA SQUAD"], cost: 5, isAlternate: true },
-    { cost: 0, isAlternate: true, names: ["Rosemon"], burstDigivolve: { returnTamerNamesExact: ["Yoshino Fujieda"] } },
+    {
+      cost: 0,
+      isAlternate: true,
+      namesExact: ["Rosemon"],
+      burstDigivolve: { returnTamerNamesExact: ["Yoshino Fujieda"] },
+    },
   ],
 };
 registerIrCard("BT26-050", compiled);

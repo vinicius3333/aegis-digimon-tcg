@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition, Zone } from "@aegis/shared";
+import {
+  assemblyRequirementFor,
+  digivolutionRequirementsFor,
+  EffectTiming,
+  getCardDefinition,
+  Zone,
+} from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-079.js";
@@ -26,10 +32,14 @@ describe("BT26-079 compiled behavior", () => {
       ],
     });
     expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["Plutomon"], cost: 1, isAlternate: true },
+      { namesExact: ["Plutomon"], cost: 1, isAlternate: true },
       { level: 5, traits: ["TS"], cost: 3, isAlternate: true },
     ]);
-    expect(compiled.assemblyRequirement).toEqual([{ reduceCost: 2, materials: [{ names: ["Plutomon"], count: 1 }] }]);
+    expect(compiled.assemblyRequirement).toEqual([
+      { reduceCost: 2, materials: [{ namesExact: ["Plutomon"], count: 1 }] },
+    ]);
+    expect(digivolutionRequirementsFor("BT26-079")).toEqual(compiled.digivolutionRequirement);
+    expect(assemblyRequirementFor("BT26-079")).toEqual(compiled.assemblyRequirement);
     expect(compiled.keywords).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ keyword: "SecurityAttack", amount: 1 }),
@@ -121,6 +131,25 @@ describe("BT26-079 compiled behavior", () => {
     expect(fromTs.state.memory).toBe(0);
   });
 
+  it("does not treat ZombiePlutomon as the exact [Plutomon] evolution base", () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-079", as: "nearName" }],
+        hand: [{ card: "BT26-079", as: "zombie" }],
+      },
+    });
+    s.state.memory = 1;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("nearName").permanentId,
+        instanceId: s.inst("zombie").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+  });
+
   it("declares Assembly during its Trash Main play and stacks the Plutomon for cost 6 (Q7110)", async () => {
     const s = setupEngine(
       {
@@ -141,6 +170,24 @@ describe("BT26-079 compiled behavior", () => {
     const played = s.state.players[0]!.battleArea.find(({ topCard }) => topCard?.cardId === "BT26-079");
     expect(played?.stack.map(({ cardId }) => cardId)).toEqual(["BT26-059"]);
     expect(s.state.memory).toBe(0);
+  });
+
+  it("rejects ZombiePlutomon as the exact [Plutomon] Assembly material", () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT26-079", as: "zombie" }],
+        trash: [{ card: "BT26-079", as: "nearName" }],
+      },
+    });
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("zombie").instanceId,
+        assembly: { materialInstanceIds: [s.inst("nearName").instanceId] },
+      } as never),
+    ).toEqual(expect.objectContaining({ ok: false }));
   });
 
   it("Q7109 keeps Trash Main unavailable outside trash and with more than 5 cards in hand", async () => {
