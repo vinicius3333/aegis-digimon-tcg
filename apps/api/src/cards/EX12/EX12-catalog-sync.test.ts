@@ -9,6 +9,15 @@ const effectsPath = fileURLToPath(new URL("../../../../../packages/shared/src/ef
 const catalog = JSON.parse(readFileSync(effectsPath, "utf8")) as CompiledEffects;
 const ex12Ids = Array.from({ length: 77 }, (_, index) => `EX12-${String(index + 1).padStart(3, "0")}`);
 
+function canonical(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
+  if (value === null || typeof value !== "object") return JSON.stringify(value);
+  const entries = Object.entries(value as Record<string, unknown>)
+    .filter(([, entry]) => entry !== undefined)
+    .sort(([left], [right]) => left.localeCompare(right));
+  return `{${entries.map(([key, entry]) => `${JSON.stringify(key)}:${canonical(entry)}`).join(",")}}`;
+}
+
 describe("EX12 persisted IR", () => {
   it("contains exactly the authoritative EX12 card keys", () => {
     const persistedCardIds = Object.keys(catalog)
@@ -20,7 +29,7 @@ describe("EX12 persisted IR", () => {
 
   it("keeps every record synchronized with its authoritative module", () => {
     const mismatches = ex12Ids.filter(
-      (cardId) => JSON.stringify(catalog[cardId]) !== JSON.stringify(runtimeCompiledCard(cardId)),
+      (cardId) => canonical(catalog[cardId]) !== canonical(runtimeCompiledCard(cardId)),
     );
 
     expect(mismatches).toEqual([]);
