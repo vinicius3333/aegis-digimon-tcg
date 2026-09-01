@@ -36,7 +36,9 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlayToken",
-          tokens: ["WarGrowlmon"],
+          // Token registry names include the printed "Token" suffix; the card-name
+          // conditions below intentionally remain the unsuffixed names.
+          tokens: ["WarGrowlmon Token"],
           count: 1,
           payCost: false,
           condition: {
@@ -54,7 +56,7 @@ const compiled: CompiledCard = {
         },
         {
           kind: "PlayToken",
-          tokens: ["Taomon"],
+          tokens: ["Taomon Token"],
           count: 1,
           payCost: false,
           condition: {
@@ -72,7 +74,7 @@ const compiled: CompiledCard = {
         },
         {
           kind: "PlayToken",
-          tokens: ["Rapidmon"],
+          tokens: ["Rapidmon Token"],
           count: 1,
           payCost: false,
           condition: {

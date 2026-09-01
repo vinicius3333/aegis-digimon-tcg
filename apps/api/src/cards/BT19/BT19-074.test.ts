@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./BT19-074.js";
 
@@ -11,11 +13,16 @@ describe("BT19-074", () => {
       ...["OnPlay", "WhenDigivolving"].map((trigger) => ({
         trigger,
         actions: [
-          { kind: "Delete", target: { filter: { controller: "opponent", levelComparison: { op: "lte", value: 6 } } } },
           {
-            kind: "Delete",
-            target: { filter: { controller: "opponent" } },
+            kind: "ConditionalBranch",
             condition: { kind: "zoneCount", zone: "trash", op: "gte", value: 10 },
+            ifTrue: [{ kind: "Delete", target: { filter: { controller: "opponent" } } }],
+            ifFalse: [
+              {
+                kind: "Delete",
+                target: { filter: { controller: "opponent", levelComparison: { op: "lte", value: 6 } } },
+              },
+            ],
           },
         ],
       })),
@@ -37,5 +44,28 @@ describe("BT19-074", () => {
         ],
       },
     ]);
+  });
+
+  it("uses the 10-trash deletion instead of also performing the level-6 deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT19-074", as: "blast" }],
+          trash: Array.from({ length: 10 }, () => "BT1-009"),
+        },
+        1: {
+          battleArea: [
+            { card: "BT19-075", as: "high" },
+            { card: "BT1-009", as: "low" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blast").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.players[1]!.battleArea[0]!.topCard.cardId).toBe("BT1-009");
   });
 });

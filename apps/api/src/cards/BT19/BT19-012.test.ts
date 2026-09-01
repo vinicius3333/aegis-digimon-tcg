@@ -15,6 +15,55 @@ describe("BT19-012 OmniShoutmon", () => {
     expect(matchingAlternateDigivolutionRequirement("BT19-012", "BT19-005")).toBeUndefined();
   });
 
+  it("naturally resolves its On Play effect when played from hand", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT19-012", as: "omni" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 6000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("omni").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("naturally evolves and attacks with inherited Rush on an Xros Heart host", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT19-008", as: "base" }],
+          hand: [{ card: "BT19-012", as: "omni" }],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("omni").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "BT19-012");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+  });
+
   it.each([EffectTiming.OnPlay, EffectTiming.WhenDigivolving])(
     "%s gives one opposing Digimon -3000 DP, then deletes one at the printed boundary",
     async (timing) => {
@@ -34,11 +83,7 @@ describe("BT19-012 OmniShoutmon", () => {
       const reducedId = s.perm("reduced").permanentId;
       await advance(s.engine).fireForPermanent(timing, s.perm("omni"));
 
-      expect(
-        s.state.players[1]!.battleArea.some(
-          (permanent) => permanent.permanentId === reducedId,
-        ),
-      ).toBe(false);
+      expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === reducedId)).toBe(false);
       expect(s.perm("untouched").currentDP).toBe(4000);
     },
   );

@@ -20,8 +20,11 @@ const compiled: CompiledCard = {
               kind: "PlaceUnder",
               target: {
                 filter: {
+                  zone: "digivolutionCards",
                   controller: "mine",
                   kind: ["Digimon"],
+                  // The replacement may save only this leaving Digimon's sources.
+                  hostFilter: { isSelfRef: true },
                   nameOrTrait: [
                     {
                       tokens: ["Xros Heart"],

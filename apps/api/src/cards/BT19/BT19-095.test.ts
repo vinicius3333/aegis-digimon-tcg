@@ -1,8 +1,28 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
 describe("BT19-095 Knight Device", () => {
+  it("grants DP through a public Option play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT19-095", as: "option" }],
+          battleArea: [{ card: "BT19-050", as: "target", dp: 5000 }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").currentDP === 9000);
+    expect(s.perm("target").currentDP).toBe(9000);
+  });
+
   it("preserves color waiver, same-target Piercing and DP buffs, KB trash duration, and Security suspension", () => {
     const card = runtimeCompiledCard("BT19-095");
 

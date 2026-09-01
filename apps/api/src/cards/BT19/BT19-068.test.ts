@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT19-068.js";
 
 describe("BT19-068", () => {
@@ -24,5 +25,22 @@ describe("BT19-068", () => {
       },
       { trigger: "Rule", actions: [{ kind: "GrantStatic", grant: "trait", tokens: ["Composite"] }] },
     ]);
+  });
+
+  it("resolves the On Play reveal from a public play intent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT19-068", as: "shade" }],
+          deck: ["BT19-068", "BT19-030", "BT19-031"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shade").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT19-068"));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT19-068");
   });
 });

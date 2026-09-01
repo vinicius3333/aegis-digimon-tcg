@@ -1,8 +1,26 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
 describe("BT19-093 Queen Device", () => {
+  it("reduces an opposing Digimon through a public Option play", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT19-093", as: "option" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 6000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").currentDP === 3000);
+    expect(s.perm("target").currentDP).toBe(3000);
+  });
+
   it("preserves color waiver, same-target DP restriction, self placement, and Security debuff", () => {
     const card = runtimeCompiledCard("BT19-093");
 

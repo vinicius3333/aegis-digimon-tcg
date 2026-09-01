@@ -7,10 +7,17 @@ import "../index.js";
 
 describe("BT19-047 Ballistamon", () => {
   it("On Play may freely evolve into AtlurBallistamon from under a Tamer", async () => {
-    const s = setupEngine({ 0: { battleArea: [
-      { card: "BT19-047", as: "ballista" },
-      { card: "BT19-081", as: "tamer", under: ["BT19-051", "BT19-035"] },
-    ] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT19-047", as: "ballista" },
+            { card: "BT19-081", as: "tamer", under: ["BT19-051", "BT19-035"] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 0;
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("ballista"));
     expect(s.perm("ballista").topCard?.cardId).toBe("BT19-051");
@@ -20,18 +27,53 @@ describe("BT19-047 Ballistamon", () => {
   });
 
   it("may decline the On Play evolution without moving a Tamer source", async () => {
-    const s = setupEngine({ 0: { battleArea: [
-      { card: "BT19-047", as: "ballista" }, { card: "BT19-081", as: "tamer", under: ["BT19-051"] },
-    ] } }, { autoDeclineOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT19-047", as: "ballista" },
+            { card: "BT19-081", as: "tamer", under: ["BT19-051"] },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("ballista"));
     expect(s.perm("ballista").topCard?.cardId).toBe("BT19-047");
     expect(s.perm("tamer").stack.map((card) => card.cardId)).toEqual(["BT19-051"]);
   });
 
+  it("resolves On Play evolution from a public play intent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT19-047", as: "ballista" }],
+          battleArea: [{ card: "BT19-081", as: "tamer", under: ["BT19-051"] }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ballista").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT19-051"));
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT19-051")).toBe(true);
+  });
+
   it("Save places deleted Ballistamon under a controller Tamer", async () => {
-    const s = setupEngine({ 0: { battleArea: [
-      { card: "BT19-047", as: "ballista" }, { card: "BT19-081", as: "tamer" },
-    ] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT19-047", as: "ballista" },
+            { card: "BT19-081", as: "tamer" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("ballista").permanentId], "byEffect");
     await settle(() => s.perm("tamer").stack.some((card) => card.cardId === "BT19-047"));
@@ -40,10 +82,14 @@ describe("BT19-047 Ballistamon", () => {
   });
 
   it("inherited Blocker applies only to an Xros Heart host on the opponent's turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [
-      { card: "BT19-051", as: "host", under: ["BT19-047"] },
-      { card: "BT19-015", as: "nonmatching", under: ["BT19-047"] },
-    ] } });
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT19-051", as: "host", under: ["BT19-047"] },
+          { card: "BT19-015", as: "nonmatching", under: ["BT19-047"] },
+        ],
+      },
+    });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(false);
     s.state.turnSeat = 1;

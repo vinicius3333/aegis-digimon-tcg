@@ -96,7 +96,7 @@ const compiled: CompiledCard = {
               ],
             },
             count: 1,
-            source: ["hand", "trash"],
+            from: ["hand", "trash"],
           },
           underFilter: {
             controller: "mine",

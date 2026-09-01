@@ -14,6 +14,47 @@ describe("BT19-011 WarGrowlmon", () => {
     });
   });
 
+  it("naturally resolves its On Play deletion when played from hand", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT19-011", as: "warGrowlmon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 3000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("warGrowlmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.memory).toBe(6);
+  });
+
+  it("naturally resolves its deletion when digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT19-009", as: "base" }], hand: [{ card: "BT19-011", as: "warGrowlmon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 3000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("warGrowlmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
   it.each([
     ["On Play", EffectTiming.OnPlay],
     ["When Digivolving", EffectTiming.WhenDigivolving],

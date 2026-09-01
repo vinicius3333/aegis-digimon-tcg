@@ -43,6 +43,7 @@ const compiled = {
         {
           kind: "SubTrigger",
           event: "whenOpponentAttacks",
+          sourceFilter: { controller: "opponent", kind: ["Digimon"] },
           actions: [
             {
               kind: "PlayWithoutCost",

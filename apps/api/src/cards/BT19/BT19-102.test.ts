@@ -30,11 +30,17 @@ describe("BT19-102 Luminamon (Nene Version)", () => {
         trigger: "OnPlay",
         actions: [
           {
-            kind: "Delete",
-            target: { sameTarget: true },
+            kind: "SelectBind",
+            target: { bindAs: "chosenHost" },
             optional: true,
             abortOnDecline: true,
-            cost: { kind: "playFromDigivolutionCards", payCost: false },
+          },
+          {
+            kind: "Delete",
+            target: { fromSelectionRef: "chosenHost" },
+            optional: true,
+            abortOnDecline: true,
+            cost: { kind: "playFromDigivolutionCards", hostTarget: { fromSelectionRef: "chosenHost" }, payCost: false },
           },
         ],
       },
@@ -42,11 +48,17 @@ describe("BT19-102 Luminamon (Nene Version)", () => {
         trigger: "WhenDigivolving",
         actions: [
           {
-            kind: "Delete",
-            target: { sameTarget: true },
+            kind: "SelectBind",
+            target: { bindAs: "chosenHost" },
             optional: true,
             abortOnDecline: true,
-            cost: { kind: "playFromDigivolutionCards", payCost: false },
+          },
+          {
+            kind: "Delete",
+            target: { fromSelectionRef: "chosenHost" },
+            optional: true,
+            abortOnDecline: true,
+            cost: { kind: "playFromDigivolutionCards", hostTarget: { fromSelectionRef: "chosenHost" }, payCost: false },
           },
         ],
       },

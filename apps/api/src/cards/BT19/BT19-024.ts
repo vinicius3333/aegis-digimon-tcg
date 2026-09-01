@@ -109,6 +109,7 @@ const compiled: CompiledCard = {
                 filter: {
                   controller: "mine",
                   kind: ["Digimon"],
+                  isSelfRef: true,
                   colors: ["Blue"],
                   levelComparison: {
                     op: "eq",
@@ -135,6 +136,7 @@ const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
+              isSelfRef: true,
               levelComparison: {
                 op: "lte",
                 value: 4,

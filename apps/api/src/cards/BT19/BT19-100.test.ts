@@ -1,9 +1,25 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
 describe("BT19-100 D-Reaper Zone", () => {
-  it("preserves conditional security placement, scaled attack reduction, and mandatory Security play", () => {
+  it("trashes its top security and replaces it face-up through a public Option play", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "BT19-100", as: "option" }], security: ["BT1-001"], battleArea: [{ card: "EX2-046" }] } },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.some((card) => card.cardId === "BT19-100"));
+    expect(s.state.players[0]!.security.some((card) => card.cardId === "BT19-100" && card.faceUp)).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT1-001");
+  });
+
+  it("preserves conditional security placement, scaled attack reduction, and optional Security play", () => {
     const card = runtimeCompiledCard("BT19-100");
 
     expect(card).toMatchObject({ coverage: "full", residual: [] });
@@ -69,6 +85,7 @@ describe("BT19-100 D-Reaper Zone", () => {
             },
             from: ["hand"],
             payCost: false,
+            optional: true,
           },
         ],
       },

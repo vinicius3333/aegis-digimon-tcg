@@ -23,7 +23,7 @@ const compiled: CompiledCard = {
             kind: "place",
             target: {
               filter: {
-                zone: "battleArea",
+                zone: "hand",
                 controller: "mine",
                 kind: ["Option"],
                 nameOrTrait: [

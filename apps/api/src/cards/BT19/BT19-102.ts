@@ -11,7 +11,7 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
-          kind: "Delete",
+          kind: "SelectBind",
           target: {
             filter: {
               controller: "both",
@@ -19,16 +19,23 @@ const compiled: CompiledCard = {
               excludeSelf: true,
             },
             count: 1,
-            sameTarget: true,
+            bindAs: "chosenHost",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+        {
+          kind: "Delete",
+          target: {
+            fromSelectionRef: "chosenHost",
+            filter: { controller: "both", kind: ["Digimon"], excludeSelf: true },
+            count: 1,
           },
           cost: {
             kind: "playFromDigivolutionCards",
             hostTarget: {
-              filter: {
-                controller: "both",
-                kind: ["Digimon"],
-                excludeSelf: true,
-              },
+              fromSelectionRef: "chosenHost",
+              filter: {},
               count: 1,
             },
             target: {
@@ -53,7 +60,7 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "Delete",
+          kind: "SelectBind",
           target: {
             filter: {
               controller: "both",
@@ -61,16 +68,23 @@ const compiled: CompiledCard = {
               excludeSelf: true,
             },
             count: 1,
-            sameTarget: true,
+            bindAs: "chosenHost",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+        {
+          kind: "Delete",
+          target: {
+            fromSelectionRef: "chosenHost",
+            filter: { controller: "both", kind: ["Digimon"], excludeSelf: true },
+            count: 1,
           },
           cost: {
             kind: "playFromDigivolutionCards",
             hostTarget: {
-              filter: {
-                controller: "both",
-                kind: ["Digimon"],
-                excludeSelf: true,
-              },
+              fromSelectionRef: "chosenHost",
+              filter: {},
               count: 1,
             },
             target: {

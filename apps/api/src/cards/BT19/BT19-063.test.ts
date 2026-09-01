@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT19-063.js";
 
 describe("BT19-063", () => {
@@ -27,5 +28,20 @@ describe("BT19-063", () => {
         actions: [{ kind: "PlayWithoutCost", from: ["trash"], optional: true }],
       },
     ]);
+  });
+
+  it("resolves De-Digivolve from a public play intent", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT19-063", as: "dark" }] },
+        1: { battleArea: [{ card: "BT19-020", as: "target", under: ["BT19-021"] }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dark").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("target").topCard?.cardId === "BT19-021");
+    expect(s.perm("target").topCard?.cardId).toBe("BT19-021");
   });
 });
