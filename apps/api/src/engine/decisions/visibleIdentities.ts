@@ -1,4 +1,4 @@
-import { Zone, type CardInstance, type GameState, type PlayerState, type Seat } from "@aegis/shared";
+import { Zone, type CardInstance, type GameState, type Permanent, type PlayerState, type Seat } from "@aegis/shared";
 
 /**
  * Which cards a decision has to name for itself, so the client can draw them.
@@ -20,9 +20,16 @@ import { Zone, type CardInstance, type GameState, type PlayerState, type Seat } 
  *   - a FACE-UP card is named to whoever is deciding. `reveal` turns the cards it shows face
  *     up, so every "reveal the top N and choose among them" is covered wherever the reveal
  *     happened;
+ *   - a card the deciding seat can already read on the public board — its own or any face-up
+ *     card sitting on a permanent (top card, digivolution stack, linked cards), in the trash
+ *     or in the Delay zone — is named too. Those zones are public, so the client CAN normally
+ *     resolve them out of its own index; naming them anyway means a prompt no longer depends
+ *     on the client's copy of a zone being in step with the server's. It discloses nothing
+ *     new: this is the same `faceUp || own` test `exposeCardInZone` applies to the board;
  *   - everything else stays unnamed. A face-down security card is the case that matters: the
  *     engine deliberately offers those as real instances for the player to pick blindly among,
- *     and naming them would hand over the whole stack.
+ *     and naming them would hand over the whole stack. A face-down digivolution card under an
+ *     OPPONENT's Digimon stays unnamed for the same reason.
  *
  * A `visibleCards` entry a card module supplied itself always wins; this only fills gaps.
  */
@@ -42,8 +49,31 @@ export function decisionCardIdentities(
     if (wanted.size === 0) break;
     for (const card of ownLookableZones(player, seat)) take(card);
     for (const card of faceUpCards(player)) take(card);
+    for (const card of readableBoardCards(player, seat)) take(card);
   }
   return named;
+}
+
+/**
+ * The public-board cards `seat` may read: everything in the trash and the Delay zone, and the
+ * cards of every permanent (top card, digivolution stack, linked cards) that is either face-up
+ * or owned by this seat. Same test as the board's own visibility policy (`exposeCardInZone`),
+ * so naming these adds nothing to what the seat already receives.
+ */
+function readableBoardCards(player: PlayerState, seat: Seat): readonly CardInstance[] {
+  const readable: CardInstance[] = [...player.trash, ...player.delayZone];
+  const collect = (permanent: Permanent | undefined): void => {
+    if (permanent === undefined) return;
+    const cards = [
+      ...(permanent.topCard === undefined ? [] : [permanent.topCard]),
+      ...permanent.stack,
+      ...permanent.linked,
+    ];
+    for (const card of cards) if (card.faceUp || (card.ownerSeat as Seat) === seat) readable.push(card);
+  };
+  for (const permanent of player.battleArea) collect(permanent);
+  collect(player.breeding);
+  return readable;
 }
 
 /** The piles `seat` may look through when it is the one being asked to choose. */

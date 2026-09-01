@@ -3984,11 +3984,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         if (card.instanceId === instanceId || cards.length === 1) {
           card.faceUp = false;
           const definition = requireCardDefinition(card.cardId);
-          const deck = definition.kinds.includes(CardKind.DigiEgg)
-            ? player(card.ownerSeat).eggDeck
-            : player(card.ownerSeat).deck;
-          if (toTop) deck.unshift(card);
-          else deck.push(card);
+          const deckZone = definition.kinds.includes(CardKind.DigiEgg) ? Zone.EggDeck : Zone.Deck;
+          insertCard(player(card.ownerSeat), deckZone, card, toTop ? "top" : "bottom");
           moved.push(card);
         } else {
           card.faceUp = true;
@@ -4110,11 +4107,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     for (const card of [...moved].reverse()) {
       card.faceUp = false;
       const definition = requireCardDefinition(card.cardId);
-      const deck = definition.kinds.includes(CardKind.DigiEgg)
-        ? player(card.ownerSeat).eggDeck
-        : player(card.ownerSeat).deck;
-      if (opts?.position === "bottom") deck.push(card);
-      else deck.unshift(card);
+      const deckZone = definition.kinds.includes(CardKind.DigiEgg) ? Zone.EggDeck : Zone.Deck;
+      insertCard(player(card.ownerSeat), deckZone, card, opts?.position === "bottom" ? "bottom" : "top");
     }
     if (moved.length === 0) return [];
 
