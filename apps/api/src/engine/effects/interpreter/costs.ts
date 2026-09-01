@@ -7,7 +7,12 @@ import { canAttemptDigivolve, runDigivolve } from "./actions/digivolve.js";
 import { definitionMatches } from "./matching/definition.js";
 import { permanentMatchesFilter, seatsForController } from "./matching/permanent.js";
 import { LooseCandidate, candidateLooseInstances, looseCardsInZone, pickLoose, zoneList } from "./targeting/loose.js";
-import { candidatePermanents, resolvePermanentTargets, topInstanceIds } from "./targeting/permanents.js";
+import {
+  candidatePermanents,
+  effectiveTargetCount,
+  resolvePermanentTargets,
+  topInstanceIds,
+} from "./targeting/permanents.js";
 import {
   canAssignDistinctColors,
   CardKind,
@@ -91,7 +96,8 @@ function bindLooseCostSelection(
  * false ONLY when the cost is provably unpayable; unknown cost shapes return true so a payable
  * option is never hidden. Currently covers own-Digimon deletion, security-stack costs (BT15-003
  * "by trashing the top or bottom card of your security stack" with an empty stack),
- * `securityToHand`, `payMemory`, and stacked-permanent visible-top return costs; extend as other
+ * `securityToHand`, `payMemory`, stacked-permanent visible-top return costs, and permanent
+ * placement costs whose destination must differ from the selected source; extend as other
  * provable cases arise.
  */
 export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
@@ -144,6 +150,24 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
   if (cost.kind === "placeOwnTopAtStackBottom") {
     if (cost.target === undefined) return false;
     return candidatePermanents(ctx, cost.target).some((permanent) => permanent.stack.length > 0);
+  }
+  if (
+    cost.kind === "place" &&
+    cost.targetIsPermanent === true &&
+    cost.target !== undefined &&
+    cost.destination === "digivolutionStack" &&
+    cost.host === "target" &&
+    cost.underFilter !== undefined
+  ) {
+    const sourceIds = new Set(candidatePermanents(ctx, cost.target).map((permanent) => permanent.permanentId));
+    if (sourceIds.size === 0) return false;
+    const destinationIds = candidatePermanents(ctx, { filter: cost.underFilter, count: 1 }).map(
+      (permanent) => permanent.permanentId,
+    );
+    return (
+      destinationIds.length > 0 &&
+      [...sourceIds].some((sourceId) => destinationIds.some((destinationId) => destinationId !== sourceId))
+    );
   }
   if (cost.kind === "reveal") {
     if (cost.target === undefined) return false;
@@ -374,7 +398,8 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
       const selectedIds = candidates.map((permanent) => permanent.permanentId);
       const legalIds =
         cost.target.filter.differentColors === true ? distinctColorPermanentIds(ctx, selectedIds) : selectedIds;
-      const required = cost.target.upTo === true ? 1 : cost.target.count === "all" ? 1 : (cost.target.count ?? 1);
+      const required =
+        cost.target.upTo === true ? 1 : cost.target.count === "all" ? 1 : effectiveTargetCount(ctx, cost.target);
       if (legalIds.length < required) return false;
       if (cost.destination === "security" || cost.destination === "battleArea") return true;
       if (cost.host !== null && typeof cost.host === "object") {
@@ -1688,109 +1713,175 @@ export async function payCost(
       if (cost.destination !== undefined) {
         if (!cost.target) return false;
         if (cost.targetIsPermanent === true) {
-          const resolvedSourceIds = await resolvePermanentTargets(ctx, cost.target);
-          const sourceIds =
-            cost.target.filter.differentColors === true
-              ? distinctColorPermanentIds(ctx, resolvedSourceIds)
-              : resolvedSourceIds;
-          if (sourceIds.length === 0) return false;
-          if (cost.storeAs !== undefined) {
-            const sourcePermanent = ctx.game.permanentById(sourceIds[0]!);
-            const level = sourcePermanent?.topCard ? ctx.game.definitionOf(sourcePermanent.topCard).level : undefined;
-            if (level !== undefined && level > 0) {
-              if (ctx.namedCounts === undefined) ctx.namedCounts = new Map();
-              ctx.namedCounts.set(cost.storeAs, level);
-            }
-          }
-          if (cost.destination === "security") {
-            for (const sourcePermanentId of sourceIds) {
-              const permanent = ctx.game.permanentById(sourcePermanentId);
-              if (permanent?.topCard === undefined) return false;
-              const topInstanceId = permanent.topCard.instanceId;
-              await ctx.fx.addSecurity(permanent.controllerSeat, [topInstanceId], {
-                toTop: cost.position !== "bottom",
-                detachPermanentTop: cost.detachPermanentTop === true,
-              });
-              if (cost.detachPermanentTop === true) {
-                const reachedSecurity = ctx.game.state.players.some((player) =>
-                  player.security.some((card) => card.instanceId === topInstanceId),
-                );
-                if (!reachedSecurity) return false;
-                continue;
+          // `bindAs` is needed while resolving an `excludeSelectionRef` destination, but it
+          // must not leak from a failed payment into a reused activation context (notably a
+          // hand-resident replacement). Preserve any earlier binding until the payment commits.
+          const bindAs = cost.target.bindAs;
+          const hadPreviousBinding = bindAs !== undefined && ctx.selections?.has(bindAs) === true;
+          const previousBinding = bindAs === undefined ? undefined : ctx.selections?.get(bindAs);
+          const hostBindAs = cost.bindHostAs;
+          const hadPreviousHostBinding = hostBindAs !== undefined && ctx.selections?.has(hostBindAs) === true;
+          const previousHostBinding = hostBindAs === undefined ? undefined : ctx.selections?.get(hostBindAs);
+          let committedBinding = false;
+          const restoreBinding = (): void => {
+            if (bindAs !== undefined) {
+              if (hadPreviousBinding && previousBinding !== undefined) {
+                ctx.selections ??= new Map();
+                ctx.selections.set(bindAs, previousBinding);
+              } else {
+                ctx.selections?.delete(bindAs);
               }
-              // The cost is paid only if the permanent actually left. A leave-prevention
-              // replacement can keep it in the battle area (ST22-06 Q5425), in which case the
-              // dependent effect must not resolve even though the placement was attempted.
-              if (ctx.game.permanentById(sourcePermanentId) !== undefined) return false;
             }
-            if (out) out.paidCount = sourceIds.length;
+            if (hostBindAs !== undefined) {
+              if (hadPreviousHostBinding && previousHostBinding !== undefined) {
+                ctx.selections ??= new Map();
+                ctx.selections.set(hostBindAs, previousHostBinding);
+              } else {
+                ctx.selections?.delete(hostBindAs);
+              }
+            }
+          };
+          try {
+            const resolvedSourceIds = await resolvePermanentTargets(ctx, cost.target);
+            const sourceIds =
+              cost.target.filter.differentColors === true
+                ? distinctColorPermanentIds(ctx, resolvedSourceIds)
+                : resolvedSourceIds;
+            if (sourceIds.length === 0) return false;
+            const requiredSourceCount =
+              cost.target.upTo === true
+                ? 0
+                : cost.target.count === "all"
+                  ? sourceIds.length
+                  : effectiveTargetCount(ctx, cost.target);
+            if (sourceIds.length < requiredSourceCount) return false;
+            if (cost.target.bindAs !== undefined) {
+              ctx.selections ??= new Map();
+              ctx.selections.set(cost.target.bindAs, sourceIds[0]!);
+            }
+            if (cost.storeAs !== undefined) {
+              const sourcePermanent = ctx.game.permanentById(sourceIds[0]!);
+              const level = sourcePermanent?.topCard ? ctx.game.definitionOf(sourcePermanent.topCard).level : undefined;
+              if (level !== undefined && level > 0) {
+                if (ctx.namedCounts === undefined) ctx.namedCounts = new Map();
+                ctx.namedCounts.set(cost.storeAs, level);
+              }
+            }
+            if (cost.destination === "security") {
+              for (const sourcePermanentId of sourceIds) {
+                const permanent = ctx.game.permanentById(sourcePermanentId);
+                if (permanent?.topCard === undefined) return false;
+                const topInstanceId = permanent.topCard.instanceId;
+                await ctx.fx.addSecurity(permanent.controllerSeat, [topInstanceId], {
+                  toTop: cost.position !== "bottom",
+                  detachPermanentTop: cost.detachPermanentTop === true,
+                });
+                if (cost.detachPermanentTop === true) {
+                  const reachedSecurity = ctx.game.state.players.some((player) =>
+                    player.security.some((card) => card.instanceId === topInstanceId),
+                  );
+                  if (!reachedSecurity) return false;
+                  continue;
+                }
+                // The cost is paid only if the permanent actually left. A leave-prevention
+                // replacement can keep it in the battle area (ST22-06 Q5425), in which case the
+                // dependent effect must not resolve even though the placement was attempted.
+                if (ctx.game.permanentById(sourcePermanentId) !== undefined) return false;
+              }
+              if (out) out.paidCount = sourceIds.length;
+              committedBinding = true;
+              return true;
+            }
+            let hostPermId: string | undefined;
+            if (cost.host !== null && typeof cost.host === "object") {
+              const destIds = placeCostHostCandidates(ctx, {
+                filter: cost.host.filter,
+                count: cost.host.count,
+                orFilters: cost.host.orFilters,
+              }).map((permanent) => permanent.permanentId);
+              if (destIds.length === 0) return false;
+              hostPermId =
+                destIds.length === 1
+                  ? destIds[0]
+                  : (await ctx.ask.chooseTargets(ctx, { candidates: destIds, min: 1, max: 1 }))[0];
+            } else if (cost.host === "target" && cost.underFilter) {
+              const destIds = await resolvePermanentTargets(ctx, {
+                filter: cost.underFilter,
+                orFilters: cost.underOrFilters,
+                count: 1,
+              });
+              if (destIds.length === 0) return false;
+              hostPermId =
+                destIds.length === 1
+                  ? destIds[0]
+                  : (await ctx.ask.chooseTargets(ctx, { candidates: destIds, min: 1, max: 1 }))[0];
+            } else if (cost.host === "triggerSource") {
+              hostPermId =
+                ctx.trigger.subjectPermanentId ?? ctx.trigger.attackerPermanentId ?? ctx.trigger.deletedPermanentId;
+            } else {
+              const selfPerm =
+                ctx.source.permanent() ??
+                (ctx.trigger.attackerPermanentId !== undefined
+                  ? ctx.game.permanentById(ctx.trigger.attackerPermanentId)
+                  : undefined);
+              if (selfPerm === undefined) return false;
+              hostPermId = selfPerm.permanentId;
+            }
+            if (hostPermId === undefined) return false;
+            // A permanent cannot be placed under itself. The destination filter normally
+            // excludes the selected source through `excludeSelectionRef`; retain this
+            // identity guard at the mutation seam so a malformed/stale selection can never
+            // partially pay the cost.
+            if (sourceIds.includes(hostPermId)) return false;
+            if (sourceIds.some((sourceId) => ctx.game.permanentById(sourceId)?.topCard === undefined)) return false;
+            if (cost.bindHostAs !== undefined) {
+              ctx.selections ??= new Map();
+              ctx.selections.set(cost.bindHostAs, hostPermId);
+            }
+            const placedSourceIds: string[] = [];
+            const sourceTopInstanceIds = new Map(
+              sourceIds.map((sourcePermanentId) => [
+                sourcePermanentId,
+                ctx.game.permanentById(sourcePermanentId)?.topCard?.instanceId,
+              ]),
+            );
+            if (sourceIds.length > 1) {
+              // A multi-source permanent payment must be one atomic operation. The production
+              // primitive preflights every source before mutating; refusing the batch in a
+              // minimal/legacy context is safer than falling back to partial sequential moves.
+              if (ctx.fx.relocatePermanentsByEffect === undefined) return false;
+              const moved = await ctx.fx.relocatePermanentsByEffect(hostPermId, sourceIds, {
+                belowTop: cost.position !== "bottom",
+                shedOwnCards: cost.shedOwnCards === true,
+              });
+              if (
+                moved.length !== sourceIds.length ||
+                moved.some((sourcePermanentId) => !sourceIds.includes(sourcePermanentId))
+              )
+                return false;
+              placedSourceIds.push(...sourceIds);
+            } else {
+              const moved = await relocateByEffect(ctx, hostPermId, sourceIds[0]!, {
+                belowTop: cost.position !== "bottom",
+                shedOwnCards: cost.shedOwnCards === true,
+              });
+              if (moved) placedSourceIds.push(sourceIds[0]!);
+            }
+            if (placedSourceIds.length === 0) return false;
+            ctx.lastPlacedUnderInstanceIds = placedSourceIds
+              .map((sourcePermanentId) => sourceTopInstanceIds.get(sourcePermanentId))
+              .filter((instanceId): instanceId is string => instanceId !== undefined);
+            ctx.lastEffectActed = true;
+            if (cost.trackCount !== undefined) {
+              ctx.namedCounts ??= new Map();
+              ctx.namedCounts.set(cost.trackCount, placedSourceIds.length);
+            }
+            if (out) out.paidCount = placedSourceIds.length;
+            committedBinding = true;
             return true;
+          } finally {
+            if (!committedBinding) restoreBinding();
           }
-          let hostPermId: string | undefined;
-          if (cost.host !== null && typeof cost.host === "object") {
-            const destIds = placeCostHostCandidates(ctx, {
-              filter: cost.host.filter,
-              count: cost.host.count,
-              orFilters: cost.host.orFilters,
-            }).map((permanent) => permanent.permanentId);
-            if (destIds.length === 0) return false;
-            hostPermId =
-              destIds.length === 1
-                ? destIds[0]
-                : (await ctx.ask.chooseTargets(ctx, { candidates: destIds, min: 1, max: 1 }))[0];
-          } else if (cost.host === "target" && cost.underFilter) {
-            const destIds = await resolvePermanentTargets(ctx, {
-              filter: cost.underFilter,
-              orFilters: cost.underOrFilters,
-              count: 1,
-            });
-            if (destIds.length === 0) return false;
-            hostPermId =
-              destIds.length === 1
-                ? destIds[0]
-                : (await ctx.ask.chooseTargets(ctx, { candidates: destIds, min: 1, max: 1 }))[0];
-          } else if (cost.host === "triggerSource") {
-            hostPermId =
-              ctx.trigger.subjectPermanentId ?? ctx.trigger.attackerPermanentId ?? ctx.trigger.deletedPermanentId;
-          } else {
-            const selfPerm =
-              ctx.source.permanent() ??
-              (ctx.trigger.attackerPermanentId !== undefined
-                ? ctx.game.permanentById(ctx.trigger.attackerPermanentId)
-                : undefined);
-            if (selfPerm === undefined) return false;
-            hostPermId = selfPerm.permanentId;
-          }
-          if (hostPermId === undefined) return false;
-          if (cost.bindHostAs !== undefined) {
-            ctx.selections ??= new Map();
-            ctx.selections.set(cost.bindHostAs, hostPermId);
-          }
-          const placedSourceIds: string[] = [];
-          const sourceTopInstanceIds = new Map(
-            sourceIds.map((sourcePermanentId) => [
-              sourcePermanentId,
-              ctx.game.permanentById(sourcePermanentId)?.topCard?.instanceId,
-            ]),
-          );
-          for (const sourcePermanentId of sourceIds) {
-            const moved = await relocateByEffect(ctx, hostPermId, sourcePermanentId, {
-              belowTop: cost.position !== "bottom",
-              shedOwnCards: cost.shedOwnCards === true,
-            });
-            if (moved) placedSourceIds.push(sourcePermanentId);
-          }
-          if (placedSourceIds.length === 0) return false;
-          ctx.lastPlacedUnderInstanceIds = placedSourceIds
-            .map((sourcePermanentId) => sourceTopInstanceIds.get(sourcePermanentId))
-            .filter((instanceId): instanceId is string => instanceId !== undefined);
-          ctx.lastEffectActed = true;
-          if (cost.trackCount !== undefined) {
-            ctx.namedCounts ??= new Map();
-            ctx.namedCounts.set(cost.trackCount, placedSourceIds.length);
-          }
-          if (out) out.paidCount = placedSourceIds.length;
-          return true;
         }
         const srcZones: ZoneRef[] = (cost.target.from?.length ?? 0) > 0 ? (cost.target.from as ZoneRef[]) : ["hand"];
         const srcCandidates = candidateLooseInstances(ctx, cost.target, srcZones);

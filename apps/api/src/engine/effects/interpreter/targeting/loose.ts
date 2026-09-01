@@ -198,6 +198,16 @@ export function zoneList(zone: ZoneRef | ZoneRef[] | undefined): ZoneRef[] {
 }
 
 export function candidateLooseInstances(ctx: EffectContext, target: Target, zones: ZoneRef[]): LooseCandidate[] {
+  const candidates = candidateLooseInstancesIncludingReserved(ctx, target, zones);
+  const reserved = ctx.reservedCostInstanceIds;
+  return reserved === undefined ? candidates : candidates.filter(({ instanceId }) => !reserved.has(instanceId));
+}
+
+function candidateLooseInstancesIncludingReserved(
+  ctx: EffectContext,
+  target: Target,
+  zones: ZoneRef[],
+): LooseCandidate[] {
   // For a loose card in hand/trash/security, `this card` is the source instance.  In a
   // hosted-card zone, though, "this Digimon's digivolution cards" means every stack card
   // whose HOST is the source permanent (EX6-073), not the source's top-card instance.

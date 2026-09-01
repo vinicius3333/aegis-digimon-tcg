@@ -105,6 +105,7 @@ export interface Condition {
     | "triggeredByEffect" // whenSuspended was produced by an effect, not attack/block rules (EX11-062)
     | "triggerRemovalCause"
     | "triggerDeletedIsOpponent"
+    | "triggerDeletedIsYourOther"
     | "triggerDeletedByDpZero"
     | "triggerIsFirstDeletedPermanent"
     | "noTamerInDigivolution"

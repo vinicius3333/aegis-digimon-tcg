@@ -160,6 +160,13 @@ export interface PrimitivesEngine {
    * played") before an effect-driven paid play charges memory.
    */
   finalizeEffectPlayCost?: (instanceId: string, baseCost: number, useAsOption?: boolean) => Promise<number>;
+  /** Resolve passive and interactive cost reducers for an effect-driven paid digivolution. */
+  finalizeEffectDigivolveCost?: (
+    target: Permanent,
+    evolvingInstanceId: string,
+    into: CardDefinition,
+    baseCost: number,
+  ) => Promise<number>;
   /** Read the effective hand-use cost for eligibility checks that must include automatic self reducers. */
   effectiveLooseUseCost?: (instanceId: string, controllerSeat: Seat) => number | undefined;
   /** Resolve each newly linked physical card's own [When Linking] window. */
@@ -1222,7 +1229,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       const allowedDelta = continuous.blocksCostReduction(seat, "digivolve")
         ? Math.max(0, declaredDelta)
         : declaredDelta;
-      const cost = Math.max(0, adjustedEvoCost(seat, permanent, baseCost + allowedDelta, definition));
+      const declaredCost = baseCost + allowedDelta;
+      const cost = Math.max(
+        0,
+        engine.finalizeEffectDigivolveCost !== undefined
+          ? await engine.finalizeEffectDigivolveCost(permanent, sourceInstanceId, definition, declaredCost)
+          : adjustedEvoCost(seat, permanent, declaredCost, definition),
+      );
       if (engine.memory.maxCostFor(seat) < cost) return undefined;
       if (cost > 0) engine.memory.pay(seat, cost, "digivolve");
     } else if (!opts?.ignoreRequirements) {
@@ -1889,6 +1902,55 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       // A whole permanent placed under another by an effect/cost is still one or more
       // digivolution cards being added. Share the same awaited event seam as `placeUnder`
       // so ST13-05/ST13-14 and every analogous watcher resolve before the parent continues.
+      await engine.fireSubTrigger?.("onAddDigivolutionCards", {
+        subjectPermanentId: destPermanentId,
+        addedDigivolutionCardInstanceIds: movedCardIds,
+        ...(effectSeatStack.at(-1) !== undefined ? { byEffectSeat: effectSeatStack.at(-1) } : {}),
+      });
+    }
+    return moved;
+  };
+
+  const relocatePermanentsByEffect: NonNullable<Primitives["relocatePermanentsByEffect"]> = async (
+    destPermanentId,
+    sourcePermanentIds,
+    opts,
+  ) => {
+    if (
+      sourcePermanentIds.length === 0 ||
+      new Set(sourcePermanentIds).size !== sourcePermanentIds.length ||
+      sourcePermanentIds.includes(destPermanentId)
+    )
+      return [];
+
+    const destination =
+      access.permanentById(destPermanentId) ??
+      state.players.find((owner) => owner.breeding?.permanentId === destPermanentId)?.breeding;
+    if (destination?.topCard === undefined) return [];
+
+    // Preflight the whole batch before calling the mutating primitive. This is the atomicity
+    // seam for costs such as BT18-096: when source B is stale/protected/missing, source A is
+    // not moved first and no stack, trash, or source ledger can be left half-paid.
+    const sources = sourcePermanentIds.map((sourcePermanentId) => {
+      const permanent =
+        access.permanentById(sourcePermanentId) ??
+        state.players.find((owner) => owner.breeding?.permanentId === sourcePermanentId)?.breeding;
+      return permanent?.topCard === undefined ? undefined : permanent;
+    });
+    if (sources.some((source) => source === undefined)) return [];
+
+    // `relocatePermanent` is synchronous and the checks above cover every failure it can
+    // report. Complete preflight means no async callback can interleave between source moves;
+    // retain the all-or-nothing result check as a defensive guard at this seam.
+    const moved: string[] = [];
+    for (const sourcePermanentId of sourcePermanentIds) {
+      if (!relocatePermanent(destPermanentId, sourcePermanentId, opts)) return [];
+      moved.push(sourcePermanentId);
+    }
+    for (const source of sources) {
+      const movedCardIds = [source!.topCard, ...source!.stack, ...source!.linked]
+        .filter((card): card is CardInstance => card !== undefined)
+        .map((card) => card.instanceId);
       await engine.fireSubTrigger?.("onAddDigivolutionCards", {
         subjectPermanentId: destPermanentId,
         addedDigivolutionCardInstanceIds: movedCardIds,
@@ -3062,24 +3124,24 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       }
       if (scapegoatSaved.size > 0) toDelete = toDelete.filter((id) => !scapegoatSaved.has(id));
     }
+    const deletedPermanentSnapshots = toDelete.flatMap((permanentId) => {
+      const permanent = access.permanentById(permanentId);
+      return permanent?.topCard === undefined
+        ? []
+        : [
+            {
+              permanentId,
+              controllerSeat: permanent.controllerSeat,
+              topCardId: permanent.topCard.cardId,
+            },
+          ];
+    });
     // SubTrigger bus (System B): "when [a matching Digimon] is deleted" watchers fire over
     // the to-be-deleted set, co-located with the deletion. Fired here — while each subject is
     // STILL a live permanent — so a watcher's captured sourceFilter ("a [Puppet] Digimon")
     // can resolve and gate on the deleted card's live traits/controller before it leaves the
     // field. The body (e.g. draw) runs immediately; OnDestroyedAnyone (System A) follows below.
     if (engine.fireSubTrigger) {
-      const deletedPermanentSnapshots = toDelete.flatMap((permanentId) => {
-        const permanent = access.permanentById(permanentId);
-        return permanent?.topCard === undefined
-          ? []
-          : [
-              {
-                permanentId,
-                controllerSeat: permanent.controllerSeat,
-                topCardId: permanent.topCard.cardId,
-              },
-            ];
-      });
       for (const permanentId of toDelete) {
         const deleted = access.permanentById(permanentId);
         if (deleted?.topCard === undefined) continue;
@@ -3215,6 +3277,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     if (tokenDeletionIds.length > 0 && engine.fireTiming) {
       await engine.fireTiming(EffectTiming.OnDestroyedAnyone, {
         deletedInstanceIds: tokenDeletionIds,
+        deletedPermanentSnapshots,
         removalCause: cause,
         removalMechanic: opts?.mechanic,
       });
@@ -3272,6 +3335,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         ...deletionGrantSnapshot,
         deletedPermanentId: allMoved[0],
         deletedPermanentIds: toDelete,
+        deletedControllerSeat: deletedPermanentSnapshots.find(({ permanentId }) => permanentId === allMoved[0])
+          ?.controllerSeat,
+        deletedPermanentSnapshots,
         deletedTopCardId: topCardIdsByPermanent.find((cardId) => cardId !== undefined),
         deletedEffectiveColorsByInstanceId,
         deletedByDpZero,
@@ -5344,6 +5410,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     placeOwnTopAtStackBottom,
     relocatePermanent,
     relocatePermanentByEffect,
+    relocatePermanentsByEffect,
     movePermanentZone,
     hatch,
     placeUnderFromEggDeck,

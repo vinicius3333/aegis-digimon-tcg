@@ -335,7 +335,7 @@ interface PooledRuleDeletion {
  * single sweep, and stays one across the pass; `deletedByDpZeroInstanceIds` carries the
  * per-card truth an effect needs.
  */
-function mergeRuleDeletions(pool: readonly PooledRuleDeletion[]): PooledRuleDeletion {
+export function mergeRuleDeletions(pool: readonly PooledRuleDeletion[]): PooledRuleDeletion {
   const merged = pool.reduce<TriggerInfo>((into, { trigger }) => {
     const union = (
       key:
@@ -356,10 +356,15 @@ function mergeRuleDeletions(pool: readonly PooledRuleDeletion[]): PooledRuleDele
         ...into.deletedLinkHostInstanceByLinkedInstanceId,
       },
       deletedByDpZero: into.deletedByDpZero === true || trigger.deletedByDpZero === true,
+      deletedPermanentIds: [...(into.deletedPermanentIds ?? []), ...(trigger.deletedPermanentIds ?? [])],
       deletedEffectiveColorsByInstanceId: {
         ...trigger.deletedEffectiveColorsByInstanceId,
         ...into.deletedEffectiveColorsByInstanceId,
       },
+      deletedPermanentSnapshots: [
+        ...(into.deletedPermanentSnapshots ?? []),
+        ...(trigger.deletedPermanentSnapshots ?? []),
+      ],
     };
   }, {});
   return {
@@ -717,6 +722,9 @@ export class GameEngine {
               blockerPermanentId: trigger.blockerPermanentId,
               ...(trigger.target?.kind === "permanent" ? { targetPermanentId: trigger.target.permanentId } : {}),
               deletedPermanentId: trigger.deletedPermanentId,
+              deletedPermanentIds: trigger.deletedPermanentIds,
+              deletedControllerSeat: trigger.deletedControllerSeat,
+              deletedPermanentSnapshots: trigger.deletedPermanentSnapshots,
               deletedTopCardId: trigger.deletedTopCardId,
               deletedEffectiveColorsByInstanceId: trigger.deletedEffectiveColorsByInstanceId,
               deletedInstanceIds: trigger.deletedInstanceIds,
@@ -737,6 +745,9 @@ export class GameEngine {
           blockerPermanentId: trigger.blockerPermanentId,
           ...(trigger.target?.kind === "permanent" ? { targetPermanentId: trigger.target.permanentId } : {}),
           deletedPermanentId: trigger.deletedPermanentId,
+          deletedPermanentIds: trigger.deletedPermanentIds,
+          deletedControllerSeat: trigger.deletedControllerSeat,
+          deletedPermanentSnapshots: trigger.deletedPermanentSnapshots,
           deletedTopCardId: trigger.deletedTopCardId,
           deletedEffectiveColorsByInstanceId: trigger.deletedEffectiveColorsByInstanceId,
           deletedInstanceIds: trigger.deletedInstanceIds,
@@ -888,6 +899,20 @@ export class GameEngine {
       finalizeEffectPlayCost: async (instanceId, baseCost, useAsOption) => {
         const instance = this.findLooseInstance(instanceId);
         return instance === undefined ? baseCost : this.fireBeforePayCost(instance, baseCost, useAsOption);
+      },
+      finalizeEffectDigivolveCost: async (target, evolvingInstanceId, into, baseCost) => {
+        const deps = this.digivolveDeps();
+        const adjusted = deps.adjustedDigivolveCost?.(this.state, target, baseCost, into, { consumeOnce: true });
+        const passiveCost = adjusted ?? baseCost;
+        const interactiveReduction =
+          (await deps.activateInteractiveDigivolveReduction?.(
+            this.state,
+            target.controllerSeat,
+            target,
+            into,
+            evolvingInstanceId,
+          )) ?? 0;
+        return Math.max(0, passiveCost - interactiveReduction);
       },
       effectiveLooseUseCost: (instanceId, controllerSeat) => this.projectLooseUseCost(instanceId, controllerSeat),
       fireWhenLinking: async (instanceIds, targetPermanentId) => {

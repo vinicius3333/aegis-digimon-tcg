@@ -445,8 +445,19 @@ export async function runReplacement(
               (target.permanentId.startsWith("pending-play-") && target.topCard !== undefined
                 ? definitionMatches(replacementSourceFilter ?? {}, ctx.game.definitionOf(target.topCard))
                 : permanentMatchesFilter(ctx, target, replacementSourceFilter ?? {}, ctx.source)),
-            activate: async (runtimeCtx: EffectContext, target: Permanent) => {
+            activate: async (
+              runtimeCtx: EffectContext,
+              target: Permanent,
+              _into: import("@aegis/shared").CardDefinition,
+              evolvingInstanceId?: string,
+            ) => {
               runtimeCtx.trigger.subjectPermanentId = target.permanentId;
+              if (evolvingInstanceId !== undefined) {
+                runtimeCtx.reservedCostInstanceIds = new Set([
+                  ...(runtimeCtx.reservedCostInstanceIds ?? []),
+                  evolvingInstanceId,
+                ]);
+              }
               if (interactiveCosts.some((cost) => !canPayCost(runtimeCtx, cost))) return false;
               if (
                 interactiveCost?.kind === "suspend" &&
