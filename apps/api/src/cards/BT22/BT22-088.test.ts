@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT22-088.js";
 
 describe("BT22-088 Arisa Kinosaki", () => {
@@ -80,11 +80,33 @@ describe("BT22-088 Arisa Kinosaki", () => {
       { 0: { battleArea: [{ card: "BT22-088", as: "arisa" }], trash: [{ card: "BT22-020", as: "shoemon" }] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await (
-      s.engine as unknown as { fireTiming(timing: EffectTiming, trigger: Record<string, never>): Promise<void> }
-    ).fireTiming(EffectTiming.OnStartMainPhase, {});
+    await s.ready();
+    await advance(s.engine).runTurn(0);
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-020"));
 
     expect(s.state.players[0]!.deck.some((card) => card.cardId === "BT22-088")).toBe(true);
+  });
+
+  it("draws when a public play puts a Puppet Digimon into play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-088", as: "arisa" }],
+          hand: [{ card: "BT22-029", as: "shoemon" }],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shoemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("arisa").isSuspended && s.state.players[0]!.hand.length > 0, 400);
+
+    expect(s.perm("arisa").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
   });
 });

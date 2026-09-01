@@ -11,7 +11,10 @@ describe("BT22-004 Wanyamon", () => {
       event: "onAddDigivolutionCards",
       sourceFilter: { controllerDefault: "mine", byEffect: true },
       triggerFilter: { isSelfRef: true },
-      addedDigivolutionCardFilter: { nameOrTrait: [{ tokens: ["CS"], match: "trait" }] },
+      addedDigivolutionCardFilter: {
+        kind: ["Digimon"],
+        nameOrTrait: [{ tokens: ["CS"], match: "trait" }],
+      },
     });
   });
 
@@ -23,7 +26,7 @@ describe("BT22-004 Wanyamon", () => {
           hand: [{ card: "BT22-047", as: "next" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     await s.ready();
     s.state.memory = 3;

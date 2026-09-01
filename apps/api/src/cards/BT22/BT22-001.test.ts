@@ -20,7 +20,10 @@ describe("BT22-001 Puyoyomon", () => {
       event: "onAddDigivolutionCards",
       sourceFilter: { controllerDefault: "mine", byEffect: true },
       triggerFilter: { isSelfRef: true },
-      addedDigivolutionCardFilter: { nameOrTrait: [{ tokens: ["Aqua", "Sea Animal"], match: "trait" }] },
+      addedDigivolutionCardFilter: {
+        kind: ["Digimon"],
+        nameOrTrait: [{ tokens: ["Aqua", "Sea Animal"], match: "trait" }],
+      },
     });
   });
 

@@ -51,6 +51,7 @@ export const compiled: CompiledCard = {
           sourceFilter: {
             controllerDefault: "mine",
             kind: ["Digimon"],
+            isSelfRef: true,
             nameOrTrait: [
               {
                 tokens: ["Veedramon"],

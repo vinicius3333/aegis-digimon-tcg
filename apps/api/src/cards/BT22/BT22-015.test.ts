@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, type Seat } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT22-015.js";
 
@@ -23,7 +23,7 @@ describe("BT22-015 Omnimon", () => {
       actions: [
         {
           kind: "PlayWithoutCost",
-          from: ["digivolutionCards"],
+          fromOwnDigivolutionStack: true,
           payCost: false,
           playedByDecode: true,
           target: { filter: { kind: ["Digimon"], levels: [3], colors: ["Red", "Black"] }, count: 1 },
@@ -37,7 +37,7 @@ describe("BT22-015 Omnimon", () => {
       actions: [
         {
           kind: "PlayWithoutCost",
-          from: ["digivolutionCards"],
+          fromOwnDigivolutionStack: true,
           payCost: false,
           playedByDecode: true,
           target: { filter: { kind: ["Digimon"], levels: [3], colors: ["Blue", "Yellow"] }, count: 1 },
@@ -114,5 +114,37 @@ describe("BT22-015 Omnimon", () => {
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
       s.perm("higher").permanentId,
     ]);
+  });
+
+  it("decodes only from Omnimon's own stack when a public effect removes it", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT22-015", under: ["BT10-059", "BT16-016"], as: "omnimon" },
+            { card: "BT22-020", under: ["BT23-048", "EX11-014"], as: "decoy" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    // No player Intent currently produces an opponent-effect deletion; this named advance verb
+    // is the public test seam for the production leave event (as used by other Decode tests).
+    advance(s.engine).verb.enterEffectResolution(1 as Seat, ["Digimon"]);
+    try {
+      expect(await advance(s.engine).verb.deletePermanent([s.perm("omnimon").permanentId], "byEffect")).toBe(1);
+    } finally {
+      advance(s.engine).verb.leaveEffectResolution();
+    }
+    await settle(() => s.state.players[0]!.battleArea.length === 3);
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId).sort()).toEqual([
+      "BT10-059",
+      "BT16-016",
+      "BT22-020",
+    ]);
+    expect(s.perm("decoy").stack.map((card) => card.cardId)).toEqual(["BT23-048", "EX11-014"]);
   });
 });

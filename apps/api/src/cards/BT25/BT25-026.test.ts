@@ -126,7 +126,9 @@ function makeHarness(turnSeat: Seat): Harness {
       makeDefinition({
         cardId: card.cardId,
         nameEn: card.cardId === DIANAMON ? "Dianamon" : card.cardId,
+        level: card.cardId === DIANAMON ? 6 : 5,
         colors: colorsByCard[card.cardId] ?? [],
+        evoCosts: [{ color: "Blue", level: 5, memoryCost: 3 }] as never,
       }),
     linkMax: () => 1,
   };
@@ -294,7 +296,7 @@ describe("BT25-026 — entry effects and inherited restriction", () => {
             trash: [{ card: "BT25-028", as: "dianamon" }],
           },
         },
-        { autoAcceptOptional: true, autoSelectCards: true },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
       );
       s.state.memory = 2;
       await s.ready();

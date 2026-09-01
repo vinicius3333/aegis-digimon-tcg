@@ -49,4 +49,38 @@ describe("BT22-077 Dianamon", () => {
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId));
     expect(s.state.players[1]!.deck.some((card) => card.cardId === "BT1-009")).toBe(true);
   });
+
+  it("trashes four opponent sources and then bottoms a low-stack Digimon on public evolution", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-073", as: "host", under: ["BT22-073", "BT22-074"] }],
+          hand: [{ card: "BT22-077", as: "dianamon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT22-072", as: "stacked", under: ["BT22-069", "BT22-069", "BT22-071", "BT22-070"] },
+            { card: "BT1-009", as: "low" },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds },
+    );
+    const lowId = s.perm("low").permanentId;
+    preferInstanceIds.push(s.perm("low").topCard!.instanceId);
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("dianamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.deck.some((card) => card.cardId === "BT1-009"));
+
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === lowId)).toBe(false);
+    expect(s.state.players[1]!.trash).toHaveLength(4);
+    expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("BT1-009");
+  });
 });

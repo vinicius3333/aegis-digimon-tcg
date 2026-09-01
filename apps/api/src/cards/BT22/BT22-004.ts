@@ -14,7 +14,10 @@ export const compiled: CompiledCard = {
           // "When effects place" excludes normal/manual stack additions.
           sourceFilter: { controllerDefault: "mine", byEffect: true },
           triggerFilter: { isSelfRef: true },
-          addedDigivolutionCardFilter: { nameOrTrait: [{ tokens: ["CS"], match: "trait" }] },
+          addedDigivolutionCardFilter: {
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["CS"], match: "trait" }],
+          },
           actions: [
             {
               kind: "Digivolve",

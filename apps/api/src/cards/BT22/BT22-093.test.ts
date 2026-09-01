@@ -81,28 +81,33 @@ describe("BT22-093 [Start of Main Phase] gain 1 memory if opponent has Digimon",
 });
 
 describe("BT22-093 [Your Turn] CS digivolution chain", () => {
-  it("suspends Ami and digivolves a qualifying CS Digimon into a CS card from hand for free", async () => {
+  it("suspends Ami and chains a real public CS digivolve into a second CS card", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: AMI_AIBA, as: "ami" },
-            // Level 5 CS Digimon with a same-level card in its stack.
-            { card: "BT22-011", under: ["BT22-011"], as: "subject" },
+            // The Lv.4 Flame/CS base already has a Lv.5 card in its stack. The first
+            // public evolution creates a Lv.5 CS Digimon with a same-level stack card.
+            { card: "BT22-010", under: ["BT22-011"], as: "subject" },
           ],
-          hand: ["BT22-013"], // Level 6 [CS] Digimon.
+          hand: [
+            { card: "BT22-011", as: "first" },
+            { card: "BT22-013", as: "second" },
+          ], // Lv.5 then Lv.6 [CS] Digimon.
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
-    const subject = s.perm("subject");
-    await (
-      s.engine as unknown as {
-        fireSubTrigger(event: string, trigger?: Record<string, unknown>): Promise<void>;
-      }
-    ).fireSubTrigger("whenOneOfYoursDigivolves", { subjectPermanentId: subject.permanentId });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("subject").permanentId,
+        instanceId: s.inst("first").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("subject").topCard?.cardId === "BT22-013", 400);
 
     expect(s.perm("ami").isSuspended).toBe(true);
@@ -116,20 +121,25 @@ describe("BT22-093 [Your Turn] CS digivolution chain", () => {
         0: {
           battleArea: [
             { card: AMI_AIBA, as: "ami" },
-            { card: "BT22-011", under: ["BT22-011"], as: "subject" },
+            { card: "BT22-010", under: ["BT22-011"], as: "subject" },
           ],
-          hand: ["BT22-013"],
+          hand: [
+            { card: "BT22-011", as: "first" },
+            { card: "BT22-013", as: "second" },
+          ],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
-    await (
-      s.engine as unknown as {
-        fireSubTrigger(event: string, trigger?: Record<string, unknown>): Promise<void>;
-      }
-    ).fireSubTrigger("whenOneOfYoursDigivolves", { subjectPermanentId: s.perm("subject").permanentId });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("subject").permanentId,
+        instanceId: s.inst("first").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => false, 80);
 
     expect(s.decisions.some((d) => d.req.kind === "optional")).toBe(true);
@@ -144,19 +154,24 @@ describe("BT22-093 [Your Turn] CS digivolution chain", () => {
         0: {
           battleArea: [
             { card: AMI_AIBA, as: "ami" },
-            { card: "BT22-011", under: ["BT22-010"], as: "subject" },
+            { card: "BT22-010", under: ["BT22-010"], as: "subject" },
           ],
-          hand: ["BT22-013"],
+          hand: [
+            { card: "BT22-011", as: "first" },
+            { card: "BT22-013", as: "second" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    await (
-      s.engine as unknown as {
-        fireSubTrigger(event: string, trigger?: Record<string, unknown>): Promise<void>;
-      }
-    ).fireSubTrigger("whenOneOfYoursDigivolves", { subjectPermanentId: s.perm("subject").permanentId });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("subject").permanentId,
+        instanceId: s.inst("first").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => false, 80);
 
     expect(s.perm("ami").isSuspended).toBe(false);

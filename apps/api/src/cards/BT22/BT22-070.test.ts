@@ -79,4 +79,28 @@ describe("BT22-070 DarkTyrannomon (X Antibody)", () => {
     expect(s.state.memory).toBe(0);
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
   });
+
+  it("gains inherited memory when it deletes an opponent in a public battle", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT22-069", as: "attacker", under: ["BT22-070"] }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 500, suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT1-009"));
+
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
+  });
 });

@@ -16,6 +16,7 @@ export const compiled: CompiledCard = {
           sourceFilter: { controllerDefault: "mine", byEffect: true },
           triggerFilter: { isSelfRef: true },
           addedDigivolutionCardFilter: {
+            kind: ["Digimon"],
             nameOrTrait: [{ tokens: ["Aqua", "Sea Animal"], match: "trait" }],
           },
           actions: [{ kind: "Draw", controller: "mine", amount: 1 }],

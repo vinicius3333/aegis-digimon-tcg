@@ -78,4 +78,26 @@ describe("BT22-095 Akemi Suedou", () => {
     expect(s.state.memory).toBe(initialMemory);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === akemiId)).toBe(true);
   });
+
+  it("suspends and gains memory when a real Eater Digimon is played", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-095", as: "akemi" }],
+          hand: [{ card: "BT22-079", as: "eater" }],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("eater").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("akemi").isSuspended, 400);
+
+    expect(s.perm("akemi").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(3); // 5 - 3 play + 1 trigger; the hand remains <= 7 so Draw 1 also resolves.
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
+  });
 });

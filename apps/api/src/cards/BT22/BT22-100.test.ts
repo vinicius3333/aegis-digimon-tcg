@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./BT22-100.js";
 
 describe("BT22-100 Cyberspace EDEN", () => {
@@ -57,5 +59,26 @@ describe("BT22-100 Cyberspace EDEN", () => {
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === bottomId)).toBe(true);
     expect(s.state.players[0]!.security.at(-1)).toMatchObject({ instanceId: edenId, faceUp: true });
+  });
+
+  it("plays a qualifying CS card from hand when revealed as Security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT22-100", as: "eden" }],
+          hand: [{ card: "BT22-091", as: "arata" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("eden"));
+    await settle(
+      () => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-091"),
+      400,
+    );
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-091")).toBe(true);
   });
 });

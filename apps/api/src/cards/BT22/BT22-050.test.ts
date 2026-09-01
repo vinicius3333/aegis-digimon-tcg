@@ -57,4 +57,26 @@ describe("BT22-050 Roamon", () => {
     await settle(() => s.perm("target").isSuspended);
     expect(s.perm("target").isSuspended).toBe(true);
   });
+
+  it("plays from security after a public security attack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+        1: { security: [{ card: "BT22-050", as: "roamon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT22-050"));
+
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT22-050")).toBe(true);
+  });
 });

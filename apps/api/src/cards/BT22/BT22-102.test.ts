@@ -74,7 +74,7 @@ describe("BT22-102 Sayo", () => {
           trash: [{ card: "BT22-072", as: "lekismon" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 3;
     await s.ready();
@@ -105,7 +105,7 @@ describe("BT22-102 Sayo", () => {
           trash: [{ card: "BT22-072", as: "lekismon" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 3;
     await s.ready();
@@ -156,6 +156,36 @@ describe("BT22-102 Sayo", () => {
 
     expect(s.perm("sayo").isSuspended).toBe(false);
     expect(s.state.memory).toBe(3);
+    expect(s.perm("attacker").topCard?.cardId).toBe("BT22-069");
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT22-072")).toBe(true);
+  });
+
+  it("allows declining the optional suspend cost on a qualifying real attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT22-102", as: "sayo" },
+            { card: "BT22-069", as: "attacker", under: ["BT22-068", "BT22-071"] },
+          ],
+          security: ["BT1-001"],
+          trash: [{ card: "BT22-072", as: "lekismon" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+
+    expect(s.perm("sayo").isSuspended).toBe(false);
     expect(s.perm("attacker").topCard?.cardId).toBe("BT22-069");
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT22-072")).toBe(true);
   });
