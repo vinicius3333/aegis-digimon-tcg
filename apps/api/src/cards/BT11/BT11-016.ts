@@ -1,5 +1,4 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Scaling } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const redTamerScaling = {
@@ -7,7 +6,7 @@ const redTamerScaling = {
   bonus: 2000,
   filter: { zone: "battleArea", controller: "mine", kind: ["Tamer"], colors: ["Red"] },
   unit: "cards",
-};
+} satisfies Scaling;
 
 export const compiled: CompiledCard = {
   effects: [
