@@ -1,8 +1,47 @@
+import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-import { lateBt12Module } from "./_lateHandwritten.js";
 
-const module = lateBt12Module("BT12-109");
-const registered = registerIrCard("BT12-109", { effects: [], coverage: "full", residual: [] });
-registered.effectsForTiming = module.effectsForTiming;
-Object.assign(registered, { declaredTriggers: module.declaredTriggers });
-export default registered;
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "Static",
+      actions: [
+        {
+          kind: "WaiveColorRequirement",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          condition: {
+            kind: "youHave",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "mine",
+              kind: ["Tamer"],
+              nameOrTrait: [{ tokens: ["Hunter"], match: "trait" }],
+            },
+          },
+        },
+      ],
+    },
+    {
+      trigger: "Main",
+      actions: [
+        {
+          kind: "Digivolve",
+          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+          into: {
+            controller: "mine",
+            kind: ["Digimon"],
+            zone: "underTamers",
+            nameOrTrait: [{ tokens: ["Save"], match: "text" }],
+          },
+          from: ["underTamers"],
+          payCost: true,
+        },
+      ],
+    },
+    { trigger: "Security", actions: [{ kind: "AddToHandSelf" }], isSecurity: true },
+  ],
+  coverage: "full",
+  residual: [],
+};
+
+export default registerIrCard("BT12-109", compiled);

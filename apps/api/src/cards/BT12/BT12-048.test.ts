@@ -31,6 +31,7 @@ describe("BT12-048 Dracmon", () => {
     );
     const handBefore = s.state.players[0]!.hand.length;
 
+    await s.ready();
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("dracmon"));
     await settle(() => s.state.players[0]!.hand.length === handBefore);
 
@@ -39,6 +40,30 @@ describe("BT12-048 Dracmon", () => {
       s.inst("tamer1").instanceId,
       s.inst("tamer2").instanceId,
     ]);
+  });
+
+  it("resolves On Play from a public play-card intent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT12-048", as: "dracmon" },
+            { card: "BT12-087", as: "tamer" },
+          ],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dracmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-048"));
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-048")).toBe(true);
+    expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(s.inst("tamer").instanceId);
+    expect(s.state.memory).toBe(0);
   });
 
   it("does not draw or move cards when the hand has no Tamers", async () => {
@@ -74,6 +99,7 @@ describe("BT12-048 Dracmon", () => {
     );
     const handBefore = s.state.players[0]!.hand.map(({ instanceId }) => instanceId);
     const deckBefore = s.state.players[0]!.deck.map(({ instanceId }) => instanceId);
+    await s.ready();
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("dracmon"));
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual(handBefore);
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual(deckBefore);

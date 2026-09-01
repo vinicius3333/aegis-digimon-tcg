@@ -1,21 +1,52 @@
-import { EffectTiming, type CardInstance } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import { effectsOf } from "../../engine/effects/collect.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
-import "./BT12-015.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT12-015.js";
 
-function handMainEffectKey(s: EngineSetup, instance: CardInstance): string {
-  const source = (s.engine as unknown as { cardSourceOf(card: CardInstance): CardSource }).cardSourceOf(instance);
-  const effect = effectsOf(EffectTiming.OnDeclaration, source).find(({ effectKey }) =>
-    effectKey.startsWith("BT12-015/"),
-  );
-  if (effect === undefined) throw new Error("BT12-015 surfaces no [Hand][Main] effect");
-  return effect.effectKey;
-}
+const HAND_MAIN_EFFECT_KEY = "BT12-015/hand-main-stack-and-digivolve";
 
 describe("BT12-015 Aldamon", () => {
+  it("registers the hand effect as one compiled, bound, ordered operation", () => {
+    expect(compiled.effects).toEqual([
+      expect.objectContaining({
+        effectKey: HAND_MAIN_EFFECT_KEY,
+        trigger: "Main",
+        isFromHand: true,
+        condition: expect.objectContaining({
+          kind: "allOf",
+          conditions: expect.arrayContaining([
+            expect.objectContaining({ kind: "memoryAtLeast", controller: "mine", value: -7 }),
+          ]),
+        }),
+        actions: [
+          expect.objectContaining({
+            kind: "SelectBind",
+            target: expect.objectContaining({ bindAs: "bt12_015_takuya" }),
+          }),
+          expect.objectContaining({
+            kind: "PlaceUnder",
+            order: "any",
+            underSelectionRef: "bt12_015_takuya",
+            target: expect.objectContaining({
+              requiredNamesExact: ["Agunimon", "BurningGreymon"],
+            }),
+          }),
+          expect.objectContaining({
+            kind: "Digivolve",
+            source: "triggerSource",
+            costOverride: 3,
+            virtualBase: { level: 4, colors: ["Red"] },
+            target: expect.objectContaining({ fromSelectionRef: "bt12_015_takuya" }),
+          }),
+        ],
+      }),
+      expect.objectContaining({
+        effectKey: "BT12-015/return-takuya",
+        trigger: "OnDeletion",
+      }),
+    ]);
+  });
+
   it("uses its [Hand][Main] effect to stack both trash materials and digivolve Takuya", async () => {
     const s = setupEngine(
       {
@@ -44,7 +75,7 @@ describe("BT12-015 Aldamon", () => {
       s.engine.applyIntent(0, {
         type: "activateEffect",
         sourceInstanceId: aldamon.instanceId,
-        effectKey: handMainEffectKey(s, aldamon),
+        effectKey: HAND_MAIN_EFFECT_KEY,
       }),
     ).toEqual({ ok: true });
 
@@ -70,8 +101,70 @@ describe("BT12-015 Aldamon", () => {
 
     expect(s.perm("takuya").topCard.cardId).toBe("BT12-015");
     expect(s.perm("takuya").stack.map(({ instanceId }) => instanceId)).toEqual([...requestedOrder, takuyaInstanceId]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toEqual(
+      expect.arrayContaining(requestedOrder),
+    );
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === aldamon.instanceId)).toBe(false);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-009");
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("keeps both ordered materials under the Takuya selected by the controller", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT12-015", as: "aldamon" }],
+          battleArea: [
+            { card: "BT12-088", as: "first" },
+            { card: "BT12-088", as: "second" },
+          ],
+          trash: [
+            { card: "BT12-012", as: "agunimon" },
+            { card: "BT12-013", as: "burning" },
+          ],
+        },
+      },
+      { autoOrderTriggers: true, autoOrderCards: false },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    const aldamon = s.inst("aldamon");
+    const secondInstanceId = s.perm("second").topCard.instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: aldamon.instanceId,
+        effectKey: HAND_MAIN_EFFECT_KEY,
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const targetDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: targetDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("second").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.state.pendingDecision?.kind === "orderCards");
+    const orderDecision = s.state.pendingDecision!;
+    const requestedOrder = [s.inst("burning").instanceId, s.inst("agunimon").instanceId];
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: orderDecision.decisionId,
+        response: { kind: "orderCards", order: requestedOrder },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.perm("second").topCard.instanceId === aldamon.instanceId);
+    expect(s.perm("first").topCard.cardId).toBe("BT12-088");
+    expect(s.perm("first").stack).toHaveLength(0);
+    expect(s.perm("second").stack.map(({ instanceId }) => instanceId)).toEqual([...requestedOrder, secondInstanceId]);
+    expect(s.perm("second").topCard.cardId).toBe("BT12-015");
     expect(s.state.memory).toBe(0);
   });
 
@@ -92,7 +185,7 @@ describe("BT12-015 Aldamon", () => {
       s.engine.applyIntent(0, {
         type: "activateEffect",
         sourceInstanceId: aldamon.instanceId,
-        effectKey: handMainEffectKey(s, aldamon),
+        effectKey: HAND_MAIN_EFFECT_KEY,
       }).ok,
     ).toBe(false);
     await settle();
@@ -114,7 +207,7 @@ describe("BT12-015 Aldamon", () => {
       3,
     ],
     [
-      "the digivolution cost is unaffordable",
+      "the digivolution cost would exceed the memory gauge minimum",
       [
         { card: "BT12-012", as: "agunimon" },
         { card: "BT12-013", as: "burning" },
@@ -136,6 +229,34 @@ describe("BT12-015 Aldamon", () => {
     expect(s.perm("tamer").stack).toHaveLength(0);
   });
 
+  it("does not expose the [Hand][Main] effect after Aldamon has entered the battle area", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT12-015", as: "aldamon" },
+          { card: "BT12-088", as: "takuya" },
+        ],
+        trash: [
+          { card: "BT12-012", as: "agunimon" },
+          { card: "BT12-013", as: "burning" },
+        ],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.inst("aldamon").activatableEffectsJson).toBe("");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("aldamon").instanceId,
+        effectKey: HAND_MAIN_EFFECT_KEY,
+      }).ok,
+    ).toBe(false);
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("takuya").stack).toHaveLength(0);
+  });
+
   it("returns Takuya from trash to hand on deletion", async () => {
     const s = setupEngine(
       {
@@ -151,5 +272,6 @@ describe("BT12-015 Aldamon", () => {
     await settle(() => s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("takuya").instanceId));
 
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("takuya").instanceId);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toContain(s.inst("takuya").instanceId);
   });
 });

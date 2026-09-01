@@ -5,6 +5,7 @@ const compiled = structuredClone(getCompiledCard("BT12-043")!);
 const whenDigivolving = compiled.effects.find((effect) => effect.trigger === "WhenDigivolving");
 const opponentDp = whenDigivolving?.actions.find((action) => action.kind === "ModifyDP");
 if (whenDigivolving !== undefined && opponentDp?.kind === "ModifyDP" && opponentDp.scaling !== undefined) {
+  whenDigivolving.actions = whenDigivolving.actions.filter((action) => action.kind !== "ModifySecurityDP");
   whenDigivolving.actions.push({
     kind: "ModifySecurityDP",
     controller: "opponent",

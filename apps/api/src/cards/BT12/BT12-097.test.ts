@@ -4,10 +4,10 @@ import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT12-097.js";
+import { compiled } from "./BT12-097.js";
 
-describe("BT12-097 handwritten module", () => {
-  it("registers its printed OnStartMainPhase effect without declarative effect record", () => {
+describe("BT12-097 compiled IR module", () => {
+  it("registers its printed timing clauses through one declarative effect record", () => {
     const module = getEffectModule("BT12-097");
     expect(module?.cardId).toBe("BT12-097");
     const source = {
@@ -20,7 +20,15 @@ describe("BT12-097 handwritten module", () => {
     } as unknown as CardSource;
     expect(module!.effectsForTiming(EffectTiming.OnStartMainPhase, source).length).toBeGreaterThan(0);
     expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
-    expect(module!.effectsForTiming(EffectTiming.None, source).length).toBeGreaterThan(0);
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    expect(compiled.effects).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          trigger: "YourTurn",
+          actions: [expect.objectContaining({ kind: "Replacement", event: "wouldDigivolve" })],
+        }),
+      ]),
+    );
   });
 
   it("places a Save Digimon from trash under Ryoma when the stack has two or fewer cards", async () => {
@@ -40,7 +48,7 @@ describe("BT12-097 handwritten module", () => {
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).not.toContain("BT12-008");
   });
 
-  it("does not load a third card when two cards are already under Ryoma", async () => {
+  it("loads a third card when exactly two cards are already under Ryoma", async () => {
     const s = setupEngine(
       {
         0: {
@@ -54,6 +62,22 @@ describe("BT12-097 handwritten module", () => {
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("ryoma"));
     expect(s.perm("ryoma").stack).toHaveLength(3);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).not.toContain("BT12-008");
+  });
+
+  it("does not load a fourth card when three cards are already under Ryoma", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT12-097", as: "ryoma", under: ["BT12-008", "BT12-008", "BT12-008"] }],
+          trash: [{ card: "BT12-008", as: "save" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("ryoma"));
+    expect(s.perm("ryoma").stack).toHaveLength(3);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT12-008");
   });
 
   it("plays Ryoma from security without paying its memory cost", async () => {
@@ -115,21 +139,6 @@ describe("BT12-097 Save digivolve reducer", () => {
     await s.ready();
     s.state.memory = 0;
 
-    // No auto responders: answer the reducer's card pick with an empty selection (the decline).
-    // `settle` only drains microtasks, so the responder has to run on the same queue.
-    const answered = new Set<string>();
-    const answerPending = (): void => {
-      for (const { seat, req } of s.decisions) {
-        if (req.kind !== "selectCards" || answered.has(req.decisionId)) continue;
-        answered.add(req.decisionId);
-        s.engine.applyIntent(seat, {
-          type: "respondDecision",
-          decisionId: req.decisionId,
-          response: { kind: "selectCards", instanceIds: [] },
-        });
-      }
-    };
-
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -137,12 +146,17 @@ describe("BT12-097 Save digivolve reducer", () => {
         instanceId: s.inst("evolver").instanceId,
       }),
     ).toEqual({ ok: true });
-    for (let tick = 0; tick < 2000; tick += 1) {
-      await Promise.resolve();
-      answerPending();
-    }
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.memory === -2 && s.perm("host").topCard?.cardId === SAVE_DIGIMON);
 
-    expect(answered.size).toBeGreaterThan(0);
     expect(s.perm("ryoma").isSuspended).toBe(false);
     expect(s.state.memory).toBe(-2); // full printed cost 2
     expect(s.perm("ryoma").stack.some((card) => card.instanceId === s.inst("underCard").instanceId)).toBe(true);

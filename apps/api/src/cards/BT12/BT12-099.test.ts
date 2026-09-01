@@ -7,8 +7,8 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT12-099.js";
 
-describe("BT12-099 handwritten module", () => {
-  it("registers its printed OnUseOption effect without declarative effect record", () => {
+describe("BT12-099 compiled IR module", () => {
+  it("registers its Main and Security clauses through the declarative record", () => {
     const module = getEffectModule("BT12-099");
     expect(module?.cardId).toBe("BT12-099");
     const source = {
@@ -20,6 +20,7 @@ describe("BT12-099 handwritten module", () => {
       permanent: () => undefined,
     } as unknown as CardSource;
     expect(module!.effectsForTiming(EffectTiming.OnUseOption, source).length).toBeGreaterThan(0);
+    expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
   });
 });
 
@@ -45,7 +46,7 @@ it("allows declining the optional player attack after the Hybrid boost", async (
       0: { hand: [{ card: "BT12-099", as: "option" }], battleArea: [{ card: "BT12-013", as: "hybrid" }] },
       1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }], security: ["BT1-009"] },
     },
-    { autoAcceptOptional: false, autoSelectCards: true },
+    { autoDeclineOptional: true, autoSelectCards: true },
   );
   await s.ready();
   s.state.memory = 4;
@@ -73,6 +74,28 @@ it("deletes a 6000 DP or lower Digimon and boosts a Hybrid by 3000", async () =>
   expect(s.perm("hybrid").currentDP).toBe(s.perm("hybrid").baseDP + 3000);
 });
 
+it("keeps an opposing Digimon above the 6000 DP boundary", async () => {
+  const s = setupEngine(
+    {
+      0: { hand: [{ card: "BT12-099", as: "option" }], battleArea: [{ card: "BT12-013", as: "hybrid" }] },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "atBoundary", dp: 6000 },
+          { card: "BT1-009", as: "aboveBoundary", dp: 6001 },
+        ],
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  await s.ready();
+  s.state.memory = 4;
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+  await settle(() => s.state.players[1]!.battleArea.length === 1);
+
+  expect(s.state.players[1]!.battleArea[0]!.topCard.cardId).toBe("BT1-009");
+  expect(s.state.players[1]!.battleArea[0]!.currentDP).toBe(6001);
+});
+
 it("allows the boosted eligible Hybrid to attack a player", async () => {
   const s = setupEngine(
     {
@@ -84,7 +107,7 @@ it("allows the boosted eligible Hybrid to attack a player", async () => {
   await s.ready();
   s.state.memory = 4;
   expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
-  await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+  await settle(() => s.perm("hybrid").isSuspended && !observe(s.engine).isAttacking());
 
   expect(s.perm("hybrid").currentDP).toBe(s.perm("hybrid").baseDP + 3000);
   expect(s.perm("hybrid").isSuspended).toBe(true);

@@ -5,9 +5,9 @@ import { getEffectModule } from "../../engine/effects/registry.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT12-095.js";
+import { compiled } from "./BT12-095.js";
 
-describe("BT12-095 handwritten module", () => {
+describe("BT12-095 compiled IR module", () => {
   it("keeps the DP and Blocker clauses on the same selected Digimon", async () => {
     const s = setupEngine(
       {
@@ -33,7 +33,7 @@ describe("BT12-095 handwritten module", () => {
     expect(observe(s.engine).hasKeyword(selected, "Blocker")).toBe(true);
   });
 
-  it("registers its printed OnPlay effect without declarative effect record", () => {
+  it("registers its printed timing clauses through one declarative effect record", () => {
     const module = getEffectModule("BT12-095");
     expect(module?.cardId).toBe("BT12-095");
     const source = {
@@ -47,7 +47,15 @@ describe("BT12-095 handwritten module", () => {
     expect(module!.effectsForTiming(EffectTiming.OnPlay, source).length).toBeGreaterThan(0);
     expect(module!.effectsForTiming(EffectTiming.OnStartMainPhase, source).length).toBeGreaterThan(0);
     expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
-    expect(module!.effectsForTiming(EffectTiming.OnEnterFieldAnyone, source).length).toBeGreaterThan(0);
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    expect(compiled.effects).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          trigger: "YourTurn",
+          actions: [expect.objectContaining({ kind: "SubTrigger", event: "whenOneOfYoursDigivolves" })],
+        }),
+      ]),
+    );
   });
 
   it("gives an Agumon or Greymon +1000 DP and Blocker at the start of main phase", async () => {
@@ -83,6 +91,35 @@ describe("BT12-095 handwritten module", () => {
 
     expect(s.perm("agumon").currentDP).toBe(before + 1000);
     expect(observe(s.engine).hasKeyword(s.perm("agumon"), "Blocker")).toBe(true);
+  });
+
+  it("suspends Tai and gains memory when a Digimon evolves into Greymon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT12-095", as: "tai" },
+            { card: "BT12-038", as: "host" },
+          ],
+          hand: [{ card: "BT12-042", as: "rize" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 5;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("rize").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "BT12-042");
+
+    expect(s.perm("tai").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(2); // 5 - 4 for RizeGreymon, +1 from Tai.
   });
 
   it("plays Tai from security without paying its memory cost", async () => {
