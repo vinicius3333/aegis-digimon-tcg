@@ -117,7 +117,7 @@ describe("BT18-100 Gospel of the Fallen Angel", () => {
         },
         1: { battleArea: [{ card: "BT18-099", as: "opponentOption" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 0 },
     );
     s.perm("option").placedByEffect = true;
     s.state.memory = 10;
@@ -171,7 +171,7 @@ describe("BT18-100 Gospel of the Fallen Angel", () => {
         },
         1: { battleArea: [{ card: "BT1-010", as: "opponentDigimon" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 0 },
     );
     s.perm("option").placedByEffect = true;
     s.state.memory = 10;

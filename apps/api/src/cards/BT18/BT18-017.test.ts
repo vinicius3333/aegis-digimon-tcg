@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT18-017.js";
@@ -121,6 +122,24 @@ describe("BT18-017 AncientVolcanomon", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === materialId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === materialId)).toBe(false);
+  });
+
+  it("may decline the leave replacement without playing or returning a stack card", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT18-017", as: "ancient", under: ["BT18-011"] }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const materialId = s.perm("ancient").stack[0]!.instanceId;
+
+    await advance(s.engine).verb.deletePermanent([s.perm("ancient").permanentId]);
+    await settle();
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === materialId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === materialId)).toBe(true);
   });
 
   it("DigiXroses with one Grumblemon and one Gigasmon for 2 less per material", async () => {

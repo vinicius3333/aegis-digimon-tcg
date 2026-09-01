@@ -15,6 +15,7 @@ export const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "opponent",
+              kind: ["Digimon", "Tamer"],
             },
             count: 1,
             upTo: true,
@@ -52,6 +53,7 @@ export const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "opponent",
+              kind: ["Digimon", "Tamer"],
             },
             count: 1,
             upTo: true,

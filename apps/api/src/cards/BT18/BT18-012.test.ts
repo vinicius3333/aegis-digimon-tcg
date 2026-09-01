@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-012.js";
 import "./BT18-014.js";
@@ -96,5 +97,37 @@ describe("BT18-012 Grumblemon", () => {
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === firstId));
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(secondId);
+  });
+
+  it("does not delete a second opposing Digimon on a same-turn reattack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-030", as: "host", under: ["BT18-012"] }] },
+        1: {
+          battleArea: [
+            { card: "BT1-030", dp: 3000, as: "first" },
+            { card: "BT1-030", dp: 3000, as: "second" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    const firstId = s.perm("first").permanentId;
+    const secondId = s.perm("second").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === firstId));
+
+    await advance(s.engine).verb.unsuspend([hostId]);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle();
+
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === secondId)).toBe(true);
   });
 });

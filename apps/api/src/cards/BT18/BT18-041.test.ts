@@ -5,19 +5,51 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT18-041.js";
 
 describe("BT18-041 MetalEtemon", () => {
-  it("preserves the four DNA combinations documented by Q2965 and accepts a natural blue-green pair", async () => {
+  it("preserves the four DNA combinations documented by Q2965", () => {
     expect(compiled.dnaDigivolveRequirement).toEqual([
-      { cost: 0, materials: [{ color: "Blue", level: 5 }, { color: "Green", level: 5 }] },
-      { cost: 0, materials: [{ color: "Blue", level: 5 }, { color: "Black", level: 5 }] },
-      { cost: 0, materials: [{ color: "Yellow", level: 5 }, { color: "Green", level: 5 }] },
-      { cost: 0, materials: [{ color: "Yellow", level: 5 }, { color: "Black", level: 5 }] },
+      {
+        cost: 0,
+        materials: [
+          { color: "Blue", level: 5 },
+          { color: "Green", level: 5 },
+        ],
+      },
+      {
+        cost: 0,
+        materials: [
+          { color: "Blue", level: 5 },
+          { color: "Black", level: 5 },
+        ],
+      },
+      {
+        cost: 0,
+        materials: [
+          { color: "Yellow", level: 5 },
+          { color: "Green", level: 5 },
+        ],
+      },
+      {
+        cost: 0,
+        materials: [
+          { color: "Yellow", level: 5 },
+          { color: "Black", level: 5 },
+        ],
+      },
     ]);
+  });
+
+  it.each([
+    ["BT1-040", "BT1-078"],
+    ["BT1-040", "BT10-064"],
+    ["BT1-060", "BT1-078"],
+    ["BT1-060", "BT10-064"],
+  ] as const)("DNA digivolves naturally from %s + %s for 0", async (firstMaterial, secondMaterial) => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "BT1-040", as: "blueLevel5" },
-            { card: "BT1-078", as: "greenLevel5" },
+            { card: firstMaterial, as: "firstMaterial" },
+            { card: secondMaterial, as: "secondMaterial" },
           ],
           hand: [{ card: "BT18-041", as: "metal" }],
         },
@@ -31,7 +63,7 @@ describe("BT18-041 MetalEtemon", () => {
     expect(
       s.engine.applyIntent(0, {
         type: "dnaDigivolve",
-        materialPermanentIds: [s.perm("blueLevel5").permanentId, s.perm("greenLevel5").permanentId],
+        materialPermanentIds: [s.perm("firstMaterial").permanentId, s.perm("secondMaterial").permanentId],
         instanceId: s.inst("metal").instanceId,
       }),
     ).toEqual({ ok: true });

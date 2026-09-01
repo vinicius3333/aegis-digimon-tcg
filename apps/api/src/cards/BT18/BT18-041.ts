@@ -2,8 +2,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// The immutable catalog omits this card's DNA header, but KB Q2965 records the printed
-// requirement as one level 5 blue or yellow Digimon plus one level 5 green or black Digimon.
+// KB Q2965 expands the printed color alternatives into four concrete material pairs.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -106,10 +105,34 @@ export const compiled: CompiledCard = {
   coverage: "full",
   residual: [],
   dnaDigivolveRequirement: [
-    { cost: 0, materials: [{ color: "Blue", level: 5 }, { color: "Green", level: 5 }] },
-    { cost: 0, materials: [{ color: "Blue", level: 5 }, { color: "Black", level: 5 }] },
-    { cost: 0, materials: [{ color: "Yellow", level: 5 }, { color: "Green", level: 5 }] },
-    { cost: 0, materials: [{ color: "Yellow", level: 5 }, { color: "Black", level: 5 }] },
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 5 },
+        { color: "Green", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 5 },
+        { color: "Black", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 5 },
+        { color: "Green", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 5 },
+        { color: "Black", level: 5 },
+      ],
+    },
   ],
 };
 

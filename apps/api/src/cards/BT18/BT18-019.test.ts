@@ -13,6 +13,7 @@ describe("BT18-019 Millenniummon", () => {
         {
           kind: "GainMemory",
           condition: { kind: "isDnaDigivolving" },
+          cost: { to: "deckTop" },
           scaling: { unit: "namedCount", countSource: "returnedDistinctLevels" },
         },
       ],
@@ -34,6 +35,7 @@ describe("BT18-019 Millenniummon", () => {
               count: 2,
               distinctNames: true,
             },
+            to: "deckBottom",
           },
         },
       ],

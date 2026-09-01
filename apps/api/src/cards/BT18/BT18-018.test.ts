@@ -23,7 +23,13 @@ describe("BT18-018 EmperorGreymon", () => {
     expect(compiled.effects[1]).toMatchObject({
       trigger: "YourTurn",
       frequency: "OncePerTurn",
-      actions: [{ kind: "SubTrigger", event: "whenDeletesInBattle" }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenDeletesInBattle",
+          sourceFilter: { isSelfRef: true, zone: "battleArea" },
+        },
+      ],
     });
     const s = setupEngine({
       0: { battleArea: [{ card: "BT18-018", as: "emperor", under: ["BT1-030"] }] },
@@ -181,5 +187,32 @@ describe("BT18-018 EmperorGreymon", () => {
         instanceId: s.inst("emperor").instanceId,
       }),
     ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
+
+  it("does not trigger its inherited effect when another Digimon wins a battle", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT18-018", as: "emperor", under: ["BT1-030"] },
+            { card: "BT1-030", dp: 5000, as: "other" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-030", dp: 1000, suspended: true, as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("other").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(observe(s.engine).keywordAmount(s.perm("emperor"), "SecurityAttack")).toBe(0);
   });
 });
