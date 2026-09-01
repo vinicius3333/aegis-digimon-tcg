@@ -63,4 +63,3 @@ The complete BT21 catalog was regenerated from normalized direct modules while p
 ## Remaining queue
 
 None for BT21. The chronological collection campaign continues with BT20.
-
