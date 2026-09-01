@@ -21,7 +21,11 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "Link",
-          target: { filter: { controller: "mine", kind: ["Digimon"], levels: [3] }, count: 1 },
+          target: {
+            source: "thisDigimon",
+            filter: { controller: "mine", kind: ["Digimon"], levels: [3] },
+            count: 1,
+          },
           payCost: false,
           optional: true,
         },
@@ -34,7 +38,11 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "Link",
-          target: { filter: { controller: "mine", kind: ["Digimon"], levels: [3] }, count: 1 },
+          target: {
+            source: "thisDigimon",
+            filter: { controller: "mine", kind: ["Digimon"], levels: [3] },
+            count: 1,
+          },
           payCost: false,
           optional: true,
         },

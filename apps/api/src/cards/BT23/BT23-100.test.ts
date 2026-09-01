@@ -1,7 +1,7 @@
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT23-100.js";
 
 describe("BT23-100 Hudie Net CafxE9", () => {
@@ -37,9 +37,25 @@ describe("BT23-100 Hudie Net CafxE9", () => {
       kind: "WaiveColorRequirement",
       condition: {
         kind: "youHave",
-        filter: { kind: ["Digimon", "Tamer"], zone: ["battleArea", "breedingArea"] },
+        filter: { kind: ["Digimon", "Tamer"], zone: ["battleArea", "breeding"] },
       },
     });
+  });
+
+  it("waives the white color requirement from an off-color CS Digimon in breeding", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT22-008", as: "csInBreeding" },
+        hand: [{ card: "BT23-100", as: "option" }],
+        deck: ["BT1-001"],
+      },
+    });
+    s.state.memory = 3;
+    const optionId = s.inst("option").instanceId;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
   });
 
   it("draws then places itself, and models the Delay Tamer play", () => {

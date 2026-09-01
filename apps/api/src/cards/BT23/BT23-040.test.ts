@@ -109,6 +109,7 @@ describe("BT23-040 Wormmon", () => {
         target: {
           filter: {
             controller: "mine",
+            zone: "battleArea",
             nameOrTrait: [{ tokens: ["Erika Mishima"], match: "name" }],
           },
           count: 1,

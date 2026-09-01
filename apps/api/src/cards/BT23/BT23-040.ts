@@ -40,6 +40,7 @@ export const compiled: CompiledCard = {
             target: {
               filter: {
                 controller: "mine",
+                zone: "battleArea",
                 nameOrTrait: [
                   {
                     tokens: ["Erika Mishima"],

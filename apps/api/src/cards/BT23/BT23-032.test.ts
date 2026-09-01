@@ -74,6 +74,31 @@ describe("BT23-032 Shakkoumon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
   });
 
+  it("does not play an eligible card from an unrelated friendly stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-032", as: "shakkoumon" },
+            { card: "BT23-035", as: "otherCarrier", under: [{ card: "BT23-027", as: "unrelatedEligible" }] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    const sourceId = s.perm("shakkoumon").permanentId;
+    const unrelatedId = s.inst("unrelatedEligible").instanceId;
+
+    expect(await advance(s.engine).verb.deletePermanent([sourceId], "byEffect")).toBe(1);
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === sourceId)).toBe(false);
+    expect(s.perm("otherCarrier").stack.map((card) => card.instanceId)).toContain(unrelatedId);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === unrelatedId)).toBe(
+      false,
+    );
+  });
+
   it("gives an opponent Digimon a Start of Your Main Phase attack trigger and de-digivolves on DNA", () => {
     const effect = compiled.effects.find((entry) => entry.trigger === "WhenDigivolving") as any;
     expect(effect.actions[0]).toMatchObject({
@@ -103,6 +128,7 @@ describe("BT23-032 Shakkoumon", () => {
         {
           kind: "PlayWithoutCost",
           target: {
+            source: "thisDigimon",
             filter: {
               controller: "mine",
               kind: ["Digimon"],
@@ -139,6 +165,7 @@ describe("BT23-032 Shakkoumon", () => {
         {
           kind: "PlayWithoutCost",
           target: {
+            source: "thisDigimon",
             filter: { colors: ["Yellow", "Black"], levelComparison: { op: "lte", value: 4 } },
             orFilters: [
               {

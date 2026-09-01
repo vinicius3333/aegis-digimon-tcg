@@ -34,6 +34,7 @@ describe("BT23-024 Poseidomon", () => {
       expect(action).toMatchObject({
         kind: "Link",
         target: {
+          source: "thisDigimon",
           filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }] },
           count: 1,
         },
@@ -119,5 +120,35 @@ describe("BT23-024 Poseidomon", () => {
     await settle();
     await s.engine.recomputeContinuousEffects();
     expect(observe(s.engine).isRestricted(s.perm("lower"), "suspend")).toBe(false);
+  });
+
+  it("when digivolving links an Appmon from this Digimon's stack, not another friendly stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-022", as: "base", under: [{ card: "BT23-007", as: "ownLink" }] },
+            { card: "BT23-022", as: "otherHost", under: [{ card: "BT23-007", as: "otherLink" }] },
+          ],
+          hand: [{ card: "BT23-024", as: "poseidomon" }],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("poseidomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").linked.some((card) => card.instanceId === s.inst("ownLink").instanceId));
+
+    expect(s.perm("base").linked.map((card) => card.instanceId)).toContain(s.inst("ownLink").instanceId);
+    expect(s.perm("otherHost").stack.map((card) => card.instanceId)).toContain(s.inst("otherLink").instanceId);
+    expect(s.perm("otherHost").linked.map((card) => card.instanceId)).not.toContain(s.inst("otherLink").instanceId);
   });
 });
