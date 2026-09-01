@@ -32,6 +32,7 @@ const compiled: CompiledCard = {
           },
           from: ["hand"],
           reduceCost: 1,
+          payCost: true,
           optional: true,
           condition: {
             kind: "isYourTurn",
@@ -65,6 +66,7 @@ const compiled: CompiledCard = {
           },
           from: ["hand"],
           reduceCost: 1,
+          payCost: true,
           optional: true,
           condition: {
             kind: "isYourTurn",

@@ -53,7 +53,7 @@ export const compiled: CompiledCard = {
           },
           cost: {
             kind: "trash",
-            target: { filter: { controller: "mine" }, count: 1 },
+            target: { filter: { controller: "mine", zone: "security", position: "top" }, count: 1 },
             raw: "by trashing the top card of your security stack",
           },
           optional: true,

@@ -13,6 +13,7 @@ describe("BT16-022", () => {
     expect(actions?.[0]).toMatchObject({
       kind: "TrashDigivolution",
       amount: 1,
+      choose: true,
       target: expect.objectContaining({
         count: 1,
         filter: expect.objectContaining({ digivolutionCards: "hasAny" }),
@@ -56,5 +57,36 @@ describe("BT16-022", () => {
     const continuous = (s.engine as unknown as { continuous: { hasKeyword: (id: string, keyword: string) => boolean } })
       .continuous;
     expect(continuous.hasKeyword(s.perm("sourceLess").permanentId, "SecurityAttack")).toBe(true);
+  });
+
+  it("can trash any selected evolution card rather than defaulting to the top card", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-010", as: "host", under: ["BT16-022"] }] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "stacked", under: ["BT1-009", "BT1-011"] },
+            { card: "BT1-011", as: "sourceLess" },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    const bottomSourceId = s.perm("stacked").stack[0]!.instanceId;
+    const topSourceId = s.perm("stacked").stack[1]!.instanceId;
+    preferred.push(bottomSourceId, s.perm("sourceLess").permanentId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("stacked").stack.length === 1);
+
+    expect(s.perm("stacked").stack[0]!.instanceId).toBe(topSourceId);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === bottomSourceId)).toBe(true);
   });
 });

@@ -32,6 +32,7 @@ const compiled: CompiledCard = {
             count: 1,
           },
           amount: 1,
+          choose: true,
         },
         {
           kind: "GainKeyword",

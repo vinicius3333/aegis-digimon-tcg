@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -37,7 +38,7 @@ describe("BT16-015", () => {
     expect(compiled.effects?.[0]?.actions[1]).toMatchObject({
       kind: "GrantStatic",
       grant: { keyword: "EndOfAttack", targetFilter: { keyword: "OnDeletion" } },
-      condition,
+      condition: { kind: "allOf", conditions: [{ kind: "isYourTurn" }, condition] },
     });
     expect(compiled.effects?.[1]).toMatchObject({
       trigger: "YourTurn",
@@ -106,6 +107,22 @@ describe("BT16-015", () => {
     await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === preyId)).toBe(false);
+  });
+
+  it("does not install the projection from an opponent-turn digivolution timing", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT16-015", as: "phoenixmonX", under: ["BT13-014", "BT2-019"] }] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("phoenixmonX"));
+
+    expect(
+      advance(s.engine)
+        .ledgers.continuous.listOnDeletionAtEndOfAttackProjections()
+        .some((projection) => projection.permanentId === s.perm("phoenixmonX").permanentId),
+    ).toBe(false);
   });
 
   it("stops projecting after a natural de-digivolve removes the source clause (Q2615)", async () => {

@@ -42,20 +42,26 @@ const compiled: CompiledCard = {
           },
           duration: "forTheTurn",
           condition: {
-            kind: "selfDigivolutionStackHasTrait",
-            filter: {
-              nameOrTrait: [
-                {
-                  tokens: ["Phoenixmon"],
-                  match: "name",
+            kind: "allOf",
+            conditions: [
+              { kind: "isYourTurn", raw: "[Your Turn]" },
+              {
+                kind: "selfDigivolutionStackHasTrait",
+                filter: {
+                  nameOrTrait: [
+                    {
+                      tokens: ["Phoenixmon"],
+                      match: "name",
+                    },
+                    {
+                      tokens: ["X Antibody"],
+                      match: "trait",
+                    },
+                  ],
                 },
-                {
-                  tokens: ["X Antibody"],
-                  match: "trait",
-                },
-              ],
-            },
-            raw: "[Phoenixmon] or [X Antibody] is in this Digimon's digivolution cards",
+                raw: "[Phoenixmon] or [X Antibody] is in this Digimon's digivolution cards",
+              },
+            ],
           },
         },
       ],

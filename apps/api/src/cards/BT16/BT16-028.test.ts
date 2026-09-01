@@ -117,7 +117,7 @@ describe("BT16-028", () => {
           deck: ["BT1-001", "BT1-002", "BT1-003"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
     );
     s.state.turnSeat = 1;
     s.state.memory = 3;
@@ -146,7 +146,7 @@ describe("BT16-028", () => {
           trash: [{ card: "BT16-031", as: "gatomon" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
     );
     s.state.turnSeat = 1;
     s.state.memory = 6;

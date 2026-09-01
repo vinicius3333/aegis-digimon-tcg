@@ -113,6 +113,8 @@ const compiled: CompiledCard = {
             target: {
               filter: {
                 controller: "mine",
+                zone: "security",
+                position: "top",
               },
               count: 1,
             },
