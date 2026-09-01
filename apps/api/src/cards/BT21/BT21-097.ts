@@ -51,7 +51,11 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "Link",
-          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+          target: {
+            filter: { controller: "mine", kind: ["Digimon"], hasLinkRequirement: true },
+            count: 1,
+          },
+          recipient: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
           payCost: false,
           optional: true,
           from: ["hand"],

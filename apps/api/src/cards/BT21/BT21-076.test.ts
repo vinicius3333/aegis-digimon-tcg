@@ -75,7 +75,7 @@ describe("BT21-076 WarGrowlmon", () => {
           trash,
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
     );
     s.state.memory = 6;
     await s.ready();
@@ -97,7 +97,7 @@ describe("BT21-076 WarGrowlmon", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
     );
     s.state.memory = 10;
     await s.ready();
