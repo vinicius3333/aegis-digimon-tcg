@@ -52,7 +52,7 @@ describe("BT20-023 Coredramon", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 0 },
     );
     await s.ready();
     s.state.memory = 7;

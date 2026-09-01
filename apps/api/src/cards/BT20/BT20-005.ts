@@ -13,6 +13,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenCheckedFaceUpSecurity",
+          sourceFilter: { isSelfRef: true },
           actions: [
             {
               kind: "GainKeyword",

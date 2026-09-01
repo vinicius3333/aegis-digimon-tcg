@@ -53,6 +53,7 @@ export const compiled: CompiledCard = {
           target: {
             filter: {
               isSelfRef: true,
+              zone: "battleArea",
             },
             count: 1,
             isSelf: true,

@@ -16,7 +16,9 @@ describe("BT20-034 Boutmon", () => {
         {
           kind: "SubTrigger",
           event: "onAddDigivolutionCards",
-          sourceFilter: { kind: ["Tamer"] },
+          sourceFilter: { controllerDefault: "mine" },
+          triggerFilter: { isSelfRef: true },
+          addedDigivolutionCardFilter: { kind: ["Tamer"] },
           actions: [
             {
               kind: "Restrict",
@@ -35,6 +37,7 @@ describe("BT20-034 Boutmon", () => {
         {
           kind: "SubTrigger",
           event: "whenDeletesInBattle",
+          sourceFilter: { isSelfRef: true },
           actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent", amount: 1 }],
         },
       ],
@@ -60,6 +63,27 @@ describe("BT20-034 Boutmon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("boutmon"), "Fortitude")).toBe(true);
     await advance(s.engine).verb.placeUnder(s.perm("boutmon").permanentId, [s.inst("tamer").instanceId]);
     await settle(() => observe(s.engine).isRestricted(s.perm("target"), "cannotActivateWhenDigivolving"));
+
+    const unrelatedHost = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-034", as: "boutmon" },
+            { card: "BT20-030", as: "otherHost" },
+          ],
+          hand: [{ card: "BT20-085", as: "tamer" }],
+        },
+        1: { battleArea: [{ card: "BT20-010", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await unrelatedHost.ready();
+    await advance(unrelatedHost.engine).verb.placeUnder(unrelatedHost.perm("otherHost").permanentId, [
+      unrelatedHost.inst("tamer").instanceId,
+    ]);
+    expect(
+      observe(unrelatedHost.engine).isRestricted(unrelatedHost.perm("target"), "cannotActivateWhenDigivolving"),
+    ).toBe(false);
   });
 
   it("inherits one opposing top-security trash after its host deletes in battle", async () => {
@@ -79,6 +103,35 @@ describe("BT20-034 Boutmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.players[1]!.security.length === 1);
+    expect(s.state.players[0]!.battleArea).toContain(s.perm("host"));
+  });
+
+  it("does not trash security when another allied Digimon deletes in battle", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT20-035", as: "host", under: ["BT20-034"] },
+          { card: "BT20-010", as: "otherAttacker" },
+        ],
+      },
+      1: {
+        battleArea: [{ card: "BT20-010", dp: 1000, suspended: true, as: "opponent" }],
+        security: ["BT20-001", "BT20-002"],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("otherAttacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("opponent").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.players[1]!.security).toHaveLength(2);
     expect(s.state.players[0]!.battleArea).toContain(s.perm("host"));
   });
 });

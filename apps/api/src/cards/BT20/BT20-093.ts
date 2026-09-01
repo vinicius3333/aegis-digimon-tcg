@@ -57,6 +57,7 @@ export const compiled: CompiledCard = {
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],
+            zone: "battleArea",
             nameOrTrait: [
               {
                 tokens: ["Dracomon", "Examon"],

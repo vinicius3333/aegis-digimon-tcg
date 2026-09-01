@@ -27,7 +27,6 @@ describe("BT20-040 Coredramon", () => {
               from: ["hand"],
               reduceCost: 2,
               payCost: true,
-              useAlternateCost: true,
               optional: true,
               into: { nameOrTrait: [{ tokens: ["Groundramon"], match: "name" }] },
             },
@@ -52,7 +51,7 @@ describe("BT20-040 Coredramon", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 1 },
     );
     matching.state.memory = 10;
     await matching.ready();
@@ -63,6 +62,29 @@ describe("BT20-040 Coredramon", () => {
     });
     await settle(() => matching.perm("coredramon").topCard.cardId === "BT20-042");
     expect(matching.state.memory).toBe(4);
+
+    const printedRequirement = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-040", as: "coredramon" }],
+          hand: [
+            { card: "BT20-023", as: "played" },
+            { card: "BT20-042", as: "groundramon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 0 },
+    );
+    printedRequirement.state.memory = 10;
+    await printedRequirement.ready();
+    expect(
+      printedRequirement.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: printedRequirement.inst("played").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => printedRequirement.perm("coredramon").topCard.cardId === "BT20-042");
+    expect(printedRequirement.state.memory).toBe(3);
 
     const nonmatching = setupEngine(
       {

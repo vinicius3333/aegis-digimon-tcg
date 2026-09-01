@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-088.js";
+import "./index.js";
 
 describe("BT20-088 Violet Inboots", () => {
   it("gains memory only when the opponent has a Digimon", () => {
@@ -28,5 +30,36 @@ describe("BT20-088 Violet Inboots", () => {
         },
       ],
     });
+  });
+
+  it("naturally evolves a Digimon after an own Ghost is deleted", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-088", as: "tamer" },
+            { card: "BT20-063", as: "deletedGhost", dp: 1000 },
+            { card: "BT20-062", as: "recipient", dp: 1000 },
+          ],
+          hand: [{ card: "BT20-067", as: "evolution" }],
+        },
+        1: { battleArea: [{ card: "BT20-079", as: "blocker", dp: 12000, suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("deletedGhost").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("blocker").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("recipient").topCard.cardId === "BT20-067");
+
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT20-063")).toBe(true);
   });
 });

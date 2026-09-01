@@ -25,8 +25,9 @@ export const compiled: CompiledCard = {
           event: "onAddDigivolutionCards",
           sourceFilter: {
             controllerDefault: "mine",
-            kind: ["Tamer"],
           },
+          triggerFilter: { isSelfRef: true },
+          addedDigivolutionCardFilter: { kind: ["Tamer"] },
           actions: [
             {
               kind: "Restrict",
@@ -50,6 +51,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenDeletesInBattle",
+          sourceFilter: { isSelfRef: true },
           actions: [
             {
               kind: "SecurityManipulation",

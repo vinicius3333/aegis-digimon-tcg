@@ -30,9 +30,10 @@ export const compiled: CompiledCard = {
           },
           from: ["hand"],
           payCost: false,
+          abortOnDecline: true,
           cost: {
             kind: "return",
-            position: "bottom",
+            to: "deckBottom",
             target: {
               filter: {
                 isSelfRef: true,

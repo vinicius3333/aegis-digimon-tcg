@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-101.js";
+import "./index.js";
 
 describe("BT20-101 Zephagamon", () => {
   it("requires a play-cost-10-or-higher level-6 Vortex Warriors base for its cost-1 route", () => {
@@ -43,5 +46,60 @@ describe("BT20-101 Zephagamon", () => {
         ],
       });
     }
+  });
+
+  it("on play suspends one Digimon, then returns one opposing suspended Digimon per pair", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT20-101", as: "zephagamon" }],
+          battleArea: [{ card: "BT1-010", as: "ownTarget" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "firstOpponent", suspended: true },
+            { card: "BT1-010", as: "secondOpponent", suspended: true },
+          ],
+          deck: ["BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("ownTarget").instanceId);
+    s.state.memory = 8;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("zephagamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+
+    expect(s.perm("ownTarget").isSuspended).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.deck).toHaveLength(2);
+  });
+
+  it("unsuspends itself when either player's Digimon suspends, only once per turn", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-101", as: "zephagamon", suspended: true }] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "firstOpponent" },
+            { card: "BT1-010", as: "secondOpponent" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.suspend([s.perm("firstOpponent").permanentId], 1);
+    await settle(() => !s.perm("zephagamon").isSuspended);
+    expect(s.perm("zephagamon").isSuspended).toBe(false);
+
+    await advance(s.engine).verb.suspend([s.perm("secondOpponent").permanentId], 1);
+    await settle();
+    expect(s.perm("zephagamon").isSuspended).toBe(false);
   });
 });

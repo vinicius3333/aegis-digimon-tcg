@@ -3611,6 +3611,46 @@ describe("v3 IR actions (round-3 fixes) dispatch to real primitives", () => {
     expect(added[0]!.args[1]).toEqual(["H1"]); // the chosen hand instance
   });
 
+  it("placeAsSecurity fromDigivolutionTop adds the selected permanent's top stack card", async () => {
+    const stackTop = { instanceId: "EVO#1", cardId: "EVO-CARD", ownerSeat: 0, faceUp: true } as never;
+    const permanent = makeFakePermanent({
+      permanentId: "STACKED#1",
+      controllerSeat: 0 as Seat,
+      topCard: { instanceId: "TOP#1", cardId: "TOP-CARD", ownerSeat: 0, faceUp: true } as never,
+      stack: [stackTop] as never,
+    });
+    const source = makeSource({ cardId: "Z-SEC-STACK", permanent: () => permanent });
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({ source, recorder, ownBattleArea: [permanent] });
+    const module = irCardModule("Z-SEC-STACK", {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "SecurityManipulation",
+              op: "placeAsSecurity",
+              controller: "mine",
+              source: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              fromDigivolutionTop: true,
+              toTop: true,
+            },
+          ],
+        },
+      ],
+    });
+
+    for (const e of module.effectsForTiming(EffectTiming.OnPlay, source)) await e.resolve(ctx);
+
+    const added = recorder.calls.filter((c) => c.verb === "addSecurity");
+    expect(added).toHaveLength(1);
+    expect(added[0]!.args[0]).toBe(0);
+    expect(added[0]!.args[1]).toEqual(["EVO#1"]);
+    expect(added[0]!.args[1]).not.toContain("TOP#1");
+  });
+
   it("a routed place-as-cost (destination:security, top, face down) adds the chosen hand card to security", async () => {
     const handCard = { instanceId: "H9", cardId: "H9", ownerSeat: 0, faceUp: true } as never;
     const source = makeSource({ cardId: "Z-PC-SEC" });

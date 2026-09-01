@@ -20,7 +20,12 @@ describe("BT20-025 Wingdramon", () => {
     }
     expect(compiled.effects.find((entry) => entry.trigger === "AllTurns")).toMatchObject({
       actions: [
-        { kind: "GrantStatic", target: { isSelf: true }, grant: "name", tokens: ["Slayerdramon"] },
+        {
+          kind: "GrantStatic",
+          target: { filter: { isSelfRef: true, zone: "battleArea" }, isSelf: true },
+          grant: "name",
+          tokens: ["Slayerdramon"],
+        },
         {
           kind: "GrantStatic",
           grant: { kind: "TreatAsLevel", level: 6, context: "DNADigivolution", intoNames: ["Examon"] },
@@ -56,10 +61,47 @@ describe("BT20-025 Wingdramon", () => {
     await field.ready();
     expect(observe(field.engine).grantedNames(field.perm("wingdramon"))).toContain("slayerdramon");
 
+    const breeding = setupEngine({ 0: { breeding: { card: "BT20-025", as: "breedingWingdramon" } } });
+    await breeding.ready();
+    expect(observe(breeding.engine).grantedNames(breeding.perm("breedingWingdramon"))).not.toContain("slayerdramon");
+
     const inherited = setupEngine({
       0: { battleArea: [{ card: "BT20-027", as: "host", under: ["BT20-025"] }] },
     });
     await inherited.ready();
     expect(observe(inherited.engine).keywordAmount(inherited.perm("host"), "SecurityAttack")).toBe(1);
+  });
+
+  it("uses the field-only Slayerdramon and level-6 treatment for Examon Blast DNA", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-042", as: "groundramon" },
+            { card: "BT20-025", as: "wingdramon" },
+          ],
+          hand: [{ card: "BT20-045", as: "examon" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("groundramon").permanentId, s.perm("wingdramon").permanentId],
+        instanceId: s.inst("examon").instanceId,
+        useBlastDigivolve: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-045"));
+
+    const result = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT20-045");
+    expect(result).toBeDefined();
+    expect(result!.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT20-042", "BT20-025"]));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("examon").instanceId);
+    expect(s.state.memory).toBe(0);
   });
 });

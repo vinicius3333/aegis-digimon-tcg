@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-093.js";
+import "./index.js";
 
 describe("BT20-093 Unleash the Dragon Gene", () => {
   it("keeps the optional reduced play and mandatory placement sequence", () => {
@@ -18,6 +20,7 @@ describe("BT20-093 Unleash the Dragon Gene", () => {
           kind: "Replacement",
           event: "wouldLeavePlay",
           leaveCause: "otherThanBattle",
+          sourceFilter: { zone: "battleArea" },
           actions: [{ kind: "GainKeyword", keyword: { keyword: "Delay" }, duration: "permanent" }],
         },
       ],
@@ -51,5 +54,33 @@ describe("BT20-093 Unleash the Dragon Gene", () => {
         { kind: "PlaceInBattleAreaSelf" },
       ],
     });
+  });
+
+  it("naturally plays a Dracomon-text Digimon at the reduced cost and places itself", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "redSource" }],
+          hand: [
+            { card: "BT20-093", as: "option" },
+            { card: "BT20-023", as: "coredramon" },
+          ],
+          deck: ["BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-093"));
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(
+      expect.arrayContaining(["BT20-023", "BT20-093"]),
+    );
+    expect(s.state.memory).toBe(0);
   });
 });

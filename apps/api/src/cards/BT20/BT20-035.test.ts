@@ -24,7 +24,9 @@ describe("BT20-035 Kazuchimon", () => {
         {
           kind: "SubTrigger",
           event: "onAddDigivolutionCards",
-          sourceFilter: { kind: ["Tamer"] },
+          sourceFilter: { controllerDefault: "mine" },
+          triggerFilter: { isSelfRef: true },
+          addedDigivolutionCardFilter: { kind: ["Tamer"] },
           actions: [
             { kind: "ActivateEffect", effectType: "WhenDigivolving" },
             { kind: "Attack", optional: true },
@@ -66,6 +68,26 @@ describe("BT20-035 Kazuchimon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("kazuchimon"), "Fortitude")).toBe(true);
     await advance(s.engine).verb.placeUnder(s.perm("kazuchimon").permanentId, [s.inst("tamer").instanceId]);
     await settle(() => s.perm("target").isSuspended && observe(s.engine).isRestricted(s.perm("target"), "unsuspend"));
+  });
+
+  it("does not react when a Tamer enters a different Digimon's stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-035", as: "kazuchimon" },
+            { card: "BT20-030", as: "otherHost" },
+          ],
+          hand: [{ card: "BT20-085", as: "tamer" }],
+        },
+        1: { battleArea: [{ card: "BT20-010", as: "target" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.placeUnder(s.perm("otherHost").permanentId, [s.inst("tamer").instanceId]);
+    expect(s.perm("target").isSuspended).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(false);
   });
 
   it("recovers once when Fenriloogamon's security is removed", async () => {

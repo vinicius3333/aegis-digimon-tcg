@@ -41,6 +41,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenSecurityRemoved",
+          sourceFilter: { controller: "any" },
           actions: [
             {
               kind: "ModifyDP",

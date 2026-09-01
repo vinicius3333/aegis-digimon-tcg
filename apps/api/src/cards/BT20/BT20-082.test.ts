@@ -1,5 +1,9 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-082.js";
+import "./index.js";
 
 describe("BT20-082 DeathXmon", () => {
   it("has Security Attack +1, Reboot, and Blocker", () => {
@@ -43,5 +47,61 @@ describe("BT20-082 DeathXmon", () => {
         { kind: "Delete", target: { filter: { kind: ["Digimon"], superlative: "lowestLevel" }, count: "all" } },
       ],
     });
+  });
+
+  it("returns exactly three Dex/DeathX cards to keep this Digimon in play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-082", as: "deathx" }],
+          trash: ["BT17-065", "BT17-067", "BT17-073"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("deathx").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-082"));
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT17-065", "BT17-067", "BT17-073"]),
+    );
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+
+    const insufficient = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-082", as: "deathx" }],
+          trash: ["BT17-065", "BT17-067"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await insufficient.ready();
+    await advance(insufficient.engine).verb.deletePermanent([insufficient.perm("deathx").permanentId], "byEffect");
+    await settle(() => insufficient.state.players[0]!.battleArea.length === 0);
+    expect(insufficient.state.players[0]!.battleArea).toHaveLength(0);
+    expect(insufficient.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT20-082", "BT17-065", "BT17-067"]),
+    );
+  });
+
+  it("deletes every Digimon tied for the lowest level at End of All Turns", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT20-082", as: "deathx" },
+          { card: "BT20-077", as: "ownLowest" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT20-079", as: "opponentLowest" }] },
+    });
+    await s.ready();
+    await advance(s.engine).fireGlobal(EffectTiming.EndOfAllTurns);
+    await settle(() => s.state.players[0]!.battleArea.length === 1 && s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT20-082"]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });

@@ -1,5 +1,8 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, it, expect } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./index.js"; // register the BT20 compiled cards so the real activateEffect path runs
 import { compiled } from "./BT20-102.js";
 
@@ -97,7 +100,7 @@ describe("BT20-102 — [When Digivolving] mass-delete spares the chosen survivor
 
     // Bias the "choose 1 of both players' Digimon" prompt toward sparing the digivolved
     // permanent itself.
-    preferInstanceIds.push(base.permanentId);
+    preferInstanceIds.push(base.topCard.instanceId);
 
     s.engine.applyIntent(0, { type: "digivolve", permanentId: base.permanentId, instanceId: evolving.instanceId });
 
@@ -108,5 +111,75 @@ describe("BT20-102 — [When Digivolving] mass-delete spares the chosen survivor
     // ... while every OTHER Digimon on either side was deleted.
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === ownOther.permanentId)).toBe(false);
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === oppOther.permanentId)).toBe(false);
+  });
+
+  it("fires the entry mass-delete from an X Antibody card in the stack", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: OMNIMON_XA, as: "xOnly", under: ["BT20-056"] },
+            { card: OWN_OTHER, as: "ownOther" },
+          ],
+        },
+        1: { battleArea: [{ card: OPPONENT_DIGIMON, as: "oppOther" }] },
+      },
+      { autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("xOnly").topCard.instanceId);
+    await s.ready();
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("xOnly"));
+    await settle(() => s.state.players[0]!.battleArea.length === 1 && s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      s.perm("xOnly").permanentId,
+    ]);
+    expect(s.state.players[0]!.battleArea[0]!.stack.map((card) => card.cardId)).toContain("BT20-056");
+  });
+
+  it("does not mass-delete when neither Omnimon nor X Antibody is in the stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: OMNIMON_XA, as: "unqualified", under: ["BT1-010"] },
+            { card: OWN_OTHER, as: "ownOther" },
+          ],
+        },
+        1: { battleArea: [{ card: OPPONENT_DIGIMON, as: "oppOther" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("unqualified"));
+    await settle(() => s.state.players[1]!.deck.some((card) => card.cardId === OPPONENT_DIGIMON));
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(
+      expect.arrayContaining([OMNIMON_XA, OWN_OTHER]),
+    );
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe(OPPONENT_DIGIMON);
+  });
+
+  it("grants Rush and attacks without suspending at the end of your turn", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: OMNIMON_XA, as: "omnimon" }] },
+        1: { security: ["BT1-010"], deck: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    await advance(s.engine).fireForPermanent(EffectTiming.EndOfYourTurn, s.perm("omnimon"));
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(observe(s.engine).hasAttackedThisTurn(s.perm("omnimon"))).toBe(true);
+    expect(s.perm("omnimon").isSuspended).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(0);
   });
 });

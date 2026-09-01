@@ -5,6 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const royalKnight = {
   controllerDefault: "mine",
   kind: ["Digimon"],
+  zone: "battleArea",
   nameOrTrait: [{ tokens: ["Royal Knight"], match: "trait" }],
 };
 const royalKnightOnYourTurn = {

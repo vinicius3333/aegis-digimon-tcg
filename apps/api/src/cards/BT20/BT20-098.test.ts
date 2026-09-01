@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { irNode } from "../../engine/testkit/irNode.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-098.js";
+import "./index.js";
 
 describe("BT20-098 Apparition Legion", () => {
   it("matches the errata and applies Rush and Blocker to every Digimon it played", () => {
@@ -19,5 +22,46 @@ describe("BT20-098 Apparition Legion", () => {
     expect(keywordActions?.map((action) => irNode(action).keyword.keyword)).toEqual(["Rush", "Blocker"]);
     expect(keywordActions?.every((action) => irNode(action).target.count === "all")).toBe(true);
     expect(keywordActions?.every((action) => action.optional !== true)).toBe(true);
+  });
+
+  it("naturally pays exactly 9 returned opponent-trash levels and plays one Ghost at each level", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT20-098", as: "option" }],
+          battleArea: ["BT20-062"],
+          trash: [
+            { card: "BT20-063", as: "ghost3" },
+            { card: "BT20-079", as: "ghost6" },
+          ],
+        },
+        1: {
+          trash: ["BT20-062", "BT20-079"],
+          deck: ["BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 8;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => {
+      const ids = s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId);
+      return ids.includes("BT20-063") && ids.includes("BT20-079");
+    });
+
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+    for (const alias of ["ghost3", "ghost6"] as const) {
+      const permanent = s.perm(alias);
+      expect(permanent.isSuspended).toBe(false);
+    }
+    expect(s.perm("ghost3").topCard.cardId).toBe("BT20-063");
+    expect(s.perm("ghost6").topCard.cardId).toBe("BT20-079");
+    for (const alias of ["ghost3", "ghost6"] as const) {
+      expect(observe(s.engine).hasKeyword(s.perm(alias), "Rush")).toBe(true);
+      expect(observe(s.engine).hasKeyword(s.perm(alias), "Blocker")).toBe(true);
+    }
   });
 });

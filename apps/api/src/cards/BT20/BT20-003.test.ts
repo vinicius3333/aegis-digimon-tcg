@@ -42,7 +42,9 @@ describe("BT20-003 Bibimon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT20-011", as: "blockedHost", under: ["BT20-089", "BT20-003"] },
+            // Use a neutral Tamer source: BT20-089 can play itself from this stack at
+            // EndOfAllTurns because its Rule also treats it as Eiji Nagasumi.
+            { card: "BT20-011", as: "blockedHost", under: ["BT1-085", "BT20-003"] },
             { card: "BT17-086", as: "eligibleTamer" },
           ],
         },
@@ -50,7 +52,7 @@ describe("BT20-003 Bibimon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await advance(blocked.engine).fire(EffectTiming.OnEndTurn, blocked.perm("blockedHost"));
-    expect(blocked.perm("blockedHost").stack.map((card) => card.cardId)).toEqual(["BT20-089", "BT20-003"]);
+    expect(blocked.perm("blockedHost").stack.map((card) => card.cardId)).toEqual(["BT1-085", "BT20-003"]);
     expect(blocked.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT17-086")).toBe(
       true,
     );
