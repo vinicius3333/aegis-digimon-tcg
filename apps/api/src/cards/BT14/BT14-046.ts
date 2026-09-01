@@ -11,7 +11,7 @@ export const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldBePlayed",
-          sourceFilter: { controllerDefault: "mine", kind: ["Tamer"], colors: ["Green"] },
+          sourceFilter: { controllerDefault: "mine", kind: ["Tamer"], colors: ["Green"], zone: "hand" },
           mode: "reduceCost",
           amount: 3,
           cost: {

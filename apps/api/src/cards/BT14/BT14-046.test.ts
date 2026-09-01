@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import "../BT26/BT26-021.js";
+import "../ST17/ST17-02.js";
 import "../index.js";
 import { compiled } from "./BT14-046.js";
 
@@ -9,6 +11,7 @@ describe("BT14-046", () => {
       kind: "Replacement",
       event: "wouldBePlayed",
       amount: 3,
+      sourceFilter: { zone: "hand" },
       cost: { kind: "suspend" },
     });
     expect(compiled.effects[1]).toMatchObject({
@@ -58,6 +61,67 @@ describe("BT14-046", () => {
     );
     expect(s.state.memory).toBe(5);
     expect(s.perm("other").isSuspended).toBe(false);
+  });
+
+  it("does not reduce a green Tamer played by an effect from the trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT14-046", as: "togemon" },
+            { card: "BT26-021", as: "gekomon" },
+          ],
+          trash: [{ card: "BT24-085", as: "tsTamer" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("gekomon").topCard.instanceId,
+        effectKey: "BT26-021/main-play-ts-tamer-from-trash",
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT24-085"));
+
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("togemon").isSuspended).toBe(false);
+  });
+
+  it("reduces a green Tamer played by an effect from the hand without spending the reducer in preflight", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT14-046", as: "togemon" },
+            { card: "ST17-02", as: "terriermon" },
+          ],
+          hand: [{ card: "BT1-089", as: "mimi" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    preferred.push(s.perm("togemon").topCard.instanceId);
+    s.state.memory = 10;
+
+    const effects = JSON.parse(s.perm("terriermon").activatableEffectsJson) as Array<{ effectKey: string }>;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("terriermon").topCard.instanceId,
+        effectKey: effects[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-089"));
+
+    expect(s.state.memory).toBe(10);
+    expect(s.perm("togemon").isSuspended).toBe(true);
   });
 
   it("naturally reduces an inherited host's evolution when a green Tamer is present", async () => {

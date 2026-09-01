@@ -159,7 +159,13 @@ export interface PrimitivesEngine {
    * Resolve the played loose card's own pay-time reducers ("when this card would be
    * played") before an effect-driven paid play charges memory.
    */
-  finalizeEffectPlayCost?: (instanceId: string, baseCost: number, useAsOption?: boolean) => Promise<number>;
+  finalizeEffectPlayCost?: (
+    instanceId: string,
+    baseCost: number,
+    useAsOption?: boolean,
+    originZone?: ZoneRef,
+    projectOnly?: boolean,
+  ) => Promise<number>;
   /** Read the effective hand-use cost for eligibility checks that must include automatic self reducers. */
   effectiveLooseUseCost?: (instanceId: string, controllerSeat: Seat) => number | undefined;
   /** Resolve each newly linked physical card's own [When Linking] window. */
@@ -712,6 +718,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     explicitReduction = 0,
     useAsOption = false,
     explicitOverride?: number,
+    originZone?: ZoneRef,
+    projectOnly = false,
   ): Promise<number> => {
     const printed = normalizeCost(definition.playCost);
     const overrideBlocked =
@@ -722,7 +730,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       ? 0
       : Math.max(0, explicitReduction);
     const reduced = Math.max(0, adjusted - allowedReduction);
-    return engine.finalizeEffectPlayCost?.(instanceId, reduced, useAsOption) ?? reduced;
+    return engine.finalizeEffectPlayCost?.(instanceId, reduced, useAsOption, originZone, projectOnly) ?? reduced;
   };
 
   const canAffordEffectPlay: NonNullable<Primitives["canAffordEffectPlay"]> = async (instanceId, opts) => {
@@ -731,7 +739,17 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     if (ownerSeat === undefined || instance === undefined) return false;
     const definition = requireCardDefinition(instance.cardId);
     const controllerSeat = opts?.controllerSeat ?? ownerSeat;
-    const cost = await effectDrivenPlayCost(instanceId, definition, controllerSeat, opts?.costDelta, opts?.useAsOption);
+    const originZone = looseZoneOfInstance(state, instanceId);
+    const cost = await effectDrivenPlayCost(
+      instanceId,
+      definition,
+      controllerSeat,
+      opts?.costDelta,
+      opts?.useAsOption,
+      undefined,
+      originZone,
+      true,
+    );
     return cost >= 0 && cost <= engine.memory.maxCostFor(controllerSeat);
   };
 
@@ -768,7 +786,15 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       const effectSeat = effectSeatStack.at(-1) ?? owner.seat;
       if (continuous.isPlayBlocked(effectSeat, definition, "play", true, "hand")) continue;
       if (opts?.payCost) {
-        const cost = await effectDrivenPlayCost(instanceId, definition, owner.seat, opts.costDelta);
+        const cost = await effectDrivenPlayCost(
+          instanceId,
+          definition,
+          owner.seat,
+          opts.costDelta,
+          false,
+          undefined,
+          "hand",
+        );
         if (engine.memory.maxCostFor(owner.seat) < cost) continue; // unaffordable: skip (no partial pay)
         if (cost > 0) engine.memory.pay(owner.seat, cost, "playCard");
       }
@@ -801,7 +827,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const effectSeat = effectSeatStack.at(-1) ?? owner.seat;
     if (continuous.isPlayBlocked(effectSeat, definition, "play", true, "security")) return undefined;
     if (opts?.payCost) {
-      const cost = await effectDrivenPlayCost(instanceId, definition, owner.seat);
+      const cost = await effectDrivenPlayCost(instanceId, definition, owner.seat, 0, false, undefined, "security");
       if (engine.memory.maxCostFor(owner.seat) < cost) return undefined;
       if (cost > 0) engine.memory.pay(owner.seat, cost, "playCard");
     }
@@ -906,6 +932,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
           (opts.costDelta ?? 0) + digiXrosReduction,
           false,
           opts.costOverride,
+          originByInstance.get(instanceId),
         );
         if (engine.memory.maxCostFor(ownerPlayer.seat) < cost) continue;
         if (cost > 0) engine.memory.pay(ownerPlayer.seat, cost, "playCard");
@@ -2576,6 +2603,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
           ctx.source.ownerSeat,
           opts.costDelta,
           true,
+          undefined,
+          looseZoneOfInstance(state, usedInstanceId),
         );
         // A borrowed Option is used by the resolving effect's controller, not by the card's
         // owner (which may differ for a card captured under a Digimon's stack/link list).

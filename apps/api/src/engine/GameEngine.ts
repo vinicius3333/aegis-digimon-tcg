@@ -885,9 +885,11 @@ export class GameEngine {
       resolveDeletionReactions: (trigger, candidates) => this.resolveDeletionReactions(trigger, candidates),
       fireSubTrigger: (event, payload) => this.fireSubTrigger(event, payload),
       recomputeContinuousEffects: () => this.recomputeContinuousEffects(),
-      finalizeEffectPlayCost: async (instanceId, baseCost, useAsOption) => {
+      finalizeEffectPlayCost: async (instanceId, baseCost, useAsOption, originZone, projectOnly) => {
         const instance = this.findLooseInstance(instanceId);
-        return instance === undefined ? baseCost : this.fireBeforePayCost(instance, baseCost, useAsOption);
+        return instance === undefined
+          ? baseCost
+          : this.fireBeforePayCost(instance, baseCost, useAsOption, originZone, projectOnly);
       },
       effectiveLooseUseCost: (instanceId, controllerSeat) => this.projectLooseUseCost(instanceId, controllerSeat),
       fireWhenLinking: async (instanceIds, targetPermanentId) => {
@@ -3569,7 +3571,13 @@ export class GameEngine {
    * the played card's own effects, so it is run directly against a focused context (mirroring the
    * `recomputeContinuousEffects` per-instance `resolve` loop), keeping the value observable.
    */
-  private async fireBeforePayCost(instance: CardInstance, baseCost: number, useAsOption = false): Promise<number> {
+  private async fireBeforePayCost(
+    instance: CardInstance,
+    baseCost: number,
+    useAsOption = false,
+    originZone?: ZoneRef,
+    projectOnly = false,
+  ): Promise<number> {
     const source = this.cardSourceOf(instance);
     if (this.continuous.blocksCostReduction(source.ownerSeat, "play")) return baseCost;
     const effects = effectsOf(EffectTiming.BeforePayCost, source).filter((effect) => effect.costWindow !== "digivolve");
@@ -3605,11 +3613,6 @@ export class GameEngine {
     // when `selections` is unset). The ReducePlayCost action writes the earned delta onto THIS
     // context's `playCostDelta`; a clone would strand the write and the reduction would be lost.
     const ctx: EffectContext = { ...this.buildEffectContext(source, {}), selections: new Map() };
-    for (const effect of effects) {
-      if (!canTrigger(effect, ctx, this.tracker)) continue;
-      if (!canActivate(effect, ctx, this.tracker)) continue;
-      await effect.resolve(ctx);
-    }
     const playTarget = new Permanent();
     playTarget.permanentId = `pending-play-${instance.instanceId}`;
     playTarget.controllerSeat = source.ownerSeat;
@@ -3617,6 +3620,29 @@ export class GameEngine {
     playTarget.inBreeding = false;
     playTarget.baseDP = source.definition.dp ?? 0;
     playTarget.currentDP = playTarget.baseDP;
+    if (projectOnly) {
+      const selfReduction = selfReducers.reduce(
+        (total, reducer) => total + potentialWouldBePlayedSelfReduction(ctx, reducer),
+        0,
+      );
+      const interactiveReduction = this.subTriggers.potentialInteractiveReductionFor(
+        "wouldBePlayed",
+        source.ownerSeat,
+        playTarget,
+        source.definition,
+        {
+          hasFired: (key) => this.tracker.count(key, "replacement") > 0,
+          markFired: (key) => this.tracker.register(key, "replacement"),
+        },
+        originZone,
+      );
+      return Math.max(0, baseCost - selfReduction - interactiveReduction);
+    }
+    for (const effect of effects) {
+      if (!canTrigger(effect, ctx, this.tracker)) continue;
+      if (!canActivate(effect, ctx, this.tracker)) continue;
+      await effect.resolve(ctx);
+    }
     // Generic battle-area pay-time watchers. Unlike the card being played, their
     // EffectContext source is the physical resident carrying the effect; the imminent
     // card identity is carried in TriggerInfo. This lets independent copies resolve and
@@ -3693,6 +3719,8 @@ export class GameEngine {
         hasFired: (key) => this.tracker.count(key, "replacement") > 0,
         markFired: (key) => this.tracker.register(key, "replacement"),
       },
+      undefined,
+      originZone,
     );
     if (interactiveReduction > 0) ctx.playCostDelta = (ctx.playCostDelta ?? 0) + interactiveReduction;
     for (const reducer of selfReducers) await applyWouldBePlayedSelfReducer(ctx, reducer);
@@ -4793,7 +4821,7 @@ export class GameEngine {
       // window (where a ReducePlayCost action runs its optional server-side payment) and return the
       // finalized cost. Runs in the async apply path BEFORE memory is paid (EX9-043 / BT25-076).
       finalizePlayCost: async (_state, _seat, instance, _definition, baseCost, mode) =>
-        this.fireBeforePayCost(instance, baseCost, mode === "option"),
+        this.fireBeforePayCost(instance, baseCost, mode === "option", "hand"),
       // Synchronous fast-path gate: only cards with a BeforePayCost effect take the async
       // finalization path. Every other card keeps same-microtask placement (no timing change).
       hasBeforePayCost: (instance) =>
@@ -5891,7 +5919,7 @@ export class GameEngine {
       adjustedPlayCost: (_state, seat, definition, base) =>
         this.modifiers.playCostFor({ def: definition, controllerSeat: seat }, base),
       finalizePlayCost: async (_state, _seat, instance, _definition, baseCost) =>
-        this.fireBeforePayCost(instance, baseCost, false),
+        this.fireBeforePayCost(instance, baseCost, false, "hand"),
       digiXrosNamesOf: (instanceId) => {
         const located = this.findInstance(instanceId);
         if (located === undefined) return [];

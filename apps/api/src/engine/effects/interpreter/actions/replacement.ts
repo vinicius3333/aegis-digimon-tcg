@@ -10,7 +10,7 @@ import { definitionMatches } from "../matching/definition.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
 import { candidatePermanents } from "../targeting/permanents.js";
 import { getCardDefinition } from "@aegis/shared";
-import type { Action, Condition, Cost, Filter, Permanent } from "@aegis/shared";
+import type { Action, Condition, Cost, Filter, Permanent, ZoneRef } from "@aegis/shared";
 
 const REPLACEMENT_EVENT_MAP: Record<string, ReplacementEventName | undefined> = {
   wouldLeavePlay: "wouldLeavePlay",
@@ -439,11 +439,16 @@ export async function runReplacement(
         ? {
             controllerSeat: ownerSeat,
             ...(self === undefined ? { activationContext: ctx } : {}),
-            appliesTo: (target: Permanent) =>
+            appliesTo: (target: Permanent, originZone?: ZoneRef) =>
               target.controllerSeat === ownerSeat &&
               !target.inBreeding &&
               (target.permanentId.startsWith("pending-play-") && target.topCard !== undefined
-                ? definitionMatches(replacementSourceFilter ?? {}, ctx.game.definitionOf(target.topCard))
+                ? definitionMatches(replacementSourceFilter ?? {}, ctx.game.definitionOf(target.topCard)) &&
+                  (replacementSourceFilter?.zone === undefined ||
+                    (originZone !== undefined &&
+                      (Array.isArray(replacementSourceFilter.zone)
+                        ? replacementSourceFilter.zone.includes(originZone)
+                        : replacementSourceFilter.zone === originZone)))
                 : permanentMatchesFilter(ctx, target, replacementSourceFilter ?? {}, ctx.source)),
             activate: async (runtimeCtx: EffectContext, target: Permanent) => {
               runtimeCtx.trigger.subjectPermanentId = target.permanentId;
