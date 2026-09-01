@@ -1,6 +1,12 @@
 # BT20 Static Card Implementation Re-audit
 
-Status: static card-by-card audit coverage recorded; execution gates deferred
+> Historical pre-execution report. Its provisional scores, deferred-gate statements, and
+> catalog-drift notes are preserved as an audit trail and are superseded by
+> `docs/audits/BT20-AUDIT.md` and `apps/api/src/cards/BT20/AUDIT.md`. Final result: 102/102 cards
+> at 10/10, 564/564 collection tests, 916/916 affected mechanism tests, and a synchronized
+> 102-card persisted catalog.
+
+Status: historical pre-execution report; superseded by the completed BT20 audit
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 

@@ -1,5 +1,15 @@
 # BT20 Card Audit Ledger
 
+## Collection closeout
+
+- Final status: 102/102 cards verified at 10/10; every production module has `coverage: "full"`, an empty residual list, exactly one `registerIrCard` call, and no `registerCard` call.
+- Collection gate: `timeout 300s pnpm --filter @aegis/api exec vitest run src/cards/BT20 --maxWorkers=1 --no-file-parallelism` — 103 files and 564 tests passed.
+- Mechanism gate: the 22 affected watcher, security, interpreter, continuous-effect, digivolution, interaction, and synchronized-state suites passed 916/916 tests with one worker and no file parallelism.
+- Catalog gate: all 102 direct modules equal their persisted `effects.json` records; 80 BT20 records changed semantically and no non-BT20 record changed.
+- Static gates: shared build and serial workspace typecheck passed; `pnpm lint` exited successfully with repository warnings only; scoped Oxfmt check and `git diff --check` passed.
+- The individual `Tests:` lines below preserve the focused proof available when each card entry was written. The collection and mechanism gates above are the authoritative final counts.
+- Final summary: `docs/audits/BT20-AUDIT.md`. Historical pre-execution lane reports remain under `internal-docs/audits/BT20/` and are explicitly marked as superseded.
+
 ## BT20-001 — DemiVeemon
 
 - Catalog contract: red level 2 Digi-Egg; inherited `[Your Turn]` clause gives this Digimon +2000 DP while it has at least 4 digivolution cards.
@@ -54,7 +64,7 @@
 - Knowledge base: Q4284 establishes security-effect priority when the face-up-check trigger is simultaneous with other security/removal triggers; this effect's event timing remains pending after immediate Security effects.
 - Implementation evidence: `BT20-005.ts` registers only through `registerIrCard`; its inherited your-turn watcher subscribes to `whenCheckedFaceUpSecurity` and grants Jamming to self for the turn. The security-check primitive snapshots `faceUp` before revealing, fires this event only for an already-face-up card, and includes the attacker identity; the subscription preserves your-turn scope.
 - Peer/stack evidence: the focused test attacks with Kapurimon in a realistic evolution stack against identical security cards in face-up and face-down states. Only the pre-existing face-up check produces an observable Jamming grant.
-- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-005.test.ts` — 2 passed.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-005.test.ts` — 3 passed.
 - Clause scores: inherited/your-turn scope 2/2; face-up-before-check boundary 2/2; checking Digimon identity/self target 2/2; Jamming keyword 2/2; for-the-turn observable grant and negative path 2/2.
 - Score: 10/10.
 - Ambiguity: none.
@@ -294,7 +304,7 @@
 - Knowledge base: Q4314 confines the Slayerdramon identity/level treatment to the battle area and forbids using a hand Wingdramon as the Slayerdramon material for BT20-045 Blast DNA Digivolve.
 - Implementation evidence: both entry timings share the inclusive DP deletion; the All Turns field effect grants the Slayerdramon name and an Examon-scoped DNA level-6 override through the continuous ledger; the inherited keyword records Security Attack +1. The Coredramon alternate requirement and exclusive `registerIrCard` registration are direct; no hand-zone static is installed, preserving Q4314.
 - Peer/stack evidence: On Play deletes the 6000-DP boundary and preserves a 7000-DP peer. A field Wingdramon observably carries the normalized Slayerdramon granted name and supplies the level-6 material requirement for Examon DNA, while Wingdramon under Slayerdramon produces inherited Security Attack +1.
-- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-025.test.ts` — 3 passed.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-025.test.ts` — 4 passed.
 - Clause scores: stats/alternate evolution 2/2; dual deletion timings 2/2; exact 6000-DP boundary 2/2; field-only Slayerdramon identity/Q4314 2/2; inherited Security Attack/stack behavior 2/2.
 - Score: 10/10.
 - Ambiguity: none.
@@ -378,7 +388,7 @@
 - Knowledge base: Q4325 forbids the inherited effect when its host and the opposing Digimon are deleted at the same timing.
 - Implementation evidence: both entry timings carry the optional top-security move followed sequentially by a mandatory live security-count check and deck recovery. The inherited continuous watcher is source-scoped to `whenDeletesInBattle`, once per turn, and gains exactly one memory. Both alternate requirements and exclusive `registerIrCard` registration are direct.
 - Peer/stack evidence: from exactly three security, accepting the first action puts a security card in hand, then the now-two count recovers BT20-013 from deck back to three. A 7000-DP Boutmon host with Bulkmon underneath deletes a suspended 1000-DP opponent, survives as Q4325 requires, and gains exactly one memory.
-- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-032.test.ts` — 3 passed.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-032.test.ts` — 4 passed.
 - Clause scores: stats/alternate evolution 2/2; dual timing 2/2; optional three-plus security move 2/2; sequential two-or-fewer recovery 2/2; inherited surviving battle deletion/memory/frequency 2/2.
 - Score: 10/10.
 - Ambiguity: none.
@@ -402,7 +412,7 @@
 - Knowledge base: Q4333 defines Pulsemon in text across the complete printed card; Q4334–Q4338 define the same complete When Digivolving suppression boundaries as LoaderLeomon; Q4341 forbids the inherited effect when its host also dies in battle.
 - Implementation evidence: Fortitude is a direct Static keyword. The `onAddDigivolutionCards` watcher is resident on Boutmon, filters the added source to a Tamer, targets one opposing Digimon, and installs the canonical cross-turn timing restriction. The inherited surviving battle-deletion watcher trashes exactly one opposing top security once per turn; both alternate requirements and exclusive `registerIrCard` registration are direct.
 - Peer/stack evidence: placing BT20-085 from hand under Boutmon observably installs the timing restriction on an opposing Digimon while Fortitude remains active. A 12000-DP Kazuchimon host carrying Boutmon deletes a suspended 1000-DP opponent, survives as Q4341 requires, and reduces opposing security from two to one.
-- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-034.test.ts` — 3 passed.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-034.test.ts` — 4 passed.
 - Clause scores: stats/alternate full-text evolution 2/2; Fortitude 2/2; Tamer-source event/filter 2/2; timing restriction/target/duration 2/2; inherited surviving battle deletion/security/frequency 2/2.
 - Score: 10/10.
 - Ambiguity: none.
@@ -414,7 +424,7 @@
 - Knowledge base: Q4342 defines Pulsemon in text across complete printed text; Q4343 explicitly permits different suspend and unsuspend-lock targets; Q4344 gives Security effects priority over the inherited security-removal trigger.
 - Implementation evidence: Fortitude is direct; the When Digivolving body uses two independent target resolutions for Q4343 and canonical unsuspend restriction duration. The Tamer-source watcher reactivates self's When Digivolving effect before its separate optional attack. The inherited watcher checks live Fenriloogamon name, own security removal, deck recovery, and once-per-turn; alternate requirements and exclusive `registerIrCard` registration are direct.
 - Peer/stack evidence: placing BT20-085 under Kazuchimon reactivates the payload, observably suspending and locking an opposing Digimon while the optional attack is declined. Kazuchimon beneath BT14-081 Fenriloogamon recovers BT20-010 from deck after an own-security removal event and cannot recover again that turn.
-- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-035.test.ts` — 3 passed.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-035.test.ts` — 4 passed.
 - Clause scores: stats/alternate full-text evolution/Fortitude 2/2; suspend target 2/2; independent unsuspend lock/duration 2/2; Tamer-source reactivation/optional attack 2/2; inherited Fenriloogamon recovery/scope/frequency 2/2.
 - Score: 10/10.
 - Ambiguity: Q4344 is an engine-wide trigger-order rule; the focused test isolates the card's pending inherited response after that priority window.
@@ -537,7 +547,7 @@
 - Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-045.test.ts` — 5 passed; `pnpm --filter @aegis/api exec vitest run src/engine/interactionAudit.test.ts -t 'Blast DNA Digivolve'` — 2 passed; `pnpm --filter @aegis/api exec vitest run src/engine/conformance/ch16c-deletion-and-advanced-keywords.test.ts -t 'Blast DNA Digivolve'` — 4 passed.
 - Clause scores: stats/ACE/Overflow/Blast DNA 2/2; four keywords 2/2; field alias/material legality 2/2; DNA-only all-highest bottom deck 2/2; any-controller suspension/unsuspend/frequency 2/2.
 - Score: 10/10.
-- Ambiguity: a full unfiltered `interactionAudit.test.ts` run has one unrelated pre-existing optional-processing expectation failure; both affected Blast DNA tests in that file are green and final collection gates remain pending.
+- Ambiguity: none. The final unfiltered affected mechanism gate, including `interactionAudit.test.ts`, passed.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-045.test.ts`).
 
 ## BT20-046 — Espimon
@@ -966,7 +976,7 @@
 - Knowledge base: Q4406 requires two distinct DP targets; the selection count supplies distinct permanents. Q4407 delays rule deletion at zero DP until the whole effect finishes, which is provided by the interpreter's effect-resolution boundary. Q4405 is definitional and introduces no extra card behavior.
 - Implementation evidence: exact Blast DNA names remain in the production-parsed keyword declaration. Both entry timings share the two-target DP modifier and Tamer-under conditional delete; the attack trigger encodes top-security trash as an optional paid cost before reactivation. ACE and Overflow are catalog metadata, and registration is exclusively `registerIrCard`.
 - Peer/stack evidence: the Tamer condition inspects this Digimon's evolution cards, not global battle state; DP selection is opponent-only and uses a two-permanent selection, while deletion independently applies the inclusive post-modification ceiling.
-- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-081.test.ts` — 3 passed.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-081.test.ts` — 6 passed.
 - Clause scores: stats/evolution/ACE/Overflow 2/2; exact Blast DNA materials 2/2; dual entry distinct DP modification/Q4406-Q4407 2/2; Tamer-under conditional delete boundary 2/2; attack top-security cost/reactivation 2/2.
 - Score: 10/10.
 - Ambiguity: none.
@@ -978,7 +988,7 @@
 - Knowledge base: Q4408 requires the full three-card replacement cost and forbids partial payment.
 - Implementation evidence: all resident keywords are static. The self-bound would-leave replacement is effect-cause scoped and uses an atomic count-three return cost with the correct name union, trash source, and deck-bottom destination. The end timing uses a global lowest-level superlative with all targets. Registration is exclusively `registerIrCard`.
 - Peer/stack evidence: name matching covers either Dex or DeathX while excluding trait-only similarities; shared replacement payment checks availability before moving any card, satisfying Q4408, and lowest-level selection spans both controllers and preserves higher levels.
-- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-082.test.ts` — 3 passed.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-082.test.ts` — 5 passed.
 - Clause scores: stats/evolution 2/2; three live keywords 2/2; self/effect-only leave replacement 2/2; exact atomic name/count/zone cost Q4408 2/2; end-of-all-turns global lowest-level deletion 2/2.
 - Score: 10/10.
 - Ambiguity: none.
@@ -990,7 +1000,7 @@
 - Knowledge base: Q4409 restricts Breeding effects to that area, Q4410 defines security-first timing, and Q4411 confirms the inherited source may play this same Omekamon card after suspending its breeding host.
 - Implementation evidence: audit removed an unprinted alternate-name grant and expressed printed Blocker directly as a resident keyword. The security gate, free evolution, self-card placement, breeding-only watcher, owner-security predicate, suspension cost, and stack-source free play map directly to interpreter primitives. Registration is exclusively `registerIrCard`.
 - Peer/stack evidence: the deletion placement is self-bound and restricts the receiving exact-name permanent to own breeding area; the inherited effect is stack scoped and its source zone permits Q4411's same-card play.
-- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-083.test.ts` — 4 passed; `pnpm typecheck` — passed.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-083.test.ts` — 7 passed; serial workspace typecheck — passed.
 - Clause scores: stats/no ordinary evolution 2/2; live Blocker/no unprinted name 2/2; one-security Omnimon free evolution 2/2; deletion self-to-breeding King Drasil bottom 2/2; inherited breeding/security/suspend/free-play Q4409-Q4411 2/2.
 - Score: 10/10.
 - Ambiguity: none.
@@ -1002,7 +1012,7 @@
 - Knowledge base: Q4412 confines the first effect to trash. Q4413 makes it simultaneous with the played card's On Play effect, while Q4414 prevents the played card's pending On Play effect from activating if it first evolves and ceases to be that Digimon.
 - Implementation evidence: the watcher is explicitly trash-resident, own-play scoped, optional, self-card sourced, requirement-ignoring, and cost-free. Both entry timings share the opposing kind union and correct duration. The end timing uses the dedicated top evolution-card to top-security operation. Registration is exclusively `registerIrCard`.
 - Peer/stack evidence: exact Sistermon Ciel name matching permits the base name while excluding unrelated Sistermon names; the security action removes only the top underlying card and leaves the Awakened top in battle.
-- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-084.test.ts` — 3 passed.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-084.test.ts` — 5 passed.
 - Clause scores: stats/alternate evolution 2/2; trash watcher and free self evolution 2/2; Q4412-Q4414 source/pending timing 2/2; dual entry suspension restriction 2/2; end-of-all-turns stack-to-top-security behavior 2/2.
 - Score: 10/10.
 - Ambiguity: none.
@@ -1014,7 +1024,7 @@
 - Knowledge base: Q5553 makes the “then” clause contingent on paying the return cost; Q5554 prevents the newly played Shoto from retrospectively triggering at the already-passed start-of-main timing.
 - Implementation evidence: audit removed an unprinted Vortex Warriors DP action from the start-of-main sequence and removed a duplicate non-Security registration of the Security effect. The actual follow-up remains gated on the prior action and no-Digimon condition. End-turn suspend cost, opponent target, trait DP target/duration, and the single Security play are direct. Registration is exclusively `registerIrCard`.
 - Peer/stack evidence: the Avian/Bird filter is a trait union at exact level 3; the Vortex Warriors filter applies only to the own DP recipient rather than the opposing suspension target.
-- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-085.test.ts` — 3 passed; `pnpm typecheck` — passed.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-085.test.ts` — 5 passed; serial workspace typecheck — passed.
 - Clause scores: stats/Security 2/2; self-bottom return and replacement Shoto play 2/2; Q5553 gated no-Digimon Avian/Bird play 2/2; end-turn paid opposing suspend 2/2; Vortex Warriors DP target/duration/no duplicate effects 2/2.
 - Score: 10/10.
 - Ambiguity: none.
@@ -1026,7 +1036,7 @@
 - Knowledge base: Q4422 confirms the Cyborg/Machine union for the placed card. Q4423 selects the first face-down security from the top, and Q4424-Q4427 define persistence, checking, Security activation, and reset-on-shuffle for face-up security.
 - Implementation evidence: audit removed a duplicate start-main effect whose placement defaulted under the Tamer, and routed the single optional cost explicitly to a chosen own Cyborg/Machine host's evolution-stack bottom. The source card retains exact black, kind, play-cost, trait, and hand/trash filters. Memory and Security effects are direct; registration is exclusively `registerIrCard`.
 - Peer/stack evidence: source and host trait filters are intentionally separate, permitting either trait on each while requiring the source alone to be black and cost 4 or less; the shared flip operation chooses the topmost face-down security per Q4423.
-- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-086.test.ts` — 2 passed.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-086.test.ts` — 3 passed.
 - Clause scores: stats/Security 2/2; memory setter boundary 2/2; source color/cost/trait/zone union 2/2; destination host/stack-bottom paid cost 2/2; optional face-up security operation/Q4423-Q4427 2/2.
 - Score: 10/10.
 - Ambiguity: none.
@@ -1038,7 +1048,7 @@
 - Knowledge base: Q4428 defines field as battle plus breeding area. Q4429 says a breeding-area evolution through this effect does not activate When Digivolving effects.
 - Implementation evidence: audit removed an unprinted reduced evolution nested under the memory setter and a duplicate non-Security Security effect. The attack watcher is own/Chronicle scoped; its evolution target now explicitly includes breeding alongside battle, with exact hand/trait/level/reduction and paid suspension semantics. Registration is exclusively `registerIrCard`.
 - Peer/stack evidence: the attacking Digimon only triggers the watcher, while the evolution recipient may be a different own Digimon; explicit breeding enumeration aligns with later field-aware peer implementations and Q4428.
-- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-087.test.ts` — 3 passed.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-087.test.ts` — 4 passed.
 - Clause scores: stats/Security 2/2; memory boundary/no nested effect 2/2; Chronicle attack watcher 2/2; paid optional level/trait/reduction evolution 2/2; battle-plus-breeding field coverage Q4428-Q4429 2/2.
 - Score: 10/10.
 - Ambiguity: none.
@@ -1050,7 +1060,7 @@
 - Knowledge base: the card query has no card-specific entries.
 - Implementation evidence: the memory condition is opponent/battle/Digimon scoped. The deletion watcher filters the deleted event subject by own controller and semantic Ghost trait, then offers a hand-only Ghost evolution with reduction 2 after the self-suspension cost. Security and registration are direct, with exclusive `registerIrCard`.
 - Peer/stack evidence: Ghost matching aligns with BT20-079 while the recipient may be any own battle Digimon whose normal evolution legality is checked by the shared evolution primitive; unrelated trait and opponent deletions cannot trigger it.
-- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-088.test.ts` — 2 passed.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-088.test.ts` — 3 passed.
 - Clause scores: stats/Security 2/2; opponent-presence memory condition 2/2; own Ghost deletion watcher 2/2; paid optional evolution 2/2; hand/Ghost/reduction/recipient scope 2/2.
 - Score: 10/10.
 - Ambiguity: none.
@@ -1062,7 +1072,7 @@
 - Knowledge base: Q4430 defines the broad “Pulsemon in its text” search surface. Q5555 confirms this card itself qualifies as Eiji Nagasumi while underneath and may play itself.
 - Implementation evidence: audit removed a complete dead handwritten module shadowing the direct IR, leaving executable behavior solely in the compiled declaration. The Rule name grant supports Q5555; two event watchers share Mind Link qualification, resident inherited keywords use the same text/trait union, and the stack-source Eiji play is optional/free. Registration is exclusively `registerIrCard`.
 - Peer/stack evidence: Mind Link excludes hosts already containing a Tamer, while text matching and SoC/SEEKERS semantic traits form an OR union. The inherited effects bind to the resulting host stack and can later extract this card by its granted Eiji name.
-- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-089.test.ts` — 3 passed.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-089.test.ts` — 7 passed.
 - Clause scores: stats/Security/rule names 2/2; conditional memory 2/2; dual-event Mind Link target union 2/2; inherited three-keyword qualification 2/2; end timing/Q5555 stack play 2/2.
 - Score: 10/10.
 - Ambiguity: the committed catalog omits the Rule line, but Q5555 and the committed direct implementation jointly establish the alternate-name treatment.
@@ -1074,7 +1084,7 @@
 - Knowledge base: Q4431 confirms multiple copies trigger simultaneously but a second effect cannot declare another attack while the first attack is in progress.
 - Implementation evidence: memory, inclusive hand condition, self-suspension cost, trait union, unsuspended attacker requirement, player target, optionality, and Security play map directly to shared primitives. Attack serialization in the engine enforces Q4431. Registration is exclusively `registerIrCard`.
 - Peer/stack evidence: BT20-075 and BT21-077 prove both trait arms; nonmatching Machine Digimon are excluded and only an unsuspended own qualifying Digimon can be selected.
-- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-090.test.ts` — 4 passed.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-090.test.ts` — 5 passed.
 - Clause scores: stats/Security 2/2; memory threshold 2/2; hand threshold/self-suspend cost 2/2; full trait/attacker/player target 2/2; attack resolution/Q4431 concurrency 2/2.
 - Score: 10/10.
 - Ambiguity: none.
@@ -1098,7 +1108,7 @@
 - Knowledge base: the card query has no card-specific entries.
 - Implementation evidence: the draw cost routes the exact hand/level/kind source to this Tamer's evolution-stack bottom atomically. The main-phase condition is global own Digimon absence; optional under-this-Tamer play aborts the tail on refusal/failure, and successful play precedes self deletion. Memory and Security are direct; registration is exclusively `registerIrCard`.
 - Peer/stack evidence: the stored card may be any level-3 Digimon, while later play independently requires play cost 3 or less; this preserves the distinct printed boundaries and leaves a nonqualifying stored card underneath.
-- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-092.test.ts` — 2 passed.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-092.test.ts` — 4 passed.
 - Clause scores: stats/Security 2/2; memory threshold 2/2; On Play paid placement/draw 2/2; no-Digimon and cost-3 under-stack play 2/2; optionality/order/self deletion 2/2.
 - Score: 10/10.
 - Ambiguity: none.
@@ -1110,7 +1120,7 @@
 - Knowledge base: Q4433-Q4435 establish the OR text-search surface for Main and the leave watcher. Q4436 establishes that DNA evolution using the would-leave Digimon creates a different Digimon that does not leave.
 - Implementation evidence: Main uses paid play with reduction rather than a cost waiver and always performs self placement after the optional head. The effect-cause watcher excludes battle and arms the resident Delay path without itself preventing departure; Delay selects two distinct own materials and exact hand Examon. Security uses the narrower Dracomon name filter and correct two source zones. Registration is exclusively `registerIrCard`.
 - Peer/stack evidence: text matching includes names, effects, traits, and evolution declarations per Q4435, while Security deliberately uses name matching only; the shared DNA primitive replaces both material stacks with the new Examon identity for Q4436.
-- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-093.test.ts` — 2 passed.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-093.test.ts` — 3 passed.
 - Clause scores: stats/Main reduced play union 2/2; mandatory battle placement 2/2; qualifying nonbattle leave/Delay timing 2/2; two-material hand Examon DNA/Q4436 2/2; Security name/zones/free play/placement 2/2.
 - Score: 10/10.
 - Ambiguity: none.
@@ -1120,9 +1130,9 @@
 
 - Catalog contract: red/purple cost-3 Option; Main may play a Free Digimon from trash with cost reduced by 5, then places itself in battle; whenever opposing security is removed, enables Delay to free-play Imperialdramon: Dragon Mode from any own Imperialdramon: Fighter Mode evolution cards; Security may free-play a level-3 Free Digimon from hand/trash, then adds itself to hand.
 - Knowledge base: Q4437 gives Security effects priority over simultaneously triggered security-removal effects, then turn-player ordering.
-- Implementation evidence: Main preserves reduced paid play and mandatory battle placement. The security-removal watcher arms the resident Delay action; its stack source and exact Dragon Mode name are direct. Security uses the exact level/trait/source filters, cost waiver, and self-to-hand tail. Registration is exclusively `registerIrCard`.
-- Peer/stack evidence: the Delay stack-source search is restricted by exact Dragon Mode name and the interpreter enumerates evolution cards under own Fighter Mode hosts; Free matching is semantic and the level-3 Security ceiling is exact.
-- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-094.test.ts` — 2 passed.
+- Implementation evidence: Main preserves reduced paid play and mandatory battle placement. The security-removal watcher explicitly observes the opponent's security seat and arms the resident Delay action; its stack source and exact Dragon Mode name are direct. Security uses the exact level/trait/source filters, cost waiver, and self-to-hand tail. Registration is exclusively `registerIrCard`.
+- Peer/stack evidence: natural attacks prove that removing opposing security arms Delay while losing own security does not. The Delay stack-source search is restricted by exact Dragon Mode name and the interpreter enumerates evolution cards under own Fighter Mode hosts; Free matching is semantic and the level-3 Security ceiling is exact.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-094.test.ts` — 6 passed.
 - Clause scores: stats/Main reduced Free play 2/2; mandatory battle placement 2/2; opponent-security removal/Delay Q4437 2/2; exact Fighter stack Dragon Mode free play 2/2; Security level/trait/zones/free play/self hand 2/2.
 - Score: 10/10.
 - Ambiguity: none.
@@ -1134,7 +1144,7 @@
 - Knowledge base: 2025-04-18 errata removes Chronicle from the breeding Digimon used for the move cost while retaining Chronicle on the evolution destination.
 - Implementation evidence: audit corrected the invalid `breedingArea` zone token to the engine's real `breeding` zone, making the errata move/evolution target observable. Reveal/add/rest ordering, Chronicle deletion watcher, cost-free two-zone evolution, Security filters, and battle placement are direct. Registration is exclusively `registerIrCard`.
 - Peer/stack evidence: the moving source requires only Digimon and level 3+, deliberately accepting a non-Chronicle peer per errata; the hand/trash destination independently requires Chronicle.
-- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-095.test.ts` — 2 passed.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-095.test.ts` — 3 passed.
 - Clause scores: stats/Main reveal/search/rest 2/2; mandatory battle placement 2/2; Chronicle deletion/Delay 2/2; errata breeding move and Chronicle free evolution 2/2; Security cost/trait/zones/free play/placement 2/2.
 - Score: 10/10.
 - Ambiguity: none.
@@ -1146,7 +1156,7 @@
 - Knowledge base: Q4438 confines the first effect to trash.
 - Implementation evidence: the trash effect is explicitly trash-resident, gates at the inclusive hand boundary, pays memory before returning the source, aborts deletion if payment/return fails, and targets only opposing unsuspended Digimon. Ordinary Main preserves non-cost “then” sequencing, and Security has the distinct inclusive level-6 ceiling. Registration is exclusively `registerIrCard`.
 - Peer/stack evidence: the two deletion clauses deliberately differ—trash activation has no level cap but requires unsuspended, while ordinary/Security clauses use level caps without suspension filters.
-- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-096.test.ts` — 2 passed.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-096.test.ts` — 3 passed.
 - Clause scores: stats/trash-zone Q4438 2/2; hand/memory/self-bottom activation cost 2/2; unsuspended deletion and failure gate 2/2; Main trash/Then level-4 deletion 2/2; Security level-6 deletion 2/2.
 - Score: 10/10.
 - Ambiguity: none.
@@ -1158,7 +1168,7 @@
 - Knowledge base: the card query has no card-specific entries.
 - Implementation evidence: Main preserves reduced paid evolution and mandatory self placement. Audit bound the Delay return-cost target to the would-leave trigger subject so an unrelated Dorumon stack cannot pay; the exact name/stack zone/count and DeathXmon trash play remain direct. Security has correct name/zones/free play/self destination. Registration is exclusively `registerIrCard`.
 - Peer/stack evidence: Dex/DeathX is a name union with an inclusive level-6 ceiling, while the watcher uses exact DexDorugoramon; the trigger-subject reference preserves the printed “those Digimon's” stack relationship.
-- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-097.test.ts` — 2 passed.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-097.test.ts` — 5 passed.
 - Clause scores: stats/Main evolution boundaries 2/2; mandatory battle placement 2/2; exact would-leave/Delay watcher 2/2; subject-stack Dorumon cost/DeathXmon free play 2/2; Security Dorumon zones/self hand 2/2.
 - Score: 10/10.
 - Ambiguity: none.
@@ -1170,7 +1180,7 @@
 - Knowledge base: 2025-03-07 errata changes “up to 9” to exactly 9. Q4439 forbids partial totals; Q4440-Q4441 require one playable card per returned card, including repeated levels.
 - Implementation evidence: audit removed `upTo:true` from the return target so only an exact total of 9 can pay the cost. PlayPerLevel preserves each returned level including duplicates, binds every result, and both keyword grants target the full bound population with the correct duration. Security is exact. Registration is exclusively `registerIrCard`.
 - Peer/stack evidence: semantic Ghost filtering excludes nearby non-Ghost purple Digimon; a 3+6 return permits one level 3 and one level 6, while 3+3+3 permits three level-3 plays per Q4440-Q4441.
-- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-098.test.ts` — 1 passed.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-098.test.ts` — 2 passed.
 - Clause scores: stats/exact errata cost 2/2; opponent trash/deck-bottom zones 2/2; per-card level multiplicity/free plays 2/2; all-result Rush/Blocker duration 2/2; Security Ghost/level/zone boundary 2/2.
 - Score: 10/10.
 - Ambiguity: none.
@@ -1182,7 +1192,7 @@
 - Knowledge base: Q4605 confirms a host deleted by the -30000 DP rule check is deleted by rules and can trigger Partition.
 - Implementation evidence: audit marked the printed Security effect as Security-resident and removed erroneous optionality from the mandatory post-play stack placement. Color waiver, reduced paid play, self-card placement, inherited name gate, security trash, and DP modifier are direct. Registration is exclusively `registerIrCard`.
 - Peer/stack evidence: Chaosmon name and ACCEL trait form an OR waiver condition; after placement beneath BT20-037, the inherited effect reads the top host name and shared DP rule processing produces Q4605's deletion/Partition timing.
-- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-099.test.ts` — 3 passed.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-099.test.ts` — 6 passed.
 - Clause scores: stats/color waiver union 2/2; Security memory/self hand 2/2; reduced ACCEL play 2/2; mandatory any-own-Digimon bottom placement 2/2; inherited Chaosmon security/-30000/Q4605 2/2.
 - Score: 10/10.
 - Ambiguity: none.
@@ -1194,7 +1204,7 @@
 - Knowledge base: Q4905 confirms this Delay and other would-leave effects trigger simultaneously and remain activatable even when prevention ultimately keeps Omnimon in battle.
 - Implementation evidence: reveal groups are independent, rest destination and self placement are direct. The resident Delay replacement is own/exact-name scoped, targets the trigger source, prevents rather than reacts after movement, and has no cause restriction. Security preserves optional head and mandatory placement tail. Registration is exclusively `registerIrCard`.
 - Peer/stack evidence: partial Omnimon names qualify while unrelated Royal Knights do not; trigger-source targeting ensures a different Omnimon cannot be arbitrarily protected and shared pending ordering supports Q4905.
-- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-100.test.ts` — 2 passed.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-100.test.ts` — 5 passed.
 - Clause scores: stats/Main reveal groups 2/2; deck-bottom/self battle placement 2/2; Omnimon would-leave Delay gate 2/2; exact trigger-source prevention/Q4905 2/2; Security name union/zones/free play/placement 2/2.
 - Score: 10/10.
 - Ambiguity: none.
@@ -1206,7 +1216,7 @@
 - Knowledge base: Q4415 confirms either player's suspension triggers the watcher; Q4416 confirms either player's Digimon may be selected by the entry suspension.
 - Implementation evidence: audit added a reusable minimum-base-play-cost evolution prerequisite and enforced 10 on both direct and catalog IR; previously any level-6 Vortex Warriors, including this cost-8 printing, qualified. All keywords, any-controller filters, once frequency, scaling, duration, ACE, and Overflow are direct. Registration is exclusively `registerIrCard`.
 - Peer/stack evidence: EX11-035 (cost 11) qualifies for cost 1 while BT20-101 (cost 8) does not; both-player suspended populations drive the return count and only opposing suspended Digimon can be returned.
-- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-101.test.ts` — 3 passed; `pnpm --filter @aegis/api exec vitest run src/engine/cards/cardData.test.ts -t 'minimum base play cost'` — 1 passed, 13 skipped.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-101.test.ts` — 5 passed; `pnpm --filter @aegis/api exec vitest run src/engine/cards/cardData.test.ts -t 'minimum base play cost'` — 1 passed, 13 skipped.
 - Clause scores: stats/ACE/Overflow/ordinary route 2/2; exact alternate play-cost/level/trait gate 2/2; four live keywords 2/2; any-controller suspension/once unsuspend Q4415 2/2; dual entry suspension/scaled opponent return Q4416 2/2.
 - Score: 10/10.
 - Ambiguity: none.
@@ -1218,7 +1228,7 @@
 - Knowledge base: Q4417 requires the Rush recipient to attack if possible; Q4418 permits a suspended attacker; Q4419 bars a second declaration during the first attack. Q4725 makes the bottom-deck tail independent of the initial condition, Q4726 preserves Rush until the turn truly ends, Q5907 recognizes an inserted source card, and Q6018 finishes resolution after source removal.
 - Implementation evidence: audit moved optionality to the Rush head and made the same-target attack mandatory after acceptance, fixing the prior illegal “gain Rush, decline attack” path. Mass deletion uses an explicit one-survivor carve-out; the return tail has no condition. Alternate evolution, live keywords, no-suspend attack, frequency, and duration are direct. Registration is exclusively `registerIrCard`.
 - Peer/stack evidence: evolution over BT5-086 satisfies the alternate route and stack-name condition; the observable mass delete preserves the chosen permanent and deletes both controllers' others. Same-target binding and attack serialization cover Q4417-Q4419.
-- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-102.test.ts` — 2 passed.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-102.test.ts` — 6 passed.
 - Clause scores: stats/evolution routes 2/2; three live keywords 2/2; conditional survivor/mass deletion 2/2; unconditional opponent bottom-deck tail/Q4725-Q6018 2/2; combined Rush/mandatory no-suspend attack/Q4417-Q4726 2/2.
 - Score: 10/10.
 - Ambiguity: none.
