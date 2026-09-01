@@ -21,6 +21,7 @@ describe("BT13-019 Gankoomon", () => {
         target: {
           filter: {
             controller: "mine",
+            kind: ["Digimon"],
             excludeNameOrTrait: [{ tokens: ["Omnimon", "Gankoomon"], match: "nameExact" }],
           },
         },

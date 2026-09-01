@@ -16,13 +16,6 @@ describe("BT13-030 UlforceVeedramon", () => {
       });
     }
     expect(compiled.effects[2]).toMatchObject({
-      trigger: "OnPlay",
-      condition: { kind: "isYourTurn" },
-      frequency: "OncePerTurn",
-      sharedUseKey: "bt13-030-return",
-      actions: [expect.objectContaining({ kind: "Return", to: "hand" })],
-    });
-    expect(compiled.effects[3]).toMatchObject({
       trigger: "YourTurn",
       frequency: "OncePerTurn",
       sharedUseKey: "bt13-030-return",
@@ -30,7 +23,7 @@ describe("BT13-030 UlforceVeedramon", () => {
         expect.objectContaining({
           kind: "SubTrigger",
           event: "whenPlayed",
-          sourceFilter: expect.objectContaining({ excludeSelf: true }),
+          sourceFilter: expect.not.objectContaining({ excludeSelf: true }),
           actions: [expect.objectContaining({ kind: "Return", to: "hand" })],
         }),
       ],

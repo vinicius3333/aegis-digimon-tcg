@@ -10,12 +10,12 @@ export const compiled: CompiledCard = {
         {
           kind: "Trash",
           target: { filter: { controller: "opponent", zone: "hand" }, count: 1 },
-          chooser: "opponent",
         },
         {
           kind: "SecurityManipulation",
-          op: "addTop",
+          op: "toHand",
           controller: "opponent",
+          source: "securityTop",
           condition: {
             kind: "zoneCount",
             seat: "opponent",

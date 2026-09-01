@@ -86,29 +86,6 @@ export const compiled: CompiledCard = {
       ],
     },
     {
-      trigger: "OnPlay",
-      condition: {
-        kind: "isYourTurn",
-        raw: "[Your Turn]",
-      },
-      actions: [
-        {
-          kind: "Return",
-          target: {
-            filter: {
-              digivolutionCards: "none",
-              controller: "opponent",
-              kind: ["Digimon"],
-            },
-            count: 1,
-          },
-          to: "hand",
-        },
-      ],
-      frequency: "OncePerTurn",
-      sharedUseKey: "bt13-030-return",
-    },
-    {
       trigger: "YourTurn",
       actions: [
         {
@@ -116,7 +93,6 @@ export const compiled: CompiledCard = {
           event: "whenPlayed",
           sourceFilter: {
             controllerDefault: "mine",
-            excludeSelf: true,
             or: [
               {
                 kind: ["Digimon"],

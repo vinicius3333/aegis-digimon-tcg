@@ -13,6 +13,7 @@ const playFromTrashOrBreeding = () => [
     target: {
       filter: {
         controller: "mine",
+        kind: ["Digimon"],
         excludeNameOrTrait: [{ tokens: ["Omnimon", "Gankoomon"], match: "nameExact" }],
         or: [
           {
