@@ -40,11 +40,18 @@ describe("BT26-097 compiled fidelity", () => {
       kind: "CostGatedBlock",
       optional: true,
       abortOnDecline: true,
-      cost: { kind: "place", targetIsPermanent: true, position: "bottom", bindHostAs: "aegiomonHost" },
+      cost: {
+        kind: "place",
+        targetIsPermanent: true,
+        position: "bottom",
+        bindHostAs: "aegiomonHost",
+        host: { filter: { nameOrTrait: [{ tokens: ["Aegiomon"], match: "nameExact" }] } },
+      },
       actions: [
         {
           kind: "Digivolve",
           target: { fromSelectionRef: "aegiomonHost" },
+          into: { filter: { nameOrTrait: [{ tokens: ["Jupitermon"], match: "nameExact" }] } },
           from: ["hand", "trash"],
           payCost: false,
           ignoreRequirements: true,

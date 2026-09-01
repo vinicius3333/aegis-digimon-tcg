@@ -137,7 +137,7 @@ describe("BT26-043 Piximon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-044", as: "host", under: ["BT26-043"] }],
+          battleArea: [{ card: "BT26-048", as: "host", under: ["BT26-043"] }],
           hand: [{ card: "BT1-009", as: "played" }],
         },
         1: { battleArea: [{ card: "BT5-022", as: "target" }] },
@@ -159,7 +159,7 @@ describe("BT26-043 Piximon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-044", as: "host", under: ["BT26-043"] }],
+          battleArea: [{ card: "BT26-048", as: "host", under: ["BT26-043"] }],
           hand: [{ card: "BT1-009", as: "played" }],
         },
         1: { battleArea: [{ card: "BT5-022", as: "target" }] },

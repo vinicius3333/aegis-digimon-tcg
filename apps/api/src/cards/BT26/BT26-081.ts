@@ -71,10 +71,10 @@ export const compiled: CompiledCard = {
   coverage: "full",
   residual: [],
   digivolutionRequirement: [
-    { names: ["Minervamon"], cost: 2, isAlternate: true },
+    { namesExact: ["Minervamon"], cost: 2, isAlternate: true },
     { level: 5, traits: ["TS"], cost: 4, isAlternate: true },
   ],
-  assemblyRequirement: [{ reduceCost: 5, materials: [{ names: ["Minervamon"], count: 1 }] }],
+  assemblyRequirement: [{ reduceCost: 5, materials: [{ namesExact: ["Minervamon"], count: 1 }] }],
 };
 
 registerIrCard("BT26-081", compiled);

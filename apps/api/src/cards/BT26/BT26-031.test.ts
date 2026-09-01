@@ -63,13 +63,14 @@ describe("BT26-031 compiled fidelity", () => {
     const s = setupEngine(
       {
         0: {
+          hand: [{ card: "BT26-031", as: "murasamemon" }],
           security: [
             { card: "BT1-001", as: "oldest" },
             { card: "BT1-002", as: "remaining" },
           ],
-          deck: [{ card: "BT1-003", as: "recovery" }],
+          deck: ["BT1-005", { card: "BT1-003", as: "recovery" }],
           battleArea: [
-            { card: "BT26-031", as: "murasamemon" },
+            { card: "BT26-026", as: "base" },
             { card: "BT1-089", as: "tamer", under: [{ card: "BT1-004", faceUp: false }] },
           ],
         },
@@ -77,12 +78,23 @@ describe("BT26-031 compiled fidelity", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 3;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("murasamemon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("murasamemon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === s.inst("recovery").instanceId));
 
     expect(s.state.players[0]!.security).toHaveLength(2);
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-004");
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT1-001", "BT1-004"]),
+    );
     expect(
       (
         s.engine as unknown as { continuous: { hasRestriction: (id: string, kind: string) => boolean } }
@@ -143,11 +155,19 @@ describe("BT26-031 compiled fidelity", () => {
           ],
           deck: [{ card: "BT1-003", as: "recovery" }],
         },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("murasamemon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("murasamemon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some(({ kind }) => kind === "combatResolved"));
 
     expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("faceUpBottom").instanceId,

@@ -85,15 +85,18 @@ describe("BT26-028 Medicmon", () => {
   });
 
   it("assembles with exactly one level-3 Life/System/Seven Code card and rejects a near-miss", async () => {
-    const legal = setupEngine({
-      0: {
-        hand: [{ card: "BT26-028", as: "medicmon" }],
-        trash: [
-          { card: "BT26-019", as: "sevenCode" },
-          { card: "BT1-009", as: "unrelated" },
-        ],
+    const legal = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT26-028", as: "medicmon" }],
+          trash: [
+            { card: "BT26-019", as: "sevenCode" },
+            { card: "BT1-009", as: "unrelated" },
+          ],
+        },
       },
-    });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     legal.state.memory = 3;
 
     expect(
@@ -106,9 +109,10 @@ describe("BT26-028 Medicmon", () => {
     await settle(() => legal.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-028"));
 
     expect(legal.state.memory).toBe(0);
-    expect(legal.perm("medicmon").stack.map(({ instanceId }) => instanceId)).toContain(
+    expect(legal.perm("medicmon").linked.map(({ instanceId }) => instanceId)).toContain(
       legal.inst("sevenCode").instanceId,
     );
+    expect(legal.perm("medicmon").stack).toHaveLength(0);
     expect(legal.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(
       legal.inst("unrelated").instanceId,
     );

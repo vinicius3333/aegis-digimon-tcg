@@ -61,20 +61,26 @@ describe("BT26-039 Sunflowmon", () => {
       isAlternate: true,
     });
   });
-  it("uses the exact level-3 DATA SQUAD alternate evolution for cost 2", async () => {
+  it("uses the exact level-3 DATA SQUAD evolution and resolves When Digivolving publicly", async () => {
     expect(digivolutionRequirementsFor(CARD_ID)).toContainEqual({
       level: 3,
       traits: ["DATA SQUAD"],
       cost: 2,
       isAlternate: true,
     });
-    const legal = setupEngine({
-      0: {
-        battleArea: [{ card: "BT26-036", as: "dataSquad" }],
-        hand: [{ card: CARD_ID, as: "sunflowmon" }],
-        deck: ["AD1-001"],
+    const legal = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-036", as: "dataSquad" }],
+          hand: [
+            { card: CARD_ID, as: "sunflowmon" },
+            { card: "BT4-095", as: "yoshino" },
+          ],
+          deck: ["AD1-001"],
+        },
       },
-    });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     legal.state.memory = 2;
 
     expect(
@@ -85,8 +91,13 @@ describe("BT26-039 Sunflowmon", () => {
         useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
-    await settle(() => legal.perm("dataSquad").topCard.cardId === CARD_ID);
+    await settle(
+      () =>
+        legal.perm("dataSquad").topCard.cardId === CARD_ID &&
+        legal.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT4-095"),
+    );
     expect(legal.state.memory).toBe(0);
+    expect(legal.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["AD1-001"]);
 
     const illegal = setupEngine({
       0: {
@@ -109,17 +120,21 @@ describe("BT26-039 Sunflowmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
+          battleArea: [{ card: "BT1-085", as: "existingTamer" }],
+          hand: [
             { card: CARD_ID, as: "sunflowmon" },
-            { card: "BT1-085", as: "existingTamer" },
+            { card: "BT4-095", as: "yoshino" },
           ],
-          hand: [{ card: "BT4-095", as: "yoshino" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 5;
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("sunflowmon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sunflowmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT4-095"));
 
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT4-095")).toBe(true);

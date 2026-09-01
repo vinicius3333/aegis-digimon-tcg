@@ -70,7 +70,9 @@ export const compiled: CompiledCard = {
                   controller: "mine",
                   zone: "digivolutionCards",
                   kind: ["Digimon"],
-                  nameOrTrait: [{ tokens: ["Aegiomon"], match: "name" }],
+                  // Decode's bracket-only reference (§2-3-1-2) names exactly
+                  // [Aegiomon], rather than every card containing that text.
+                  nameOrTrait: [{ tokens: ["Aegiomon"], match: "nameExact" }],
                 },
                 count: 1,
               },
@@ -123,7 +125,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [{ names: ["Aegiomon"], cost: 3, isAlternate: true }],
+  digivolutionRequirement: [{ namesExact: ["Aegiomon"], cost: 3, isAlternate: true }],
 };
 
 registerIrCard("BT26-029", compiled);

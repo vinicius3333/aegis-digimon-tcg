@@ -96,6 +96,22 @@ describe("BT26-082 compiled behavior", () => {
     expect(fromDataSquad.state.memory).toBe(0);
   });
 
+  it("publicly plays from hand without opening a When Digivolving effect", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "BT26-082", as: "ravemon" }] },
+    });
+    s.state.memory = 13;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ravemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT26-082"));
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-082");
+    expect(s.state.memory).toBe(1);
+  });
+
   it("trashes from the opponent's hand before the optional face-up bottom-security placement", () => {
     expect(compiled.effects.find((effect) => effect.trigger === "OnDeletion")?.actions).toEqual([
       expect.objectContaining({

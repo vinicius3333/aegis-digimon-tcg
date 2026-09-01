@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT26-081.js";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { assemblyRequirementFor, digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -20,10 +20,14 @@ describe("BT26-081 compiled behavior", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
     expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["Minervamon"], cost: 2, isAlternate: true },
+      { namesExact: ["Minervamon"], cost: 2, isAlternate: true },
       { level: 5, traits: ["TS"], cost: 4, isAlternate: true },
     ]);
-    expect(compiled.assemblyRequirement).toEqual([{ reduceCost: 5, materials: [{ names: ["Minervamon"], count: 1 }] }]);
+    expect(compiled.assemblyRequirement).toEqual([
+      { reduceCost: 5, materials: [{ namesExact: ["Minervamon"], count: 1 }] },
+    ]);
+    expect(digivolutionRequirementsFor("BT26-081")).toEqual(compiled.digivolutionRequirement);
+    expect(assemblyRequirementFor("BT26-081")).toEqual(compiled.assemblyRequirement);
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
         actions: [

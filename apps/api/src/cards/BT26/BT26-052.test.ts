@@ -106,7 +106,7 @@ describe("BT26-052 Pristimon", () => {
 
   it("grants inherited Reboot to its evolution host", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT26-055", as: "host", under: ["BT26-052"] }] },
+      0: { battleArea: [{ card: "BT26-053", as: "host", under: ["BT26-052"] }] },
     });
     await s.ready();
 

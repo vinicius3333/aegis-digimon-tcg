@@ -29,7 +29,7 @@ describe("BT26-033 compiled fidelity", () => {
           kind: "Replacement",
           mode: "prevent",
           affectsAll: true,
-          target: { count: "all" },
+          target: { count: "all", filter: { kind: ["Digimon", "Tamer"] } },
           cost: { kind: "placeAsSecurity", position: "bottom", target: { filter: { isSelfRef: true }, isSelf: true } },
         },
       ],
@@ -54,7 +54,7 @@ describe("BT26-033 compiled fidelity", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-033", as: "jupitermon" }],
+          battleArea: [{ card: "BT26-033", as: "jupitermon", under: [{ card: "BT26-029", as: "tsBase" }] }],
           security: [{ card: "BT1-001", as: "securityCard" }],
           hand: [{ card: "BT25-044", as: "junomon" }],
         },

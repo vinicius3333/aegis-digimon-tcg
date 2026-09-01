@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-032.js";
@@ -26,8 +26,9 @@ describe("BT26-032 compiled fidelity", () => {
     expect(card?.coverage).toBe("full");
     expect(card?.residual).toEqual([]);
     expect(card?.digivolutionRequirement).toEqual([
-      { names: ["Ceresmon"], basePlayCost: 12, cost: 2, isAlternate: true },
+      { namesExact: ["Ceresmon"], basePlayCost: 12, cost: 2, isAlternate: true },
     ]);
+    expect(digivolutionRequirementsFor("BT26-032")).toEqual(card.digivolutionRequirement);
     expect(card?.keywords?.map((keyword) => keyword.keyword)).toEqual(
       expect.arrayContaining(["Alliance", "Succession"]),
     );

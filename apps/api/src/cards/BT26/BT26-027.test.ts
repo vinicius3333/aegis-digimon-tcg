@@ -149,7 +149,7 @@ describe("BT26-027 Petermon", () => {
       0: {
         battleArea: [
           { card: "BT26-027", as: "top" },
-          { card: "BT26-028", as: "host", under: [{ card: "BT26-027", as: "source" }] },
+          { card: "BT21-050", as: "host", under: [{ card: "BT26-027", as: "source" }] },
         ],
       },
     });

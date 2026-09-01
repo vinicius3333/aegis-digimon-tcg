@@ -14,7 +14,7 @@ describe("BT26-050 Rosemon: Burst Mode", () => {
         {
           cost: 0,
           isAlternate: true,
-          names: ["Rosemon"],
+          namesExact: ["Rosemon"],
           burstDigivolve: { returnTamerNamesExact: ["Yoshino Fujieda"] },
         },
       ]),
@@ -276,5 +276,27 @@ describe("BT26-050 Rosemon: Burst Mode", () => {
 
     await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(priorTop);
+  });
+
+  it("requires the exact [Rosemon] base for Burst Digivolve", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT13-060", as: "nearName" },
+          { card: "BT26-091", as: "yoshino" },
+        ],
+        hand: [{ card: "BT26-050", as: "burst" }],
+      },
+    });
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("nearName").permanentId,
+        instanceId: s.inst("burst").instanceId,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
   });
 });

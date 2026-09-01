@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -40,7 +40,16 @@ describe("BT26-073 Aegiochusmon: Dark", () => {
       keywords: [{ keyword: "SecurityAttack", amount: 1 }],
     });
     expect(compiled.effects[4]?.actions[0]).toMatchObject({ kind: "GrantStatic", grant: "trait", tokens: ["Wizard"] });
-    expect(compiled.digivolutionRequirement).toContainEqual({ names: ["Aegiomon"], cost: 3, isAlternate: true });
+    expect(compiled.digivolutionRequirement).toContainEqual({
+      namesExact: ["Aegiomon"],
+      cost: 3,
+      isAlternate: true,
+    });
+    expect(digivolutionRequirementsFor("BT26-073")).toContainEqual({
+      namesExact: ["Aegiomon"],
+      cost: 3,
+      isAlternate: true,
+    });
     expect(compiled.assemblyRequirement).toEqual([
       {
         reduceCost: 2,
@@ -129,7 +138,7 @@ describe("BT26-073 Aegiochusmon: Dark", () => {
   it("pays the self-delete mode and deletes only an opponent level 5 or lower Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-073", as: "dark" }] },
+        0: { hand: [{ card: "BT26-073", as: "dark" }] },
         1: {
           battleArea: [
             { card: "BT26-074", as: "low" },
@@ -139,8 +148,9 @@ describe("BT26-073 Aegiochusmon: Dark", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("dark"));
+    s.state.memory = 8;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dark").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.players[1]!.battleArea.length === 1);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT26-060"]);
   });
@@ -243,7 +253,7 @@ describe("BT26-073 Aegiochusmon: Dark", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT26-074", as: "host", under: ["BT26-073"] },
+          { card: "BT26-059", as: "host", under: ["BT26-073"] },
           { card: "BT26-073", as: "standalone" },
         ],
       },
@@ -256,7 +266,7 @@ describe("BT26-073 Aegiochusmon: Dark", () => {
   it("executes inherited Security A. +1 for two security checks", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-103", as: "host", under: ["BT26-073"] }] },
+        0: { battleArea: [{ card: "BT26-059", as: "host", under: ["BT26-073"] }] },
         1: { security: ["BT1-001", "BT1-002", "BT1-003"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

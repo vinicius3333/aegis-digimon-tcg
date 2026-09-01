@@ -1,7 +1,7 @@
-import { EffectTiming } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectTiming, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-007.js";
 import "../index.js";
 
@@ -16,18 +16,63 @@ describe("BT26-007 Swipemon", () => {
     expect(compiled.effects[0]!.actions[0]).toMatchObject({ kind: "Link", costDelta: -2, optional: true });
   });
 
+  it("reaches Swipemon through a legal Appmon evolution from the breeding area", async () => {
+    expect(digivolutionRequirementsFor("BT24-053")).toContainEqual({
+      level: 2,
+      traits: ["Appmon"],
+      cost: 0,
+      isAlternate: true,
+    });
+
+    const s = setupEngine({
+      0: {
+        breeding: { card: CARD_ID, as: "swipemon" },
+        hand: [{ card: "BT24-053", as: "protecmon" }],
+      },
+    });
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("swipemon").permanentId,
+        instanceId: s.inst("protecmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("swipemon").topCard.cardId === "BT24-053");
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("swipemon").stack.map(({ cardId }) => cardId)).toEqual([CARD_ID]);
+
+    s.state.phase = Phase.Breeding;
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("swipemon").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-053"));
+    expect(s.perm("swipemon").stack.map(({ cardId }) => cardId)).toEqual([CARD_ID]);
+  });
+
   it("publicly links a Seven Code card from hand, reduces its link cost 3 to 1, and preserves face/order", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT21-009", as: "host", under: [{ card: CARD_ID, as: "swipemon" }] }],
+          battleArea: [{ card: "BT24-053", as: "host", under: [{ card: CARD_ID, as: "swipemon" }] }],
           hand: [{ card: "BT26-010", as: "candidate" }],
         },
+        1: { security: ["BT1-001"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 0;
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.length === 1);
     expect(s.state.memory).toBe(-1);
     expect(s.perm("host").linked).toHaveLength(1);
     expect(s.perm("host").linked[0]).toMatchObject({ instanceId: s.inst("candidate").instanceId, faceUp: true });
@@ -40,7 +85,7 @@ describe("BT26-007 Swipemon", () => {
         0: {
           battleArea: [
             {
-              card: "BT21-009",
+              card: "BT24-053",
               as: "host",
               under: [
                 { card: CARD_ID, as: "swipemon" },
@@ -64,8 +109,8 @@ describe("BT26-007 Swipemon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT21-009", as: "host", under: [{ card: CARD_ID, as: "swipemon" }] },
-            { card: "BT21-009", as: "other", under: [{ card: "BT26-010", as: "otherSource" }] },
+            { card: "BT24-053", as: "host", under: [{ card: CARD_ID, as: "swipemon" }] },
+            { card: "BT24-053", as: "other", under: [{ card: "BT26-010", as: "otherSource" }] },
           ],
         },
       },
@@ -84,7 +129,7 @@ describe("BT26-007 Swipemon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT21-009", as: "host", under: [{ card: CARD_ID }] }],
+          battleArea: [{ card: "BT24-053", as: "host", under: [{ card: CARD_ID }] }],
           hand: [
             { card: "BT26-010", as: "first" },
             { card: "BT26-019", as: "second" },
@@ -105,7 +150,7 @@ describe("BT26-007 Swipemon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT21-009", as: "host", under: [CARD_ID] }],
+          battleArea: [{ card: "BT24-053", as: "host", under: [CARD_ID] }],
           hand: [{ card: "BT26-102", as: "noLink" }],
         },
       },
@@ -121,7 +166,7 @@ describe("BT26-007 Swipemon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT21-009", as: "host", under: [CARD_ID] }],
+          battleArea: [{ card: "BT24-053", as: "host", under: [CARD_ID] }],
           hand: [{ card: "EX10-024", as: "nonSevenCode" }],
         },
       },
@@ -140,7 +185,7 @@ describe("BT26-007 Swipemon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT21-009", as: "host", under: [CARD_ID] }],
+          battleArea: [{ card: "BT24-053", as: "host", under: [CARD_ID] }],
           hand: [{ card: "BT26-010", as: "candidate" }],
         },
       },

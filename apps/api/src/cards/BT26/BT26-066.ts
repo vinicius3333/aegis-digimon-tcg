@@ -32,7 +32,7 @@ const inheritedDigivolve = {
     zone: "trash",
     kind: ["Digimon"],
     nameOrTrait: [
-      { tokens: ["Titamon"], match: "name" },
+      { tokens: ["Titamon"], match: "nameExact" },
       { tokens: ["Titan"], match: "trait" },
     ],
   },

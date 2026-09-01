@@ -43,6 +43,7 @@ describe("BT26-091 compiled fidelity", () => {
         expect.objectContaining({
           kind: "SubTrigger",
           event: "whenDigivolutionTrashed",
+          sourceFilter: expect.objectContaining({ isSelfRef: true }),
           hostFilter: expect.objectContaining({ isSelfRef: true }),
         }),
       ]),
@@ -127,7 +128,7 @@ describe("BT26-091 compiled fidelity", () => {
         },
         1: { battleArea: [{ card: "BT5-022", as: "opponent", suspended: true }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 2;
     await s.ready();
@@ -153,7 +154,7 @@ describe("BT26-091 compiled fidelity", () => {
         },
         1: { battleArea: [{ card: "BT5-022", as: "opponent" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 2;
     await s.ready();
@@ -177,7 +178,7 @@ describe("BT26-091 compiled fidelity", () => {
         },
         1: { battleArea: [{ card: "BT5-022", as: "opponent" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 2;
     await s.ready();
@@ -201,7 +202,7 @@ describe("BT26-091 compiled fidelity", () => {
         },
         1: { battleArea: [{ card: "BT1-089", as: "opponentTamer", suspended: true }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 2;
     await s.ready();
@@ -230,7 +231,7 @@ describe("BT26-091 compiled fidelity", () => {
           hand: [{ card: "BT26-044", as: "lilamon" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 2;
     await s.ready();
@@ -256,6 +257,34 @@ describe("BT26-091 compiled fidelity", () => {
     );
     expect(s.perm("yoshino").isSuspended).toBe(true);
     expect(s.state.memory).toBe(0);
+  });
+
+  it("does not react when an effect trashes a card from under a different Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-091", as: "yoshino" },
+            { card: "BT1-085", as: "otherTamer", under: [{ card: "BT1-001", as: "otherCard", faceUp: false }] },
+            { card: "BT26-039", as: "base" },
+          ],
+          hand: [{ card: "BT26-044", as: "lilamon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    await advance(s.engine).verb.trashDigivolutionCards(
+      s.perm("otherTamer").permanentId,
+      [s.inst("otherCard").instanceId],
+      0,
+    );
+
+    expect(s.perm("base").topCard.cardId).toBe("BT26-039");
+    expect(s.perm("yoshino").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(2);
   });
 
   it("does not react when its controller's own card suspends", async () => {
@@ -326,7 +355,7 @@ describe("BT26-091 compiled fidelity", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.turnSeat = 0;
     s.state.memory = 3;

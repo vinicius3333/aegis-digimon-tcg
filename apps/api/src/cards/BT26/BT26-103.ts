@@ -3,7 +3,11 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const opponentDigimon = { controller: "opponent", kind: ["Digimon"] };
-const jupitermon = { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Jupitermon"], match: "name" }] };
+const jupitermon = {
+  controller: "mine",
+  kind: ["Digimon"],
+  nameOrTrait: [{ tokens: ["Jupitermon"], match: "nameExact" }],
+};
 const recovery = [
   { kind: "SecurityManipulation", op: "trashTop", controller: "mine", amount: 1 },
   { kind: "SecurityManipulation", op: "placeFromDeck", controller: "mine", source: "deck", amount: 2 },

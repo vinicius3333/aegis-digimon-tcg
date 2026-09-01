@@ -122,18 +122,29 @@ describe("BT26-076 Crowmon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT26-076", as: "crowmon" },
+            { card: "BT26-039", as: "base" },
             { card: "BT1-089", as: "tamer", under: [{ card: "BT1-010", as: "faceDown", faceUp: false }] },
           ],
+          hand: [{ card: "BT26-076", as: "crowmon" }],
+          deck: ["BT1-001"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "victim" }], hand: [{ card: "BT1-011", as: "discarded" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await s.ready();
+    s.state.memory = 3;
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("crowmon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("crowmon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.players[1]!.hand.length === 0);
 
+    expect(s.perm("base").topCard.cardId).toBe("BT26-076");
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-010");
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-011");
@@ -245,7 +256,7 @@ describe("BT26-076 Crowmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-074", as: "host", under: ["BT26-076"] }],
+          battleArea: [{ card: "BT26-059", as: "host", under: ["BT26-076"] }],
           trash: [
             { card: "ST24-13", as: "validDataSquadTamer" },
             { card: "ST18-09", as: "invalidCost6Avian" },
@@ -268,7 +279,7 @@ describe("BT26-076 Crowmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-074", as: "host", under: ["BT26-076"] }],
+          battleArea: [{ card: "BT26-059", as: "host", under: ["BT26-076"] }],
           trash: [{ card: "ST24-13", as: "candidate" }],
         },
       },

@@ -26,7 +26,12 @@ export const compiled: CompiledCard = {
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           condition: {
             kind: "youHave",
-            filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["TS"], match: "trait" }] },
+            filter: {
+              controllerDefault: "mine",
+              zone: "battleArea",
+              kind: ["Digimon", "Tamer"],
+              nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
+            },
           },
         },
       ],

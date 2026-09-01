@@ -178,7 +178,7 @@ describe("BT26-041 Hudiemon", () => {
 
   it("gains one memory when its inherited host wins a battle", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT26-044", as: "winner", dp: 10000, under: ["BT26-041"] }] },
+      0: { battleArea: [{ card: "BT1-057", as: "winner", dp: 10000, under: ["BT26-041"] }] },
       1: { battleArea: [{ card: "BT1-009", as: "victim", suspended: true, dp: 1000 }] },
     });
     s.state.memory = 0;
@@ -201,7 +201,7 @@ describe("BT26-041 Hudiemon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT26-044", as: "host", under: ["BT26-041"] },
+          { card: "BT1-057", as: "host", under: ["BT26-041"] },
           { card: "BT1-080", as: "ally", dp: 10000 },
         ],
       },
@@ -225,7 +225,7 @@ describe("BT26-041 Hudiemon", () => {
 
   it("enforces the inherited battle-win effect only once per turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT26-044", as: "winner", dp: 10000, under: ["BT26-041"] }] },
+      0: { battleArea: [{ card: "BT1-057", as: "winner", dp: 10000, under: ["BT26-041"] }] },
       1: {
         battleArea: [
           { card: "BT1-009", as: "firstVictim", suspended: true, dp: 1000 },

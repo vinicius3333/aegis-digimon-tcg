@@ -65,7 +65,7 @@ export const compiled: CompiledCard = {
   coverage: "full",
   residual: [],
   digivolutionRequirement: [
-    { names: ["Cerberusmon"], cost: 1, isAlternate: true },
+    { namesExact: ["Cerberusmon"], cost: 1, isAlternate: true },
     { level: 4, traits: ["TS"], cost: 3, isAlternate: true },
   ],
 };

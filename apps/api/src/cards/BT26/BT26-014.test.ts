@@ -152,7 +152,7 @@ describe("BT26-014 Darumamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-009", as: "host", under: [{ card: "BT26-014", as: "source" }] }],
+          battleArea: [{ card: "BT11-016", as: "host", under: [{ card: "BT26-014", as: "source" }] }],
           hand: [{ card: "BT26-013", as: "played" }],
         },
       },

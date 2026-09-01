@@ -46,8 +46,12 @@ describe("BT26-034 Palmon", () => {
     );
     s.state.memory = 4;
 
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("palmon"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.perm("palmon").topCard.cardId === "BT26-039");
     expect(s.perm("palmon").topCard.cardId).toBe("BT26-039");
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
   });
 
   it("free-digivolves a TS card from the same OR trait filter", async () => {

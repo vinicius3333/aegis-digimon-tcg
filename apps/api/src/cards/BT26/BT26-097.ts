@@ -6,7 +6,7 @@ const aegiomon = {
   controller: "mine",
   zone: "battleArea",
   kind: ["Digimon"],
-  nameOrTrait: [{ tokens: ["Aegiomon"], match: "name" }],
+  nameOrTrait: [{ tokens: ["Aegiomon"], match: "nameExact" }],
 };
 const yukiTamer = {
   controller: "mine",
@@ -18,7 +18,7 @@ const jupitermon = {
   controller: "mine",
   zone: "battleArea",
   kind: ["Digimon"],
-  nameOrTrait: [{ tokens: ["Jupitermon"], match: "name" }],
+  nameOrTrait: [{ tokens: ["Jupitermon"], match: "nameExact" }],
 };
 const aegiocHusmon = { controller: "mine", zone: "trash", nameOrTrait: [{ tokens: ["Aegiochusmon"], match: "name" }] };
 const tsSecurity = {
@@ -82,7 +82,7 @@ export const compiled: CompiledCard = {
                   controller: "mine",
                   zone: ["hand", "trash"],
                   kind: ["Digimon"],
-                  nameOrTrait: [{ tokens: ["Jupitermon"], match: "name" }],
+                  nameOrTrait: [{ tokens: ["Jupitermon"], match: "nameExact" }],
                 },
                 count: 1,
               },

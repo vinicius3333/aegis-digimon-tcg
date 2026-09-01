@@ -19,6 +19,7 @@ describe("BT26-006 Monimon", () => {
               as: "host",
               under: [
                 { card: CARD_ID, as: "monimon" },
+                { card: "BT10-073", as: "intermediary" },
                 { card: "BT10-073", as: "costA" },
                 { card: "BT14-057", as: "costB" },
               ],
@@ -34,10 +35,18 @@ describe("BT26-006 Monimon", () => {
     );
     s.state.memory = 1;
     preferred.push(s.inst("costA").instanceId, s.inst("costB").instanceId, s.inst("bagraTamer").instanceId);
+    await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), {
-      attackerPermanentId: s.perm("host").permanentId,
-    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("bagraTamer").instanceId),
+    );
 
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(
@@ -60,6 +69,7 @@ describe("BT26-006 Monimon", () => {
               as: "host",
               under: [
                 { card: CARD_ID, as: "monimon" },
+                { card: "BT10-073", as: "intermediary" },
                 { card: "BT10-073", as: "costA" },
                 { card: "BT14-057", as: "costB" },
               ],
@@ -75,13 +85,24 @@ describe("BT26-006 Monimon", () => {
     );
     s.state.memory = 1;
     preferred.push(s.inst("costA").instanceId, s.inst("costB").instanceId, s.inst("played").instanceId);
+    await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), {
-      attackerPermanentId: s.perm("host").permanentId,
-    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("played").instanceId),
+    );
 
     expect(s.state.memory).toBe(0);
-    expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("monimon").instanceId]);
+    expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("monimon").instanceId,
+      s.inst("intermediary").instanceId,
+    ]);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(
       expect.arrayContaining([s.inst("costA").instanceId, s.inst("costB").instanceId]),
     );
@@ -102,6 +123,7 @@ describe("BT26-006 Monimon", () => {
               as: "attacker",
               under: [
                 { card: CARD_ID, as: "monimon" },
+                { card: "BT10-073" },
                 { card: "BT10-073", as: "firstCost" },
                 { card: "BT11-077", as: "spareA" },
               ],

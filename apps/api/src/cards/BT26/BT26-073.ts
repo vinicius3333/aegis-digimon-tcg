@@ -74,7 +74,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [{ names: ["Aegiomon"], cost: 3, isAlternate: true }],
+  digivolutionRequirement: [{ namesExact: ["Aegiomon"], cost: 3, isAlternate: true }],
   assemblyRequirement: [
     {
       reduceCost: 2,

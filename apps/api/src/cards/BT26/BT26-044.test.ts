@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, digivolutionRequirementsFor } from "@aegis/shared";
+import { digivolutionRequirementsFor } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -64,7 +64,11 @@ describe("BT26-044 Lilamon", () => {
   it("locks a different card from the one it suspended (Q7035)", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-044", as: "lilamon" }] },
+        0: {
+          battleArea: [{ card: "BT26-039", as: "evolving" }],
+          hand: [{ card: "BT26-044", as: "lilamon" }],
+          deck: ["BT1-001"],
+        },
         1: {
           battleArea: [
             { card: "BT1-009", as: "suspendTarget" },
@@ -74,8 +78,16 @@ describe("BT26-044 Lilamon", () => {
       },
       { autoAcceptOptional: true },
     );
+    s.state.memory = 3;
 
-    const resolving = advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("lilamon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("evolving").permanentId,
+        instanceId: s.inst("lilamon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     let pending = s.state.pendingDecision!;
     expect(
@@ -94,7 +106,7 @@ describe("BT26-044 Lilamon", () => {
         response: { kind: "chooseTargets", instanceIds: [s.perm("lockOnly").permanentId] },
       }),
     ).toEqual({ ok: true });
-    await resolving;
+    await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.perm("suspendTarget").isSuspended).toBe(true);
     expect(s.perm("lockOnly").isSuspended).toBe(false);
@@ -150,7 +162,7 @@ describe("BT26-044 Lilamon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT26-039", as: "dataSquadHost", under: ["BT26-044"] },
+            { card: "BT26-082", as: "dataSquadHost", under: ["BT26-044"] },
             {
               card: "BT1-085",
               as: "tamer",

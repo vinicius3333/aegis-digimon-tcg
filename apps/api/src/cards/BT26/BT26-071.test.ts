@@ -121,7 +121,7 @@ describe("BT26-071 Flarerizamon", () => {
   });
   it("grants inherited Raid to its evolution host", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT26-072", as: "host", under: ["BT26-071"] }] },
+      0: { battleArea: [{ card: "BT26-073", as: "host", under: ["BT26-071"] }] },
     });
     await s.ready();
 

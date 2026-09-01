@@ -98,6 +98,22 @@ describe("BT26-077 compiled behavior", () => {
     ).toMatchObject({ ok: false });
   });
 
+  it("publicly plays from hand when no eligible Ver.3 card is in the trash", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "BT26-077", as: "reapermon" }] },
+    });
+    s.state.memory = 12;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("reapermon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT26-077"));
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-077");
+    expect(s.state.memory).toBe(0);
+  });
+
   it("raises the printed play-cost ceiling only for each face-down card in this stack", () => {
     const action = compiled.effects.find((effect) => effect.trigger === "OnPlay")!.actions[0];
     expect(irNode(action).playCostCeiling).toEqual({

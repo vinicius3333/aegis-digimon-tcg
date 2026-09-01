@@ -64,7 +64,7 @@ describe("BT26-065 Falcomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-065", as: "falcomon" }],
+          hand: [{ card: "BT26-065", as: "falcomon" }],
           deck: [
             { card: "BT26-094", as: "keenan" },
             { card: "BT13-089", as: "ravemon" },
@@ -74,9 +74,11 @@ describe("BT26-065 Falcomon", () => {
       },
       { autoSelectCards: true, autoOrderCards: true },
     );
-    await s.ready();
+    s.state.memory = 3;
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("falcomon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("falcomon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.deck.length === 1);
 
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId).sort()).toEqual(["BT13-089", "BT26-094"]);
@@ -189,13 +191,23 @@ describe("BT26-065 Falcomon", () => {
             { card: "AD1-002", as: "secondDraw" },
           ],
         },
+        1: { security: ["BT1-009", "BT1-010"] },
       },
       { autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    for (let attack = 0; attack < 2; attack += 1) {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("host").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.events.filter((event) => event.kind === "combatResolved").length === attack + 1);
+      if (attack === 0) await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    }
 
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("firstDraw").instanceId);
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("secondDraw").instanceId]);

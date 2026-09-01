@@ -48,17 +48,23 @@ describe("BT26-059 Plutomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-059", as: "plutomon" }],
-          hand: [{ card: "BT1-001", as: "cost" }],
+          hand: [
+            { card: "BT26-059", as: "plutomon" },
+            { card: "BT1-001", as: "cost" },
+          ],
           trash: [{ card: "BT26-021", as: "titan" }],
         },
         1: { battleArea: [{ card: "BT1-009", as: "lowest" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 13;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("plutomon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("plutomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT26-021"));
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-021");
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-001");

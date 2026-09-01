@@ -47,6 +47,7 @@ describe("BT26-102 compiled fidelity", () => {
       },
       {
         kind: "Digivolve",
+        into: { filter: { nameOrTrait: [{ tokens: ["Dantemon"], match: "nameExact" }] } },
         ignoreRequirements: true,
         payCost: false,
         condition: { kind: "namedCountAtLeast", countSource: "sevenCodeMaterials", count: 6 },
@@ -115,6 +116,27 @@ describe("BT26-102 compiled fidelity", () => {
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT21-009");
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT26-102");
+  });
+
+  it("still adds itself to hand when the optional Security play is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT26-102", as: "option", faceUp: true }],
+          hand: [{ card: "BT21-009", as: "appmon" }],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+    await settle(() => s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT26-102"));
+
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT26-102", "BT21-009"]),
+    );
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
 
   it("Q7183-Q7186: places exactly six mixed-source materials, then may evolve the chosen host", async () => {

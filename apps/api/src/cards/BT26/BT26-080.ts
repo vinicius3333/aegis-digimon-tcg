@@ -8,7 +8,7 @@ const ts = { controller: "mine", nameOrTrait: [{ tokens: ["TS"], match: "trait" 
 const bacchusmon = {
   controller: "mine",
   kind: ["Digimon"],
-  nameOrTrait: [{ tokens: ["Bacchusmon"], match: "name" }],
+  nameOrTrait: [{ tokens: ["Bacchusmon"], match: "nameExact" }],
 };
 
 export const compiled: CompiledCard = {
@@ -72,7 +72,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [{ names: ["Bacchusmon"], basePlayCost: 12, cost: 2, isAlternate: true }],
+  digivolutionRequirement: [{ namesExact: ["Bacchusmon"], basePlayCost: 12, cost: 2, isAlternate: true }],
 };
 
 registerIrCard("BT26-080", compiled);

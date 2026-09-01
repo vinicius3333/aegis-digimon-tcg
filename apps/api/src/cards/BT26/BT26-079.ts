@@ -114,14 +114,11 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  // NOTE: these two fields are documentation only. Runtime legality reads
-  // `generated-digivolve-overrides.json` and `ASSEMBLY_REQUIREMENT_OVERRIDES` in
-  // packages/shared, which both spell [Plutomon] as a SUBSTRING name gate. See the audit note.
   digivolutionRequirement: [
-    { names: ["Plutomon"], cost: 1, isAlternate: true },
+    { namesExact: ["Plutomon"], cost: 1, isAlternate: true },
     { level: 5, traits: ["TS"], cost: 3, isAlternate: true },
   ],
-  assemblyRequirement: [{ reduceCost: 2, materials: [{ names: ["Plutomon"], count: 1 }] }],
+  assemblyRequirement: [{ reduceCost: 2, materials: [{ namesExact: ["Plutomon"], count: 1 }] }],
 };
 
 registerIrCard("BT26-079", compiled);

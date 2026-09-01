@@ -26,7 +26,7 @@ import { normalizeCost, placePermanent } from "./digiXros.js";
  *   - stacking order is dictated by the requirement's slot order for distinct-named slots, and by
  *     the player's own declaration order when the requirement is a single repeated slot (§7-3-2-6)
  *
- * IR coverage: `AssemblyMaterial` carries `names`/`traits`/`nameOrTrait`/`level`/`levelMin`/
+ * IR coverage: `AssemblyMaterial` carries `names`/`namesExact`/`traits`/`nameOrTrait`/`level`/`levelMin`/
  * `levelMax`/`differentLevels`/`differentNames`, all enforced below. `nameOrTrait` mirrors
  * `DigiXrosMaterial.nameOrTrait` for a genuine cross-kind disjunction the compiler can't flatten
  * into one AND-combined `names`+`traits` slot (e.g. EX12-016/-017's "in name or ... trait",
@@ -212,12 +212,15 @@ export async function applyAssembly(
 
 /** Whether a material's definition satisfies a single Assembly slot (name/trait AND level gates). */
 function materialMatchesAssemblySlot(def: CardDefinition, slot: AssemblyMaterial): boolean {
-  // A desc-only slot (no structured `names`/`traits`/`nameOrTrait`) can't be matched precisely —
+  // A desc-only slot (no structured `names`/`namesExact`/`traits`/`nameOrTrait`) can't be matched precisely —
   // reject rather than accept an unconstrained material. See the module doc comment (IR coverage).
   // A level bound alone is never sufficient: it must anchor a name/trait gate, or it would accept
   // any card of that level regardless of the printed identity/trait requirement.
   const hasNameOrTrait =
-    (slot.names?.length ?? 0) > 0 || (slot.traits?.length ?? 0) > 0 || (slot.nameOrTrait?.length ?? 0) > 0;
+    (slot.names?.length ?? 0) > 0 ||
+    (slot.namesExact?.length ?? 0) > 0 ||
+    (slot.traits?.length ?? 0) > 0 ||
+    (slot.nameOrTrait?.length ?? 0) > 0;
   if (!hasNameOrTrait) return false;
 
   if (slot.kinds && slot.kinds.length > 0 && !slot.kinds.some((kind) => def.kinds.includes(kind as never))) {
@@ -226,6 +229,9 @@ function materialMatchesAssemblySlot(def: CardDefinition, slot: AssemblyMaterial
 
   if (slot.names && slot.names.length > 0) {
     if (!slot.names.some((n) => def.nameEn.toLowerCase().includes(n.toLowerCase()))) return false;
+  }
+  if (slot.namesExact && slot.namesExact.length > 0) {
+    if (!slot.namesExact.includes(def.nameEn)) return false;
   }
   if (slot.traits && slot.traits.length > 0) {
     if (!slot.traits.some((t) => cardHasTrait(def, t))) return false;

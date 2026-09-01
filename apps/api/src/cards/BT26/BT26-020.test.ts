@@ -94,7 +94,7 @@ describe("BT26-020 ShellNumemon", () => {
     });
     const legal = setupEngine({
       0: {
-        battleArea: [{ card: "BT26-018", as: "dsBase" }],
+        battleArea: [{ card: "BT26-018", as: "dsBase", under: ["EX8-002"] }],
         hand: [{ card: "BT26-020", as: "shell" }],
         deck: ["BT1-009"],
       },
@@ -110,7 +110,7 @@ describe("BT26-020 ShellNumemon", () => {
     ).toEqual({ ok: true });
     await settle(() => legal.perm("dsBase").topCard.cardId === "BT26-020");
     expect(legal.state.memory).toBe(0);
-    expect(legal.perm("dsBase").stack.map(({ cardId }) => cardId)).toEqual(["BT26-018"]);
+    expect(legal.perm("dsBase").stack.map(({ cardId }) => cardId)).toEqual(["EX8-002", "BT26-018"]);
 
     const invalid = setupEngine({
       0: {
@@ -135,7 +135,7 @@ describe("BT26-020 ShellNumemon", () => {
       0: {
         battleArea: [
           { card: "BT26-020", as: "top" },
-          { card: "BT1-009", as: "host", under: [{ card: "BT26-020", as: "source" }] },
+          { card: "BT1-038", as: "host", under: [{ card: "BT26-020", as: "source" }] },
         ],
       },
     });
@@ -146,7 +146,7 @@ describe("BT26-020 ShellNumemon", () => {
 
   it("uses inherited Evade to suspend the host and prevent effect deletion", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: [{ card: "BT26-020" }] }] },
+      0: { battleArea: [{ card: "BT1-038", as: "host", under: [{ card: "BT26-020" }] }] },
     });
     const hostId = s.perm("host").permanentId;
     const deletion = advance(s.engine).verb.deletePermanent([hostId], "byEffect");

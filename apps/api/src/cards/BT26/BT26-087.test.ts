@@ -67,8 +67,8 @@ describe("BT26-087 Toya Kuga", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-087", as: "toya" }],
           hand: [
+            { card: "BT26-087", as: "toya" },
             { card: "BT26-088", as: "tsTamer" },
             { card: "BT1-009", as: "nonTs" },
           ],
@@ -77,8 +77,10 @@ describe("BT26-087 Toya Kuga", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 3;
+    await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("toya"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("toya").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("tsTamer").instanceId));
 
     expect(s.state.players[0]!.deck).toHaveLength(1);

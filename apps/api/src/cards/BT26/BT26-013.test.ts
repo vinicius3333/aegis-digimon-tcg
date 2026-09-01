@@ -1,4 +1,4 @@
-import { EffectTiming, digivolutionRequirementsFor } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectTiming, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -33,23 +33,46 @@ describe("BT26-013 Musyamon", () => {
   it("digivolves for 2 over an off-color TS Lv.3 and rejects a non-trait peer", async () => {
     const legal = setupEngine({
       0: {
-        battleArea: [{ card: "BT24-019", as: "tsBase" }],
-        hand: [{ card: "BT26-013", as: "musyamon" }],
+        breeding: { card: "BT24-002", as: "tsEgg" },
+        hand: [
+          { card: "BT24-019", as: "tsBase" },
+          { card: "BT26-013", as: "musyamon" },
+        ],
         deck: ["BT1-009"],
       },
     });
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("tsEgg").permanentId,
+        instanceId: legal.inst("tsBase").instanceId,
+        useAlternateCost: false,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.perm("tsEgg").topCard.cardId === "BT24-019");
+    expect(legal.perm("tsEgg").stack.map((card) => card.cardId)).toEqual(["BT24-002"]);
+
     legal.state.memory = 2;
     expect(
       legal.engine.applyIntent(0, {
         type: "digivolve",
-        permanentId: legal.perm("tsBase").permanentId,
+        permanentId: legal.perm("tsEgg").permanentId,
         instanceId: legal.inst("musyamon").instanceId,
         useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
-    await settle(() => legal.perm("tsBase").topCard.cardId === "BT26-013");
-    expect(legal.perm("tsBase").stack.at(-1)?.cardId).toBe("BT24-019");
+    await settle(() => legal.perm("tsEgg").topCard.cardId === "BT26-013");
+    expect(legal.perm("tsEgg").stack.map((card) => card.cardId)).toEqual(["BT24-002", "BT24-019"]);
     expect(legal.state.memory).toBe(0);
+
+    legal.state.phase = Phase.Breeding;
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "moveFromBreeding",
+        permanentId: legal.perm("tsEgg").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.state.phase === Phase.Main && legal.perm("tsEgg").topCard.cardId === "BT26-013");
 
     const illegal = setupEngine({
       0: {

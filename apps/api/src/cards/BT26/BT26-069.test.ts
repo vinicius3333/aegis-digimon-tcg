@@ -64,6 +64,14 @@ describe("BT26-069 Dobermon", () => {
               costDelta: -1,
               optional: true,
               target: { filter: { nameOrTrait: [{ tokens: ["Titan"], match: "trait" }] } },
+              into: {
+                filter: {
+                  nameOrTrait: expect.arrayContaining([
+                    { tokens: ["Titamon"], match: "nameExact" },
+                    { tokens: ["Titan"], match: "trait" },
+                  ]),
+                },
+              },
             },
           ],
         },
@@ -100,14 +108,23 @@ describe("BT26-069 Dobermon", () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-069", as: "dobermon" }], hand: [{ card: "BT1-001", as: "cost" }] },
+        0: {
+          hand: [
+            { card: "BT26-069", as: "dobermon" },
+            { card: "BT1-001", as: "cost" },
+          ],
+        },
         1: { battleArea: [{ card: "BT1-009", as: "target" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("target").permanentId);
+    s.state.memory = 5;
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("dobermon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dobermon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
@@ -119,7 +136,10 @@ describe("BT26-069 Dobermon", () => {
       {
         0: {
           battleArea: [{ card: "BT26-008", as: "base" }],
-          hand: [{ card: "BT26-069", as: "dobermon" }, { card: "BT1-001", as: "cost" }],
+          hand: [
+            { card: "BT26-069", as: "dobermon" },
+            { card: "BT1-001", as: "cost" },
+          ],
           deck: ["BT1-002"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "target" }] },

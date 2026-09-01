@@ -83,7 +83,7 @@ export const compiled: CompiledCard = {
   coverage: "full",
   residual: [],
   digivolutionRequirement: [
-    { names: ["Lilamon"], cost: 3, isAlternate: true },
+    { namesExact: ["Lilamon"], cost: 3, isAlternate: true },
     { level: 5, traits: ["DATA SQUAD"], cost: 3, isAlternate: true },
   ],
 };

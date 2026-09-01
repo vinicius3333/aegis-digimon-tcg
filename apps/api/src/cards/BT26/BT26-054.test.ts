@@ -57,13 +57,22 @@ describe("BT26-054 Andromon", () => {
   it("publicly plays a CS Tamer from hand on play", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-054", as: "andromon" }], hand: [{ card: "BT22-083", as: "csTamer" }] },
+        0: {
+          hand: [
+            { card: "BT26-054", as: "andromon" },
+            { card: "BT22-083", as: "csTamer" },
+          ],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 7;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("andromon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("andromon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT22-083"));
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT22-083");
   });
@@ -146,7 +155,7 @@ describe("BT26-054 Andromon", () => {
       {
         0: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 3000 }] },
         1: {
-          battleArea: [{ card: "BT26-055", as: "host", under: ["BT26-054"] }],
+          battleArea: [{ card: "BT26-058", as: "host", under: ["BT26-054"] }],
           security: ["BT1-001"],
         },
       },

@@ -45,6 +45,22 @@ it("exposes the printed level-4 TS evolution requirement", () => {
   expect(compiled.digivolutionRequirement).toContainEqual({ level: 4, traits: ["TS"], cost: 3, isAlternate: true });
 });
 
+it("publicly plays from hand when no legal Titan Option payment is available", async () => {
+  const s = setupEngine({
+    0: { hand: [{ card: CARD_ID, as: "cerberusmon" }] },
+  });
+  s.state.memory = 7;
+  await s.ready();
+
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cerberusmon").instanceId })).toEqual({
+    ok: true,
+  });
+  await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID));
+
+  expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain(CARD_ID);
+  expect(s.state.memory).toBe(0);
+});
+
 function definition(overrides: Partial<CardDefinition> = {}): CardDefinition {
   return {
     cardId: overrides.cardId ?? "TEST",

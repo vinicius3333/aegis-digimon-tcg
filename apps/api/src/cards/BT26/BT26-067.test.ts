@@ -58,16 +58,22 @@ describe("BT26-067 Wizardmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-067", as: "wizardmon" }],
+          hand: [
+            { card: "BT26-067", as: "wizardmon" },
+            { card: "BT1-002", as: "discarded" },
+          ],
           deck: [{ card: "BT1-001", as: "drawn" }],
-          hand: [{ card: "BT1-002", as: "discarded" }],
         },
       },
       { autoSelectCards: true },
     );
+    s.state.memory = 4;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("wizardmon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wizardmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
 
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-001"]);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-002");
