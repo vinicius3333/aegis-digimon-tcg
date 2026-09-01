@@ -120,6 +120,27 @@ describe("BT14-013", () => {
     assertNoLoudGap(suspended);
   });
 
+  it("naturally declares the inherited attack from the production end-of-turn window", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-024", under: ["BT14-013"], as: "metalTyrannomon" }],
+          deck: ["BT1-001"],
+        },
+        1: { security: ["BT1-085", "BT1-085"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    await advance(s.engine).runTurn(0);
+
+    expect(s.perm("metalTyrannomon").isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(true);
+    assertNoLoudGap(s);
+  });
+
   it("Q2378 allows only one of two pending inherited effects to declare an attack", async () => {
     const s = setupEngine(
       {

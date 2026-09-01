@@ -22,7 +22,10 @@ describe("BT14-084", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "BT14-084", as: "tk" }, { card: "P-074", as: "vaccine" }],
+          hand: [
+            { card: "BT14-084", as: "tk" },
+            { card: "P-074", as: "vaccine" },
+          ],
           security: [{ card: "BT1-001", as: "topSecurity" }],
         },
       },
@@ -36,5 +39,26 @@ describe("BT14-084", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("topSecurity").instanceId)).toBe(true);
     expect(s.state.players[0]!.security[0]?.instanceId).toBe(s.inst("vaccine").instanceId);
     expect(s.state.memory).toBe(8);
+  });
+
+  it("naturally plays itself without cost when revealed in security", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT14-071", as: "attacker" }] },
+        1: { security: [{ card: "BT14-084", as: "securityTk" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT14-084"));
+
+    expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT14-084")).toBe(true);
   });
 });

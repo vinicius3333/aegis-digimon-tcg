@@ -46,6 +46,38 @@ describe("BT14-078", () => {
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT14-071")).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
+  it("naturally resolves the scaled On Deletion after losing a battle", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-078", as: "source", dp: 1000, suspended: true }],
+          hand: [{ card: "BT14-071", as: "darkAnimal" }],
+        },
+        1: { battleArea: [{ card: "BT14-074", as: "attacker", dp: 7000 }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("source").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((card) => card.cardId === "BT14-078") &&
+        s.state.players[0]!.trash.some((card) => card.cardId === "BT14-071") &&
+        s.state.players[1]!.battleArea.length === 0,
+    );
+
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT14-078")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT14-071")).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
   it("deletes, draws, and returns Loogamon through the natural end-of-turn path", async () => {
     const s = setupEngine(
       {

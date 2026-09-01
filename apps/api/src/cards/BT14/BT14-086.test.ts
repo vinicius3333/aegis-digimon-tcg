@@ -101,4 +101,25 @@ describe("BT14-086", () => {
     await turn;
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-086")).toBe(true);
   });
+
+  it("naturally plays itself without cost when revealed in security", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT14-071", as: "attacker" }] },
+        1: { security: [{ card: "BT14-086", as: "securitySatsuki" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT14-086"));
+
+    expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT14-086")).toBe(true);
+  });
 });
