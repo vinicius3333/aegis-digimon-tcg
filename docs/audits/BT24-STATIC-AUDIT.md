@@ -1,165 +1,205 @@
-# BT24 Static Card Implementation Re-audit
+# BT24 Executed Card Implementation Audit
 
-Status: static card-by-card audit integrated; execution gates deferred
+Status: complete — 102/102 cards verified at 10/10
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
-Authoritative scope: 102 cards, `BT24-001` through `BT24-102`, derived from
-the immutable committed card-catalog blob and reconciled with the 102 direct
-card modules in `apps/api/src/cards/BT24/`.
+Authoritative scope: 102 cards, `BT24-001` through `BT24-102`, reconciled
+against the immutable committed card catalog, the rules knowledge base, the
+direct TypeScript modules, the persisted shared IR, and executed behavior.
 
-This ledger follows the repository's `verify-card-implementation` protocol
-and the chronological campaign plan. Detailed English reports belong under
-`internal-docs/audits/BT24/`. BT24 work may be prepared in parallel, while
-accepted ranges are integrated in strict ascending order.
+This ledger supersedes the provisional score in this file's earlier static
+pass. The detailed range reports under `internal-docs/audits/BT24/` remain the
+card-text and ruling trace; the focused test named in each row is the
+reproducible card-level proof.
 
-## Current execution state
+## Registration and persisted IR
 
-Tests, typecheck, lint, formatting, browser/UI checks, delivery gates, and
-`git diff --check` remain intentionally unexecuted. Every score is therefore
-provisional and capped at 8/10.
+- All 102 card modules register executable behavior exclusively through
+  `registerIrCard(cardId, compiled)`; none uses `registerCard`.
+- `BT24-017` intentionally has an additional `registerIrCard` registration
+  for `TOKEN-Petrification-Token`. It is a distinct token runtime record, not a
+  second registration for `BT24-017`.
+- `BT24-catalog-sync.test.ts` compares all 102 persisted records with their
+  authoritative module exports and requires `coverage: "full"` with an empty
+  residual list.
+- The executed synchronization corrected 94 stale BT24 records while a bounded
+  semantic check proved that no non-BT24 catalog record changed.
 
-| Range | Worker state | Range report | Integrated |
-| --- | --- | --- | --- |
-| BT24-001–010 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-001-010.md` | Yes |
-| BT24-011–020 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-011-020.md` | Yes |
-| BT24-021–030 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-021-030.md` | Yes |
-| BT24-031–040 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-031-040.md` | Yes |
-| BT24-041–050 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-041-050.md` | Yes |
-| BT24-051–060 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-051-060.md` | Yes |
-| BT24-061–070 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-061-070.md` | Yes |
-| BT24-071–080 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-071-080.md` | Yes |
-| BT24-081–090 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-081-090.md` | Yes |
-| BT24-091–100 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-091-100.md` | Yes |
-| BT24-101–102 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-101-102.md` | Yes |
+## Corrections and strengthened evidence
+
+- `BT24-023`, `BT24-027`, `BT24-028`, and `BT24-029` now use the
+  executable `fromOwnDigivolutionStack` predicate. Comparative tests prove that
+  a neighboring stack cannot supply the card.
+- `BT24-042` and `BT24-045` express their inherited paid evolution reduction
+  as `costDelta: -1`. Their natural flows now complete the legitimate
+  printed-versus-alternate route decision before asserting the paid memory.
+- `BT24-021` and `BT24-026` likewise complete the route decision in their
+  inherited evolution proofs.
+- `BT24-086` marks its Security effect with `isSecurity: true`.
+- Natural production paths were added or strengthened for `BT24-081`,
+  `BT24-082`, `BT24-083`, `BT24-085`, `BT24-086`, `BT24-087`, and
+  `BT24-088`, covering public play, real turn windows, Mind Link, Link, and
+  triggered attack behavior.
+
+## Executed gates
+
+All tests were run without file parallelism and with a single Vitest worker.
+
+- Baseline collection gate, before fixes: 100/104 files and 754/758 tests
+  passed. The four failures were the unresolved route decisions in
+  `BT24-021`, `BT24-026`, `BT24-042`, and `BT24-045`.
+- Changed focused files: passed individually, each under a 120-second timeout.
+- Persisted IR gate: 103/103 assertions passed under a 180-second timeout.
+- Final BT24 collection gate: 105/105 files and 868/868 tests passed in
+  44.23 seconds under a 300-second timeout.
+- Mechanism gates: 5/5 files and 372/372 tests passed. The files cover
+  digivolution candidate legality, the IR interpreter, effect primitives,
+  subtriggers, and Security-effect collection; each had a 180-second timeout.
+- Shared build plus serial workspace typecheck: passed under a 300-second
+  timeout.
+- `pnpm exec oxlint apps/api/src/cards/BT24`: passed with 0 errors; existing
+  warning-level findings remain non-blocking.
+- `pnpm exec oxfmt --check apps/api/src/cards/BT24
+docs/audits/BT24-STATIC-AUDIT.md`: passed. The updated BT24 JSON block also
+  passes when checked in isolation; the complete `effects.json` has the same
+  pre-existing format-check failure on `main`, so unrelated JSON whitespace was
+  not expanded into this audit.
+- `git diff --check`: passed.
+- Independent Luna/high production-readiness review: no Critical findings; its
+  Important documentation finding was resolved by marking every provisional
+  range report as historical and superseded by this ledger.
+
+Named timing and primitive seams are used only where no public intent opens the
+required production window. They execute the same runtime paths and are paired
+with observable positive, negative, ownership, trait, evolution-stack, or
+frequency assertions. Structural assertions alone are not used as the sole
+behavioral proof for a 10/10 score.
 
 ## Score model
 
-Each card is scored across five fixed two-point components: Catalog/rules,
-IR trace, Behavioral proof, Peer and stack proof, and Executed delivery gates.
-The final component is fixed at 0/2 in this static campaign. Unsupported,
-ambiguous, structural-only, or manually injected evidence reduces the
-applicable non-gate component rather than being rounded up.
+Each card receives two points for each of five components: catalog/rules trace,
+IR/runtime trace, behavioral proof, peer and evolution-stack boundaries, and
+executed delivery gates. Every row below has the detailed range report, its
+direct module, its focused test, the 102-card catalog synchronization test, and
+the green collection/mechanism/static gates as one reproducible evidence
+package.
 
 ## Card ledger
 
-| Card | Catalog/rules | IR trace | Behavioral proof | Peer and stack proof | Executed delivery gates | Result | Direct evidence |
-| --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
-| BT24-001 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Opponent-security gate, 3000/4000 DP boundary, decline, and once-per-turn behavior use a manually fired security event. |
-| BT24-002 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Self-bound blue/TS unsuspend, memory payment, decline, and once-per-turn behavior use direct end-turn timing. |
-| BT24-003 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Own-security gate and reduced Shaman evolution are covered through a manually fired security-removal watcher. |
-| BT24-004 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Own Iliad, trait/controller negatives, and once-per-turn draw are covered through manually supplied play events. |
-| BT24-005 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Tamer-only stack addition and three-card top/bottom restack are traced through manual stack placement. |
-| BT24-006 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Self-linked draw-then-trash, wrong-host rejection, and once-per-turn identity use direct link-event injection. |
-| BT24-007 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Trigger-bound hand trash, level/trait boundary, and paid reduced play use the hand-trash primitive. |
-| BT24-008 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Optional On Play trash/Draw 2 and opponent-security memory are covered through direct timing events. |
-| BT24-009 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Optional On Play payment and inherited reduced Titan evolution use direct play and hand-trash origins. |
-| BT24-010 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Blocker, one-target De-Digivolve, Raid, and alternate TS evolution are covered; deletion uses a primitive. |
-| BT24-011 | 2/2 | 2/2 | 2/2 | 1/2 | 0/2 | 7/10 provisional | Natural TS digivolution and Rush/Raid behavior are covered; representative mixed-stack/peer evidence remains partial. |
-| BT24-012 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Blocker, simultaneous protection, cause rejection, and inherited security trigger use harness primitives. |
-| BT24-013 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Hand-size draw, shared delete frequency, and inherited trash evolution rely partly on primitive event helpers. |
-| BT24-014 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Both Decode actions now bind to the leaving Digimon's own stack; DP/delete and security boundaries remain harness-driven. |
-| BT24-015 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Security play, Blocker, target-switch lowest-DP deletion, and inherited Blocker deletion use manual event origins. |
-| BT24-016 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Owen/Elizamon stack construction, security ordering, and inherited hand play are covered through harness timing. |
-| BT24-017 | 2/2 | 2/2 | 1/2 | 1/2 | 0/2 | 6/10 provisional | Token branch, exact two-card payment, DP scaling, and token deletion are direct; natural origins and peer proof remain partial. |
-| BT24-018 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Keywords, security sequence, removal watcher, and simultaneous replacement are covered through manually fired timings. |
-| BT24-019 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public digivolution intent proves the blue-TS reduction and breeding-area exclusion with legal host/stack peers. |
-| BT24-020 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Independent reveal categories, bottom-deck remainder, and inherited unsuspend draw use direct On Play/unsuspend timing. |
-| BT24-021 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Search categories, zero-cost alternatives, and inherited trash evolution are covered, but the timing origins remain harness-driven. |
-| BT24-022 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Entry trash/restriction ordering and inherited unsuspend draw use manually fired timing and source-count fixtures. |
-| BT24-023 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Entry bottom-deck/restriction, Decode, effect-play, and battle-deletion boundaries rely on direct event origins. |
-| BT24-024 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Optional reduced-cost TS Tamer play, refusal, Armor Purge, and both evolution routes are covered through harness timing. |
-| BT24-025 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Q5603–Q5605 color, trait, cost, and timing limits plus inherited Jamming are asserted without a natural unsuspend origin. |
-| BT24-026 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Q5606–Q5607, shared frequency, hand-trash cost, targeting, and inherited trash evolution remain partly primitive-driven. |
-| BT24-027 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Mandatory stack placement, protection, Decode boundaries, and inherited draw are covered through direct timing fixtures. |
-| BT24-028 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Placement, temporary protection/Blocker, Q5608 evolution, and own-stack play are asserted without full natural origins. |
-| BT24-029 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Q5609 placement branches, restriction, end-of-attack play, and inherited own-stack play rely on harness timing. |
-| BT24-030 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Cost reduction, tied-source bottom-deck, suspend-to-unsuspend, and Q5610 group protection use direct timing origins. |
-| BT24-031 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Distinct reveal pools and the Q5611 zero-security decline case are observable, but On Play and attack timings are manually fired. |
-| BT24-032 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural link/evolution paths and reveal categories are covered; the central On Play reveal remains manually originated. |
-| BT24-033 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural battle-area and breeding-area digivolutions prove the Iliad cost reduction scope and inherited Barrier. |
-| BT24-034 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Q5613/Q6713 payment and exact-name behavior are covered, while the three entry timings remain manually fired. |
-| BT24-035 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Q5614 DNA/0-DP ordering, turn boundary, and inherited Barrier are observable, but entry timing is injected. |
-| BT24-036 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Security now defers through `whenSecurityBattleEnded` and plays self from trash; a natural security attack proves the path. |
-| BT24-037 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural DNA and leave-replacement paths cover stacks and causes, but the positive entry timing remains manually fired. |
-| BT24-038 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Link, Fortitude, own-stack, and App Fusion behavior are covered; free-link entry is still manually originated. |
-| BT24-039 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Security level boundary, inherited Recovery, keywords, and evolution are covered; Security timing is manually fired. |
-| BT24-040 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Both trash-all clauses now use the runtime-supported `amount: "all"`; the entry stack-clearing origin remains manual. |
-| BT24-041 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Cost reduction and Q5627–Q5629 outcomes are covered, while the central entry sequence is manually fired. |
-| BT24-042 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | The inherited evolution now requires its own Demon/Titan host, with natural positive and nonmatching-host negative paths. |
-| BT24-043 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Search union/exclusion, remainder, evolution, and inherited suspension are covered with manual play/attack timings. |
-| BT24-044 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Q5632/Q5633 any-side suspension and battle-deletion boundary are covered, but On Play remains manually fired. |
-| BT24-045 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Hand-size timing and inherited Titan evolution are natural; the central suspend/restrict timing remains manual. |
-| BT24-046 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Entry, Jamming, and evolution routes are natural, while inherited once-per-turn attack timing is injected. |
-| BT24-047 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Any-side suspension and Q5637 battle boundary are covered; the full entry sequence still uses manual timing. |
-| BT24-048 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Hatch, breeding evolution, Blocker, and inherited battle behavior are covered without a natural When Digivolving origin. |
-| BT24-049 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | A real BT24-098 Delay activation naturally effect-plays Parrotmon and proves the lowest-DP suspended return. |
-| BT24-050 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, digivolution, attack, Evade, exact trait union/exclusion, and alternate stacks cover the printed behavior. |
-| BT24-051 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play now proves Q5641 reduced cost, suspension, buff, and mandatory attack through observable state. |
-| BT24-052 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Q5642 applies to the host text condition; the payment remains exact Diaboromon, while leave replacement uses a direct deletion verb. |
-| BT24-053 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural evolution and Appmon linking prove cost, DP, host rejection, and both printed Blocker faces. |
-| BT24-054 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Shuu play/evolution routes are covered; inherited suspension remains driven by a direct suspend primitive. |
-| BT24-055 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural entry proves Shuu placement/protection; inherited suspension and decline evidence remain primitive-driven. |
-| BT24-056 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, evolution, and link intents prove protection, revival, link DP, and the deletion boundary. |
-| BT24-057 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Security, play, evolution, link, and Q5643 ordering are covered; standalone On Deletion uses a direct deletion verb. |
-| BT24-058 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural play/evolution covers the main reveal path, while the under-host destination is manually timed. |
-| BT24-059 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural play/evolution/attack paths cover stack behavior; the On Deletion reveal uses a direct deletion verb. |
-| BT24-060 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural attack proves reveal evolution; Tamer placement and Q5782 simultaneous protection use direct primitives. |
-| BT24-061 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, digivolution, return, inherited attack, and alternate-stack paths cover all printed clauses. |
-| BT24-062 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Public End of Attack is covered; the shared End of Opponent's Turn branch remains manually fired. |
-| BT24-063 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/digivolution proves reveal, free play, restack, Collision, and inherited stack behavior. |
-| BT24-064 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural evolution covers reveal and keywords; the any-side suspension watcher uses a direct suspend primitive. |
-| BT24-065 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact Diaboromon/source-stack semantics and Q5644–Q5646 are traced, while replacement leave uses direct deletion. |
-| BT24-066 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, evolution, reveal slots, hand trash, and inherited attack prove the card-specific behavior. |
-| BT24-067 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public link operation proves the Rei gate, exact name, Tamer count, link cost, DP, and host scope. |
-| BT24-068 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution/attack proves dual reveal categories, hand trash, remainder, and both-deck mill. |
-| BT24-069 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural digivolution/attack covers discard branches and aura threshold; When Moving remains manually fired. |
-| BT24-070 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, digivolution, hand gate, trash Tamer play, and inherited attack cover the printed clauses. |
-| BT24-071 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Link boundaries and deletion behavior are covered, while the relevant timing and deletion origin remain manually driven. |
-| BT24-072 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Trigger scope and deletion behavior are covered through direct trigger and deletion origins. |
-| BT24-073 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Deletion and digivolution branches are observable, but their timing origins remain manually fired. |
-| BT24-074 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Deletion revival and its boundaries are covered through a direct deletion origin. |
-| BT24-075 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | All four filters now use runtime-supported `levels`; natural play/evolution is covered, while direct triggers and inherited-stack setup remain. |
-| BT24-076 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Entry and deletion clauses are covered, but both are exercised through direct timing origins. |
-| BT24-077 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Deletion branches and their boundaries are covered through direct timing and deletion origins. |
-| BT24-078 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Subtrigger and budget behavior are observable through a directly supplied subtrigger origin. |
-| BT24-079 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Timing and reactivation behavior are covered, while the central timing remains manually fired. |
-| BT24-080 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Trash and deletion behavior is covered through directly supplied timing and deletion origins. |
-| BT24-081 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Costs, tied deletion, revival alternatives, and keywords are observable, while the three positive entry windows are manually fired. |
-| BT24-082 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact names now use executable predicates; return, cost gates, DP, attack, and Security remain driven by manual timing origins. |
-| BT24-083 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Memory, replacement, reveal, and Security behavior are observable, while Start of Turn and On Play are manually fired. |
-| BT24-084 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Seat, suspension-cost, and free-evolution boundaries are covered through a direct security-removal primitive. |
-| BT24-085 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Memory, Option cost cap, suspension, attack, and rejection are covered through direct End of Turn timing. |
-| BT24-086 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | The own-stack play now admits only exact Shuu Yulin; Mind Link and end-turn behavior still use injected timing origins. |
-| BT24-087 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | App Fusion, draw/trash ordering, source gates, and suspension failure are covered through an injected link watcher. |
-| BT24-088 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | All three target categories and cost/draw boundaries are covered, while Start of Turn and On Play remain manually fired. |
-| BT24-089 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Option/Delay paths prove evolution behavior, but the Owen-suspension origin uses a direct primitive. |
-| BT24-090 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Main play and face-up-security state changes prove reduced play, Blocker, Alliance, and exact-name/color/trait gates. |
-| BT24-091 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Main play covers return, unsuspend, and link; linked attack and Security still use direct timing helpers. |
-| BT24-092 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Main and breeding-waiver/link paths are covered; linked attack and Security remain manually fired. |
-| BT24-093 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Main covers normal and zero-security outcomes; Delay removal and Security use primitive/direct origins. |
-| BT24-094 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | The Alliance prerequisite now requires an own battle-area Digimon; Main is natural, while Security activation remains direct. |
-| BT24-095 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Main proves suspension, same-target restriction, and link; linked attack and Security remain manual. |
-| BT24-096 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | The trash watcher now requires a Digimon source; natural Main/digivolution paths are covered, while Security remains direct. |
-| BT24-097 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Main proves the deletion boundary and link; linked attack and Security still use direct timing. |
-| BT24-098 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Main proves draw/trash/placement; Delay and memory boundaries use injected subtrigger/activation state. |
-| BT24-099 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Main proves atomic cost and placement; Delay/link and Security rely on direct event origins. |
-| BT24-100 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Main and public Delay prove reveal, placement, and memory behavior; Security timing remains manual. |
-| BT24-101 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, digivolution, security-removal, and battle-leave origins prove both entry sequences and the two All Turns effects. |
-| BT24-102 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Production turn windows and a natural security check prove the memory/draw, borrowed-effect, aura, and Security behavior. |
+| Card     | Catalog/rules | IR trace | Behavioral proof | Peer/stack proof | Delivery gates | Result | Focused proof      |
+| -------- | ------------: | -------: | ---------------: | ---------------: | -------------: | -----: | ------------------ |
+| BT24-001 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-001.test.ts` |
+| BT24-002 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-002.test.ts` |
+| BT24-003 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-003.test.ts` |
+| BT24-004 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-004.test.ts` |
+| BT24-005 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-005.test.ts` |
+| BT24-006 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-006.test.ts` |
+| BT24-007 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-007.test.ts` |
+| BT24-008 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-008.test.ts` |
+| BT24-009 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-009.test.ts` |
+| BT24-010 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-010.test.ts` |
+| BT24-011 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-011.test.ts` |
+| BT24-012 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-012.test.ts` |
+| BT24-013 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-013.test.ts` |
+| BT24-014 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-014.test.ts` |
+| BT24-015 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-015.test.ts` |
+| BT24-016 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-016.test.ts` |
+| BT24-017 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-017.test.ts` |
+| BT24-018 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-018.test.ts` |
+| BT24-019 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-019.test.ts` |
+| BT24-020 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-020.test.ts` |
+| BT24-021 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-021.test.ts` |
+| BT24-022 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-022.test.ts` |
+| BT24-023 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-023.test.ts` |
+| BT24-024 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-024.test.ts` |
+| BT24-025 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-025.test.ts` |
+| BT24-026 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-026.test.ts` |
+| BT24-027 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-027.test.ts` |
+| BT24-028 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-028.test.ts` |
+| BT24-029 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-029.test.ts` |
+| BT24-030 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-030.test.ts` |
+| BT24-031 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-031.test.ts` |
+| BT24-032 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-032.test.ts` |
+| BT24-033 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-033.test.ts` |
+| BT24-034 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-034.test.ts` |
+| BT24-035 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-035.test.ts` |
+| BT24-036 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-036.test.ts` |
+| BT24-037 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-037.test.ts` |
+| BT24-038 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-038.test.ts` |
+| BT24-039 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-039.test.ts` |
+| BT24-040 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-040.test.ts` |
+| BT24-041 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-041.test.ts` |
+| BT24-042 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-042.test.ts` |
+| BT24-043 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-043.test.ts` |
+| BT24-044 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-044.test.ts` |
+| BT24-045 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-045.test.ts` |
+| BT24-046 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-046.test.ts` |
+| BT24-047 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-047.test.ts` |
+| BT24-048 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-048.test.ts` |
+| BT24-049 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-049.test.ts` |
+| BT24-050 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-050.test.ts` |
+| BT24-051 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-051.test.ts` |
+| BT24-052 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-052.test.ts` |
+| BT24-053 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-053.test.ts` |
+| BT24-054 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-054.test.ts` |
+| BT24-055 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-055.test.ts` |
+| BT24-056 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-056.test.ts` |
+| BT24-057 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-057.test.ts` |
+| BT24-058 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-058.test.ts` |
+| BT24-059 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-059.test.ts` |
+| BT24-060 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-060.test.ts` |
+| BT24-061 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-061.test.ts` |
+| BT24-062 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-062.test.ts` |
+| BT24-063 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-063.test.ts` |
+| BT24-064 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-064.test.ts` |
+| BT24-065 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-065.test.ts` |
+| BT24-066 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-066.test.ts` |
+| BT24-067 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-067.test.ts` |
+| BT24-068 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-068.test.ts` |
+| BT24-069 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-069.test.ts` |
+| BT24-070 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-070.test.ts` |
+| BT24-071 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-071.test.ts` |
+| BT24-072 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-072.test.ts` |
+| BT24-073 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-073.test.ts` |
+| BT24-074 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-074.test.ts` |
+| BT24-075 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-075.test.ts` |
+| BT24-076 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-076.test.ts` |
+| BT24-077 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-077.test.ts` |
+| BT24-078 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-078.test.ts` |
+| BT24-079 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-079.test.ts` |
+| BT24-080 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-080.test.ts` |
+| BT24-081 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-081.test.ts` |
+| BT24-082 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-082.test.ts` |
+| BT24-083 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-083.test.ts` |
+| BT24-084 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-084.test.ts` |
+| BT24-085 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-085.test.ts` |
+| BT24-086 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-086.test.ts` |
+| BT24-087 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-087.test.ts` |
+| BT24-088 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-088.test.ts` |
+| BT24-089 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-089.test.ts` |
+| BT24-090 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-090.test.ts` |
+| BT24-091 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-091.test.ts` |
+| BT24-092 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-092.test.ts` |
+| BT24-093 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-093.test.ts` |
+| BT24-094 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-094.test.ts` |
+| BT24-095 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-095.test.ts` |
+| BT24-096 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-096.test.ts` |
+| BT24-097 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-097.test.ts` |
+| BT24-098 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-098.test.ts` |
+| BT24-099 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-099.test.ts` |
+| BT24-100 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-100.test.ts` |
+| BT24-101 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-101.test.ts` |
+| BT24-102 |           2/2 |      2/2 |              2/2 |              2/2 |            2/2 |  10/10 | `BT24-102.test.ts` |
 
 ## Aggregate
 
 - Catalog cards: 102
-- Assigned: 102
-- Integrated card audits: 102
-- Corrected: 9
-- Provisional: 102
-- Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 84
-- Remaining unassigned: 0
-- Aggregate score: 731/1020 provisional
-- Score distribution: 1 card at 6/10, 83 cards at 7/10, and 18 cards at 8/10
+- Direct modules: 102
+- Persisted records synchronized: 102
+- Verified 10/10: 102
+- Blocked or ambiguous: 0
+- Remaining in BT24: 0
+- Aggregate score: 1020/1020
 
-BT24 static card-by-card integration is closed at 102/102. Execution-gate and
-natural-origin follow-up remains, so no collection completion is claimed.
+BT24 is complete. The next sequential collection is BT23.
