@@ -85,6 +85,37 @@ describe("BT13-097 Thomas H. Norstein", () => {
     expect(s.state.players[1]!.hand.length).toBe(theirHand + 1);
   });
 
+  it("draws for both players from a real Gaomon attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT13-097", as: "thomas" },
+            { card: "BT13-021", as: "gaomon" },
+          ],
+          deck: ["BT1-001"],
+        },
+        1: { security: ["BT1-002"], deck: ["BT1-003"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const myHand = s.state.players[0]!.hand.length;
+    const theirHand = s.state.players[1]!.hand.length;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gaomon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("thomas").isSuspended);
+
+    expect(s.state.players[0]!.hand.length).toBe(myHand + 1);
+    expect(s.state.players[1]!.hand.length).toBe(theirHand + 1);
+  });
+
   it("stays unsuspended and neither player draws when the suspend cost is declined", async () => {
     const s = setupEngine(
       {

@@ -3,10 +3,11 @@ import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { internalsOf } from "../../engine/testkit/internals.js";
 import { compiled } from "./BT13-098.js";
 
 function mainEffectKey(s: ReturnType<typeof setupEngine>): string {
-  const source = (s.engine as any).cardSourceOf(s.perm("richard").topCard!);
+  const source = internalsOf(s.engine).cardSourceOf(s.perm("richard").topCard!);
   return effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("BT13-098/"))!
     .effectKey;
 }
@@ -68,15 +69,38 @@ describe("BT13-098 Richard Sampson", () => {
     expect(s.state.memory).toBe(1);
   });
 
+  it("gains memory on real entry to the main phase using both security stacks", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT13-098", as: "richard" }],
+        hand: ["BT13-079"],
+        security: ["BT1-001", "BT1-002", "BT1-003"],
+      },
+      1: { security: ["BT1-004", "BT1-005", "BT1-006"] },
+    });
+    // Keep a legal Main action available so production does not auto-end the
+    // phase immediately after resolving its entry window.
+    s.state.memory = 3;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.state.memory === 4);
+    expect(s.state.memory).toBe(4);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
   it("plays itself from security when an effect directly trashes it", async () => {
     const s = setupEngine(
       { 0: { security: [{ card: "BT13-098", as: "richard", faceUp: true }] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await advance(s.engine).verb.trash([s.inst("richard").instanceId]);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("richard").instanceId)).toBe(
-      true,
-    );
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("richard").instanceId,
+      ),
+    ).toBe(true);
     expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("richard").instanceId)).toBe(false);
   });
 
@@ -84,7 +108,10 @@ describe("BT13-098 Richard Sampson", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT13-098", as: "richard" }, { card: "BT1-046", as: "kudamon" }],
+          battleArea: [
+            { card: "BT13-098", as: "richard" },
+            { card: "BT1-046", as: "kudamon" },
+          ],
           hand: [{ card: "BT13-046", as: "kentaurosmon" }],
           security: ["BT1-001", "BT1-002", "BT1-003"],
         },

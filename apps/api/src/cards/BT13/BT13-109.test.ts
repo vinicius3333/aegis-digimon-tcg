@@ -1,14 +1,15 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, type CardInstance } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-109.js";
 
 async function resolveMain(s: ReturnType<typeof setupEngine>, optionId: string): Promise<void> {
   const engine = s.engine as unknown as {
-    buildEffectContext(source: unknown, trigger: unknown): any;
-    cardSourceOf(instance: any): unknown;
+    buildEffectContext(source: unknown, trigger: unknown): EffectContext;
+    cardSourceOf(instance: CardInstance): unknown;
   };
   const source = engine.cardSourceOf(s.inst(optionId));
   const effects = getEffectModule("BT13-109")!.effectsForTiming(EffectTiming.OnUseOption, source as never);
@@ -106,6 +107,27 @@ describe("BT13-109 BT13-109", () => {
     expect(s.perm("base").topCard?.cardId).toBe("BT13-088");
     expect(s.perm("base").stack.some((card) => card.cardId === "BT13-084")).toBe(true);
     expect(s.state.memory).toBe(0);
+  });
+
+  it("resolves the Main effect through a real option play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-084", as: "base" }],
+          hand: [{ card: "BT13-109", as: "option" }],
+          trash: [{ card: "BT13-088", as: "sleep" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("base").topCard?.cardId === "BT13-088");
+    expect(s.perm("base").topCard?.cardId).toBe("BT13-088");
   });
 
   it("rejects a level 4 base because the effect does not ignore requirements", async () => {

@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { observe } from "../../engine/testkit/observe.js";
-import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-074.js";
 
 describe("BT13-074 PrinceMamemon", () => {
@@ -94,17 +92,26 @@ describe("BT13-074 PrinceMamemon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT13-074", as: "prince" }],
+          hand: [{ card: "BT13-074", as: "prince" }],
           deck: ["BT11-068", "BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 11;
     await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("prince"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("prince").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT11-068") &&
+        s.state.players[0]!.trash.length === 2,
+    );
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT11-068")).toBe(true);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-010"]);
+    expect(s.state.memory).toBe(0);
   });
 });

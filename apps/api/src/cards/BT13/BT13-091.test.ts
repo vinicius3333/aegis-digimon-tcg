@@ -66,4 +66,53 @@ describe("BT13-091 Belphemon: Rage Mode", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
+
+  it("deletes an opposing level 5 Digimon on a real turn's main-phase entry", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT13-091", as: "rage" }] },
+      1: { battleArea: [{ card: "BT1-015", as: "target" }] },
+    });
+    await advance(s.engine).runTurn(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("unsuspends after a real attack by deleting another own Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT13-091", as: "rage" },
+            { card: "BT1-015", as: "fodder" },
+          ],
+          security: ["BT1-001"],
+        },
+        1: { security: ["BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("rage").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("fodder").instanceId));
+    expect(s.perm("rage").isSuspended).toBe(false);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("fodder").instanceId);
+  });
+
+  it("trashes its top card when a Sleep Mode host reaches a real opponent turn end", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT13-088", as: "sleepHost", under: ["BT13-091"] }] },
+      1: { deck: ["BT1-001"] },
+    });
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+
+    expect(s.perm("sleepHost").topCard?.cardId).toBe("BT13-091");
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT13-088")).toBe(true);
+  });
 });

@@ -54,4 +54,12 @@ describe("BT13-099 Spencer Damon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("spencer"), "Blocker")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("spencer"), "digivolve")).toBe(true);
   });
+
+  it("gains the temporary Digimon and Blocker status through a real turn end", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT13-099", as: "spencer" }] } });
+    await advance(s.engine).runTurn(0);
+    await s.engine.recomputeContinuousEffects();
+    expect(observe(s.engine).hasKeyword(s.perm("spencer"), "Blocker")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("spencer"), "digivolve")).toBe(true);
+  });
 });

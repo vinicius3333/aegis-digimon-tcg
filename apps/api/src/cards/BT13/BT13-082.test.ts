@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-082.js";
 
 describe("BT13-082 Peckmon", () => {
@@ -8,6 +9,31 @@ describe("BT13-082 Peckmon", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Static")?.keywords).toEqual([
       { keyword: "Blocker", raw: "＜Blocker＞" },
     ]);
+  });
+
+  it("uses Blocker to intercept a real opposing player attack", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT13-082", as: "peckmon" }] },
+      1: { battleArea: [{ card: "BT1-010", as: "attacker" }] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).blockingSeat() === 0);
+    expect(
+      s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("peckmon").permanentId }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("peckmon").isSuspended);
+    expect(s.perm("peckmon").isSuspended).toBe(true);
   });
 
   it("lets the opponent trash from hand when deleted outside battle", () => {
