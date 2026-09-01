@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT17-012.js";
@@ -7,6 +8,14 @@ describe("BT17-012", () => {
   it("can digivolve onto a red Tamer as level 3 and has Raid", () => {
     expect(compiled.effects?.[0]).toMatchObject({ trigger: "Static", actions: [{ kind: "Digivolve", asLevel: 3 }] });
     expect(compiled.effects?.[1]).toMatchObject({ trigger: "Static", keywords: [{ keyword: "Raid" }] });
+  });
+
+  it("requires a Takuya Kanbara Tamer for the named alternate route", () => {
+    expect(matchingAlternateDigivolutionRequirement("BT17-012", "BT12-088")).toMatchObject({
+      cost: 2,
+      baseIsTamer: true,
+    });
+    expect(matchingAlternateDigivolutionRequirement("BT17-012", "BT1-086")).toBeUndefined();
   });
 
   it("may digivolve while attacking into a Hybrid for 1 less", () => {

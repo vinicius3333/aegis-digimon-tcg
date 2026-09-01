@@ -121,6 +121,7 @@ const compiled: CompiledCard = {
       names: ["Takuya Kanbara"],
       cost: 2,
       isAlternate: true,
+      baseIsTamer: true,
     },
     {
       names: ["BurningGreymon"],

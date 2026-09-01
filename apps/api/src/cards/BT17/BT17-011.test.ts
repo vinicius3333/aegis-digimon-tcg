@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-011.js";
@@ -11,6 +12,14 @@ describe("BT17-011", () => {
         { kind: "Digivolve", asLevel: 3, from: "hand", onto: { filter: { kind: ["Tamer"], colors: ["Red"] } } },
       ],
     });
+  });
+
+  it("requires a Takuya Kanbara Tamer for the named alternate route", () => {
+    expect(matchingAlternateDigivolutionRequirement("BT17-011", "BT12-088")).toMatchObject({
+      cost: 2,
+      baseIsTamer: true,
+    });
+    expect(matchingAlternateDigivolutionRequirement("BT17-011", "BT1-086")).toBeUndefined();
   });
 
   it("digivolves into AncientGreymon for 3 and deletes itself if successful", () => {
@@ -84,11 +93,10 @@ describe("BT17-011", () => {
         useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
-    await settle(
-      () =>
-        s.state.players[0]!.battleArea.some(
-          (permanent) => permanent.permanentId === burningPermanentId && permanent.topCard?.cardId === "BT17-017",
-        ),
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.permanentId === burningPermanentId && permanent.topCard?.cardId === "BT17-017",
+      ),
     );
     expect(s.state.memory).toBe(6);
 

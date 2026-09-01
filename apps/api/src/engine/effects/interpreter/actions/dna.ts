@@ -246,7 +246,68 @@ export function canAttemptDnaDigivolve(ctx: EffectContext, action: Extract<Actio
   const intoCandidates = candidateLooseInstances(ctx, intoTarget, intoZones);
   if (intoCandidates.length === 0) return false;
 
-  if (!Array.isArray(action.materials)) return true;
+  if (!Array.isArray(action.materials)) {
+    const materialsZone = action.materials.filter.zone;
+    const materialsAreLoose =
+      materialsZone !== undefined && materialsZone !== "battleArea" && materialsZone !== "breeding";
+    const wanted = typeof action.materials.count === "number" ? action.materials.count : 1;
+    let materialCombinations: string[][];
+    let looseMaterialCombinations: string[][] = [[]];
+
+    if (materialsAreLoose) {
+      const candidates = candidateLooseInstances(ctx, action.materials, [materialsZone as ZoneRef]).map(
+        ({ instanceId }) => instanceId,
+      );
+      looseMaterialCombinations = combinations(candidates, wanted);
+      materialCombinations = [[]];
+    } else {
+      const self =
+        action.materials.isSelf || action.materials.filter.isSelfRef || action.materials.filter.includesSelf
+          ? ctx.source.permanent()?.permanentId
+          : undefined;
+      const pinned =
+        action.materials.includeRef === "triggerSubject"
+          ? (ctx.trigger.subjectPermanentId ?? ctx.trigger.deletedPermanentId ?? ctx.trigger.attackerPermanentId)
+          : action.materials.includeRef === "self"
+            ? ctx.source.permanent()?.permanentId
+            : self;
+      if ((action.materials.includeRef !== undefined || self !== undefined) && pinned === undefined) return false;
+
+      const remaining = pinned === undefined ? wanted : Math.max(0, wanted - 1);
+      const candidates = candidatePermanents(ctx, { filter: action.materials.filter, count: "all" })
+        .map(({ permanentId }) => permanentId)
+        .filter((permanentId) => permanentId !== pinned);
+      materialCombinations = combinations(candidates, remaining).map((ids) =>
+        pinned === undefined ? ids : [pinned, ...ids],
+      );
+    }
+
+    if (action.looseMaterials !== undefined) {
+      const looseZones = action.looseMaterials.from ?? ["trash"];
+      const looseWanted = typeof action.looseMaterials.count === "number" ? action.looseMaterials.count : 1;
+      const candidates = candidateLooseInstances(ctx, action.looseMaterials, looseZones).map(
+        ({ instanceId }) => instanceId,
+      );
+      const additionalLooseCombinations = combinations(candidates, looseWanted);
+      looseMaterialCombinations = looseMaterialCombinations.flatMap((existing) =>
+        additionalLooseCombinations
+          .filter((additional) => additional.every((instanceId) => !existing.includes(instanceId)))
+          .map((additional) => [...existing, ...additional]),
+      );
+    }
+
+    return materialCombinations.some((materialIds) =>
+      looseMaterialCombinations.some(
+        (looseMaterialIds) =>
+          materialIds.length + looseMaterialIds.length >= 2 &&
+          intoCandidates.some(
+            ({ instanceId }) =>
+              !looseMaterialIds.includes(instanceId) &&
+              ctx.fx.canDnaDigivolve?.(materialIds, instanceId, looseMaterialIds) !== false,
+          ),
+      ),
+    );
+  }
   const slotCandidates: Array<{ ids: string[]; wanted: number }> = [];
   for (const slot of action.materials) {
     if (slot.zone !== undefined && slot.zone !== "battleArea" && slot.zone !== "breeding") {
@@ -286,6 +347,23 @@ export function canAttemptDnaDigivolve(ctx: EffectContext, action: Extract<Actio
   }
 
   return hasLegalCombination(0, []);
+}
+
+function combinations(candidates: string[], count: number): string[][] {
+  if (count === 0) return [[]];
+  if (count < 0 || candidates.length < count) return [];
+  const result: string[][] = [];
+  function choose(start: number, selected: string[]): void {
+    if (selected.length === count) {
+      result.push(selected);
+      return;
+    }
+    for (let index = start; index < candidates.length; index += 1) {
+      choose(index + 1, [...selected, candidates[index]!]);
+    }
+  }
+  choose(0, []);
+  return result;
 }
 
 /**

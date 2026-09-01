@@ -19,6 +19,7 @@ describe("BT17-040 Kazuchimon", () => {
       kind: "GainKeyword",
       keyword: { keyword: "SecurityAttack", amount: -1 },
       target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
+      includeLaterEntrants: true,
       condition: { kind: "selfDigivolutionStackHasTrait" },
     });
   });
@@ -47,6 +48,7 @@ describe("BT17-040 Kazuchimon", () => {
             { card: "BT1-020", as: "first" },
             { card: "BT4-025", as: "second" },
           ],
+          hand: [{ card: "BT1-009", as: "laterEntrant" }],
         },
       },
       { autoSelectCards: true },
@@ -65,6 +67,19 @@ describe("BT17-040 Kazuchimon", () => {
     expect(s.perm("first").isSuspended || s.perm("second").isSuspended).toBe(true);
     expect(observe(s.engine).keywordAmount(s.perm("first"), "SecurityAttack")).toBe(-1);
     expect(observe(s.engine).keywordAmount(s.perm("second"), "SecurityAttack")).toBe(-1);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("laterEntrant").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => {
+      const laterEntrant = s.state.players[1]!.battleArea.find(
+        (permanent) => permanent.topCard?.instanceId === s.inst("laterEntrant").instanceId,
+      );
+      return laterEntrant !== undefined && observe(s.engine).keywordAmount(laterEntrant, "SecurityAttack") === -1;
+    });
+    expect(observe(s.engine).keywordAmount(s.perm("laterEntrant"), "SecurityAttack")).toBe(-1);
   });
 
   it("applies both exact-three-security branches and then attacks", async () => {

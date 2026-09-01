@@ -34,26 +34,42 @@ export const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
-          kind: "PlayWithoutCost",
-          target: { filter: tamer, count: 1 },
-          from: ["hand"],
-          payCost: false,
+          kind: "Modal",
+          choose: 1,
           optional: true,
+          options: [
+            [
+              {
+                kind: "PlayWithoutCost",
+                target: { filter: tamer, count: 1 },
+                from: ["hand"],
+                payCost: false,
+              },
+            ],
+            [{ kind: "Hatch" }],
+          ],
         },
-        { kind: "Hatch", optional: true },
       ],
     },
     {
       trigger: "OnDeletion",
       actions: [
         {
-          kind: "PlayWithoutCost",
-          target: { filter: tamer, count: 1 },
-          from: ["hand"],
-          payCost: false,
+          kind: "Modal",
+          choose: 1,
           optional: true,
+          options: [
+            [
+              {
+                kind: "PlayWithoutCost",
+                target: { filter: tamer, count: 1 },
+                from: ["hand"],
+                payCost: false,
+              },
+            ],
+            [{ kind: "Hatch" }],
+          ],
         },
-        { kind: "Hatch", optional: true },
       ],
       isInherited: true,
     },

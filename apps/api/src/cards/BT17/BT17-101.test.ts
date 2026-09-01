@@ -59,6 +59,37 @@ describe("BT17-101 Fenriloogamon: Takemikazuchi — [When Attacking] security tr
     expect(whenDigivolving?.actions[1]).toMatchObject({ kind: "SetMemory", value: 3, controller: "opponent" });
   });
 
+  it("naturally DNA digivolves the Trash copy and sets the opponent's memory to 3", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["BT17-069", "BT17-040"],
+          hand: [{ card: "BT17-040", as: "playedPulsemonDigimon" }],
+          trash: [{ card: FENRILOOGAMON, as: "trashFenri" }],
+        },
+        1: { battleArea: ["BT17-019"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 0;
+    s.state.memory = 20;
+
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("playedPulsemonDigimon").instanceId }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === FENRILOOGAMON));
+
+    const result = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === FENRILOOGAMON);
+    expect(result?.stack.some((card) => card.cardId === "BT17-069")).toBe(true);
+    expect(result?.stack.some((card) => card.cardId === "BT17-040")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("trashFenri").instanceId)).toBe(false);
+    // Seat 0 is the turn player, so setting seat 1's memory to 3 is represented as -3.
+    expect(s.state.memory).toBe(-3);
+  });
+
   it("[When Attacking] trashes own top security to trash opponent's top security", async () => {
     // Seat 0 is the turn player.
     const s = setupEngine(

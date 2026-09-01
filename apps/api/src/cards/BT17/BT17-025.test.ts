@@ -42,6 +42,7 @@ describe("BT17-025", () => {
         {
           kind: "SubTrigger",
           event: "whenPlayed",
+          sourceFilter: { byEffect: true },
           actions: [{ kind: "Return", to: "hand", target: { filter: { levels: [3] } } }],
         },
       ],
@@ -104,8 +105,42 @@ describe("BT17-025", () => {
     const s = setupEngine(
       {
         0: {
+          battleArea: [
+            { card: "BT1-043", as: "inheritedHost", under: ["BT17-025"] },
+            { card: "BT4-083", as: "cerberusmon" },
+          ],
+          hand: [{ card: "BT17-025", as: "werewolf" }],
+          trash: [{ card: "BT1-029", as: "played" }],
+        },
+        1: { battleArea: [{ card: "BT1-029", as: "opponentLevel3" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 1;
+    await s.ready();
+    const opponentId = s.perm("opponentLevel3").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("cerberusmon").permanentId,
+        instanceId: s.inst("werewolf").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("opponentLevel3").instanceId),
+    );
+
+    expect(s.state.players[1]!.hand.some((card) => card.cardId === "BT1-029")).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === opponentId)).toBe(false);
+  });
+
+  it("does not return an opposing Digimon for a natural play", async () => {
+    const s = setupEngine(
+      {
+        0: {
           battleArea: [{ card: "BT1-043", as: "host", under: ["BT17-025"] }],
-          hand: [{ card: "BT17-021", as: "played" }],
+          hand: [{ card: "BT1-029", as: "played" }],
         },
         1: { battleArea: [{ card: "BT1-029", as: "opponentLevel3" }] },
       },
@@ -118,8 +153,10 @@ describe("BT17-025", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === opponentId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("played").instanceId),
+    );
 
-    expect(s.state.players[1]!.hand.some((card) => card.cardId === "BT1-029")).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === opponentId)).toBe(true);
   });
 });

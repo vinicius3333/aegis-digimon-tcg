@@ -13,6 +13,7 @@ import { getCardDefinition } from "@aegis/shared";
 import type { Action, Cost, Filter } from "@aegis/shared";
 import { findLooseCandidateByInstance } from "../targeting/loose.js";
 import { canAttemptDigivolve } from "./digivolve.js";
+import { canAttemptDnaDigivolve } from "./dna.js";
 import { canAttemptLink } from "./link.js";
 
 /** Does this cost suspend the effect's OWN source ("by suspending this Tamer")? */
@@ -1112,6 +1113,14 @@ export async function runSubTrigger(
         if (
           digivolveActions.length > 0 &&
           !digivolveActions.some((candidate) => canAttemptDigivolve(subCtx, candidate))
+        )
+          return;
+        const dnaDigivolveActions = action.actions.filter(
+          (candidate): candidate is Extract<Action, { kind: "DnaDigivolve" }> => candidate.kind === "DnaDigivolve",
+        );
+        if (
+          dnaDigivolveActions.length > 0 &&
+          !dnaDigivolveActions.some((candidate) => canAttemptDnaDigivolve(subCtx, candidate))
         )
           return;
         const linkActions = action.actions.filter(
