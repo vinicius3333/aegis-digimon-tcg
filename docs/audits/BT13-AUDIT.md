@@ -2,52 +2,64 @@
 
 This ledger records only independently reproduced, card-scoped verification. Historical batch output, prior ledger entries, and green collection tests are inputs only and do not establish a score.
 
-## Final collection status — 2026-09-01
+## Final collection status — 2026-09-02
 
-Status: **112/112 cards have reproducible 10/10 evidence.** This final gate supersedes the provisional execution scores in `BT13-STATIC-AUDIT.md`; the card-by-card entries below remain the detailed catalog, rules, IR, and behavioral trace.
+Status: **112/112 cards have reproducible 10/10 evidence and pass typed revalidation.** This closeout supersedes the provisional execution scores in `BT13-STATIC-AUDIT.md`; the card-by-card entries below remain the detailed catalog, rules, IR, and behavioral trace.
 
-### Corrections from the final pass
+### Typed revalidation corrections
 
-- `BT13-019`: restricted the Sistermon/Royal Knight play selector to Digimon cards, as printed.
-- `BT13-030`: removed the unprinted duplicate `OnPlay` return workaround and allowed the genuine Your Turn watcher to observe UlforceVeedramon's own play, per Q2282/Q2283.
-- `BT13-092`: made the Burst Mode controller choose the opponent's discarded hand card and changed the second clause from adding a card to security to moving the opponent's top security card to hand, per Q2336.
-- Replaced direct timing shortcuts with public digivolve/play/attack/turn/security flows for BT13-029, BT13-057, BT13-072, BT13-074, BT13-078, BT13-079, BT13-082, BT13-091, BT13-092, BT13-094, BT13-097, BT13-098, BT13-099, BT13-102, and BT13-109.
-- Updated the shared BT13-074 regression assertion to recognize its dynamic `Aura` keyword representation rather than the obsolete one-shot `GainKeyword` shape.
+- Removed 111 `@ts-nocheck` directives; BT13-008 was already typed. All BT13 production modules and focused tests now have zero TypeScript suppression directives and zero unsafe `as any`/`as unknown`/`as never` casts.
+- `BT13-008`: replaced independently resolved Marcus targets with one `SelectBind` followed by three `fromSelectionRef` consumers. A two-Marcus regression proves kind, 3000 DP, and the digivolution restriction stay on the same chosen permanent.
+- `BT13-012`, `BT13-019`, and `BT13-044`: removed an invalid SecurityManipulation field, moved optionality onto the play action, and supplied the required empty action list for the keyword-only effect.
+- `BT13-048`, `BT13-049`, and `BT13-061`: represented the printed bottom-deck ordering with `deckBottomAnyOrder`.
+- `BT13-064`, `BT13-085`, `BT13-086`, `BT13-088`, and `BT13-098`: completed the cost-modifier target/duration, paid digivolutions, permanent Blocker duration, and supported end-attack action.
+- `BT13-076`, `BT13-107`, `BT13-110`, and `BT13-111`: corrected the alternate name requirement, binding location, bound-result target count, and both-trash controller filter.
+- `BT13-074` and `BT13-112`: typed the shared filter and modal action directly. `BT13-080` deliberately retains `Digimon` and `DigiEgg` for its level-2 breeding target because field Digi-Egg cards are treated as Digimon under the cited rules evidence.
+- Narrowed the shared dynamic play-cost modifier to its supported discriminated shape, guarded unsupported dynamic variants before payment/arithmetic, and added the corresponding numeric narrowing to BT12-083.
+- Replaced private test reach-throughs with typed observers, production intents, and action-discriminant narrowing.
 
 ### Persisted IR synchronization
 
 `effects.json` is generated for this scope with:
 
 ```text
-pnpm effects:sync:set -- --set BT13
+pnpm effects:sync:set -- --set BT13 --base origin/main
 pnpm effects:check:set -- --set BT13 --base origin/main
 ```
 
-The scoped check reports **93 semantic BT13 changes and zero changes outside BT13**, with all 112 records synchronized to their runtime registrations. The synchronizer imports each built module and reads the runtime IR registry, so it supports both legacy modules with private `compiled` constants and newer modules that export them.
+The hardened scoped check reports **94 semantic BT13 changes, zero semantic or byte changes outside BT13, and all 112 records synchronized** to their runtime registrations. The synchronizer imports each built module and reads the runtime IR registry; `effects.json` was not edited manually.
 
 ### Reproducible gates
 
 All Vitest commands used one worker, disabled file parallelism, used 15-second test/hook limits, and ran under explicit external timeouts.
 
-| Gate                                     | Result                                          |
-| ---------------------------------------- | ----------------------------------------------- |
-| Changed and evidence-focused card suites | 17 files, 99 tests passed                       |
-| BT13 persisted IR catalog contract       | 1 file, 115 tests passed                        |
-| Full BT13 collection                     | 113 files, 727 tests passed                     |
-| Shared mechanism suites                  | 11 files, 700 tests passed                      |
-| Synchronized-array state regressions     | 2 files, 7 tests passed                         |
-| Synchronizer unit tests                  | 5 tests passed                                  |
-| Workspace typecheck                      | shared, API, and web passed serially            |
-| Scoped effects check                     | 112 synchronized; 93 BT13 changes; zero outside |
-| Oxfmt and Oxlint                         | changed source, tests, tools, and docs passed   |
-| Generated JSON raw-scope check           | 93 BT13 records; zero records outside the set   |
-| `git diff --check`                       | passed on the delivered scope                   |
+| Gate                                     | Result                                                        |
+| ---------------------------------------- | ------------------------------------------------------------- |
+| Changed and evidence-focused card suites | 31 files, 195 tests passed                                    |
+| BT13 persisted IR catalog contract       | 1 file, 115 tests passed                                      |
+| Full BT13 collection                     | 113 files, 729 tests passed                                   |
+| Shared mechanism suites                  | 9 files, 774 tests passed                                     |
+| Shared package suites                    | 8 files, 133 tests passed                                     |
+| Synchronized-array state regressions     | 6 files, 49 tests passed                                      |
+| Synchronizer and tool tests              | 10 tests passed                                               |
+| Web effect projection                    | 4 files, 131 tests passed                                     |
+| Workspace typecheck                      | shared, API, and web passed serially                          |
+| Scoped effects check                     | 112 synchronized; 94 BT13 changes; zero semantic/byte outside |
+| Oxfmt and Oxlint                         | changed source, tests, and docs passed                        |
+| `git diff --check`                       | passed on the delivered scope                                 |
 
-Every production module `BT13-001` through `BT13-112` contains exactly one matching `registerIrCard(cardId, compiled)` call and no `registerCard` registration.
+Every production module `BT13-001` through `BT13-112` contains exactly one matching `registerIrCard(cardId, compiled)` call and no `registerCard` registration. All 112 synchronized records have `coverage: "full"` and an empty residual list.
 
 ## Verified before this pass
 
-- BT13-001 through BT13-006: 10/10, retained from the accepted prior audit evidence.
+The accepted prior audit evidence for BT13-001 through BT13-006 remains valid; the final 2026-09-02 run also reproduced their current focused suites:
+
+- BT13-001 — 10/10; `BT13-001.test.ts` passed (2 tests).
+- BT13-002 — 10/10; `BT13-002.test.ts` passed (4 tests).
+- BT13-003 — 10/10; `BT13-003.test.ts` passed (3 tests).
+- BT13-004 — 10/10; `BT13-004.test.ts` passed (5 tests).
+- BT13-005 — 10/10; `BT13-005.test.ts` passed (2 tests).
+- BT13-006 — 10/10; `BT13-006.test.ts` passed (3 tests).
 
 ## Current revalidation queue
 
@@ -56,13 +68,13 @@ Every production module `BT13-001` through `BT13-112` contains exactly one match
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-007.test.ts` passed (5 tests): breeding evolution lock, reduction/decline and frequency, mandatory egg/Royal Knight placement with non-match retained, and inherited Royal Knight Option frequency.
 - BT13-008 — 10/10
   - Evidence: catalog and KB Q2266/Q2267/Q5981–Q5985 reviewed; compiled IR exclusively uses `registerIrCard`, with Koromon alternate evolution, Marcus kind/DP/digivolve restriction, and inherited red-or-yellow Tamer suspension watcher traced through targeting, duration, ownership, and frequency primitives.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-008.test.ts` passed (5 tests): alternate 0-cost evolution, Marcus's 3000-DP Digimon/restriction state, inclusive deletion boundary and once-per-turn behavior, optional refusal, and blue-Tamer negative.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-008.test.ts` passed (7 tests): alternate 0-cost evolution, Marcus's 3000-DP Digimon/restriction state, inclusive deletion boundary and once-per-turn behavior, optional refusal, and blue-Tamer negative.
 - BT13-009 — 10/10
   - Evidence: catalog and KB Q2268 reviewed; compiled IR exclusively uses `registerIrCard`, and traces same-controller Sistermon-name play event timing, optional hand BaoHuckmon evolution, free payment, inherited source anchoring, and once-per-turn memory use.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-009.test.ts` passed (4 tests): free stack evolution, refusal, inherited first-of-two memory gain, and non-Sistermon negative.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-009.test.ts` passed (5 tests): free stack evolution, refusal, inherited first-of-two memory gain, and non-Sistermon negative.
 - BT13-010 — 10/10
   - Evidence: catalog and KB Q2269 reviewed; compiled IR exclusively uses `registerIrCard`, with effect-play provenance, return-cost ordering, free requirement-ignoring Garudamon evolution, inherited draw, zones, and ownership traced to shared primitives.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-010.test.ts` passed (4 tests): effect-play stack evolution, Q2269 cost-only path, normal-play negative, and inherited deletion draw.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-010.test.ts` passed (5 tests): effect-play stack evolution, Q2269 cost-only path, normal-play negative, and inherited deletion draw.
 - BT13-011 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, with distinct On Play/When Digivolving 3000-DP-or-less deletion timing and inherited owner draw traced through targeting, zone movement, and source ownership.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-011.test.ts` passed (3 tests): On Play boundary, legal evolution-stack trigger, and inherited deletion draw.
@@ -77,22 +89,22 @@ Every production module `BT13-001` through `BT13-112` contains exactly one match
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-014.test.ts` passed (4 tests): On Play boundary, legal evolution trigger, optional refusal, and inherited 6000/7000 DP boundary.
 - BT13-015 — 10/10
   - Evidence: catalog and KB Q2274 reviewed; compiled IR exclusively uses `registerIrCard`, tracing GeoGreymon alternate evolution, optional free Marcus play, red/yellow Tamer deletion event, exact trash-to-top-security identity/face state, and independent direct/inherited frequency keys.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-015.test.ts` passed (4 tests): alternate stack/free play, refusal, Q2274 exact-card recovery, and inherited once-per-turn boundary.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-015.test.ts` passed (6 tests): alternate stack/free play, refusal, Q2274 exact-card recovery, and inherited once-per-turn boundary.
 - BT13-016 — 10/10
   - Evidence: catalog and KB Q2275 reviewed; compiled IR exclusively uses `registerIrCard`. Corrected the cost-replacement scope to the Sistermon-triggered Jesmon evolution, then traced trait/name/controller filters, optionality, hand/trash source routing, inherited Royal Knight attack behavior, ownership, and frequency.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-016.test.ts` passed (6 tests): reduced trigger evolution, decline, normal-evolution full-cost negative, Royal Knight inherited play/frequency, trait negative, and inherited refusal.
 - BT13-017 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, with duplicated On Play/When Digivolving DP-budget deletion and All Turns other-Sistermon-or-Royal-Knight scaling traced through multi-target selection, DP summing, controller filter, self exclusion, and continuous DP projection.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-017.test.ts` passed (4 tests): On Play and evolution budget boundaries, multi-target/choose-none behavior, and mixed Sistermon/Royal Knight continuous-buff stack.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-017.test.ts` passed (6 tests): On Play and evolution budget boundaries, multi-target/choose-none behavior, and mixed Sistermon/Royal Knight continuous-buff stack.
 - BT13-018 — 10/10
   - Evidence: catalog and KB Q2276/Q5986–Q5991 reviewed; compiled IR exclusively uses `registerIrCard`, tracing RizeGreymon alternate evolution, Start Main/When Digivolving Marcus kind/base-DP/restriction/Blocker grants through opponent-turn end, and all-turn red/yellow Tamer suspension target/frequency behavior.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-018.test.ts` passed (4 tests): Start Main state, alternate evolution state, once-per-turn -6000 DP boundary, and blue-Tamer negative.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-018.test.ts` passed (6 tests): Start Main state, alternate evolution state, once-per-turn -6000 DP boundary, and blue-Tamer negative.
 - BT13-019 — 10/10
   - Evidence: catalog and KB Q2277 reviewed; compiled IR exclusively uses `registerIrCard`, with Blocker and optional trash-or-breeding free-play paths traced through zone-specific card selection, controller ownership, exact-name Omnimon/Gankoomon exclusions, and X-Antibody name allowance.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-019.test.ts` passed (6 tests): IR registration shape, trash play/refusal, On Play and evolution timing, breeding Royal Knight play including Q2277, and excluded-name negative.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-019.test.ts` passed (7 tests): IR registration shape, trash play/refusal, On Play and evolution timing, breeding Royal Knight play including Q2277, and excluded-name negative.
 - BT13-020 — 10/10
   - Evidence: catalog and KB Q2278/Q2279/Q3677/Q5992–Q5996 reviewed; compiled IR exclusively uses `registerIrCard`, with Marcus-return Burst requirement/end-turn top-card trash, optional free Marcus play, temporary kind/12000 DP/Rush/digivolve restriction, and own-turn Tamer-suspension security trash traced through shared evolution, event, duration, and frequency seams.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-020.test.ts` passed (7 tests): IR/Burst shape, temporary Marcus state, alternate Burst flow/end-turn cleanup, normal-evolution refusal, and own-turn once-per-turn/opponent-turn security boundaries.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-020.test.ts` passed (9 tests): IR/Burst shape, temporary Marcus state, alternate Burst flow/end-turn cleanup, normal-evolution refusal, and own-turn once-per-turn/opponent-turn security boundaries.
 - BT13-021 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing the own-attacking once-per-turn draw for each controller and All Turns inherited opponent-hand threshold aura through attack timing, controller routing, frequency, and live zone count.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-021.test.ts` passed (5 tests): both draw recipients, same-turn frequency, inherited threshold at 8, and live 7-to-8 boundary.
@@ -107,7 +119,7 @@ Every production module `BT13-001` through `BT13-112` contains exactly one match
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-024.test.ts` passed (3 tests): IR keyword registration, public Blocker state, and live redirection/combat/security preservation.
 - BT13-025 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing optional free Thomas play only when no controlled Thomas exists, plus the inherited opponent-hand threshold aura through evolution, controller, zone, optionality, and live count primitives.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-025.test.ts` passed (5 tests): positive free play, existing-Thomas negative, refusal, and inherited 7-to-8 hand threshold.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-025.test.ts` passed (7 tests): positive free play, existing-Thomas negative, refusal, and inherited 7-to-8 hand threshold.
 - BT13-026 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing the non-OPT attack draw and inherited opponent-only bottom digivolution-card trash through attack timing, controller filtering, evolution-stack ordering, and trash routing.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-026.test.ts` passed (4 tests): direct draw, repeated attacks without a frequency limit, inherited bottom-card trash, and source/owner boundaries.
@@ -119,7 +131,7 @@ Every production module `BT13-001` through `BT13-112` contains exactly one match
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-028.test.ts` passed (7 tests): full hand-evolution path, missing prerequisites, exact-name negative, three-card return, and once-per-turn boundary.
 - BT13-029 — 10/10
   - Evidence: catalog and KB Q2280 reviewed; compiled IR exclusively uses `registerIrCard`, correctly distinguishes the attack-target-switch restriction from only preventing Blocker and traces the inclusive opponent 8-card hand boundary, turn duration, inherited opponent-hand event, and once-per-turn source anchoring.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-029.test.ts` passed (4 tests): blocked target switching at 8, Blocker behavior at 7, opponent-only inherited event, and once-per-turn boundary.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-029.test.ts` passed (5 tests): blocked target switching at 8, Blocker behavior at 7, opponent-only inherited event, and once-per-turn boundary.
 - BT13-030 — 10/10
   - Evidence: catalog and KB Q2281–Q2283 reviewed; compiled IR exclusively uses `registerIrCard`, tracing two-card-per-Royal-Knight-or-blue-Tamer scaling against exactly one opponent Digimon, empty-stack return filtering, self-play inclusion, shared once-per-turn use, and simultaneous-trigger ordering.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-030.test.ts` passed (7 tests): On Play/evolution scaling, Q2281 single target, blue-Tamer scaling, self/other play trigger frequency, Q2282/Q2283 ordering, and sourced-Digimon negative.
@@ -131,7 +143,7 @@ Every production module `BT13-001` through `BT13-112` contains exactly one match
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-032.test.ts` passed (5 tests): static Blocker combat, stack play/refusal, level filter, and both printed evolution colors.
 - BT13-033 — 10/10
   - Evidence: catalog and KB Q2284–Q2286 reviewed; compiled IR exclusively uses `registerIrCard`, tracing own-Thomas-only Burst cost and turn-end trash, bounce-before-scaling-memory ordering, optional 9+ hand attack effect, hidden opponent-card selection, owner inspection, and activator ordering to deck bottom.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-033.test.ts` passed (7 tests): Burst requirements/Q2284, evolution sequence, exact hidden selection/order privacy per Q2285/Q2286, refusal, and eight-card negative.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-033.test.ts` passed (8 tests): Burst requirements/Q2284, evolution sequence, exact hidden selection/order privacy per Q2285/Q2286, refusal, and eight-card negative.
 - BT13-034 — 10/10
   - Evidence: catalog and KB Q2287 reviewed; compiled IR exclusively uses `registerIrCard`, tracing top-three yellow Vaccine/yellow Tamer selection and rest ordering, plus inherited opponent-only -2000 DP at the inclusive combined-security-six boundary and once-per-turn frequency.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-034.test.ts` passed (6 tests): positive/negative reveal filters, bottom ordering, Q2287 both-security total boundary, frequency, and yellow level-2 evolution.
@@ -152,7 +164,7 @@ Every production module `BT13-001` through `BT13-112` contains exactly one match
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-039.test.ts` passed (8 tests): level/turn negatives, Reboot, alternate and normal evolution costs across both colors, and alternate-requirement rejection.
 - BT13-040 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing static Blocker, leaving-play replacement ordering (draw before optional free Veemon play), self-source isolation, and the Veemon alternate-evolution requirement.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-040.test.ts` passed (10 tests): live Blocker, source/hand/drawn Veemon paths, refusal and foreign-source negatives, and alternate/normal evolution boundaries.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-040.test.ts` passed (13 tests): live Blocker, source/hand/drawn Veemon paths, refusal and foreign-source negatives, and alternate/normal evolution boundaries.
 - BT13-041 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing static Barrier and inherited optional free suspended Kudamon play from own hand or trash through exact-name, controller, zone, and deletion timing filters.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-041.test.ts` passed (7 tests): live Barrier/replacement cost, trash and hand play paths, refusal/non-Kudamon negatives, suspension, and evolution cost.
@@ -173,13 +185,13 @@ Every production module `BT13-001` through `BT13-112` contains exactly one match
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-046.test.ts` passed (7 tests): Q2291 threshold, Q2292 mandatory reveal, Q2293 multicolor behavior, above-threshold negative, attack cost/refusal/frequency, and evolution cost.
 - BT13-047 — 10/10
   - Evidence: catalog and KB Q5997 reviewed; compiled IR exclusively uses `registerIrCard`, tracing static Blocker and inherited +1000 DP aura when the opponent has no unsuspended Digimon, including the zero-opponent case and live continuous-state changes.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-047.test.ts` passed (5 tests): Q5997 zero-opponent condition, top-vs-inherited keyword separation, suspended state transitions, and evolution cost.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-047.test.ts` passed (6 tests): Q5997 zero-opponent condition, top-vs-inherited keyword separation, suspended state transitions, and evolution cost.
 - BT13-048 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing separate Beast/Animal-or-Sovereign (excluding Sea Animal) and Royal Knight reveal selections, deck-bottom routing, and inherited own-turn +2000 DP trait aura.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-048.test.ts` passed (5 tests): mixed trait search, Sea Animal exclusion, Beast/Royal Knight hosts, turn duration, unrelated-host negative, and evolution cost.
 - BT13-049 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing distinct Vegetation/Plant-or-Fairy and Yoshino reveal selections, bottom routing, and inherited own-turn once-per-turn cost reduction conditioned on an own green Tamer.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-049.test.ts` passed (5 tests): mixed search, own/opponent Tamer boundary for inherited reduction, frequency-compatible evolution behavior, and level-2 evolution.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-049.test.ts` passed (6 tests): mixed search, own/opponent Tamer boundary for inherited reduction, frequency-compatible evolution behavior, and level-2 evolution.
 - BT13-050 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing optional self-suspension as the cost to evolve an own Digimon into a hand Fairy at -2, plus inherited own-green-Tamer reduction with once-per-turn scope.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-050.test.ts` passed (6 tests): positive cost/evolution path, no-Fairy and refusal negatives, inherited reduction, and normal evolution cost.
@@ -188,7 +200,7 @@ Every production module `BT13-001` through `BT13-112` contains exactly one match
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-051.test.ts` passed (5 tests): controller-scoped Piercing, trait and turn aura positives/negatives, and evolution cost.
 - BT13-052 — 10/10
   - Evidence: catalog and KB Q2294 reviewed; compiled IR exclusively uses `registerIrCard`, tracing static Jamming separately from inherited +1000 DP when the opponent has no unsuspended Digimon, including zero-opponent and dynamic suspension states.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-052.test.ts` passed (5 tests): live-vs-inherited keyword separation, Q2294 zero-opponent condition, dynamic state boundaries, and evolution cost.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-052.test.ts` passed (6 tests): live-vs-inherited keyword separation, Q2294 zero-opponent condition, dynamic state boundaries, and evolution cost.
 - BT13-053 — 10/10
   - Evidence: catalog and KB Q2295–Q2297 reviewed; hand-fixed compiled IR exclusively uses `registerIrCard` and correctly separates the ≤7000-DP suspension target from unrestricted unsuspend prevention through opponent-turn end, with inherited once-per-turn -1 digivolution reduction.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-053.test.ts` passed (5 tests): corrected suspension behavior, Q2295 independent targets, Q2296/Q2297 unrestricted lock target, inherited source/frequency, and evolution cost.
@@ -197,157 +209,157 @@ Every production module `BT13-001` through `BT13-112` contains exactly one match
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-054.test.ts` passed (5 tests): Yoshino positive/refusal/wrong-Tamer paths, dynamic suspension/turn aura boundaries, and evolution cost.
 - BT13-055 — 10/10
   - Evidence: catalog and KB Q2298 reviewed; completed the preserved WIP using exclusive `registerIrCard`, correcting Ruli ownership gating and atomically binding the paid hand SymbareAngoramon bottom-source placement to the selected Angoramon hand evolution host.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-055.test.ts` passed (7 tests): full hand evolution, missing Ruli/Symbare negatives, exact bottom placement, inherited own-turn frequency, normal evolution, and Q2298 inherited-security-before-Piercing ordering.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-055.test.ts` passed (8 tests): full hand evolution, missing Ruli/Symbare negatives, exact bottom placement, inherited own-turn frequency, normal evolution, and Q2298 inherited-security-before-Piercing ordering.
 - BT13-056 — 10/10
   - Evidence: catalog and KB Q2299–Q2301 reviewed; compiled IR exclusively uses `registerIrCard`, shares the Once Per Turn key between evolution/Main cost-reduced green-or-Royal-Knight plays, and applies the all-turn Blocker grant to all qualifying current and subsequently played Digimon.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-056.test.ts` passed (3 tests): shared IR frequency/cost structure, live registration, and Q2301 existing/new green-Digimon Blocker persistence through the opponent turn.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-056.test.ts` passed (6 tests): shared IR frequency/cost structure, live registration, and Q2301 existing/new green-Digimon Blocker persistence through the opponent turn.
 - BT13-057 — 10/10
   - Evidence: catalog and KB Q2302 reviewed; hand-fixed compiled IR exclusively uses `registerIrCard`, ensuring both opponent suspension selections exclude already suspended permanents, while preserving the unsuspend-before-cost sequence and all-turn once-per-turn suspension watcher.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-057.test.ts` passed (2 tests): compiled source-filter proof for both clauses and live registration; hand-fixed IR documents the selection/runtime guards for Q2302.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-057.test.ts` passed (5 tests): compiled source-filter proof for both clauses and live registration; hand-fixed IR documents the selection/runtime guards for Q2302.
 - BT13-058 — 10/10
   - Evidence: catalog and KB Q2303 reviewed; hand-fixed compiled IR exclusively uses `registerIrCard`, correctly represents evolution suspension plus unsuspend prevention, optional attack self-unsuspend paid by another own Digimon, mandatory end-of-your-turn self top-card trash, all-own-Digimon unsuspend, and Leopardmon alternate evolution.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-058.test.ts` passed (2 tests): IR clause proof and live registration; the mandatory end-turn action has no optional branch, satisfying Q2303.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-058.test.ts` passed (6 tests): IR clause proof and live registration; the mandatory end-turn action has no optional branch, satisfying Q2303.
 - BT13-059 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, traces DNA materials/cost, duplicated On Play/evolution suspension with the same-target unsuspend restriction, and the all-turn opponent-suspension once-per-turn optional modal.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-059.test.ts` passed (2 tests): IR clause proof and live On Play suspension/restriction behavior.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-059.test.ts` passed (5 tests): IR clause proof and live On Play suspension/restriction behavior.
 - BT13-060 — 10/10
   - Evidence: catalog and KB Q2304/Q2305 reviewed; compiled IR exclusively uses `registerIrCard`, tracing own-Yoshino Burst return, end-turn top-source trash, separate opponent Digimon/Tamer suspension plus all suspended unsuspend lock, and two-total-suspended-card security-trash scaling.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-060.test.ts` passed (2 tests): IR coverage for Q2304/Q2305 boundaries and live evolution suspension of both required permanent kinds.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-060.test.ts` passed (7 tests): IR coverage for Q2304/Q2305 boundaries and live evolution suspension of both required permanent kinds.
 - BT13-061 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing static Blocker and opponent-turn-only On Deletion top-three reveal/add of one black card with rest to deck bottom.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-061.test.ts` passed (2 tests): IR clause proof and live Blocker observation.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-061.test.ts` passed (4 tests): IR clause proof and live Blocker observation.
 - BT13-062 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing mandatory own-hand Sukamon/Etemon name trash cost for returning own-trash Sukamon, plus inherited optional suspended Chuumon play from trash after Sukamon/Etemon-name host deletion.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-062.test.ts` passed (2 tests): IR clause proof and live mandatory cost/return resolution.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-062.test.ts` passed (4 tests): IR clause proof and live mandatory cost/return resolution.
 - BT13-063 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard` and traces inherited all-turn self +1000 DP only when the evolution stack's host has the X Antibody trait.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-063.test.ts` passed (2 tests): IR trait-gate proof and live registration.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-063.test.ts` passed (3 tests): IR trait-gate proof and live registration.
 - BT13-064 — 10/10
   - Evidence: catalog and KB Q2306 reviewed; corrected compiled IR to register printed Blocker statically, separately tracing opponent-turn On Deletion Chessmon hand play, the self-inclusive eighth-trash-card level-ceiling raise, and controller/trait filters.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-064.test.ts` passed (3 tests): static Blocker observation, Q2306-aware IR threshold, and live opponent-turn free play.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-064.test.ts` passed (5 tests): static Blocker observation, Q2306-aware IR threshold, and live opponent-turn free play.
 - BT13-065 — 10/10
   - Evidence: catalog and KB Q2307/Q2308/Q2615 reviewed; compiled IR exclusively uses `registerIrCard`, tracing On Deletion De-Digivolve 1 with level-3 floor and inherited optional deletion replacement paid by another same-controller Sukamon-name Digimon (including opponent-owned Sukamon via controller-independent target semantics where applicable).
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-065.test.ts` passed (2 tests): IR clause proof and live registration; replacement source identity and optional/cost guards match Q2307–Q2308.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-065.test.ts` passed (4 tests): IR clause proof and live registration; replacement source identity and optional/cost guards match Q2307–Q2308.
 - BT13-066 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard` and traces inherited all-turn self +1000 DP only when the host has the X Antibody trait.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-066.test.ts` passed (2 tests): IR trait-gate proof and live registration.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-066.test.ts` passed (3 tests): IR trait-gate proof and live registration.
 - BT13-067 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard` for printed static Jamming and separately inherited static Reboot.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-067.test.ts` passed (2 tests): exact IR keyword registration and live Jamming observation.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-067.test.ts` passed (3 tests): exact IR keyword registration and live Jamming observation.
 - BT13-068 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing static Blocker, alternate level-3 Chessmon evolution at 2, and optional opponent-turn level-4-or-lower Chessmon hand play on deletion.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-068.test.ts` passed (2 tests): IR clause proof and live opponent-turn deletion play.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-068.test.ts` passed (4 tests): IR clause proof and live opponent-turn deletion play.
 - BT13-069 — 10/10
   - Evidence: catalog and KB Q2309/Q2310 reviewed; corrected compiled IR to allow any controller's other Sukamon-name Digimon as the inherited deletion-prevention cost, while retaining optional attack play of an own level-4-or-lower Sukamon and alternate level-4 Sukamon evolution.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-069.test.ts` passed (3 tests): attack play, Q2309 opponent-Sukamon deletion prevention, and replacement/source IR proof.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-069.test.ts` passed (5 tests): attack play, Q2309 opponent-Sukamon deletion prevention, and replacement/source IR proof.
 - BT13-070 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing static Blocker, alternate level-4 Chessmon evolution at 3, and optional opponent-turn level-5-or-lower Chessmon hand play on deletion.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-070.test.ts` passed (2 tests): IR clause proof and live opponent-turn deletion play.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-070.test.ts` passed (4 tests): IR clause proof and live opponent-turn deletion play.
 - BT13-071 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing static Blocker and inherited opponent-turn, own-Digimon-suspension, once-per-turn opponent top-security trash.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-071.test.ts` passed (2 tests): IR clause proof and live opponent-turn inherited event/zone routing.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-071.test.ts` passed (3 tests): IR clause proof and live opponent-turn inherited event/zone routing.
 - BT13-072 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing evolution top-three X Antibody attachment/rest trash plus conditional DP-deletion immunity, and inherited optional end-turn hand X Antibody attachment with frequency.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-072.test.ts` passed (2 tests): IR clause proof and live registration.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-072.test.ts` passed (4 tests): IR clause proof and live registration.
 - BT13-073 — 10/10
   - Evidence: catalog and KB Q2311 reviewed; compiled IR exclusively uses `registerIrCard`, tracing static Blocker, alternate level-5 Chessmon evolution at 3, and all-turn own Chessmon actual-deletion event into self-unsuspend (not replacement prevention).
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-073.test.ts` passed (2 tests): IR clause proof and live own-Chessmon deletion unsuspend.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-073.test.ts` passed (4 tests): IR clause proof and live own-Chessmon deletion unsuspend.
 - BT13-074 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, traces separate On Play/evolution top-three optional free-play of a Mamemon costing 10 or less with rest trash, and all-turn Jamming/Reboot auras for own Mamemon-name and Royal Knight Digimon.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-074.test.ts` passed (2 tests): IR clause proof and live dual-keyword aura on both trait branches.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-074.test.ts` passed (3 tests): IR clause proof and live dual-keyword aura on both trait branches.
 - BT13-075 — 10/10
   - Evidence: catalog and KB Q2312/Q2313 reviewed; compiled IR exclusively uses `registerIrCard`, tracing mandatory own-trash X Antibody/Royal Knight bottom-source placement, restriction of all current qualifying opponent Digimon from player attacks through opponent turn, and once-per-turn leave-play prevention by source-card deck-bottom return.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-075.test.ts` passed (2 tests): complete IR clause proof for Q2312/Q2313 target semantics and live registration.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-075.test.ts` passed (7 tests): complete IR clause proof for Q2312/Q2313 target semantics and live registration.
 - BT13-076 — 10/10
   - Registration: exclusive `registerIrCard("BT13-076", compiled)`; no legacy registration.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-076.test.ts` passed (4 tests): full IR clause proof, own and opposing Etemon-deletion reactions (Q2314), and exclusion of the leaving deletion subject from the chosen debuff target.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-076.test.ts` passed (6 tests): full IR clause proof, own and opposing Etemon-deletion reactions (Q2314), and exclusion of the leaving deletion subject from the chosen debuff target.
 - BT13-077 — 10/10
   - Registration: exclusive `registerIrCard("BT13-077", compiled)`; no legacy registration.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-077.test.ts` passed (3 tests): both triggered clauses, Blocker/immunity duration, and the opponent end-turn redirect target are covered by executable IR and live effect resolution.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-077.test.ts` passed (7 tests): both triggered clauses, Blocker/immunity duration, and the opponent end-turn redirect target are covered by executable IR and live effect resolution.
 - BT13-078 — 10/10
   - Registration: exclusive `registerIrCard("BT13-078", compiled)`; no legacy registration.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-078.test.ts` passed (3 tests): deletion and inherited opponent-end trigger IR clauses plus live draw-before-trash ordering.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-078.test.ts` passed (6 tests): deletion and inherited opponent-end trigger IR clauses plus live draw-before-trash ordering.
 - BT13-079 — 10/10
   - Registration: exclusive `registerIrCard("BT13-079", compiled)`; no legacy registration.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-079.test.ts` passed (3 tests): purple Retaliation grant and the inherited non-battle deletion opponent-hand trash execute through IR.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-079.test.ts` passed (6 tests): purple Retaliation grant and the inherited non-battle deletion opponent-hand trash execute through IR.
 - BT13-080 — 10/10
   - Registration: exclusive `registerIrCard("BT13-080", compiled)`; no legacy registration.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-080.test.ts` passed (4 tests): breeding-area cost replacement, on-play draw/trash order, anti-digivolution restriction, and optional deletion recursion cost are executable IR clauses.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-080.test.ts` passed (10 tests): breeding-area cost replacement, on-play draw/trash order, anti-digivolution restriction, and optional deletion recursion cost are executable IR clauses.
 - BT13-081 — 10/10
   - Registration: exclusive `registerIrCard("BT13-081", compiled)`; no legacy registration.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-081.test.ts` passed (3 tests): on-play/on-deletion level-3 deletion plus inherited draw/trash timing are executable and live.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-081.test.ts` passed (5 tests): on-play/on-deletion level-3 deletion plus inherited draw/trash timing are executable and live.
 - BT13-082 — 10/10
   - Registration: exclusive `registerIrCard("BT13-082", compiled)`; no legacy registration.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-082.test.ts` passed (3 tests): static Blocker and inherited non-battle opponent-hand trash execute through IR.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-082.test.ts` passed (5 tests): static Blocker and inherited non-battle opponent-hand trash execute through IR.
 - BT13-083 — 10/10
   - Registration: exclusive `registerIrCard("BT13-083", compiled)`; no legacy registration.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-083.test.ts` passed (4 tests): level-3 replacement, draw-two/trash-two order, digivolve restriction, and optional Gizmon recursion cost are covered.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-083.test.ts` passed (8 tests): level-3 replacement, draw-two/trash-two order, digivolve restriction, and optional Gizmon recursion cost are covered.
 - BT13-084 — 10/10
   - Registration: exclusive `registerIrCard("BT13-084", compiled)`; no legacy registration.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-084.test.ts` passed (3 tests): both Belphemon digivolution clauses, purple deletion cost, and inherited trash-from-hand watcher are covered with live resolution.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-084.test.ts` passed (5 tests): both Belphemon digivolution clauses, purple deletion cost, and inherited trash-from-hand watcher are covered with live resolution.
 - BT13-085 — 10/10
   - Registration: exclusive `registerIrCard("BT13-085", compiled)`; no legacy registration.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-085.test.ts` passed (3 tests): Tamer-gated trash digivolution and live inherited purple rescue on non-battle deletion are covered.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-085.test.ts` passed (4 tests): Tamer-gated trash digivolution and live inherited purple rescue on non-battle deletion are covered.
 - BT13-086 — 10/10
   - Registration: exclusive `registerIrCard("BT13-086", compiled)`; no legacy registration.
   - Correction: moved [On Play] Akihiro Kurata recursion out of the static replacement effect into its printed OnPlay timing.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-086.test.ts` passed (3 tests): level-4 cost replacement, static restrictions, deletion recursion, and live OnPlay Akihiro recursion.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-086.test.ts` passed (4 tests): level-4 cost replacement, static restrictions, deletion recursion, and live OnPlay Akihiro recursion.
 - BT13-087 — 10/10
   - Registration: exclusive `registerIrCard("BT13-087", compiled)`; no legacy registration.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-087.test.ts` passed (3 tests): reveal/add/trash clauses and the live Royal Knight play deletion watcher are covered.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-087.test.ts` passed (4 tests): reveal/add/trash clauses and the live Royal Knight play deletion watcher are covered.
 - BT13-088 — 10/10
   - Registration: exclusive `registerIrCard("BT13-088", compiled)`; no legacy registration.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-088.test.ts` passed (3 tests): Rage Mode placement, conditional immunity, and once-per-turn attack-end watcher are executable.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-088.test.ts` passed (7 tests): Rage Mode placement, conditional immunity, and once-per-turn attack-end watcher are executable.
 - BT13-089 — 10/10
   - Registration: exclusive `registerIrCard("BT13-089", compiled)`; no legacy registration.
   - Correction: replaced immediate end-of-your-turn Ravemon play with `DelayedEffect(nextEndOfOpponentTurn)`, preserving the printed delete-now/play-later sequence.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-089.test.ts` passed (3 tests): delayed Bird/Avian Ravemon recursion and On Deletion Falcomon/Keenan recursion are covered.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-089.test.ts` passed (6 tests): delayed Bird/Avian Ravemon recursion and On Deletion Falcomon/Keenan recursion are covered.
 - BT13-090 — 10/10
   - Registration: exclusive `registerIrCard("BT13-090", compiled)`; no legacy registration.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-090.test.ts` passed (3 tests): two return clauses and scaled opponent-attack memory watcher are covered.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-090.test.ts` passed (6 tests): two return clauses and scaled opponent-attack memory watcher are covered.
 - BT13-091 — 10/10
   - Registration: exclusive `registerIrCard("BT13-091", compiled)`; no legacy registration.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-091.test.ts` passed (4 tests): start-main deletion and conditional buffs, end-of-attack unsuspend cost, and inherited Sleep Mode self-trash are covered.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-091.test.ts` passed (7 tests): start-main deletion and conditional buffs, end-of-attack unsuspend cost, and inherited Sleep Mode self-trash are covered.
 - BT13-092 — 10/10
   - Registration: exclusive `registerIrCard("BT13-092", compiled)`; no legacy registration.
   - Correction: moved Burst Digivolve out of an invalid static action into the structured Ravemon/Keenan burst requirement; retained executable burst turn-end and printed trigger clauses.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-092.test.ts` passed (2 tests): burst requirement, burst-end source trash, hand trash/security addition, and attack deletion IR are validated.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-092.test.ts` passed (7 tests): burst requirement, burst-end source trash, hand trash/security addition, and attack deletion IR are validated.
 - BT13-093 — 10/10
   - Registration: exclusive `registerIrCard("BT13-093", compiled)`; no legacy registration.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-093.test.ts` passed (2 tests): On Play draw and optional Royal Knight placement under breeding King Drasil are covered.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-093.test.ts` passed (3 tests): On Play draw and optional Royal Knight placement under breeding King Drasil are covered.
 - BT13-094 — 10/10
   - Registration: exclusive `registerIrCard("BT13-094", compiled)`; no legacy registration.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-094.test.ts` passed (3 tests): phase memory gate, Biyomon aura effect library entry, and security play clause are covered.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-094.test.ts` passed (6 tests): phase memory gate, Biyomon aura effect library entry, and security play clause are covered.
 - BT13-095 — 10/10
   - Registration: exclusive `registerIrCard("BT13-095", compiled)`; no legacy registration.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-095.test.ts` passed (4 tests): memory floor, optional On Play suspension, self-suspension DP reduction, and Agumon/Greymon memory gate are live.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-095.test.ts` passed (6 tests): memory floor, optional On Play suspension, self-suspension DP reduction, and Agumon/Greymon memory gate are live.
 - BT13-096 — 10/10
   - Registration: exclusive `registerIrCard("BT13-096", compiled)`; no legacy registration.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-096.test.ts` passed (3 tests): digivolution-card play, suspension-paid blue hand placement watcher, and security play are covered.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-096.test.ts` passed (6 tests): digivolution-card play, suspension-paid blue hand placement watcher, and security play are covered.
 - BT13-097 — 10/10
   - Registration: exclusive `registerIrCard("BT13-097", compiled)`; no legacy registration.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-097.test.ts` passed (5 tests): memory floor and both accept/decline branches of the Gaomon/GaoGamon suspension draw watcher are live.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-097.test.ts` passed (6 tests): memory floor and both accept/decline branches of the Gaomon/GaoGamon suspension draw watcher are live.
 - BT13-098 — 10/10
   - Registration: exclusive `registerIrCard("BT13-098", compiled)`; no legacy registration.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-098.test.ts` passed (3 tests): security discard play, total-security memory gate, and suspension-paid Kudamon-to-Kentaurosmon digivolution are covered.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-098.test.ts` passed (6 tests): security discard play, total-security memory gate, and suspension-paid Kudamon-to-Kentaurosmon digivolution are covered.
 - BT13-099 — 10/10
   - Registration: exclusive `registerIrCard("BT13-099", compiled)`; no legacy registration.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-099.test.ts` passed (3 tests): yellow suspension watcher and live low-security 3000-DP Blocker conversion are covered.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-099.test.ts` passed (4 tests): yellow suspension watcher and live low-security 3000-DP Blocker conversion are covered.
 - BT13-100 — 10/10
   - Registration: exclusive `registerIrCard("BT13-100", compiled)`; no legacy registration.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-100.test.ts` passed (2 tests): memory floor, named-trait digivolution memory watcher, and security play are covered.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-100.test.ts` passed (4 tests): memory floor, named-trait digivolution memory watcher, and security play are covered.
 - BT13-101 — 10/10
   - Registration: exclusive `registerIrCard("BT13-101", compiled)`; no legacy registration.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-101.test.ts` passed (3 tests): PawnChessmon recursion and two-color black/yellow suspension watcher are covered.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-101.test.ts` passed (5 tests): PawnChessmon recursion and two-color black/yellow suspension watcher are covered.
 - BT13-102 — 10/10
   - Registration: exclusive `registerIrCard("BT13-102", compiled)`; no legacy registration.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-102.test.ts` passed (3 tests): opponent choice/decline branch and effect-play suspension watcher are covered.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-102.test.ts` passed (7 tests): opponent choice/decline branch and effect-play suspension watcher are covered.
 - BT13-103 — 10/10
   - Registration: exclusive `registerIrCard("BT13-103", compiled)`; no legacy registration.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-103.test.ts` passed (3 tests): Gizmon-paid Belphemon reduction and opponent-end draw/trash/Belphemon placement deletion sequence are covered.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-103.test.ts` passed (4 tests): Gizmon-paid Belphemon reduction and opponent-end draw/trash/Belphemon placement deletion sequence are covered.
 - BT13-104 — 10/10
   - Registration: exclusive `registerIrCard("BT13-104", compiled)`; no legacy registration.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-104.test.ts` passed (4 tests): Main/security shared DP reduction and Marcus recursion are live.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-104.test.ts` passed (5 tests): Main/security shared DP reduction and Marcus recursion are live.
 - BT13-105 — 10/10
   - Registration: exclusive `registerIrCard("BT13-105", compiled)`; no legacy registration.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-105.test.ts` passed (4 tests): Main return/scaled memory and security-only return behavior are live.
@@ -356,13 +368,13 @@ Every production module `BT13-001` through `BT13-112` contains exactly one match
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-106.test.ts` passed (4 tests): Main/security-trash activation, targeted DP loss, and all-opponent low-security Security Attack reduction are live.
 - BT13-107 — 10/10
   - Registration: exclusive `registerIrCard("BT13-107", compiled)`; no legacy registration.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-107.test.ts` passed (3 tests): DP-relative bounce, Leopard Mode return-cost unsuspend, and security suspend/self-return are covered.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-107.test.ts` passed (8 tests): DP-relative bounce, Leopard Mode return-cost unsuspend, and security suspend/self-return are covered.
 - BT13-108 — 10/10
   - Registration: exclusive `registerIrCard("BT13-108", compiled)`; no legacy registration.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-108.test.ts` passed (2 tests): both opponent-turn grants and lowest-play-cost security deletion are covered.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-108.test.ts` passed (3 tests): both opponent-turn grants and lowest-play-cost security deletion are covered.
 - BT13-109 — 10/10
   - Registration: exclusive `registerIrCard("BT13-109", compiled)`; no legacy registration.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-109.test.ts` passed (5 tests): level-6 deletion, legal Sleep Mode trash evolution, invalid-base rejection, and security level-bound deletion are covered.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-109.test.ts` passed (8 tests): level-6 deletion, legal Sleep Mode trash evolution, invalid-base rejection, and security level-bound deletion are covered.
 - BT13-110 — 10/10
   - Registration: exclusive `registerIrCard("BT13-110", compiled)`; no legacy registration.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-110.test.ts` passed (7 tests): all Main branches, optional placement, Delay/Rush path, and security placement are live.
@@ -371,4 +383,4 @@ Every production module `BT13-001` through `BT13-112` contains exactly one match
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-111.test.ts` passed (7 tests): combined-trash cost reduction, Rush, fallback deletion, play/digivolve/attack timing all execute.
 - BT13-112 — 10/10
   - Registration: exclusive `registerIrCard("BT13-112", compiled)`; no legacy registration.
-  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-112.test.ts` passed (6 tests): both modal branches, distinct-name Royal Knight play, breeding deletion/Rush, decline, and digivolution trigger are live.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-112.test.ts` passed (7 tests): both modal branches, distinct-name Royal Knight play, breeding deletion/Rush, decline, and digivolution trigger are live.
