@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT6-030 (Gabumon - Bond of Friendship) — do not regenerate over
 // this file. The generated second [When Attacking] clause miscompiled the target
 // cleanup as a field-Trash of ALL MY Digimon. SelectBind keeps the returned target

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -21,7 +20,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Eosmon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -33,7 +32,7 @@ const compiled: CompiledCard = {
                 per: 1,
                 unit: "cards",
                 filter: {
-                  controller: "both",
+                  controller: "any",
                   kind: ["Tamer"],
                 },
               },

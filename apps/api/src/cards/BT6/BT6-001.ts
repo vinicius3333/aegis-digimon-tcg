@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR — this inherited effect belongs to its host's player-directed attack.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

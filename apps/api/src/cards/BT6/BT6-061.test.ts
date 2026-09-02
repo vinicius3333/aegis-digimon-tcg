@@ -1,15 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { Permanent } from "@aegis/shared";
+import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import "./BT6-061.js";
 
 describe("BT6-061 Gigadramon", () => {
   function effectiveColors(s: ReturnType<typeof setupEngine>, permanent: Permanent): string[] {
-    return (
-      s.engine as unknown as {
-        effectiveColorsOf(target: Permanent): string[];
-      }
-    ).effectiveColorsOf(permanent);
+    return observe(s.engine).effectiveColors(permanent);
   }
 
   it("Q1455 is also treated as red in the battle area", async () => {

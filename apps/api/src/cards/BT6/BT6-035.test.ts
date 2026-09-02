@@ -39,7 +39,9 @@ describe("BT6-035 Baluchimon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => player.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("source").instanceId));
+    await settle(() =>
+      player.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("source").instanceId),
+    );
     expect(player.deck).toHaveLength(2);
   });
 });

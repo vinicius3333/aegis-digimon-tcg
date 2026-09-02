@@ -58,10 +58,7 @@ describe("BT6-019 Gabumon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT6-030", under: ["BT6-019", "BT6-023", "BT6-026", "BT6-028"], as: "bond" },
-            "BT1-085",
-          ],
+          battleArea: [{ card: "BT6-030", under: ["BT6-019", "BT6-023", "BT6-026", "BT6-028"], as: "bond" }, "BT1-085"],
         },
         1: { security: ["BT1-010", "BT1-010"] },
       },

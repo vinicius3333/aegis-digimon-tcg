@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { Phase } from "@aegis/shared";
+import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT6-041.js";
 
@@ -37,7 +39,6 @@ describe("BT6-041 Manticoremon", () => {
     );
     const targetId = s.perm("target").permanentId;
     const attackerId = s.perm("manticoremon").topCard.instanceId;
-    const combat = (s.engine as unknown as { combat: { isAttacking: boolean } }).combat;
 
     expect(
       s.engine.applyIntent(0, {
@@ -46,7 +47,10 @@ describe("BT6-041 Manticoremon", () => {
         target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.length === 0 && !combat.isAttacking);
+    await settle(
+      () =>
+        s.state.phase === Phase.Main && s.state.players[0]!.battleArea.length === 0 && !observe(s.engine).isAttacking(),
+    );
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(true);
     expect(s.perm("target").currentDP).toBe(10000);
