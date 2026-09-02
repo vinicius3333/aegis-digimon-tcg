@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./BT3-078.js";
 describe("BT3-078 Shamanmon", () => {
   it("has no card effects", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT3-078", as: "shamanmon" }] } });

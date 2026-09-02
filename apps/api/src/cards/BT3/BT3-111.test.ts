@@ -19,11 +19,16 @@ describe("BT3-111 Imperialdramon: Dragon Mode", () => {
               event: "wouldDigivolve",
               sourceFilter: {
                 controller: "mine",
-                nameOrTrait: [{ tokens: ["Paildramon", "Dinobeemon"], match: "name" }],
+                nameOrTrait: [{ tokens: ["Paildramon", "Dinobeemon"], match: "nameExact" }],
               },
               into: { zone: "hand", controller: "mine" },
               actions: [
-                expect.objectContaining({ kind: "Replacement", event: "wouldDigivolve", mode: "reduceCost", amount: 2 }),
+                expect.objectContaining({
+                  kind: "Replacement",
+                  event: "wouldDigivolve",
+                  mode: "reduceCost",
+                  amount: 2,
+                }),
               ],
             }),
           ]),

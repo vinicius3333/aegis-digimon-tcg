@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR — the cards not added by the On Play reveal are trashed.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

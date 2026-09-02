@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./BT3-020.js";
 
 describe("BT3-020 Patamon", () => {
   it("plays with its catalogued 4000 DP and has no effect resolution", async () => {

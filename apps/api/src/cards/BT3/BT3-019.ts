@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT3-019 — do not regenerate.
 // WhenDigivolving: PlaceUnder added from:["hand"], underFilter:self, position:top.
 // Added GainMemory 3 action gated on PlaceUnder.
@@ -32,7 +31,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Durandamon", "BryweLudramon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
