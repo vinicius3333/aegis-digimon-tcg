@@ -1,10 +1,10 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
+// [Start of Your Main Phase] "Add your top face-DOWN security card to the hand." The printed
+// wording skips face-up security cards, which this very card (and EX11-030) create by placing a
+// [Royal Base] Digimon face up. `faceDownOnly` is the security seam's face-state filter; without
+// it the effect takes the literal top card even when an effect left it revealed (KB Q5812/Q5813).
 const compiled: CompiledCard = {
   effects: [
     {
@@ -43,6 +43,7 @@ const compiled: CompiledCard = {
           controller: "mine",
           amount: 1,
           toTop: true,
+          faceDownOnly: true,
         },
         {
           kind: "SecurityManipulation",

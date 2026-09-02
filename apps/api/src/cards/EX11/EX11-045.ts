@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -11,24 +10,16 @@ const compiled: CompiledCard = {
   digivolutionRequirement: [{ level: 5, texts: ["Maquinamon"], cost: 3, isAlternate: true }],
   effects: [
     {
+      // Printed ＜Blocker＞ belongs on the keyword line — the shape registration reads for
+      // printed-keyword metadata (peers EX11-035 / EX11-073) — not a self-targeted GainKeyword.
       trigger: "Static",
-      actions: [
+      actions: [],
+      keywords: [
         {
-          kind: "GainKeyword",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
-          keyword: {
-            keyword: "Blocker",
-          },
-          duration: "permanent",
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
         },
       ],
-      keywords: [],
     },
     {
       trigger: "OnPlay",
