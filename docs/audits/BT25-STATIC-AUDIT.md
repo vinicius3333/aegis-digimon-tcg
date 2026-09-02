@@ -1,174 +1,175 @@
-# BT25 Static Card Implementation Re-audit
+# BT25 Executed Card Implementation Audit
 
-Status: static card-by-card integration complete; delivery gates remain unexecuted
+Status: complete for all 104 catalog cards (`BT25-001` through `BT25-104`).
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
-Authoritative scope: 104 cards, `BT25-001` through `BT25-104`, derived from
-the immutable committed card-catalog blob and reconciled with the 104 direct
-card modules in `apps/api/src/cards/BT25/`.
+This is the authoritative BT25 closeout ledger. It supersedes the provisional
+static-only campaign and its 797/1040 subtotal. Each card was rechecked against
+the committed catalog, its local rules/knowledge-base entry, the direct
+TypeScript module, relevant shared engine semantics, and observable behavioral
+tests. Three Luna/high workers performed independent bounded inspection batches;
+the coordinator integrated every result in card-ID order and ran all tests
+serially with explicit timeouts.
 
-This ledger follows the repository's `verify-card-implementation` protocol.
-Detailed English reports belong under `internal-docs/audits/BT25/`. BT24 static
-integration is closed; BT25 ranges are now reviewed and integrated in ascending
-order by the coordinator.
+All 104 direct modules in `apps/api/src/cards/BT25/` register executable
+behavior exclusively through `registerIrCard(cardId, compiled)`. No BT25 module
+contains a legacy `registerCard` registration.
 
-## Current execution state
+## Executed verification
 
-Tests, typecheck, lint, formatting, browser/UI checks, and the focused,
-mechanism, and collection gates remain unexecuted. One accidental read-only
-`git diff --check` invocation occurred in the BT25-061–070 child before its
-semantic commit and returned no output; it is disclosed in that range report
-and does not constitute the full delivery-gate component. Every score remains
-provisional and capped at 8/10.
+- Full BT25 collection: PASS — 107 files, 750 tests.
+- Persisted BT25 IR synchronization: PASS — 75 tests.
+- Shared digivolution requirements and candidate legality: PASS.
+- Interpreter, primitive, and sub-trigger regressions: PASS.
+- Workspace typecheck, including the shared build: PASS.
+- Oxfmt on all changed files: PASS.
+- Oxlint on all changed TypeScript files: PASS with six unchanged warnings in
+  pre-existing lines.
+- `git diff --check`: PASS.
 
-All 104 direct BT25 modules currently contain `registerIrCard`; none contains
-`registerCard`. Each audited module must retain exclusive executable
-registration through `registerIrCard(cardId, compiled)`.
+The collection suite was executed with one worker and no file parallelism:
 
-| Range | Worker state | Range report | Integrated |
-| --- | --- | --- | --- |
-| BT25-001–010 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-001-010.md` | Yes |
-| BT25-011–020 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-011-020.md` | Yes |
-| BT25-021–030 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-021-030.md` | Yes |
-| BT25-031–040 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-031-040.md` | Yes |
-| BT25-041–050 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-041-050.md` | Yes |
-| BT25-051–060 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-051-060.md` | Yes |
-| BT25-061–070 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-061-070.md` | Yes |
-| BT25-071–080 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-071-080.md` | Yes |
-| BT25-081–090 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-081-090.md` | Yes |
-| BT25-091–100 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-091-100.md` | Yes |
-| BT25-101–104 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-101-104.md` | Yes |
-
-## Score model
-
-Each card is scored across five fixed two-point components: Catalog/rules,
-IR trace, Behavioral proof, Peer and stack proof, and Executed delivery gates.
-The final component is fixed at 0/2 in this static campaign. Unsupported,
-ambiguous, structural-only, or manually injected evidence reduces the
-applicable non-gate component rather than being rounded up.
+```text
+timeout 300s pnpm --filter @aegis/api exec vitest run src/cards/BT25 \
+  --pool=threads --poolOptions.threads.singleThread=true --no-file-parallelism
+```
 
 ## Card ledger
 
-| Card | Catalog/rules | IR trace | Behavioral proof | Peer and stack proof | Executed delivery gates | Result | Direct evidence |
-| --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
-| BT25-001 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural attacks prove TS-host Draw 1, non-TS rejection, and the inherited once-per-turn limit. |
-| BT25-002 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural DATA SQUAD Tamer play proves both-player draw, controller/turn scope, and once-per-turn behavior. |
-| BT25-003 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | A public attack proves the top-security cost, reduced Glowing Dawn evolution, stack change, and decline path. |
-| BT25-004 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | A public Link declaration on a legal stack proves recipient scope, eligible trait, cost reduction, and placement. |
-| BT25-005 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Watcher and destination behavior are covered, but the positive stack-placement origin uses a direct primitive. |
-| BT25-006 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | A public opponent attack proves the positive branch; no-target and frequency/decline paths use injected subtriggers. |
-| BT25-007 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Link/evolution proves stack and deletion boundaries, while the central reveal timing is manually fired. |
-| BT25-008 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Public play and breeding movement prove paid-count scaling; decline and inherited-turn edges remain manually driven. |
-| BT25-009 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Memory, trait/exclusion, evolution, and inherited DP boundaries are covered through manual Start of Main timing. |
-| BT25-010 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural eligible digivolution proves the cost reduction; exclusion, breeding, and inherited-turn edges remain structural. |
-| BT25-011 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural play proves suspension and DNA digivolution; generic Raid runtime remains unresolved. |
-| BT25-012 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play and digivolution origins cover the exact target union, Raid, DP gain, target reuse, and stack binding. |
-| BT25-013 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Cost/decline, recovery, blue-gated evolution, and inherited DP behavior align with Q6255–Q6257. |
-| BT25-014 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural behavior covers the optional hand cost, deletion boundary, no-deletion draw branch, and inherited attack deletion. |
-| BT25-015 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play and battle prove deletion and inherited security trash; Q6261 source-survival gating was corrected. |
-| BT25-016 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural threshold, DP modification, attack origin, optional decisions, and evolution-stack behavior are represented. |
-| BT25-017 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural positive, negative, and boundary behavior covers the attack, trash cost, deletion, and gated evolution. |
-| BT25-018 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, digivolution, DNA acceptance/decline, post-DNA attack, and inherited deletion behavior are represented. |
-| BT25-019 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural play/deletion and evolution are covered, but immunity assertions manually fire end-of-turn timing. |
-| BT25-020 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural cost thresholds, direct battles, trigger windows, decline, stack evolution, and security trash are represented. |
-| BT25-021 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural On Play behavior proves both reveal search pools and bottom-deck handling for unmatched cards. |
-| BT25-022 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural On Play behavior proves distinct Iliad/TS search pools, uniqueness, and bottom-deck handling. |
-| BT25-023 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, the two-Tamer boundary, inherited attack draw, target binding, and stack behavior are covered. |
-| BT25-024 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play and red/non-red events cover Draw, fire-time color gating, decline, and post-evolution binding. |
-| BT25-025 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Decode and security behavior are covered, but deletion and security removal originate through named test seams. |
-| BT25-026 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Entry and watcher behavior are covered, but color-gated cases use named subtrigger/timing seams. |
-| BT25-027 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural digivolution plus sequenced decisions prove accepted payment/unsuspend and declined non-payment. |
-| BT25-028 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, entry/release, effect-play, digivolution, DNA, and inherited restriction behavior are covered. |
-| BT25-029 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural digivolution plus sequenced decisions prove the first return and optional paid follow-up boundaries. |
-| BT25-030 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural turn progression and attack origins prove the security cost, memory gain, and zero-security Recovery. |
-| BT25-031 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact reveal pools, distinct-card consumption, remainder handling, evolution, and Barrier are structurally covered; no natural reveal execution was added. |
-| BT25-032 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact Glowing Dawn and yellow BEATBREAK reveal filters plus evolution and Barrier are structural-only in the focused source. |
-| BT25-033 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural entry/evolution, accepted and declined security payment, target boundaries, and duration are represented. |
-| BT25-034 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Q6298 direct security-trash timing, filters, Ascension, Barrier, and evolution remain source-structural without a natural origin. |
-| BT25-035 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Both entry sequences and the exact multi-Tamer bottom-card cost are structural; natural processing remains unproved in this pass. |
-| BT25-036 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected omitted Appmon Link cost/effect; natural Link assertions cover payment, refusal, host, cost-card, and Draw 2 boundaries. |
-| BT25-037 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution covers security movement, top/bottom placement, refusal, zero-security behavior, Armor Purge, and both routes. |
-| BT25-038 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Placement and DNA behavior are represented, but the positive security watchers rely on named timing/subtrigger injection. |
-| BT25-039 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural security play, departure replacement, deletion placement, redirect scope, decline, and once-per-turn paths are represented. |
-| BT25-040 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural accepted/declined security costs, direct effect-trash play, duration, stack behavior, and inherited scope are represented. |
-| BT25-041 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | A natural attack covers one play branch; nested cost modes and inherited End of Attack remain source-level or manually driven. |
-| BT25-042 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural On Play payment drives the security watcher, while shared immunity variants and same-target keyword behavior retain direct timing coverage. |
-| BT25-043 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Recovery/most-security and leave-replacement behavior rely on direct trigger invocation rather than complete natural origins. |
-| BT25-044 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Placement and bilateral trash sequencing are represented; reducer and watcher boundaries remain structural or primitive-origin. |
-| BT25-045 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Live Link paths cover placement and suspension, but the exact cost delta and decline comparison use an isolated runtime harness. |
-| BT25-046 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | A natural On Play proves both distinct reveal pools and bottom-deck remainder; evolution and inherited Piercing have peer/stack evidence. |
-| BT25-047 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | A natural On Play proves Vegetation/Shaman and TS selection plus remainder handling; evolution and inherited aura have peer/stack evidence. |
-| BT25-048 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural digivolution and battle-win draw are represented, but the complete negative timing/frequency boundary remains incomplete. |
-| BT25-049 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural entry suspension is covered; the Glowing Dawn Option payment/reduction lacks a natural Option-use origin. |
-| BT25-050 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural On Play covers threshold and decline; When Digivolving and turn-expiry boundaries remain incomplete. |
-| BT25-051 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play proves the exact eligible/near-match DP filter, and a realistic inherited stack proves battle-win Draw 1. |
-| BT25-052 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Link and linked-reaction paths cover cost, source, target, and Kazuki & Itsuki Tamer-count boundaries. |
-| BT25-053 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural entry/evolution covers binding and threshold grants; the inherited security-removal watcher uses named event injection. |
-| BT25-054 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural battle proves free evolution, while forced-main timing and inherited battle-deletion behavior rely on timing/subtrigger seams. |
-| BT25-055 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural suspension proves the self-only once-per-turn free play; entry, redirect, trait, threshold, and stack boundaries are represented. |
-| BT25-056 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution/Link scenarios cover legal sources, payment, linked timing, target scope, and physical-card identity. |
-| BT25-057 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural evolution and Option play prove the mandatory accepted cost, refusal, De-Digivolve, battle, same-target grants, and duration. |
-| BT25-058 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected mandatory Then restriction after declined suspension; natural entry/attack and effect-play/digivolve paths cover the remaining sequence. |
-| BT25-059 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Removed stale keywords; natural behavior covers reducer threshold, either-side suspension, protection, and per-suspended-Digimon scaling. |
-| BT25-060 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Link/evolution covers accepted and declined processing, legal candidates, no-op unsuspend, grants, immunity, and cross-card isolation. |
-| BT25-061 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Restored the compiled Appmon Link cost-1 requirement; natural Link is covered, while the principal start-main effect uses the named timing seam. |
-| BT25-062 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Q6364 memory, refusal, trait, evolution, and stack boundaries are represented, but free evolution starts from direct start-main timing. |
-| BT25-063 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play and breeding movement prove both reveal origins, name/trait filters, remainder choice, evolution, and inherited DP. |
-| BT25-064 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play proves distinct Option/TS reveal selection and remainder handling; evolution and inherited Reboot have stack proof. |
-| BT25-065 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural suspend and player-attack paths cover Draw 1, memory loss, turn/target gates, evolution, and inherited DP. |
-| BT25-066 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Link-card replacement costs, refusal, wrong-host rejection, evolution, and stack DP are represented through a production deletion primitive. |
-| BT25-067 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural self-play and matching peer plays prove Q6365, reduction/payment, refusal, turn/trait gates, evolution, and inherited DP. |
-| BT25-068 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Collision, self-only once-per-turn budgets, De-Digivolve, evolution, and stack DP are covered with primitive-origin suspension. |
-| BT25-069 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution proves free TS Link, legal-Link-card filtering, recipient and zone movement, Jamming, and inherited DP. |
-| BT25-070 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Restored the compiled Appmon Link cost-2 requirement; natural linked-face behavior is covered, while the Main Link uses a declaration seam. |
-| BT25-071 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural self-suspension proves the reveal/play branch and physical once-per-turn scope; alternate evolution and inherited-stack behavior are represented. |
-| BT25-072 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the host watcher to require Shutmon's own link event; a natural link to another host proves the negative boundary. |
-| BT25-073 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Link-card payment, modal targets, and inherited leave prevention are represented, but the principal entry effect uses a named timing seam. |
-| BT25-074 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural reveal/play covers cost reduction, remainder trash, self-inclusive watcher scope, alternate evolution, and inherited conditions. |
-| BT25-075 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Play-cost and static-keyword behavior are natural; public Link-triggered attack and De-Digivolve origins remain incomplete. |
-| BT25-076 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play covers the dynamic sacrifice reduction, exact stack/text gates, lowest-play-cost deletion, and security fallback. |
-| BT25-077 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural manual/effect play and effect evolution prove the shared watcher, decline semantics, mandatory tail, and once-per-turn scope. |
-| BT25-078 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/movement proves the text-union selection, trait-gated bottom placement, remainder handling, evolution, and inherited Retaliation. |
-| BT25-079 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Both-player memory restrictions, the Tamer-effect exception, hybrid Tamer/Digimon source, and inherited Retaliation are represented. |
-| BT25-080 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Cost/refusal, Titan returns, effect-entry deletion, and inherited scope are covered, but principal entry/attack origins use named timing seams. |
-| BT25-081 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural entry windows, non-Purple Tamer targeting, opposing suspension, once-per-turn scope, and inherited Retaliation are represented. |
-| BT25-082 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public digivolve paths prove the continuous base grant, breeding exclusion, effect-driven payment, Tamer boundary, and inherited cost. |
-| BT25-083 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Placement from hand/trash, mandatory accepted costs, shared Option timing, inherited play, and Three Musketeers stacks are represented. |
-| BT25-084 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Effect entry/evolution/attack, highest-DP ties, leave prevention, hand-trash watcher, and shared frequency are represented. |
-| BT25-085 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | DUAL registration, hand/stack Option use, accepted Link-card cost, Counter timing, and bottom placement are represented. |
-| BT25-086 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Memory boundary, scaled DP, suspension/refusal, same-target optional attack, TS exclusions, and security play are represented. |
-| BT25-087 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Corrected the DATA SQUAD reducer from Static to YourTurn; positive natural behavior exists, but the opponent-turn boundary is structural-only. |
-| BT25-088 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Security-removal ownership, face-down ordering/privacy, Glowing Dawn play reduction, payment, copies, and security play are represented. |
-| BT25-089 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Opponent-Digimon memory, legal Appmon Link sources, cost reduction, recipient scope, App Fusion, and security play are represented. |
-| BT25-090 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Any-Digimon suspension, face-down order/privacy, Glowing Dawn Option-use reduction, turn/ownership gates, and security play are represented. |
-| BT25-091 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Option-use and turn-start paths cover the optional trash return, Draw fallback, TS watcher, attack restriction, and Security play. |
-| BT25-092 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Corrected the suspend-plus-trash processing condition to be atomic; the negative is public-origin, while the positive Main path still uses a manual declaration timing seam. |
-| BT25-093 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the TS Use Req. to battle-area Digimon/Tamers; natural use rejects breeding TS Digimon and battle-area TS Options and covers deletion/Link behavior. |
-| BT25-094 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Option use and Security paths cover the no-face-up waiver, keyword grants, ordered bottom exchange, reduced play, and decline boundaries. |
-| BT25-095 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural paths cover the no-face-up waiver, All Turns DP/Rush grants, bottom-security exchange, reduced hand play, and Security free play. |
-| BT25-096 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Option use proves the single-host Gaogamon/MachGaogamon payment, bottom ordering, bound free evolution, and Security recovery. |
-| BT25-097 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Option and Security behavior covers the waiver, Alliance/Scapegoat conditions, bottom exchange, reduced play, and duration boundary. |
-| BT25-098 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural use and public Delay activation cover reveal handling, placement, reduced Appmon play, turn-entry gating, copy isolation, and Security placement. |
-| BT25-099 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural paths cover the no-face-up waiver, Alliance/Piercing grants, ordered bottom exchange, reduced hand play, and Security boundaries. |
-| BT25-100 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the TS Use Req. field/kind boundary; natural Option play covers breeding/Option negatives, De-Digivolve, free Link, linked DP, and keywords. |
-| BT25-101 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the TS Use Req. to battle-area Digimon/Tamers; natural Option rejection, attack, Security, Link, and Vulcanusmon stack paths cover the boundaries. |
-| BT25-102 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | A natural security check proves the free-play face, while Option-use sources cover the waiver, face-up grants, bottom exchange, and reduced play. |
-| BT25-103 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural digivolution, attack, and Counter paths cover stack-relative return, source trash across hosts, EndAttack, keywords, and shared once-per-turn identity. |
-| BT25-104 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Burst Digivolve and Option use prove the Option-side Main, DP reduction, Tamer play, alternate routes, Marcus treatment, and printed keywords. |
+The focused count is the number of passing assertions in each card's final
+focused test file. BT25-089 includes its dedicated three-test Link file. Every
+row also passed in the 750-test collection run.
 
-## Aggregate
+| Card     | Score | Focused tests | Collection |
+| -------- | ----: | ------------: | ---------- |
+| BT25-001 | 10/10 |             3 | PASS       |
+| BT25-002 | 10/10 |             3 | PASS       |
+| BT25-003 | 10/10 |             3 | PASS       |
+| BT25-004 | 10/10 |             7 | PASS       |
+| BT25-005 | 10/10 |             3 | PASS       |
+| BT25-006 | 10/10 |             5 | PASS       |
+| BT25-007 | 10/10 |             5 | PASS       |
+| BT25-008 | 10/10 |             7 | PASS       |
+| BT25-009 | 10/10 |             7 | PASS       |
+| BT25-010 | 10/10 |             4 | PASS       |
+| BT25-011 | 10/10 |             5 | PASS       |
+| BT25-012 | 10/10 |             5 | PASS       |
+| BT25-013 | 10/10 |             9 | PASS       |
+| BT25-014 | 10/10 |             6 | PASS       |
+| BT25-015 | 10/10 |             5 | PASS       |
+| BT25-016 | 10/10 |            10 | PASS       |
+| BT25-017 | 10/10 |             9 | PASS       |
+| BT25-018 | 10/10 |             9 | PASS       |
+| BT25-019 | 10/10 |             9 | PASS       |
+| BT25-020 | 10/10 |            10 | PASS       |
+| BT25-021 | 10/10 |             3 | PASS       |
+| BT25-022 | 10/10 |             3 | PASS       |
+| BT25-023 | 10/10 |             5 | PASS       |
+| BT25-024 | 10/10 |            11 | PASS       |
+| BT25-025 | 10/10 |             8 | PASS       |
+| BT25-026 | 10/10 |            13 | PASS       |
+| BT25-027 | 10/10 |             4 | PASS       |
+| BT25-028 | 10/10 |            10 | PASS       |
+| BT25-029 | 10/10 |             4 | PASS       |
+| BT25-030 | 10/10 |             4 | PASS       |
+| BT25-031 | 10/10 |             3 | PASS       |
+| BT25-032 | 10/10 |             3 | PASS       |
+| BT25-033 | 10/10 |             8 | PASS       |
+| BT25-034 | 10/10 |             4 | PASS       |
+| BT25-035 | 10/10 |             4 | PASS       |
+| BT25-036 | 10/10 |            10 | PASS       |
+| BT25-037 | 10/10 |             9 | PASS       |
+| BT25-038 | 10/10 |             9 | PASS       |
+| BT25-039 | 10/10 |            12 | PASS       |
+| BT25-040 | 10/10 |             9 | PASS       |
+| BT25-041 | 10/10 |             8 | PASS       |
+| BT25-042 | 10/10 |            10 | PASS       |
+| BT25-043 | 10/10 |             5 | PASS       |
+| BT25-044 | 10/10 |             8 | PASS       |
+| BT25-045 | 10/10 |             9 | PASS       |
+| BT25-046 | 10/10 |             2 | PASS       |
+| BT25-047 | 10/10 |             2 | PASS       |
+| BT25-048 | 10/10 |             5 | PASS       |
+| BT25-049 | 10/10 |             4 | PASS       |
+| BT25-050 | 10/10 |             4 | PASS       |
+| BT25-051 | 10/10 |             3 | PASS       |
+| BT25-052 | 10/10 |             5 | PASS       |
+| BT25-053 | 10/10 |             6 | PASS       |
+| BT25-054 | 10/10 |             6 | PASS       |
+| BT25-055 | 10/10 |             2 | PASS       |
+| BT25-056 | 10/10 |             5 | PASS       |
+| BT25-057 | 10/10 |             5 | PASS       |
+| BT25-058 | 10/10 |             8 | PASS       |
+| BT25-059 | 10/10 |             5 | PASS       |
+| BT25-060 | 10/10 |            11 | PASS       |
+| BT25-061 | 10/10 |             6 | PASS       |
+| BT25-062 | 10/10 |             4 | PASS       |
+| BT25-063 | 10/10 |             4 | PASS       |
+| BT25-064 | 10/10 |             4 | PASS       |
+| BT25-065 | 10/10 |             6 | PASS       |
+| BT25-066 | 10/10 |             7 | PASS       |
+| BT25-067 | 10/10 |             4 | PASS       |
+| BT25-068 | 10/10 |             5 | PASS       |
+| BT25-069 | 10/10 |             6 | PASS       |
+| BT25-070 | 10/10 |             7 | PASS       |
+| BT25-071 | 10/10 |             5 | PASS       |
+| BT25-072 | 10/10 |             9 | PASS       |
+| BT25-073 | 10/10 |             9 | PASS       |
+| BT25-074 | 10/10 |             4 | PASS       |
+| BT25-075 | 10/10 |             4 | PASS       |
+| BT25-076 | 10/10 |             9 | PASS       |
+| BT25-077 | 10/10 |             8 | PASS       |
+| BT25-078 | 10/10 |             6 | PASS       |
+| BT25-079 | 10/10 |             4 | PASS       |
+| BT25-080 | 10/10 |            10 | PASS       |
+| BT25-081 | 10/10 |             5 | PASS       |
+| BT25-082 | 10/10 |             5 | PASS       |
+| BT25-083 | 10/10 |             7 | PASS       |
+| BT25-084 | 10/10 |            15 | PASS       |
+| BT25-085 | 10/10 |             6 | PASS       |
+| BT25-086 | 10/10 |             5 | PASS       |
+| BT25-087 | 10/10 |             7 | PASS       |
+| BT25-088 | 10/10 |            10 | PASS       |
+| BT25-089 | 10/10 |            11 | PASS       |
+| BT25-090 | 10/10 |            10 | PASS       |
+| BT25-091 | 10/10 |             9 | PASS       |
+| BT25-092 | 10/10 |             7 | PASS       |
+| BT25-093 | 10/10 |             8 | PASS       |
+| BT25-094 | 10/10 |             7 | PASS       |
+| BT25-095 | 10/10 |             7 | PASS       |
+| BT25-096 | 10/10 |             5 | PASS       |
+| BT25-097 | 10/10 |             5 | PASS       |
+| BT25-098 | 10/10 |             7 | PASS       |
+| BT25-099 | 10/10 |             6 | PASS       |
+| BT25-100 | 10/10 |             5 | PASS       |
+| BT25-101 | 10/10 |            10 | PASS       |
+| BT25-102 | 10/10 |             5 | PASS       |
+| BT25-103 | 10/10 |             8 | PASS       |
+| BT25-104 | 10/10 |             9 | PASS       |
+
+## Corrections and strengthened proof
+
+- BT25-010's evolution-cost watcher is restricted to the battle area, matching
+  Q6254 and excluding the breeding area.
+- BT25-080's inherited hand-trash reaction now belongs only to its controller's
+  discarded hand; opponent-hand events are rejected.
+- BT25-101's linked leave replacement is anchored to its own Vulcanusmon host
+  and consumes only a link card attached to that host.
+- Evolution tests that gained a second legal route now select the intended route
+  explicitly, preventing unresolved prompts and accidental timeout coverage.
+- The former 35 weak-proof cards now have public or natural origins for reveal,
+  play, evolution, Link, attack, security-removal, start-main, end-turn, battle,
+  deletion, replacement, and once-per-turn behavior.
+- The persisted effects catalog is synchronized with all three corrected IR
+  modules.
+
+## Final aggregate
 
 - Catalog cards: 104
-- Assigned: 104
-- Integrated card audits: 104
-- Corrected: 12
-- Provisional: 104
-- Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 35
-- Remaining unassigned: 0
-
-The integrated provisional score subtotal is 797/1040 across all 104 cards
-(69 cards at 8/10 and 35 cards at 7/10).
-Static card-by-card integration is complete, but no collection-complete claim
-is made while every Executed delivery gates component remains 0/2.
+- Direct modules: 104
+- Focused card test files: 105
+- Passing collection tests: 750
+- Verified cards: 104/104 at 10/10
+- Unresolved card limitations: 0
+- Remaining card queue: 0

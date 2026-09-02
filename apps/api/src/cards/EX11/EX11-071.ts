@@ -1,7 +1,18 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
+// Bracketed card-name references are EXACT names (KB Q1231/Q1232: "[Cerberusmon]" does not
+// reach "Cerberusmon: Werewolf Mode"), so the two named refs use `nameExact` rather than the
+// substring `name` mode — matching the hand-fixed sibling BT20-100, which prints the same
+// [Omekamon] / [Cool Boy] family. The `RevealAdd` slots share one `taken` set in the
+// interpreter, so a single revealed card (EX11-053 Omekamon is both [Omekamon] and [LIBERATOR])
+// can only fill one of the two adds.
+//
+// The [Main] clause is a declinable "By ..." processing condition (CR 15-7-4): the self-return
+// cost is `optional`, and the play `abortOnDecline`s so refusing the cost cannot still play the
+// card. `reduceCostBy` folds the -2 into the paid play rather than installing a separate
+// cost-replacement, and Digi-Eggs are excluded for free because `playCostGte` rejects the
+// catalog's `-1` no-play-cost sentinel.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -17,7 +28,7 @@ export const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Omekamon", "Omnimon (X Antibody)"],
-                    match: "name",
+                    match: "nameExact",
                   },
                 ],
               },

@@ -1,31 +1,30 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const sharedUseKey = "ir-shared-0";
 
-const battleAction = {
-  kind: "Battle",
-  attacker: {
-    filter: { controller: "mine", kind: ["Digimon"] },
-    count: 1,
-    fromSelectionRef: "buffedDigimon",
-  },
-  defender: {
-    filter: { controller: "opponent", kind: ["Digimon"] },
-    count: 1,
-  },
-};
-
-const dpAndBattleActions = [
+// The DP boost and the battle are one mandatory sequence: KB Q6836 forbids taking the +3000 DP
+// and then declining the battle, and neither clause is printed with a "may" of its own, so the
+// only optionality is the player's choice to activate the [Counter] window at all.
+const dpAndBattleActions: Action[] = [
   {
     kind: "ModifyDP",
     target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1, bindAs: "buffedDigimon" },
     amount: 3000,
     duration: "untilOpponentTurnEnd",
-    optional: true,
   },
-  battleAction,
+  {
+    kind: "Battle",
+    attacker: {
+      filter: { controller: "mine", kind: ["Digimon"] },
+      count: 1,
+      fromSelectionRef: "buffedDigimon",
+    },
+    defender: {
+      filter: { controller: "opponent", kind: ["Digimon"] },
+      count: 1,
+    },
+  },
 ];
 
 const compiled: CompiledCard = {

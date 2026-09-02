@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -63,8 +62,10 @@ const compiled: CompiledCard = {
           },
           amount: 6000,
           duration: "forTheTurn",
+          abortOnDecline: true,
           cost: {
             kind: "return",
+            optional: true,
             target: {
               filter: {
                 zone: "trash",
@@ -91,7 +92,6 @@ const compiled: CompiledCard = {
             per: 1,
             countSource: "returnedCardColors",
             unit: "namedCount",
-            raw: "for each of those returned cards' colors",
           },
         },
       ],
@@ -121,8 +121,10 @@ const compiled: CompiledCard = {
           },
           amount: 6000,
           duration: "forTheTurn",
+          abortOnDecline: true,
           cost: {
             kind: "return",
+            optional: true,
             target: {
               filter: {
                 zone: "trash",
@@ -149,7 +151,6 @@ const compiled: CompiledCard = {
             per: 1,
             countSource: "returnedCardColors",
             unit: "namedCount",
-            raw: "for each of those returned cards' colors",
           },
         },
       ],

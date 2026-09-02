@@ -1047,6 +1047,7 @@ export class CombatController {
       suspendedPermanentId: permanent.permanentId,
     });
     await this.hooks.fireSubTrigger?.("whenSuspended", {
+      subjectPermanentId: permanent.permanentId,
       suspendedPermanentId: permanent.permanentId,
     });
   }

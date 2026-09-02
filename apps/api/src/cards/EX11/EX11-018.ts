@@ -1,10 +1,15 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
+// Hand-audited IR.
+//
+// CR 16-36-1 scopes ＜Decode＞ to "THAT Digimon's digivolution cards". `applyDecodeHostScope`
+// now injects that scope, but the IR states it explicitly with `hostFilter: { isSelfRef: true }`
+// so the `from: ["digivolutionCards"]` pool can never span a neighbouring stack.
+//
+// "[Aqua] or [Sea Animal] in any of its traits" is `traitContains`, not `trait`: no printed
+// trait is literally "Aqua" — the clause covers Aquatic, Aquabeast and Ancient Aquabeast, which
+// the persisted record's exact `match: "trait"` matched not at all.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -32,6 +37,7 @@ const compiled: CompiledCard = {
                 filter: {
                   controller: "mine",
                   kind: ["Digimon"],
+                  hostFilter: { isSelfRef: true },
                   levelComparison: { op: "lte", value: 5 },
                   nameOrTrait: [{ tokens: ["Aqua", "Sea Animal"], match: "traitContains" }],
                 },

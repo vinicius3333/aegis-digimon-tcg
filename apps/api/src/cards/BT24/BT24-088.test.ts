@@ -103,6 +103,24 @@ describe("BT24-088 Asuna Shiroki", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("stillInTrash").instanceId);
   });
 
+  it("runs the Start of Your Turn effect through the natural turn window", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT24-088", as: "asuna" }], trash: [{ card: "BT24-013", as: "target" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("target").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("target").instanceId)).toBe(true);
+    expect(s.state.players[0]!.deck.some((card) => card.cardId === "BT24-088")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
   it("trashes a qualifying hand card to draw 2 on play (Q5677)", async () => {
     const preferred: string[] = [];
     const s = setupEngine(

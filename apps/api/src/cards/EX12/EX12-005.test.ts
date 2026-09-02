@@ -176,4 +176,26 @@ describe("EX12-005 Agumon", () => {
       }),
     ).toEqual(expect.objectContaining({ ok: false }));
   });
+
+  it("pays exactly one hand card even when two of them qualify", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: ["EX12-005", "BT1-015", "EX12-007"],
+          deck: ["BT1-001", "BT1-002", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.state.players[0]!.hand[0]!.instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.deck.length === 1);
+
+    expect(s.state.players[0]!.trash).toHaveLength(1);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-001", "BT1-002"]));
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009"]);
+  });
 });

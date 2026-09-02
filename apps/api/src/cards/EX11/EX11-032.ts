@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -17,7 +16,10 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // - [Your Turn] inherited: was unconditional `Unsuspend` on any [Vortex Warriors] Digimon.
 //   Text says "When this Digimon wins a battle" (Q5841), so it's gated behind a
 //   `whenBattleWon` SubTrigger (EX11-026 pattern); "this [Vortex Warriors] trait Digimon"
-//   refers to the source itself (isSelfRef), not a separately-searched trait match.
+//   refers to the source itself (isSelfRef), not a separately-searched trait match. The
+//   printed trait is a GATE on the inheriting host (BT26-066 precedent): a host without the
+//   [Vortex Warriors] trait inherits the watcher but unsuspends nothing, so the trait rides
+//   on the self target, which `candidatePermanents` still runs through `permanentMatchesFilter`.
 const compiled: CompiledCard = {
   digivolutionRequirement: [],
   effects: [
@@ -134,6 +136,7 @@ const compiled: CompiledCard = {
               target: {
                 filter: {
                   isSelfRef: true,
+                  nameOrTrait: [{ tokens: ["Vortex Warriors"], match: "trait" }],
                 },
                 count: 1,
                 isSelf: true,

@@ -137,6 +137,7 @@ export const compiled: CompiledCard = {
                 count: 1,
               },
               from: ["digivolutionCards"],
+              fromOwnDigivolutionStack: true,
               payCost: false,
               optional: true,
               playedByDecode: true,

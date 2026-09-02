@@ -29,6 +29,11 @@ describe("BT23-021 Dosukomon", () => {
       expect.objectContaining({ frequency: "OncePerTurn", sharedUseKey: "ir-shared-0" }),
       expect.objectContaining({ frequency: "OncePerTurn", sharedUseKey: "ir-shared-0" }),
     ]);
+    for (const trigger of ["WhenDigivolving", "WhenAttacking"]) {
+      expect((compiled.effects.find((entry) => entry.trigger === trigger) as any).actions[0].target).toMatchObject({
+        source: "thisDigimon",
+      });
+    }
   });
 
   it("installs only the printed Your Turn linked battle-deletion immunity", () => {
@@ -140,6 +145,36 @@ describe("BT23-021 Dosukomon", () => {
     await settle();
     expect(invalid.perm("base").linked).toHaveLength(0);
     expect(invalid.state.players[0]!.hand.map((card) => card.instanceId)).toContain(invalid.inst("noLink").instanceId);
+  });
+
+  it("when digivolving links from this Digimon's stack, not another friendly stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-017", as: "base", under: [{ card: "BT23-007", as: "ownLink" }] },
+            { card: "BT23-017", as: "otherHost", under: [{ card: "BT23-007", as: "otherLink" }] },
+          ],
+          hand: [{ card: "BT23-021", as: "dosukomon" }],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("dosukomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").linked.some((card) => card.instanceId === s.inst("ownLink").instanceId));
+
+    expect(s.perm("base").linked.map((card) => card.instanceId)).toContain(s.inst("ownLink").instanceId);
+    expect(s.perm("otherHost").stack.map((card) => card.instanceId)).toContain(s.inst("otherLink").instanceId);
+    expect(s.perm("otherHost").linked.map((card) => card.instanceId)).not.toContain(s.inst("otherLink").instanceId);
   });
 
   it("accepts all six distinct App Fusion pairs and rejects duplicate material, per Q5240", () => {

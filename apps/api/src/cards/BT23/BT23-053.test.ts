@@ -37,10 +37,11 @@ describe("BT23-053 Strikedramon", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 5;
     const strikeId = s.perm("strike").permanentId;
+    await s.ready();
 
     await advance(s.engine).verb.placeOptionAsPermanent(s.inst("option").instanceId);
 

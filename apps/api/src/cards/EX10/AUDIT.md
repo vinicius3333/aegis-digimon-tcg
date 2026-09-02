@@ -1,10 +1,44 @@
 # EX10 Card Audit Ledger
 
-Overall completion: **74/74 cards (100%) at 10/10**.
+Overall completion: **70/74 cards (94.6%) at 10/10**.
 
 This versioned ledger records the card-by-card revalidation delivered on branch
 `audit/ex10-card-by-card`. It complements executable evidence; it does not replace
 the catalog, knowledge-base rulings, direct IR inspection, or behavioral tests.
+
+## Revalidation 2026-09-01
+
+Branch `audit/ex10-card-by-card-20260901` re-audited every card with eight independent batch
+auditors and treated the previous 10/10 ledger as a claim to falsify. Range reports live in
+`internal-docs/audits/EX10/`; the collection ledger is `docs/audits/EX10-AUDIT.md`. Corrections:
+
+- Dead clauses: EX10-025 (ungated watcher), EX10-057 (unread digivolve restriction, Piedmon could
+  digivolve into anything), EX10-064 (unknown zone name killed the under-Tamers DigiXros half).
+- Fabricated or invented content removed: EX10-030 (link effect the card does not print),
+  EX10-029 (route with a nonexistent trait), EX10-015, -056, -058 (restated EvoCost rows
+  registered as unprinted alternate routes).
+- Free or forced effects: EX10-009 (unsuspended extra attack), EX10-013, -060, -071 ("by" costs
+  not declinable, CR 15-7-4), EX10-034 (uncapped DigiXros, subject-less granted attack).
+- Scope and targets: EX10-001, -022, -031, -032, -044, -059. Rules: EX10-003, -004, -006, -023,
+  -041, -065, -069.
+- Engine and shared seams: rule-based link trashes no longer fire "when effects trash" watchers
+  (Q5088, Q5172, Q5188); `whenSecurityBattleEnded` in the shared union; `amountPerPlaced`,
+  `copyTrigger`, and `upTo` declared; `// @ts-nocheck` removed from all 74 modules.
+- Persistence: 66 of 74 records were stale; all 74 regenerated and `EX10-catalog-sync.test.ts`
+  enforces equality. EX10-058's structural-only suite replaced with a behavioral one.
+
+## Exceptions
+
+- **EX10-010 BlackWarGreymon, 9/10 (peer and stack 1/2).** Q5202's mutual loop between two facing copies
+  diverges: the continuous pass resolves each effect once with no fixpoint iteration, so a
+  continuous grant never satisfies another continuous gate. Engine seam recorded in
+  `docs/audits/EX10-AUDIT.md`.
+- **EX10-059 DarknessBagramon, 9/10 (peer and stack 1/2).** "Choose 1 card in your opponent's hand without
+  looking" has no blind-selection primitive; the choice is correct but not hidden.
+- **EX10-062 Yujin Ozora, 9/10 (behavioral 1/2).** The `[Once Per Turn]` limit cannot be isolated because
+  the harness re-picks the already-fused host in the second window.
+- **EX10-064 Yuu Amano & Nene Amano, 9/10 (behavioral 1/2).** The ledger-side DigiXros zone expansion has no single-card
+  fixture; the intent-side path is proven.
 
 ## Scoring rubric
 
@@ -42,7 +76,7 @@ all five component scores, the final score, and direct links to its module and f
 | EX10-007 | Greymon                      |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX10-007.ts`](./EX10-007.ts) · [`EX10-007.test.ts`](./EX10-007.test.ts) |
 | EX10-008 | MetalGreymon                 |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX10-008.ts`](./EX10-008.ts) · [`EX10-008.test.ts`](./EX10-008.test.ts) |
 | EX10-009 | Creepymon                    |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX10-009.ts`](./EX10-009.ts) · [`EX10-009.test.ts`](./EX10-009.test.ts) |
-| EX10-010 | BlackWarGreymon              |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX10-010.ts`](./EX10-010.ts) · [`EX10-010.test.ts`](./EX10-010.test.ts) |
+| EX10-010 | BlackWarGreymon              |            2/2 |      2/2 |              2/2 |        1/2 |   2/2 |  9/10 | [`EX10-010.ts`](./EX10-010.ts) · [`EX10-010.test.ts`](./EX10-010.test.ts) |
 | EX10-011 | MaloMyotismon                |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX10-011.ts`](./EX10-011.ts) · [`EX10-011.test.ts`](./EX10-011.test.ts) |
 | EX10-012 | MetalSeadramon               |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX10-012.ts`](./EX10-012.ts) · [`EX10-012.test.ts`](./EX10-012.test.ts) |
 | EX10-013 | Lucemon                      |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX10-013.ts`](./EX10-013.ts) · [`EX10-013.test.ts`](./EX10-013.test.ts) |
@@ -91,12 +125,12 @@ all five component scores, the final score, and direct links to its module and f
 | EX10-056 | Bagramon                     |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX10-056.ts`](./EX10-056.ts) · [`EX10-056.test.ts`](./EX10-056.test.ts) |
 | EX10-057 | Piedmon                      |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX10-057.ts`](./EX10-057.ts) · [`EX10-057.test.ts`](./EX10-057.test.ts) |
 | EX10-058 | Lilithmon                    |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX10-058.ts`](./EX10-058.ts) · [`EX10-058.test.ts`](./EX10-058.test.ts) |
-| EX10-059 | DarknessBagramon             |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX10-059.ts`](./EX10-059.ts) · [`EX10-059.test.ts`](./EX10-059.test.ts) |
+| EX10-059 | DarknessBagramon             |            2/2 |      2/2 |              2/2 |        1/2 |   2/2 |  9/10 | [`EX10-059.ts`](./EX10-059.ts) · [`EX10-059.test.ts`](./EX10-059.test.ts) |
 | EX10-060 | Lucemon: Satan Mode          |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX10-060.ts`](./EX10-060.ts) · [`EX10-060.test.ts`](./EX10-060.test.ts) |
 | EX10-061 | Apocalymon                   |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX10-061.ts`](./EX10-061.ts) · [`EX10-061.test.ts`](./EX10-061.test.ts) |
-| EX10-062 | Yujin Ozora                  |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX10-062.ts`](./EX10-062.ts) · [`EX10-062.test.ts`](./EX10-062.test.ts) |
+| EX10-062 | Yujin Ozora                  |            2/2 |      2/2 |              1/2 |        2/2 |   2/2 |  9/10 | [`EX10-062.ts`](./EX10-062.ts) · [`EX10-062.test.ts`](./EX10-062.test.ts) |
 | EX10-063 | Close                        |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX10-063.ts`](./EX10-063.ts) · [`EX10-063.test.ts`](./EX10-063.test.ts) |
-| EX10-064 | Yuu Amano & Nene Amano       |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX10-064.ts`](./EX10-064.ts) · [`EX10-064.test.ts`](./EX10-064.test.ts) |
+| EX10-064 | Yuu Amano & Nene Amano       |            2/2 |      2/2 |              1/2 |        2/2 |   2/2 |  9/10 | [`EX10-064.ts`](./EX10-064.ts) · [`EX10-064.test.ts`](./EX10-064.test.ts) |
 | EX10-065 | Yukio Oikawa                 |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX10-065.ts`](./EX10-065.ts) · [`EX10-065.test.ts`](./EX10-065.test.ts) |
 | EX10-066 | Akihiro Kurata               |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX10-066.ts`](./EX10-066.ts) · [`EX10-066.test.ts`](./EX10-066.test.ts) |
 | EX10-067 | Ryoma Mogami                 |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX10-067.ts`](./EX10-067.ts) · [`EX10-067.test.ts`](./EX10-067.test.ts) |

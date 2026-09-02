@@ -66,6 +66,68 @@ describe("EX11-051 Necromon", () => {
     assertNoLoudGap(s);
   });
 
+  it("deletes exactly one Digimon when two opponents tie for the lowest level", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: cardId, as: "source" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "lowA" },
+            { card: "BT7-067", as: "lowB" },
+            { card: "BT4-085", as: "high" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(2);
+    expect(s.state.players[1]!.battleArea.some((card) => card.topCard.cardId === "BT4-085")).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("plays only a level 4 or lower Ghost from the trash, never a level 5 Ghost or a level 3 non-Ghost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "source" }],
+          trash: [
+            { card: "BT4-085", as: "ghostTooHigh" },
+            { card: "BT1-009", as: "nonGhost" },
+            { card: "BT4-080", as: "ghostInRange" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+
+    const playedInRange = s.state.players[0]!.battleArea.some(
+      (card) => card.topCard.instanceId === s.inst("ghostInRange").instanceId,
+    );
+    expect(playedInRange).toBe(true);
+    for (const alias of ["ghostTooHigh", "nonGhost"]) {
+      expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst(alias).instanceId)).toBe(true);
+    }
+    assertNoLoudGap(s);
+  });
+
+  it("still deletes when the optional trash play is refused", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: cardId, as: "source" }], trash: [{ card: "BT4-080", as: "ghost" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "low" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("ghost").instanceId)).toBe(true);
+    assertNoLoudGap(s);
+  });
+
   it("may evolve another Ghost into a Ghost from hand for free when Necromon is deleted", async () => {
     const s = setupEngine(
       {

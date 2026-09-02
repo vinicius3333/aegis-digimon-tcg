@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -85,13 +84,26 @@ const compiled: CompiledCard = {
       ],
     },
     {
+      // "[All Turns] This Digimon can only digivolve into [Apocalymon]."
+      //
+      // Hand-corrected: this was a `kind: "Restrict"` node carrying `on: "digivolveTarget"` (a
+      // string where `RestrictAction.on` is a `Target`) plus a top-level `filter`, and NO
+      // `restriction` / `duration`. None of those three fields is read for that action kind, so
+      // the clause was entirely dead — the Digimon could digivolve into anything. The engine
+      // already owns the exact primitive: `RestrictDigivolveInto` is the POSITIVE digivolve-target
+      // constraint, proven by this card's sibling EX10-035 (same printed wording).
       trigger: "AllTurns",
       actions: [
         {
-          kind: "Restrict",
-          on: "digivolveTarget",
-          filter: {
-            controllerDefault: "mine",
+          kind: "RestrictDigivolveInto",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          into: {
             nameOrTrait: [
               {
                 tokens: ["Apocalymon"],
@@ -99,6 +111,7 @@ const compiled: CompiledCard = {
               },
             ],
           },
+          duration: "permanent",
         },
       ],
     },

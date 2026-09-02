@@ -36,6 +36,41 @@ describe("EX12-047 Amaterasumon", () => {
     );
   });
 
+  it("lets the controller decline the trash return and keeps every DP unchanged (CR 15-7-4)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX12-047", as: "source" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "lowest", dp: 1000 },
+            { card: "BT1-021", as: "target", dp: 15000 },
+          ],
+          trash: ["BT1-010", "BT1-027"],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+
+    const firing = advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const pending = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pending.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await firing;
+    await settle();
+
+    expect(s.perm("source").currentDP).toBe(12000);
+    expect(s.perm("target").currentDP).toBe(15000);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-010", "BT1-027", "BT1-009"]);
+    expect(s.state.players[1]!.deck).toHaveLength(1);
+  });
+
   it("does not apply the follow-up buffs when two opponent trash cards are unavailable", async () => {
     const s = setupEngine(
       {

@@ -32,6 +32,7 @@ describe("EX12-076 Susanoomon", () => {
     expect(digivolutionRequirementsFor(CARD_ID)).toEqual(compiled.digivolutionRequirement);
     expect(assemblyRequirementFor(CARD_ID)).toEqual(compiled.assemblyRequirement);
     expect(registeredCompiledCards.get(CARD_ID)).toEqual(compiled);
+    expect(compiledEffects[CARD_ID]).toBeDefined();
     expect(compiledEffects[CARD_ID]).toEqual(compiled);
   });
 
@@ -54,6 +55,10 @@ describe("EX12-076 Susanoomon", () => {
       {
         kind: "GainKeyword",
         keyword: { keyword: "Recovery", amount: 1 },
+        // `GainKeywordAction.duration` is REQUIRED by `CompiledCard`; the persisted record omits
+        // it, which was this module's only type error. ＜Recovery＞ is an action-type keyword, so
+        // the interpreter runs the verb and never records the grant — the value is inert.
+        duration: "permanent",
         condition: { kind: "selfDigivolutionStackDistinctColorCount", op: "gte", value: 4 },
       },
     ]);

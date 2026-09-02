@@ -134,6 +134,66 @@ describe("A3 EX10-062 — whenLinkTrashed consumer: suspend this Tamer to <Draw 
     expect(tamer.isSuspended).toBe(false);
   });
 
+  it("does not fire for an OPPONENT's Digimon's link card (sourceFilter controller: mine)", async () => {
+    // The printed text says "any of YOUR Digimon's link cards". Without
+    // `sourceFilter.controller: "mine"` the watcher would also arm on the opponent's link
+    // trash, so this is the case that falsifies that field.
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX10-062", as: "tamer" }],
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "opponentHost", linked: [{ card: "BT1-009", as: "opponentLink" }] }],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    const p0 = s.state.players[0]!;
+    const handBefore = p0.hand.length;
+    await s.engine.recomputeContinuousEffects();
+
+    await advance(s.engine).verb.trash([s.inst("opponentLink").instanceId]);
+    await settle(() => false, 30);
+
+    expect(s.perm("opponentHost").linked).toHaveLength(0);
+    expect(p0.hand.length).toBe(handBefore);
+    expect(s.perm("tamer").isSuspended).toBe(false);
+  });
+
+  it("[Once Per Turn] app fuses only once even with a second legal host and hand card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "tamer" },
+            { card: "EX10-017", as: "firstHost", linked: [{ card: "EX10-043", as: "firstSakusimon" }] },
+            { card: "EX10-017", as: "secondHost", linked: [{ card: "EX10-043", as: "secondSakusimon" }] },
+          ],
+          hand: [
+            { card: "EX10-019", as: "firstWarudamon" },
+            { card: "EX10-019", as: "secondWarudamon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnEndTurn, s.perm("tamer"));
+    await settle(() => s.perm("firstHost").topCard?.cardId === "EX10-019");
+
+    // Second activation in the SAME turn: the per-turn use ledger must refuse it.
+    await advance(s.engine).fireForPermanent(EffectTiming.OnEndTurn, s.perm("tamer"));
+    await settle(() => false, 30);
+
+    expect(s.perm("secondHost").topCard?.cardId).toBe("EX10-017");
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("secondWarudamon").instanceId,
+    );
+  });
+
   it("leaves the Tamer unsuspended and draws nothing when the suspend cost is declined", async () => {
     const s = setupEngine(
       {

@@ -1,11 +1,14 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// CAP-H-08: filter field `faceUp: true` on security scaling filter — counts only
-// face-up security cards (not all security cards). See CAPABILITIES-BACKLOG.md.
-// CAP-H-09: cost kind `flipSecurityFaceDown` — flip the top face-up security card
-// face down as a cost. See CAPABILITIES-BACKLOG.md.
+// `scaling.filter.faceUp: true` with `unit: "security"` counts only face-up security cards
+// (scaling.ts "security" case), and cost kind `flipSecurity` flips the controller's top
+// face-up security card face down, failing when there is none (costs.ts). Both are live
+// interpreter capabilities, not backlog gaps.
+//
+// The prevention's protected set is the Replacement's own `sourceFilter` ("any of your
+// [Royal Base] trait Digimon"); `runReplacement` skips the nested `Prevent` action entirely,
+// so that node carries no target.
 const compiled: CompiledCard = {
   digivolutionRequirement: [
     {
@@ -134,12 +137,6 @@ const compiled: CompiledCard = {
             {
               kind: "Prevent",
               mode: "leavePlay",
-              target: {
-                filter: {
-                  isTriggerSubject: true,
-                },
-                count: 1,
-              },
             },
           ],
           cost: {
