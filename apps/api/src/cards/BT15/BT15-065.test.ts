@@ -9,7 +9,14 @@ describe("BT15-065", () => {
     expect(compiled.effects?.[3]).toMatchObject({
       trigger: "YourTurn",
       isInherited: true,
-      actions: [{ kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: 1 }, duration: "forTheTurn" }],
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: { filter: { isSelfRef: true }, isSelf: true },
+          keyword: { keyword: "SecurityAttack", amount: 1 },
+          duration: "forTheTurn",
+        },
+      ],
     }));
   it("may trash a Numemon to de-digivolve an opposing Digimon to level 3 on play or digivolving", () => {
     expect(compiled.effects?.[0]).toMatchObject({

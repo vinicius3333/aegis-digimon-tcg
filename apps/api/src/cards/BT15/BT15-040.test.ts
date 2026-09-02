@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
+import { definitionMatches } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT15-040.js";
@@ -17,6 +19,17 @@ describe("BT15-040", () => {
         },
       ],
     }));
+
+  it("matches Numemon by name without accepting a card that merely mentions Numemon", () => {
+    const play = compiled.effects?.[0]?.actions[0];
+    expect(play?.kind).toBe("PlayWithoutCost");
+    if (play?.kind !== "PlayWithoutCost") throw new Error("BT15-040 play action is missing");
+
+    expect(play.target.filter.or?.[0]?.nameOrTrait).toEqual([{ tokens: ["Numemon"], match: "name" }]);
+    expect(definitionMatches(play.target.filter, getCardDefinition("BT14-058")!)).toBe(true);
+    expect(definitionMatches(play.target.filter, getCardDefinition("BT14-039")!)).toBe(false);
+  });
+
   it("once per turn gives an opposing Digimon -2000 DP when another Digimon is played, scaled by your Digimon count", () =>
     expect(compiled.effects?.[1]).toMatchObject({
       trigger: "AllTurns",

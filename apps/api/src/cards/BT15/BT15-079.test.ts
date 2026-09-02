@@ -9,7 +9,7 @@ describe("BT15-079", () => {
     expect(compiled.effects?.[4]).toMatchObject({
       trigger: "OnDeletion",
       isInherited: true,
-      actions: [{ kind: "Delete", target: { filter: { sourceRef: "battleOpponent" } } }],
+      actions: [{ kind: "Delete", target: { sourceRef: "battleOpponent" } }],
     }));
   it("deletes an unsuspended opposing Digimon on play and when attacking", () => {
     expect(compiled.effects?.[0]).toMatchObject({

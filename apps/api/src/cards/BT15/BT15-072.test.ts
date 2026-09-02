@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
+import { definitionMatches } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT15-072.js";
@@ -24,6 +26,22 @@ describe("BT15-072", () => {
       ],
     });
     expect(compiled.effects?.[1]?.frequency).toBeUndefined();
+  });
+
+  it("protects Apocalymon by name without matching unrelated cards that only mention it", () => {
+    const replacement = compiled.effects?.[1]?.actions[0];
+    expect(replacement?.kind).toBe("Replacement");
+    if (replacement?.kind !== "Replacement") throw new Error("BT15-072 replacement action is missing");
+    const sourceFilter = replacement.sourceFilter;
+    expect(sourceFilter).toBeDefined();
+    if (sourceFilter === undefined) throw new Error("BT15-072 protection filter is missing");
+
+    expect(sourceFilter.nameOrTrait).toEqual([
+      { tokens: ["Apocalymon"], match: "name" },
+      { tokens: ["Dark Masters"], match: "trait" },
+    ]);
+    expect(definitionMatches(sourceFilter, getCardDefinition("BT15-102")!)).toBe(true);
+    expect(definitionMatches(sourceFilter, getCardDefinition("BT17-068")!)).toBe(false);
   });
 
   it("naturally blocks an attack to protect a Dark Masters Digimon", async () => {

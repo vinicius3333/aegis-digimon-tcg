@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -73,7 +72,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "Delete",
-          target: { filter: { sourceRef: "battleOpponent" }, count: 1 },
+          target: { sourceRef: "battleOpponent", filter: {}, count: 1 },
         },
       ],
       isInherited: true,

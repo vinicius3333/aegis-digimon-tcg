@@ -30,6 +30,7 @@ export type SubTriggerEvent =
   | "whenAnyDigivolves" // `sourceFilter` narrows the controller
   | "onDeletionOf"
   | "whenSecurityRemoved"
+  | "whenEffectRemovesFromSecurity"
   | "whenCardTrashedFromSecurity"
   | "whenEffectTrashesFromSecurity"
   | "whenAddSecurity"
@@ -57,6 +58,7 @@ export type SubTriggerEvent =
   | "opponentAddsSecurityToHand"
   | "whenCardPlacedInDigivolution"
   | "whenMovedFromBreeding"
+  | "whenOpponentMovedFromBreeding"
   | "whenBattleWon"
   | "whenHandCardTrashed"
   | "whenHandTrashed" // once per trash ACTION, not per card (KB Q6400/Q6401)
@@ -64,14 +66,15 @@ export type SubTriggerEvent =
   | "whenTrashedFromHand"
   | "whenEffectAddsToHand"
   | "whenEffectAddsToOpponentHand" // any effect-driven hand addition, unlike the draw-only whenOpponentDraws
+  | "whenCardReturnsFromTrashToHand"
   | "whenDigimonWouldLeave" // the ＜Delay＞ watcher (BT19-099); aliases whenLeavesPlay at runtime
   | "wouldBeReturned" // BT20-074; CAP-C-11
   | "whenTrashedByEffect" // while in the battle area (BT19-093; CAP-E8)
   | "whenTrashedFromDeck" // BT19-097; CAP-H-01
   | "whenCheckedFaceUpSecurity" // BT20-055; CAP-H-03
   | "raw"
-| "whenSecurityBattleEnded"
-| "whenFaceUpCardsAddedToOpponentSecurity";
+  | "whenSecurityBattleEnded"
+  | "whenFaceUpCardsAddedToOpponentSecurity";
 
 export interface SubTriggerAction extends ActionBase {
   kind: "SubTrigger";

@@ -10,7 +10,7 @@ describe("BT15-077", () => {
     expect(compiled.effects?.[2]).toMatchObject({
       trigger: "OnDeletion",
       isInherited: true,
-      actions: [{ kind: "Delete", target: { filter: { sourceRef: "battleOpponent" } } }],
+      actions: [{ kind: "Delete", target: { sourceRef: "battleOpponent" } }],
     }));
   it("reveals four to add up to two level 6 or higher cards", () =>
     expect(compiled.effects?.[0]).toMatchObject({

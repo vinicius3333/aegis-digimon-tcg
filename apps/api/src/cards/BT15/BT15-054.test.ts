@@ -23,8 +23,8 @@ describe("BT15-054", () => {
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "WhenDigivolving",
       actions: [
-        { kind: "Suspend", target: { bindAs: "digimonTarget" } },
-        { kind: "Suspend", target: { bindAs: "tamerTarget" } },
+        { kind: "Suspend", target: { bindAs: "digimonTarget", filter: { unsuspended: true } } },
+        { kind: "Suspend", target: { bindAs: "tamerTarget", filter: { unsuspended: true } } },
         { kind: "Restrict", target: { fromSelectionRef: "digimonTarget" } },
         { kind: "Restrict", target: { fromSelectionRef: "tamerTarget" } },
       ],

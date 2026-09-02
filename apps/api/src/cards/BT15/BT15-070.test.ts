@@ -51,7 +51,7 @@ describe("BT15-070", () => {
     expect(compiled.effects?.[1]).toMatchObject({
       trigger: "OnDeletion",
       isInherited: true,
-      actions: [{ kind: "Delete", target: { filter: { sourceRef: "battleOpponent" } } }],
+      actions: [{ kind: "Delete", target: { sourceRef: "battleOpponent" } }],
     }));
 
   it("deletes its battle partner through a legal DemiDevimon-to-Vilemon stack", async () => {
