@@ -39,6 +39,7 @@ describe("BT23-066 Matadormon", () => {
     );
     const targetId = s.perm("target").permanentId;
     const candidateId = s.inst("candidate").instanceId;
+    await s.ready();
     await (
       s.engine as unknown as {
         fireTiming(timing: EffectTiming, trigger: Record<string, unknown>): Promise<void>;
@@ -70,7 +71,7 @@ describe("BT23-066 Matadormon", () => {
           security: ["BT1-028"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 5;
     const targetId = s.perm("target").permanentId;

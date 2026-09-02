@@ -43,7 +43,17 @@ describe("EX12-059 Machinedramon ACE", () => {
               destination: "digivolutionStack",
               position: "bottom",
               host: "self",
-              target: { count: 2, from: ["hand", "trash"] },
+              // Printed over "cards", so no kind gate: a level 5 or lower Digi-Egg with a
+              // matching trait is legal material too.
+              target: {
+                count: 2,
+                from: ["hand", "trash"],
+                filter: {
+                  controller: "mine",
+                  levelComparison: { op: "lte", value: 5 },
+                  nameOrTrait: [{ tokens: ["Machine", "Cyborg", "ME"], match: "trait" }],
+                },
+              },
             },
           },
         ],
@@ -77,6 +87,30 @@ describe("EX12-059 Machinedramon ACE", () => {
     expect(s.perm("source").stack).toContainEqual(protectedCard);
     await advance(s.engine).verb.trashDigivolutionCards(s.perm("source").permanentId, [protectedCard.instanceId], 0);
     expect(s.perm("source").stack).not.toContainEqual(protectedCard);
+  });
+
+  it("accepts a level 2 [ME] Digi-Egg as one of the two placed materials", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "source" }],
+          hand: [{ card: "EX12-055", as: "handMaterial" }],
+          // EX12-003 Kapurimon is a Lv.2 Digi-Egg with the [ME] trait; the printed cost takes
+          // "cards", so it qualifies alongside the Lv.5 Digimon.
+          trash: [{ card: "EX12-003", as: "digiEggMaterial" }],
+        },
+        1: { battleArea: [{ card: "EX12-058", as: "opponent", under: ["EX12-055", "EX12-055", "EX12-055"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    await settle(() => s.perm("source").stack.length === 2);
+
+    expect(s.perm("source").stack.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["EX12-003", "EX12-055"]),
+    );
+    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX12-003")).toBe(false);
   });
 
   it("still resolves De-Digivolve when the exact two-card protection payment is unavailable", async () => {

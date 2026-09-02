@@ -108,6 +108,31 @@ describe("BT24-083 Hiroko Sagisaka", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("stillInHand").instanceId);
   });
 
+  it("runs the Start of Your Turn effect through the natural turn window", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-083", as: "hiroko" }],
+          hand: [{ card: "BT24-013", as: "eligible" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("eligible").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("eligible").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.deck.some((card) => card.cardId === "BT24-083")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
   it("reveals three, adds one TS card, and bottoms the rest", async () => {
     const s = setupEngine(
       {

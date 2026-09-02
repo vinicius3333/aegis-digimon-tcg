@@ -63,10 +63,10 @@ describe("BT25-062 Kokuwamon", () => {
     );
     preferred.push(s.inst("machineTarget").instanceId);
     s.state.memory = 4;
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("koku"));
+    await advance(s.engine).runTurn(0);
     await settle(() => s.perm("koku").topCard.instanceId === s.inst("machineTarget").instanceId);
 
-    expect(s.state.memory).toBe(4); // free digivolution
+    expect(s.state.memory).toBe(-3); // runTurn completes the phase transition after free digivolution.
     expect(s.perm("koku").stack.map((card) => card.cardId)).toEqual(["BT25-062"]);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT25-061"]);
     expect(observe(s.engine).hasKeyword(s.perm("koku"), "Blocker")).toBe(true);

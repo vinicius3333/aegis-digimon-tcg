@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -31,7 +30,9 @@ const compiled: CompiledCard = {
               optional: true,
               abortOnDecline: true,
             },
-            { kind: "GainMemory", amount: 1, controller: "mine" },
+            // GainMemory always credits the resolving source's owner; the record's
+            // `controller` field does not exist on GainMemoryAction and was never read.
+            { kind: "GainMemory", amount: 1 },
           ],
         },
       ],

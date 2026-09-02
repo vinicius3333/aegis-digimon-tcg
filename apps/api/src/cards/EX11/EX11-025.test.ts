@@ -52,7 +52,7 @@ describe("EX11-025 FunBeemon", () => {
     expect(compiled.effects[1]).toMatchObject({
       trigger: "StartOfYourMainPhase",
       actions: [
-        { kind: "SecurityManipulation", op: "toHand", amount: 1, toTop: true },
+        { kind: "SecurityManipulation", op: "toHand", amount: 1, toTop: true, faceDownOnly: true },
         {
           kind: "SecurityManipulation",
           op: "placeAsSecurity",
@@ -93,6 +93,30 @@ describe("EX11-025 FunBeemon", () => {
     );
     expect(s.state.players[0]!.security.map(({ cardId: id }) => id)).toEqual(["BT1-002", "EX11-030"]);
     expect(s.state.players[0]!.security[1]).toMatchObject({ cardId: "EX11-030", faceUp: true });
+    assertNoLoudGap(s);
+  });
+
+  // "Add your top FACE-DOWN security card to the hand": a face-up security card (which this very
+  // card creates, and which KB Q5812/Q5813 keep revealed in the stack) is skipped. Drop
+  // `faceDownOnly` from the module and BT1-001 is taken instead, failing both assertions.
+  it("skips a face-up security card and takes the top face-down one", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "source" }],
+          security: [
+            { card: "BT1-001", as: "faceUpTop", faceUp: true },
+            { card: "BT1-002", as: "faceDown" },
+          ],
+          hand: [{ card: "EX11-030", as: "royalBase" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("source"));
+    expect(s.state.players[0]!.hand.map(({ cardId: id }) => id)).toEqual(["BT1-002"]);
+    expect(s.state.players[0]!.security.map(({ cardId: id }) => id)).toEqual(["BT1-001", "EX11-030"]);
+    expect(s.state.players[0]!.security[0]).toMatchObject({ cardId: "BT1-001", faceUp: true });
     assertNoLoudGap(s);
   });
 

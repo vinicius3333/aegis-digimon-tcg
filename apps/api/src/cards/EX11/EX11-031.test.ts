@@ -105,6 +105,51 @@ describe("EX11-031 Vespamon", () => {
     assertNoLoudGap(s);
   });
 
+  it("suspends nothing without a face-up security card but still restricts unsuspending", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "source" }],
+          security: [{ card: "BT1-001", faceUp: false }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "victim", suspended: true },
+            { card: "BT1-010", as: "bystander" },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("victim").topCard.instanceId);
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    expect(s.perm("bystander").isSuspended).toBe(false);
+    await advance(s.engine).verb.unsuspend([s.perm("victim").permanentId]);
+    expect(s.perm("victim").isSuspended).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("does not protect a Digimon without the Royal Base trait", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-032", as: "carrier", under: [cardId] },
+            { card: "BT1-009", as: "plain" },
+          ],
+          security: [{ card: "BT1-001", faceUp: true }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("plain").permanentId], "byEffect")).toBe(1);
+    expect(s.state.players[0]!.security[0]).toMatchObject({ faceUp: true });
+    assertNoLoudGap(s);
+  });
+
   it("inherits once-per-turn protection from non-owner effects and pays with the top face-up security", async () => {
     const s = setupEngine(
       {

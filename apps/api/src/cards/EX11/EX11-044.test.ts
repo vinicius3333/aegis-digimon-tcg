@@ -37,7 +37,12 @@ describe("EX11-044 Pyramidimon", () => {
         optional: true,
         abortOnDecline: true,
         target: { filter: { superlative: "highestPlayCost", kind: ["Digimon", "Tamer"] } },
-        cost: { kind: "trash", target: { from: ["digivolutionCards"], count: 3 } },
+        // FAILS-WHEN-REVERTED: canPayCost recognizes a stack-trash cost only through
+        // filter.zone; with just `from` the affordability gate falls through to its default.
+        cost: {
+          kind: "trash",
+          target: { filter: { controller: "mine", zone: "digivolutionCards" }, from: ["digivolutionCards"], count: 3 },
+        },
       });
     }
     const recovery = compiled.effects.find((effect) => effect.trigger === "AllTurns")!;
@@ -84,6 +89,63 @@ describe("EX11-044 Pyramidimon", () => {
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(cost5Id);
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(cost6Id);
     expect(s.perm("source").stack.map(({ cardId: id }) => id)).toEqual(["EX11-038", "EX11-038", "EX11-038"]);
+    // The payable path DOES ask, so the empty-prompt assertion in the 2-source case below is a
+    // real discriminator and not vacuously true.
+    expect(s.decisions.filter(({ req }) => req.kind === "optional").length).toBeGreaterThan(0);
+    assertNoLoudGap(s);
+  });
+
+  /** KB Q5890: the 3 cards may be spread across several of your Digimon's stacks. */
+  it("pays the 3 Mineral sources across two different Digimon", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "source", under: ["EX11-038", "EX11-038"] },
+            { card: "BT1-019", as: "ally", under: ["EX11-038"] },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "AD1-001", as: "cost5" },
+            { card: "AD1-011", as: "cost8" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("cost8").permanentId);
+    const cost5Id = s.perm("cost5").permanentId;
+    const cost8Id = s.perm("cost8").permanentId;
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    // The [All Turns] watcher fires on the effect-driven stack trash and rebuilds the SOURCE's
+    // stack from the trash; the ALLY's paid card is not returned to it.
+    expect(s.perm("source").stack.map(({ cardId: id }) => id)).toEqual(["EX11-038", "EX11-038", "EX11-038"]);
+    expect(s.perm("ally").stack).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(cost5Id);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(cost8Id);
+    assertNoLoudGap(s);
+  });
+
+  /** KB Q5889: a "by" cost cannot be partially paid — 2 sources delete nothing and trash nothing. */
+  it("deletes nothing and trashes nothing when only 2 Mineral sources exist", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: cardId, as: "source", under: ["EX11-038", "EX11-038"] }] },
+        1: { battleArea: [{ card: "AD1-011", as: "cost8" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const cost8Id = s.perm("cost8").permanentId;
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    expect(s.perm("source").stack.map(({ cardId: id }) => id)).toEqual(["EX11-038", "EX11-038"]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(cost8Id);
+    // FAILS-WHEN-REVERTED: this is the observable half of the `filter.zone` fix. canPayCost
+    // recognizes a stack-trash cost only through filter.zone; without it the gate returned its
+    // `true` default and the unpayable clause still opened an optional prompt.
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(0);
     assertNoLoudGap(s);
   });
 });

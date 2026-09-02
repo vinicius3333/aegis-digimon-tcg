@@ -106,6 +106,25 @@ describe("BT19-024 MarineBullmon", () => {
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT19-028")).toBe(true);
   });
 
+  it("Decode plays only from its own digivolution cards, never from a neighbor's stack (CR 16-36-1)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT19-024", as: "marine" },
+            { card: "BT19-023", as: "neighbor", under: ["BT19-019"] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("marine").permanentId], "byEffect");
+    await settle();
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard?.cardId)).toEqual(["BT19-023"]);
+    expect(s.perm("neighbor").stack.map((card) => card.cardId)).toEqual(["BT19-019"]);
+  });
+
   it("Decode does not activate for battle deletion", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "BT19-024", as: "marine", under: ["BT19-019"] }] } },

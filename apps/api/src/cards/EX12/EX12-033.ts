@@ -1,10 +1,13 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
+//
+// Hand-fixed: the Option side's "Trash any 4 cards under your opponent's Digimon or Tamers"
+// pools every eligible host, so its target count is "all" (the Target contract's only
+// non-numeric value), matching EX12-035's identical `scope: "acrossDigimon"` shape.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -146,8 +149,6 @@ const compiled: CompiledCard = {
             {
               kind: "Prevent",
               mode: "leavePlay",
-              optional: true,
-              abortOnDecline: true,
               cost: {
                 kind: "return",
                 target: {
@@ -159,6 +160,8 @@ const compiled: CompiledCard = {
                 },
                 raw: "by returning 3 cards from your trash to the bottom of the deck",
               },
+              optional: true,
+              abortOnDecline: true,
             },
           ],
         },
@@ -204,12 +207,11 @@ const compiled: CompiledCard = {
               kind: ["Digimon", "Tamer"],
               digivolutionCards: "hasAny",
             },
-            count: "any",
+            count: "all",
           },
           scope: "acrossDigimon",
           amount: 4,
           fromTop: false,
-          distributed: true,
         },
         {
           kind: "Return",

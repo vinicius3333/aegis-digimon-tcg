@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -11,6 +10,10 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   Then, give 1 of their Digimon "[Start of Your Main Phase] This Digimon attacks."
 //   until their turn ends.
 // [Inherited] <Decode (Lv.4 or lower w/[Agumon]/[Greymon] in name or w/[ME]/[VB] trait)>
+//
+// Decode's replacement plays from "THAT Digimon's digivolution cards" (CR 16-36-1), so the
+// PlayWithoutCost target carries `hostFilter: { isSelfRef: true }`; without it the
+// `from: ["digivolutionCards"]` pool spans every stack the controller owns.
 //
 // The grant uses the same proven startOfYourMainPhase SubTrigger shape as BT23-056 and
 // BT12-065. Unlike BT23-056, this card has NO precondition gating the grant — it is
@@ -44,6 +47,7 @@ const compiled: CompiledCard = {
                 filter: {
                   controller: "mine",
                   kind: ["Digimon"],
+                  hostFilter: { isSelfRef: true },
                   levelComparison: { op: "lte", value: 4 },
                   nameOrTrait: [
                     { tokens: ["Agumon", "Greymon"], match: "name" },
@@ -181,6 +185,7 @@ const compiled: CompiledCard = {
                 filter: {
                   controller: "mine",
                   kind: ["Digimon"],
+                  hostFilter: { isSelfRef: true },
                   levelComparison: { op: "lte", value: 4 },
                   nameOrTrait: [
                     { tokens: ["Agumon", "Greymon"], match: "name" },

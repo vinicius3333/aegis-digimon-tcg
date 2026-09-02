@@ -153,4 +153,23 @@ describe("EX10-008 MetalGreymon", () => {
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[1]!.trash).toHaveLength(0);
   });
+
+  it("does not trash security on the controller's own turn ([Opponent's Turn] window)", async () => {
+    // FAILS-WHEN-REVERTED: widening the inherited clause to AllTurns lets a Greymon host
+    // strip security on both turns.
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX10-010", as: "host", under: ["EX10-008"] }] },
+      1: { security: ["BT1-009", "BT1-010"] },
+    });
+    s.state.turnSeat = 0;
+    await s.engine.recomputeContinuousEffects();
+
+    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
+      subjectPermanentId: s.perm("host").permanentId,
+    });
+    await settle(() => false, 30);
+
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+  });
 });

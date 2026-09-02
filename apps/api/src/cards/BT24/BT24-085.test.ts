@@ -121,6 +121,29 @@ describe("BT24-085 Dan Yuki & Kanan Yuki", () => {
     expect(observe(s.engine).hasAttackedThisTurn(s.perm("attacker"))).toBe(false);
   });
 
+  it("runs the End of Your Turn effect through the natural turn window", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-085", as: "source" },
+            { card: "BT24-024", as: "attacker" },
+          ],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => observe(s.engine).hasAttackedThisTurn(s.perm("attacker")));
+    await turn;
+    expect(s.perm("source").isSuspended).toBe(true);
+    expect(observe(s.engine).hasAttackedThisTurn(s.perm("attacker"))).toBe(true);
+  });
+
   it("plays itself from security without paying the cost", async () => {
     const s = setupEngine({ 0: { security: [{ card: "BT24-085", as: "source" }] } });
     await s.ready();

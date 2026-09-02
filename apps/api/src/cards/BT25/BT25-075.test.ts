@@ -95,4 +95,38 @@ describe("BT25-075 Vulcanusmon", () => {
     expect(s.perm("nearMatch").keywords).not.toContain("Rush");
     expect(s.perm("nearMatch").keywords).not.toContain("Link");
   });
+
+  it("publicly playing Vulcanusmon links up to two cards, then scales De-Digivolve", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: CARD_ID, as: "vulcanusmon" },
+            { card: "BT25-100", as: "firstLink" },
+            { card: "BT25-101", as: "secondLink" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT25-020", as: "opponent", under: ["BT24-009", "BT24-010"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 7;
+    preferred.push(s.inst("firstLink").instanceId, s.inst("secondLink").instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vulcanusmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard?.instanceId === s.inst("vulcanusmon").instanceId,
+        ) && s.perm("vulcanusmon").linked.length === 2,
+    );
+
+    expect(s.perm("vulcanusmon").linked.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("firstLink").instanceId, s.inst("secondLink").instanceId]),
+    );
+    // Two linked cards each apply De-Digivolve 1, removing both sources from this two-card stack.
+    expect(s.perm("opponent").stack).toHaveLength(0);
+  });
 });

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -7,7 +6,13 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   Added playCost ≤ 10 restriction to all 4 effects (text: "play or use cost 10
 //   or lower card"). Each effect also applies to Option cards ("play or use"), so
 //   the filter names Digimon, Tamer AND Option: a kind-less filter no longer reaches
-//   Options at all, because "play" alone never does.
+//   Options at all, because "play" alone never does (`playableCandidates`).
+//   `hostFilter` scopes the digivolution-card pool to the controller's battle-area DIGIMON.
+//   This is deliberately NOT `hostFilter: { isSelfRef: true }` — unlike a ＜Decode＞
+//   replacement (CR 16-36-1, EX12-014), the printed text reads "from ANY of your Digimon's
+//   digivolution cards", so every stack the controller owns is in scope.
+// [On Play][When Digivolving] Delete cost: the placement pool must not be restricted to
+//   Digimon cards; see the comment on the cost target.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -48,7 +53,10 @@ const compiled: CompiledCard = {
             target: {
               filter: {
                 controller: "mine",
-                kind: ["Digimon"],
+                // Printed text is "2 CARDS with [Gammamon] in their texts or the [VB] trait",
+                // not "2 Digimon cards". A `kind: ["Digimon"]` gate here dropped every
+                // qualifying Tamer and Option (EX12-073 Giant Meat carries [VB]) from the
+                // payable pool. The HOST restriction lives on `underFilter` below.
                 nameOrTrait: [
                   {
                     tokens: ["Gammamon"],
@@ -92,7 +100,10 @@ const compiled: CompiledCard = {
             target: {
               filter: {
                 controller: "mine",
-                kind: ["Digimon"],
+                // Printed text is "2 CARDS with [Gammamon] in their texts or the [VB] trait",
+                // not "2 Digimon cards". A `kind: ["Digimon"]` gate here dropped every
+                // qualifying Tamer and Option (EX12-073 Giant Meat carries [VB]) from the
+                // payable pool. The HOST restriction lives on `underFilter` below.
                 nameOrTrait: [
                   {
                     tokens: ["Gammamon"],
@@ -140,6 +151,10 @@ const compiled: CompiledCard = {
                   match: "trait",
                 },
               ],
+              // "from any of YOUR DIGIMON's digivolution cards": the loose `digivolutionCards`
+              // zone also yields cards stacked under the controller's Tamers and under the
+              // BREEDING-area Digimon, neither of which is "your Digimon". Scope the host.
+              hostFilter: { kind: ["Digimon"], zone: "battleArea" },
               playCostLte: 10,
             },
             count: 1,
@@ -173,6 +188,10 @@ const compiled: CompiledCard = {
                   match: "trait",
                 },
               ],
+              // "from any of YOUR DIGIMON's digivolution cards": the loose `digivolutionCards`
+              // zone also yields cards stacked under the controller's Tamers and under the
+              // BREEDING-area Digimon, neither of which is "your Digimon". Scope the host.
+              hostFilter: { kind: ["Digimon"], zone: "battleArea" },
               playCostLte: 10,
             },
             count: 1,
@@ -206,6 +225,10 @@ const compiled: CompiledCard = {
                   match: "trait",
                 },
               ],
+              // "from any of YOUR DIGIMON's digivolution cards": the loose `digivolutionCards`
+              // zone also yields cards stacked under the controller's Tamers and under the
+              // BREEDING-area Digimon, neither of which is "your Digimon". Scope the host.
+              hostFilter: { kind: ["Digimon"], zone: "battleArea" },
               playCostLte: 10,
             },
             count: 1,
@@ -239,6 +262,10 @@ const compiled: CompiledCard = {
                   match: "trait",
                 },
               ],
+              // "from any of YOUR DIGIMON's digivolution cards": the loose `digivolutionCards`
+              // zone also yields cards stacked under the controller's Tamers and under the
+              // BREEDING-area Digimon, neither of which is "your Digimon". Scope the host.
+              hostFilter: { kind: ["Digimon"], zone: "battleArea" },
               playCostLte: 10,
             },
             count: 1,

@@ -88,4 +88,60 @@ describe("EX11-036 Dalphomon", () => {
     expect(s.state.memory).toBe(0);
     assertNoLoudGap(s);
   });
+
+  it("never digivolves itself at end of turn, even into a card it legally could become", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "source" }],
+          hand: [{ card: "EX11-073", as: "next" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("source"));
+    expect(s.perm("source").topCard.cardId).toBe(cardId);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("next").instanceId]);
+    assertNoLoudGap(s);
+  });
+
+  it("hands that same card to another eligible Digimon instead", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "source" },
+            { card: "BT1-080", as: "other" },
+          ],
+          hand: [{ card: "EX11-073", as: "next" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("source"));
+    expect(s.perm("source").topCard.cardId).toBe(cardId);
+    expect(s.perm("other").topCard.cardId).toBe("EX11-073");
+    assertNoLoudGap(s);
+  });
+
+  it("inherits the linked suspend only when its own host is the linked Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-080", as: "host", under: [cardId] },
+            { card: "BT1-009", as: "otherAlly" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "victim" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await advance(s.engine).fireSubTrigger("whenLinked", { subjectPermanentId: s.perm("otherAlly").permanentId });
+    expect(s.perm("victim").isSuspended).toBe(false);
+    await advance(s.engine).fireSubTrigger("whenLinked", { subjectPermanentId: s.perm("host").permanentId });
+    expect(s.perm("victim").isSuspended).toBe(true);
+    assertNoLoudGap(s);
+  });
 });

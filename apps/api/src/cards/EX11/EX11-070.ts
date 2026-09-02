@@ -1,9 +1,11 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
-const maquinamonText = { controller: "mine", kind: ["Digimon"], textContains: "Maquinamon" };
+const self: Target = { filter: { isSelfRef: true }, count: 1, isSelf: true };
+// `textContains` IS read by the interpreter (matching/definition.ts: name ∪ traits ∪ effect text
+// ∪ inherited text, KB Q5942), so the clause is live. The type error was the untyped const
+// widening `controller`/`kind` to `string`/`string[]`; annotating it keeps the literal types.
+const maquinamonText: Filter = { controller: "mine", kind: ["Digimon"], textContains: "Maquinamon" };
 
 export const compiled: CompiledCard = {
   effects: [
@@ -72,6 +74,11 @@ export const compiled: CompiledCard = {
               controller: "mine",
               kind: ["Tamer"],
               nameOrTrait: [{ tokens: ["Unchained"], match: "name" }],
+              // "from THIS Digimon's digivolution cards". The engine only auto-scopes a
+              // `digivolutionCards` play to its host for ＜Decode＞ (play.ts applyDecodeHostScope),
+              // so without this the clause pooled every Unchained under any of the controller's
+              // Digimon.
+              hostFilter: { isSelfRef: true },
             },
             count: 1,
           },

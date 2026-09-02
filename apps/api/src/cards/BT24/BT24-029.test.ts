@@ -45,10 +45,15 @@ describe("BT24-029 Whamon", () => {
     expect(endOfAttack).toMatchObject({
       kind: "PlayWithoutCost",
       from: ["digivolutionCards"],
-      fromHost: "self",
+      fromOwnDigivolutionStack: true,
       optional: true,
     });
-    expect(inherited.fromHost).toBe("self");
+    expect(inherited).toMatchObject({
+      kind: "PlayWithoutCost",
+      from: ["digivolutionCards"],
+      fromOwnDigivolutionStack: true,
+      optional: true,
+    });
     expect(inherited.target.filter).toMatchObject({ levelComparison: { op: "lte", value: 4 }, colors: ["Blue"] });
   });
 

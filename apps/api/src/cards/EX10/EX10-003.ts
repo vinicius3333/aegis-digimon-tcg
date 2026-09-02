@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -18,11 +17,14 @@ const compiled: CompiledCard = {
               kind: "EndAttack",
               cost: {
                 kind: "trash",
+                // "3 [Mineral] or [Rock] trait CARDS", not Digimon cards: a `kind: ["Digimon"]`
+                // gate would exclude the Digi-Egg at the bottom of the stack, and Tumblemon
+                // itself carries the [Rock] trait (catalog kind DigiEgg). KB Q5007 requires the
+                // full 3 to be payable or the "by" condition is unmet.
                 target: {
                   filter: {
                     isSelfRef: true,
                     zone: "digivolutionCards",
-                    kind: ["Digimon"],
                     nameOrTrait: [
                       {
                         tokens: ["Mineral", "Rock"],

@@ -109,6 +109,32 @@ describe("EX11-010 MasterTyrannomon", () => {
     assertNoLoudGap(s);
   });
 
+  it("keeps the +4000 DP through the opponent's turn and loses it when that turn ends", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX11-010", as: "master" }] },
+        1: { deck: ["BT1-001", "BT1-001", "BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("master").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX11-010"));
+    const findMaster = () =>
+      s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "EX11-010");
+    expect(findMaster()?.currentDP).toBe(11000);
+
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    await settle();
+
+    expect(findMaster()?.currentDP).toBe(7000);
+    assertNoLoudGap(s);
+  });
+
   it("may decline the suspension on play and remains at printed DP while unsuspended", async () => {
     const s = setupEngine({ 0: { hand: [{ card: "EX11-010", as: "master" }] } }, { autoDeclineOptional: true });
     s.state.memory = 8;

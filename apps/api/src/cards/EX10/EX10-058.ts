@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -47,16 +46,21 @@ const compiled: CompiledCard = {
       trigger: "AllTurns",
       frequency: "OncePerTurn",
       actions: [
+        // Both event forms carry the same `oncePerTurnKey`, so "played OR deleted" consumes ONE
+        // physical [Once Per Turn] use. Without it each watcher kept its own per-turn budget and
+        // the clause fired twice a turn.
         {
           kind: "SubTrigger",
           event: "whenPlayed",
           sourceFilter: { controller: "opponent", kind: ["Digimon"] },
+          oncePerTurnKey: "EX10-058/all-turns",
           actions: [playOnOpponentChange],
         },
         {
           kind: "SubTrigger",
           event: "onDeletionOf",
           sourceFilter: { controller: "opponent", kind: ["Digimon"] },
+          oncePerTurnKey: "EX10-058/all-turns",
           actions: [playOnOpponentChange],
         },
       ],
@@ -64,7 +68,10 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [{ level: 5, colors: ["Purple"], cost: 3 }],
+  // No `digivolutionRequirement`: the catalog's Purple/Lv.5/cost-3 row is the PRINTED EvoCost
+  // and this card prints no `[Digivolve]` header. `matchingAlternateDigivolutionRequirement`
+  // reads every entry here as an ALTERNATE route, so restating the printed row registered an
+  // unprinted second route (and the entry was also missing the required `isAlternate`).
   digiXrosRequirement: [
     {
       materials: [{ traits: ["Bagra Army"] }],

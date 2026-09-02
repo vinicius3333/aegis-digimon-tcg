@@ -4339,7 +4339,7 @@ export class GameEngine {
       if (excess > 0) toTrash.push(...(await this.chooseExcessLinkCards(permanent, excess)));
     }
     this.justLinked.clear();
-    if (toTrash.length > 0) await this.primitives.trash(toTrash);
+    if (toTrash.length > 0) await this.primitives.trash(toTrash, { byRule: true });
   }
 
   /**
@@ -4440,7 +4440,7 @@ export class GameEngine {
         if (!this.linkRequirementSatisfied(hostDef, card)) toTrash.push(card.instanceId);
       }
     }
-    if (toTrash.length > 0) await this.primitives.trash(toTrash);
+    if (toTrash.length > 0) await this.primitives.trash(toTrash, { byRule: true });
   }
 
   /**

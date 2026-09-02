@@ -1,55 +1,14 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
+//
+// CR 16-36-1 scopes Decode to "THAT Digimon's digivolution cards", so each replacement's
+// PlayWithoutCost carries `hostFilter: { isSelfRef: true }`; without it the
+// `from: ["digivolutionCards"]` pool spans every stack the controller owns.
 const compiled: CompiledCard = {
-  digivolutionRequirement: [
-    {
-      level: 4,
-      names: ["Garurumon"],
-      cost: 3,
-      isAlternate: true,
-    },
-    {
-      level: 4,
-      traits: ["NSo", "VB"],
-      cost: 3,
-      isAlternate: true,
-    },
-  ],
-  dnaDigivolveRequirement: [
-    {
-      cost: 0,
-      materials: [
-        { color: "Blue", level: 5 },
-        { color: "Purple", level: 5 },
-      ],
-    },
-    {
-      cost: 0,
-      materials: [
-        { color: "Blue", level: 5 },
-        { color: "Red", level: 5 },
-      ],
-    },
-    {
-      cost: 0,
-      materials: [
-        { color: "Yellow", level: 5 },
-        { color: "Purple", level: 5 },
-      ],
-    },
-    {
-      cost: 0,
-      materials: [
-        { color: "Yellow", level: 5 },
-        { color: "Red", level: 5 },
-      ],
-    },
-  ],
   effects: [
     {
       trigger: "OnPlay",
@@ -149,6 +108,7 @@ const compiled: CompiledCard = {
                 filter: {
                   controller: "mine",
                   kind: ["Digimon"],
+                  hostFilter: { isSelfRef: true },
                   levelComparison: { op: "lte", value: 4 },
                   nameOrTrait: [
                     { tokens: ["Gabumon", "Garurumon"], match: "name" },
@@ -170,6 +130,50 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [
+    {
+      level: 4,
+      names: ["Garurumon"],
+      cost: 3,
+      isAlternate: true,
+    },
+    {
+      traits: ["NSo", "VB"],
+      cost: 3,
+      isAlternate: true,
+      level: 4,
+    },
+  ],
+  dnaDigivolveRequirement: [
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 5 },
+        { color: "Purple", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 5 },
+        { color: "Red", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 5 },
+        { color: "Purple", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 5 },
+        { color: "Red", level: 5 },
+      ],
+    },
+  ],
 };
 
 registerIrCard("EX12-032", compiled);

@@ -7,6 +7,7 @@ import {
   getCardDefinition,
 } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -32,6 +33,47 @@ describe("EX12-077 Proximamon", () => {
         }),
       ]),
     );
+  });
+
+  it("scopes both printed sources exactly as the text reads", () => {
+    const playWindows = compiled.effects.filter((effect) => effect.sharedUseKey === "ir-shared-0");
+    expect(playWindows).toHaveLength(4);
+    for (const effect of playWindows) {
+      expect(effect.actions[0]).toMatchObject({
+        kind: "PlayWithoutCost",
+        from: ["digivolutionCards"],
+        payCost: false,
+        target: {
+          filter: {
+            controller: "mine",
+            kind: ["Digimon", "Tamer", "Option"],
+            playCostLte: 10,
+            // "from ANY of your Digimon's digivolution cards": scope the HOST, but never to the
+            // source itself — that is ＜Decode＞'s scoping (CR 16-36-1), not this card's.
+            hostFilter: { kind: ["Digimon"], zone: "battleArea" },
+          },
+        },
+      });
+      expect(irNode(effect.actions[0]).target.filter.hostFilter.isSelfRef).toBeUndefined();
+    }
+
+    const placementCosts = compiled.effects
+      .flatMap((effect) => effect.actions)
+      .filter((action) => action.kind === "Delete")
+      .map((action) => irNode(action).cost);
+    expect(placementCosts).toHaveLength(2);
+    for (const cost of placementCosts) {
+      // "2 CARDS ...", never "2 Digimon cards" — the host restriction is `underFilter`.
+      expect(cost.target.filter.kind).toBeUndefined();
+      expect(cost).toMatchObject({
+        kind: "place",
+        destination: "digivolutionStack",
+        position: "choice",
+        host: "target",
+        underFilter: { controller: "mine", kind: ["Digimon"] },
+        target: { count: 2, from: ["hand", "trash"] },
+      });
+    }
   });
 
   it("expands the printed DNA color alternatives into all four cost-0 routes", () => {
@@ -68,6 +110,7 @@ describe("EX12-077 Proximamon", () => {
     expect(digivolutionRequirementsFor("EX12-077")).toEqual(compiled.digivolutionRequirement);
     expect(dnaDigivolutionRequirementsFor("EX12-077")).toEqual(compiled.dnaDigivolveRequirement);
     expect(registeredCompiledCards.get("EX12-077")).toEqual(compiled);
+    expect(compiledEffects["EX12-077"]).toBeDefined();
     expect(compiledEffects["EX12-077"]).toEqual(compiled);
   });
 
@@ -191,6 +234,89 @@ describe("EX12-077 Proximamon", () => {
     expect(s.state.players[0]!.security).toHaveLength(1);
     expect(s.state.players[0]!.security[0]).toMatchObject({ cardId: "EX12-069", faceUp: true });
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX12-069")).toBe(false);
+  });
+
+  // The printed placement cost says "2 CARDS with [Gammamon] in their texts or the [VB] trait",
+  // not "2 Digimon cards". EX12-073 Giant Meat is an OPTION carrying [VB]; a `kind: ["Digimon"]`
+  // gate on the cost target (the persisted record's shape) drops it from the payable pool and the
+  // deletion never happens.
+  it("pays the placement cost with a non-Digimon card carrying the VB trait", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX12-077", as: "proximamon" },
+            { card: "EX12-073", as: "optionSource" },
+          ],
+          trash: [{ card: "EX12-007", as: "digimonSource" }],
+          battleArea: [{ card: "EX12-005", as: "host" }],
+        },
+        1: { battleArea: [{ card: "EX12-005", as: "opponent" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("proximamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(
+      s
+        .perm("host")
+        .stack.map((card) => card.cardId)
+        .sort(),
+    ).toEqual(["EX12-007", "EX12-073"]);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("optionSource").instanceId)).toBe(false);
+  });
+
+  // "from ANY of your Digimon's digivolution cards" — the pool is not scoped to this Digimon's own
+  // stack (that is ＜Decode＞'s CR 16-36-1 scoping, EX12-014), so a card under a DIFFERENT Digimon
+  // must be reachable.
+  it("plays a qualifying card out of another of your Digimon's stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX12-077", as: "proximamon" },
+            { card: "EX12-005", as: "ally", under: ["EX12-013"] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("proximamon"));
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX12-013"));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX12-013")).toBe(true);
+    expect(s.perm("ally").stack).toHaveLength(0);
+  });
+
+  // `hostFilter: { kind: ["Digimon"], zone: "battleArea" }`: the loose `digivolutionCards` zone also
+  // yields cards stacked under the controller's TAMERS, which the printed text never reaches.
+  it("does not reach a qualifying card stacked under one of your Tamers", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX12-077", as: "proximamon" },
+            { card: "EX12-066", as: "tamer", under: ["EX12-013"] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("proximamon"));
+    await settle(() => false, 30);
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX12-013")).toBe(false);
+    expect(s.perm("tamer").stack.map((card) => card.cardId)).toEqual(["EX12-013"]);
   });
 
   it("shares one once-per-turn use across its On Play and When Attacking windows", async () => {

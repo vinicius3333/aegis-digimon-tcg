@@ -74,6 +74,22 @@ describe("EX10-051 Mummymon", () => {
     expect(s.perm("target").topCard.instanceId).toBe(s.inst("lower").instanceId);
   });
 
+  it("CR 15-7-4 aborts the De-Digivolve when the hand-trash condition is declined", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: CARD_ID, as: "mummymon" }], hand: [{ card: "BT1-009", as: "cost" }] },
+        1: { battleArea: [{ card: "EX10-053", as: "target", under: [{ card: "EX10-042", as: "lower" }] }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("mummymon"));
+    await settle(() => s.state.pendingDecision === null);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("cost").instanceId);
+    expect(s.perm("target").topCard.cardId).toBe("EX10-053");
+    expect(s.perm("target").stack.map(({ instanceId }) => instanceId)).toContain(s.inst("lower").instanceId);
+  });
+
   it("Q5134 plays a Myotismon-text Tamer but excludes names already among own Tamers", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
