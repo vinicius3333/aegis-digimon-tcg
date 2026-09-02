@@ -65,8 +65,13 @@ describe("EX12-041 Thundermon", () => {
                 from: ["hand"],
                 payCost: true,
                 reduceCostBy: 2,
+                allowMultiColor: true,
                 optional: true,
-                filter: { kind: ["Option"], nameOrTrait: [{ tokens: ["Mutant", "ME"], match: "trait" }] },
+                filter: {
+                  kind: ["Option"],
+                  playCostLte: 99,
+                  nameOrTrait: [{ tokens: ["Mutant", "ME"], match: "trait" }],
+                },
               },
             ],
           ],
@@ -125,6 +130,37 @@ describe("EX12-041 Thundermon", () => {
     await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === s.inst("option").instanceId));
 
     expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("uses a multicolor Mutant Option, which the default single-color gate would have hidden", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          // ST23-06 supplies the green color requirement and the [BEATBREAK] use requirement
+          // that ST23-09 prints; ST23-09 itself is a Green/Black [Mutant] Option costing 5.
+          battleArea: [
+            { card: "EX12-041", as: "source" },
+            { card: "ST23-06", as: "enabler" },
+          ],
+          hand: [{ card: "ST23-09", as: "option" }],
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true, preferOptionIndex: 1 },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("source").topCard!.instanceId,
+        effectKey: mainEffectKey(s),
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.every(({ instanceId }) => instanceId !== s.inst("option").instanceId));
+
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("option").instanceId)).toBe(false);
     expect(s.state.memory).toBe(0);
   });
 

@@ -34,15 +34,27 @@ describe("EX10-031 DarkKnightmon", () => {
     ]);
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       expect(compiled.effects?.find((effect) => effect.trigger === trigger)).toMatchObject({
+        // One selection, two consequences. `GrantStatic.selectionRef` and an action-level
+        // `ModifyDP.fromSelectionRef` are both unread by the interpreter, so the earlier shape
+        // ran a second independent target search for the DP buff.
         actions: [
           {
-            kind: "GrantStatic",
-            selectionRef: "protected",
-            grant: { kind: "Protection", protections: ["deDigivolve"], from: "opponent" },
-            duration: "untilOpponentTurnEnd",
-            target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+            kind: "SelectBind",
+            target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1, bindAs: "protected" },
           },
-          { kind: "ModifyDP", fromSelectionRef: "protected", amount: 3000, duration: "untilOpponentTurnEnd" },
+          {
+            kind: "Restrict",
+            restriction: "cantBeDeDigivolved",
+            byOpponentEffectsOnly: true,
+            duration: "untilOpponentTurnEnd",
+            target: { filter: {}, count: 1, fromSelectionRef: "protected" },
+          },
+          {
+            kind: "ModifyDP",
+            amount: 3000,
+            duration: "untilOpponentTurnEnd",
+            target: { filter: {}, count: 1, fromSelectionRef: "protected" },
+          },
         ],
       });
     }
@@ -58,7 +70,13 @@ describe("EX10-031 DarkKnightmon", () => {
               from: ["digivolutionCards"],
               payCost: false,
               target: {
-                filter: { controller: "mine", kind: ["Digimon", "Tamer", "Option"], playCostLte: 4 },
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon", "Tamer", "Option"],
+                  playCostLte: 4,
+                  // "from ITS digivolution cards" — not any controlled Digimon's stack.
+                  hostFilter: { isSelfRef: true },
+                },
                 count: 1,
               },
             },
@@ -98,10 +116,15 @@ describe("EX10-031 DarkKnightmon", () => {
     preferred.push(s.perm("chosen").permanentId);
     await s.ready();
     const baseDp = s.perm("chosen").currentDP;
+    const otherBaseDp = s.perm("other").currentDP;
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("source"));
     expect(s.perm("chosen").currentDP).toBe(baseDp + 3000);
     expect(observe(s.engine).isRestricted(s.perm("chosen"), "cantBeDeDigivolved")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("other"), "cantBeDeDigivolved")).toBe(false);
+    expect(s.perm("other").currentDP).toBe(otherBaseDp);
+    // The protection and the DP share ONE choice: exactly one target decision is raised for the
+    // whole clause. A second, independent ModifyDP selection (the pre-fix shape) shows up here.
+    expect(s.decisions.filter(({ req }) => req.kind === "chooseTargets" || req.kind === "selectCards")).toHaveLength(1);
     s.state.turnSeat = 1;
     advance(s.engine).ledgers.continuous.sweep(s.state, "ownerTurnEnd", 1);
     advance(s.engine).ledgers.modifiers.sweep(s.state, "ownerTurnEnd", 1);
@@ -109,7 +132,7 @@ describe("EX10-031 DarkKnightmon", () => {
     expect(s.perm("chosen").currentDP).toBe(baseDp);
   });
 
-  it("plays only a cost-4-or-lower source for free when leaving, then leaves", async () => {
+  it("plays only a cost-4-or-lower source from ITS OWN stack for free when leaving, then leaves", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -123,12 +146,16 @@ describe("EX10-031 DarkKnightmon", () => {
                 { card: "BT1-019", as: "tooExpensive" },
               ],
             },
+            // A second Digimon holding an equally cheap source. "from ITS digivolution cards"
+            // must not reach another Digimon's stack, so this card stays put even though the
+            // selection prefers it.
+            { card: "BT21-009", as: "bystander", under: [{ card: "EX10-027", as: "elsewhere" }] },
           ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    preferred.push(s.inst("tooExpensive").instanceId, s.inst("eligible").instanceId);
+    preferred.push(s.inst("elsewhere").instanceId, s.inst("tooExpensive").instanceId, s.inst("eligible").instanceId);
     await s.ready();
     const sourceId = s.perm("darkKnight").permanentId;
     expect(await advance(s.engine).verb.deletePermanent([sourceId], "byEffect")).toBe(1);
@@ -139,6 +166,10 @@ describe("EX10-031 DarkKnightmon", () => {
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId)).not.toContain(
       s.inst("tooExpensive").instanceId,
     );
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId)).not.toContain(
+      s.inst("elsewhere").instanceId,
+    );
+    expect(s.perm("bystander").stack.map(({ instanceId }) => instanceId)).toContain(s.inst("elsewhere").instanceId);
   });
 
   it("redirects an opposing player attack to the realistic inherited host once", async () => {

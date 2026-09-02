@@ -52,7 +52,17 @@ describe("EX10-022 Belphemon: Rage Mode", () => {
     }
     expect(compiled.effects?.find((effect) => effect.isInherited)).toMatchObject({
       trigger: "EndOfOpponentsTurn",
-      actions: [{ kind: "TrashDigivolution", amount: 1, fromTop: true, condition: { kind: "selfTopHasText" } }],
+      actions: [
+        {
+          kind: "TrashDigivolution",
+          amount: 1,
+          fromTop: true,
+          condition: {
+            kind: "selfTopHasText",
+            filter: { nameOrTrait: [{ tokens: ["Belphemon: Sleep Mode"], match: "name" }] },
+          },
+        },
+      ],
     });
   });
 
@@ -196,6 +206,33 @@ describe("EX10-022 Belphemon: Rage Mode", () => {
     await advance(notSleep.engine).fire(EffectTiming.EndOfOpponentsTurn, notSleep.perm("host"));
     expect(notSleep.perm("host").stack.map(({ instanceId }) => instanceId)).toContain(
       notSleep.inst("rageSource").instanceId,
+    );
+  });
+
+  it("the Sleep Mode gate reads the host's NAME, so a Rage Mode host does not satisfy it", async () => {
+    // EX10-022's own printed text contains "[Belphemon: Sleep Mode]" in its [Digivolve] line, so
+    // a `match: "text"` gate would fire here even though this Digimon IS NOT Sleep Mode.
+    const rageHost = setupEngine({
+      0: {
+        battleArea: [
+          {
+            card: CARD_ID,
+            as: "host",
+            under: [
+              { card: "BT10-081", as: "base" },
+              { card: CARD_ID, as: "rageSource" },
+            ],
+          },
+        ],
+      },
+    });
+    rageHost.state.turnSeat = 1;
+    await advance(rageHost.engine).fire(EffectTiming.EndOfOpponentsTurn, rageHost.perm("host"));
+    expect(rageHost.perm("host").stack.map(({ instanceId }) => instanceId)).toContain(
+      rageHost.inst("rageSource").instanceId,
+    );
+    expect(rageHost.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toContain(
+      rageHost.inst("rageSource").instanceId,
     );
   });
 

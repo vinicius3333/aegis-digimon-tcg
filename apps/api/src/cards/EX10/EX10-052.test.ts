@@ -117,6 +117,23 @@ describe("EX10-052 Lucemon: Chaos Mode", () => {
     expect(s.state.players[0]!.battleArea.map(({ permanentId: id }) => id)).toContain(permanentId);
   });
 
+  it("prevents only one departure per turn ([Once Per Turn])", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: CARD_ID, as: "lucemon" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const permanentId = s.perm("lucemon").permanentId;
+    await advance(s.engine).verb.deletePermanent([permanentId], "byEffect");
+    await settle(() => s.state.pendingDecision === null);
+    expect(s.state.players[0]!.battleArea.map(({ permanentId: id }) => id)).toContain(permanentId);
+
+    // The single per-turn use is spent, so the second deletion this turn resolves.
+    await advance(s.engine).verb.deletePermanent([permanentId], "byEffect");
+    await settle(() => !s.state.players[0]!.battleArea.some(({ permanentId: id }) => id === permanentId));
+    expect(s.state.players[0]!.battleArea.map(({ permanentId: id }) => id)).not.toContain(permanentId);
+  });
+
   it("allows leaving when the opponent's deletion succeeds", async () => {
     const s = setupEngine(
       {

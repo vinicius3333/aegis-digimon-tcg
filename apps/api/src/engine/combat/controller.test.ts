@@ -156,6 +156,10 @@ describe("CombatController.resolveAttack — Digimon vs Digimon", () => {
     await h.combat.resolveAttack(0, attacker, { kind: "permanent", permanentId: defender.permanentId });
 
     expect(attacker.isSuspended).toBe(true); // attacker suspended on declare
+    expect(h.firedSubTriggers.find(({ event }) => event === "whenSuspended")?.payload).toMatchObject({
+      subjectPermanentId: attacker.permanentId,
+      suspendedPermanentId: attacker.permanentId,
+    });
     expect(h.access.permanentById(defender.permanentId)).toBeUndefined(); // defender deleted
     expect(h.access.permanentById(attacker.permanentId)).toBeDefined(); // attacker survives
     // Defender's card went to its owner's trash.

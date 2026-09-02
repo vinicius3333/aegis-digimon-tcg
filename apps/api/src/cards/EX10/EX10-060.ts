@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -33,6 +32,11 @@ export const compiled: CompiledCard = {
           payCost: false,
           breeding: true,
           requiresEmpty: "breedingArea",
+          // CR 15-7-4: "By playing 1 [Lucemon: Larva] ..." is a declinable processing condition,
+          // not a mandatory step. Declining aborts the trailing deletion, which the
+          // `ifThisEffectActed` gate also enforces when the breeding area is not empty.
+          optional: true,
+          abortOnDecline: true,
         },
         {
           kind: "Delete",
@@ -73,6 +77,11 @@ export const compiled: CompiledCard = {
           payCost: false,
           breeding: true,
           requiresEmpty: "breedingArea",
+          // CR 15-7-4: "By playing 1 [Lucemon: Larva] ..." is a declinable processing condition,
+          // not a mandatory step. Declining aborts the trailing deletion, which the
+          // `ifThisEffectActed` gate also enforces when the breeding area is not empty.
+          optional: true,
+          abortOnDecline: true,
         },
         {
           kind: "Delete",

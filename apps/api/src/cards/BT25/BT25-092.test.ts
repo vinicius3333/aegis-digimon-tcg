@@ -1,6 +1,7 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, type CardInstance } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { effectsOf } from "../../engine/effects/collect.js";
+import type { CardSource } from "../../engine/effects/CardSource.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -25,11 +26,16 @@ describe("BT25-092 Asuna Shiroki", () => {
           { card: CARD_ID, as: "asuna", suspended: true },
           { card: "BT24-009", as: "host" },
         ],
-        hand: [{ card: "BT25-100", as: "option" }, { card: "BT24-010", as: "evolution" }],
+        hand: [
+          { card: "BT25-100", as: "option" },
+          { card: "BT24-010", as: "evolution" },
+        ],
       },
     });
     await s.ready();
-    const source = (s.engine as any).cardSourceOf(s.inst("asuna"));
+    const source = (s.engine as unknown as { cardSourceOf(instance: CardInstance): CardSource }).cardSourceOf(
+      s.inst("asuna"),
+    );
     const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
       effect.effectKey.startsWith(`${CARD_ID}/`),
     )!.effectKey;
@@ -56,7 +62,11 @@ describe("BT25-092 Asuna Shiroki", () => {
           deck: [{ card: "AD1-001", as: "draw" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        preferInstanceIds: preferred,
+      },
     );
     preferred.push(s.inst("cost").instanceId);
     await s.ready();
@@ -97,12 +107,30 @@ describe("BT25-092 Asuna Shiroki", () => {
           trash: [{ card: "BT24-010", as: "evolution" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        preferOptionIndex: 0, // BT24-010 also has an alternate TS route; choose the printed route here.
+        preferInstanceIds: preferred,
+      },
     );
     preferred.push(s.inst("sourceCost").instanceId, s.perm("evolveHost").permanentId, s.inst("evolution").instanceId);
     s.state.memory = 2;
     await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.OnDeclaration, s.perm("asuna"));
+    const source = (s.engine as unknown as { cardSourceOf(instance: CardInstance): CardSource }).cardSourceOf(
+      s.inst("asuna"),
+    );
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
+      effect.effectKey.startsWith(`${CARD_ID}/`),
+    )!.effectKey;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("asuna").instanceId,
+        effectKey,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("evolveHost").topCard.instanceId === s.inst("evolution").instanceId);
     expect(s.perm("asuna").isSuspended).toBe(true);
     expect(s.state.players[0]!.trash.map((c) => c.instanceId)).toContain(s.inst("sourceCost").instanceId);

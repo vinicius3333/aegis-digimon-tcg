@@ -99,11 +99,20 @@ describe("BT25-028 Dianamon", () => {
     expect(below.state.memory).toBe(-5);
   });
 
-  it("keeps the low-stack suspend lock live for entrants and releases it when the opponent turn ends", async () => {
-    const s = setupEngine({
-      0: { hand: [{ card: "BT25-028", as: "diana" }] },
-      1: { battleArea: [{ card: "BT1-009", as: "initial", suspended: true }] },
-    });
+  it("keeps the low-stack lock live for entrants, releases it at 2 sources, and expires at turn end", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT25-028", as: "diana" }] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "initial", suspended: true }],
+          hand: [
+            { card: "BT1-014", as: "level4" },
+            { card: "BT1-020", as: "level5" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 12;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("diana").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-028"));
@@ -111,7 +120,35 @@ describe("BT25-028 Dianamon", () => {
     const entrant = s.putOnBoard(1, { card: "BT1-009", as: "entrant" });
     await s.ready();
     await advance(s.engine).verb.suspend([entrant.permanentId]);
+    // KB Q6294: a Digimon entering after resolution is affected while it has at most 1 source.
     expect(entrant.isSuspended).toBe(false);
+
+    const initial = s.perm("initial");
+    await advance(s.engine).verb.unsuspend([initial.permanentId]);
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: initial.permanentId,
+        instanceId: s.inst("level4").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => initial.topCard.cardId === "BT1-014");
+    await advance(s.engine).verb.suspend([initial.permanentId]);
+    expect(initial.isSuspended).toBe(false);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: initial.permanentId,
+        instanceId: s.inst("level5").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => initial.topCard.cardId === "BT1-020");
+    await advance(s.engine).verb.suspend([initial.permanentId]);
+    // KB Q6295: after two legal evolutions, the Digimon can suspend with 2 sources.
+    expect(initial.isSuspended).toBe(true);
 
     const stacked = s.putOnBoard(1, {
       card: "BT1-009",

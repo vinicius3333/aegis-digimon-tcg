@@ -121,11 +121,24 @@ describe("BT25-008 Coronamon", () => {
     expect(paid.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-002"]);
 
     const declined = setupEngine(
-      { 0: { battleArea: [{ card: "BT25-008", as: "coronamon" }], hand: ["BT25-022"], deck: ["BT1-001"] } },
+      {
+        0: {
+          breeding: { card: "BT25-008", as: "coronamon" },
+          hand: ["BT25-022"],
+          deck: ["BT1-001"],
+        },
+      },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    await advance(declined.engine).fireForPermanent(EffectTiming.WhenMoving, declined.perm("coronamon"));
-    await settle();
+    declined.state.phase = Phase.Breeding;
+    await declined.ready();
+    expect(
+      declined.engine.applyIntent(0, {
+        type: "moveFromBreeding",
+        permanentId: declined.perm("coronamon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => declined.perm("coronamon").inBreeding === false);
     expect(declined.state.players[0]!.trash).toHaveLength(0);
     expect(declined.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT25-022"]);
     expect(declined.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-001"]);

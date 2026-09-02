@@ -212,4 +212,26 @@ describe("EX12-008 ToyAgumon", () => {
       }),
     ).toEqual(expect.objectContaining({ ok: false }));
   });
+
+  it("does not hand its start-of-main effect to a host carrying it as a digivolution card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-010", as: "host", under: ["EX12-008"] }],
+          hand: [{ card: "EX12-041", as: "cost" }],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 0;
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("host"));
+    await settle();
+
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009"]);
+    expect(s.state.memory).toBe(0);
+  });
 });

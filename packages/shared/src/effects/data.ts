@@ -509,9 +509,9 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
   // EX11-024 has only its ordinary yellow Lv.5 EvoCost row. The generated IR incorrectly
   // duplicated that row as a printed alternate [Digivolve] requirement.
   "EX11-024": [],
-  // EX11-026 prints an unrestricted [Digivolve] Lv.2: Cost 0 route in addition to
-  // its ordinary green EvoCost row; the generated fallback currently omits it.
-  "EX11-026": [{ level: 2, cost: 0, isAlternate: true }],
+  // EX11-026 prints no [Digivolve] header; its only route is the ordinary green Lv.2 EvoCost
+  // row. The earlier entry stripped the printed colour restriction from that route.
+  "EX11-026": [],
   // EX11-028 has only its ordinary green Lv.3 EvoCost row; it prints no alternate header.
   "EX11-028": [],
   // EX11-029's only alternate route is the named Maquinamon header; its green Lv.3 row is ordinary.

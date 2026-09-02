@@ -1,6 +1,5 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled as BT25_007 } from "./BT25-007.js";
 import "../index.js";
@@ -63,7 +62,7 @@ describe("BT25-007 Gatchmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT25-007", as: "gatchmon" }],
+          hand: [{ card: "BT25-007", as: "gatchmon" }],
           deck: [
             { card: "BT21-009", as: "appmon" },
             { card: "BT25-036", as: "tool" },
@@ -75,7 +74,12 @@ describe("BT25-007 Gatchmon", () => {
     );
     preferred.push(s.inst("appmon").instanceId, s.inst("tool").instanceId);
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("gatchmon"));
+    s.state.memory = 3;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gatchmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT25-007"));
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("appmon").instanceId, s.inst("tool").instanceId]),

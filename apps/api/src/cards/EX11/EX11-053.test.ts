@@ -78,7 +78,14 @@ describe("EX11-053 Omekamon", () => {
     assertNoLoudGap(s);
   });
 
+  // Once Omekamon lands under the played Omnimon (X Antibody), BT20-102's own deferred
+  // [On Play] sees [X Antibody] in its digivolution cards (exactly what Q5907 asserts) and
+  // deletes every OTHER Digimon — here King Drasil. `preferred` makes the survivor choice the
+  // played Omnimon so the assertions below observe Omekamon's placement rather than the
+  // collateral. Without it, the harness keeps the first candidate (King Drasil) and deletes
+  // the very Digimon this case exists to observe.
   it("can also play Omnimon (X Antibody) from under King Drasil", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -89,15 +96,59 @@ describe("EX11-053 Omekamon", () => {
           ],
         },
       },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("omnimonX").instanceId);
+    await advance(s.engine).verb.deletePermanent([s.perm("omekamon").permanentId], "byEffect");
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("omnimonX").instanceId,
+      ),
+    );
+
+    // The played permanent carries the exact instance that sat under King Drasil, so the card
+    // came out of that stack rather than from a second copy.
+    const played = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard?.instanceId === s.inst("omnimonX").instanceId,
+    );
+    expect(played).toBeDefined();
+    expect(played?.stack.some((card) => card.instanceId === s.inst("omekamon").instanceId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) =>
+          permanent.permanentId !== played?.permanentId &&
+          permanent.stack.some((card) => card.instanceId === s.inst("omnimonX").instanceId),
+      ),
+    ).toBe(false);
+    assertNoLoudGap(s);
+  });
+
+  it("leaves Omnimon (X Antibody) under a host that is not King Drasil_7D6", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: ["BT1-001"],
+          battleArea: [
+            { card: "EX11-053", as: "omekamon" },
+            { card: "BT1-010", as: "notDrasil", under: [{ card: "BT20-102", as: "omnimonX" }] },
+          ],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await advance(s.engine).verb.deletePermanent([s.perm("omekamon").permanentId], "byEffect");
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT20-102"));
+    await settle(() => false, 60);
 
-    const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT20-102");
-    expect(played?.stack.some((card) => card.instanceId === s.inst("omekamon").instanceId)).toBe(true);
-    expect(s.perm("drasil").stack.some((card) => card.instanceId === s.inst("omnimonX").instanceId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT20-102")).toBe(false);
+    expect(s.perm("notDrasil").stack.some((card) => card.instanceId === s.inst("omnimonX").instanceId)).toBe(true);
     assertNoLoudGap(s);
+  });
+
+  it("keeps the mandatory placement out of the optional prompts", () => {
+    const onDeletion = compiled.effects.find((effect) => effect.trigger === "OnDeletion");
+    expect(onDeletion?.actions[0]).toMatchObject({ kind: "PlayWithoutCost", optional: true });
+    expect(onDeletion?.actions[1]).toMatchObject({ kind: "PlaceUnder", position: "bottom" });
+    expect((onDeletion!.actions[1] as { optional?: boolean }).optional).toBeUndefined();
   });
 
   it("publishes full compiled coverage, exact host narrowing, and the X Antibody rule name", () => {
@@ -116,7 +167,7 @@ describe("EX11-053 Omekamon", () => {
                     expect.objectContaining({
                       zone: "digivolutionCards",
                       hostFilter: expect.objectContaining({
-                        nameOrTrait: [{ tokens: ["King Drasil_7D6"], match: "name" }],
+                        nameOrTrait: [{ tokens: ["King Drasil_7D6"], match: "nameExact" }],
                       }),
                     }),
                   ]),

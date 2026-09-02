@@ -211,6 +211,18 @@ export function noticesAt(
     .sort((a, b) => a.createdAt - b.createdAt);
 }
 
+/**
+ * Every notice as one stack, oldest first.
+ *
+ * The phone's band: four corners on a 390px screen meant a notice could land on
+ * the hand, the actions or the field the player is reading, so the narrow layout
+ * folds them into a single top band and the side accent takes over saying whose
+ * moment each one is.
+ */
+export function noticesCollapsed(notices: readonly MatchNotice[]): MatchNotice[] {
+  return [...notices].sort((a, b) => a.createdAt - b.createdAt);
+}
+
 /** Every anchor the stack currently occupies, in a stable order. */
 export function occupiedAnchors(
   notices: readonly MatchNotice[],

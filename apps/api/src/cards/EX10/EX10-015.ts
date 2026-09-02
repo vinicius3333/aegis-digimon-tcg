@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -48,13 +47,22 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [
-    { level: 2, colors: ["Green"], cost: 1 },
-    { level: 2, colors: ["Purple"], cost: 1 },
-  ],
+  // No `digivolutionRequirement`: this card prints NO bracketed [Digivolve] alternate route.
+  // The two entries the persisted record carries ({level:2,colors:["Green"|"Purple"],cost:1})
+  // are the ORDINARY EvoCost rows that already live in cards.json, re-stated as gated
+  // alternates. `matchingAlternateDigivolutionRequirement` treats every entry as an alternate
+  // path regardless of `isAlternate`, so restating printed EvoCost rows here can only add a
+  // second, unprinted route; the standard color/level rule already covers them.
+  //
+  // "[DigiXros -2] 1 Digimon card with ＜Save＞ in text" — identical printed recipe to
+  // BT12-011/074/075, encoded the same way. `texts` runs through the full-card-text union
+  // (KB Q5044/Q5027), and `materialMatchesSlot` rejects every non-Digimon card for an unnamed
+  // slot, so the printed "Digimon card" half needs no separate predicate (the record's `kind`
+  // field does not exist on DigiXrosMaterial and was never read). `count` is the PER-MATERIAL
+  // cost reduction, not a material count.
   digiXrosRequirement: [
     {
-      materials: [{ kind: ["Digimon"], nameOrTrait: [{ tokens: ["Save"], match: "text" }] }],
+      materials: [{ texts: ["Save"] }],
       count: 2,
     },
   ],

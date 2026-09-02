@@ -49,13 +49,38 @@ describe("EX11-049 Punkmon", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      // EX11-050 matches BOTH its printed evoCost (Purple/Red Lv.4, cost 4) and its alternate
+      // [Dark Dragon]/[Evil Dragon] requirement (cost 3), so the paying digivolve opens a
+      // `chooseOption` route prompt. Without an answer the effect never resolves.
+      // `autoChooseOption` takes index 0 — the printed route.
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 5;
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("source"));
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.perm("source").topCard.cardId).toBe("EX11-050");
     expect(s.state.memory).toBe(3);
+    assertNoLoudGap(s);
+  });
+
+  it("charges the alternate Dark Dragon requirement, also reduced by 2, when that route is chosen", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "source" }],
+          hand: [
+            { card: "EX11-050", as: "loudmon" },
+            { card: "BT1-001", as: "other" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 1 },
+    );
+    s.state.memory = 5;
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("source"));
+    expect(s.perm("source").topCard.cardId).toBe("EX11-050");
+    // Alternate cost 3, reduced by 2 => 1 memory paid.
+    expect(s.state.memory).toBe(4);
     assertNoLoudGap(s);
   });
 

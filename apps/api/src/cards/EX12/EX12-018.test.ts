@@ -64,6 +64,27 @@ describe("EX12-018 Siriusmon", () => {
     expect(s.perm("opponent").currentDP).toBe(3000);
   });
 
+  it("counts a Digi-Egg digivolution card in the per-card reduction", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-018", as: "source", under: ["BT1-003", "EX12-007"] }],
+          trash: [{ card: "EX12-013", as: "material" }],
+        },
+        1: { battleArea: [{ card: "BT1-011", as: "opponent", dp: 8000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("source"));
+    await settle(() => s.perm("source").stack.length === 3 && s.perm("opponent").currentDP === 2000);
+
+    expect(s.perm("source").stack.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT1-003", "EX12-007", "EX12-013"]),
+    );
+    expect(s.perm("opponent").currentDP).toBe(2000);
+  });
+
   it("matches Gammamon anywhere in a card's text, not only its name or trait (Q6747)", async () => {
     const s = setupEngine(
       {

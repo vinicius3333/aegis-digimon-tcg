@@ -94,6 +94,27 @@ describe("EX12-010 Greymon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-009"]);
   });
 
+  it("ignores Tamer, Option, and Digi-Egg trash cards even when they carry the VB or ME trait", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX12-010", as: "source" }],
+          trash: ["EX12-066", "EX12-072", "EX12-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["EX12-066", "EX12-072", "EX12-001"]);
+  });
+
   it("may decline the matching trash recovery", async () => {
     const s = setupEngine(
       {
@@ -225,5 +246,24 @@ describe("EX12-010 Greymon", () => {
         useAlternateCost: true,
       }),
     ).toEqual(expect.objectContaining({ ok: false }));
+  });
+
+  it("cannot return a matching Digimon from the opponent's trash", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX12-010", as: "source" }] },
+        1: { trash: ["EX12-005"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["EX12-005"]);
   });
 });

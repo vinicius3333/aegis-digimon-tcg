@@ -1,10 +1,13 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Hand-fixed IR for EX12-028 Gusokumon.
 // The printed DNA requirement has four legal color combinations:
 // (Blue or Purple) Lv.4 + (Black or Yellow) Lv.4.
+//
+// CR 16-36-1 scopes Decode to "THAT Digimon's digivolution cards", so the replacement's
+// PlayWithoutCost carries `hostFilter: { isSelfRef: true }`; without it the
+// `from: ["digivolutionCards"]` pool spans every stack the controller owns.
 export const compiled: CompiledCard = {
   digivolutionRequirement: [{ level: 4, traits: ["DS"], cost: 3, isAlternate: true }],
   dnaDigivolveRequirement: [
@@ -63,6 +66,7 @@ export const compiled: CompiledCard = {
                 filter: {
                   controller: "mine",
                   kind: ["Digimon"],
+                  hostFilter: { isSelfRef: true },
                   levelComparison: { op: "lte", value: 4 },
                   nameOrTrait: [{ tokens: ["DS"], match: "trait" }],
                 },

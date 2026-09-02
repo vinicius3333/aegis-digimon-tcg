@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -23,6 +22,10 @@ const compiled: CompiledCard = {
                   match: "name",
                 },
               ],
+              // "from your hand or THIS Digimon's digivolution cards": hostFilter narrows only
+              // the hosted-card zone, so the hand half stays open while another Digimon's stack
+              // is excluded.
+              hostFilter: { isSelfRef: true },
             },
             count: 1,
           },
@@ -48,6 +51,10 @@ const compiled: CompiledCard = {
                   match: "name",
                 },
               ],
+              // "from your hand or THIS Digimon's digivolution cards": hostFilter narrows only
+              // the hosted-card zone, so the hand half stays open while another Digimon's stack
+              // is excluded.
+              hostFilter: { isSelfRef: true },
             },
             count: 1,
           },

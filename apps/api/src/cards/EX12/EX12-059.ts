@@ -1,12 +1,11 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CardEffect, CompiledCard, Cost } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // EX12-059 — Machinedramon ACE.
 // The De-Digivolve resolves first. The subsequent protection is an optional, all-or-nothing
 // payment: exactly two level 5 or lower Machine/Cyborg/ME cards from hand or trash are placed
 // underneath this Digimon before the stack-trash lock is installed.
-const placeTwoMaterials = {
+const placeTwoMaterials: Cost = {
   kind: "place",
   target: {
     filter: {
@@ -41,7 +40,7 @@ const compiled: CompiledCard = {
       actions: [],
       keywords: [{ keyword: "Fragment", amount: 2, raw: "＜Fragment (2)＞" }],
     },
-    ...(["OnPlay", "WhenDigivolving", "WhenAttacking"] as const).map((trigger) => ({
+    ...(["OnPlay", "WhenDigivolving", "WhenAttacking"] as const).map((trigger): CardEffect => ({
       trigger,
       actions: [
         {

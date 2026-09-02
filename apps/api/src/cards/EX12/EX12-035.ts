@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -7,6 +6,9 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // controller picks 4 cards from across ALL opponent Digimon's stacks (not just 1 Digimon).
 // AllTurns SubTrigger uses `whenAnyDigivolves`; its source filter is intentionally `any` so
 // the watcher fires for either player's Digimon, matching the printed "when any Digimon" text.
+// CR 16-36-1 scopes Decode to "THAT Digimon's digivolution cards", so each replacement's
+// PlayWithoutCost carries `hostFilter: { isSelfRef: true }`; without it the
+// `from: ["digivolutionCards"]` pool spans every stack the controller owns.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -44,6 +46,7 @@ const compiled: CompiledCard = {
                 filter: {
                   controller: "mine",
                   kind: ["Digimon"],
+                  hostFilter: { isSelfRef: true },
                   levelComparison: { op: "lte", value: 5 },
                   nameOrTrait: [
                     { tokens: ["Gabumon", "Garurumon"], match: "name" },
@@ -81,9 +84,9 @@ const compiled: CompiledCard = {
           kind: "Return",
           target: {
             filter: {
+              digivolutionCardsCompareToSource: "lte",
               controller: "opponent",
               kind: ["Digimon"],
-              digivolutionCardsCompareToSource: "lte",
             },
             count: 1,
           },
@@ -111,9 +114,9 @@ const compiled: CompiledCard = {
           kind: "Return",
           target: {
             filter: {
+              digivolutionCardsCompareToSource: "lte",
               controller: "opponent",
               kind: ["Digimon"],
-              digivolutionCardsCompareToSource: "lte",
             },
             count: 1,
           },
@@ -182,10 +185,10 @@ const compiled: CompiledCard = {
       isAlternate: true,
     },
     {
-      level: 5,
       traits: ["ME", "VB"],
       cost: 3,
       isAlternate: true,
+      level: 5,
     },
   ],
   dnaDigivolveRequirement: [
@@ -220,33 +223,33 @@ const compiled: CompiledCard = {
   ],
   assemblyRequirement: [
     {
-      reduceCost: 6,
       materials: [
         {
           count: 1,
+          nameOrTrait: [
+            { tokens: ["Gabumon", "Garurumon"], match: "name" },
+            { tokens: ["ME", "VB"], match: "trait" },
+          ],
           level: 5,
+        },
+        {
+          count: 1,
           nameOrTrait: [
             { tokens: ["Gabumon", "Garurumon"], match: "name" },
             { tokens: ["ME", "VB"], match: "trait" },
           ],
-        },
-        {
-          count: 1,
           level: 4,
-          nameOrTrait: [
-            { tokens: ["Gabumon", "Garurumon"], match: "name" },
-            { tokens: ["ME", "VB"], match: "trait" },
-          ],
         },
         {
           count: 1,
-          level: 3,
           nameOrTrait: [
             { tokens: ["Gabumon", "Garurumon"], match: "name" },
             { tokens: ["ME", "VB"], match: "trait" },
           ],
+          level: 3,
         },
       ],
+      reduceCost: 6,
     },
   ],
 };

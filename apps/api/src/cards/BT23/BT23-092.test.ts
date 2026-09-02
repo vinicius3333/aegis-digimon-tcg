@@ -1,7 +1,6 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT23-092.js";
 
@@ -32,6 +31,7 @@ describe("BT23-092 Ice Archery", () => {
           ],
         },
         1: {
+          security: ["BT1-001", "BT1-002"],
           battleArea: [
             { card: "BT1-009", as: "digimon" },
             { card: "BT23-081", as: "tamer" },
@@ -41,14 +41,56 @@ describe("BT23-092 Ice Archery", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const optionId = s.perm("option").topCard!.instanceId;
+    s.perm("option").placedByEffect = true;
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenAttacking", {
-      subjectPermanentId: s.perm("attacker").permanentId,
-      attackerPermanentId: s.perm("attacker").permanentId,
-    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("digimon"), "suspend")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("tamer"), "suspend")).toBe(true);
+  });
+
+  it("does not consume Delay for a non-CS attacker", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-092", as: "option" },
+            { card: "BT1-009", as: "nonCsAttacker" },
+          ],
+        },
+        1: {
+          security: ["BT1-001", "BT1-002"],
+          battleArea: [
+            { card: "BT1-009", as: "digimon" },
+            { card: "BT23-081", as: "tamer" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const optionId = s.perm("option").topCard!.instanceId;
+    s.perm("option").placedByEffect = true;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("nonCsAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("digimon"), "suspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("tamer"), "suspend")).toBe(false);
   });
 
   it("restricts one opposing Digimon and Tamer before placing itself", () => {

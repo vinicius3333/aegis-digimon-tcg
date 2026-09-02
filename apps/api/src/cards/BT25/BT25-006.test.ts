@@ -87,7 +87,7 @@ describe("BT25-006 Dorimon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("handCost").instanceId);
   });
 
-  it("can pay the optional trash condition even when no suspended Titan target exists", async () => {
+  it("can pay the optional trash condition after a public opponent attack even when no suspended Titan target exists", async () => {
     const s = setupEngine(
       {
         0: {
@@ -96,26 +96,42 @@ describe("BT25-006 Dorimon", () => {
             { card: "BT25-007", as: "handCost" },
             { card: "BT25-007", as: "secondCost" },
           ],
+          security: ["BT1-009", "BT1-009"],
         },
-        1: { battleArea: [{ card: "BT25-019", as: "attacker" }] },
+        1: {
+          battleArea: [
+            { card: "BT25-019", as: "attacker" },
+            { card: "BT25-019", as: "secondAttacker" },
+          ],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.turnSeat = 1;
+    s.state.memory = 10;
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenOpponentAttacks", {
-      attackerPermanentId: s.perm("attacker").permanentId,
-    });
-    await settle(() => false, 20);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("handCost").instanceId));
 
     expect(s.perm("nonTitan").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("handCost").instanceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("handCost").instanceId);
 
-    await advance(s.engine).fireSubTrigger("whenOpponentAttacks", {
-      attackerPermanentId: s.perm("attacker").permanentId,
-    });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("secondAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 0);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("secondCost").instanceId);
   });
 

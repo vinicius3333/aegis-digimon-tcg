@@ -1,10 +1,18 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
+// EX12-017 WarGreymon.
+//
+// Decode is carried by its printed keyword marker plus an executable would-leave replacement
+// (CR 16-36: "instead" mode, so the Digimon still leaves). CR 16-36-1 scopes the played card to
+// "THAT Digimon's digivolution cards", so the PlayWithoutCost target carries
+// `hostFilter: { isSelfRef: true }`; without it the `from: ["digivolutionCards"]` pool spans
+// every stack the controller owns. WarGreymon prints no inherited text, so there is exactly one
+// Decode replacement rather than a printed/inherited pair.
+//
+// The printed [DNA Digivolve] "Red/Yellow Lv.5 + Black/Purple Lv.5" expands to the four ordered
+// colour pairs below. [Assembly -6] lists one level-5, one level-4 and one level-3 material, each
+// of which must satisfy the name/trait gate on its own (Q6743).
 const compiled: CompiledCard = {
   effects: [
     {
@@ -33,6 +41,7 @@ const compiled: CompiledCard = {
                 filter: {
                   controller: "mine",
                   kind: ["Digimon"],
+                  hostFilter: { isSelfRef: true },
                   levelComparison: { op: "lte", value: 5 },
                   nameOrTrait: [
                     { tokens: ["Agumon", "Greymon"], match: "name" },

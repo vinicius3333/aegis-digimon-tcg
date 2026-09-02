@@ -107,6 +107,7 @@ describe("EX12-031 MarineBullmon", () => {
                 target: {
                   filter: {
                     kind: ["Digimon"],
+                    hostFilter: { isSelfRef: true },
                     levelComparison: { op: "lte", value: 4 },
                     nameOrTrait: [
                       { tokens: ["Aqua", "Sea Animal"], match: "traitContains" },
@@ -316,6 +317,28 @@ describe("EX12-031 MarineBullmon", () => {
     await battle.ready();
     expect(await advance(battle.engine).verb.deletePermanent([battle.perm("host").permanentId], "byBattle")).toBe(1);
     expect(battle.state.players[0]!.battleArea).toHaveLength(0);
+  });
+
+  it("plays only from its own digivolution cards, never from a neighbor's stack (CR 16-36-1)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "host" },
+            { card: "BT1-011", as: "neighbor", under: [{ card: "BT12-025", as: "foreign" }] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const foreignId = s.inst("foreign").instanceId;
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+    await settle();
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === foreignId)).toBe(false);
+    expect(s.perm("neighbor").stack.some((card) => card.instanceId === foreignId)).toBe(true);
   });
 
   it("executes inherited Decode on the host and rejects an Aqua-containing level-5 source", async () => {

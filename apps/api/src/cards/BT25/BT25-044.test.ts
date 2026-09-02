@@ -160,4 +160,30 @@ describe("BT25-044 Junomon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-001"]);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-009"]);
   });
+
+  it("naturally reacts when an opponent security check removes its security card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-044", as: "junomon" }],
+          hand: [{ card: "BT25-034", as: "angel" }],
+          security: [{ card: "BT1-090", as: "security" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 7000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT25-034"));
+
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("angel").instanceId)).toBe(false);
+  });
 });

@@ -100,6 +100,40 @@ describe("EX12-016 MetalGreymon", () => {
     expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
   });
 
+  it("gives the delayed attack to a Digimon that is already unaffected by effects (Q6740)", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX12-016", as: "source" }], security: ["BT1-090"] },
+        1: {
+          battleArea: [
+            { card: "BT1-011", as: "deletion", dp: 6000 },
+            { card: "BT1-009", as: "victim" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    advance(s.engine).ledgers.continuous.addRestriction(
+      s.perm("victim").permanentId,
+      "beAffected",
+      EffectDuration.UntilEachTurnEnd,
+      { fromSourceKind: ["Digimon"] },
+    );
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+
+    advance(s.engine).ledgers.continuous.sweep(s.state, "eachTurnEnd", 0);
+    s.state.turnSeat = 1;
+    await advance(s.engine).fireGlobal(EffectTiming.OnStartMainPhase);
+
+    expect(s.perm("victim").isSuspended).toBe(true);
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(true);
+  });
+
   it("does not delete an opposing Digimon above the 6000 DP ceiling", async () => {
     const s = setupEngine(
       {
@@ -207,6 +241,28 @@ describe("EX12-016 MetalGreymon", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === targetId)).toBe(true);
+  });
+
+  it("plays only from its own digivolution cards, never from a neighbor's stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX12-016", as: "host" },
+            { card: "EX12-015", as: "neighbor", under: [{ card: "EX12-013", as: "foreign" }] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const foreignId = s.inst("foreign").instanceId;
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+    await settle();
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === foreignId)).toBe(false);
+    expect(s.perm("neighbor").stack.some((card) => card.instanceId === foreignId)).toBe(true);
   });
 
   it("does not trigger Decode when leaving by battle", async () => {
