@@ -37,6 +37,56 @@ describe("EX11-065 Close", () => {
     assertNoLoudGap(s);
   });
 
+  it("accepts a [Rock] Digi-Egg from a digivolution stack as the memory cost", async () => {
+    // EX8-005 Tumblemon is a [Rock] Digi-Egg — the catalog kind is `DigiEgg`, not `Digimon`,
+    // and it is the card sitting at the bottom of every stack raised out of the breeding area.
+    // A `kind: ["Digimon"]` cost filter would reject it and leave the clause unpayable here.
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-065", as: "close" },
+            { card: "BT13-061", as: "host", under: [{ card: "EX8-005", as: "digiEgg" }] },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 0;
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("close"));
+
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX8-005")).toBe(true);
+    expect(s.perm("host").stack).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
+  it("places a [Rock] Digi-Egg from hand under the triggering Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT13-061", as: "gotsumon" },
+            { card: "EX11-065", as: "close" },
+          ],
+          // BT1-090 carries neither trait, so it is never a legal placement even though the
+          // clause names a "card" rather than a Digimon card.
+          hand: ["EX8-005", "BT1-090"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("gotsumon").permanentId });
+    await settle(() => s.perm("close").isSuspended);
+
+    expect(s.perm("gotsumon").stack.map(({ cardId }) => cardId)).toEqual(["EX8-005"]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-090"]);
+    assertNoLoudGap(s);
+  });
+
   it("suspends to place a Mineral or Rock card under a played Mineral Digimon", async () => {
     const s = setupEngine(
       {
@@ -112,7 +162,10 @@ describe("EX11-065 Close", () => {
     await settle(() => s.perm("close").isSuspended);
 
     expect(s.perm("base").topCard?.cardId).toBe("BT10-062");
-    expect(s.perm("base").stack.some((card) => card.instanceId === s.inst("material").instanceId)).toBe(true);
+    // "as any of those Digimon's BOTTOM digivolution card": index 0 is the bottom of the stack,
+    // beneath the BT13-061 the digivolution itself pushed down.
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["EX8-051", "BT13-061"]);
+    expect(s.perm("base").stack[0]!.instanceId).toBe(s.inst("material").instanceId);
     assertNoLoudGap(s);
   });
 
@@ -136,6 +189,17 @@ describe("EX11-065 Close", () => {
           ],
         }),
       );
+    }
+  });
+
+  it("keeps both card pools free of a Digimon-kind restriction so Digi-Eggs qualify", () => {
+    const mainPhase = compiled.effects.find((effect) => effect.trigger === "StartOfYourMainPhase")!;
+    const gainMemory = mainPhase.actions[0] as { cost?: { target?: { filter?: { kind?: unknown } } } };
+    expect(gainMemory.cost?.target?.filter?.kind).toBeUndefined();
+
+    const allTurns = compiled.effects.find((effect) => effect.trigger === "AllTurns")!;
+    for (const watcher of allTurns.actions as { actions?: { target?: { filter?: { kind?: unknown } } }[] }[]) {
+      expect(watcher.actions?.[0]?.target?.filter?.kind).toBeUndefined();
     }
   });
 });

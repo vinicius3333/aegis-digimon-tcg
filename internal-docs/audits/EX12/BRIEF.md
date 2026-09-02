@@ -1,0 +1,81 @@
+# EX12 card audit brief (shared by all batch agents)
+
+Working directory (absolute, always use it, never the main repo root):
+`/Users/viniciusluiz/aegis-digimon-tcg/.claude/worktrees/audit-ex12`
+
+Follow `.agents/skills/verify-card-implementation/SKILL.md` step by step for every card in
+your batch, in ascending order. Read the skill file first.
+
+## What you must not trust
+
+`apps/api/src/cards/EX12/AUDIT.md` already scores every EX12 card 10/10. Treat that as a claim
+to falsify. The coordinator already proved two gaps the ledger missed:
+
+- 35 of 77 persisted records in `packages/shared/src/effects/effects.json` differ from the
+  direct module. Your batch's drift list is in your task prompt. For each drifted card, read
+  both forms and decide which one is right against the printed text and rulings. Fix the
+  module if the module is wrong. Never edit `effects.json`; report which side won.
+- `// @ts-nocheck` was removed from all 77 modules. Your batch's type errors are in your task
+  prompt. A type error usually means the IR shape is not what the interpreter reads, so treat
+  each one as a possible semantic defect, not a typing chore. Fix the module so it typechecks
+  against `CompiledCard` without casts or `any`.
+
+## Evidence sources
+
+- Catalog: `packages/shared/src/cards/data/cards.json` (field `cardId`, set `EX12`).
+- Knowledge base: run `node tools/kb/query.mjs card <CARD-ID>` for every card; read the rules
+  under `data/kb` when a ruling points there.
+- Interpreter: `apps/api/src/engine/effects/interpreter/**`. Follow every primitive your card
+  uses until you can state its real semantics.
+- Peers: neighboring EX12 cards and other sets sharing the trait, keyword, or effect vocabulary.
+
+## Per-card work
+
+1. Contract: list every printed clause (main, inherited, Security, evolution requirements
+   including alternates, Rule text, keywords, DP, level, colors, costs). Attach the KB rulings.
+2. IR trace: map each clause to IR nodes and to interpreter code. Name the gap when a clause is
+   approximated, missing, or over-broad (targets, controller, count, boundaries, timing,
+   optionality, once-per-turn identity, zones, face state, duration, turn ownership).
+3. Behavioral proof: strengthen `<CARD-ID>.test.ts` following current neighboring EX12 tests
+   (public intents, `settle()`, assertions on `GameState`). Cover positive path, exact
+   boundaries, negative path, optional refusal, paid costs and final zones, duration, inherited
+   and Security behavior, once-per-turn. For every clause you fixed, add the test that would
+   have failed before the fix.
+4. Peer and stack: add the trait-mix and realistic evolution-stack cases the skill's step 4
+   requires. `TOKEN-Kotenken.ts` belongs to whichever card in your batch creates that token;
+   audit it with that card.
+5. Do a reasoning mutation check: for each card-specific field, name the existing or new
+   assertion that would fail if the field were wrong. If you cannot name one, the suite is
+   insufficient. Write it down in the report.
+
+## Hard rules
+
+- Edit only `EX12-<ID>.ts` and `EX12-<ID>.test.ts` for cards in your batch (plus
+  `TOKEN-Kotenken.ts` if it is yours). Never edit `index.ts`, `AUDIT.md`,
+  `EX12.audit.test.ts`, `EX12-catalog-sync.test.ts`, `effects.json`, other sets, or anything
+  under `apps/api/src/engine` or `packages/shared`.
+- If a card needs an engine or shared change, do not make it. Write the minimal proposed diff
+  and the test that proves the need into your report, score the card below 10/10, and move on.
+- Never add `registerCard`. Keep exactly one `registerIrCard("<ID>", compiled)` call.
+- Keep `coverage: "full"` and `residual: []` honest. If a clause is not executable, say so.
+- Do not run vitest, typecheck, lint, or formatters. The coordinator runs every gate once at
+  the end. Keep test code compilable by reading neighboring tests and the harness types.
+- No git commands of any kind. No pushes. Nothing outside the worktree.
+
+## Deliverable
+
+Write `internal-docs/audits/EX12/EX12-<FIRST>-<LAST>.md` following the structure of
+`internal-docs/audits/BT12/BT12-001-010.md`:
+
+1. Scope and authority (catalog commit, files inspected, execution constraints).
+2. KB table: one row per card with the ruling ids applied or "No dedicated entry returned."
+3. Registration and runtime findings, including the effects.json verdict per drifted card.
+4. Per-card findings: clauses, IR trace, defects corrected (before and after), tests added,
+   type errors resolved and what they meant, mutation-check assertions, open ambiguity.
+5. Score table with the five columns (Catalog/rules, IR trace, Behavioral proof, Peer and
+   stack proof, Executed delivery gates) and total. Delivery gates are `0/2` for every card
+   because no gate ran; mark totals as provisional maxima of 8/10.
+6. Seam requests: proposed engine diffs with the failing test each one needs.
+
+Return a short summary: cards changed, defects found per card, effects.json verdicts, seam
+requests, cards you could not bring to 8/10 and why.

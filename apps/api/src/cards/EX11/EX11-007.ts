@@ -1,17 +1,19 @@
-// @ts-nocheck
-import type { Action, CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const grantTarget = {
+// Annotated as `Target` so `kind` and `match` keep their literal union types: an unannotated
+// object literal widens `kind: ["Digimon"]` to `string[]`, which the interpreter's Filter
+// rejects.
+const grantTarget: Target = {
   filter: {
-    controller: "mine" as const,
+    controller: "mine",
     kind: ["Digimon"],
     nameOrTrait: [
-      { tokens: ["Tyrannomon"], match: "name" as const },
-      { tokens: ["Reptile", "Dinosaur"], match: "trait" as const },
+      { tokens: ["Tyrannomon"], match: "name" },
+      { tokens: ["Reptile", "Dinosaur"], match: "trait" },
     ],
   },
-  count: 1 as const,
+  count: 1,
 };
 
 // Both keywords belong to the same printed "1 of your Digimon" selection. Encode

@@ -126,6 +126,34 @@ describe("EX11-060 Arisa Kinosaki", () => {
     assertNoLoudGap(s);
   });
 
+  it("draws for a Token deletion and for a Puppet deletion, but not for a plain Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-060", as: "arisa" },
+            { card: "TOKEN-Familiar-Token", as: "token", dp: 3000 },
+            { card: "BT1-009", as: "plain" },
+          ],
+          deck: ["AD1-001", "AD1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const handBefore = s.state.players[0]!.hand.length;
+
+    await advance(s.engine).verb.deletePermanent([s.perm("plain").permanentId], "byEffect");
+    await settle(() => false, 60);
+    expect(s.perm("arisa").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand).toHaveLength(handBefore);
+
+    await advance(s.engine).verb.deletePermanent([s.perm("token").permanentId], "byEffect");
+    await settle(() => s.perm("arisa").isSuspended);
+    expect(s.perm("arisa").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand).toHaveLength(handBefore + 1);
+    assertNoLoudGap(s);
+  });
+
   it("publishes full exclusive IR for every printed clause", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects.find((effect) => effect.trigger === "AllTurns")?.actions).toMatchObject([

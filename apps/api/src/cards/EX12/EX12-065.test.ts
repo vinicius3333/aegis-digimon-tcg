@@ -5,6 +5,8 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { compiled } from "./EX12-065.js";
+// EX12-063 sits in the Q6866 stack; its inherited [On Deletion] must be registered to trigger.
+import "./EX12-063.js";
 
 const CARD_ID = "EX12-065";
 
@@ -156,6 +158,62 @@ describe("EX12-065 Kaguyamon", () => {
     }
   });
 
+  it("keeps granting Blocker and Retaliation to a Puppet Digimon played after it, and never to the opponent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "source" }],
+          hand: [{ card: "BT1-038", as: "latePuppet" }],
+        },
+        1: { battleArea: [{ card: "BT1-038", as: "opponentPuppet" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+
+    for (const keyword of ["Blocker", "Retaliation"] as const) {
+      expect(observe(s.engine).hasKeyword(s.perm("opponentPuppet"), keyword)).toBe(false);
+    }
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("latePuppet").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 2);
+
+    const late = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard?.instanceId === s.inst("latePuppet").instanceId,
+    )!;
+    for (const keyword of ["Blocker", "Retaliation"] as const) {
+      expect(observe(s.engine).hasKeyword(late, keyword)).toBe(true);
+      expect(observe(s.engine).hasKeyword(s.perm("opponentPuppet"), keyword)).toBe(false);
+    }
+  });
+
+  it("stops granting the keywords once it leaves the battle area", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "source" },
+            { card: "BT1-038", as: "puppet" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(observe(s.engine).hasKeyword(s.perm("puppet"), "Blocker")).toBe(true);
+
+    await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect");
+    await settle(() => !s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID));
+
+    for (const keyword of ["Blocker", "Retaliation"] as const) {
+      expect(observe(s.engine).hasKeyword(s.perm("puppet"), keyword)).toBe(false);
+    }
+  });
+
   it("returns the lowest level on real deletion and Fortitude replays itself when it had a source", async () => {
     const s = setupEngine(
       {
@@ -186,6 +244,61 @@ describe("EX12-065 Kaguyamon", () => {
     expect(replayed.stack).toHaveLength(0);
     expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX12-063")).toBe(true);
   });
+
+  it.each([
+    ["EX12-063", ["EX12-063", "EX12-065"]],
+    ["EX12-065", ["EX12-065", "EX12-063"]],
+  ])(
+    "Q6866 lets the controller order the simultaneous on-deletion effects, taking %s first",
+    async (firstCardId, expectedOrder) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: CARD_ID, as: "source", under: ["EX12-063"] }],
+            trash: [{ card: "BT26-012", as: "fromTrash" }],
+          },
+          1: { battleArea: [{ card: "BT1-009", as: "lowest" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+      );
+      await s.ready();
+
+      // Fire-and-forget: the deletion cannot complete until the ordering decision is answered.
+      void advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect");
+      await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+
+      const ordering = s.state.pendingDecision!;
+      const request = s.decisions.find(({ req }) => req.decisionId === ordering.decisionId)!.req;
+      const ids = request.options?.triggerCardIds ?? [];
+      const keys = request.options?.triggerKeys ?? [];
+      // Kaguyamon's own [On Deletion] and Karakurumon's inherited [On Deletion] trigger at the
+      // same time, so the controller — not the engine — decides which resolves first.
+      expect(ids).toEqual(expect.arrayContaining(["EX12-063", CARD_ID]));
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: ordering.decisionId,
+          response: { kind: "orderTriggers", order: [keys[ids.indexOf(firstCardId)]!] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.events.filter(
+            (event) =>
+              event.kind === "effectResolved" && (event.sourceCardId === CARD_ID || event.sourceCardId === "EX12-063"),
+          ).length >= 2,
+      );
+
+      expect(
+        s.events
+          .filter((event) => event.kind === "effectResolved")
+          .map((event) => event.sourceCardId)
+          .filter((cardId) => cardId === CARD_ID || cardId === "EX12-063")
+          .slice(0, 2),
+      ).toEqual(expectedOrder);
+    },
+  );
 
   it("stays deleted without a digivolution source", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: CARD_ID, as: "source" }] } });

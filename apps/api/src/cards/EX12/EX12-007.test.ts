@@ -194,4 +194,27 @@ describe("EX12-007 Gammamon", () => {
       }),
     ).toEqual(expect.objectContaining({ ok: false }));
   });
+
+  it("reveals only the top three cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX12-007", as: "source" }],
+          deck: ["RB1-005", "EX12-005", "BT1-009", "EX12-011"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.deck.length === 2);
+
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["RB1-005", "EX12-005"]),
+    );
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["EX12-011", "BT1-009"]);
+  });
 });

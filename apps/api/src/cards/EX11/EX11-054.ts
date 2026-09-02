@@ -13,9 +13,11 @@ const progress: Filter = {
 const reptileOrDragonkin: Filter = {
   controller: "mine",
   kind: ["Digimon"],
+  // "[Reptile] or [Dragonkin] trait": declare the union explicitly rather than relying on the
+  // interpreter's implicit multi-entry default. Exact traits, so [Reptile Man] stays out.
   nameOrTrait: [
     { match: "trait", tokens: ["Reptile"] },
-    { match: "trait", tokens: ["Dragonkin"] },
+    { match: "trait", tokens: ["Dragonkin"], orPrevious: true },
   ],
 };
 const reward: Action[] = [

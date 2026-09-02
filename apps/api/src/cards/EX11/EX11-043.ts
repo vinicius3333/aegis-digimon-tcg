@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -115,7 +114,13 @@ const compiled: CompiledCard = {
               kind: "SecurityManipulation",
               op: "addBottom",
               controller: "mine",
+              // "this Digimon's top stacked card" is the permanent's OWN top card, not its top
+              // digivolution card (KB EX11-043 Q5875: with only a Tamer underneath, placing it
+              // leaves a Tamer permanent; Q5888: the promoted digivolution card performs the
+              // next security check). `detachPermanentTop` sheds only that top card and promotes
+              // the stack; without it addSecurity moves the whole permanent and trashes the stack.
               source: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              detachPermanentTop: true,
               faceUp: true,
               optional: true,
             },

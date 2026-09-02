@@ -78,6 +78,51 @@ describe("EX11-055 Chitose Horaiji", () => {
     assertNoLoudGap(s);
   });
 
+  it("ignores the deletion of a Digimon with neither Composite nor Wicked God", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-055", as: "chitose" },
+            { card: "BT1-009", as: "plain" },
+          ],
+          hand: [{ card: "BT10-071", as: "gazimon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).verb.deletePermanent([s.perm("plain").permanentId], "byEffect");
+    await settle(() => false, 60);
+
+    expect(s.perm("chitose").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("gazimon").instanceId)).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("does not play a Gizamon-adjacent name that is not exactly Gazimon or Gizamon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-055", as: "chitose" },
+            { card: "AD1-006", as: "composite" },
+          ],
+          hand: [{ card: "BT1-009", as: "notGazimon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).verb.deletePermanent([s.perm("composite").permanentId], "byEffect");
+    await settle(() => false, 60);
+
+    // Monodramon is neither [Gazimon] nor [Gizamon], so nothing may be played. (Whether the
+    // suspend cost should still be consumed is an engine-level preflight question, not this
+    // card's contract, so it is deliberately not asserted here.)
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("notGazimon").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-009")).toBe(false);
+    assertNoLoudGap(s);
+  });
+
   it("plays itself from security without paying the cost", async () => {
     const s = setupEngine({ 0: { security: [{ card: "EX11-055", as: "chitose" }] } }, { autoDeclineOptional: true });
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("chitose"));
@@ -106,5 +151,24 @@ describe("EX11-055 Chitose Horaiji", () => {
         ],
       },
     ]);
+  });
+  it("does not suspend when no Gazimon or Gizamon can be played", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-055", as: "chitose" },
+            { card: "AD1-006", as: "composite" },
+          ],
+          hand: [{ card: "BT1-009", as: "notGazimon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("composite").permanentId], "byEffect");
+    await settle();
+    expect(s.perm("chitose").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand).toHaveLength(1);
   });
 });

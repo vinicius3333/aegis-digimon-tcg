@@ -65,7 +65,7 @@ describe("EX12 collection audit proof", () => {
     }
   });
 
-  it("documents every audited card as 10/10 in the versioned ledger", () => {
+  it("documents every audited card with a consistent score and an honest completion line", () => {
     const rows = auditLedgerSource
       .split("\n")
       .filter((line) => /^\| EX12-\d{3} \|/.test(line))
@@ -75,24 +75,40 @@ describe("EX12 collection audit proof", () => {
           .slice(1, -1)
           .map((cell) => cell.trim()),
       );
+    const exceptionsSection = auditLedgerSource.slice(
+      auditLedgerSource.indexOf("## Exceptions"),
+      auditLedgerSource.indexOf("## Reproducible collection evidence"),
+    );
 
-    expect(auditLedgerSource).toContain("Overall completion: **77/77 cards (100%) at 10/10**.");
     expect(rows).toHaveLength(ex12Cards.length);
 
+    let perfectRows = 0;
+    const belowTen: string[] = [];
     for (const [index, card] of ex12Cards.entries()) {
       const cardId = card.cardId;
+      const [rowId, rowName, ...rest] = rows[index]!;
+      const areas = rest.slice(0, 5);
+      const [total, evidence] = rest.slice(5);
 
-      expect(rows[index], `${cardId} audit ledger row`).toEqual([
-        cardId,
-        card.nameEn,
-        "2/2",
-        "2/2",
-        "2/2",
-        "2/2",
-        "2/2",
-        "10/10",
+      expect(rowId, `${cardId} audit ledger row`).toBe(cardId);
+      expect(rowName, `${cardId} catalog name`).toBe(card.nameEn);
+      for (const area of areas) expect(area, `${cardId} area score`).toMatch(/^[012]\/2$/);
+      const sum = areas.reduce((acc, area) => acc + Number(area.split("/")[0]), 0);
+      expect(total, `${cardId} total`).toBe(`${sum}/10`);
+      expect(evidence, `${cardId} evidence links`).toBe(
         `[\`${cardId}.ts\`](./${cardId}.ts) · [\`${cardId}.test.ts\`](./${cardId}.test.ts)`,
-      ]);
+      );
+      if (sum === 10) perfectRows += 1;
+      else belowTen.push(cardId);
     }
+
+    for (const cardId of belowTen) {
+      expect(exceptionsSection, `${cardId} listed under Exceptions`).toContain(`**${cardId} `);
+    }
+
+    const percent = ((perfectRows / ex12Cards.length) * 100).toFixed(1).replace(/\.0$/, "");
+    expect(auditLedgerSource).toContain(
+      `Overall completion: **${perfectRows}/${ex12Cards.length} cards (${percent}%) at 10/10**.`,
+    );
   });
 });

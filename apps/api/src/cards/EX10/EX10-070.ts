@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -91,7 +90,17 @@ export const compiled: CompiledCard = {
               optional: true,
             },
           ],
-          delayArmedIntrinsic: true,
+        },
+      ],
+      // ＜Delay＞ printed on the [All Turns] window. `delayArmedIntrinsic` is synthesized by
+      // `withIntrinsicDelayGate` (interpreter/effect.ts) from this keyword and is not part of
+      // the compiled IR, so the keyword is the encoding that belongs here (same shape as the
+      // BT23-093 peer). The runtime gate is unchanged: trash this card to activate, never on
+      // the turn it entered play.
+      keywords: [
+        {
+          keyword: "Delay",
+          raw: "＜Delay＞",
         },
       ],
     },

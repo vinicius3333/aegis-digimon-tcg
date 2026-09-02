@@ -48,6 +48,7 @@ export type Keyword =
   | "Overclock"
   | "UseReq"
   | "Engage" // EX-12: at the end of your turn, this Digimon may attack
+  | "Guard" // EX-12: while face up in security, may prevent an opponent effect from removing your Digimon
   /**
    * PROVISIONAL — ＜Detach (trait)＞ (BT26-010/-019/-028/-037/-051/-063/-084). The keyword is new
    * to BT26 and appears nowhere in our sources: zero hits in the KB rules corpus and zero in the

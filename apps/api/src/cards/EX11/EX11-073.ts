@@ -1,8 +1,12 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Scaling } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const selfLinkScale = {
+// "For each of this Digimon's link cards": `unit: "linkCards"` sums `permanent.linked.length`
+// over the permanents matching `filter`, and `isSelfRef: true` narrows that to this Digimon
+// alone (`countLinkCards` -> `permanentMatchesFilter`). The `Scaling` annotation is load-bearing:
+// unannotated, `unit` widens to `string` and the object stops satisfying `Scaling`, which is the
+// error `@ts-nocheck` was hiding.
+const selfLinkScale: Scaling = {
   per: 1,
   unit: "linkCards",
   filter: { controller: "mine", kind: ["Digimon"], isSelfRef: true },
@@ -49,6 +53,10 @@ export const compiled: CompiledCard = {
     {
       trigger: "EndOfOpponentsTurn",
       frequency: "OncePerTurn",
+      // KB Q5947: a "for each XX, [action 1] and [action 2]" clause runs action 1 for every XX
+      // first, then action 2 for every XX — two separate RepeatPerCount groups, not one
+      // interleaved loop. `countScaling` wins over `countSource` in the interpreter; the
+      // `countSource` name is only the type's required fallback slot and nothing writes it.
       actions: [
         {
           kind: "RepeatPerCount",

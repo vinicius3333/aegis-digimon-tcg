@@ -1,10 +1,16 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
+// Hand-audited IR for EX12-076 (Susanoomon).
+//
+// Both halves of the [When Attacking] "Then, ..." clause are gated on
+// `selfDigivolutionStackDistinctColorCount >= 4`, which reads the LIVE source permanent and
+// returns false once the card has left the battle area — exactly what KB Q7194 requires when an
+// immediate-type effect removes Susanoomon while the first part resolves.
+//
+// The -3000 DP scaling uses `unit: "digivolutionCardColors"`, which counts distinct colors across
+// the WHOLE stack (`interpreter/scaling.ts`), Digi-Eggs included; it never consults its `filter`,
+// so no card kind is silently excluded.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -129,6 +135,11 @@ const compiled: CompiledCard = {
             amount: 1,
             raw: "＜Recovery +1＞",
           },
+          // `GainKeywordAction.duration` is required. ＜Recovery＞ is an ACTION-type keyword:
+          // `runBoardAction` performs the verb (`recoverToSecurity`) and returns before the
+          // grant is recorded anywhere, so the value is inert. "permanent" matches the shape
+          // every other inline ＜Recovery +N＞ in this set uses (EX12-042, EX12-045).
+          duration: "permanent",
           condition: {
             kind: "selfDigivolutionStackDistinctColorCount",
             op: "gte",

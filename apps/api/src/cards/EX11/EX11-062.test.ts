@@ -78,6 +78,36 @@ describe("EX11-062 Shoto Kazama", () => {
     assertNoLoudGap(s);
   });
 
+  it("keeps the +3000 DP through the opponent's turn and loses it when that turn ends", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          deck: ["AD1-001"],
+          battleArea: [
+            { card: "EX11-062", as: "shoto" },
+            { card: "EX11-026", as: "bird" },
+          ],
+        },
+        1: {
+          deck: ["BT1-001", "BT1-001", "BT1-001"],
+          battleArea: [{ card: "AD1-002", as: "effectSuspended" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).verb.suspend([s.perm("effectSuspended").permanentId], 0);
+    expect(s.perm("bird").currentDP).toBe(4000);
+
+    // `untilOpponentTurnEnd` must survive the whole opponent turn and expire at its end.
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    await settle();
+
+    expect(s.perm("bird").currentDP).toBe(1000);
+    assertNoLoudGap(s);
+  });
+
   it("publishes full exclusive IR with the suspension cost gating both branches", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects.find((effect) => effect.trigger === "AllTurns")?.actions).toMatchObject([

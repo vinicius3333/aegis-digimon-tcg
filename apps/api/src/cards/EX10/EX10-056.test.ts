@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { EffectDuration, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -108,6 +108,35 @@ describe("EX10-056 Bagramon compiled contract", () => {
     });
     expect(s.state.players[1]!.security).toHaveLength(2);
     expect(s.perm("bagramon").stack).toHaveLength(2);
+  });
+
+  it("Q5144 cannot place an opposing Digimon under a host that isn't affected by effects", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: CARD_ID, as: "bagramon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "material" },
+            { card: "EX10-026", as: "host", under: [{ card: "BT1-010", as: "existing" }] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    // The only legal host is unaffectable by Digimon effects, so the placement has nowhere to go.
+    advance(s.engine).ledgers.continuous.addRestriction(
+      s.perm("host").permanentId,
+      "beAffected",
+      EffectDuration.Permanent,
+      { fromSourceKind: ["Digimon"] },
+    );
+    const materialId = s.perm("material").permanentId;
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("bagramon"));
+    await settle(() => s.state.pendingDecision === null);
+
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(materialId);
+    expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("existing").instanceId]);
   });
 
   it("does not react to its controller adding a digivolution card", async () => {
