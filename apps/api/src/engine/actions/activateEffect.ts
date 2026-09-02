@@ -10,7 +10,7 @@ import {
 import type { CardSource } from "../effects/CardSource.js";
 import type { Effect } from "../effects/Effect.js";
 import type { EffectContext } from "../effects/EffectContext.js";
-import { effectsOf } from "../effects/collect.js";
+import { effectsOf, type CollectedEffect } from "../effects/collect.js";
 import { UseTracker, canTrigger, canActivate } from "../effects/kernel.js";
 
 /**
@@ -55,8 +55,15 @@ export interface ActivateEffectDeps {
   findInstance(instanceId: string): { instance: CardInstance; permanent: Permanent | undefined } | undefined;
   /** Build the CardSource for an instance (engine context plumbing). */
   cardSourceOf(instance: CardInstance): CardSource;
+  /** Resolve direct and live stack-conferred activation candidates for this card. */
+  activationEffectsFor?(instance: CardInstance): readonly CollectedEffect[];
   /** Build the runtime EffectContext for a source + effect (engine context plumbing). */
-  makeContext(source: CardSource, effect: Effect): EffectContext;
+  makeContext(
+    source: CardSource,
+    effect: Effect,
+    conferredToPermanentId?: string,
+    conferralGranterInstanceId?: string,
+  ): EffectContext;
   /** Per-turn use ledger (engine-owned; shared with the effect stack). */
   tracker: UseTracker;
   /** Attribute nested effect-driven events to this direct activation while it resolves. */
@@ -100,14 +107,22 @@ export function validateActivateEffect(
   const controller = found.permanent !== undefined ? found.permanent.controllerSeat : found.instance.ownerSeat;
   if (controller !== seat) return { ok: false, reason: "illegal-target" };
 
-  // 4. The named effect must be one this card contributes at the activation window.
-  const source = deps.cardSourceOf(found.instance);
-  const effect = effectsOf(ACTIVATE_TIMING, source).find((e) => e.effectKey === intent.effectKey);
-  if (effect === undefined) return { ok: false, reason: "illegal-target" };
+  // 4. The named effect must be one this card contributes at the activation window,
+  // either directly or through a live stack-effect conferral onto its host.
+  const directSource = deps.cardSourceOf(found.instance);
+  const candidate: CollectedEffect | undefined =
+    deps.activationEffectsFor?.(found.instance).find((entry) => entry.effect.effectKey === intent.effectKey) ??
+    (deps.activationEffectsFor === undefined
+      ? effectsOf(ACTIVATE_TIMING, directSource)
+          .filter((effect) => effect.effectKey === intent.effectKey)
+          .map((effect) => ({ source: directSource, effect }) satisfies CollectedEffect)[0]
+      : undefined);
+  if (candidate === undefined) return { ok: false, reason: "illegal-target" };
 
   // 5. The kernel guards must pass (trigger predicate + per-turn limit, then the
   //    activation predicate + inherited/linked placement guard).
-  const ctx = deps.makeContext(source, effect);
+  const { source, effect, conferredToPermanentId, conferralGranterInstanceId } = candidate;
+  const ctx = deps.makeContext(source, effect, conferredToPermanentId, conferralGranterInstanceId);
   if (!canTrigger(effect, ctx, deps.tracker)) return { ok: false, reason: "illegal-target" };
   if (!canActivate(effect, ctx, deps.tracker)) return { ok: false, reason: "illegal-target" };
 

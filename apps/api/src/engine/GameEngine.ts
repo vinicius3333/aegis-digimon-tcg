@@ -2997,34 +2997,24 @@ export class GameEngine {
     for (const perm of turnPlayer.battleArea) {
       const entries: { instanceId: string; effectKey: string; description: string }[] = [];
       const candidates = [perm.topCard, ...perm.stack, ...perm.linked].filter(Boolean);
-      for (const instance of candidates) {
-        const source = this.cardSourceOf(instance);
-        for (const effect of effectsOf(ACTIVATE_TIMING, source)) {
-          const ctx = this.buildEffectContext(source, {});
-          if (canTrigger(effect, ctx, this.tracker) && canActivate(effect, ctx, this.tracker)) {
-            entries.push({
-              instanceId: instance.instanceId,
-              effectKey: effect.effectKey,
-              description: effect.description,
-            });
-          }
-        }
+      for (const { source, effect } of this.activatableEffectsFor(candidates)) {
+        entries.push({
+          instanceId: source.instanceId,
+          effectKey: effect.effectKey,
+          description: effect.description,
+        });
       }
       perm.activatableEffectsJson = entries.length ? JSON.stringify(entries) : "";
     }
 
     for (const instance of turnPlayer.hand) {
-      const source = this.cardSourceOf(instance);
       const entries: { instanceId: string; effectKey: string; description: string }[] = [];
-      for (const effect of effectsOf(ACTIVATE_TIMING, source)) {
-        const ctx = this.buildEffectContext(source, {});
-        if (canTrigger(effect, ctx, this.tracker) && canActivate(effect, ctx, this.tracker)) {
-          entries.push({
-            instanceId: instance.instanceId,
-            effectKey: effect.effectKey,
-            description: effect.description,
-          });
-        }
+      for (const { source, effect } of this.activatableEffectsFor([instance])) {
+        entries.push({
+          instanceId: source.instanceId,
+          effectKey: effect.effectKey,
+          description: effect.description,
+        });
       }
       instance.activatableEffectsJson = entries.length ? JSON.stringify(entries) : "";
     }
@@ -3034,20 +3024,42 @@ export class GameEngine {
     // `canTrigger` keeps ordinary Main effects out because only effects registered with
     // `isFromTrash` accept a source whose current zone is trash.
     for (const instance of turnPlayer.trash) {
-      const source = this.cardSourceOf(instance);
       const entries: { instanceId: string; effectKey: string; description: string }[] = [];
-      for (const effect of effectsOf(ACTIVATE_TIMING, source)) {
-        const ctx = this.buildEffectContext(source, {});
-        if (canTrigger(effect, ctx, this.tracker) && canActivate(effect, ctx, this.tracker)) {
-          entries.push({
-            instanceId: instance.instanceId,
-            effectKey: effect.effectKey,
-            description: effect.description,
-          });
-        }
+      for (const { source, effect } of this.activatableEffectsFor([instance])) {
+        entries.push({
+          instanceId: source.instanceId,
+          effectKey: effect.effectKey,
+          description: effect.description,
+        });
       }
       instance.activatableEffectsJson = entries.length ? JSON.stringify(entries) : "";
     }
+  }
+
+  /**
+   * Collect currently usable [Main] effects for these physical cards, including
+   * own effects conferred from a buried digivolution card onto its host.
+   */
+  private activatableEffectsFor(instances: readonly CardInstance[]): CollectedEffect[] {
+    return gatherTriggeredEffects(this.effectEnvironment({}), ACTIVATE_TIMING, instances).filter((collected) =>
+      canActivate(collected.effect, this.activationContext(collected), this.tracker),
+    );
+  }
+
+  /** Build a direct-activation context while retaining stack-conferral provenance. */
+  private activationContext(collected: CollectedEffect): EffectContext {
+    return {
+      ...this.buildEffectContext(collected.source, {}),
+      activeTiming: collected.effect.irTrigger ?? EffectTiming[ACTIVATE_TIMING],
+      activeEffectText: collected.effect.description,
+      activeEffectKey: collected.effect.effectKey,
+      ...(collected.conferredToPermanentId === undefined
+        ? {}
+        : { conferredToPermanentId: collected.conferredToPermanentId }),
+      ...(collected.conferralGranterInstanceId === undefined
+        ? {}
+        : { conferralGranterInstanceId: collected.conferralGranterInstanceId }),
+    };
   }
 
   /**
@@ -5737,18 +5749,18 @@ export class GameEngine {
     return {
       findInstance: (instanceId) => this.findInstance(instanceId),
       cardSourceOf: (instance) => this.cardSourceOf(instance),
+      activationEffectsFor: (instance) => this.activatableEffectsFor([instance]),
       // A directly-activated [Main] ability has no incoming trigger payload (it is
       // not reacting to another event), so the TriggerInfo is empty. It still carries
       // the named effect's provenance because every nested decision must render this
       // exact [Main]/Delay clause rather than guessing from the card's first text box.
-      makeContext: (source, effect) => {
-        const ctx = this.buildEffectContext(source, {});
-        // The PRINTED window this clause is tagged with ("[Main]"), which is its IR trigger;
-        // the internal activation timing name is the fallback for hand-written effects.
-        ctx.activeTiming = effect.irTrigger ?? EffectTiming[ACTIVATE_TIMING];
-        ctx.activeEffectText = effect.description;
-        return ctx;
-      },
+      makeContext: (source, effect, conferredToPermanentId, conferralGranterInstanceId) =>
+        this.activationContext({
+          source,
+          effect,
+          ...(conferredToPermanentId === undefined ? {} : { conferredToPermanentId }),
+          ...(conferralGranterInstanceId === undefined ? {} : { conferralGranterInstanceId }),
+        }),
       tracker: this.tracker,
       enterEffectResolution: (seat, sourceKinds) => this.primitives.enterEffectResolution?.(seat, sourceKinds),
       leaveEffectResolution: () => this.primitives.leaveEffectResolution?.(),

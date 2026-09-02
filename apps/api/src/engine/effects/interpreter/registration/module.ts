@@ -45,6 +45,12 @@ import { normalizeCompiledCard } from "./normalize.js";
 import { compiledEffects, EffectTiming, getCardDefinition, isOption } from "@aegis/shared";
 import type { CardEffect, CompiledCard } from "@aegis/shared";
 
+/** Preserve a collected conferral key while still giving nested effects their own identity. */
+function runtimeEffectKey(ctx: Parameters<Effect["resolve"]>[0], effectKey: string): string {
+  const collectedKey = ctx.activeEffectKey;
+  return collectedKey?.startsWith(`${effectKey}/conferral/`) === true ? collectedKey : effectKey;
+}
+
 export function irCardModule(cardId: string, compiled: CompiledCard): EffectModule {
   // A few legacy generated records encoded a shared clause as `trigger: [A, B]` even though the
   // public IR type is intentionally a single trigger. Normalize that shape into one effect per
@@ -216,7 +222,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
               // The source is the activation cost. Delete it before resolving the payload so
               // state observers cannot see the Delay reward while the paid card remains in play.
               const outerEffectKey = ctx.activeEffectKey;
-              ctx.activeEffectKey = effectKey;
+              ctx.activeEffectKey = runtimeEffectKey(ctx, effectKey);
               try {
                 await runEffect({ ...ctx, delayArmedConsumed }, effect);
               } finally {
@@ -266,7 +272,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
               const trashed = await ctx.fx.deletePermanent([self.permanentId]);
               if (trashed <= 0 && ctx.source.permanent() !== undefined) return;
               const outerEffectKey = ctx.activeEffectKey;
-              ctx.activeEffectKey = effectKey;
+              ctx.activeEffectKey = runtimeEffectKey(ctx, effectKey);
               try {
                 await runEffect(ctx, effect);
               } finally {
@@ -304,7 +310,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
             canActivateEffect(ctx, effect),
           resolve: async (ctx) => {
             const outerEffectKey = ctx.activeEffectKey;
-            ctx.activeEffectKey = effectKey;
+            ctx.activeEffectKey = runtimeEffectKey(ctx, effectKey);
             try {
               await runEffect(ctx, resolvedEffect);
             } finally {

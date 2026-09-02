@@ -147,6 +147,7 @@ export function buildResolutionEnv(env: EffectEnvironment, deps: ResolutionDeps)
         activeTiming:
           collected.effect.irTrigger ?? (collected.timing === undefined ? undefined : EffectTiming[collected.timing]),
         activeEffectText: collected.effect.description,
+        activeEffectKey: collected.effect.effectKey,
         conferredToPermanentId: collected.conferredToPermanentId,
         conferralGranterInstanceId: collected.conferralGranterInstanceId,
       }),

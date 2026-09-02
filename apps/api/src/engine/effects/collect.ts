@@ -158,25 +158,33 @@ export function collectConferredEffects(
   tracker: UseTracker,
 ): CollectedEffect[] {
   const collected: CollectedEffect[] = [];
-  for (const { targetPermanentId, stackInstanceId, trigger, inheritedOnly, excludeInherited, granterInstanceId } of conferrals) {
+  for (const {
+    targetPermanentId,
+    stackInstanceId,
+    trigger,
+    inheritedOnly,
+    excludeInherited,
+    granterInstanceId,
+  } of conferrals) {
     const source = instanceById(stackInstanceId);
     if (source === undefined) continue;
     for (const effect of effectsOf(timing, source)) {
       if (inheritedOnly === true && effect.isInherited !== true) continue;
       if (excludeInherited === true && effect.isInherited === true) continue;
       if (trigger !== undefined && effect.irTrigger !== trigger) continue;
-      const ctx = makeContext(source, effect, targetPermanentId, granterInstanceId);
-      if (canTrigger(effect, ctx, tracker) && canActivate(effect, ctx, tracker)) {
-        // A card can gain the same stack effect from more than one static grant
-        // at the same timing (for example BT16-014 gaining Goldramon's
-        // [When Digivolving] effect while Goldramon itself is also present).
-        // Those are distinct effect instances and must not collide in the
-        // per-turn UseTracker, whose ordinary identity is source + effectKey.
-        // Keep the printed key unchanged when there is no grant provenance.
-        const collectedEffect =
-          granterInstanceId === undefined
-            ? effect
-            : { ...effect, effectKey: `${effect.effectKey}/conferral/${granterInstanceId}` };
+      // A card can gain the same stack effect from more than one static grant
+      // at the same timing (for example BT16-014 gaining Goldramon's
+      // [When Digivolving] effect while Goldramon itself is also present).
+      // Those are distinct effect instances and must not collide in the
+      // per-turn UseTracker, whose ordinary identity is source + effectKey.
+      // Build the provenance-specific key BEFORE consulting the tracker so the
+      // key checked by canTrigger/canActivate is the same one later registered.
+      const collectedEffect =
+        granterInstanceId === undefined
+          ? effect
+          : { ...effect, effectKey: `${effect.effectKey}/conferral/${granterInstanceId}` };
+      const ctx = makeContext(source, collectedEffect, targetPermanentId, granterInstanceId);
+      if (canTrigger(collectedEffect, ctx, tracker) && canActivate(collectedEffect, ctx, tracker)) {
         collected.push({
           source,
           effect: collectedEffect,
