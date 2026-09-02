@@ -1,7 +1,16 @@
-// @ts-nocheck
 // hand-authored override: preserve the canonical Option-kind filter for UI/server candidates
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+const optionFilter: Filter = {
+  kind: ["Option"],
+  nameOrTrait: [
+    {
+      tokens: ["Plug-In"],
+      match: "name",
+    },
+  ],
+};
 
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
@@ -13,16 +22,9 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "UseOptionWithoutCost",
+          filter: optionFilter,
           target: {
-            filter: {
-              kind: ["Option"],
-              nameOrTrait: [
-                {
-                  tokens: ["Plug-In"],
-                  match: "name",
-                },
-              ],
-            },
+            filter: optionFilter,
             count: 1,
             from: ["hand"],
           },

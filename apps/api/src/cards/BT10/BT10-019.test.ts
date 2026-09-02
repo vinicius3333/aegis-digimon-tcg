@@ -204,6 +204,27 @@ describe("BT10-019 Greymon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === greymonId)).toBe(false);
   });
 
+  it("does not Save itself under a friendly Digimon when no Tamer is available", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-019", as: "greymon" },
+            { card: "BT10-020", as: "otherDigimon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const greymonId = s.inst("greymon").instanceId;
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("greymon").permanentId])).toBe(1);
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === greymonId));
+
+    expect(s.perm("otherDigimon").stack.some((card) => card.instanceId === greymonId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === greymonId)).toBe(true);
+  });
+
   it("unsuspends a Blue Flare host only once per turn when the opponent has 2 Digimon", async () => {
     const s = setupEngine({
       0: {

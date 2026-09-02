@@ -1,7 +1,9 @@
-// @ts-nocheck
-// HAND-FIXED IR for BT10-087 — do not regenerate.
+// HAND-FIXED IR for BT10-087 — do not regenerate. Its printed "under one of your Tamers"
+// wording restricts each activation's materials to one selected Tamer host.
 // The printed [Your Turn] clause is a would-be-play DigiXros material expansion,
-// not an after-play whenPlayed trigger (KB Q2011-Q2015).
+// not an after-play whenPlayed trigger (KB Q2011-Q2015). The engine consumes the player's
+// choice through the explicit DigiXros plan; the zone-expander registry supplies the host-scope
+// metadata while this module remains the authoritative compiled IR registration.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -51,7 +53,8 @@ export const compiled: CompiledCard = {
           actions: [
             {
               kind: "PlaceUnder",
-              target: { filter: { controller: "mine", zone: "underTamer" }, count: "any" },
+              target: { filter: { controller: "mine", zone: "underTamer" }, count: "all" },
+              underTamerHostScope: "single",
               underFilter: { isTriggerSource: true },
               asDigiXrosMaterial: true,
               cost: {

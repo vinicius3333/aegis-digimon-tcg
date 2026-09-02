@@ -1,7 +1,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnPlay",
@@ -90,6 +90,7 @@ const compiled: CompiledCard = {
           underFilter: {
             controller: "mine",
             kind: ["Tamer"],
+            excludeToken: true,
           },
           optional: true,
         },
@@ -110,6 +111,7 @@ const compiled: CompiledCard = {
           sourceFilter: {
             isSelfRef: true,
           },
+          requireByEffect: true,
           actions: [
             {
               kind: "GainMemory",

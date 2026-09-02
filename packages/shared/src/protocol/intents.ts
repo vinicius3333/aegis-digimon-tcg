@@ -70,6 +70,8 @@ export interface DigiXrosPlan {
   materialInstanceIds: string[];
   /** Permanent ids of the player's expander Tamers to suspend to unlock the trash / under-Tamer source zones. */
   expanderPermanentIds?: string[];
+  /** Selected host when an expander restricts under-Tamer materials to one Tamer. */
+  underTamerHostPermanentId?: string;
 }
 
 /**

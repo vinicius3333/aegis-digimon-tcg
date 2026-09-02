@@ -98,7 +98,7 @@ export function looseCardsInZone(ctx: EffectContext, seat: Seat, zone: ZoneRef):
       // Cards stacked beneath the controller's Tamer permanents only (not under Digimon).
       // `underTamers`/`underTamer` are zone aliases for `underMyTamers` (BT19-026/BT19-081).
       for (const permanent of p.battleArea) {
-        if (permanent.topCard === undefined) continue;
+        if (permanent.controllerSeat !== p.seat || permanent.topCard === undefined) continue;
         const topDef = ctx.game.definitionOf(permanent.topCard);
         if (!topDef.kinds.includes("Tamer" as never)) continue;
         for (const c of permanent.stack) {

@@ -49,6 +49,7 @@ describe("BT10-088 Kiriha Aonuma", () => {
         digiXros: {
           materialInstanceIds: [s.inst("greymon").instanceId, s.inst("mailbirdramon").instanceId],
           expanderPermanentIds: [s.perm("kiriha").permanentId],
+          underTamerHostPermanentId: s.perm("otherTamer").permanentId,
         },
       }),
     ).toEqual({ ok: true });
@@ -59,7 +60,178 @@ describe("BT10-088 Kiriha Aonuma", () => {
     );
 
     expect(s.perm("kiriha").isSuspended).toBe(true);
+    expect(s.perm("otherTamer").isSuspended).toBe(false);
     expect(s.perm("otherTamer").stack).toHaveLength(0);
+  });
+
+  it("does not mix materials under two different Tamers", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT10-088", as: "kiriha" },
+          { card: "BT10-087", as: "firstTamer", under: [{ card: "BT10-019", as: "greymon" }] },
+          { card: "BT10-089", as: "secondTamer", under: [{ card: "BT10-021", as: "mailbirdramon" }] },
+        ],
+        hand: [{ card: "BT10-024", as: "metalGreymon" }],
+      },
+    });
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("metalGreymon").instanceId,
+        digiXros: {
+          materialInstanceIds: [s.inst("greymon").instanceId, s.inst("mailbirdramon").instanceId],
+          expanderPermanentIds: [s.perm("kiriha").permanentId],
+          underTamerHostPermanentId: s.perm("firstTamer").permanentId,
+        },
+      }),
+    ).toEqual({ ok: false, reason: "invalid-material" });
+    expect(s.perm("kiriha").isSuspended).toBe(false);
+    expect(s.perm("firstTamer").stack).toHaveLength(1);
+    expect(s.perm("secondTamer").stack).toHaveLength(1);
+  });
+
+  it("rejects duplicate material IDs before paying the expander cost", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT10-088", as: "kiriha" },
+          { card: "BT10-087", as: "host", under: [{ card: "BT10-058", as: "monitamon" }] },
+        ],
+        hand: [{ card: "BT10-063", as: "hiVisionMonitamon" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("hiVisionMonitamon").instanceId,
+        digiXros: {
+          materialInstanceIds: [
+            s.inst("monitamon").instanceId,
+            s.inst("monitamon").instanceId,
+            s.inst("monitamon").instanceId,
+          ],
+          expanderPermanentIds: [s.perm("kiriha").permanentId],
+          underTamerHostPermanentId: s.perm("host").permanentId,
+        },
+      }),
+    ).toEqual({ ok: false, reason: "invalid-material" });
+    expect(s.perm("kiriha").isSuspended).toBe(false);
+    expect(s.perm("host").stack).toHaveLength(1);
+    expect(s.state.memory).toBe(10);
+  });
+
+  it("rejects duplicate expander IDs before suspending the Tamer", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT10-088", as: "kiriha" },
+          {
+            card: "BT10-087",
+            as: "host",
+            under: [
+              { card: "BT10-019", as: "greymon" },
+              { card: "BT10-021", as: "mailbirdramon" },
+            ],
+          },
+        ],
+        hand: [{ card: "BT10-024", as: "metalGreymon" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("metalGreymon").instanceId,
+        digiXros: {
+          materialInstanceIds: [s.inst("greymon").instanceId, s.inst("mailbirdramon").instanceId],
+          expanderPermanentIds: [s.perm("kiriha").permanentId, s.perm("kiriha").permanentId],
+          underTamerHostPermanentId: s.perm("host").permanentId,
+        },
+      }),
+    ).toEqual({ ok: false, reason: "invalid-expander" });
+    expect(s.perm("kiriha").isSuspended).toBe(false);
+    expect(s.perm("host").stack).toHaveLength(2);
+    expect(s.state.memory).toBe(10);
+  });
+
+  it("rejects a DigiXros expander the player no longer controls", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT10-088", as: "kiriha" },
+          {
+            card: "BT10-087",
+            as: "host",
+            under: [
+              { card: "BT10-019", as: "greymon" },
+              { card: "BT10-021", as: "mailbirdramon" },
+            ],
+          },
+        ],
+        hand: [{ card: "BT10-024", as: "metalGreymon" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    s.perm("kiriha").controllerSeat = 1;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("metalGreymon").instanceId,
+        digiXros: {
+          materialInstanceIds: [s.inst("greymon").instanceId, s.inst("mailbirdramon").instanceId],
+          expanderPermanentIds: [s.perm("kiriha").permanentId],
+          underTamerHostPermanentId: s.perm("host").permanentId,
+        },
+      }),
+    ).toEqual({ ok: false, reason: "invalid-expander" });
+    expect(s.perm("kiriha").isSuspended).toBe(false);
+    expect(s.perm("host").stack).toHaveLength(2);
+  });
+
+  it("rejects materials under a Tamer the player no longer controls", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT10-088", as: "kiriha" },
+          {
+            card: "BT10-087",
+            as: "host",
+            under: [
+              { card: "BT10-019", as: "greymon" },
+              { card: "BT10-021", as: "mailbirdramon" },
+            ],
+          },
+        ],
+        hand: [{ card: "BT10-024", as: "metalGreymon" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    s.perm("host").controllerSeat = 1;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("metalGreymon").instanceId,
+        digiXros: {
+          materialInstanceIds: [s.inst("greymon").instanceId, s.inst("mailbirdramon").instanceId],
+          expanderPermanentIds: [s.perm("kiriha").permanentId],
+        },
+      }),
+    ).toEqual({ ok: false, reason: "invalid-material" });
+    expect(s.perm("kiriha").isSuspended).toBe(false);
+    expect(s.perm("host").stack).toHaveLength(2);
   });
 
   it("plays itself from security without paying memory", async () => {

@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT10-008 — do not regenerate.
 // RevealAdd Digimon filter: added [Xros Heart] trait requirement.
 import type { CompiledCard } from "@aegis/shared";

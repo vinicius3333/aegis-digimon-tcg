@@ -11,6 +11,8 @@ import {
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT10-094.js";
 
 // A3 for BT10-094 (Breaclaw, Red Option)
@@ -268,5 +270,55 @@ describe("BT10-094 (Breaclaw)", () => {
   it("routes [Security] to SecuritySkill timing", () => {
     const source = makeSource();
     expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("Security plays Gammamon without cost from either hand or trash", async () => {
+    for (const zone of ["hand", "trash"] as const) {
+      const s = setupEngine(
+        {
+          0: {
+            security: [{ card: CARD_ID, as: "source", faceUp: true }],
+            [zone]: [{ card: "BT8-008", as: "gammamon" }],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+      );
+      const gammamonId = s.inst("gammamon").instanceId;
+      s.state.memory = 0;
+
+      await s.ready();
+      await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("source"));
+      await settle(() =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === gammamonId),
+      );
+
+      expect(s.state.memory).toBe(0);
+      expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === gammamonId)).toBe(
+        true,
+      );
+      expect(s.state.players[0]![zone].some((card) => card.instanceId === gammamonId)).toBe(false);
+    }
+  });
+
+  it("Security may decline playing Gammamon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: CARD_ID, as: "source", faceUp: true }],
+          hand: [{ card: "BT8-008", as: "gammamon" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    const gammamonId = s.inst("gammamon").instanceId;
+
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("source"));
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === CARD_ID));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === gammamonId)).toBe(
+      false,
+    );
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === gammamonId)).toBe(true);
   });
 });

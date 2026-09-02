@@ -583,6 +583,19 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
               ledgerZones.has("underTamer") ||
               ledgerZones.has("digivolutionCards");
             const ledgerTrash = ledgerZones.has("trash");
+            const selectedUnderTamerExpanders = selectedExpanders.filter((permanent) => {
+              const expander = digiXrosZoneExpanderFor(permanent.topCard!.cardId);
+              return expander !== undefined && expander.underTamerMax > 0;
+            });
+            const selectedUnrestrictedUnderTamer = selectedUnderTamerExpanders.some(
+              (permanent) => digiXrosZoneExpanderFor(permanent.topCard!.cardId)?.underTamerHostScope !== "single",
+            );
+            // Legacy DigiXrosMaterialZoneExpansion ledger entries declare only zones and are
+            // therefore independent unrestricted grants. A single-host restriction comes from
+            // an interactively selected registered expander; any simultaneous legacy grant
+            // intentionally overrides that restriction because it authorizes the zone on its own.
+            const singleUnderTamerHost =
+              selectedUnderTamerExpanders.length > 0 && !selectedUnrestrictedUnderTamer && !ledgerUnderTamer;
             const expansion = selectedExpanders.reduce(
               (current, permanent) => {
                 const expander = digiXrosZoneExpanderFor(permanent.topCard!.cardId)!;
@@ -616,8 +629,25 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
                     ],
               ),
             ];
+            const underTamerCandidates =
+              expansion.underTamerMax > 0 ? looseCardsInZone(ctx, ownerSeat, "underTamers") : [];
+            let scopedUnderTamerCandidates = underTamerCandidates;
+            if (singleUnderTamerHost) {
+              const hostIds = [...new Set(underTamerCandidates.map((candidate) => candidate.hostPermanentId))].filter(
+                (hostId): hostId is string => hostId !== undefined,
+              );
+              const selectedHostIds =
+                hostIds.length <= 1
+                  ? hostIds
+                  : await ctx.ask.chooseTargets(ctx, { candidates: hostIds, min: 1, max: 1 });
+              const selectedHostId = selectedHostIds[0];
+              scopedUnderTamerCandidates =
+                selectedHostId === undefined
+                  ? []
+                  : underTamerCandidates.filter((candidate) => candidate.hostPermanentId === selectedHostId);
+            }
             const expandedCandidates = [
-              ...(expansion.underTamerMax > 0 ? looseCardsInZone(ctx, ownerSeat, "underTamers") : []),
+              ...scopedUnderTamerCandidates,
               ...(expansion.trashMax > 0 ? looseCardsInZone(ctx, ownerSeat, "trash") : []),
             ];
             const materialCandidates = [...defaultCandidates, ...expandedCandidates].filter((candidate) =>

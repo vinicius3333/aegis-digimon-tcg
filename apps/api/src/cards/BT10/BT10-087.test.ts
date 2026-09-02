@@ -59,6 +59,7 @@ describe("BT10-087 Taiki Kudo", () => {
         digiXros: {
           materialInstanceIds: [s.inst("greymon").instanceId, s.inst("mailbirdramon").instanceId],
           expanderPermanentIds: [s.perm("taiki").permanentId],
+          underTamerHostPermanentId: s.perm("otherTamer").permanentId,
         },
       }),
     ).toEqual({ ok: true });
@@ -75,6 +76,36 @@ describe("BT10-087 Taiki Kudo", () => {
     );
     expect(s.perm("otherTamer").stack).toHaveLength(0);
     expect(s.state.memory).toBe(4);
+  });
+
+  it("does not mix materials under two different Tamers", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT10-087", as: "taiki" },
+          { card: "BT10-089", as: "firstTamer", under: [{ card: "BT10-019", as: "greymon" }] },
+          { card: "BT10-090", as: "secondTamer", under: [{ card: "BT10-021", as: "mailbirdramon" }] },
+        ],
+        hand: [{ card: "BT10-024", as: "metalGreymon" }],
+      },
+    });
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("metalGreymon").instanceId,
+        digiXros: {
+          materialInstanceIds: [s.inst("greymon").instanceId, s.inst("mailbirdramon").instanceId],
+          expanderPermanentIds: [s.perm("taiki").permanentId],
+          underTamerHostPermanentId: s.perm("firstTamer").permanentId,
+        },
+      }),
+    ).toEqual({ ok: false, reason: "invalid-material" });
+    expect(s.perm("taiki").isSuspended).toBe(false);
+    expect(s.perm("firstTamer").stack).toHaveLength(1);
+    expect(s.perm("secondTamer").stack).toHaveLength(1);
   });
 
   it("cannot reuse a suspended Taiki as a DigiXros material expander", async () => {

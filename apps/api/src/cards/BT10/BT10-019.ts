@@ -1,15 +1,14 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
-const blueFlare = { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Blue Flare"], match: "trait" }] };
-const metalGreymon = {
+const self: Target = { filter: { isSelfRef: true }, count: 1, isSelf: true };
+const blueFlare: Filter = { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Blue Flare"], match: "trait" }] };
+const metalGreymon: Filter = {
   controller: "mine",
   zone: "trash",
   nameOrTrait: [{ tokens: ["MetalGreymon"], match: "nameExact" }],
 };
-const kiriha = { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Kiriha Aonuma"], match: "nameExact" }] };
+const kiriha: Filter = { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Kiriha Aonuma"], match: "nameExact" }] };
 const compiled: CompiledCard = {
   effects: [
     {
@@ -45,7 +44,14 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "OnDeletion",
-      actions: [{ kind: "PlaceUnder", target: self, optional: true }],
+      actions: [
+        {
+          kind: "PlaceUnder",
+          target: self,
+          underFilter: { controller: "mine", kind: ["Tamer"], excludeToken: true },
+          optional: true,
+        },
+      ],
       keywords: [{ keyword: "Save", raw: "＜Save＞" }],
     },
     {

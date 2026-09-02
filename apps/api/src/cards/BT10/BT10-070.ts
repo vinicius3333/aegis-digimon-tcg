@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-corrected IR (was AUTO-GENERATED): the [On Play] Blitz gate "this Digimon has 3
 // digivolution cards" was left raw (raw conditions never pass). source documented behavior checks
 // DigivolutionCards.Count >= 3 (KB Q1994: 4+ also activates) => selfDigivolutionCountAtLeast 3.

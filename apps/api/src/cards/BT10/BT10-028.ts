@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR: the battle-deletion watcher is scoped to this Digimon.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

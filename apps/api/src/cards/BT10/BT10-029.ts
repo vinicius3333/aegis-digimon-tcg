@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT10-029 — do not regenerate.
 // WhenAttacking inherited: removed spurious unconditional Draw (compiler emitted
 // conditional + unconditional from single clause; only the conditional one is correct).

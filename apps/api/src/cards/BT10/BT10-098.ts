@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -8,33 +7,24 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   effects: [
     {
-      trigger: "Static",
+      trigger: "BeforePayCost",
       actions: [
         {
-          kind: "Replacement",
-          event: "wouldBePlayed",
-          sourceFilter: {
-            controllerDefault: "mine",
-          },
-          actions: [
-            {
-              kind: "Replacement",
-              event: "wouldBePlayed",
-              mode: "reduceCost",
-              amount: 2,
-              raw: "reduce the memory cost by 2",
-              condition: {
-                kind: "opponentHas",
-                filter: {
-                  zone: "battleArea",
-                  controllerDefault: "opponent",
-                  kind: ["Digimon"],
-                },
-                count: 2,
-                raw: "your opponent has 2 or more Digimon in play",
+          kind: "ReducePlayCost",
+          payment: {
+            kind: "automatic",
+            condition: {
+              kind: "opponentHas",
+              filter: {
+                zone: "battleArea",
+                controllerDefault: "opponent",
+                kind: ["Digimon"],
               },
+              count: 2,
+              raw: "your opponent has 2 or more Digimon in play",
             },
-          ],
+          },
+          amount: { kind: "fixed", value: 2 },
         },
       ],
     },

@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT10-025 (Cyberdramon) — do not regenerate over this file.
 // Printed text: "[Hand][Main] If you have a Digimon with [Blue Flare] in its traits in play,
 // by paying 3 memory, place this card under 1 of THOSE Digimon as its bottom digivolution

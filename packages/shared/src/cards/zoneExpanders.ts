@@ -18,6 +18,8 @@ export interface DigiXrosZoneExpander {
   appliesTo(playedDefinition: CardDefinition): boolean;
   /** Max materials that may be drawn from under the player's Tamers. */
   underTamerMax: number;
+  /** Restrict this expansion to cards beneath one selected Tamer host. */
+  underTamerHostScope?: "single" | "any";
   /** Max materials that may be drawn from the trash. */
   trashMax: number;
 }
@@ -35,21 +37,24 @@ const hasAnyTrait = (def: CardDefinition, traits: string[]): boolean => traits.s
 
 export const DIGIXROS_ZONE_EXPANDERS: Record<string, DigiXrosZoneExpander> = {
   // BT10-087 (Taiki Kudo): "[Your Turn] When you would play 1 Digimon card with DigiXros
-  // requirements, by suspending this Tamer, you may place cards from under your Tamers as
+  // requirements, by suspending this Tamer, you may place cards from under one of your Tamers as
   // DigiXros materials." The DigiXros subsystem has already verified the played card has a
-  // DigiXros requirement before consulting expanders, so this applies to any such Digimon.
+  // DigiXros requirement before consulting expanders, so this applies to any such Digimon, but
+  // the selected materials must share one Tamer host.
   "BT10-087": {
     appliesTo: () => true,
     underTamerMax: 100,
+    underTamerHostScope: "single",
     trashMax: 0,
   },
   // BT10-088 (Kiriha Aonuma): "[Your Turn] When you play 1 Digimon with DigiXros requirements, by
   // suspending this Tamer, you may place cards from under one of your Tamers as digivolution cards
-  // for a DigiXros." Same mechanic as its twin BT10-087, no trait gate (KB Q2016/Q2017 — cards
-  // under ANY of your Tamers, any DigiXros play); under-Tamer max 100 (unlimited), no trash.
+  // for a DigiXros." As with BT10-087, the selected materials must come from one Tamer host (KB
+  // Q2016/Q2017); there is no trait gate and the under-Tamer maximum remains unlimited.
   "BT10-088": {
     appliesTo: () => true,
     underTamerMax: 100,
+    underTamerHostScope: "single",
     trashMax: 0,
   },
   // BT11-095 (Taiki, Kiriha, & Nene): the same unrestricted "1 Digimon card with DigiXros

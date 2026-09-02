@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR — only the deck mill is optional; the scaled deletion is mandatory.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
