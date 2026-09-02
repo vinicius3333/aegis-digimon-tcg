@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -19,6 +18,10 @@ const compiled: CompiledCard = {
               controller: "opponent",
               kind: ["Digimon"],
             },
+            // The candidate pool is the WHOLE opposing board; the 6000-DP budget, not a count,
+            // caps what may be deleted. The interpreter re-reads this target with count "all"
+            // (interpreter/actions/removal.ts), so any other count would be dead.
+            count: "all",
           },
           baseBudget: 6000,
           upTo: true,

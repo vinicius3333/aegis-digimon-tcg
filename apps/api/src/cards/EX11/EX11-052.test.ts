@@ -76,6 +76,48 @@ describe("EX11-052 HeavyMetaldramon", () => {
     assertNoLoudGap(s);
   });
 
+  it("skips the trash play when the post-trash hand still holds 5 cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "source" }],
+          hand: ["BT1-001", "BT1-002", "BT1-009", "BT1-010", "BT1-011", "BT2-024", "BT4-080"],
+          trash: [{ card: "EX11-049", as: "punkmon" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "ready" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+
+    expect(s.state.players[0]!.hand).toHaveLength(5);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("punkmon").instanceId)).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("allows the trash play at the exact 4-card hand boundary", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "source" }],
+          hand: ["BT1-001", "BT1-002", "BT1-009", "BT1-010", "BT1-011", "BT2-024"],
+          trash: [{ card: "EX11-049", as: "punkmon" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "ready" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+
+    expect(s.state.players[0]!.hand).toHaveLength(4);
+    const played = s.state.players[0]!.battleArea.some(
+      (permanent) => permanent.topCard.instanceId === s.inst("punkmon").instanceId,
+    );
+    expect(played).toBe(true);
+    assertNoLoudGap(s);
+  });
+
   it("trashes only 1 opponent security when multiple own Dark Dragons leave in one turn", async () => {
     const s = setupEngine({
       0: {

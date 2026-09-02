@@ -98,6 +98,8 @@ describe("EX12-028 Gusokumon", () => {
               optional: true,
               target: {
                 filter: {
+                  // CR 16-36-1: Decode reads THAT Digimon's stack only.
+                  hostFilter: { isSelfRef: true },
                   levelComparison: { op: "lte", value: 4 },
                   nameOrTrait: [{ tokens: ["DS"], match: "trait" }],
                 },
@@ -169,6 +171,28 @@ describe("EX12-028 Gusokumon", () => {
 
     expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === targetId)).toBe(false);
+  });
+
+  it("Decodes only from its own digivolution cards, never from a neighbor's stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX12-028", as: "host" },
+            { card: "BT1-010", as: "neighbor", under: [{ card: "EX12-027", as: "foreign" }] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const foreignId = s.inst("foreign").instanceId;
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+    await settle();
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === foreignId)).toBe(false);
+    expect(s.perm("neighbor").stack.some((card) => card.instanceId === foreignId)).toBe(true);
   });
 
   it("places one DS card, de-digivolves one opponent, and gains memory at 0 or less", async () => {

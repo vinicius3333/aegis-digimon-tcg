@@ -354,6 +354,9 @@ export function matchNameOrTrait(
     if (ref.match === "nameExact") return names.some((name) => name === nameToken);
     if (ref.match === "trait") return traits.some((x) => x === normalizeTrait(rawToken));
     if (ref.match === "traitContains") return traits.some((x) => x.includes(normalizeTrait(rawToken)));
+    // An unknown mode must fail closed. It used to fall through to the widest branch below,
+    // which turned a misspelled mode into "name, trait, or text" (EX11-072's "traitAll").
+    if (ref.match !== undefined && ref.match !== "text" && ref.match !== "any") return false;
     // a card NAMED/TRAITED X "has [X] in its text" too, so "text" is the full union
     // (identical to "any"), not effectText-only.
     return (

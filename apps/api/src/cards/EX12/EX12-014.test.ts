@@ -173,6 +173,28 @@ describe("EX12-014 Canoweissmon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === targetId)).toBe(true);
   });
 
+  it("plays only from its own digivolution cards, never from a neighbor's stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX12-014", as: "host" },
+            { card: "EX12-015", as: "neighbor", under: [{ card: "EX12-013", as: "foreign" }] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const foreignId = s.inst("foreign").instanceId;
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+    await settle();
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === foreignId)).toBe(false);
+    expect(s.perm("neighbor").stack.some((card) => card.instanceId === foreignId)).toBe(true);
+  });
+
   it("does not trigger Decode when the host leaves by battle", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "EX12-014", as: "host", under: [{ card: "EX12-013", as: "decodeTarget" }] }] } },

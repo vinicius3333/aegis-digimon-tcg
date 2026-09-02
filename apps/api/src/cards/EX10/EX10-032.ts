@@ -1,7 +1,16 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
+// EX10-032 Proganomon
+// Audit fixes (EX10 card-by-card):
+//  - `into` and every `fromSelectionRef` target now carry the required `filter`/`count`. The
+//    interpreter ignores `DigivolveViaPlacement.into` entirely and reads `Target.fromSelectionRef`
+//    before any candidate search, so these are typing repairs with no behavior change.
+//  - `placeCost.hostFilter` gained `controller: "mine"` + `kind: ["Digimon"]`. It is resolved by
+//    `resolvePermanentTargets`, which scans BOTH seats without a controller, so the printed
+//    "any of YOUR [Sunarizamon]" could have placed the Landramon under the opponent's copy.
+//  - the "If you have [Close]" gate gained `kind: ["Digimon", "Tamer"]` (CR 16-42-3): `youHave`
+//    counts every battle-area permanent, Options included, when the filter names no kind.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -11,6 +20,7 @@ const compiled: CompiledCard = {
         kind: "youHave",
         filter: {
           controllerDefault: "mine",
+          kind: ["Digimon", "Tamer"],
           nameOrTrait: [
             {
               tokens: ["Close"],
@@ -40,6 +50,8 @@ const compiled: CompiledCard = {
             destination: "digivolutionStack",
             position: "bottom",
             hostFilter: {
+              controller: "mine",
+              kind: ["Digimon"],
               nameOrTrait: [
                 {
                   tokens: ["Sunarizamon"],
@@ -50,6 +62,8 @@ const compiled: CompiledCard = {
             raw: "by placing 1 [Landramon] from your trash as any of your [Sunarizamon]'s bottom digivolution card",
           },
           into: {
+            filter: { isSelfRef: true },
+            count: 1,
             isSelfRef: true,
           },
           cost: 3,
@@ -104,6 +118,8 @@ const compiled: CompiledCard = {
         {
           kind: "GainKeyword",
           target: {
+            filter: {},
+            count: 1,
             fromSelectionRef: "chosen",
           },
           keyword: {
@@ -115,6 +131,8 @@ const compiled: CompiledCard = {
         {
           kind: "ModifyDP",
           target: {
+            filter: {},
+            count: 1,
             fromSelectionRef: "chosen",
           },
           amount: 3000,
@@ -169,6 +187,8 @@ const compiled: CompiledCard = {
         {
           kind: "GainKeyword",
           target: {
+            filter: {},
+            count: 1,
             fromSelectionRef: "chosen",
           },
           keyword: {
@@ -180,6 +200,8 @@ const compiled: CompiledCard = {
         {
           kind: "ModifyDP",
           target: {
+            filter: {},
+            count: 1,
             fromSelectionRef: "chosen",
           },
           amount: 3000,
@@ -234,6 +256,8 @@ const compiled: CompiledCard = {
         {
           kind: "GainKeyword",
           target: {
+            filter: {},
+            count: 1,
             fromSelectionRef: "chosen",
           },
           keyword: {
@@ -245,6 +269,8 @@ const compiled: CompiledCard = {
         {
           kind: "ModifyDP",
           target: {
+            filter: {},
+            count: 1,
             fromSelectionRef: "chosen",
           },
           amount: 3000,

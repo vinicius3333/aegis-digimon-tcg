@@ -87,6 +87,32 @@ describe("EX10-065 Yukio Oikawa", () => {
     expect(observe(s.engine).hasKeyword(s.perm("myotismon"), "Rush")).toBe(true);
   });
 
+  it("grants Rush to the Myotismon that was played, not to another one on the board", async () => {
+    // "1 of THOSE Digimon" — the grant must resolve against the trigger subject. Ordering the
+    // board so the subject is LAST makes the field falsifiable: with a plain `filter: {}` target
+    // the first candidate (the Tamer or the decoy) would be chosen instead.
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "oikawa" },
+            { card: "EX10-048", as: "decoy" },
+            { card: "EX10-048", as: "subject" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const oikawaId = s.perm("oikawa").permanentId;
+    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("subject").permanentId });
+    await settle(() => !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === oikawaId));
+
+    expect(observe(s.engine).hasKeyword(s.perm("subject"), "Rush")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("decoy"), "Rush")).toBe(false);
+    expect(s.state.memory).toBe(1);
+  });
+
   it("Q5180 gains no memory or Rush when the delete cost is declined", async () => {
     const s = setupEngine(
       {

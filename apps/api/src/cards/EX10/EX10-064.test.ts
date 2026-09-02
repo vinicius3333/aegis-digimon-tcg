@@ -38,7 +38,9 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
           mode: "instead",
           sourceFilter: { controller: "mine", kind: ["Digimon"], hasDigiXrosRequirement: true },
           actions: [
-            { kind: "DigiXrosMaterialZoneExpansion", zones: ["tamerCards", "trash"], cost: { kind: "suspend" } },
+            // `underTamers` is the only ZoneRef the material picker reads for "under your
+            // Tamers"; the previous `tamerCards` token matched nothing there.
+            { kind: "DigiXrosMaterialZoneExpansion", zones: ["underTamers", "trash"], cost: { kind: "suspend" } },
           ],
         },
       ],

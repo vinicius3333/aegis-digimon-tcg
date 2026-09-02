@@ -16,7 +16,11 @@ describe("EX12-073 Giant Meat", () => {
       kind: "WaiveColorRequirement",
       condition: {
         kind: "youHave",
-        filter: { nameOrTrait: [{ tokens: ["NSp", "DS", "NSo", "WG", "ME", "VB"], match: "trait" }] },
+        // CR 16-42-3 scopes ＜Use Req.＞ to Digimon and Tamers on the field.
+        filter: {
+          kind: ["Digimon", "Tamer"],
+          nameOrTrait: [{ tokens: ["NSp", "DS", "NSo", "WG", "ME", "VB"], match: "trait" }],
+        },
       },
     });
     expect(
@@ -51,6 +55,7 @@ describe("EX12-073 Giant Meat", () => {
       actions: [{ kind: "PlaceInBattleAreaSelf" }],
     });
     expect(registeredCompiledCards.get(CARD_ID)).toEqual(compiled);
+    expect(compiledEffects[CARD_ID]).toBeDefined();
     expect(compiledEffects[CARD_ID]).toEqual(compiled);
   });
 
@@ -163,6 +168,25 @@ describe("EX12-073 Giant Meat", () => {
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
+  });
+
+  // Mutation guard for the CR 16-42-3 kind gate on the ＜Use Req.＞ condition: EX12-072 is an
+  // OPTION whose colors never satisfy this card's colour requirement, yet it carries the [ME]
+  // trait and EX12 Options sit in the battle area. Remove `kind: ["Digimon", "Tamer"]` from the
+  // youHave filter and this play is wrongly allowed.
+  it("is not enabled by a resident Option carrying the Use Req. trait", () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX12-072", as: "residentOption" }],
+        hand: [{ card: CARD_ID, as: "useReqOption" }],
+      },
+    });
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("useReqOption").instanceId })).toEqual({
+      ok: false,
+      reason: "color-requirement-unmet",
+    });
   });
 
   it("matches the complete catalog identity", () => {

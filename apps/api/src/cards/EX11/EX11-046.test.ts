@@ -91,6 +91,29 @@ describe("EX11-046 — [When Digivolving] mass-delete spares the highest-play-co
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === cheap.permanentId)).toBe(false);
   });
 
+  /** Boundary: 3 Vemmon is one short — neither Blocker nor the immunity is granted. */
+  it("grants nothing when the evolving Digimon has only 3 Vemmon in its stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: GALACTICMON_BASE, as: "base", under: ["BT11-061", "BT11-061", "BT11-061"] }],
+          hand: [{ card: GALACTICMON, as: "evolving" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    const base = s.perm("base");
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: base.permanentId,
+      instanceId: s.inst("evolving").instanceId,
+    });
+    await settle(() => base.topCard?.cardId === GALACTICMON);
+    expect(observe(s.engine).hasKeyword(base, "Blocker")).toBe(false);
+    assertNoLoudGap(s);
+  });
+
   it("grants Blocker when the evolving Digimon has at least 4 Vemmon in its stack", async () => {
     const s = setupEngine(
       {
@@ -120,9 +143,14 @@ describe("EX11-046 — [When Digivolving] mass-delete spares the highest-play-co
     expect(base.topCard?.cardId).toBe(GALACTICMON);
     expect(base.stack.filter((card) => card.cardId === "BT11-061")).toHaveLength(4);
     expect(observe(s.engine).hasKeyword(base, "Blocker")).toBe(true);
+    // "isn't affected by THEIR effects": GrantImmunity requires `immuneFrom` — without it the
+    // action is not assignable to Action at all, and the printed scope is unstated.
     expect(runtimeCompiledCard(GALACTICMON)?.effects[1]?.actions[2]).toMatchObject({
       kind: "GrantImmunity",
+      immuneFrom: "opponentEffects",
       duration: "untilOpponentTurnEnd",
+      target: { filter: { isSelfRef: true }, isSelf: true },
+      condition: { kind: "digivolutionCardCount", op: "gte", value: 4, nameOrTrait: [{ tokens: ["Vemmon"] }] },
     });
     assertNoLoudGap(s);
   });
@@ -149,5 +177,29 @@ describe("EX11-046 — [When Digivolving] mass-delete spares the highest-play-co
     named.state.turnSeat = 1;
     await advance(named.engine).runTurn(1);
     expect(named.perm("self").topCard?.cardId).toBe(GALACTICMON_BASE);
+  });
+
+  /**
+   * The printed source is "in the hand OR trash". FAILS-WHEN-REVERTED: dropping "trash" from
+   * `from` leaves nothing to digivolve into and the top card stays EX11-046.
+   */
+  it("also digivolves into a [Galacticmon] sitting in the TRASH, and only into that name", async () => {
+    const withTrash = (trashCard: string) =>
+      setupEngine(
+        { 0: { battleArea: [{ card: GALACTICMON, as: "self" }], trash: [trashCard] } },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      );
+
+    const decoy = withTrash(DECOY);
+    decoy.state.turnSeat = 1;
+    await advance(decoy.engine).runTurn(1);
+    expect(decoy.perm("self").topCard?.cardId).toBe(GALACTICMON);
+    expect(decoy.state.players[0]!.trash.map(({ cardId: id }) => id)).toContain(DECOY);
+
+    const named = withTrash(GALACTICMON_BASE);
+    named.state.turnSeat = 1;
+    await advance(named.engine).runTurn(1);
+    expect(named.perm("self").topCard?.cardId).toBe(GALACTICMON_BASE);
+    expect(named.perm("self").stack.map(({ cardId: id }) => id)).toEqual([GALACTICMON]);
   });
 });

@@ -58,7 +58,7 @@ describe("EX12-052 Diarbbitmon", () => {
       frequency: "OncePerTurn",
       sharedUseKey: "ir-shared-0",
       actions: [
-        { kind: "ModifyDP", amount: 3000, duration: "untilOpponentTurnEnd", optional: true },
+        { kind: "ModifyDP", amount: 3000, duration: "untilOpponentTurnEnd" },
         {
           kind: "Battle",
           attacker: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1, fromSelectionRef: "buffedDigimon" },
@@ -72,6 +72,13 @@ describe("EX12-052 Diarbbitmon", () => {
         sharedUseKey: "ir-shared-0",
         actions: [{ kind: "ModifyDP" }, { kind: "Battle" }],
       });
+    }
+    // Q6836: neither half of the clause is a "may", so the IR must not carry an optional gate
+    // that would let the controller take the DP and skip the battle (or skip both).
+    for (const trigger of ["WhenDigivolving", "WhenAttacking", "Counter"] as const) {
+      const shared = compiled.effects.filter((effect) => effect.trigger === trigger).at(-1)!;
+      expect(shared.optional).toBeUndefined();
+      for (const action of shared.actions) expect(action).not.toHaveProperty("optional");
     }
     expect(compiled.effects.find((effect) => effect.trigger === "Main")).toMatchObject({
       actions: [
@@ -125,6 +132,26 @@ describe("EX12-052 Diarbbitmon", () => {
     await advance(s.engine).verb.modifyDP(sourceId, -1000, EffectDuration.UntilOpponentTurnEnd);
     advance(s.engine).verb.leaveEffectResolution();
     expect(s.perm("source").currentDP).toBe(15000);
+  });
+
+  it("Q6836 resolves the DP boost and battle with no optional prompt on the mandatory timing", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX12-052", as: "source", dp: 12000 }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 3000 }] },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    await s.ready();
+
+    // FAILS-WHEN-REVERTED: restoring `optional: true` on the ModifyDP opens an optional
+    // decision here, so the settle below never sees the opponent leave the battle area.
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.pendingDecision?.kind).not.toBe("optional");
+    expect(s.perm("source").currentDP).toBe(15000);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
   it("shares the once-per-turn budget across When Digivolving and When Attacking", async () => {

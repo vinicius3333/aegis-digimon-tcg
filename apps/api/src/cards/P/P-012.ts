@@ -16,7 +16,7 @@ const compiled: CompiledCard = {
           controllerDefault: "mine",
           zone: "battleArea",
           kind: ["Digimon"],
-          nameOrTrait: [{ tokens: ["Veedramon"], match: "nameContains" }],
+          nameOrTrait: [{ tokens: ["Veedramon"], match: "name" }],
         },
         raw: "you have a Digimon with [Veedramon] in its name",
       },

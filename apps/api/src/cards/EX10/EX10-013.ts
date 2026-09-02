@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -35,10 +34,17 @@ const compiled: CompiledCard = {
           from: ["trash"],
           payCost: false,
           optional: true,
+          // CR 15-7-4 / KB Q5039-Q5040: the "By returning 5 ..." processing condition is
+          // DECLINABLE even though [End of Your Turn] itself is mandatory, and paying it does
+          // NOT force the digivolve. `cost.optional` offers the payment first, `abortOnDecline`
+          // stops the clause when the payment is refused, and the action's own `optional` then
+          // offers the Chaos Mode digivolve separately (Q5040: return 5, then decline).
+          abortOnDecline: true,
           cost: {
             kind: "return",
             target: { filter: { controller: "mine", zone: "trash", textContains: "Lucemon" }, count: 5 },
             to: "deckBottom",
+            optional: true,
             raw: "By returning 5 cards with [Lucemon] in their texts from your trash to the bottom of the deck",
           },
         },

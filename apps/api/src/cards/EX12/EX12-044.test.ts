@@ -115,6 +115,7 @@ describe("EX12-044 Angewomon", () => {
               target: {
                 filter: {
                   kind: ["Digimon"],
+                  hostFilter: { isSelfRef: true },
                   levelComparison: { op: "lte", value: 4 },
                   nameOrTrait: [{ tokens: ["Holy Beast", "NSp", "VB"], match: "trait" }],
                 },
@@ -213,6 +214,31 @@ describe("EX12-044 Angewomon", () => {
       await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === candidateId));
       expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === candidateId)).toBe(true);
     }
+  });
+
+  it("never Decodes a card out of another of your Digimon's digivolution cards (CR 16-36-1)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            // Only the second stack holds a legal Decode candidate, and it belongs to a
+            // different permanent, so the leaving host must find nothing to play.
+            { card: "BT1-058", as: "host", under: [cardId] },
+            { card: "BT1-058", as: "neighbor", under: [{ card: "BT1-051", as: "candidate" }] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const candidateId = s.inst("candidate").instanceId;
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === candidateId)).toBe(false);
+    expect(s.perm("neighbor").stack.some(({ instanceId }) => instanceId === candidateId)).toBe(true);
   });
 
   it("does not Decode a level-5 match or a battle deletion", async () => {

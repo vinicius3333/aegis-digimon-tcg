@@ -17,6 +17,7 @@ describe("EX10-025 Sunarizamon", () => {
           kind: "PlaceUnder",
           from: ["trash"],
           count: 2,
+          position: "bottom",
           optional: true,
           target: {
             filter: {
@@ -24,6 +25,7 @@ describe("EX10-025 Sunarizamon", () => {
               zone: "trash",
               nameOrTrait: [{ match: "trait", tokens: ["Mineral", "Rock"] }],
             },
+            count: 1,
           },
           underFilter: {
             controller: "mine",
@@ -37,8 +39,13 @@ describe("EX10-025 Sunarizamon", () => {
       actions: [
         {
           kind: "SubTrigger",
-          event: "onDigivolutionCardDiscarded",
-          sourceFilter: { nameOrTrait: [{ match: "trait", tokens: ["Mineral", "Rock"] }] },
+          event: "onDigivolutionCardsDiscardedBatch",
+          sourceFilter: { isSelfRef: true },
+          hostFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ match: "trait", tokens: ["Mineral", "Rock"] }],
+          },
           actions: [
             {
               kind: "Delete",
@@ -181,5 +188,62 @@ describe("EX10-025 Sunarizamon", () => {
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.instanceId)).toContain(
       s.inst("high").instanceId,
     );
+  });
+
+  it("the inherited watcher is silent when a Mineral host loses some OTHER stacked card", async () => {
+    // Printed: "when effects trash THIS CARD from a [Mineral] or [Rock] trait Digimon's
+    // digivolution cards". Without the `sourceFilter: { isSelfRef: true }` gate the watcher
+    // fires on any digivolution-card trash from a matching host.
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          {
+            card: "EX10-028",
+            as: "host",
+            under: [
+              { card: CARD_ID, as: "sunari" },
+              { card: "BT1-010", as: "unrelated" },
+            ],
+          },
+        ],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "low" }] },
+    });
+    await s.ready();
+    const lowId = s.perm("low").permanentId;
+    await advance(s.engine).verb.trashDigivolutionCards(
+      s.perm("host").permanentId,
+      [s.inst("unrelated").instanceId],
+      0,
+    );
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(lowId);
+  });
+
+  it("places the pair at the BOTTOM of the host's stack, under its existing sources", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "source" },
+            { card: "EX10-028", as: "host", under: [{ card: "BT1-010", as: "existing" }] },
+          ],
+          trash: [
+            { card: CARD_ID, as: "mineral" },
+            { card: "BT13-061", as: "rock" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("mineral").instanceId, s.inst("rock").instanceId, s.perm("host").permanentId);
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("source"));
+    const stack = s.perm("host").stack.map(({ instanceId }) => instanceId);
+    expect(stack).toHaveLength(3);
+    expect(stack.slice(0, 2)).toEqual(
+      expect.arrayContaining([s.inst("mineral").instanceId, s.inst("rock").instanceId]),
+    );
+    expect(stack.at(-1)).toBe(s.inst("existing").instanceId);
   });
 });

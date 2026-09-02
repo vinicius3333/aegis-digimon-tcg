@@ -172,6 +172,23 @@ describe("EX11-016 PolarBearmon", () => {
     expect(observe(s.engine).keywordAmount(s.perm("otherIceSnow"), "SecurityAttack")).toBe(0);
   });
 
+  it("withholds the inherited grants from a host without the Ice-Snow trait", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-009", as: "nonIceSnowHost", under: ["EX11-016"] },
+          { card: "EX11-015", as: "iceSnowHost", under: ["EX11-016"] },
+        ],
+      },
+    });
+    await s.ready();
+
+    expect(observe(s.engine).hasPierce(s.perm("nonIceSnowHost"))).toBe(false);
+    expect(observe(s.engine).keywordAmount(s.perm("nonIceSnowHost"), "SecurityAttack")).toBe(0);
+    expect(observe(s.engine).hasPierce(s.perm("iceSnowHost"))).toBe(true);
+    expect(observe(s.engine).keywordAmount(s.perm("iceSnowHost"), "SecurityAttack")).toBe(1);
+  });
+
   it("withholds the inherited grants against a stacked opponent and outside the host's turn", async () => {
     const stackedOpponent = setupEngine({
       0: { battleArea: [{ card: "EX11-015", as: "host", under: ["EX11-016"] }] },
