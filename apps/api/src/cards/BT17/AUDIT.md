@@ -12,7 +12,12 @@ from `BT17-001` through `BT17-102` has:
 - `coverage: "full"`, no residual clauses, and green bounded
   collection/mechanism gates.
 
-Final collection result: 109 files and 674 tests passed. Mechanism result: 854
-tests passed across the selected continuous-effect, DNA, timing, targeting,
-leave-replacement, event-publication, and primitive suites. Shared and API
-builds, workspace typechecks, lint, formatting, and `git diff --check` passed.
+The post-reconciliation typed revalidation removed all 100 remaining
+`@ts-nocheck` directives, leaving zero suppressions in the collection. The
+persisted snapshot is generated from the executable modules rather than edited
+manually.
+
+Final collection result: 109 files and 675 tests passed. Selected mechanism
+results: 645 core/cross-cutting tests, 138 primitive tests, 133 shared-effect
+tests, 128 web projection tests, and 18 synchronized-state tests passed. Shared,
+API, and web typechecks, lint, formatting, and `git diff --check` passed.
