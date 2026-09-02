@@ -54,6 +54,24 @@ describe("BT8-036 Ankylomon ＜when played＞ cost reduction (blue Digimon in pl
     expect(s.state.memory).toBe(0);
   });
 
+  it("does not reduce another card's play cost with a blue Digimon in play", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: BLUE_DIGIMON, dp: 3000 }],
+        hand: [{ card: "BT8-034", as: "other" }],
+      },
+    });
+    const p0 = s.state.players[0]!;
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("other").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => p0.battleArea.some((p) => p.topCard?.instanceId === s.inst("other").instanceId));
+
+    expect(s.state.memory).toBe(0);
+  });
+
   it("applies the inherited -3000 DP effect when a blue Digimon is in play", async () => {
     const s = setupEngine({
       0: {

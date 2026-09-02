@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import type { PlayerState } from "@aegis/shared";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -34,7 +33,7 @@ describe("BT8-091 Willis", () => {
     const s = setupEngine({
       0: { hand: [{ card: "BT8-091", as: "source" }], eggDeck: [{ card: "BT8-005", as: "egg" }] },
     });
-    const player = s.state.players[0] as PlayerState;
+    const player = s.state.players[0]!;
     s.state.memory = 3;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
       ok: true,
@@ -57,7 +56,7 @@ describe("BT8-091 Willis", () => {
     const s = setupEngine({
       0: { hand: [{ card: "BT8-091", as: "source" }], eggDeck: [{ card: "BT8-005", as: "egg" }] },
     });
-    const player = s.state.players[0] as PlayerState;
+    const player = s.state.players[0]!;
     s.state.memory = 3;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({

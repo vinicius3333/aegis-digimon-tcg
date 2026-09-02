@@ -35,7 +35,7 @@ describe("BT8-112 Imperialdramon: Paladin Mode", () => {
     expect(effect?.actions).toMatchObject([
       {
         kind: "TrashDigivolution",
-        amount: 99,
+        amount: "all",
         abortOnDecline: true,
         cost: {
           kind: "return",

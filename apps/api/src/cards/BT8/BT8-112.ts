@@ -1,8 +1,7 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const sharedBody = [
+const sharedBody: CompiledCard["effects"][number]["actions"] = [
   {
     kind: "TrashDigivolution",
     target: {
@@ -13,7 +12,7 @@ const sharedBody = [
       },
       count: 1,
     },
-    amount: 99,
+    amount: "all",
     abortOnDecline: true,
     cost: {
       kind: "return",

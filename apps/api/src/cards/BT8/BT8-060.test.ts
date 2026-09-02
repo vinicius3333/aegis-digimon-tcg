@@ -62,4 +62,22 @@ describe("BT8-060 Ryudamon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === protectedId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === decoyId)).toBe(false);
   });
+
+  it("does not use Decoy (Black) to protect a non-black Digimon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT8-063", as: "decoy", under: ["BT8-060"] },
+          { card: "BT1-051", as: "protected" },
+        ],
+      },
+    });
+    const protectedId = s.perm("protected").permanentId;
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([protectedId], "byEffect");
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === protectedId)).toBe(false);
+  });
 });

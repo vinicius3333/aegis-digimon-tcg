@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -6,7 +5,15 @@ const highCap: CompiledCard["effects"][number]["condition"] = {
   kind: "anyOf",
   conditions: [
     { kind: "youHave", filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Digimon"], multicolor: true } },
-    { kind: "youHave", filter: { zone: "digivolutionCards", controllerDefault: "mine", multicolor: true } },
+    {
+      kind: "youHave",
+      filter: {
+        zone: "digivolutionCards",
+        controllerDefault: "mine",
+        multicolor: true,
+        hostFilter: { kind: ["Digimon"] },
+      },
+    },
   ],
 };
 
