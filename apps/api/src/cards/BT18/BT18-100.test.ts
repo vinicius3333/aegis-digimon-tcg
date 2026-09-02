@@ -23,7 +23,7 @@ describe("BT18-100 Gospel of the Fallen Angel", () => {
           optional: true,
           from: ["trash"],
           payCost: false,
-          target: { filter: { zone: "breedingArea", controller: "mine" }, targetBreeding: true },
+          target: { filter: { zone: "breeding", controller: "mine" }, targetBreeding: true },
           into: { nameOrTrait: [{ tokens: ["Lucemon"], match: "nameExact" }] },
         },
         { kind: "PlaceInBattleAreaSelf" },

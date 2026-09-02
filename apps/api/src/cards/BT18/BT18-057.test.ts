@@ -15,7 +15,7 @@ describe("BT18-057 KoKabuterimon", () => {
       actions: [
         {
           kind: "Replacement",
-          sourceFilter: { controller: "mine", or: [{ isSelfRef: true }, { kind: ["Tamer"] }] },
+          sourceFilter: { controller: "mine", or: [{ isSelfRef: true }, { controller: "mine", kind: ["Tamer"] }] },
           into: { multicolor: true, colors: ["Yellow", "Black"] },
           actions: [{ kind: "Replacement", mode: "reduceCost", amount: 1 }],
         },

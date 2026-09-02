@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -124,7 +123,13 @@ export const compiled: CompiledCard = {
           kind: "SecurityManipulation",
           op: "addBottom",
           controller: "mine",
-          source: "this",
+          source: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
           condition: {
             kind: "zoneCount",
             seat: "mine",
