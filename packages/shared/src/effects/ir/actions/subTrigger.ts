@@ -69,7 +69,8 @@ export type SubTriggerEvent =
   | "whenTrashedByEffect" // while in the battle area (BT19-093; CAP-E8)
   | "whenTrashedFromDeck" // BT19-097; CAP-H-01
   | "whenCheckedFaceUpSecurity" // BT20-055; CAP-H-03
-  | "raw";
+  | "raw"
+  | "whenFaceUpCardsAddedToOpponentSecurity";
 
 export interface SubTriggerAction extends ActionBase {
   kind: "SubTrigger";

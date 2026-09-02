@@ -55,6 +55,7 @@ export interface Condition {
     | "selfTopHasText" // `filter.nameOrTrait` vs the SOURCE top card's name/trait/effect text (EX11-070)
     | "selfDigivolutionCountAtLeast" // source stack size >= `value` (BT22-007; KB Q4858)
     | "selfLinkCountAtLeast" // source linked-card count >= `value` (BT26-086)
+    | "selfLinkedMatchesFilter" // >= `count` (default 1) of the SOURCE host's link cards match `filter` (EX11-006)
     | "selfDigivolutionCountExactly" // source stack size equals `value`
     | "selfDigivolutionStackCountAtLeast" // stack cards matching `filter.nameOrTrait` >= `count` (BT11-065)
     | "selfDigivolutionStackHasSameLevelPair" // 2 or more SOURCE stack cards share a level (BT23-102)
