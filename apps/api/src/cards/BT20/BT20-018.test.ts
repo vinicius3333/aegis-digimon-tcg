@@ -47,7 +47,11 @@ describe("BT20-018 Ouryumon", () => {
       trigger: "WhenAttacking",
       frequency: "OncePerTurn",
       actions: [
-        { kind: "Trash", target: { fromTop: true }, condition: { kind: "selfHasName", names: ["Alphamon: Ouryuken"] } },
+        {
+          kind: "Trash",
+          target: { filter: { position: "top" }, count: 1 },
+          condition: { kind: "selfHasName", names: ["Alphamon: Ouryuken"] },
+        },
       ],
     });
   });

@@ -78,6 +78,18 @@ export interface AuraAction extends ActionBase {
  * A static name/trait grant ("also treated as [X]", "gains all effects of cards with [X] in their
  * digivolution cards"), resolved by the continuous-effect layer against the card DB.
  */
+export type GrantStaticObjectGrant =
+  | {
+      kind: "PreventSecurityActivation";
+      cardType: "Option";
+    }
+  | {
+      kind: "TreatAsLevel";
+      level: number;
+      context: "DNADigivolution";
+      intoNames?: string[];
+    };
+
 export interface GrantStaticAction extends ActionBase {
   kind: "GrantStatic";
   target: Target;
@@ -86,7 +98,15 @@ export interface GrantStaticAction extends ActionBase {
    * "immuneToOpponentOptionEffects" stores a beAffected + fromSourceKind:Option restriction for
    * the duration (CAP-A8, BT19-089).
    */
-  grant: "name" | "nameForDigiXros" | "trait" | "effects" | "kinds" | "immuneToOpponentOptionEffects" | string;
+  grant:
+    | "name"
+    | "nameForDigiXros"
+    | "trait"
+    | "effects"
+    | "kinds"
+    | "immuneToOpponentOptionEffects"
+    | string
+    | GrantStaticObjectGrant;
   /** Granted tokens from `[X]` refs. */
   tokens?: string[];
   /** The source filter for "effects". */

@@ -22,6 +22,7 @@ describe("BT20-088 Violet Inboots", () => {
               kind: "Digivolve",
               target: { filter: { controller: "mine", kind: ["Digimon"], zone: "battleArea" } },
               into: { nameOrTrait: [{ tokens: ["Ghost"], match: "trait" }] },
+              payCost: true,
               reduceCost: 2,
               cost: { kind: "suspend", target: { isSelf: true } },
               abortOnDecline: true,
@@ -39,16 +40,16 @@ describe("BT20-088 Violet Inboots", () => {
           battleArea: [
             { card: "BT20-088", as: "tamer" },
             { card: "BT20-063", as: "deletedGhost", dp: 1000 },
-            { card: "BT20-062", as: "recipient", dp: 1000 },
+            { card: "BT20-067", as: "recipient", dp: 5000 },
           ],
-          hand: [{ card: "BT20-067", as: "evolution" }],
+          hand: [{ card: "BT20-072", as: "evolution" }],
         },
         1: { battleArea: [{ card: "BT20-079", as: "blocker", dp: 12000, suspended: true }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 0;
     await s.ready();
+    s.state.memory = 2;
 
     expect(
       s.engine.applyIntent(0, {
@@ -57,9 +58,10 @@ describe("BT20-088 Violet Inboots", () => {
         target: { kind: "permanent", permanentId: s.perm("blocker").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("recipient").topCard.cardId === "BT20-067");
+    await settle(() => s.perm("recipient").topCard.cardId === "BT20-072");
 
     expect(s.perm("tamer").isSuspended).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT20-063")).toBe(true);
+    expect(s.state.memory).toBe(1);
   });
 });

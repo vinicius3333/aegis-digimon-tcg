@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -35,6 +34,8 @@ export const compiled: CompiledCard = {
         {
           kind: "GainKeyword",
           target: {
+            filter: {},
+            count: 1,
             fromSelectionRef: "loudmonTarget",
           },
           keyword: {
@@ -46,6 +47,8 @@ export const compiled: CompiledCard = {
         {
           kind: "GainKeyword",
           target: {
+            filter: {},
+            count: 1,
             fromSelectionRef: "loudmonTarget",
           },
           keyword: {
@@ -85,6 +88,8 @@ export const compiled: CompiledCard = {
         {
           kind: "GainKeyword",
           target: {
+            filter: {},
+            count: 1,
             fromSelectionRef: "loudmonTarget",
           },
           keyword: {
@@ -96,6 +101,8 @@ export const compiled: CompiledCard = {
         {
           kind: "GainKeyword",
           target: {
+            filter: {},
+            count: 1,
             fromSelectionRef: "loudmonTarget",
           },
           keyword: {

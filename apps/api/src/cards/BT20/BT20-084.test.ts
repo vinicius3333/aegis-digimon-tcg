@@ -16,7 +16,15 @@ describe("BT20-084 Sistermon Ciel (Awakened)", () => {
           kind: "SubTrigger",
           event: "whenPlayed",
           sourceFilter: { controller: "mine", kind: ["Digimon"] },
-          actions: [{ kind: "Digivolve", from: ["trash"], payCost: false, ignoreRequirements: true }],
+          actions: [
+            {
+              kind: "Digivolve",
+              from: ["trash"],
+              payCost: false,
+              ignoreRequirements: true,
+              into: { cardId: "BT20-084", controller: "mine", kind: ["Digimon"], zone: "trash" },
+            },
+          ],
         },
       ],
     });

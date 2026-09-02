@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -45,9 +44,9 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               zone: "security",
+              position: "top",
             },
             count: 1,
-            fromTop: true,
           },
           condition: {
             kind: "isDnaDigivolving",
@@ -97,9 +96,9 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               zone: "security",
+              position: "top",
             },
             count: 1,
-            fromTop: true,
           },
           condition: {
             kind: "isDnaDigivolving",

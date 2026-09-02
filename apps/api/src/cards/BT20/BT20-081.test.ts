@@ -40,7 +40,7 @@ describe("BT20-081 Fenriloogamon: Takemikazuchi", () => {
           abortOnDecline: true,
           cost: {
             kind: "trash",
-            target: { filter: { controller: "mine", zone: "security" }, count: 1, fromTop: true },
+            target: { filter: { controller: "mine", zone: "security", position: "top" }, count: 1 },
           },
         },
       ],
@@ -130,7 +130,7 @@ describe("BT20-081 Fenriloogamon: Takemikazuchi", () => {
         0: {
           battleArea: [{ card: "BT20-080", under: ["BT20-085"], as: "host" }],
           hand: [{ card: "BT20-081", as: "takemikazuchi" }],
-          security: ["BT1-001"],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
         },
         1: {
           battleArea: [
@@ -158,8 +158,8 @@ describe("BT20-081 Fenriloogamon: Takemikazuchi", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.security.length === 0);
-    expect(s.state.players[0]!.security).toHaveLength(0);
+    await settle(() => s.state.players[0]!.security.length === 2);
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-002", "BT1-003"]);
     // The reactivated When Digivolving effect applies its second -10000/delete pass,
     // so both opposing Digimon are gone after the attack.
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
