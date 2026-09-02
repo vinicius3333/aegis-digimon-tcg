@@ -4,6 +4,8 @@ Status: complete — 102/102 cards have reproducible 10/10 evidence.
 
 Audit date: 2026-09-01
 
+Typed revalidation date: 2026-09-02
+
 This report supersedes `BT15-STATIC-AUDIT.md` and the provisional range reports
 in `internal-docs/audits/BT15/`. The earlier files remain as historical review
 notes.
@@ -64,26 +66,46 @@ Every card below has a direct focused test at
 - The persisted catalog is recalculated from executable modules through
   `pnpm effects:sync:set -- --set BT15`; `pnpm effects:check:set -- --set BT15`
   is the reproducible drift check, and adding `--base origin/main` verifies the
-  semantic diff scope. Exactly 78 BT15 records changed semantically and zero
-  records outside BT15 changed.
+  semantic diff scope.
+
+## Typed revalidation
+
+- Removed the remaining TypeScript suppressions from 100 direct modules; BT15-033 and BT15-092
+  were already typed. BT15 now has zero `@ts-nocheck` directives, zero production
+  `registerCard` calls, and zero `RawUnparsed` actions.
+- Replaced stale IR shapes without casts: selection references carry typed targets, battle
+  opponents use the target-level source reference, Apocalymon's mixed source zone is canonical,
+  and self-scoped evolution and keyword targets use their supported filter forms.
+- Added the printed turn duration to the white-only evolution restrictions on BT15-031,
+  BT15-052, BT15-066, and BT15-079; scoped BT15-095's granted security trash to its owner; and
+  made BT15-060 pay its reduced evolution cost.
+- Limited BT15-040 to Digimon with Numemon in their name, BT15-072 to Apocalymon by name, and
+  BT15-054/BT15-058 suspension choices to unsuspended targets. Positive and negative filter
+  evidence prevents effect-text mentions from satisfying the name clauses.
+- Made BT15-088's Sora-gated trash return mandatory, matching its printed `Then` clause, while
+  preserving the preceding optional Tamer play.
+- Added precise shared IR event types for opponent breeding moves, effect-driven security
+  removal, and trash-to-hand returns. Each event was already emitted and consumed by the runtime.
+- Reconciled an EX11-026 shared regression test left stale by the latest `main` merge: its ordinary
+  green level-2 EvoCost is not exposed as an alternate digivolution requirement.
+- `packages/shared/src/effects/effects.json` was regenerated with the scoped synchronization tool;
+  it was not edited manually.
 
 ## Executed gates
 
-- Corrected-card and added-evidence suites: 13 files, 65 tests passed.
+- Typed/semantic focused cards: 25 files, 143 tests passed.
 - Persisted catalog contract: 104 tests passed.
-- BT15 collection: 103 files, 643 tests passed, one worker, no file parallelism.
-- Core mechanisms: 9 files, 533 tests passed, one worker, no file parallelism.
-- Synchronized-array regression suite: 2 files, 7 tests passed.
-- Synchronization-tool unit suite: 5 tests passed.
-- Shared and API builds passed inside the bounded synchronization check.
-- Workspace typechecks passed serially with an explicit 300-second limit.
-- Oxlint and Oxfmt checks passed on the changed source, tool, and documentation
-  files. The generated JSON passed syntax, persisted equality, and scoped
-  semantic-diff checks.
+- BT15 collection: 103 files, 646 tests passed, one fork, no file parallelism.
+- Core mechanisms: 9 files, 774 tests passed, one fork, no file parallelism.
+- Shared suite: 8 files, 133 tests passed, one fork, no file parallelism.
+- Synchronized state arrays: 6 files, 49 tests passed, one fork, no file parallelism.
+- Web effect projection: 4 files, 131 tests passed, one fork, no file parallelism.
+- Effect-snapshot synchronization tool: 10 tests passed.
+- Shared build and shared, API, and web typechecks passed serially.
+- Oxlint and Oxfmt passed on all changed TypeScript and documentation files.
 - `git diff --check` passed.
-- Persisted semantic diff: 78 changed records, all 78 within BT15, zero outside
-  the audited set.
+- Persisted semantic diff: 80 changed records, all 80 within BT15, with zero semantic or byte
+  changes outside the audited set; the subsequent scoped `--check` passed.
 
-All Vitest commands used explicit timeouts, `--maxWorkers=1`, and
-`--no-file-parallelism`. Build, synchronization, formatting, and typecheck
-commands also used explicit limits; workspace typechecks ran with concurrency 1.
+All Vitest commands used explicit timeouts, a single fork, and `--no-file-parallelism`. Builds,
+synchronization, formatting, and workspace typechecks also used explicit limits and ran serially.
