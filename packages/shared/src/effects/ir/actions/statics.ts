@@ -80,14 +80,49 @@ export interface AuraAction extends ActionBase {
  */
 export type GrantStaticObjectGrant =
   | {
+      chooseColorOtherThan: string;
+      allowedColors?: string[];
+    }
+  | {
+      color: string;
+      dp?: number;
+      originalName?: string;
+    }
+  | {
+      dp: number;
+      color?: string;
+      originalName?: string;
+    }
+  | {
+      originalName: string;
+      color?: string;
+      dp?: number;
+    }
+  | {
       kind: "PreventSecurityActivation";
       cardType: "Option";
+    }
+  | {
+      kind: "Protection";
+      protections: string[];
+      from?: "opponent";
     }
   | {
       kind: "TreatAsLevel";
       level: number;
       context: "DNADigivolution";
       intoNames?: string[];
+    }
+  | { cannotBeDeletedInBattle: true }
+  | { keyword: "Unblockable" }
+  | { keyword: "EndOfAttack"; targetFilter: { keyword: "OnDeletion" } }
+  | { immunity: true }
+  | { immuneToOpponentEffects: true }
+  | {
+      copyEffectsFromDigivolution: {
+        filter: string;
+        trigger?: string;
+      };
     };
 
 export interface GrantStaticAction extends ActionBase {
