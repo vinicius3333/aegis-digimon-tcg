@@ -6,7 +6,10 @@ import { compiled } from "./BT17-012.js";
 
 describe("BT17-012", () => {
   it("can digivolve onto a red Tamer as level 3 and has Raid", () => {
-    expect(compiled.effects?.[0]).toMatchObject({ trigger: "Static", actions: [{ kind: "Digivolve", asLevel: 3 }] });
+    expect(compiled.effects?.[0]).toMatchObject({
+      trigger: "Static",
+      actions: [{ kind: "Digivolve", asLevel: 3, payCost: true, target: { count: 1, filter: { kind: ["Tamer"] } } }],
+    });
     expect(compiled.effects?.[1]).toMatchObject({ trigger: "Static", keywords: [{ keyword: "Raid" }] });
   });
 

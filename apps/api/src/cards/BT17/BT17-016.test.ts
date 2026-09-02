@@ -30,8 +30,8 @@ describe("BT17-016", () => {
       trigger: "YourTurn",
       actions: [
         {
-          kind: "GrantStatic",
-          grant: { immunity: true },
+          kind: "GrantImmunity",
+          immuneFrom: "opponentEffects",
           duration: "forTheTurn",
           condition: { kind: "memoryAtMost", value: 0 },
         },

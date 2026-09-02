@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT17-097 (Return to the Primogenitor) — do not regenerate over this file.
 // The declarative effect record attached the ＜Delay＞ keyword to BOTH the [Main] play-body effect AND the
 // [All Turns] Replacement effect, but the printed text only carries ＜Delay＞ on the [All
@@ -49,6 +48,7 @@ export const compiled: CompiledCard = {
             ],
           },
           from: ["hand"],
+          payCost: true,
           reduceCost: 4,
           optional: true,
         },

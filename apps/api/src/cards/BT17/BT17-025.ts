@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -27,24 +26,16 @@ const compiled: CompiledCard = {
           bindResultAs: "playedLevel3",
         },
         {
-          kind: "SubTrigger",
-          event: "endOfOpponentTurn",
-          once: true,
-          on: {
-            filter: { boundRef: "playedLevel3" },
-            count: 1,
-          },
-          actions: [
-            {
-              kind: "Return",
-              target: {
-                filter: { isSelfRef: true },
-                count: 1,
-                isSelf: true,
-              },
-              to: "hand",
+          kind: "DelayedEffect",
+          trigger: "nextEndOfOpponentTurn",
+          effect: {
+            kind: "Return",
+            target: {
+              filter: { boundRef: "playedLevel3" },
+              count: 1,
             },
-          ],
+            to: "hand",
+          },
         },
       ],
     },

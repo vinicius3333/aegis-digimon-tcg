@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -24,10 +23,10 @@ export const compiled: CompiledCard = {
       trigger: "AllTurns",
       actions: [
         {
-          kind: "CostModifier",
-          mode: "raiseCeiling",
-          costType: "dpDeletion",
+          kind: "DeletionMaxDpModifier",
           amount: 2000,
+          scope: "self",
+          duration: "permanent",
           condition: { kind: "memoryAtMost", value: 0 },
         },
       ],

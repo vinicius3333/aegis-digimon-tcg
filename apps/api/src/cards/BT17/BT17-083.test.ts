@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import "./BT17-083.js";
 import "./index.js";
 
 const KOJI = "BT17-083";

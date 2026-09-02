@@ -3,6 +3,7 @@ import { Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import "./BT17-093.js";
 import "./index.js";
 
 describe("BT17-093 Tai Kamiya & Kari Kamiya — hatch trigger", () => {
@@ -16,6 +17,8 @@ describe("BT17-093 Tai Kamiya & Kari Kamiya — hatch trigger", () => {
     s.state.memory = 0;
     s.state.phase = Phase.Breeding;
     await s.ready();
+    await advance(s.engine).recompute();
+    await advance(s.engine).recompute();
 
     expect(s.engine.applyIntent(0, { type: "hatchEgg" }).ok).toBe(true);
     await settle(() => s.state.memory === 1);

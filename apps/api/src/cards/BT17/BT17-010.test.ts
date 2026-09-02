@@ -8,7 +8,10 @@ describe("BT17-010", () => {
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "WhenDigivolving",
       actions: [
-        { kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 4000 } }, count: 1 } },
+        {
+          kind: "Delete",
+          target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 4000 } }, count: 1 },
+        },
         {
           kind: "ModifyDP",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
@@ -26,10 +29,10 @@ describe("BT17-010", () => {
       isInherited: true,
       actions: [
         {
-          kind: "CostModifier",
-          mode: "raiseCeiling",
-          costType: "dpDeletion",
+          kind: "DeletionMaxDpModifier",
           amount: 2000,
+          scope: "self",
+          duration: "permanent",
           condition: { kind: "memoryAtMost", value: 0 },
         },
       ],

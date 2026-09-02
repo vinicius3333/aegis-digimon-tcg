@@ -8,10 +8,9 @@ describe("BT17-075 Eosmon", () => {
     for (const effect of [compiled.effects?.[0], compiled.effects?.[1]]) {
       expect(effect?.actions?.[0]).toMatchObject({
         kind: "PlayWithoutCost",
-        controller: "opponent",
         from: ["hand"],
         optional: true,
-        target: { filter: { controller: "opponent", kind: ["Tamer"] } },
+        target: { filter: { controller: "opponent", kind: ["Tamer"] }, upTo: true, chooser: "opponent" },
       });
       expect(effect?.actions?.[1]).toMatchObject({
         kind: "PlayWithoutCost",
@@ -30,6 +29,8 @@ describe("BT17-075 Eosmon", () => {
       target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"] } },
       scaling: { per: 2, unit: "cards", filter: { kind: ["Tamer"] } },
     });
+    expect(compiled.effects?.[0]?.actions?.[2]).not.toHaveProperty("scalesCount");
+    expect(compiled.effects?.[1]?.actions?.[2]).not.toHaveProperty("scalesCount");
     expect(compiled.effects?.[1]?.actions?.[2]).toMatchObject({ kind: "DeDigivolve", amount: 1 });
     expect(compiled.effects?.[0]?.actions?.[2]?.scaling?.filter).not.toHaveProperty("controllerDefault");
   });
@@ -83,6 +84,36 @@ describe("BT17-075 Eosmon", () => {
     expect(s.perm("target").topCard.cardId).toBe("BT17-063");
   });
 
+  it("repeats De-Digivolve 1 twice when four Tamers are in play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT17-087", as: "ownTamerOne" },
+            { card: "BT17-088", as: "ownTamerTwo" },
+          ],
+          hand: [{ card: "BT17-075", as: "eosmon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT17-092", as: "opposingTamerOne" },
+            { card: "BT17-093", as: "opposingTamerTwo" },
+            { card: "BT17-071", under: ["BT17-063", "BT17-064"], as: "target" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 6;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("eosmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").topCard.cardId === "BT17-063");
+
+    expect(s.perm("target").topCard.cardId).toBe("BT17-063");
+  });
+
   it("resolves the opponent-first and fallback Tamer branches before De-Digivolve", async () => {
     const opponentFirst = setupEngine(
       {
@@ -105,6 +136,15 @@ describe("BT17-075 Eosmon", () => {
     await settle(() => opponentFirst.perm("opponentStack").topCard.cardId === "BT17-063");
 
     expect(opponentFirst.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT17-083")).toBe(true);
+    const opponentPlayDecision = opponentFirst.decisions.find(
+      ({ req }) =>
+        req.kind === "selectCards" &&
+        req.options?.candidateInstanceIds?.includes(opponentFirst.inst("opponentTamer").instanceId),
+    );
+    expect(opponentPlayDecision).toMatchObject({
+      seat: 1,
+      req: { options: { min: 0, max: 1 } },
+    });
     expect(opponentFirst.perm("opponentStack").topCard.cardId).toBe("BT17-063");
 
     const fallback = setupEngine(

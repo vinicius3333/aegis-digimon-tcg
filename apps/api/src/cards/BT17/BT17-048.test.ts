@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { getCardDefinition, type PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT17-048.js";
 import "./index.js";
 
 // A3 for BT17-048 (Argomon, Green Lv.5):
@@ -24,7 +25,6 @@ const ARGOMON_LV6 = "BT17-051";
 
 describe("BT17-048 Argomon — [On Deletion] play Lv.6 Argomon (KB Q2800)", () => {
   it("matches the catalog identity and all three printed evolution/effect routes", async () => {
-    const { compiled } = await import("./BT17-048.js");
     expect(getCardDefinition("BT17-048")).toMatchObject({
       cardId: "BT17-048",
       colors: ["Green", "Purple"],
@@ -36,9 +36,7 @@ describe("BT17-048 Argomon — [On Deletion] play Lv.6 Argomon (KB Q2800)", () =
         { color: "Purple", level: 4, memoryCost: 5 },
       ],
     });
-    expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["Argomon"], level: 4, cost: 4, isAlternate: true },
-    ]);
+    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Argomon"], level: 4, cost: 4, isAlternate: true }]);
     expect(compiled.effects.find((entry) => entry.trigger === "Static")?.actions[0]).toMatchObject({
       kind: "Replacement",
       event: "wouldDigivolve",
@@ -86,7 +84,6 @@ describe("BT17-048 Argomon — [On Deletion] play Lv.6 Argomon (KB Q2800)", () =
   });
 
   it("prevents all opposing Tamers from unsuspending during the opponent's turn", async () => {
-    const { compiled } = await import("./BT17-048.js");
     expect(compiled.effects.find((entry) => entry.trigger === "OpponentsTurn")?.actions[0]).toMatchObject({
       kind: "Restrict",
       target: { filter: { controller: "opponent", kind: ["Tamer"] }, count: "all" },

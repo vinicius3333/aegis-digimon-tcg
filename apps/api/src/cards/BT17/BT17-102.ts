@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const tamer = {
+const tamer: Filter = {
   controller: "mine",
   kind: ["Tamer"],
   nameOrTrait: [{ tokens: ["Tai Kamiya", "Kari Kamiya"], match: "name" }],

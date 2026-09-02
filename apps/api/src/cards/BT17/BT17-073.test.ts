@@ -18,6 +18,7 @@ describe("BT17-073 DexDorugoramon", () => {
             controller: "mine",
             nameOrTrait: [{ tokens: ["Dorugoramon"], match: "name" }],
           }),
+          count: 1,
         },
         mode: "prevent",
         digivolveFromTrash: true,

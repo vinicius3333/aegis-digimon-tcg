@@ -2,6 +2,7 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, it, expect } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./BT17-100.js";
 import "./index.js";
 
 // A3 for BT17-100 (Doomsday Clock, Black Option):

@@ -6,10 +6,11 @@ import "./index.js";
 
 describe("BT17-060 Armageddemon", () => {
   it("reduces hand play cost by one per eligible trash card, up to thirteen", () => {
-    const replacement = compiled.effects.find((entry) => entry.actions[0]?.kind === "Replacement")?.actions[0] as any;
+    const replacement = compiled.effects.find((entry) => entry.actions[0]?.kind === "Replacement")?.actions[0];
     expect(replacement).toMatchObject({
       kind: "Replacement",
       event: "wouldBePlayed",
+      sourceFilter: { controllerDefault: "mine", isSelfRef: true },
       actions: [
         {
           kind: "Replacement",
@@ -21,7 +22,12 @@ describe("BT17-060 Armageddemon", () => {
         },
       ],
     });
-    const trashFilter = replacement.actions?.[0]?.cost?.target?.filter;
+    if (replacement?.kind !== "Replacement") throw new Error("expected the outer play replacement");
+    const reduction = replacement.actions?.[0];
+    if (reduction?.kind !== "Replacement" || reduction.cost?.kind !== "return" || reduction.cost.target === undefined) {
+      throw new Error("expected the nested return-cost reduction");
+    }
+    const trashFilter = reduction.cost.target.filter;
     expect(trashFilter?.nameOrTrait?.[1]).toMatchObject({ tokens: ["Diaboromon"], match: "text", orPrevious: true });
   });
 

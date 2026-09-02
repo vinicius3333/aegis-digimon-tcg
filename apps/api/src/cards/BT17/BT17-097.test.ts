@@ -12,6 +12,7 @@ describe("BT17-097 Return to the Primogenitor", () => {
         {
           kind: "Digivolve",
           from: ["hand"],
+          payCost: true,
           reduceCost: 4,
           optional: true,
           into: {

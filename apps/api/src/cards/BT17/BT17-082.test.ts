@@ -54,8 +54,8 @@ describe("BT17-082 Minami Uehara", () => {
   });
 
   it("limits the temporary keyword to one blue Digimon", () => {
-    expect((compiled.effects?.[1]?.actions?.[0] as any)?.actions?.[0]).toMatchObject({
-      target: { filter: { controller: "mine", kind: ["Digimon"], colors: ["Blue"] }, count: 1 },
+    expect(compiled.effects?.[1]?.actions?.[0]).toMatchObject({
+      actions: [{ target: { filter: { controller: "mine", kind: ["Digimon"], colors: ["Blue"] }, count: 1 } }],
     });
     expect(compiled.effects?.[2]).toMatchObject({
       trigger: "Security",
@@ -68,7 +68,10 @@ describe("BT17-082 Minami Uehara", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "BT17-082", as: "minami" }, { card: "BT17-021", as: "labramon" }],
+          hand: [
+            { card: "BT17-082", as: "minami" },
+            { card: "BT17-021", as: "labramon" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
@@ -76,12 +79,22 @@ describe("BT17-082 Minami Uehara", () => {
     s.state.memory = 3;
 
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("minami").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("labramon").instanceId));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("minami").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("labramon").instanceId,
+      ),
+    );
 
     expect(s.state.memory).toBe(0);
     expect(s.perm("minami").isSuspended).toBe(false);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("labramon").instanceId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("labramon").instanceId,
+      ),
+    ).toBe(true);
     assertNoLoudGap(s);
   });
 
@@ -117,7 +130,10 @@ describe("BT17-082 Minami Uehara", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT17-082", as: "minami" }, { card: "BT17-024", as: "host" }],
+          battleArea: [
+            { card: "BT17-082", as: "minami" },
+            { card: "BT17-024", as: "host" },
+          ],
           hand: [{ card: "BT17-021", as: "labramon" }],
         },
       },
@@ -126,8 +142,14 @@ describe("BT17-082 Minami Uehara", () => {
     s.state.memory = 3;
 
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("labramon").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("labramon").instanceId));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("labramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("labramon").instanceId,
+      ),
+    );
 
     expect(s.perm("minami").isSuspended).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Rush")).toBe(false);
@@ -147,8 +169,12 @@ describe("BT17-082 Minami Uehara", () => {
     s.state.memory = 3;
 
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("minami").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("minami").instanceId));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("minami").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("minami").instanceId),
+    );
 
     expect(s.perm("minami").isSuspended).toBe(false);
     expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("labramon").instanceId)).toBe(true);
@@ -173,7 +199,9 @@ describe("BT17-082 Minami Uehara", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === instanceId));
+    await settle(() =>
+      s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === instanceId),
+    );
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === instanceId)).toBe(true);
     expect(s.state.players[1]!.security.some((card) => card.instanceId === instanceId)).toBe(false);

@@ -19,7 +19,6 @@ describe("BT17-026", () => {
           },
           costOverride: 3,
           asLevel: 4,
-          asColors: ["Blue"],
           virtualBase: { level: 4, colors: ["Blue"] },
           additionalCosts: [{ kind: "place" }],
         },

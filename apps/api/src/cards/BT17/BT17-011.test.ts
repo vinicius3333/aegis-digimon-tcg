@@ -9,7 +9,14 @@ describe("BT17-011", () => {
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "Static",
       actions: [
-        { kind: "Digivolve", asLevel: 3, from: "hand", onto: { filter: { kind: ["Tamer"], colors: ["Red"] } } },
+        {
+          kind: "Digivolve",
+          asLevel: 3,
+          from: ["hand"],
+          payCost: true,
+          target: { filter: { kind: ["Tamer"], colors: ["Red"] }, count: 1 },
+          onto: { filter: { kind: ["Tamer"], colors: ["Red"] } },
+        },
       ],
     });
   });

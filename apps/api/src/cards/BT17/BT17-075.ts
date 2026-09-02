@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -18,12 +17,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Tamers applied to 1 target). The correct reading is: you perform De-Digivolve 1 on
 // 1 of your opponent's Digimon for each group of 2 Tamers you have.
 // The scaling field: per:2, unit:"cards" (counting Tamers), result = count of times
-// De-Digivolve fires. The "amount" per application is 1.
-// The current IR had per:2 and unit:"cards" which is the correct shape — but the
-// auditor flagged ambiguity. The correct encoding: amount:1 (per-application), count
-// determined by scaling (floor(tamerCount/2)). The interpreter's DeDigivolve accepts
-// a target count:1 and should repeat based on scaling. Use count:"scaling" with
-// the per:2 Tamer filter.
+// De-Digivolve fires. The "amount" per application is 1. The interpreter repeats the
+// target action floor(tamerCount / 2) times from this typed scaling field.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -37,11 +32,12 @@ export const compiled: CompiledCard = {
               kind: ["Tamer"],
             },
             count: 1,
+            upTo: true,
+            chooser: "opponent",
           },
           from: ["hand"],
           payCost: false,
           optional: true,
-          controller: "opponent",
         },
         {
           kind: "PlayWithoutCost",
@@ -78,7 +74,6 @@ export const compiled: CompiledCard = {
               kind: ["Tamer"],
             },
             unit: "cards",
-            scalesCount: true,
           },
         },
       ],
@@ -94,11 +89,12 @@ export const compiled: CompiledCard = {
               kind: ["Tamer"],
             },
             count: 1,
+            upTo: true,
+            chooser: "opponent",
           },
           from: ["hand"],
           payCost: false,
           optional: true,
-          controller: "opponent",
         },
         {
           kind: "PlayWithoutCost",
@@ -135,7 +131,6 @@ export const compiled: CompiledCard = {
               kind: ["Tamer"],
             },
             unit: "cards",
-            scalesCount: true,
           },
         },
       ],

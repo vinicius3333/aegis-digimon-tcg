@@ -28,6 +28,7 @@ export type SubTriggerEvent =
   | "whenDeletesInBattle"
   | "whenOneOfYoursDigivolves"
   | "whenAnyDigivolves" // `sourceFilter` narrows the controller
+  | "whenHatch"
   | "onDeletionOf"
   | "whenSecurityRemoved"
   | "whenCardTrashedFromSecurity"
@@ -70,8 +71,8 @@ export type SubTriggerEvent =
   | "whenTrashedFromDeck" // BT19-097; CAP-H-01
   | "whenCheckedFaceUpSecurity" // BT20-055; CAP-H-03
   | "raw"
-| "whenSecurityBattleEnded"
-| "whenFaceUpCardsAddedToOpponentSecurity";
+  | "whenSecurityBattleEnded"
+  | "whenFaceUpCardsAddedToOpponentSecurity";
 
 export interface SubTriggerAction extends ActionBase {
   kind: "SubTrigger";

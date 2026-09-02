@@ -52,7 +52,7 @@ describe("BT17-090 Tomonori Ryusenji — [Security] play self", () => {
           from: ["trash"],
           payCost: false,
           optional: true,
-          target: { filter: { controller: "mine", kind: ["Digimon"], hasTamerInDigivolutionCards: true }, count: 1 },
+          target: { filter: { controller: "mine", kind: ["Digimon"], digivolutionStackKind: ["Tamer"] }, count: 1 },
           into: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Dex", "DeathX"], match: "name" }] },
         },
       ],

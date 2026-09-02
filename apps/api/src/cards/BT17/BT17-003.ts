@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR — the added card must be a Tamer and the receiver must be this inherited host.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

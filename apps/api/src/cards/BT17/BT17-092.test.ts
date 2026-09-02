@@ -26,15 +26,16 @@ describe("BT17-092 Menoa Bellucci", () => {
     });
   });
 
-  it("uses a live All Turns Aura to restrict only opponent Tamer On Play effects while Eosmon is present", () => {
+  it("uses a live All Turns timing mask for opponent Tamer On Play effects while Eosmon is present", () => {
     expect(compiled.effects?.[1]).toMatchObject({
       trigger: "AllTurns",
+      condition: { kind: "youHave", filter: { nameOrTrait: [{ tokens: ["Eosmon"], match: "name" }] } },
       actions: [
         {
-          kind: "Aura",
+          kind: "DisableTimingEffect",
           target: { filter: { controller: "opponent", kind: ["Tamer"] }, count: "all" },
-          effect: { kind: "restriction", restriction: "activateOnPlay" },
-          while: { kind: "youHave", filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Eosmon"], match: "name" }] } },
+          timings: ["onPlay"],
+          duration: "permanent",
         },
       ],
     });
@@ -77,8 +78,14 @@ describe("BT17-092 Menoa Bellucci", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "BT17-092", as: "menoa" }, { card: "BT17-044", as: "morphomon" }],
-          deck: [{ card: "BT1-001", as: "drawnOne" }, { card: "BT1-002", as: "drawnTwo" }],
+          hand: [
+            { card: "BT17-092", as: "menoa" },
+            { card: "BT17-044", as: "morphomon" },
+          ],
+          deck: [
+            { card: "BT1-001", as: "drawnOne" },
+            { card: "BT1-002", as: "drawnTwo" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -98,7 +105,10 @@ describe("BT17-092 Menoa Bellucci", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT17-092", as: "menoa" }, { card: "BT17-074", as: "eosmon" }],
+          battleArea: [
+            { card: "BT17-092", as: "menoa" },
+            { card: "BT17-074", as: "eosmon" },
+          ],
         },
         1: { hand: [{ card: "BT17-087", as: "marcus" }] },
       },
@@ -108,10 +118,12 @@ describe("BT17-092 Menoa Bellucci", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("marcus").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("marcus").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-087"));
 
-    expect(observe(s.engine).isRestricted(s.perm("marcus"), "activateOnPlay")).toBe(true);
+    expect(observe(s.engine).timingEffectDisabled(s.perm("marcus"), "onPlay")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("marcus"), "Blocker")).toBe(false);
   });
 
@@ -125,7 +137,12 @@ describe("BT17-092 Menoa Bellucci", () => {
             { card: "BT17-074", as: "otherEosmon" },
           ],
         },
-        1: { hand: [{ card: "BT17-017", as: "firstAncient" }, { card: "BT17-017", as: "secondAncient" }] },
+        1: {
+          hand: [
+            { card: "BT17-017", as: "firstAncient" },
+            { card: "BT17-017", as: "secondAncient" },
+          ],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -133,19 +150,25 @@ describe("BT17-092 Menoa Bellucci", () => {
     s.state.memory = 30;
     await s.ready();
 
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("firstAncient").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("firstAncient").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(
-      () =>
-        s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT17-074").length === 1,
+      () => s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT17-074").length === 1,
     );
-    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT17-074")).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT17-074")).toHaveLength(
+      1,
+    );
 
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("secondAncient").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("secondAncient").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(
-      () =>
-        s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT17-074").length === 0,
+      () => s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT17-074").length === 0,
     );
-    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT17-074")).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT17-074")).toHaveLength(
+      0,
+    );
   });
 
   it("plays itself from Security without paying its cost", () => {

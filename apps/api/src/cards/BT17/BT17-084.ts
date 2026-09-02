@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -18,7 +17,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q2866: two copies of this Tamer = both effects trigger, but only 1 attack can
 //   happen (a new attack cannot be declared during an attack).
 //
-// [All Turns] Replacement fires only on battle deletion (leaveCause:"battle").
+// [All Turns] Replacement fires only on battle deletion (leaveCause:"byBattle").
 // The play from digivolution cards is optional (Q2863 confirms it can activate even
 // without a valid target).
 // [End of Your Turn] Attack uses the Attack kind with optional:true and a filter for
@@ -45,7 +44,7 @@ export const compiled: CompiledCard = {
           kind: "Replacement",
           event: "wouldBeDeleted",
           mode: "instead",
-          leaveCause: "battle",
+          leaveCause: "byBattle",
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],

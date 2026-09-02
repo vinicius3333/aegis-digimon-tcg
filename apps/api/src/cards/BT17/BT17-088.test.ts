@@ -49,6 +49,7 @@ describe("BT17-088 Willis", () => {
         {
           kind: "Digivolve",
           from: ["hand"],
+          payCost: true,
           reduceCost: 2,
           optional: true,
           abortOnDecline: true,
@@ -78,7 +79,7 @@ describe("BT17-088 Willis", () => {
   });
 
   it("allows the digivolve target to be any hand Digimon, not necessarily the played one", () => {
-    expect((compiled.effects?.[2]?.actions?.[0] as any)?.actions?.[0]).toMatchObject({ into: { kind: ["Digimon"] } });
+    expect(compiled.effects?.[2]?.actions?.[0]).toMatchObject({ actions: [{ into: { kind: ["Digimon"] } }] });
     expect(compiled.effects?.[3]).toMatchObject({
       trigger: "Security",
       isSecurity: true,
@@ -109,7 +110,12 @@ describe("BT17-088 Willis", () => {
   it("boosts one green Digimon at the natural start of the owner's main phase", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT17-088", as: "willis" }, { card: "BT17-043", as: "terriermon" }] },
+        0: {
+          battleArea: [
+            { card: "BT17-088", as: "willis" },
+            { card: "BT17-043", as: "terriermon" },
+          ],
+        },
       },
       { autoSelectCards: true, autoOrderTriggers: true },
     );
@@ -141,13 +147,19 @@ describe("BT17-088 Willis", () => {
     s.state.memory = 3;
 
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("playedTerriermon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("playedTerriermon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("targetTerriermon").topCard?.cardId === "BT17-046");
 
     expect(s.perm("willis").isSuspended).toBe(true);
     expect(s.perm("targetTerriermon").topCard?.cardId).toBe("BT17-046");
     expect(s.perm("targetTerriermon").stack.some((card) => card.cardId === "BT17-043")).toBe(true);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("playedTerriermon").instanceId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("playedTerriermon").instanceId,
+      ),
+    ).toBe(true);
   });
 
   it("naturally plays itself from security without paying its cost", async () => {
@@ -168,7 +180,9 @@ describe("BT17-088 Willis", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === instanceId));
+    await settle(() =>
+      s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === instanceId),
+    );
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === instanceId)).toBe(true);
     expect(s.state.players[1]!.security.some((card) => card.instanceId === instanceId)).toBe(false);

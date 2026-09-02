@@ -19,11 +19,9 @@ describe("BT17-025", () => {
           bindResultAs: "playedLevel3",
         },
         {
-          kind: "SubTrigger",
-          event: "endOfOpponentTurn",
-          once: true,
-          on: { filter: { boundRef: "playedLevel3" }, count: 1 },
-          actions: [{ kind: "Return", to: "hand", target: { filter: { isSelfRef: true }, isSelf: true } }],
+          kind: "DelayedEffect",
+          trigger: "nextEndOfOpponentTurn",
+          effect: { kind: "Return", to: "hand", target: { filter: { boundRef: "playedLevel3" } } },
         },
       ],
     });
