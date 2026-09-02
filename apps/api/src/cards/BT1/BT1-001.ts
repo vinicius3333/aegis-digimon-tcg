@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
@@ -7,7 +6,14 @@ export const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       isInherited: true,
       condition: { kind: "attackTargetMatchesFilter", filter: { controller: "opponent", kind: ["Digimon"] } },
-      actions: [{ kind: "ModifyDP", amount: 1000, duration: "forTheTurn", target: { isSelf: true } }],
+      actions: [
+        {
+          kind: "ModifyDP",
+          amount: 1000,
+          duration: "forTheTurn",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+        },
+      ],
     },
   ],
   coverage: "full",

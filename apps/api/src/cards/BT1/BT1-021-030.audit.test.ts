@@ -47,9 +47,7 @@ describe("BT1-021 through BT1-030 IR coverage", () => {
       { trigger: "WhenBlocked", isInherited: true, condition: { kind: "isYourTurn" } },
     ]);
 
-    expect(irNode(card("BT1-023")?.effects[0]?.actions[0])?.target.filter.keywords).toContainEqual({
-      keyword: "Blocker",
-    });
+    expect(irNode(card("BT1-023")?.effects[0]?.actions[0])?.target.filter.keywords).toContain("Blocker");
     expect(card("BT1-024")?.effects).toEqual([]);
 
     const warGreymon = card("BT1-025");
@@ -61,8 +59,8 @@ describe("BT1-021 through BT1-030 IR coverage", () => {
       trigger: "YourTurn",
       actions: [
         {
-          kind: "GrantStatic",
-          grant: { kind: "PreventSecurityActivation", cardType: "Option" },
+          kind: "DisableSecurityEffect",
+          sourceKind: "option",
           duration: "forTheTurn",
         },
       ],

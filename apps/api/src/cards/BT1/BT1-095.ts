@@ -1,7 +1,6 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-const main = [
+const main: Action[] = [
   { kind: "Unsuspend", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 } },
   {
     kind: "GainKeyword",
@@ -10,7 +9,7 @@ const main = [
     duration: "untilOpponentTurnEnd",
   },
 ];
-const security = [
+const security: Action[] = [
   { kind: "Unsuspend", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 } },
   {
     kind: "GainKeyword",

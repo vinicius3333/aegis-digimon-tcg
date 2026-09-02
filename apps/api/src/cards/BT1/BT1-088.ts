@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
@@ -10,7 +9,7 @@ export const compiled: CompiledCard = {
         {
           kind: "RevealAdd",
           revealCount: 1,
-          cost: { kind: "suspend", target: { isSelf: true } },
+          cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
           add: [{ filter: { kind: ["Digimon"] }, count: 1, to: "hand" }],
           rest: "deckBottom",
         },
@@ -18,7 +17,14 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "Security",
-      actions: [{ kind: "PlayWithoutCost", from: ["security"], payCost: false, target: { isSelf: true } }],
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          from: ["security"],
+          payCost: false,
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+        },
+      ],
     },
   ],
   coverage: "full",

@@ -1,7 +1,6 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-const sourceLess = { controller: "opponent", kind: ["Digimon"], digivolutionCards: "none" };
+const sourceLess: Filter = { controller: "opponent", kind: ["Digimon"], digivolutionCards: "none" };
 export const compiled: CompiledCard = {
   effects: [
     {

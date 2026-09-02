@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -19,9 +18,9 @@ const compiled: CompiledCard = {
       trigger: "YourTurn",
       actions: [
         {
-          kind: "GrantStatic",
+          kind: "DisableSecurityEffect",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          grant: { kind: "PreventSecurityActivation", cardType: "Option" },
+          sourceKind: "option",
           duration: "forTheTurn",
         },
       ],

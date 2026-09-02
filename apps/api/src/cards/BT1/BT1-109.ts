@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -14,6 +13,7 @@ const compiled: CompiledCard = {
           amount: 4,
           target: {
             filter: { zone: "battleArea", controller: "mine", kind: ["Digimon"], colors: ["Green"], levels: [5] },
+            count: 1,
           },
           into: { zone: "hand", controller: "mine", kind: ["Digimon"], colors: ["Green"], levels: [6] },
           duration: "forTheTurn",

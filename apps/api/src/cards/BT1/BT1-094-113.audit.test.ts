@@ -32,7 +32,7 @@ describe("BT1 option IR coverage", () => {
   });
 
   it("preserves target counts, source operations, durations, and modal branches", () => {
-    expect(irNode(oblivionBird.effects[0]?.actions[0])?.target.filter.keywords).toContainEqual({ keyword: "Blocker" });
+    expect(irNode(oblivionBird.effects[0]?.actions[0])?.target.filter.keywords).toContain("Blocker");
     expect(braveShield.effects[0]?.actions[1]).toMatchObject({ kind: "GainKeyword", duration: "untilOpponentTurnEnd" });
     expect(heartsAttack.effects[0]?.actions[0]).toMatchObject({ kind: "TrashDigivolution", amount: "all" });
     expect(graceCrossFreezer.effects[0]?.actions[0]).toMatchObject({ kind: "Restrict", restriction: "attack" });

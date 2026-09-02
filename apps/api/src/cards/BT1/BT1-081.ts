@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
@@ -8,7 +7,13 @@ export const compiled: CompiledCard = {
       trigger: "EndOfAttack",
       frequency: "TwicePerTurn",
       optional: true,
-      actions: [{ kind: "Unsuspend", target: { isSelf: true }, cost: { kind: "payMemory", memory: 3 } }],
+      actions: [
+        {
+          kind: "Unsuspend",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          cost: { kind: "payMemory", memory: 3 },
+        },
+      ],
     },
   ],
   coverage: "full",
