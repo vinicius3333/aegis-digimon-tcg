@@ -2,7 +2,9 @@
 
 Status: complete — 102/102 cards have reproducible 10/10 evidence.
 
-Audit date: 2026-09-01
+Functional audit date: 2026-09-01
+
+Typed revalidation date: 2026-09-02
 
 This report supersedes `BT16-STATIC-AUDIT.md` and the provisional range reports
 in `internal-docs/audits/BT16/`. The earlier files remain as historical review
@@ -72,23 +74,48 @@ Every card below has a direct focused test at
 - The persisted catalog is recalculated from the executable modules through
   `pnpm effects:sync:set -- --set BT16`; `pnpm effects:check:set -- --set BT16`
   is the reproducible drift check, and adding `--base origin/main` verifies the
-  semantic diff scope. Exactly 88 BT16 records changed semantically and zero
+  semantic diff scope. Exactly 89 BT16 records changed semantically and zero
   records outside BT16 changed.
+
+## Typed revalidation
+
+- Removed every `// @ts-nocheck` suppression from the 102 numeric card modules
+  and the set token module. No production module contains a duplicate
+  suppression.
+- Replaced legacy or underspecified IR shapes with typed contracts for dynamic
+  security-count levels, maximum base play cost, target-bound keyword grants,
+  targetless end-attack redirects, projected end-of-attack effects, and
+  two-color alternate evolution.
+- Corrected exact-name matching for the Garudamon and Phoenixmon alternate
+  routes and stack conditions, with near-name rejection proof.
+- Preserved DNA provenance on cross-permanent digivolution watchers, added
+  natural positive coverage for BT16-084, BT16-085, and BT16-088, and added an
+  ordinary-digivolution negative control for the shared family behavior. Their
+  DNA-only continuations now resolve after the Tamer's suspend cost and remain
+  disabled for ordinary digivolution.
+- Regenerated `packages/shared/src/effects/effects.json` exclusively from the
+  authoritative TypeScript modules. The scoped check reports 102 synchronized
+  records, 89 semantic changes in BT16, and zero semantic or byte changes
+  outside BT16.
 
 ## Executed gates
 
-- Corrected-card focused suites: 17 files, 89 tests passed.
+- Typed-correction focused suites: 15 files, 85 tests passed.
 - Persisted catalog contract: 104 tests passed.
-- BT16 collection: 107 files, 630 tests passed, one worker, no file parallelism.
-- Core mechanisms: 9 files, 442 tests passed, one worker, no file parallelism.
-- Synchronized-array regression suite: 2 files, 7 tests passed.
-- Synchronization-tool unit suite: 5 tests passed.
-- Shared and API builds passed with explicit 180- and 240-second limits.
-- Workspace typechecks passed serially with an explicit 300-second limit.
+- BT16 collection: 107 files, 638 tests passed, one worker, no file parallelism.
+- Core mechanisms: 9 files, 774 tests passed, one worker, no file parallelism.
+- Engine state regression suite: 6 files, 49 tests passed, one worker, no file
+  parallelism.
+- Shared package: 8 files, 133 tests passed, one worker, no file parallelism.
+- Web projection suites: 4 files, 131 tests passed, one worker, no file
+  parallelism.
+- Synchronization-tool unit suite: 10 tests passed with concurrency 1.
+- Shared and API builds and shared/API/web typechecks passed with explicit
+  limits.
 - Oxlint and Oxfmt checks passed on the changed source files.
 - `git diff --check` passed.
-- Persisted semantic diff: 88 changed records, all 88 within BT16, zero outside
-  the audited set.
+- Persisted diff: 89 changed records, all 89 within BT16, with zero semantic or
+  byte changes outside the audited set.
 
 All Vitest commands used explicit timeouts, `--maxWorkers=1`, and
 `--no-file-parallelism`. Build, synchronization, formatting, and typecheck

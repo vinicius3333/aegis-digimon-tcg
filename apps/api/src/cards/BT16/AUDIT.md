@@ -12,12 +12,15 @@ from `BT16-001` through `BT16-102` has:
 - `coverage: "full"`, no residual clauses, and green bounded
   collection/mechanism gates.
 
-Final collection result: 107 files and 630 tests passed. Mechanism result: 442
-tests passed across the selected restriction, effect-resolution, combat,
-subtrigger, activation, and primitive-consumer suites. Shared and API builds,
-workspace typechecks, lint, formatting, and `git diff --check` passed.
+Typed revalidation removed all `// @ts-nocheck` suppressions from the set,
+strengthened the shared IR contracts they had hidden, and added natural DNA
+watcher coverage. Final collection result: 107 files and 638 tests passed.
+Mechanism result: 774 tests passed across the selected restriction,
+effect-resolution, combat, subtrigger, activation, and primitive-consumer
+suites. Shared and API builds, shared/API/web typechecks, lint, formatting, and
+`git diff --check` passed.
 
 The persisted catalog is generated from the authoritative modules with
 `pnpm effects:sync:set -- --set BT16` and verified with the matching
 `effects:check:set` command plus `--base origin/main`. The scoped synchronization
-changed 88 BT16 records and no record outside the set.
+changed 89 BT16 records and no semantic or byte content outside the set.
