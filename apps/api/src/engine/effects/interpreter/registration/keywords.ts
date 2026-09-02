@@ -272,16 +272,18 @@ export function synthesizedOverclockTrait(
 /**
  * Detect the "digivolve from hand onto a <color> Tamer as if it is a level N Digimon"
  * mechanic in a card's compiled IR and record its `asLevel` in the side registry. The
- * mechanic compiles to a Static `Digivolve` action carrying `onto` (a Tamer filter) and
- * `asLevel`; the legality path derives the correctly-gated alternate requirement from this
- * (see {@link registerTamerOntoDigivolve}). The `onto` value carries a nested `filter` at
- * runtime (`{ filter, count }`); read it defensively since the IR is `@ts-nocheck`-generated.
+ * mechanic compiles to a Static `TamerOntoDigivolve` action carrying `onto` (a Tamer filter)
+ * and `asLevel`; the legality path derives the correctly-gated alternate requirement from this
+ * (see {@link registerTamerOntoDigivolve}). The defensive `Digivolve` and nested-filter branches
+ * preserve legacy generated snapshots.
  */
 export function registerTamerOntoFromEffects(cardId: string, effects: readonly CardEffect[]): void {
   for (const effect of effects) {
     if (effect.trigger !== "Static") continue;
     for (const action of effect.actions ?? []) {
-      if (action.kind !== "Digivolve" || typeof action.asLevel !== "number") continue;
+      if ((action.kind !== "TamerOntoDigivolve" && action.kind !== "Digivolve") || typeof action.asLevel !== "number") {
+        continue;
+      }
       const onto = action.onto as
         | { filter?: { kind?: unknown; colors?: readonly string[] }; kind?: unknown; colors?: readonly string[] }
         | undefined;

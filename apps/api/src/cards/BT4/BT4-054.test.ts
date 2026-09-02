@@ -3,6 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { internalsOf } from "../../engine/testkit/internals.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT4-054.js";
 
@@ -10,14 +11,19 @@ describe("BT4-054 Sunflowmon", () => {
   it("Digi-Bursts 2 to stop a suspended opposing Digimon from unsuspending", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT4-054", as: "sun", under: ["BT4-004", "BT4-052"] }] },
+        0: {
+          battleArea: [
+            { card: "BT4-054", as: "sun", under: ["BT4-004", "BT4-052"] },
+            { card: "BT4-053", as: "ally" },
+          ],
+        },
         1: { battleArea: [{ card: "BT1-019", suspended: true, as: "target" }] },
       },
       { autoSelectCards: true },
     );
     const effectKey = effectsOf(
       EffectTiming.OnDeclaration,
-      (s.engine as any).cardSourceOf(s.perm("sun").topCard!),
+      internalsOf(s.engine).cardSourceOf(s.perm("sun").topCard!),
     ).find((effect) => effect.effectKey.startsWith("BT4-054/"))!.effectKey;
     expect(
       s.engine.applyIntent(0, {
@@ -29,6 +35,7 @@ describe("BT4-054 Sunflowmon", () => {
     await settle(() => observe(s.engine).isRestricted(s.perm("target"), "unsuspend"));
 
     expect(s.perm("sun").stack).toHaveLength(0);
+    expect(s.perm("ally").topCard?.cardId).toBe("BT4-053");
     expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(true);
 
     await advance(s.engine).verb.unsuspend([s.perm("target").permanentId]);
@@ -45,7 +52,7 @@ describe("BT4-054 Sunflowmon", () => {
     );
     const effectKey = effectsOf(
       EffectTiming.OnDeclaration,
-      (s.engine as any).cardSourceOf(s.perm("sun").topCard!),
+      internalsOf(s.engine).cardSourceOf(s.perm("sun").topCard!),
     ).find((effect) => effect.effectKey.startsWith("BT4-054/"))!.effectKey;
 
     expect(

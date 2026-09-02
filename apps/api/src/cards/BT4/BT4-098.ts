@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -45,7 +44,7 @@ export const compiled: CompiledCard = {
           kind: "GainKeyword",
           target: { filter: { controller: "mine", kind: ["Digimon"] }, count: "all" },
           keyword: { keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" },
-          duration: "untilOwnerTurnEnd",
+          duration: "untilYourTurnEnd",
         },
         {
           kind: "SubTrigger",
@@ -58,7 +57,7 @@ export const compiled: CompiledCard = {
               kind: "GainKeyword",
               target: { filter: { isTriggerSource: true }, count: 1 },
               keyword: { keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" },
-              duration: "untilOwnerTurnEnd",
+              duration: "untilYourTurnEnd",
             },
           ],
         },

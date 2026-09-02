@@ -339,7 +339,7 @@ export function permanentHasTrait(game: GameAccess, permanent: Permanent, trait:
  * The "digivolve from hand onto a <color> Tamer as if it is a level N Digimon" mechanic is
  * handled separately and FIRST: effects.json carries only a STALE gateless `{cost, isAlternate}`
  * for these cards (it would match any base of any color), so the correctly-gated requirement is
- * derived here from the registered `Static` `Digivolve` action's `asLevel` — a Tamer base that
+ * derived here from the registered static Tamer-onto metadata action's `asLevel` — a Tamer base that
  * shares a color with the evolving card, paying the card's level-N evo cost. For such a card the
  * stale gateless effects.json entry is ignored.
  */

@@ -203,7 +203,7 @@ function visibleDigivolveSourceIds(
 }
 
 export async function runDigivolve(ctx: EffectContext, action: Extract<Action, { kind: "Digivolve" }>): Promise<void> {
-  // Static metadata-only Digivolve actions that register alternate digivolution paths
+  // Legacy static metadata-only Digivolve actions that register alternate digivolution paths
   // (e.g. Frontier tamer-onto effects with `onto` + `asLevel`) carry no runtime `target`
   // and are consumed by registerTamerOntoFromEffects — never resolved.
   if (!action.target) return;

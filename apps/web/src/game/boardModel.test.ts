@@ -540,9 +540,13 @@ describe("Tamer-onto digivolution cost paths (BT17-012 family)", () => {
     expect(opts.some((o) => o.cost === 3)).toBe(true);
   });
 
-  it("Family-B (BT4-011) onto a red Tamer uses the derived cost, never the stale cost 0", () => {
-    const opts = getDigivolveCostOptions("BT4-011", permOf("BT7-085"));
-    expect(opts.length).toBeGreaterThan(0);
+  it.each([
+    ["BT4-011", "BT7-085", 2],
+    ["BT4-013", "BT7-085", 3],
+    ["BT4-025", "BT4-093", 2],
+  ] as const)("Family-B %s onto %s uses derived cost %i", (cardId, tamerId, expectedCost) => {
+    const opts = getDigivolveCostOptions(cardId, permOf(tamerId));
+    expect(opts).toContainEqual(expect.objectContaining({ type: "alternate", cost: expectedCost }));
     expect(opts.every((o) => o.cost !== 0)).toBe(true);
   });
 });

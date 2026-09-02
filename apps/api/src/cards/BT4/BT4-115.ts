@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR: the play-cost modifier must be bound to this hand-resident Lucemon.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
@@ -17,6 +16,7 @@ const compiled: CompiledCard = {
           costType: "play",
           amount: 8,
           handResident: true,
+          duration: "permanent",
           target: {
             filter: {
               isSelfRef: true,

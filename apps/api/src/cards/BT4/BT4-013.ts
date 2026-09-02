@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -11,17 +10,14 @@ const compiled: CompiledCard = {
       trigger: "Static",
       actions: [
         {
-          kind: "Digivolve",
+          kind: "TamerOntoDigivolve",
           onto: {
-            filter: {
-              controller: "mine",
-              kind: ["Tamer"],
-              colors: ["Red"],
-            },
-            count: 1,
+            controller: "mine",
+            kind: ["Tamer"],
+            colors: ["Red"],
           },
           asLevel: 3,
-          from: "hand",
+          from: ["hand"],
         },
       ],
     },

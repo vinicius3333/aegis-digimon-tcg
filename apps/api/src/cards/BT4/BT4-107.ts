@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT4-107 (Pollen Spray) — do not regenerate over this file.
 // Two generated defects vs the printed text ("Add all Digimon cards with
 // <Digi-Burst> among them to your hand ... suspend 1 of your opponent's Digimon

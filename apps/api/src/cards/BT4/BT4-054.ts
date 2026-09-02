@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -11,14 +10,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
-          kind: "Trash",
-          target: {
-            filter: {
-              controllerDefault: "mine",
-              kind: ["Digimon"],
-            },
-            count: 2,
-          },
+          kind: "Restrict",
           cost: {
             kind: "trash",
             target: {
@@ -30,9 +22,6 @@ const compiled: CompiledCard = {
             },
             raw: "＜Digi-Burst 2＞",
           },
-        },
-        {
-          kind: "Restrict",
           target: {
             filter: {
               controller: "opponent",
@@ -43,6 +32,7 @@ const compiled: CompiledCard = {
           },
           restriction: "unsuspend",
           duration: "untilOpponentTurnEnd",
+          abortOnDecline: true,
         },
       ],
       keywords: [

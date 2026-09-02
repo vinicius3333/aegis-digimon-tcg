@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import cards from "../cards/data/cards.json" with { type: "json" };
-import { digivolutionRequirementsFor } from "./data.js";
+import { digivolutionRequirementsFor, tamerOntoDigivolveLevel } from "./data.js";
 import { digiXrosRequirementFor, digiXrosTrashNameAllowanceFor } from "./data.js";
 
 // Regression for the corresponding regression coverage finding 1: BT26 is hand-implemented
@@ -8,6 +8,14 @@ import { digiXrosRequirementFor, digiXrosTrashNameAllowanceFor } from "./data.js
 // exist via ALTERNATE_DIGIVOLUTION_OVERRIDES or the generated fallback map. Every BT26 card that
 // prints such a header must resolve to a non-empty requirement list.
 describe("digivolutionRequirementsFor / BT26 alternate digivolve coverage", () => {
+  it.each([
+    ["BT4-011", 3],
+    ["BT4-013", 3],
+    ["BT4-025", 3],
+  ] as const)("reads %s's canonical Tamer-onto metadata", (cardId, level) => {
+    expect(tamerOntoDigivolveLevel(cardId)).toBe(level);
+  });
+
   it("preserves EX11-022's yellow/purple base-color gate", () => {
     expect(digivolutionRequirementsFor("EX11-022")).toEqual([
       { level: 4, traits: ["Puppet"], cost: 3, isAlternate: true, baseColors: ["Yellow", "Purple"] },

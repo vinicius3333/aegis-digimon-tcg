@@ -1108,7 +1108,8 @@ export function digivolutionRequirementsFor(cardId: string): DigivolutionRequire
  * The "as if level N" level for a card that may digivolve from hand onto one of your <color>
  * Tamers as if the Tamer is a level-N Digimon (Frontier hybrids: BT4-025, BT17-012, ...), or
  * undefined when the card has no such path. Derived from the compiled IR — the mechanic compiles
- * to a `Static` `Digivolve` action carrying `onto` (a Tamer filter) and `asLevel`. Kept in
+ * to a `Static` `TamerOntoDigivolve` action carrying `onto` (a Tamer filter) and `asLevel`, while
+ * legacy snapshots may still use `Digivolve`. Kept in
  * @aegis/shared so the SERVER (digivolve legality/cost) and the CLIENT (target highlighting +
  * cost labels) derive it identically. For such cards the compiled `digivolutionRequirement` is a
  * STALE gateless/`baseIsTamer`-only entry to be ignored in favor of this derived path (plus any
@@ -1121,7 +1122,9 @@ export function tamerOntoDigivolveLevel(cardId: string): number | undefined {
     if (effect.trigger !== "Static") continue;
     for (const action of effect.actions ?? []) {
       const act = action as { kind?: unknown; asLevel?: unknown; onto?: unknown };
-      if (act.kind !== "Digivolve" || typeof act.asLevel !== "number") continue;
+      if ((act.kind !== "TamerOntoDigivolve" && act.kind !== "Digivolve") || typeof act.asLevel !== "number") {
+        continue;
+      }
       const onto = act.onto as { filter?: { kind?: unknown }; kind?: unknown } | undefined;
       const ontoKind = onto?.filter ? onto.filter.kind : onto?.kind;
       if (Array.isArray(ontoKind) && ontoKind.includes("Tamer")) return act.asLevel;

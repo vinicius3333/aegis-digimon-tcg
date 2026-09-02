@@ -38,6 +38,7 @@ import type {
   DigivolveAction,
   DigivolveViaPlacementAction,
   PlaceUnderAction,
+  TamerOntoDigivolveAction,
   TrashDigivolutionAction,
   WaiveColorRequirementAction,
 } from "./digivolve.js";
@@ -186,6 +187,7 @@ export type Action =
   | SearchSecurityAction
   | DeDigivolveAction
   | DigivolveAction
+  | TamerOntoDigivolveAction
   | DigivolveViaPlacementAction
   | AttackAction
   | BattleAction

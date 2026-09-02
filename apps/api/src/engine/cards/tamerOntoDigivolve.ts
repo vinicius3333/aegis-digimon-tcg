@@ -2,7 +2,7 @@
  * Side registry for the "digivolve this card from your hand onto one of your
  * <color> Tamers as if the Tamer is a level N Digimon" mechanic.
  *
- * The mechanic compiles to a `Static` `Digivolve` action carrying `onto` (a Tamer
+ * The mechanic compiles to a `Static` `TamerOntoDigivolve` action carrying `onto` (a Tamer
  * filter) and `asLevel`. That action is the SOURCE OF TRUTH for the alternate-path
  * legality, but the legality check reads `digivolutionRequirementsFor` (effects.json),
  * whose entry for these cards is a STALE gateless `{cost, isAlternate}` that matches any
