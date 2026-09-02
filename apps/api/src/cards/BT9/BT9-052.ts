@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED — preserve: redirect is gated to this live Digimon being the current attacker.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

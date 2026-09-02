@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-authored override — do not regenerate.
 // Inherited effect triggers specifically when an effect adds a card to your hand
 // (KB Q1794: also fires when a return-to-hand effect adds a card; Q1795: Draw counts too).

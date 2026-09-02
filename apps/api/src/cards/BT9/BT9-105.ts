@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT9-105 (Soul Digitalization) — do not regenerate over this file.
 //
 // runtime-effect fix: the generated [Main] bundle split RevealAdd(add:[]) from an unrelated

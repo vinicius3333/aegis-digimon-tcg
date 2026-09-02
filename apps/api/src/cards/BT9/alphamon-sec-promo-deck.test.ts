@@ -32,7 +32,7 @@ describe("Alphamon X Antibody SEC / promo deck", () => {
           security: ["BT1-001"],
         },
       },
-      { autoOrderTriggers: true },
+      { autoChooseOption: true, autoOrderTriggers: true, preferOptionIndex: 1 },
     );
     const ouryukenId = s.inst("ouryuken").instanceId;
     s.state.memory = 3;
@@ -171,8 +171,10 @@ describe("Alphamon X Antibody SEC / promo deck", () => {
       },
       {
         autoAcceptOptional: true,
+        autoChooseOption: true,
         autoOrderTriggers: true,
         autoSelectCards: true,
+        preferOptionIndex: 1,
       },
     );
     const xAntibodyId = s.inst("xAntibodyOption").instanceId;

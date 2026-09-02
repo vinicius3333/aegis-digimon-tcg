@@ -34,7 +34,7 @@ describe("BT9-013 OmniShoutmon (X Antibody)", () => {
                 count: 1,
                 isSelf: true,
               },
-              duration: "YourTurn",
+              duration: "forTheTurn",
             },
           ],
         },

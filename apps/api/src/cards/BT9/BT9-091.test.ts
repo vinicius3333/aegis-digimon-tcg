@@ -9,19 +9,38 @@ import "./BT9-091.js";
 describe("BT9-091 Meiko Mochizuki", () => {
   it("matches catalog values and the optional reveal, exact-color, and security IR", () => {
     expect(getCardDefinition("BT9-091")).toMatchObject({
-      colors: ["Purple"], kinds: ["Tamer"], playCost: 3,
+      colors: ["Purple"],
+      kinds: ["Tamer"],
+      playCost: 3,
       securityEffectText: "[Security] Play this card without paying its memory cost.",
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], effects: [
+      coverage: "full",
+      residual: [],
+      effects: [
         {
           trigger: "OnPlay",
-          actions: [{
-            kind: "RevealAdd", revealCount: 3, optional: true,
-            add: [{ filter: { kind: ["Digimon"], colors: ["Yellow", "Purple"] } }], rest: "trash",
-          }],
+          actions: [
+            {
+              kind: "RevealAdd",
+              revealCount: 3,
+              optional: true,
+              add: [{ filter: { kind: ["Digimon"], colors: ["Yellow", "Purple"] } }],
+              rest: "trash",
+            },
+          ],
         },
-        { trigger: "AllTurns", actions: [{ kind: "SubTrigger", event: "whenPlayed", sourceFilter: { multicolor: true, and: [{ colors: ["Purple"] }, { colors: ["Yellow"] }] }, actions: [{ kind: "GainMemory", amount: 1, optional: true, cost: { kind: "suspend" } }] }] },
+        {
+          trigger: "AllTurns",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenPlayed",
+              sourceFilter: { multicolor: true, and: [{ colors: ["Purple"] }, { colors: ["Yellow"] }] },
+              actions: [{ kind: "GainMemory", amount: 1, optional: true, cost: { kind: "suspend" } }],
+            },
+          ],
+        },
         { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] },
       ],
     });
@@ -54,15 +73,22 @@ describe("BT9-091 Meiko Mochizuki", () => {
       {
         0: {
           battleArea: [{ card: "BT9-091", as: "meiko" }],
-          security: [{ card: "BT9-074", as: "meicoomon", faceUp: true }],
+          security: [{ card: "BT9-074", as: "meicoomon" }],
         },
+        1: { battleArea: [{ card: "BT14-031", as: "attacker", dp: 500 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
     s.state.turnSeat = 1;
     s.state.memory = 0;
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("meicoomon"));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("meiko").isSuspended && s.state.memory === -1);
 
     expect(
@@ -80,15 +106,22 @@ describe("BT9-091 Meiko Mochizuki", () => {
             { card: "BT9-091", as: "firstMeiko" },
             { card: "BT9-091", as: "secondMeiko" },
           ],
-          security: [{ card: "BT9-074", as: "meicoomon", faceUp: true }],
+          security: [{ card: "BT9-074", as: "meicoomon" }],
         },
+        1: { battleArea: [{ card: "BT14-031", as: "attacker", dp: 500 }] },
       },
       { autoOrderTriggers: true },
     );
     s.state.turnSeat = 1;
     s.state.memory = 0;
 
-    const resolution = advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("meicoomon"));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     for (let index = 0; index < 2; index += 1) {
       await settle(() => s.state.pendingDecision?.kind === "optional");
       const pending = s.state.pendingDecision!;
@@ -101,7 +134,7 @@ describe("BT9-091 Meiko Mochizuki", () => {
       ).toEqual({ ok: true });
       await settle(() => s.state.pendingDecision?.decisionId !== pending.decisionId);
     }
-    await resolution;
+    await settle(() => s.perm("firstMeiko").isSuspended && s.perm("secondMeiko").isSuspended);
 
     expect(s.perm("firstMeiko").isSuspended).toBe(true);
     expect(s.perm("secondMeiko").isSuspended).toBe(true);

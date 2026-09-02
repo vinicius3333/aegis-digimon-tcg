@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -18,7 +17,6 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
-              includeSecurityZone: true,
             },
             count: "all",
           },
@@ -82,8 +80,8 @@ export const compiled: CompiledCard = {
           cost: {
             kind: "securityToHand",
             controller: "mine",
-            amount: 1,
-            fromTop: true,
+            count: 1,
+            position: "top",
             raw: "by adding the top card of your security stack to your hand",
           },
           optional: true,

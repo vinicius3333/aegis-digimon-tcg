@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT9-111 (Alphamon: Ouryuken) — do not regenerate over this file.
 //
 // runtime-effect fixes:

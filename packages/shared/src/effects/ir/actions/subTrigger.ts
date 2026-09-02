@@ -30,6 +30,7 @@ export type SubTriggerEvent =
   | "whenAnyDigivolves" // `sourceFilter` narrows the controller
   | "onDeletionOf"
   | "whenSecurityRemoved"
+  | "whenSecurityBattleEnded" // deferred [Security] effects after the checked Digimon's battle
   | "whenCardTrashedFromSecurity"
   | "whenEffectTrashesFromSecurity"
   | "whenAddSecurity"
