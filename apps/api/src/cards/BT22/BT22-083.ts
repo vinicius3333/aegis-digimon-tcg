@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -80,13 +79,21 @@ export const compiled: CompiledCard = {
                 },
                 {
                   kind: "GrantImmunity",
-                  target: { fromSelectionRef: "yuukoProtectedDigimon", count: 1 },
+                  target: {
+                    filter: {},
+                    fromSelectionRef: "yuukoProtectedDigimon",
+                    count: 1,
+                  },
                   immuneFrom: "opponentEffects",
                   duration: "forTheTurn",
                 },
                 {
                   kind: "ModifyDP",
-                  target: { fromSelectionRef: "yuukoProtectedDigimon", count: 1 },
+                  target: {
+                    filter: {},
+                    fromSelectionRef: "yuukoProtectedDigimon",
+                    count: 1,
+                  },
                   amount: 3000,
                   duration: "forTheTurn",
                 },

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -42,7 +41,7 @@ export const compiled: CompiledCard = {
           scope: "acrossDigimon",
           condition: {
             kind: "stackHasSameLevelCards",
-            minCount: 2,
+            count: 2,
             raw: "this Digimon's stack has 2 or more same-level cards",
           },
         },
@@ -53,7 +52,7 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
-              digivolutionCardsLte: 1,
+              digivolutionCardsAtMost: 1,
             },
             count: 1,
           },

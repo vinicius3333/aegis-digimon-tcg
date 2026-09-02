@@ -46,7 +46,7 @@ describe("BT22-063 Alphamon", () => {
                   kind: "selfDigivolutionStackHasTrait",
                   filter: { nameOrTrait: [{ tokens: ["Kyoko Kuremi"], match: "name" }] },
                 },
-                { kind: "stackHasSameLevelCards", minCount: 2 },
+                { kind: "stackHasSameLevelCards", count: 2 },
               ],
             },
           },

@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const buffAndAttack = [
+const buffAndAttack: Action[] = [
   {
     kind: "ModifyDP",
     target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
@@ -15,7 +14,7 @@ const buffAndAttack = [
     optional: true,
     attackPlayer: true,
   },
-] as const;
+];
 
 export const compiled: CompiledCard = {
   effects: [

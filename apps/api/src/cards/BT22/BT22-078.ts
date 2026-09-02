@@ -1,5 +1,3 @@
-// @ts-nocheck
-// Hand-authored override: copyEffectsFromDigivolution uses raw filter string (same as BT16-062).
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -30,12 +28,12 @@ export const compiled: CompiledCard = {
             count: 1,
             isSelf: true,
           },
-          grant: {
-            copyEffectsFromDigivolution: {
-              filter: "This Digimon gains all [Main] effects of its digivolution cards with the [Flame] trait",
-              trigger: "Main",
-            },
+          grant: "effects",
+          filter: {
+            zone: "digivolutionCards",
+            nameOrTrait: [{ tokens: ["Flame"], match: "trait" }],
           },
+          copyTrigger: "Main",
           duration: "forTheTurn",
         },
       ],

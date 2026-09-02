@@ -9,12 +9,15 @@ describe("BT22-077 Dianamon", () => {
       kind: "TrashDigivolution",
       amount: 4,
       scope: "acrossDigimon",
-      condition: { kind: "stackHasSameLevelCards", minCount: 2 },
+      condition: { kind: "stackHasSameLevelCards", count: 2 },
     });
     expect(effect?.actions[1]).toMatchObject({
       kind: "Return",
       to: "deckBottom",
-      target: { filter: { controller: "opponent", kind: ["Digimon"], digivolutionCardsLte: 1 }, count: 1 },
+      target: {
+        filter: { controller: "opponent", kind: ["Digimon"], digivolutionCardsAtMost: 1 },
+        count: 1,
+      },
     });
   });
 

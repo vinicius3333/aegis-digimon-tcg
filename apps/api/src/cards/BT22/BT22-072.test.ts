@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./BT22-072.js";
 import "./index.js";
 
 type EngineInternals = {

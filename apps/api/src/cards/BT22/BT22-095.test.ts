@@ -39,9 +39,7 @@ describe("BT22-095 Akemi Suedou", () => {
         kind: ["Digimon"],
         nameOrTrait: [{ tokens: ["Mother Eater"], match: "name" }],
       },
-      destination: "digivolutionStack",
       position: "bottom",
-      host: "target",
     });
   });
 

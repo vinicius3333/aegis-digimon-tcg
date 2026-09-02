@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT22-081 — do not regenerate.
 // OnPlay/WhenDigivolving PlaceUnder: added from:["hand","trash"], underFilter:self,
 // position:bottom (places Yuuko Kamishiro from hand or trash under this Digimon).
