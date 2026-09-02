@@ -12,7 +12,12 @@ describe("EX12-071 Saneiketsu Invitation", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects.find((effect) => effect.trigger === "Static")?.actions[0]).toMatchObject({
       kind: "WaiveColorRequirement",
-      condition: { kind: "youHave", filter: { nameOrTrait: [{ tokens: ["SW"], match: "trait" }] } },
+      // CR 16-42-3 scopes ＜Use Req.＞ to Digimon and Tamers on the field. Drop the kind gate and
+      // a resident [SW] OPTION permanent (this very card, once placed) satisfies its own Use Req.
+      condition: {
+        kind: "youHave",
+        filter: { kind: ["Digimon", "Tamer"], nameOrTrait: [{ tokens: ["SW"], match: "trait" }] },
+      },
     });
     const main = compiled.effects.find((effect) => effect.trigger === "Main");
     expect(main?.actions).toMatchObject([
@@ -50,6 +55,7 @@ describe("EX12-071 Saneiketsu Invitation", () => {
       actions: [{ kind: "ActivateMain" }],
     });
     expect(registeredCompiledCards.get("EX12-071")).toEqual(compiled);
+    expect(compiledEffects["EX12-071"]).toBeDefined();
     expect(compiledEffects["EX12-071"]).toEqual(compiled);
   });
 
@@ -227,6 +233,25 @@ describe("EX12-071 Saneiketsu Invitation", () => {
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("payment").instanceId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-071")).toBe(true);
+  });
+
+  // Mutation guard for the CR 16-42-3 kind gate on the ＜Use Req.＞ condition: EX12-074 is an
+  // OPTION whose colors never satisfy this card's colour requirement, yet it carries the [SW]
+  // trait and EX12 Options sit in the battle area. Remove `kind: ["Digimon", "Tamer"]` from the
+  // youHave filter and this play is wrongly allowed.
+  it("is not enabled by a resident Option carrying the Use Req. trait", () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX12-074", as: "residentOption" }],
+        hand: [{ card: "EX12-071", as: "useReqOption" }],
+      },
+    });
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("useReqOption").instanceId })).toEqual({
+      ok: false,
+      reason: "color-requirement-unmet",
+    });
   });
 
   it("matches the complete catalog identity", () => {

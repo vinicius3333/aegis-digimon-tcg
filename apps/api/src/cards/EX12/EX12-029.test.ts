@@ -64,6 +64,15 @@ describe("EX12-029 Sagomon", () => {
         optional: true,
         keyword: { keyword: "Alliance" },
         duration: "forTheTurn",
+        target: {
+          count: 1,
+          filter: {
+            controller: "mine",
+            excludeSelf: true,
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["SW"], match: "trait" }],
+          },
+        },
       });
       expect(effect.actions[2]).toMatchObject({
         kind: "Attack",
@@ -245,6 +254,33 @@ describe("EX12-029 Sagomon", () => {
 
     expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
     expect(s.perm("ally").isSuspended).toBe(false);
+  });
+
+  it("excludes itself and non-SW allies from the Alliance grant, so no forced attack happens", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-010", as: "nonSw" }],
+          hand: [{ card: cardId, as: "source" }],
+        },
+        1: { battleArea: [{ card: "BT1-011", as: "opponent" }], security: ["BT1-090"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).isRestricted(s.perm("opponent").permanentId, "beSuspended"));
+    await settle();
+
+    const continuous = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } })
+      .continuous;
+    const sagomon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === cardId)!;
+    expect(continuous.hasKeyword(sagomon.permanentId, "Alliance")).toBe(false);
+    expect(continuous.hasKeyword(s.perm("nonSw").permanentId, "Alliance")).toBe(false);
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
   });
 
   it("applies the same restriction, Alliance grant, and forced attack on digivolving", async () => {

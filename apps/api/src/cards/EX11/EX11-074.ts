@@ -1,11 +1,13 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Condition, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
-const opponentDigimon = { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 };
-const suspendedMine = { kind: "lastSuspendedIsMine", raw: "if this effect suspended your Digimon" };
-const suspendAndProtect = [
+const self: Target = { filter: { isSelfRef: true }, count: 1, isSelf: true };
+const opponentDigimon: Target = { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 };
+const suspendedMine: Condition = {
+  kind: "lastSuspendedIsMine",
+  raw: "if this effect suspended your Digimon",
+};
+const suspendAndProtect: Action[] = [
   {
     kind: "Suspend",
     target: { filter: { controller: "any", kind: ["Digimon"] }, count: 1 },
@@ -32,6 +34,10 @@ const suspendAndProtect = [
 // KB Q5948 permits the first target on either field. Q5949-Q5954 scope the
 // conditional immunity to the opponent's Digimon effects. Q5955-Q5959 confirm
 // the All Turns battle is a direct battle, not another attack/security check.
+//
+// The shared consts carry explicit IR annotations on purpose: without them the object
+// literals widen (`kind: string`, `controller: string`) and stop satisfying `Action`/`Target`,
+// which is what hid the shape from the compiler while `@ts-nocheck` was in place.
 export const compiled: CompiledCard = {
   effects: [
     { trigger: "Static", actions: [], keywords: [{ keyword: "Piercing", raw: "＜Piercing＞" }] },

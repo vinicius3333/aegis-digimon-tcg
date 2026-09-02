@@ -149,13 +149,20 @@ describe("EX11-022 — [On Play] free [Puppet] play, deleted at turn end", () =>
     // the ignored filter matches every permanent => Karakurumon and Greymon are deleted too => RED.
   });
 
+  // Q5810: the delayed deletion and any other end-of-turn effect trigger simultaneously, so the
+  // turn player chooses the order. The partner must be an end-of-turn effect the resolver can
+  // actually offer: `canActivateEffect` drops an effect whose every action is gated and
+  // impossible, which is why EX11-070's [End of Your Turn] (a DNA digivolve into an
+  // [ExMaquinamon] that is not in hand, plus a ＜Mind Link＞ with no [Maquinamon]-text Digimon)
+  // never entered the group and left a single trigger key. P-185's "[End of Your Turn] This
+  // Digimon unsuspends" is ungated, so both effects compete for the next slot.
   it("offers the turn player an ordering choice with another simultaneous end-of-turn effect (Q5810)", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "EX11-022", as: "source" },
-            { card: "EX11-070", as: "otherEndOfTurn" },
+            { card: "P-185", as: "otherEndOfTurn", suspended: true },
           ],
           hand: [{ card: "BT13-035", as: "puppet" }],
         },
@@ -188,6 +195,8 @@ describe("EX11-022 — [On Play] free [Puppet] play, deleted at turn end", () =>
     await resolving;
 
     expect(onField(s, puppet.instanceId)).toBe(false);
+    // Both simultaneous effects resolved, in the order the turn player chose.
+    expect(s.perm("otherEndOfTurn").isSuspended).toBe(false);
     assertNoLoudGap(s);
   });
 

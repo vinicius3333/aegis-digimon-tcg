@@ -186,4 +186,25 @@ describe("EX12-009 Wankomon", () => {
       }),
     ).toEqual(expect.objectContaining({ ok: false }));
   });
+
+  it("reveals only the top three cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX12-009", as: "source" }],
+          deck: ["EX12-006", "BT1-009", "BT1-010", "EX12-011"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.deck.length === 3);
+
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["EX12-006"]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["EX12-011", "BT1-009", "BT1-010"]);
+  });
 });

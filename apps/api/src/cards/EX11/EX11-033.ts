@@ -1,10 +1,15 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
+// KB Q5846: "[Maquinamon] in text" covers name, traits, effects, inherited text and
+// requirements, so the alternate digivolve requirement uses `texts`, not `names`.
+// KB Q5847: the suspend target and the "can't unsuspend" target are chosen independently.
+// KB Q5848: the inherited unsuspend does not fire when the host dies alongside its victim —
+// the interpreter's `whenDeletesInBattle` watcher already requires the attacker to survive.
+//
+// "from your hand or THIS Digimon's digivolution cards": `digivolutionCards` enumerates every
+// stack this seat controls, so the self scope must be stated as `hostFilter: { isSelfRef: true }`
+// (it constrains hosted zones only and leaves the hand pool untouched).
 const compiled: CompiledCard = {
   digivolutionRequirement: [{ level: 4, texts: ["Maquinamon"], cost: 3, isAlternate: true }],
   effects: [
@@ -23,6 +28,7 @@ const compiled: CompiledCard = {
                   match: "name",
                 },
               ],
+              hostFilter: { isSelfRef: true },
             },
             count: 1,
           },
@@ -51,6 +57,7 @@ const compiled: CompiledCard = {
                   match: "name",
                 },
               ],
+              hostFilter: { isSelfRef: true },
             },
             count: 1,
           },

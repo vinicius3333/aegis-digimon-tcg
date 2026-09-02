@@ -37,6 +37,8 @@ describe("EX10-060 Lucemon: Satan Mode", () => {
             payCost: false,
             breeding: true,
             requiresEmpty: "breedingArea",
+            optional: true,
+            abortOnDecline: true,
           },
           {
             kind: "Delete",
@@ -79,11 +81,28 @@ describe("EX10-060 Lucemon: Satan Mode", () => {
         0: { battleArea: [{ card: CARD_ID, as: "satan" }], breeding: { card: "BT1-001" }, trash: ["BT18-086"] },
         1: { battleArea: [{ card: "EX10-026", as: "target" }] },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
     const targetId = s.perm("target").permanentId;
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("satan"));
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(targetId);
+  });
+
+  it("CR 15-7-4 lets the controller decline the Larva play, which aborts the deletion", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: CARD_ID, as: "satan" }], trash: [{ card: "BT18-086", as: "larva" }] },
+        1: { battleArea: [{ card: "EX10-026", as: "target" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const targetId = s.perm("target").permanentId;
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("satan"));
+    await settle(() => s.state.pendingDecision === null);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("larva").instanceId);
+    expect(s.state.players[0]!.breeding?.topCard).toBeUndefined();
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(targetId);
   });
 

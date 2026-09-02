@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -9,6 +8,9 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   - "[Digivolve] [Damemon]: Cost 1" is the digivolutionRequirement, not a Main effect.
 //   - GainKeyword(Retaliation) was optional+abortOnDecline — wrong. The effect is a single
 //     "by trashing, gain Blocker AND Retaliation". Second GainKeyword is mandatory after cost.
+//   - the Retaliation target is the canonical typed `fromSelectionRef` shape. `filter`/`count`
+//     are IGNORED for that form (Target docs; targeting/permanents.ts short-circuits on the
+//     bound id), so they carry no semantics — they exist only to satisfy `Target`.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -76,7 +78,7 @@ const compiled: CompiledCard = {
         },
         {
           kind: "GainKeyword",
-          target: { fromSelectionRef: "chosen" },
+          target: { filter: {}, count: 1, fromSelectionRef: "chosen" },
           keyword: {
             keyword: "Retaliation",
             raw: "＜Retaliation＞",
@@ -132,7 +134,7 @@ const compiled: CompiledCard = {
         },
         {
           kind: "GainKeyword",
-          target: { fromSelectionRef: "chosen" },
+          target: { filter: {}, count: 1, fromSelectionRef: "chosen" },
           keyword: {
             keyword: "Retaliation",
             raw: "＜Retaliation＞",
@@ -188,7 +190,7 @@ const compiled: CompiledCard = {
         },
         {
           kind: "GainKeyword",
-          target: { fromSelectionRef: "chosen" },
+          target: { filter: {}, count: 1, fromSelectionRef: "chosen" },
           keyword: {
             keyword: "Retaliation",
             raw: "＜Retaliation＞",

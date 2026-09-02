@@ -133,6 +133,70 @@ describe("EX11-073 ExMaquinamon", () => {
     assertNoLoudGap(s);
   });
 
+  it("excludes ExMaquinamon itself from the [Maquinamon] link pool (exact name, KB Q1231/Q1232)", async () => {
+    // "ExMaquinamon" CONTAINS "Maquinamon", so a substring name match would let this card link
+    // copies of itself.
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX11-073", as: "host" }],
+          hand: [{ card: "EX11-073", as: "selfCopy" }],
+          trash: [{ card: "EX11-073", as: "trashCopy" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("host"), {
+      isDnaDigivolve: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("host").linked).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("EX11-073");
+    assertNoLoudGap(s);
+  });
+
+  it("links nothing when the digivolution is not a DNA digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX11-073", as: "host" }],
+          hand: [{ card: "EX11-027", as: "handLink" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("host"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("host").linked).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("EX11-027");
+    assertNoLoudGap(s);
+  });
+
+  it("does nothing at the end of the opponent's turn with zero link cards", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX11-073", as: "host" }] },
+        1: {
+          battleArea: [{ card: "BT1-010", as: "target" }],
+          security: ["BT1-013", "BT1-014"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("host"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    assertNoLoudGap(s);
+  });
+
   it("publishes full exclusive IR with exact link sources and ordered per-link action groups", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects.find((effect) => effect.trigger === "WhenDigivolving")?.actions).toMatchObject([

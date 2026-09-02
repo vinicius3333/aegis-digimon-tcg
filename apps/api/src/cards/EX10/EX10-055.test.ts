@@ -136,6 +136,27 @@ describe("EX10-055 Tactimon", () => {
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("only").instanceId);
   });
 
+  it("does not protect an own Digimon without the [Bagra Army] trait", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "tactimon", under: ["BT1-009", "BT1-010"] },
+            { card: "EX10-040", as: "outsider" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const outsiderId = s.perm("outsider").permanentId;
+    await advance(s.engine).verb.deletePermanent([outsiderId], "byEffect");
+    await settle(() => !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === outsiderId));
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(outsiderId);
+    // No trait matched, so the prevention cost was never paid.
+    expect(s.perm("tactimon").stack).toHaveLength(2);
+  });
+
   it("DigiXroses with 2 Bagra Army Digimon for 4 less", async () => {
     const s = setupEngine(
       {

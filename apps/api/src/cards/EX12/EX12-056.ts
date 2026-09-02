@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -20,6 +19,10 @@ export const compiled: CompiledCard = {
               excludeSelf: true,
               kind: ["Digimon"],
             },
+            // ＜Guard＞ protects EVERY other Digimon that would leave in the same event
+            // ("they don't leave"), which `affectsAll` already encodes; `runReplacement`
+            // reads only `target.filter`/`target.isSelf`, so this count is declarative.
+            count: "all",
           },
           sourceFilter: {
             controller: "mine",

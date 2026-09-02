@@ -23,12 +23,12 @@ describe("EX10-004 Cupimon compiled contract", () => {
         abortOnDecline: true,
         cost: expect.objectContaining({ kind: "trash" }),
       }),
-      expect.objectContaining({
-        kind: "GainMemory",
-        amount: 1,
-        condition: { kind: "ifThisEffectActed", raw: "if you did" },
-      }),
+      // No "if you do" is printed between the draw and the memory gain: both are results of
+      // the one paid processing condition, and `abortOnDecline` on the Draw already stops the
+      // sequence when the hand-trash cost is not paid.
+      expect.objectContaining({ kind: "GainMemory", amount: 1 }),
     ]);
+    expect(irNode(move).actions?.[1]?.condition).toBeUndefined();
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
   });
@@ -112,6 +112,63 @@ describe("EX10-004 Cupimon compiled contract", () => {
 
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.memory).toBe(memoryBefore);
+  });
+
+  it("still gains the memory when the paid draw finds an empty deck", async () => {
+    // FAILS-WHEN-REVERTED: re-gating the GainMemory on `ifThisEffectActed` withholds the
+    // memory here, because a 0-card draw leaves `lastEffectActed` false. The printed text
+    // conditions both results on the hand trash alone.
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "EX10-013", as: "lucemon", under: [{ card: "EX10-004", as: "cupimon" }] },
+          hand: [{ card: "BT1-009", as: "discarded" }],
+          deck: [],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.phase = Phase.Breeding;
+    const memoryBefore = s.state.memory;
+
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("lucemon").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.memory === memoryBefore + 1);
+
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("discarded").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.memory).toBe(memoryBefore + 1);
+  });
+
+  it("does nothing with an empty hand: the by-cost must be payable before the payload", async () => {
+    // CR 15-7-2 / 15-7-4: a "By trashing 1 card in your hand" processing condition is paid
+    // BEFORE its results. With no hand card the cost is unpayable, so there is no draw, no
+    // trash, and no memory — the effect must not draw first and then trash what it drew.
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "EX10-013", as: "lucemon", under: [{ card: "EX10-004", as: "cupimon" }] },
+          hand: [],
+          deck: [{ card: "BT1-010", as: "top" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.phase = Phase.Breeding;
+    const memoryBefore = s.state.memory;
+
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("lucemon").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => false, 60);
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("top").instanceId]);
     expect(s.state.memory).toBe(memoryBefore);
   });
 });

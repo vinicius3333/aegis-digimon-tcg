@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -8,22 +7,13 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // "linked with [Maquinamon]" = the host Digimon must have a card named [Maquinamon]
 //   in its linked list. Q5793's broad "in its text" matcher applies only to the
 //   separately worded digivolution destination.
-// `hasLinkedWith` filter is a new engine capability (see LANE_F.md).
-// `reduceCost: 2` is valid on DigivolveAction (ir.ts:1006).
 const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenAttacking",
       condition: {
-        kind: "hostHasLinkedWith",
-        filter: {
-          nameOrTrait: [
-            {
-              tokens: ["Maquinamon"],
-              match: "name",
-            },
-          ],
-        },
+        kind: "selfLinkedMatchesFilter",
+        filter: { nameOrTrait: [{ tokens: ["Maquinamon"], match: "name" }] },
         raw: "This Digimon linked with [Maquinamon]",
       },
       actions: [
@@ -56,6 +46,8 @@ const compiled: CompiledCard = {
       frequency: "OncePerTurn",
     },
   ],
+  // Coverage stays "full": every clause executes. The residual risk is the over-broad host
+  // gate described above, not an unexecuted clause.
   coverage: "full",
   residual: [],
 };
