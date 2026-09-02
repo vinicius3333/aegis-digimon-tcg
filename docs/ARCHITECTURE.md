@@ -42,13 +42,18 @@ Cards use one of two runtime representations:
 - a declarative `CompiledCard` object embedded directly in its TypeScript
   module and interpreted by the shared runtime.
 
-Both representations are maintained directly in the card module. There is no
-separate card-generation pipeline.
+Both representations are maintained directly in the card module. Card modules
+are the authoring source; there is no separate generator that creates their
+behavior.
 
 The committed `packages/shared/src/effects/effects.json` remains runtime data
-for shared card requirements and client/server lookups. It is not an authoring
-or generation workflow; card modules are authoritative when their behavior
-differs.
+for shared card requirements and client/server lookups. It is a generated
+runtime snapshot, not an authoring source. Use `pnpm effects:sync:set -- --set
+<SET> --base <GIT-REF>` to synchronize one set from its authoritative modules,
+restore byte formatting outside that set, and reject out-of-scope semantic
+changes. Use
+`pnpm effects:check:set -- --set <SET> --base <GIT-REF>` to verify catalog-key
+parity, idempotence, and semantic/byte scope.
 
 ## State and effects
 
