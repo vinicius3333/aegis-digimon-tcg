@@ -25,8 +25,9 @@ describe("EX11-012 Medusamon", () => {
         },
         {
           kind: "PlayToken",
-          token: "Petrification Token",
-          amount: 1,
+          tokens: ["Petrification Token"],
+          count: 1,
+          payCost: false,
           controller: "mine",
           placedAs: "opponentDigimon",
           cost: {

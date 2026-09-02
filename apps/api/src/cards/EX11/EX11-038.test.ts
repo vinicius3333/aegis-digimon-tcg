@@ -86,4 +86,21 @@ describe("EX11-038 Sunarizamon", () => {
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("drawn").instanceId);
     assertNoLoudGap(s);
   });
+
+  it("draws nothing when no Mineral or Rock card can pay the cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "source" }],
+          hand: [{ card: "BT1-009", as: "plain" }],
+          deck: [{ card: "BT1-001", as: "undrawn" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("plain").instanceId]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
 });

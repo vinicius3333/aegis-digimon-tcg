@@ -1,18 +1,15 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
+// "[Avian] or [Bird] in ANY OF ITS TRAITS" is the printed partial-trait wording (KB Q839,
+// Q6517): [Bird Dragon] — Pteromon's own trait — qualifies. `match: "trait"` is exact equality,
+// so it matched nothing here; `traitContains` is the substring matcher the peer cards with the
+// identical clause use (BT24-044, EX12-031/036). "[Vortex Warriors] trait" stays exact.
+//
+// "If this effect suspended YOUR Digimon" is controller-scoped: `ifThisEffectActed` is true for
+// any suspension, including the opponent Digimon this same effect may suspend (Q5816 allows
+// either). `lastSuspendedIsMine` reads the suspension receipt and checks the controller.
 const compiled: CompiledCard = {
-  digivolutionRequirement: [
-    {
-      level: 2,
-      cost: 0,
-      isAlternate: true,
-    },
-  ],
   effects: [
     {
       trigger: "WhenMoving",
@@ -37,7 +34,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Avian", "Bird"],
-                  match: "trait",
+                  match: "traitContains",
                 },
                 {
                   tokens: ["Vortex Warriors"],
@@ -50,7 +47,7 @@ const compiled: CompiledCard = {
           amount: 3000,
           duration: "untilOpponentTurnEnd",
           condition: {
-            kind: "ifThisEffectActed",
+            kind: "lastSuspendedIsMine",
             raw: "this effect suspended your Digimon",
           },
         },
@@ -79,7 +76,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Avian", "Bird"],
-                  match: "trait",
+                  match: "traitContains",
                 },
                 {
                   tokens: ["Vortex Warriors"],
@@ -92,7 +89,7 @@ const compiled: CompiledCard = {
           amount: 3000,
           duration: "untilOpponentTurnEnd",
           condition: {
-            kind: "ifThisEffectActed",
+            kind: "lastSuspendedIsMine",
             raw: "this effect suspended your Digimon",
           },
         },
