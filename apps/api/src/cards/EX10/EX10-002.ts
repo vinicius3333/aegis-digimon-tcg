@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -29,5 +28,7 @@ const compiled: CompiledCard = {
   coverage: "full",
   residual: [],
 };
+
+export { compiled };
 
 registerIrCard("EX10-002", compiled);

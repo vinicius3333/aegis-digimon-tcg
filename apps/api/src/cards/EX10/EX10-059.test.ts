@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition, getCompiledCard } from "@aegis/shared";
+import { EffectDuration, EffectTiming, getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX10-059.js";
@@ -45,7 +45,7 @@ describe("EX10-059 DarknessBagramon", () => {
         {
           kind: "PlaceUnder",
           target: { filter: { isOpponentHand: true, controller: "opponent", zone: "hand" }, count: 1, from: ["hand"] },
-          underFilter: { controller: "opponent", or: [{ digivolutionBottom: true }, { kind: ["Tamer"] }] },
+          underFilter: { controller: "opponent", kind: ["Digimon", "Tamer"] },
           position: "bottom",
         },
         {
@@ -67,11 +67,12 @@ describe("EX10-059 DarknessBagramon", () => {
         {
           kind: "GrantStatic",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          grant: {
-            copyEffectsFromDigivolution: {
-              filter:
-                "This Digimon gains all [All Turns] effects on all level 6 [Bagra Army] trait Digimon cards in its digivolution cards",
-            },
+          grant: "effects",
+          copyTrigger: "AllTurns",
+          filter: {
+            kind: ["Digimon"],
+            levels: [6],
+            nameOrTrait: [{ tokens: ["Bagra Army"], match: "trait" }],
           },
           duration: "permanent",
         },
@@ -121,6 +122,38 @@ describe("EX10-059 DarknessBagramon", () => {
     expect(s.perm("darkness").stack).toHaveLength(2);
   });
 
+  it("confers only the stack card's [All Turns] effects, never its [On Play]", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "darkness", under: [{ card: "EX10-058", as: "lilithmon" }] }],
+        },
+        1: { battleArea: [{ card: "AD1-001", as: "recipient" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).recompute();
+
+    // EX10-058's [On Play] grants an opposing permanent "[End of Your Turn] Delete 1 of your
+    // Digimon". It is NOT an [All Turns] effect, so firing this card's own [On Play] must not
+    // resolve it. Without `copyTrigger` the conferral is trigger-unrestricted and the granted
+    // end-of-turn watcher appears on the opposing Digimon.
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("darkness"));
+    await settle(() => s.state.pendingDecision === null);
+    expect(
+      advance(s.engine).ledgers.subTriggers.subscriptionsFor("endOfTurn", s.perm("recipient").permanentId),
+    ).toHaveLength(0);
+
+    // The [All Turns] conferral from the level-6 [Bagra Army] stack card is still live and tagged.
+    const conferrals = advance(s.engine).ledgers.continuous.listStackEffectConferrals();
+    expect(
+      conferrals.some(
+        ({ stackInstanceId, trigger }) => stackInstanceId === s.inst("lilithmon").instanceId && trigger === "AllTurns",
+      ),
+    ).toBe(true);
+  });
+
   it("Q5162 places a random opposing hand card only under an opposing host at the bottom", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -147,6 +180,33 @@ describe("EX10-059 DarknessBagramon", () => {
       s.inst("existing").instanceId,
     ]);
     expect(s.perm("ownTamer").stack).toHaveLength(0);
+  });
+
+  it("Q5163 cannot place the opposing hand card under a host that isn't affected by effects", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: CARD_ID, as: "darkness" }] },
+        1: {
+          hand: [{ card: "BT1-009", as: "handCard" }],
+          battleArea: [{ card: "EX10-026", as: "host" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    // Q5163: the opponent's only Digimon is unaffectable and they control no Tamers, so the card
+    // may be chosen but cannot be placed.
+    advance(s.engine).ledgers.continuous.addRestriction(
+      s.perm("host").permanentId,
+      "beAffected",
+      EffectDuration.Permanent,
+      { fromSourceKind: ["Digimon"] },
+    );
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("darkness"));
+    await settle(() => s.state.pendingDecision === null);
+
+    expect(s.perm("host").stack).toHaveLength(0);
+    expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("handCard").instanceId);
   });
 
   it("DigiXroses only the printed Bagramon and DarkKnightmon pair for 6 less", async () => {

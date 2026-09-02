@@ -21,10 +21,8 @@ describe("EX10-006 Agumon", () => {
               zone: "trash",
               controller: "mine",
               kind: ["Digimon"],
-              nameOrTrait: [
-                { tokens: ["Virus"], match: "trait" },
-                { tokens: ["Greymon"], match: "name" },
-              ],
+              traits: ["Virus"],
+              nameOrTrait: [{ tokens: ["Greymon"], match: "name" }],
             },
             count: 1,
           },
@@ -45,7 +43,6 @@ describe("EX10-006 Agumon", () => {
   });
 
   it("returns only a Digimon that is both Virus attribute and Greymon-named", async () => {
-    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -57,9 +54,8 @@ describe("EX10-006 Agumon", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
-    preferred.push(s.inst("virusGreymon").instanceId);
 
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("agumon"));
     await settle(() => s.state.players[0]!.hand.length === 1);
@@ -113,5 +109,33 @@ describe("EX10-006 Agumon", () => {
     await inherited.engine.recomputeContinuousEffects();
 
     expect(inherited.perm("greymon").currentDP).toBe(printedDp + 1000);
+  });
+
+  it("does not reach the opponent's trash, and skips a Greymon-named card with the wrong attribute", async () => {
+    // Trait-mix pool: the only legal candidate is MY [Virus] + [Greymon] card. FAILS-WHEN-
+    // REVERTED: dropping `controller: "mine"`, or folding `traits` back into a second
+    // `nameOrTrait` entry (a UNION), makes the effect reach one of the three decoys.
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX10-006", as: "agumon" }],
+          trash: [
+            { card: "BT1-015", as: "vaccineGreymon" },
+            { card: "EX10-006", as: "virusNonGreymon" },
+            { card: "BT10-019", as: "virusGreymon" },
+          ],
+        },
+        1: { trash: [{ card: "BT10-019", as: "opponentVirusGreymon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("agumon"));
+    await settle(() => s.state.players[0]!.hand.length === 1);
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("virusGreymon").instanceId]);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("opponentVirusGreymon").instanceId,
+    ]);
   });
 });

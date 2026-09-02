@@ -1,14 +1,19 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q5122 (binding): 1st effect does NOT trigger when this card is revealed from the deck/security
-// and trashed — only when directly trashed by an effect. The deck clause keeps byEffect:true on its
-// SubTrigger; the security clause is now EffectTiming.OnDiscardSecurity (fired only from an
-// effect-driven trash-from-security seam — see GameEngine.fireDiscardedFromSecurity — so it is
-// effect-only by construction and needs no separate byEffect gate).
-// [On Play][When Digivolving]: cost = trash top security, effect = TrashTopDeck x2 + ModifyDP -3000
-// all opponent Digimon for the turn (replaces the incorrect Trash-opponent-Digimon actions).
+// KB Q5122 (binding): the 1st effect does NOT trigger when this card is revealed from the deck or
+// security stack and then trashed — only when an effect trashes it directly. Both clauses are
+// effect-only BY CONSTRUCTION, so neither carries an attribution flag:
+//   - `whenTrashedFromDeck` is fired only from the TrashTopDeck action seam
+//     (interpreter/actions/resources.ts) — i.e. only when an effect mills the card. A
+//     reveal-then-trash search never reaches that seam. `requireByEffect` would be actively WRONG
+//     here: its gate reads `trigger.byEffectSeat`/`byEffectCardId`, which the whenTrashedFromDeck
+//     payload never sets, so the watcher would stop firing altogether.
+//   - the security clause is EffectTiming.OnDiscardSecurity, fired only from
+//     GameEngine.fireDiscardedFromSecurity, the effect-driven trash-from-security seam.
+// [On Play][When Digivolving]: cost = trash top security; effect = TrashTopDeck x2 + ModifyDP -3000
+// on ALL opponent Digimon "for the turn" -> duration "forTheTurn" (UntilEachTurnEnd). NOT
+// untilOpponentTurnEnd, which would keep the debuff alive through the opponent's whole turn.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -20,7 +25,6 @@ const compiled: CompiledCard = {
           sourceFilter: {
             isSelfRef: true,
           },
-          byEffect: true,
           actions: [
             {
               kind: "GainKeyword",
@@ -84,7 +88,7 @@ const compiled: CompiledCard = {
                 count: "all",
               },
               amount: -3000,
-              duration: "untilOpponentTurnEnd",
+              duration: "forTheTurn",
             },
           ],
         },
@@ -111,7 +115,7 @@ const compiled: CompiledCard = {
                 count: "all",
               },
               amount: -3000,
-              duration: "untilOpponentTurnEnd",
+              duration: "forTheTurn",
             },
           ],
         },

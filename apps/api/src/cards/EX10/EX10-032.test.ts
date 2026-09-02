@@ -97,6 +97,57 @@ describe("EX10-032 Proganomon", () => {
     expect(s.perm("suna").stack[0]?.instanceId).toBe(s.inst("landramon").instanceId);
   });
 
+  it("never places under the OPPONENT's Sunarizamon and needs [Close] in play", async () => {
+    const withoutClose = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-055", as: "suna" }],
+          hand: [{ card: CARD_ID, as: "proganomon" }],
+          trash: [{ card: "EX10-028", as: "landramon" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    withoutClose.state.memory = 3;
+    await withoutClose.ready();
+    // "If you have [Close]" gates the whole clause.
+    expect(JSON.parse(withoutClose.inst("proganomon").activatableEffectsJson || "[]")).toHaveLength(0);
+
+    const opponentHost = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX10-063", as: "close" }],
+          hand: [{ card: CARD_ID, as: "proganomon" }],
+          trash: [{ card: "EX10-028", as: "landramon" }],
+        },
+        // The only [Sunarizamon] belongs to the opponent. `resolvePermanentTargets` scans both
+        // seats when the host filter names no controller, so the printed "any of YOUR
+        // [Sunarizamon]" needs the explicit controller gate.
+        1: { battleArea: [{ card: "BT21-055", as: "theirSuna" }] },
+      },
+      { autoSelectCards: true },
+    );
+    opponentHost.state.memory = 3;
+    await opponentHost.ready();
+    const entries = JSON.parse(opponentHost.inst("proganomon").activatableEffectsJson || "[]") as Array<{
+      effectKey: string;
+    }>;
+    if (entries.length > 0) {
+      opponentHost.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: opponentHost.inst("proganomon").instanceId,
+        effectKey: entries[0]!.effectKey,
+      });
+      await settle();
+    }
+    // The opponent's Sunarizamon never becomes a Proganomon and never receives the Landramon.
+    expect(opponentHost.perm("theirSuna").topCard.cardId).toBe("BT21-055");
+    expect(opponentHost.state.players[1]!.battleArea).toHaveLength(1);
+    expect(opponentHost.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(
+      opponentHost.inst("landramon").instanceId,
+    );
+  });
+
   it("Q5093 trashes a Mineral source from another stack and gives all buffs to one target", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -121,6 +172,40 @@ describe("EX10-032 Proganomon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("target"), "Collision")).toBe(true);
     expect(observe(s.engine).hasPierce(s.perm("target"))).toBe(true);
     expect(observe(s.engine).hasPierce(s.perm("near"))).toBe(false);
+  });
+
+  it('reads "1 of your such Digimon" as the TRAIT, not "has such a card in its digivolution cards"', async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "source" },
+            // The discriminating fixture: NO [Mineral]/[Rock] trait of its own, but it does hold a
+            // [Mineral] card in its digivolution cards. The rival reading of "such Digimon" ("a
+            // Digimon with such a card under it") would make this a legal buff target; the
+            // authored reading (the Digimon itself carries the trait) must exclude it. It is
+            // listed first in `preferInstanceIds`, so a wrong filter would land the buff here.
+            { card: "BT1-019", as: "stackOnly", under: [{ card: "EX10-025", as: "cost" }] },
+            { card: "EX10-028", as: "traitTarget" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("cost").instanceId, s.perm("stackOnly").permanentId, s.perm("traitTarget").permanentId);
+    await s.ready();
+    const stackOnlyDp = s.perm("stackOnly").currentDP;
+    const traitTargetDp = s.perm("traitTarget").currentDP;
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("source"));
+    // The cost may still be paid from that stack (Q5093) — only the TARGET is trait-scoped.
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("cost").instanceId);
+    expect(s.perm("stackOnly").currentDP).toBe(stackOnlyDp);
+    expect(observe(s.engine).hasKeyword(s.perm("stackOnly"), "Collision")).toBe(false);
+    expect(observe(s.engine).hasPierce(s.perm("stackOnly"))).toBe(false);
+    expect(s.perm("traitTarget").currentDP).toBe(traitTargetDp + 3000);
+    expect(observe(s.engine).hasKeyword(s.perm("traitTarget"), "Collision")).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("traitTarget"))).toBe(true);
   });
 
   it("the inherited watcher De-Digivolves only from a Mineral/Rock host", async () => {
