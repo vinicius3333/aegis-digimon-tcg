@@ -11,11 +11,43 @@ describe("BT21-066 Arresterdramon", () => {
       { level: 3, texts: ["Save"], cost: 2, isAlternate: true },
       { level: 3, traits: ["Hero"], cost: 2, isAlternate: true },
     ]);
-    expect(compiled.digiXrosRequirement).toEqual([
-      { materials: [{ desc: "1 Digimon card with ＜Save＞ in text" }], count: 2 },
-    ]);
+    expect(compiled.digiXrosRequirement).toEqual([{ materials: [{ texts: ["Save"] }], count: 2, maxMaterials: 1 }]);
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual ?? []).toEqual([]);
+  });
+
+  it("DigiXroses with exactly one Save-text Digimon for a 2-memory reduction", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "BT21-066", as: "arrester" },
+          { card: "BT21-011", as: "first" },
+          { card: "BT21-063", as: "second" },
+        ],
+      },
+    });
+    s.state.memory = 6;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("arrester").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("first").instanceId, s.inst("second").instanceId] },
+      }),
+    ).toEqual({ ok: false, reason: "invalid-material" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("arrester").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("first").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT21-066"));
+
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("arrester").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("first").instanceId]);
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("second").instanceId)).toBe(true);
   });
 
   it("plays Hunter/Hero Tamers and saves a qualifying Digimon", () => {
@@ -27,15 +59,19 @@ describe("BT21-066 Arresterdramon", () => {
     );
     expect(compiled.effects).toContainEqual(expect.objectContaining({ trigger: "WhenDigivolving" }));
     const deletion = compiled.effects.find((entry) => entry.trigger === "OnDeletion");
+    expect(deletion?.keywords).toContainEqual(expect.objectContaining({ keyword: "Save" }));
     const saveAction = deletion?.actions[0] as { target?: { orFilters?: Array<{ keywords?: string[] }> } };
     expect(saveAction.target?.orFilters).toEqual(
       expect.arrayContaining([expect.objectContaining({ keywords: ["Save"] })]),
     );
-    expect(saveAction.target).toMatchObject({
-      filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Hero"], match: "trait" }] },
-      orFilters: [{ controller: "mine", kind: ["Digimon"], keywords: ["Save"] }],
-      count: 1,
-      from: ["hand", "trash"],
+    expect(saveAction).toMatchObject({
+      target: {
+        filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Hero"], match: "trait" }] },
+        orFilters: [{ controller: "mine", kind: ["Digimon"], keywords: ["Save"] }],
+        count: 1,
+        from: ["hand", "trash"],
+      },
+      underFilter: { controller: "mine", kind: ["Tamer"], excludeToken: true },
     });
     expect(compiled.effects).toContainEqual(
       expect.objectContaining({

@@ -28,7 +28,7 @@ describe("BT21-097 App Link", () => {
       payCost: false,
       optional: true,
       target: {
-        filter: { controller: "mine", kind: ["Digimon"], hasLinkRequirement: true },
+        filter: { controller: "mine", hasLinkRequirement: true },
         count: 1,
       },
       recipient: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
@@ -93,7 +93,7 @@ describe("BT21-097 App Link", () => {
             { card: "BT22-016", as: "recipient" },
           ],
           hand: [
-            { card: "BT21-009", as: "eligible" },
+            { card: "ST22-08", as: "eligible" },
             { card: "BT22-016", as: "noLink" },
           ],
         },

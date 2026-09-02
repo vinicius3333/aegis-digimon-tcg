@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -52,7 +51,7 @@ export const compiled: CompiledCard = {
         {
           kind: "Link",
           target: {
-            filter: { controller: "mine", kind: ["Digimon"], hasLinkRequirement: true },
+            filter: { controller: "mine", hasLinkRequirement: true },
             count: 1,
           },
           recipient: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },

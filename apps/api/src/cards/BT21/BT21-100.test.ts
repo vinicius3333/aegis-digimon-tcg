@@ -35,7 +35,13 @@ describe("BT21-100 The Digimon I Designed", () => {
 
   it("models the Takato waiver, Main draw/trash/place, and separate effect-delete Delay payload", () => {
     const staticEffect = compiled.effects.find((entry) => entry.trigger === "Static");
-    expect(staticEffect?.actions[0]).toMatchObject({ kind: "WaiveColorRequirement", condition: { kind: "youHave" } });
+    expect(staticEffect?.actions[0]).toMatchObject({
+      kind: "WaiveColorRequirement",
+      condition: {
+        kind: "youHave",
+        filter: { nameOrTrait: [{ tokens: ["Takato Matsuki"], match: "nameExact" }] },
+      },
+    });
 
     const main = compiled.effects.find((entry) => entry.trigger === "Main");
     expect(main?.actions).toEqual([
@@ -48,11 +54,40 @@ describe("BT21-100 The Digimon I Designed", () => {
     expect(turns).toHaveLength(2);
     expect(turns[0]?.actions[0]).toMatchObject({
       kind: "SubTrigger",
-      event: "whenEffectDeletes",
-      sourceFilter: { kind: ["Digimon"] },
+      event: "onDeletionOf",
+      sourceFilter: { kind: ["Digimon"], deleteCause: "byEffect" },
     });
     expect(turns[1]?.keywords).toEqual([{ keyword: "Delay", raw: "＜Delay＞" }]);
     expect(turns[1]?.actions[0]).toMatchObject({ kind: "Digivolve", payCost: false, from: ["trash"], optional: true });
-    expect(compiled.effects.some((entry) => entry.trigger === "Security")).toBe(false);
+    expect(compiled.effects.find((entry) => entry.trigger === "Security")).toMatchObject({
+      isSecurity: true,
+      actions: [{ kind: "GainMemory", amount: 1 }, { kind: "PlaceInBattleAreaSelf" }],
+    });
+  });
+
+  it("gains 1 memory and enters the battle area from a real security check", async () => {
+    const s = setup({
+      0: { battleArea: [{ card: "BT21-032", as: "attacker", dp: 2000 }] },
+      1: { security: [{ card: "BT21-100", as: "option" }] },
+    });
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("option").instanceId),
+    );
+
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("option").instanceId),
+    ).toBe(true);
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[1]!.security).toHaveLength(0);
   });
 });

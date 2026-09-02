@@ -83,7 +83,6 @@ describe("BT21-030 compiled implementation", () => {
       {
         materials: [
           {
-            kind: ["Digimon"],
             nameOrTrait: [{ tokens: ["Xros Heart", "Blue Flare"], match: "trait" }],
             differentCardNumbers: true,
           },

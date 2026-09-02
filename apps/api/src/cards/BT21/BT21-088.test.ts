@@ -17,7 +17,7 @@ describe("BT21-088 Tagiru Akashi", () => {
     expect(start?.actions[0]).toMatchObject({
       cost: {
         target: {
-          filter: { keywords: ["Save"] },
+          filter: { nameOrTrait: [{ tokens: ["Save"], match: "text" }] },
           orFilters: [{ nameOrTrait: [{ tokens: ["Hero"], match: "trait" }] }],
         },
         underFilter: { isSelfRef: true },
@@ -30,7 +30,7 @@ describe("BT21-088 Tagiru Akashi", () => {
       sourceFilter: { kind: ["Digimon"] },
       into: {
         kind: ["Digimon"],
-        keywords: ["Save"],
+        nameOrTrait: [{ tokens: ["Save"], match: "text" }],
         orFilters: [{ nameOrTrait: [{ tokens: ["Hero"], match: "trait" }] }],
       },
     });

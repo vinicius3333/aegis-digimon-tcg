@@ -15,7 +15,7 @@ describe("BT21-076 WarGrowlmon", () => {
           expect.objectContaining({
             kind: "Digivolve",
             payCost: true,
-            reduceCostScaling: { per: 10, unit: "cards", filter: { zone: "trash", controller: "both" } },
+            reduceCostScaling: { per: 10, unit: "cards", filter: { zone: "trash", controller: "any" } },
           }),
         ],
       }),
