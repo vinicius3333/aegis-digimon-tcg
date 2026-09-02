@@ -19249,30 +19249,29 @@
         "frequency": "OncePerTurn",
         "actions": [
           {
-            "kind": "GrantStatic",
+            "kind": "SelectBind",
             "target": {
               "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Marcus Damon"], "match": "nameExact" }] },
-              "count": 1
-            },
+              "count": 1,
+              "bindAs": "chosenMarcus"
+            }
+          },
+          {
+            "kind": "GrantStatic",
+            "target": { "filter": {}, "count": 1, "fromSelectionRef": "chosenMarcus" },
             "grant": "kinds",
             "tokens": ["Digimon"],
             "duration": "forTheTurn"
           },
           {
             "kind": "SetBaseDP",
-            "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Marcus Damon"], "match": "nameExact" }] },
-              "count": 1
-            },
+            "target": { "filter": {}, "count": 1, "fromSelectionRef": "chosenMarcus" },
             "value": 3000,
             "duration": "forTheTurn"
           },
           {
             "kind": "Restrict",
-            "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Marcus Damon"], "match": "nameExact" }] },
-              "count": 1
-            },
+            "target": { "filter": {}, "count": 1, "fromSelectionRef": "chosenMarcus" },
             "restriction": "digivolve",
             "duration": "forTheTurn"
           }
@@ -19451,7 +19450,7 @@
             "amount": 1,
             "condition": { "kind": "ifThisEffectActed" }
           },
-          { "kind": "SecurityManipulation", "op": "shuffle", "controller": "mine", "source": "security" }
+          { "kind": "SecurityManipulation", "op": "shuffle", "controller": "mine" }
         ]
       },
       {
@@ -19935,11 +19934,11 @@
                 ]
               },
               "count": 1,
-              "upTo": true,
-              "optional": true
+              "upTo": true
             },
             "from": ["trash", "digivolutionCards"],
-            "payCost": false
+            "payCost": false,
+            "optional": true
           }
         ],
         "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }]
@@ -19960,11 +19959,11 @@
                 ]
               },
               "count": 1,
-              "upTo": true,
-              "optional": true
+              "upTo": true
             },
             "from": ["trash", "digivolutionCards"],
-            "payCost": false
+            "payCost": false,
+            "optional": true
           }
         ],
         "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }]
@@ -20913,7 +20912,7 @@
   },
   "BT13-044": {
     "effects": [
-      { "trigger": "Static", "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] },
+      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] },
       {
         "trigger": "WhenDigivolving",
         "actions": [
@@ -21158,7 +21157,7 @@
                 "to": "hand"
               }
             ],
-            "rest": "deckBottom"
+            "rest": "deckBottomAnyOrder"
           }
         ]
       },
@@ -21233,7 +21232,7 @@
                 "to": "hand"
               }
             ],
-            "rest": "deckBottom"
+            "rest": "deckBottomAnyOrder"
           }
         ]
       },
@@ -21864,7 +21863,7 @@
             "kind": "RevealAdd",
             "revealCount": 3,
             "add": [{ "filter": { "controllerDefault": "mine", "colors": ["Black"] }, "count": 1, "to": "hand" }],
-            "rest": "deckBottom",
+            "rest": "deckBottomAnyOrder",
             "condition": { "kind": "isOpponentsTurn", "raw": "it's your opponent's turn" }
           }
         ]
@@ -21965,6 +21964,8 @@
             "mode": "raiseCeiling",
             "costType": "level",
             "amount": 2,
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "duration": "forTheTurn",
             "condition": {
               "kind": "youHave",
               "filter": {
@@ -22576,14 +22577,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [
-      {
-        "level": 5,
-        "nameOrTrait": [{ "tokens": ["Etemon", "Sukamon"], "match": "name" }],
-        "cost": 4,
-        "isAlternate": true
-      }
-    ]
+    "digivolutionRequirement": [{ "level": 5, "names": ["Etemon", "Sukamon"], "cost": 4, "isAlternate": true }]
   },
   "BT13-077": {
     "effects": [
@@ -23021,6 +23015,7 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "into": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Ravemon"], "match": "nameExact" }] },
             "from": ["trash"],
+            "payCost": true,
             "optional": true,
             "condition": {
               "kind": "youHave",
@@ -23092,7 +23087,8 @@
           {
             "kind": "GainKeyword",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" }
+            "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" },
+            "duration": "permanent"
           }
         ]
       },
@@ -23309,9 +23305,7 @@
             "event": "whenOpponentAttacks",
             "actions": [
               {
-                "kind": "RedirectAttack",
-                "mode": "endAttack",
-                "allowCostWithoutTarget": true,
+                "kind": "EndAttack",
                 "cost": {
                   "kind": "trash",
                   "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 2 },
@@ -23943,6 +23937,7 @@
               "nameOrTrait": [{ "tokens": ["Kentaurosmon"], "match": "nameExact" }]
             },
             "from": ["hand"],
+            "payCost": true,
             "ignoreRequirements": true,
             "optional": true,
             "condition": {
@@ -24411,8 +24406,7 @@
         "actions": [
           {
             "kind": "SelectBind",
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-            "bindAs": "chosenDigimon"
+            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1, "bindAs": "chosenDigimon" }
           },
           {
             "kind": "Return",
@@ -24595,7 +24589,7 @@
           },
           {
             "kind": "GainKeyword",
-            "target": { "filter": { "boundRef": "playedDigimon" } },
+            "target": { "filter": { "boundRef": "playedDigimon" }, "count": 1 },
             "keyword": { "keyword": "Rush", "raw": "＜Rush＞" },
             "duration": "forTheTurn"
           }
@@ -24641,7 +24635,7 @@
                 }
               }
             ],
-            "scaling": { "per": 5, "filter": { "controllerDefault": "both", "zone": "trash" }, "unit": "cards" }
+            "scaling": { "per": 5, "filter": { "controller": "any", "zone": "trash" }, "unit": "cards" }
           }
         ]
       },
