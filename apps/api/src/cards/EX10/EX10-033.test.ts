@@ -55,7 +55,8 @@ describe("EX10-033 Pyramidimon", () => {
           kind: "trash",
           target: { filter: { controller: "mine" }, count: 3, upTo: true, minimum: 1, from: ["digivolutionCards"] },
         },
-        scaling: { per: 1, unit: "cards" },
+        // "for each card trashed" is the cost's paid count, not a board count.
+        scaling: { per: 1, usePaidCount: true, unit: "cards" },
         abortOnDecline: true,
       });
     }

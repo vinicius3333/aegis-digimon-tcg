@@ -130,6 +130,7 @@ describe("EX12-032 WereGarurumon", () => {
               target: {
                 filter: {
                   kind: ["Digimon"],
+                  hostFilter: { isSelfRef: true },
                   levelComparison: { op: "lte", value: 4 },
                   nameOrTrait: [
                     { tokens: ["Gabumon", "Garurumon"], match: "name" },
@@ -289,6 +290,28 @@ describe("EX12-032 WereGarurumon", () => {
     await battle.ready();
     expect(await advance(battle.engine).verb.deletePermanent([battle.perm("host").permanentId], "byBattle")).toBe(1);
     expect(battle.state.players[0]!.battleArea).toHaveLength(0);
+  });
+
+  it("plays only from its own host's digivolution cards, never from a neighbor's stack (CR 16-36-1)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-011", as: "host", under: [{ card: cardId, as: "source" }] },
+            { card: "BT1-011", as: "neighbor", under: [{ card: "BT1-036", as: "foreign" }] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const foreignId = s.inst("foreign").instanceId;
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+    await settle();
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === foreignId)).toBe(false);
+    expect(s.perm("neighbor").stack.some((card) => card.instanceId === foreignId)).toBe(true);
   });
 
   it("applies Decode's level-4 ceiling to both name and trait alternatives (Q6769)", async () => {

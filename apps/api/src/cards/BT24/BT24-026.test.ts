@@ -143,7 +143,7 @@ describe("BT24-026 Hyogamon", () => {
         },
         1: { hand: [{ card: "BT1-010", as: "opponentCost" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 10;
     await s.ready();

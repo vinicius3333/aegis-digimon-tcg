@@ -85,6 +85,38 @@ describe("EX11-056 Ryutaro Williams", () => {
     assertNoLoudGap(s);
   });
 
+  // Q5909: the gate is on the card digivolved INTO. A level 4 [Dinosaur] and a level 5 card with
+  // neither [Tyrannomon] in its name nor the [Dinosaur] trait both miss it.
+  it("ignores a level 4 Dinosaur and a level 5 non-Dinosaur destination (Q5909)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          eggDeck: ["BT1-001"],
+          battleArea: [
+            { card: "EX11-009", as: "levelFourDinosaur" },
+            { card: "BT21-025", as: "levelFiveDragonkin" },
+            { card: "EX11-056", as: "ryutaro" },
+          ],
+          hand: [{ card: "EX11-007", as: "agumon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    for (const alias of ["levelFourDinosaur", "levelFiveDragonkin"]) {
+      await advance(s.engine).fireSubTrigger("whenOneOfYoursDigivolves", {
+        subjectPermanentId: s.perm(alias).permanentId,
+      });
+    }
+    await settle(() => false, 60);
+
+    expect(s.perm("ryutaro").isSuspended).toBe(false);
+    expect(s.state.players[0]!.breeding).toBeUndefined();
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("agumon").instanceId)).toBe(true);
+    assertNoLoudGap(s);
+  });
+
   it("encodes the Q5909 destination filter as Tyrannomon OR Dinosaur and targets breeding exactly", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     const subTrigger = compiled.effects.find((effect) => effect.trigger === "AllTurns")?.actions[0];

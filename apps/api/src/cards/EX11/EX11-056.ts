@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -55,8 +54,9 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
+              // `HatchAction` carries no controller: the primitive always hatches for
+              // `ctx.source.ownerSeat`, which is the printed "your breeding area".
               kind: "Hatch",
-              controller: "mine",
               optional: true,
               cost: {
                 kind: "suspend",

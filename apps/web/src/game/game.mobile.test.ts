@@ -318,6 +318,16 @@ describe("floating chrome keeps clear of the hand and the memory band", () => {
     expect(phonePortraitRules).toMatch(/\.attack-announcement \{[^}]*top:\s*calc\(10\.5rem/);
   });
 
+  it("gives the phone's collapsed notice band a place of its own", () => {
+    // GameScreen folds every anchor into one top-center stack on a portrait
+    // phone; the band pins below the opponent feed and spans the width.
+    expect(gameScreenSource).toMatch(/collapse=\{narrowGameLayout && !landscapePhone\}/);
+    expect(narrowWidthRules).toMatch(/\.match-notice-stack\[data-anchor="top-center"\] \{[^}]*top:\s*calc\(10\.5rem/);
+    // One clamped line less than desktop: the band covers the field while it is
+    // up, and the card link still opens the full clause.
+    expect(narrowWidthRules).toMatch(/\.match-notice__text \{[^}]*-webkit-line-clamp:\s*2/);
+  });
+
   it("gives both dismiss buttons a finger-sized target", () => {
     // Each is the only early way out of a notice or a reveal panel, and the chip
     // itself has to stay small — the target rides behind it instead.

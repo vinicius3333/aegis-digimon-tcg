@@ -87,6 +87,37 @@ describe("EX11-050 Loudmon", () => {
     assertNoLoudGap(s);
   });
 
+  /**
+   * Boundary for "While you have 4 or fewer cards in your hand" on BOTH the main [All Turns]
+   * aura and the inherited [Your Turn] aura. FAILS-WHEN-REVERTED: an `op`/`value` other than
+   * `lte 4` flips one of the two halves below.
+   */
+  it("withholds both auras at 5 cards in hand and restores them at 4", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: cardId, as: "source" },
+          { card: "EX11-049", as: "inheritedHost", under: [cardId] },
+        ],
+        hand: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-009"],
+      },
+    });
+    await s.ready();
+    expect(s.state.players[0]!.hand).toHaveLength(5);
+    expect(observe(s.engine).hasKeyword(s.perm("source"), "Scapegoat")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("inheritedHost"), "Scapegoat")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("inheritedHost"), "SecurityAttack")).toBe(false);
+
+    s.state.players[0]!.hand.splice(0, 1);
+    await advance(s.engine).recompute();
+
+    expect(s.state.players[0]!.hand).toHaveLength(4);
+    expect(observe(s.engine).hasKeyword(s.perm("source"), "Scapegoat")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("inheritedHost"), "Scapegoat")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("inheritedHost"), "SecurityAttack")).toBe(true);
+    assertNoLoudGap(s);
+  });
+
   it("gives own Dark/Evil Dragons Security Attack +1 from an inherited source on your turn", async () => {
     const s = setupEngine({
       0: {

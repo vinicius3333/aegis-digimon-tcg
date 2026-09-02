@@ -40,7 +40,7 @@ describe("BT24-028 Divermon", () => {
     expect(action).toMatchObject({
       kind: "PlayWithoutCost",
       from: ["digivolutionCards"],
-      fromHost: "self",
+      fromOwnDigivolutionStack: true,
       optional: true,
     });
     expect(action.target.filter).toMatchObject({ colors: ["Blue"], levelComparison: { op: "lte", value: 4 } });

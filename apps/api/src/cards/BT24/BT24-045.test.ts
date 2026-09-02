@@ -25,6 +25,10 @@ describe("BT24-045 Ogremon", () => {
         target: { sameTarget: true },
       });
     }
+    const inherited = BT24_045.effects?.find((entry) => entry.isInherited);
+    const watcher = inherited?.actions?.[0];
+    if (watcher?.kind !== "SubTrigger") throw new Error("expected inherited hand-trash watcher");
+    expect(watcher.actions[0]).toMatchObject({ payCost: true, costDelta: -1 });
   });
 
   it("trashes a hand card to suspend and lock the same opponent Digimon", async () => {
@@ -106,7 +110,7 @@ describe("BT24-045 Ogremon", () => {
         },
         1: { battleArea: [{ card: "BT1-010", as: "suspendTarget" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 10;
     await s.ready();

@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -107,11 +106,19 @@ describe("BT25-019 UltimateBrachiomon", () => {
   ])(
     "at opponent memory %i, grants only the printed Digimon/Option immunity clauses",
     async (opponentMemory, digimonImmune, optionImmune) => {
-      const s = setupEngine({ 0: { battleArea: [{ card: "BT25-019", as: "brachio" }] } });
-      // On seat 0's turn, negative memory is the opponent's side of the gauge.
-      s.state.memory = -opponentMemory;
+      const s = setupEngine({
+        0: { battleArea: [{ card: "BT25-019", as: "brachio" }], deck: ["BT1-013"] },
+        1: { deck: ["BT1-013"] },
+      });
+      // Enter Main with the turn player's side of the gauge, then arrange the exact
+      // opponent-memory boundary before publicly ending the turn.
+      s.state.memory = 1;
 
-      await advance(s.engine).fireForPermanent(EffectTiming.OnEndTurn, s.perm("brachio"));
+      const turn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+      s.state.memory = -opponentMemory;
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await turn;
 
       const restrictions = observe(s.engine);
       expect(restrictions.isRestrictedByEffect(s.perm("brachio"), "beAffected", "Digimon")).toBe(digimonImmune);

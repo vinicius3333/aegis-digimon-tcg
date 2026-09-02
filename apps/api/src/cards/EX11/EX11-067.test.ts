@@ -71,6 +71,34 @@ describe("EX11-067 Dokuson Aruba", () => {
     assertNoLoudGap(s);
   });
 
+  it("targets a Digimon with [Lucemon] only in its TEXT, not its name (Q5937)", async () => {
+    // AD1-018 LordKnightmon is not named Lucemon but names it in its effect text, so it qualifies
+    // only under the "in its text" span. BT18-101 Lucemon: Satan Mode is the Lucemon-NAMED
+    // destination, and it is reachable from a Purple Lv.6 base.
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-067", as: "dokuson" },
+            { card: "AD1-018", as: "lucemonInText" },
+          ],
+          hand: [{ card: "BT18-101", as: "satanMode" }],
+          deck: ["AD1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 0;
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("dokuson"));
+    await settle(() => s.perm("dokuson").isSuspended);
+
+    expect(s.perm("lucemonInText").topCard?.cardId).toBe("BT18-101");
+    // Free digivolution (payCost: false), then the [Your Turn] watcher's paid memory gain.
+    expect(s.state.memory).toBe(1);
+    assertNoLoudGap(s);
+  });
+
   it("publishes full exclusive IR with the field union and Q5937 text match", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects.find((effect) => effect.trigger === "OnPlay")?.actions).toMatchObject([

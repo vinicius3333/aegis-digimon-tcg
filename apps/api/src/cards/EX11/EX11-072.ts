@@ -1,16 +1,32 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// CAP-H-10: nameOrTrait match kind "traitAll" — ALL listed tokens must be present as
-// traits simultaneously. KB Q5944: digivolve target must have BOTH [Bird Dragon] AND
-// [LIBERATOR] traits. See historical migration ledger
+// ＜Delay＞ is printed ON the [Your Turn] clause ("When any of your [Shoto Kazama]s suspend,
+// ＜Delay＞ ・..."), so it belongs to the interpreter's INTRINSIC Delay model
+// (`withIntrinsicDelayGate`, comprehensive rules §16-17): trashing this card is the activation
+// cost (§16-17-1), the whole processing is optional (§16-17-2), and it can't be activated the
+// turn the card entered the battle area (§16-17-3). A `YourTurn` trigger maps to
+// EffectTiming.None, so `irCardModule` routes it through `withIntrinsicDelayGate`, which stamps
+// the SubTrigger listener with the trash cost, the turn-guard, and a `canAttemptDigivolve`
+// pre-check.
 //
-// [Your Turn] <Delay> encoding: "When any of your [Shoto Kazama]s suspend, <Delay>"
-// followed by a bullet point means: this card is activated as a <Delay> option when
-// a Shoto Kazama suspends. The Digivolve action is the CONTENT of the <Delay> activation
-// (i.e., what happens when the Delay is used). It is placed inside the SubTrigger's
-// actions array, NOT as a sibling action.
+// It was previously encoded as the OTHER Delay model — a `GainKeyword(Delay)` grant plus a
+// separate `[Main]` payload flagged `requiresDelayArmed` (the P-243/EX5-069 shape, for cards
+// whose Delay is granted by a DIFFERENT clause). That model consumes the grant but never trashes
+// the source, so the emblem stayed in the battle area and re-armed on every Shoto Kazama
+// suspension, and it skipped the turn-guard entirely. BT17-097 documents the mirror-image
+// mistake. The extra `[Main]` clause also gave `[Security] Activate this card's [Main] effects`
+// a second Main clause it must not reach.
+//
+// KB Q5944: the card digivolved INTO must carry BOTH [Bird Dragon] AND [LIBERATOR].
+// `definitionMatchesFilter` treats a multi-entry `nameOrTrait` array as a UNION, so a
+// conjunction has to pair `nameOrTrait` with the separate `traits` predicate, which ANDs with
+// it. The previous `match: "traitAll"` is not a mode `matchNameOrTrait` knows: it fell through
+// to the final `return`, the "any" branch, which matches name ∪ trait ∪ EFFECT TEXT for EITHER
+// token — so any Digimon merely mentioning "LIBERATOR" in its text qualified.
+//
+// The base filter is a genuine union: "[Avian] or [Bird] in ANY of its traits" (substring, hence
+// `traitContains`) OR "the [Vortex Warriors] trait" (exact).
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -24,7 +40,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Pteromon", "Muchomon", "Shoto Kazama"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -34,6 +50,8 @@ export const compiled: CompiledCard = {
           payCost: false,
           optional: true,
         },
+        // "Then, place this card in the battle area." — mandatory, and it runs whether or not
+        // the optional play above happened.
         {
           kind: "PlaceInBattleAreaSelf",
         },
@@ -41,6 +59,7 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "YourTurn",
+      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
       actions: [
         {
           kind: "SubTrigger",
@@ -50,54 +69,36 @@ export const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Shoto Kazama"],
-                match: "name",
+                match: "nameExact",
               },
             ],
           },
+          raw: "Trash this card to activate its ＜Delay＞ effect?",
           actions: [
             {
-              kind: "GainKeyword",
+              kind: "Digivolve",
               target: {
                 filter: {
-                  isSelfRef: true,
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [
+                    { tokens: ["Avian", "Bird"], match: "traitContains" },
+                    { tokens: ["Vortex Warriors"], match: "trait" },
+                  ],
                 },
                 count: 1,
-                isSelf: true,
               },
-              keyword: { keyword: "Delay", raw: "＜Delay＞" },
-              duration: "permanent",
+              into: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Bird Dragon"], match: "trait" }],
+                traits: ["LIBERATOR"],
+              },
+              from: ["hand"],
+              payCost: true,
+              reduceCost: 3,
             },
           ],
-        },
-      ],
-    },
-    {
-      trigger: "Main",
-      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
-      actions: [
-        {
-          requiresDelayArmed: true,
-          kind: "Digivolve",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [
-                { tokens: ["Avian", "Bird"], match: "traitContains" },
-                { tokens: ["Vortex Warriors"], match: "trait" },
-              ],
-            },
-            count: 1,
-          },
-          into: {
-            controllerDefault: "mine",
-            kind: ["Digimon"],
-            nameOrTrait: [{ tokens: ["Bird Dragon", "LIBERATOR"], match: "traitAll" }],
-          },
-          from: ["hand"],
-          payCost: true,
-          reduceCost: 3,
-          optional: true,
         },
       ],
     },

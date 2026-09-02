@@ -215,6 +215,23 @@ describe("EX11-011 Dinomon", () => {
     assertNoLoudGap(s);
   });
 
+  it("restricts opposing attacks only on the opponent's turn and only while suspended", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX11-011", as: "dinomon", suspended: true }] },
+      1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+    });
+    await s.engine.recomputeContinuousEffects();
+    expect(observe(s.engine).hasRestriction(s.perm("attacker"), "attackOnlySuspendedDigimon")).toBe(false);
+
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+    expect(observe(s.engine).hasRestriction(s.perm("attacker"), "attackOnlySuspendedDigimon")).toBe(true);
+
+    s.perm("dinomon").isSuspended = false;
+    await s.engine.recomputeContinuousEffects();
+    expect(observe(s.engine).hasRestriction(s.perm("attacker"), "attackOnlySuspendedDigimon")).toBe(false);
+  });
+
   it("makes can't override Marsmon's permission at attack declaration (Q5797)", async () => {
     const s = setupEngine({
       0: {

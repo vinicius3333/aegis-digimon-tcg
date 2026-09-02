@@ -156,6 +156,7 @@ describe("EX12-036 Ryugumon", () => {
               optional: true,
               target: {
                 filter: {
+                  hostFilter: { isSelfRef: true },
                   levelComparison: { op: "lte", value: 5 },
                   nameOrTrait: [
                     { tokens: ["Aqua", "Sea Animal"], match: "traitContains" },
@@ -313,6 +314,28 @@ describe("EX12-036 Ryugumon", () => {
       expect(await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], cause)).toBe(1);
       expect(s.state.players[0]!.battleArea).toHaveLength(0);
     }
+  });
+
+  it("plays only from its own digivolution cards, never from a neighbor's stack (CR 16-36-1)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "source", suspended: true },
+            { card: "BT1-011", as: "neighbor", under: [{ card: "BT10-023", as: "foreign" }] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const foreignId = s.inst("foreign").instanceId;
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect")).toBe(1);
+    await settle();
+
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === foreignId)).toBe(false);
+    expect(s.perm("neighbor").stack.some((card) => card.instanceId === foreignId)).toBe(true);
   });
 
   it("uses its printed Barrier to prevent effect deletion", async () => {

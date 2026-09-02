@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -111,11 +110,15 @@ const compiled: CompiledCard = {
             raw: "By trashing up to 3 [Mineral] or [Rock] trait cards from any of your Digimon's digivolution cards",
           },
           abortOnDecline: true,
+          // "for each card trashed": the multiplier is the COST's paid count, not a board count.
+          // `runAction` already gives an up-to trash cost's paid count priority over any
+          // `scaling` hint (it names this card), but the old `unit: "cards"` hint read the
+          // controller's battle-area permanents and would take over the moment that precedence
+          // changed. `usePaidCount` states the printed rule; `unit` is required by the type and
+          // ignored when `usePaidCount` is set.
           scaling: {
             per: 1,
-            filter: {
-              controllerDefault: "mine",
-            },
+            usePaidCount: true,
             unit: "cards",
           },
         },
@@ -158,11 +161,15 @@ const compiled: CompiledCard = {
             raw: "By trashing up to 3 [Mineral] or [Rock] trait cards from any of your Digimon's digivolution cards",
           },
           abortOnDecline: true,
+          // "for each card trashed": the multiplier is the COST's paid count, not a board count.
+          // `runAction` already gives an up-to trash cost's paid count priority over any
+          // `scaling` hint (it names this card), but the old `unit: "cards"` hint read the
+          // controller's battle-area permanents and would take over the moment that precedence
+          // changed. `usePaidCount` states the printed rule; `unit` is required by the type and
+          // ignored when `usePaidCount` is set.
           scaling: {
             per: 1,
-            filter: {
-              controllerDefault: "mine",
-            },
+            usePaidCount: true,
             unit: "cards",
           },
         },

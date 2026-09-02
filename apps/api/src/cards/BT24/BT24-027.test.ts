@@ -96,7 +96,10 @@ describe("BT24-027 Lanamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT24-027", as: "lanamon", under: [{ card: "BT24-023", as: "calmaramon" }] }],
+          battleArea: [
+            { card: "BT24-027", as: "lanamon", under: [{ card: "BT24-023", as: "calmaramon" }] },
+            { card: "BT24-029", as: "other", under: [{ card: "BT24-023", as: "otherCalmaramon" }] },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -108,6 +111,7 @@ describe("BT24-027 Lanamon", () => {
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
       s.inst("calmaramon").instanceId,
     );
+    expect(s.perm("other").stack.map((card) => card.instanceId)).toContain(s.inst("otherCalmaramon").instanceId);
 
     const battle = setupEngine(
       {

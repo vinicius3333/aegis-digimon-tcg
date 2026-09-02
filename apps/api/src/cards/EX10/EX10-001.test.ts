@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
+import { compiled } from "./EX10-001.js";
 import type { Primitives } from "../../engine/effects/EffectContext.js";
 
 function primitivesOf(s: { engine: unknown }): Primitives {
@@ -42,6 +43,68 @@ describe("EX10-001 Flickmon inherited link-trash trigger", () => {
     expect(s.state.memory).toBe(memoryBefore + 1);
   });
 
+  it("scopes the watcher to this Digimon's own link cards", () => {
+    // FAILS-WHEN-REVERTED: dropping `sourceFilter` makes the watcher fire on every link-card
+    // trash on the board, including the opponent's.
+    expect(compiled.effects?.[0]).toMatchObject({
+      trigger: "YourTurn",
+      isInherited: true,
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenLinkTrashed",
+          sourceFilter: { isSelfRef: true },
+          actions: [{ kind: "GainMemory", amount: 1 }],
+        },
+      ],
+    });
+  });
+
+  it("does not gain memory when another Digimon's link card is trashed", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          {
+            card: "BT1-009",
+            as: "host",
+            under: [{ card: "EX10-001", as: "flickmon" }],
+            linked: [{ card: "BT1-009", as: "ownLink" }],
+          },
+          {
+            card: "BT1-010",
+            as: "neighbor",
+            linked: [{ card: "BT1-010", as: "neighborLink" }],
+          },
+        ],
+      },
+      1: {
+        battleArea: [
+          {
+            card: "BT1-010",
+            as: "enemy",
+            linked: [{ card: "BT1-009", as: "enemyLink" }],
+          },
+        ],
+      },
+    });
+    const memoryBefore = s.state.memory;
+
+    await s.engine.recomputeContinuousEffects();
+    await primitivesOf(s).trash([s.inst("neighborLink").instanceId]);
+    await settle(() => false, 30);
+    expect(s.state.memory).toBe(memoryBefore);
+
+    await primitivesOf(s).trash([s.inst("enemyLink").instanceId]);
+    await settle(() => false, 30);
+    expect(s.state.memory).toBe(memoryBefore);
+
+    // The host's OWN link card still pays out, proving the gate is scoped, not disabled.
+    await primitivesOf(s).trash([s.inst("ownLink").instanceId]);
+    await settle(() => s.state.memory === memoryBefore + 1);
+    expect(s.state.memory).toBe(memoryBefore + 1);
+  });
+
   it("does not gain memory when a non-link card is trashed", async () => {
     const s = setupEngine({
       0: {
@@ -49,7 +112,6 @@ describe("EX10-001 Flickmon inherited link-trash trigger", () => {
         hand: [{ card: "BT1-009", as: "handCard" }],
       },
     });
-    const p0 = s.state.players[0]!;
     const memoryBefore = s.state.memory;
 
     await s.engine.recomputeContinuousEffects();

@@ -1,4 +1,4 @@
-import { compiledEffects, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { compiledEffects, EffectDuration, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -120,6 +120,30 @@ describe("EX12-069 Virus Busters", () => {
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("option").instanceId)).toBe(true);
   });
 
+  it("is a color waiver, not a VB gate: a yellow non-VB Digimon alone still lets the option be used", async () => {
+    // Comprehensive rules 16-42: <Use Req.> only lets the player IGNORE the color requirement.
+    // Meeting the ordinary yellow requirement without any [VB] card must still allow the play.
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-049", as: "yellowNonVb" }],
+          hand: [{ card: CARD_ID, as: "option" }],
+          security: [{ card: "BT1-101", as: "bottom" }],
+        },
+        1: { security: ["BT1-101"] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 2;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.at(-1)?.cardId === CARD_ID, 160);
+    expect(s.state.players[0]!.security.at(-1)).toMatchObject({ cardId: CARD_ID, faceUp: true });
+  });
+
   it("plays a same-level VB Digimon from hand from its face-up security effect", async () => {
     const s = setupEngine(
       {
@@ -148,6 +172,43 @@ describe("EX12-069 Virus Busters", () => {
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("target").instanceId),
     ).toBe(true);
     expect(s.state.memory).toBe(0);
+  });
+
+  it("reads the attacker's runtime traits, not only its printed ones", async () => {
+    // The watcher's [VB] predicate must resolve through effectiveTraits, so a granted [VB] trait
+    // on an otherwise non-VB level 4 attacker satisfies it (KB Q6881's trigger-time reading).
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-051", as: "attacker" }],
+          hand: [{ card: "EX12-013", as: "target" }],
+          security: [{ card: CARD_ID, as: "security", faceUp: true }],
+        },
+        1: { security: ["BT1-101"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 2;
+    advance(s.engine).ledgers.continuous.addNameTraitGrant(
+      s.perm("attacker").permanentId,
+      "trait",
+      ["VB"],
+      EffectDuration.Permanent,
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 2, 160);
+
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("target").instanceId),
+    ).toBe(true);
   });
 
   it("does not play a different-level VB Digimon from the face-up security watcher", async () => {

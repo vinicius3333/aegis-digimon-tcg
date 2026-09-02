@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -43,6 +42,9 @@ const compiled: CompiledCard = {
                 filter: {
                   controller: "mine",
                   kind: ["Option"],
+                  // The printed clause caps no play cost; `UseOptionWithoutCost` otherwise
+                  // applies its default ceiling of 5 (BT25-083 uses the same explicit opener).
+                  playCostLte: 99,
                   nameOrTrait: [{ tokens: ["SW"], match: "trait" }],
                 },
                 from: ["hand"],

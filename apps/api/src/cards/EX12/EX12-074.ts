@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -31,7 +30,16 @@ const compiled: CompiledCard = {
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           condition: {
             kind: "youHave",
-            filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Shambala"], match: "trait" }] },
+            filter: {
+              // CR 16-42-3: ＜Use Req.＞ lets a player ignore the color requirements with the
+              // specified DIGIMON AND/OR TAMERS on the field. Without this kind gate the
+              // youHave count also accepted a matching OPTION permanent — reachable in EX12,
+              // where Options such as this one are PLACED IN THE BATTLE AREA and keep their
+              // traits, so one resident Option wrongly satisfied the next one's Use Req.
+              kind: ["Digimon", "Tamer"],
+              controllerDefault: "mine",
+              nameOrTrait: [{ tokens: ["Shambala"], match: "trait" }],
+            },
             raw: "you have a card w/[Shambala] trait",
           },
         },

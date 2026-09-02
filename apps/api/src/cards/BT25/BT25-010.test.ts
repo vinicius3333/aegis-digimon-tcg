@@ -24,7 +24,14 @@ describe("BT25-010 Hawkmon", () => {
     expect(compiled.effects).toHaveLength(2);
     expect(compiled.effects[0]).toMatchObject({
       trigger: "YourTurn",
-      actions: [{ kind: "Replacement", event: "wouldDigivolve", actions: [{ mode: "reduceCost", amount: 1 }] }],
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          sourceFilter: { isSelfRef: true, zone: "battleArea" },
+          actions: [{ mode: "reduceCost", amount: 1 }],
+        },
+      ],
     });
     expect(compiled.effects[1]).toMatchObject({ trigger: "YourTurn", isInherited: true, actions: [{ amount: 2000 }] });
   });
@@ -52,5 +59,30 @@ describe("BT25-010 Hawkmon", () => {
     await settle(() => s.perm("hawkmon").topCard.cardId === "BT11-010");
 
     expect(s.state.memory).toBe(4);
+  });
+
+  it("does not reduce a natural evolution into an unrelated legal trait", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-010", as: "hawkmon" }],
+          hand: [{ card: "BT15-009", as: "nonMatching" }],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("hawkmon").permanentId,
+        instanceId: s.inst("nonMatching").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("hawkmon").topCard.cardId === "BT15-009");
+
+    expect(s.state.memory).toBe(3);
   });
 });

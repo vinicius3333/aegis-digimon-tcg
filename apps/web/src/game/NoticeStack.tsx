@@ -15,6 +15,7 @@ import { TIMING_LABELS, playerFacingEffectClause } from "./overlays";
 import {
   noticeRemaining,
   noticesAt,
+  noticesCollapsed,
   occupiedAnchors,
   type MatchNotice,
   type NoticeAnchor,
@@ -179,18 +180,38 @@ function NoticeView({
 export function NoticeStack({
   notices,
   panelSide = "right",
+  collapse = false,
   nowMs,
   onDismiss,
 }: {
   notices: readonly MatchNotice[];
   /** Which half the timed side panels occupy, so security notices can mirror away from them. */
   panelSide?: NoticeHorizontal;
+  /**
+   * Fold every anchor into one top-center band — the phone layout, where a
+   * corner-anchored notice landed on the hand or the field being read.
+   */
+  collapse?: boolean;
   /** Injected so the eroding borders start at the right point after a re-render. */
   nowMs?: number;
   onDismiss: (id: string) => void;
 }) {
   if (notices.length === 0) return null;
   const now = nowMs ?? Date.now();
+  if (collapse) {
+    return (
+      <div className="match-notice-stack" data-anchor="top-center" data-testid="match-notice-stack">
+        {noticesCollapsed(notices).map((notice) => (
+          <NoticeView
+            key={notice.id}
+            notice={notice}
+            remainingMs={noticeRemaining(notices, notice, now)}
+            onDismiss={onDismiss}
+          />
+        ))}
+      </div>
+    );
+  }
   return (
     <>
       {occupiedAnchors(notices, panelSide).map((anchor: NoticeAnchor) => (

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -11,7 +10,12 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Fixes:
 //   - On Play/WhenDigivolving: replaced PlayWithoutCost (wrong) with Link action
 //   - whenLinked SubTrigger: inner action was PlayWithoutCost (correct here for Unchained)
-//   - "if you have 1 or fewer Tamers" encoded as raw condition (no built-in atMost-count)
+//   - "if you have 1 or fewer Tamers" is a `permanentCount` condition with op "lte" and
+//     value 1, not the persisted record's `youHave` (which only asks whether a Tamer exists
+//     and would invert the printed gate)
+//   - "from your hand or THIS Digimon's digivolution cards": `digivolutionCards` enumerates
+//     every stack this seat controls, so the self scope is stated as
+//     `hostFilter: { isSelfRef: true }`, which constrains only the hosted zone
 const compiled: CompiledCard = {
   digivolutionRequirement: [{ names: ["Maquinamon"], cost: 2, isAlternate: true }],
   effects: [
@@ -30,6 +34,7 @@ const compiled: CompiledCard = {
                   match: "name",
                 },
               ],
+              hostFilter: { isSelfRef: true },
             },
             count: 1,
           },
@@ -61,6 +66,7 @@ const compiled: CompiledCard = {
                   match: "name",
                 },
               ],
+              hostFilter: { isSelfRef: true },
             },
             count: 1,
           },

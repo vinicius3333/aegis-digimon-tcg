@@ -26,6 +26,7 @@ describe("EX11-033 Maneuvermon", () => {
       expect(compiled.effects.find((effect) => effect.trigger === trigger)?.actions[0]).toMatchObject({
         kind: "Link",
         from: ["hand", "digivolutionCards"],
+        target: { filter: { hostFilter: { isSelfRef: true } } },
         recipient: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
         payCost: false,
         optional: true,
@@ -70,6 +71,40 @@ describe("EX11-033 Maneuvermon", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
     expect(s.perm("source").linked.map(({ cardId: id }) => id)).toEqual(["EX11-027"]);
     expect(s.state.players[0]!.hand).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
+  it("links Maquinamon out of its own digivolution cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "source", under: [{ card: "EX11-027", as: "maquinamon" }] }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    expect(s.perm("source").linked.map(({ instanceId }) => instanceId)).toContain(s.inst("maquinamon").instanceId);
+    expect(s.perm("source").stack).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
+  it("cannot reach a Maquinamon under another of the controller's Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "source" },
+            { card: "BT1-080", as: "other", under: [{ card: "EX11-027", as: "maquinamon" }] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    expect(s.perm("other").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("maquinamon").instanceId]);
+    expect(s.perm("source").linked).toHaveLength(0);
+    expect(s.perm("other").linked).toHaveLength(0);
     assertNoLoudGap(s);
   });
 

@@ -1,15 +1,17 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const mineralOrRock = [{ tokens: ["Mineral", "Rock"], match: "trait" as const }];
 
+// Both clauses move a "[Mineral] or [Rock] trait CARD", not a Digimon card. A `kind: ["Digimon"]`
+// filter excludes the catalog `DigiEgg` kind, and the [Rock] Digi-Eggs (BT9-005/EX8-005/EX10-003
+// Tumblemon) are exactly the cards that sit at the bottom of every stack raised from breeding —
+// the most common legal payment for the [Start of Your Main Phase] cost.
 const placeUnderTriggeredDigimon = {
   kind: "PlaceUnder" as const,
   target: {
     filter: {
       controller: "mine" as const,
-      kind: ["Digimon" as const],
       nameOrTrait: mineralOrRock,
     },
     count: 1,
@@ -38,7 +40,7 @@ export const compiled: CompiledCard = {
           cost: {
             kind: "trash",
             target: {
-              filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: mineralOrRock },
+              filter: { controller: "mine", nameOrTrait: mineralOrRock },
               count: 1,
               from: ["hand", "digivolutionCards"],
             },

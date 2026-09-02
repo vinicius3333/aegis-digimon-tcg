@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -57,12 +57,15 @@ describe("BT25-009 Bearmon", () => {
     s.state.memory = 4;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("bearmon"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     await settle(() => s.perm("bearmon").topCard.instanceId === s.inst("grizzlymon").instanceId);
 
     expect(s.state.memory).toBe(4);
     expect(s.perm("bearmon").stack.map((card) => card.cardId)).toEqual(["BT25-009"]);
     expect(s.perm("bearmon").currentDP).toBe(6000);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("does not trigger during the opponent's start-of-main window", async () => {
@@ -79,10 +82,13 @@ describe("BT25-009 Bearmon", () => {
     s.state.memory = 4;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("bearmon"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
 
     expect(s.perm("bearmon").topCard.cardId).toBe("BT25-009");
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT11-010"]);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
   });
 
   it("does not activate above the 4-memory boundary", async () => {
@@ -98,10 +104,13 @@ describe("BT25-009 Bearmon", () => {
     s.state.memory = 5;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("bearmon"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
 
     expect(s.perm("bearmon").topCard.cardId).toBe("BT25-009");
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT11-010"]);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("can be reached through its zero-cost TS level-2 evolution and passes on its inherited DP", async () => {
@@ -132,9 +141,12 @@ describe("BT25-009 Bearmon", () => {
     expect(s.state.memory).toBe(0);
     expect(s.perm("tokomon").stack.map((card) => card.cardId)).toEqual(["BT25-001"]);
 
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tokomon"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     await settle(() => s.perm("tokomon").topCard.instanceId === s.inst("grizzlymon").instanceId);
     expect(s.perm("tokomon").stack.map((card) => card.cardId)).toEqual(["BT25-001", "BT25-009"]);
     expect(s.perm("tokomon").currentDP).toBe(6000);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 });

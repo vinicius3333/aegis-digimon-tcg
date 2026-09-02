@@ -1,7 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled as BT25_038 } from "./BT25-038.js";
 import "../index.js";
 
@@ -133,6 +133,33 @@ describe("BT25-038 Shakkoumon", () => {
 
     await advance(s.engine).fireSubTrigger("whenAddSecurity", { addedToSecuritySeat: 1 });
     expect(s.perm("target").stack).toHaveLength(1);
+  });
+
+  it("naturally emits the security-addition event from its digivolving placement clause", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-037", as: "base" }],
+          hand: [{ card: "BT25-038", as: "shakkou" }],
+          security: [{ card: "BT1-009", as: "existing" }],
+        },
+        1: { battleArea: [{ card: "BT1-015", as: "target", under: ["BT1-001", "BT1-002"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 1 },
+    );
+    const targetPermanent = s.state.players[1]!.battleArea[0]!;
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("shakkou").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "BT25-038" && targetPermanent.stack.length === 1);
+
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-009", "BT25-037"]);
+    expect(targetPermanent.stack).toHaveLength(1);
   });
 
   it("inherits a once-per-turn -4000 DP reaction to your security removal", async () => {

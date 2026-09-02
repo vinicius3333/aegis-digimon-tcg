@@ -54,12 +54,10 @@ describe("EX10-015 Psychemon", () => {
       actions: [],
       keywords: [{ keyword: "Piercing" }],
     });
-    expect(compiled.digiXrosRequirement).toEqual([
-      {
-        materials: [{ kind: ["Digimon"], nameOrTrait: [{ tokens: ["Save"], match: "text" }] }],
-        count: 2,
-      },
-    ]);
+    expect(compiled.digiXrosRequirement).toEqual([{ materials: [{ texts: ["Save"] }], count: 2 }]);
+    // No printed [Digivolve] header: the only legal routes are the cards.json EvoCost rows.
+    // A restated EvoCost row here would register a second, unprinted alternate path.
+    expect(compiled.digivolutionRequirement).toBeUndefined();
   });
 
   it("Q5044 trashes a card whose inherited text contains Save, draws 1, and suspends exactly 1 target", async () => {
@@ -232,6 +230,7 @@ describe("EX10-015 Psychemon", () => {
           { card: CARD_ID, as: "psychemon" },
           { card: "BT10-029", as: "saveMaterial" },
           { card: "BT1-009", as: "noSave" },
+          { card: "BT12-087", as: "saveTamer" },
         ],
       },
     });
@@ -244,6 +243,15 @@ describe("EX10-015 Psychemon", () => {
       digiXros: { materialInstanceIds: [s.inst("noSave").instanceId] },
     });
     expect(invalidResult).toEqual(expect.objectContaining({ ok: false }));
+    // The printed slot is "1 DIGIMON card with ＜Save＞ in text": a Tamer whose text carries
+    // ＜Save＞ satisfies the text half and must still be rejected by the Digimon-only guard.
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("psychemon").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("saveTamer").instanceId] },
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
     const validResult = s.engine.applyIntent(0, {
       type: "playCard",
       instanceId: s.inst("psychemon").instanceId,

@@ -22,7 +22,8 @@ describe("EX10-029 Warpmon compiled contract", () => {
       linkDp: 3000,
     });
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
-    expect(compiled.digivolutionRequirement).toEqual([{ cost: 2, isAlternate: true, traits: ["StandardApp"] }]);
+    // Warpmon prints no [Digivolve] line; its only route is the catalog evoCost.
+    expect(compiled.digivolutionRequirement).toBeUndefined();
     expect(compiled.linkRequirement).toEqual([{ cost: 2, traits: ["Appmon"] }]);
     expect(compiled.effects?.find((effect) => effect.trigger === "Security")).toMatchObject({
       isSecurity: true,
@@ -52,7 +53,7 @@ describe("EX10-029 Warpmon compiled contract", () => {
     });
   });
 
-  it("evolves for 2 on black level-3 and StandardApp, and links only to Appmon for 2", async () => {
+  it("evolves for 2 on any black level-3 base, and links only to Appmon for 2", async () => {
     for (const baseCard of ["BT10-058", "BT21-053"]) {
       const s = setupEngine({
         0: { battleArea: [{ card: baseCard, as: "base" }], hand: [{ card: CARD_ID, as: "warp" }] },
@@ -97,6 +98,20 @@ describe("EX10-029 Warpmon compiled contract", () => {
     await settle(() => link.perm("appmon").linked.some(({ cardId }) => cardId === CARD_ID));
     expect(link.state.memory).toBe(0);
     expect(link.perm("appmon").currentDP).toBe(baseDp + 3000);
+
+    // No printed alternate route: a non-black level-3 base is rejected outright, and a legal
+    // black level-3 base still costs the printed 2 rather than any alternate.
+    const wrongColor = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "base" }], hand: [{ card: CARD_ID, as: "warp" }] },
+    });
+    wrongColor.state.memory = 2;
+    expect(
+      wrongColor.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: wrongColor.perm("base").permanentId,
+        instanceId: wrongColor.inst("warp").instanceId,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
   });
 
   it("Security plays Warpmon for free and the resulting permanent has Blocker", async () => {

@@ -134,6 +134,8 @@ export interface DeleteLevelBudgetAction extends ActionBase {
 export interface DeleteByDPBudgetAction extends ActionBase {
   kind: "DeleteByDPBudget";
   target: Target;
+  /** "up to N DP": the controller may stop below the budget (read by runDeleteByDPBudget). */
+  upTo?: boolean;
   baseBudget: number;
   /**
    * Adds `per` DP for every card matching `filter` (BT19-011: +2000 per opponent Digimon). Note
