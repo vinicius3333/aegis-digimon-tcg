@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -32,7 +31,8 @@ const compiled: CompiledCard = {
         },
         {
           kind: "SubTrigger",
-          event: "endOfOpponentTurn",
+          event: "endOfTurn",
+          turnScope: "opponentsTurn",
           once: true,
           on: {
             filter: {
@@ -97,16 +97,8 @@ const compiled: CompiledCard = {
               amount: -3000,
               duration: "forTheTurn",
               condition: {
-                kind: "allOf",
-                conditions: [
-                  {
-                    kind: "isDnaDigivolving",
-                    raw: "DNA digivolving",
-                  },
-                  {
-                    kind: "ifThisEffectActed",
-                  },
-                ],
+                kind: "isDnaDigivolving",
+                raw: "DNA digivolving",
               },
             },
           ],

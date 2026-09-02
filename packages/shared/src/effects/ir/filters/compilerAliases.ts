@@ -7,8 +7,11 @@ import type { Cost } from "../predicates/costs.js";
 import type { Filter, Target } from "./filter.js";
 
 export interface CompilerAliases {
-  /** `{ max }`, `{ min, max }`, `{ op, value }`, or `"same"` (same level as source). */
-  level?: { max?: number; min?: number; op?: "gte" | "lte" | "eq"; value?: number | string } | string;
+  /** `{ max }`, `{ min, max }`, `{ op, value }`, a dynamic security-count ceiling, or `"same"`. */
+  level?:
+    | { max?: number; min?: number; op?: "gte" | "lte" | "eq"; value?: number | string }
+    | { lte: { kind: "chooseEitherSecurityCount" } }
+    | string;
   /** Shorthand for `kind: ["Digimon"]`. */
   digimon?: boolean;
   /** Shorthand for `kind: ["Tamer"]`. */

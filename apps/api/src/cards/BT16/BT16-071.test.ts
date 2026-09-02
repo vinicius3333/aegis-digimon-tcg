@@ -11,6 +11,7 @@ describe("BT16-071", () => {
         {
           kind: "Digivolve",
           from: ["hand", "trash"],
+          payCost: true,
           optional: true,
           into: { nameOrTrait: [{ tokens: ["Leomon"], match: "name" }] },
         },

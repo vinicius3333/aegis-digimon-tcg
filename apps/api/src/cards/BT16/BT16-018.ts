@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-corrected IR (was AUTO-GENERATED): the generated `beDeleted` restriction was too broad —
 // the card (and source documented behavior GainCanNotBeDeletedByBattle) blocks BATTLE deletion only.
 import type { CompiledCard } from "@aegis/shared";

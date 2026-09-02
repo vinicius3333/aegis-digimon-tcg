@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
+import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
+import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -19,7 +21,7 @@ import "../index.js";
  */
 describe("BT16-015", () => {
   it("compiles Blitz, exact alternate evolution, and split name/trait stack conditions", () => {
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Phoenixmon"], cost: 2, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Phoenixmon"], cost: 2, isAlternate: true }]);
     expect(compiled.effects?.[0]?.actions[0]).toMatchObject({
       kind: "GainKeyword",
       keyword: { keyword: "Blitz" },
@@ -30,7 +32,7 @@ describe("BT16-015", () => {
       kind: "selfDigivolutionStackHasTrait",
       filter: {
         nameOrTrait: [
-          { tokens: ["Phoenixmon"], match: "name" },
+          { tokens: ["Phoenixmon"], match: "nameExact" },
           { tokens: ["X Antibody"], match: "trait" },
         ],
       },
@@ -68,6 +70,35 @@ describe("BT16-015", () => {
       target: {
         filter: { controller: "opponent", kind: ["Digimon"], dp: { valueFrom: "playedDigimon", valueField: "dp" } },
       },
+    });
+  });
+
+  it("keeps the Phoenixmon name branch exact while retaining the separate trait branch", () => {
+    const phoenixmonReference: { tokens: string[]; match: "nameExact" } = {
+      tokens: ["Phoenixmon"],
+      match: "nameExact",
+    };
+    const xAntibodyReference: { tokens: string[]; match: "trait" } = {
+      tokens: ["X Antibody"],
+      match: "trait",
+    };
+    expect(matchNameOrTrait({ nameEn: "Phoenixmon" }, phoenixmonReference)).toBe(true);
+    expect(matchNameOrTrait({ nameEn: "Phoenixmon (X Antibody)" }, phoenixmonReference)).toBe(false);
+    expect(matchNameOrTrait({ nameEn: "Phoenixmon (X Antibody)", types: ["X Antibody"] }, xAntibodyReference)).toBe(
+      true,
+    );
+    expect(matchingAlternateDigivolutionRequirement("BT16-015", "ST1-10")).toMatchObject({
+      namesExact: ["Phoenixmon"],
+      cost: 2,
+    });
+    expect(matchingAlternateDigivolutionRequirement("BT16-015", "BT16-015")).toBeUndefined();
+    expect(compiled.effects?.[0]?.actions[1]).toMatchObject({
+      condition: {
+        conditions: [{ kind: "isYourTurn" }, { filter: { nameOrTrait: [phoenixmonReference, xAntibodyReference] } }],
+      },
+    });
+    expect(compiled.effects?.[1]).toMatchObject({
+      actions: [{ condition: { filter: { nameOrTrait: [phoenixmonReference, xAntibodyReference] } } }],
     });
   });
 

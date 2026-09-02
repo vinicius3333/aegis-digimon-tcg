@@ -86,7 +86,15 @@ export interface GrantStaticAction extends ActionBase {
    * "immuneToOpponentOptionEffects" stores a beAffected + fromSourceKind:Option restriction for
    * the duration (CAP-A8, BT19-089).
    */
-  grant: "name" | "nameForDigiXros" | "trait" | "effects" | "kinds" | "immuneToOpponentOptionEffects" | string;
+  grant:
+    | "name"
+    | "nameForDigiXros"
+    | "trait"
+    | "effects"
+    | "kinds"
+    | "immuneToOpponentOptionEffects"
+    | string
+    | { keyword: "EndOfAttack"; targetFilter: { keyword: "OnDeletion" } };
   /** Granted tokens from `[X]` refs. */
   tokens?: string[];
   /** The source filter for "effects". */

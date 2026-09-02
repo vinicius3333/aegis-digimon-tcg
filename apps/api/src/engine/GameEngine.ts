@@ -3467,11 +3467,13 @@ export class GameEngine {
       await this.fireSubTrigger("whenOneOfYoursDigivolves", {
         subjectPermanentId,
         enteredByEffect: ownerSeat,
+        ...(opts?.isDnaDigivolve === true ? { isDnaDigivolve: true } : {}),
         ...(opts?.digivolvedFromZone !== undefined ? { digivolvedFromZone: opts.digivolvedFromZone } : {}),
       });
       await this.fireSubTrigger("whenAnyDigivolves", {
         subjectPermanentId,
         enteredByEffect: ownerSeat,
+        ...(opts?.isDnaDigivolve === true ? { isDnaDigivolve: true } : {}),
         ...(opts?.digivolvedFromZone !== undefined ? { digivolvedFromZone: opts.digivolvedFromZone } : {}),
       });
     }

@@ -21,7 +21,9 @@ describe("BT16-037", () => {
   });
 
   it("encodes the green level-2 evolution requirement", () => {
-    expect(digivolutionRequirementsFor("BT16-037")).toEqual([{ colors: ["Green"], level: 2, cost: 0 }]);
+    expect(digivolutionRequirementsFor("BT16-037")).toEqual([
+      { colors: ["Green"], level: 2, cost: 0, isAlternate: false },
+    ]);
   });
 
   it("adds one Insectoid from the top four and bottoms the rest", async () => {

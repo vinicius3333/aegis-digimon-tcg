@@ -236,11 +236,13 @@ describe("ContinuousEffectLedger", () => {
     });
     ledger.addRestriction("P1", "attack", EffectDuration.UntilEachTurnEnd, { continuous: true });
     ledger.addAttackTargetRestriction("P1", "D1", EffectDuration.Permanent, { continuous: true });
+    ledger.projectOnDeletionAtEndOfAttack("P1", EffectDuration.UntilEachTurnEnd);
     ledger.clearContinuous();
     expect(ledger.hasKeyword("P1", "Rush")).toBe(true); // one-shot survives
     expect(ledger.hasKeyword("P1", "Blocker")).toBe(false); // continuous cleared
     expect(ledger.hasRestriction("P1", "attack")).toBe(false);
     expect(ledger.cannotAttackTarget("P1", "D1")).toBe(false);
+    expect(ledger.listOnDeletionAtEndOfAttackProjections()).toEqual([]);
   });
 
   // CR-01 A3 (fails-when-reverted): a continuous-tagged canAttackUnsuspended grant (ST12-08's

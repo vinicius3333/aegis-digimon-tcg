@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { irNode } from "../../engine/testkit/irNode.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-085.js";
 import "../index.js";
 
@@ -20,7 +20,8 @@ describe("BT16-085", () => {
         },
         {
           kind: "SubTrigger",
-          event: "endOfOpponentTurn",
+          event: "endOfTurn",
+          turnScope: "opponentsTurn",
           once: true,
           on: { filter: { boundRef: "playedVeemonOrWormmon" }, count: 1 },
           actions: [{ kind: "Return", to: "hand" }],
@@ -41,7 +42,7 @@ describe("BT16-085", () => {
             {
               kind: "TrashDigivolution",
               amount: 3,
-              condition: { kind: "allOf", conditions: [{ kind: "isDnaDigivolving" }, { kind: "ifThisEffectActed" }] },
+              condition: { kind: "isDnaDigivolving" },
             },
           ],
         },
@@ -49,6 +50,47 @@ describe("BT16-085", () => {
     });
     expect(irNode(compiled.effects?.[1]?.actions?.[0])?.actions?.[1]).not.toHaveProperty("optional");
     expect(irNode(compiled.effects?.[1]?.actions?.[0])?.actions?.[1]).not.toHaveProperty("abortOnDecline");
+  });
+
+  it("suspends this Tamer, gains memory, and trashes three cards from an opposing stack on DNA digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT16-085", as: "tamer" },
+            { card: "BT16-018", as: "blueMaterial" },
+            { card: "BT16-021", as: "greenMaterial" },
+          ],
+          hand: [{ card: "BT16-025", as: "paildramon" }],
+        },
+        1: {
+          battleArea: [
+            {
+              card: "BT1-009",
+              as: "opponentStack",
+              under: ["BT1-009", "BT1-009", "BT1-009"],
+            },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("blueMaterial").permanentId, s.perm("greenMaterial").permanentId],
+        instanceId: s.inst("paildramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("tamer").isSuspended && s.perm("opponentStack").stack.length === 0);
+
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("opponentStack").stack).toHaveLength(0);
+    expect(s.state.players[1]!.trash.filter((card) => card.cardId === "BT1-009")).toHaveLength(3);
   });
 
   it("plays itself from security", () => {

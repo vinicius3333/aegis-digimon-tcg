@@ -87,8 +87,8 @@ export interface CostModifierAction extends ActionBase {
    */
   mode?: "delta" | "set" | "raiseCeiling" | "reduce";
   amount: number;
-  /** Defaults to the source card for the self form. */
-  target: Target;
+  /** Defaults to the source card; omitted for transient player-scoped modifiers. */
+  target?: Target;
   /** Modify the selected battle-area permanent's current play cost, not matching cards in loose zones. */
   existingPermanent?: boolean;
   /**

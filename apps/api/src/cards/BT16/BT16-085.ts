@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -32,7 +31,8 @@ export const compiled: CompiledCard = {
         },
         {
           kind: "SubTrigger",
-          event: "endOfOpponentTurn",
+          event: "endOfTurn",
+          turnScope: "opponentsTurn",
           once: true,
           on: {
             filter: {
@@ -97,17 +97,8 @@ export const compiled: CompiledCard = {
               },
               amount: 3,
               condition: {
-                kind: "allOf",
-                conditions: [
-                  {
-                    kind: "isDnaDigivolving",
-                    raw: "DNA digivolving",
-                  },
-                  {
-                    kind: "ifThisEffectActed",
-                    raw: "previous suspend cost was paid",
-                  },
-                ],
+                kind: "isDnaDigivolving",
+                raw: "DNA digivolving",
               },
               raw: "If DNA digivolving, by suspending this Tamer, trash any 3 digivolution cards under 1 of your opponent's Digimon.",
             },

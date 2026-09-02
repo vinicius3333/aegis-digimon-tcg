@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-084.js";
 import "../index.js";
 
@@ -19,7 +19,8 @@ describe("BT16-084", () => {
         },
         {
           kind: "SubTrigger",
-          event: "endOfOpponentTurn",
+          event: "endOfTurn",
+          turnScope: "opponentsTurn",
           once: true,
           on: { filter: { boundRef: "playedHawkmonOrSalamon" }, count: 1 },
           actions: [{ kind: "Return", to: "hand" }],
@@ -40,12 +41,93 @@ describe("BT16-084", () => {
             {
               kind: "ModifyDP",
               amount: -3000,
-              condition: { kind: "allOf", conditions: [{ kind: "isDnaDigivolving" }, { kind: "ifThisEffectActed" }] },
+              condition: { kind: "isDnaDigivolving" },
             },
           ],
         },
       ],
     });
+  });
+
+  it("naturally DNA digivolves into a red/yellow Digimon, suspends this Tamer, and reduces an opponent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT16-084", as: "tamer" },
+            { card: "BT16-008", as: "redMaterial" },
+            { card: "BT16-031", as: "yellowMaterial" },
+          ],
+          hand: [{ card: "BT16-012", as: "silphymon" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 15000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 0;
+    let observedDnaEvent = false;
+    advance(s.engine).ledgers.subTriggers.subscribe({
+      event: "whenOneOfYoursDigivolves",
+      sourcePermanentId: s.perm("tamer").permanentId,
+      once: true,
+      continuous: false,
+      description: "test: preserve DNA provenance on digivolution watchers",
+      run: async (ctx) => {
+        observedDnaEvent = ctx.trigger.isDnaDigivolve === true;
+      },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("redMaterial").permanentId, s.perm("yellowMaterial").permanentId],
+        instanceId: s.inst("silphymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-012") &&
+        s.perm("tamer").isSuspended &&
+        s.perm("target").currentDP === 5000,
+    );
+
+    const silphymon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT16-012");
+    expect(silphymon?.isSuspended).toBe(false);
+    expect(observedDnaEvent).toBe(true);
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("target").currentDP).toBe(5000);
+  });
+
+  it("does not treat an ordinary red digivolution as DNA", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT16-084", as: "tamer" },
+            { card: "BT16-008", as: "redBase" },
+          ],
+          hand: [{ card: "BT16-012", as: "silphymon" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 15000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("redBase").permanentId,
+        instanceId: s.inst("silphymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("redBase").topCard?.cardId === "BT16-012" && s.perm("tamer").isSuspended);
+
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("target").currentDP).toBe(15000);
   });
 
   it("plays itself from security", () => {

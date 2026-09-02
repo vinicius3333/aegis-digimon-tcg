@@ -486,6 +486,7 @@ function matchGatedRequirement(
     // Base play-cost gate: distinguishes same-name reprints ("Play cost 12 [Ceresmon]").
     if (req.basePlayCost !== undefined && baseDef.playCost !== req.basePlayCost) continue;
     if (req.basePlayCostMin !== undefined && baseDef.playCost < req.basePlayCostMin) continue;
+    if (req.basePlayCostMax !== undefined && baseDef.playCost > req.basePlayCostMax) continue;
 
     // Text gate: "[X] in its text" is the full card-information union, not effectText-only
     // (EX12-051 Q6829). A card's name and traits count, as do every printed effect field; the

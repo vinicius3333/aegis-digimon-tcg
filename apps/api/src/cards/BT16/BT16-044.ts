@@ -1,18 +1,18 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Hand-authored override (runtime-effect fix). "Suspend 1 of your opponent's Digimon. It
 // can't unsuspend during your opponent's next unsuspend phase." — bind the suspended
 // opponent Digimon and restrict THAT Digimon (the previous isSelfRef wrongly froze
 // this card itself). Q2636: the two security-count clauses are independent.
-const suspendAndRestrict = () => [
+const suspendAndRestrict = (): Action[] => [
   {
     kind: "SelectBind",
     target: {
       filter: {
         controller: "opponent",
         kind: ["Digimon"],
+        unsuspended: true,
       },
       count: 1,
       bindAs: "suspended",

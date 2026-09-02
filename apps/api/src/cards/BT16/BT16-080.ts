@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const dpOrDelete = [
+const dpOrDelete: Action[] = [
   {
     kind: "ModifyDP",
     target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
@@ -15,7 +14,7 @@ const dpOrDelete = [
     target: { filter: { controller: "opponent", kind: ["Digimon"], suspended: false }, count: 1 },
     condition: { kind: "securityAtMost", value: 3 },
   },
-] as const;
+];
 
 export const compiled: CompiledCard = {
   effects: [

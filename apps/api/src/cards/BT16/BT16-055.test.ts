@@ -9,7 +9,8 @@ describe("BT16-055", () => {
     for (const effect of compiled.effects?.slice(0, 2) ?? []) {
       expect(effect.actions?.[0]).toMatchObject({
         kind: "GrantStatic",
-        grant: { kind: "Protection", protections: ["dpReduction", "deDigivolve"] },
+        grant: "dpReductionImmunity",
+        tokens: ["DeDigivolveImmunity"],
         duration: "untilOpponentTurnEnd",
         condition: { kind: "securityAtLeast", value: 3 },
       });
@@ -19,12 +20,23 @@ describe("BT16-055", () => {
   it("grants Blocker and Reboot when security is three or fewer", () => {
     for (const effect of compiled.effects?.slice(0, 2) ?? []) {
       expect(effect.actions?.[1]).toMatchObject({
-        kind: "GainKeyword",
-        keyword: { keyword: "Blocker" },
+        kind: "SelectBind",
+        target: {
+          filter: { controller: "mine", kind: ["Digimon"] },
+          count: 1,
+          bindAs: "blockerRebootTarget",
+        },
         condition: { kind: "securityAtMost", value: 3 },
       });
       expect(effect.actions?.[2]).toMatchObject({
         kind: "GainKeyword",
+        target: { fromSelectionRef: "blockerRebootTarget", filter: {}, count: 1 },
+        keyword: { keyword: "Blocker" },
+        condition: { kind: "securityAtMost", value: 3 },
+      });
+      expect(effect.actions?.[3]).toMatchObject({
+        kind: "GainKeyword",
+        target: { fromSelectionRef: "blockerRebootTarget", filter: {}, count: 1 },
         keyword: { keyword: "Reboot" },
         condition: { kind: "securityAtMost", value: 3 },
       });
@@ -45,7 +57,10 @@ describe("BT16-055", () => {
         0: {
           hand: [{ card: "BT16-055", as: "namake" }],
           security: ["BT1-009", "BT1-009", "BT1-009"],
-          battleArea: [{ card: "BT1-009", as: "ally" }],
+          battleArea: [
+            { card: "BT1-009", as: "allyA" },
+            { card: "BT1-010", as: "allyB" },
+          ],
         },
       },
       { autoSelectCards: true },
@@ -55,11 +70,21 @@ describe("BT16-055", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("namake").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => observe(s.engine).hasKeyword(s.perm("ally"), "Reboot"));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => observe(s.engine).hasKeyword(permanent, "Reboot")),
+    );
 
-    expect(observe(s.engine).isRestricted(s.perm("ally"), "dpImmune")).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("ally"), "cantBeDeDigivolved")).toBe(true);
-    expect(observe(s.engine).hasKeyword(s.perm("ally"), "Blocker")).toBe(true);
-    expect(observe(s.engine).hasKeyword(s.perm("ally"), "Reboot")).toBe(true);
+    const digimon = s.state.players[0]!.battleArea;
+    const blockerIds = digimon
+      .filter((permanent) => observe(s.engine).hasKeyword(permanent, "Blocker"))
+      .map((permanent) => permanent.permanentId);
+    const rebootIds = digimon
+      .filter((permanent) => observe(s.engine).hasKeyword(permanent, "Reboot"))
+      .map((permanent) => permanent.permanentId);
+
+    expect(blockerIds).toHaveLength(1);
+    expect(rebootIds).toEqual(blockerIds);
+    expect(digimon.some((permanent) => observe(s.engine).isRestricted(permanent, "dpImmune"))).toBe(true);
+    expect(digimon.some((permanent) => observe(s.engine).isRestricted(permanent, "cantBeDeDigivolved"))).toBe(true);
   });
 });

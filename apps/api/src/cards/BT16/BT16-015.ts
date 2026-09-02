@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -51,7 +50,7 @@ const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["Phoenixmon"],
-                      match: "name",
+                      match: "nameExact",
                     },
                     {
                       tokens: ["X Antibody"],
@@ -91,7 +90,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Phoenixmon"],
-                  match: "name",
+                  match: "nameExact",
                 },
                 {
                   tokens: ["X Antibody"],
@@ -160,7 +159,7 @@ const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Phoenixmon"],
+      namesExact: ["Phoenixmon"],
       cost: 2,
       isAlternate: true,
     },

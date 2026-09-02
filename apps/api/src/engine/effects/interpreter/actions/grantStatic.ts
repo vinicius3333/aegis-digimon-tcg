@@ -328,8 +328,8 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
       if (
         typeof action.grant === "object" &&
         action.grant !== null &&
-        (action.grant as { keyword?: string }).keyword === "EndOfAttack" &&
-        (action.grant as { targetFilter?: { keyword?: string } }).targetFilter?.keyword === "OnDeletion"
+        action.grant.keyword === "EndOfAttack" &&
+        action.grant.targetFilter.keyword === "OnDeletion"
       ) {
         const grantDuration = toDuration(action.duration ?? "forTheTurn");
         for (const id of ids) ctx.fx.projectOnDeletionAtEndOfAttack?.(id, grantDuration);
