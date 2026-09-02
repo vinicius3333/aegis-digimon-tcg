@@ -30,6 +30,7 @@ export type SubTriggerEvent =
   | "whenAnyDigivolves" // `sourceFilter` narrows the controller
   | "onDeletionOf"
   | "whenSecurityRemoved"
+  | "whenSecurityBattleEnded"
   | "whenCardTrashedFromSecurity"
   | "whenEffectTrashesFromSecurity"
   | "whenAddSecurity"

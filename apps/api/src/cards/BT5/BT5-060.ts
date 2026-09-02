@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR — looking at the top card does not move or reveal it publicly.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
@@ -10,7 +9,7 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnPlay",
-      actions: [],
+      actions: [{ kind: "Look", zone: "deck", count: 1 }],
     },
     {
       trigger: "OnDeletion",

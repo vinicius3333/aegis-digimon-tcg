@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT5-047 — do not regenerate.
 // Added from:["trash"] to source and underFilter:{green Digimon} + position:"bottom".
 import type { CompiledCard } from "@aegis/shared";
@@ -16,7 +15,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Palmon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },

@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import type { PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -20,12 +19,27 @@ describe("BT5-060 Monitamon", () => {
     const s = setupEngine({
       0: { hand: [{ card: "BT5-060", as: "source" }], deck: [{ card: "BT5-061", as: "deckTop" }] },
     });
-    const player = s.state.players[0] as PlayerState;
+    const player = s.state.players[0]!;
     const topId = s.inst("deckTop").instanceId;
     s.state.memory = 3;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
       ok: true,
     });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const look = s.state.pendingDecision!;
+    const request = s.decisions.find(({ req }) => req.decisionId === look.decisionId)!.req;
+    expect(look.seat).toBe(0);
+    expect(request.options?.candidateInstanceIds).toEqual([]);
+    expect(request.options?.visibleInstanceIds).toEqual([topId]);
+    expect(request.options?.visibleCards).toEqual([{ instanceId: topId, cardId: "BT5-061" }]);
+    expect(s.events.some((event) => event.kind === "cardRevealed")).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: look.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => player.battleArea.some((p) => p.topCard?.cardId === "BT5-060"));
     expect(player.deck.map((card) => card.instanceId)).toEqual([topId]);
     expect(player.deck[0]?.faceUp).toBe(false);
@@ -46,7 +60,7 @@ describe("BT5-060 Monitamon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    const player = s.state.players[0] as PlayerState;
+    const player = s.state.players[0]!;
     const playedId = s.inst("played").instanceId;
 
     await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId]);
@@ -72,7 +86,7 @@ describe("BT5-060 Monitamon", () => {
         ],
       },
     });
-    const player = s.state.players[0] as PlayerState;
+    const player = s.state.players[0]!;
 
     const deletion = advance(s.engine).verb.deletePermanent([s.perm("source").permanentId]);
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
@@ -101,7 +115,7 @@ describe("BT5-060 Monitamon", () => {
       { 0: { battleArea: [{ card: "BT5-060", as: "source" }], deck: ["BT5-061", "BT5-062", "BT5-063"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    const player = s.state.players[0] as PlayerState;
+    const player = s.state.players[0]!;
     await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId]);
     await settle(() => player.deck.length === 3);
     expect(player.battleArea).toHaveLength(0);
@@ -118,7 +132,7 @@ describe("BT5-060 Monitamon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    const player = s.state.players[0] as PlayerState;
+    const player = s.state.players[0]!;
 
     await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId]);
     await settle(() => player.deck.length === 3);

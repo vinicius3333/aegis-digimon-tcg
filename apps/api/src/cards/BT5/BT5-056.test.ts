@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { internalsOf } from "../../engine/testkit/internals.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./BT5-046.js";
 import "./BT5-056.js";
@@ -29,7 +30,7 @@ describe("BT5-056 Rafflesimon", () => {
     await s.engine.recomputeContinuousEffects();
     const before = s.perm("ally").currentDP;
     const raffleBefore = s.perm("raffle").currentDP;
-    const source = (s.engine as any).cardSourceOf(s.perm("raffle").topCard!);
+    const source = internalsOf(s.engine).cardSourceOf(s.perm("raffle").topCard!);
     const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
       effect.effectKey.startsWith("BT5-056/"),
     )!.effectKey;
@@ -69,7 +70,7 @@ describe("BT5-056 Rafflesimon", () => {
       { autoSelectCards: true },
     );
     await s.ready();
-    const terrierSource = (s.engine as any).cardSourceOf(s.perm("terrier").topCard!);
+    const terrierSource = internalsOf(s.engine).cardSourceOf(s.perm("terrier").topCard!);
     const terrierEffectKey = effectsOf(EffectTiming.OnDeclaration, terrierSource).find((effect) =>
       effect.effectKey.startsWith("BT5-046/"),
     )!.effectKey;
@@ -95,7 +96,7 @@ describe("BT5-056 Rafflesimon", () => {
           req.kind === "chooseTargets" && req.options?.candidateInstanceIds?.includes(s.perm("opponent").permanentId),
       );
     const restrictionCount = restrictionDecisions().length;
-    const raffleSource = (s.engine as any).cardSourceOf(s.perm("raffle").topCard!);
+    const raffleSource = internalsOf(s.engine).cardSourceOf(s.perm("raffle").topCard!);
     const raffleEffectKey = effectsOf(EffectTiming.OnDeclaration, raffleSource).find((effect) =>
       effect.effectKey.startsWith("BT5-056/"),
     )!.effectKey;

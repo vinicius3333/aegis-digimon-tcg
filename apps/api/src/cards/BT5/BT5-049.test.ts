@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import type { PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT5-049.js";
 
@@ -18,7 +17,7 @@ describe("BT5-049 Kiwimon", () => {
       },
       { autoSelectCards: true },
     );
-    const player = s.state.players[0] as PlayerState;
+    const player = s.state.players[0]!;
     const added = [s.inst("digisorptionA").instanceId, s.inst("digisorptionB").instanceId];
     s.state.memory = 4;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
@@ -33,7 +32,7 @@ describe("BT5-049 Kiwimon", () => {
       { 0: { hand: [{ card: "BT5-049", as: "source" }], deck: ["BT5-050", "BT5-051", "BT5-052"] } },
       { autoSelectCards: true },
     );
-    const player = s.state.players[0] as PlayerState;
+    const player = s.state.players[0]!;
     s.state.memory = 4;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
       ok: true,

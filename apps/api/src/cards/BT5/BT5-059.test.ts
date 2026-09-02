@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import type { PlayerState } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT5-059.js";
@@ -35,7 +34,7 @@ describe("BT5-059 Keramon", () => {
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
-    const player = s.state.players[0] as PlayerState;
+    const player = s.state.players[0]!;
     preferred.push(s.inst("unidentified").instanceId, s.inst("arata").instanceId);
     const added = [s.inst("unidentified").instanceId, s.inst("arata").instanceId];
     s.state.memory = 3;
@@ -67,7 +66,7 @@ describe("BT5-059 Keramon", () => {
       },
       { autoSelectCards: true },
     );
-    const player = s.state.players[0] as PlayerState;
+    const player = s.state.players[0]!;
     s.state.memory = 3;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
       ok: true,
@@ -87,7 +86,7 @@ describe("BT5-059 Keramon", () => {
       },
       { autoSelectCards: true },
     );
-    const player = s.state.players[0] as PlayerState;
+    const player = s.state.players[0]!;
     s.state.memory = 3;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
       ok: true,

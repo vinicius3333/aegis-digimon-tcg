@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -60,7 +59,6 @@ const compiled: CompiledCard = {
           while: {
             kind: "selfHasNameContaining",
             names: ["Garurumon", "Omnimon"],
-            excludeNames: [],
             raw: "this Digimon has [Garurumon] or [Omnimon] in its name",
           },
         },
