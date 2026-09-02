@@ -1,5 +1,7 @@
 # BT7 Card Implementation Audit
 
+> Historical ledger: this document preserves an earlier newest-to-oldest static pass and its then-current 9/10 assessments. It is not the completion source of truth. See `docs/audits/BT7-STATIC-AUDIT.md` for the final 112/112 verified 10/10 ledger, synchronized snapshot, resolved BT7-063/BT7-098/BT7-109 evidence, and executed delivery gates.
+
 This ledger records static audits performed in newest-to-oldest order. Behavioral tests and broad gates are intentionally not claimed unless explicitly run.
 
 ## BT7-111 — Lucemon: Chaos Mode — 9/10 (static audit)
