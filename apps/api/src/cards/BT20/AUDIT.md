@@ -2,11 +2,12 @@
 
 ## Collection closeout
 
-- Final status: 102/102 cards verified at 10/10; every production module has `coverage: "full"`, an empty residual list, exactly one `registerIrCard` call, and no `registerCard` call.
-- Collection gate: `timeout 300s pnpm --filter @aegis/api exec vitest run src/cards/BT20 --maxWorkers=1 --no-file-parallelism` — 103 files and 564 tests passed.
-- Mechanism gate: the 22 affected watcher, security, interpreter, continuous-effect, digivolution, interaction, and synchronized-state suites passed 916/916 tests with one worker and no file parallelism.
-- Catalog gate: all 102 direct modules equal their persisted `effects.json` records; 80 BT20 records changed semantically and no non-BT20 record changed.
-- Static gates: shared build and serial workspace typecheck passed; `pnpm lint` exited successfully with repository warnings only; scoped Oxfmt check and `git diff --check` passed.
+- Final status: 102/102 cards verified at 10/10; every production module has `coverage: "full"`, an empty residual list, exactly one `registerIrCard` call, no `registerCard` call, and no `@ts-nocheck` directive.
+- Typed revalidation: the remaining 98 suppressions were removed; 12 changed-card focused suites passed 65/65 tests.
+- Collection gate: `timeout 300s pnpm --filter @aegis/api exec vitest run src/cards/BT20 --pool=forks --poolOptions.forks.singleFork=true --no-file-parallelism` — 103 files and 564 tests passed.
+- Mechanism gate: 13 affected watcher, security, interpreter, continuous-effect, digivolution, interaction, and card-data suites passed 888/888 tests; the primitives suite passed 138/138 in its isolated single-fork rerun after a combined invocation exposed cross-file registry state. The 2 synchronized-state suites passed 7/7.
+- Catalog gate: `effects:sync:set` generated the snapshot and `effects:check:set` verified it; all 102 direct modules equal their persisted records, 80 BT20 records changed semantically, and no non-BT20 record changed semantically or byte-for-byte. The generator's own 13 tests passed.
+- Static gates: shared build and API typecheck passed; global Oxlint exited successfully with repository warnings only; scoped one-thread Oxfmt and `git diff --check` passed.
 - The individual `Tests:` lines below preserve the focused proof available when each card entry was written. The collection and mechanism gates above are the authoritative final counts.
 - Final summary: `docs/audits/BT20-AUDIT.md`. Historical pre-execution lane reports remain under `internal-docs/audits/BT20/` and are explicitly marked as superseded.
 
