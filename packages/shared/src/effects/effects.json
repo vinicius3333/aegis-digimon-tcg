@@ -28606,7 +28606,7 @@
           },
           {
             "kind": "Restrict",
-            "target": { "fromSelectionRef": "suspendedTarget" },
+            "target": { "filter": {}, "count": 1, "fromSelectionRef": "suspendedTarget" },
             "restriction": "unsuspend",
             "duration": "untilOpponentNextUnsuspendPhase",
             "condition": { "kind": "digiXrosCount", "minimum": 2, "raw": "if DigiXrosing with 2 cards" }
@@ -29553,7 +29553,8 @@
           {
             "kind": "RestrictDigivolveInto",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "into": { "colors": ["White"] }
+            "into": { "colors": ["White"] },
+            "duration": "forTheTurn"
           }
         ]
       },
@@ -29953,7 +29954,6 @@
             "actions": [
               {
                 "kind": "Recover",
-                "controller": "mine",
                 "amount": 1,
                 "condition": { "kind": "zoneCount", "seat": "mine", "zone": "security", "op": "lte", "value": 3 }
               }
@@ -30042,7 +30042,7 @@
             "kind": "PlayWithoutCost",
             "target": {
               "filter": {
-                "or": [{ "nameOrTrait": [{ "tokens": ["Numemon"], "match": "any" }] }, { "levels": [3] }],
+                "or": [{ "nameOrTrait": [{ "tokens": ["Numemon"], "match": "name" }] }, { "levels": [3] }],
                 "controller": "mine",
                 "kind": ["Digimon"]
               },
@@ -30612,7 +30612,8 @@
           {
             "kind": "RestrictDigivolveInto",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "into": { "colors": ["White"] }
+            "into": { "colors": ["White"] },
+            "duration": "forTheTurn"
           }
         ]
       },
@@ -30697,24 +30698,28 @@
           {
             "kind": "Suspend",
             "target": {
-              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "filter": { "controller": "opponent", "kind": ["Digimon"], "unsuspended": true },
               "count": 1,
               "bindAs": "digimonTarget"
             }
           },
           {
             "kind": "Suspend",
-            "target": { "filter": { "controller": "opponent", "kind": ["Tamer"] }, "count": 1, "bindAs": "tamerTarget" }
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Tamer"], "unsuspended": true },
+              "count": 1,
+              "bindAs": "tamerTarget"
+            }
           },
           {
             "kind": "Restrict",
-            "target": { "fromSelectionRef": "digimonTarget" },
+            "target": { "fromSelectionRef": "digimonTarget", "filter": {}, "count": 1 },
             "restriction": "unsuspend",
             "duration": "untilOpponentTurnEnd"
           },
           {
             "kind": "Restrict",
-            "target": { "fromSelectionRef": "tamerTarget" },
+            "target": { "fromSelectionRef": "tamerTarget", "filter": {}, "count": 1 },
             "restriction": "unsuspend",
             "duration": "untilOpponentTurnEnd"
           }
@@ -30921,7 +30926,11 @@
         "actions": [
           {
             "kind": "SelectBind",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1, "bindAs": "suspended" }
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"], "unsuspended": true },
+              "count": 1,
+              "bindAs": "suspended"
+            }
           },
           { "kind": "Suspend", "target": { "fromSelectionRef": "suspended", "filter": {}, "count": 1 } },
           {
@@ -30942,7 +30951,11 @@
         "actions": [
           {
             "kind": "SelectBind",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1, "bindAs": "suspended" }
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"], "unsuspended": true },
+              "count": 1,
+              "bindAs": "suspended"
+            }
           },
           { "kind": "Suspend", "target": { "fromSelectionRef": "suspended", "filter": {}, "count": 1 } },
           {
@@ -31085,6 +31098,7 @@
               "nameOrTrait": [{ "tokens": ["Greymon", "Garurumon"], "match": "name" }]
             },
             "from": ["hand"],
+            "payCost": true,
             "reduceCost": 2,
             "optional": true,
             "condition": { "kind": "isYourTurn", "raw": "it's your turn" }
@@ -31482,9 +31496,9 @@
           {
             "kind": "GainKeyword",
             "target": {
-              "filter": { "nameOrTrait": [{ "tokens": ["Monzaemon", "Numemon"], "match": "name" }] },
+              "filter": { "isSelfRef": true, "nameOrTrait": [{ "tokens": ["Monzaemon", "Numemon"], "match": "name" }] },
               "count": 1,
-              "host": "self"
+              "isSelf": true
             },
             "keyword": { "keyword": "SecurityAttack", "amount": 1, "raw": "＜Security Attack +1＞" },
             "duration": "forTheTurn"
@@ -31526,7 +31540,8 @@
           {
             "kind": "RestrictDigivolveInto",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "into": { "colors": ["White"] }
+            "into": { "colors": ["White"] },
+            "duration": "forTheTurn"
           }
         ]
       },
@@ -31705,7 +31720,7 @@
       },
       {
         "trigger": "OnDeletion",
-        "actions": [{ "kind": "Delete", "target": { "filter": { "sourceRef": "battleOpponent" }, "count": 1 } }],
+        "actions": [{ "kind": "Delete", "target": { "sourceRef": "battleOpponent", "filter": {}, "count": 1 } }],
         "isInherited": true
       }
     ],
@@ -31780,7 +31795,7 @@
               "excludeSelf": true,
               "kind": ["Digimon"],
               "nameOrTrait": [
-                { "tokens": ["Apocalymon"], "match": "text" },
+                { "tokens": ["Apocalymon"], "match": "name" },
                 { "tokens": ["Dark Masters"], "match": "trait" }
               ]
             },
@@ -32079,7 +32094,7 @@
       },
       {
         "trigger": "OnDeletion",
-        "actions": [{ "kind": "Delete", "target": { "filter": { "sourceRef": "battleOpponent" }, "count": 1 } }],
+        "actions": [{ "kind": "Delete", "target": { "sourceRef": "battleOpponent", "filter": {}, "count": 1 } }],
         "isInherited": true
       }
     ],
@@ -32180,7 +32195,8 @@
           {
             "kind": "RestrictDigivolveInto",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "into": { "colors": ["White"] }
+            "into": { "colors": ["White"] },
+            "duration": "forTheTurn"
           }
         ]
       },
@@ -32207,7 +32223,7 @@
       },
       {
         "trigger": "OnDeletion",
-        "actions": [{ "kind": "Delete", "target": { "filter": { "sourceRef": "battleOpponent" }, "count": 1 } }],
+        "actions": [{ "kind": "Delete", "target": { "sourceRef": "battleOpponent", "filter": {}, "count": 1 } }],
         "isInherited": true
       }
     ],
@@ -32794,8 +32810,7 @@
                 "nameOrTrait": [{ "tokens": ["Sora Takenouchi"], "match": "name" }]
               },
               "raw": "you have a Tamer with [Sora Takenouchi] in its name"
-            },
-            "optional": true
+            }
           }
         ]
       },
@@ -33154,7 +33169,7 @@
             "kind": "GainTriggeredEffect",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "gainedTrigger": "onDeletionOf",
-            "gainedActions": [{ "kind": "SecurityManipulation", "op": "trashTop", "amount": 1 }],
+            "gainedActions": [{ "kind": "SecurityManipulation", "op": "trashTop", "controller": "mine", "amount": 1 }],
             "condition": {
               "kind": "youHave",
               "filter": {
@@ -33530,7 +33545,7 @@
               },
               "count": 1
             },
-            "into": { "filter": { "isSelfRef": true }, "count": 1 },
+            "into": { "isSelfRef": true },
             "from": ["hand"],
             "payCost": true,
             "costOverride": 4,
@@ -33614,7 +33629,7 @@
                       "controller": "mine",
                       "nameOrTrait": [{ "tokens": ["Dark Masters"], "match": "trait" }],
                       "distinctNames": true,
-                      "zone": "trashOrBattleArea"
+                      "zone": ["trash", "battleArea"]
                     },
                     "count": 3,
                     "upTo": true,
