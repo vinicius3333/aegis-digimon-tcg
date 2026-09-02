@@ -619,7 +619,7 @@ export async function pickLoose(
     }
     return chosen;
   }
-  if (target.count === "all" && cap === undefined && !requireDifferentColors)
+  if (target.count === "all" && cap === undefined && !target.upTo && !requireDifferentColors)
     return candidates.map((c) => c.instanceId);
   if (candidates.length <= want && !target.upTo && !requireDifferentColors && target.forceSelection !== true)
     return candidates.slice(0, want).map((c) => c.instanceId);

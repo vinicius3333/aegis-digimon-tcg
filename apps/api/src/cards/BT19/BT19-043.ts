@@ -1,12 +1,12 @@
-// @ts-nocheck
+import type { CompiledCard, Condition } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const lucemonInStack = {
+const lucemonInStack: Condition = {
   kind: "selfDigivolutionStackMatchesFilter",
   filter: { nameOrTrait: [{ tokens: ["Lucemon"], match: "name" }] },
   raw: "a [Lucemon] card is in this Digimon's digivolution cards",
 };
-const compiled = {
+const compiled: CompiledCard = {
   effects: [
     {
       trigger: "AllTurns",

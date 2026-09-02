@@ -1,20 +1,22 @@
-// @ts-nocheck
+import type { CardEffect, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled = {
+const playEffects: CardEffect[] = (["OnPlay", "WhenDigivolving"] as const).map((trigger): CardEffect => ({
+  trigger,
+  actions: [
+    { kind: "TrashTopDeck", controller: "mine", amount: 2 },
+    {
+      kind: "GainKeyword",
+      target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+      keyword: { keyword: "Blocker", raw: "＜Blocker＞" },
+      duration: "untilOpponentTurnEnd",
+    },
+  ],
+}));
+
+const compiled: CompiledCard = {
   effects: [
-    ...["OnPlay", "WhenDigivolving"].map((trigger) => ({
-      trigger,
-      actions: [
-        { kind: "TrashTopDeck", controller: "mine", amount: 2 },
-        {
-          kind: "GainKeyword",
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          keyword: { keyword: "Blocker", raw: "＜Blocker＞" },
-          duration: "untilOpponentTurnEnd",
-        },
-      ],
-    })),
+    ...playEffects,
     {
       trigger: "AllTurns",
       actions: [

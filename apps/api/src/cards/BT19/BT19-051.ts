@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -47,6 +46,8 @@ const compiled: CompiledCard = {
           kind: "Restrict",
           target: {
             fromSelectionRef: "atlurTarget",
+            filter: {},
+            count: 1,
           },
           restriction: "beReturned",
           duration: "untilOpponentTurnEnd",
@@ -73,6 +74,8 @@ const compiled: CompiledCard = {
           kind: "Restrict",
           target: {
             fromSelectionRef: "atlurTarget",
+            filter: {},
+            count: 1,
           },
           restriction: "beReturned",
           duration: "untilOpponentTurnEnd",

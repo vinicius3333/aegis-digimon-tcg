@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT19-082 — do not regenerate.
 // YourTurn SubTrigger PlaceUnder: added from:["hand"], underFilter:{mine Digimon},
 // position:bottom (places Aqua/Sea Animal Lv.≤5 from hand under a Digimon).

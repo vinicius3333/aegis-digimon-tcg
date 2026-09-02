@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -53,9 +52,10 @@ const compiled: CompiledCard = {
             per: 1,
             filter: {
               controller: "mine",
+              zone: "security",
               faceUp: true,
             },
-            unit: "security",
+            unit: "cards",
           },
         },
       ],
@@ -79,9 +79,10 @@ const compiled: CompiledCard = {
             per: 1,
             filter: {
               controller: "mine",
+              zone: "security",
               faceUp: true,
             },
-            unit: "security",
+            unit: "cards",
           },
         },
       ],

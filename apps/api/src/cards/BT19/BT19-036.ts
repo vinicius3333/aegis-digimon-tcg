@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -22,15 +21,23 @@ const compiled: CompiledCard = {
           op: "addBottom",
           controller: "mine",
           amount: 1,
-          source: "hand",
-          filter: {
-            kind: ["Option"],
-            playCostLte: 5,
-            colors: ["Yellow", "Purple"],
+          source: {
+            filter: {
+              zone: "hand",
+              controller: "mine",
+              kind: ["Option"],
+              playCostLte: 5,
+              colors: ["Yellow", "Purple"],
+            },
+            count: 1,
+            upTo: true,
           },
           condition: {
             kind: "selfHasInDigivolutionCards",
-            nameOrTrait: [{ tokens: ["Wizardmon", "X Antibody"], match: "name" }],
+            nameOrTrait: [
+              { tokens: ["Wizardmon"], match: "name" },
+              { tokens: ["X Antibody"], match: "trait" },
+            ],
             raw: "[Wizardmon]/[X Antibody] is in this Digimon's digivolution cards",
           },
           optional: true,
@@ -52,15 +59,23 @@ const compiled: CompiledCard = {
           op: "addBottom",
           controller: "mine",
           amount: 1,
-          source: "hand",
-          filter: {
-            kind: ["Option"],
-            playCostLte: 5,
-            colors: ["Yellow", "Purple"],
+          source: {
+            filter: {
+              zone: "hand",
+              controller: "mine",
+              kind: ["Option"],
+              playCostLte: 5,
+              colors: ["Yellow", "Purple"],
+            },
+            count: 1,
+            upTo: true,
           },
           condition: {
             kind: "selfHasInDigivolutionCards",
-            nameOrTrait: [{ tokens: ["Wizardmon", "X Antibody"], match: "name" }],
+            nameOrTrait: [
+              { tokens: ["Wizardmon"], match: "name" },
+              { tokens: ["X Antibody"], match: "trait" },
+            ],
             raw: "[Wizardmon]/[X Antibody] is in this Digimon's digivolution cards",
           },
           optional: true,

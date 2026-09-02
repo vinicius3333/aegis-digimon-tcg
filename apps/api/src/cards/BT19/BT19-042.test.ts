@@ -60,6 +60,20 @@ describe("BT19-042 Dynasmon (X Antibody)", () => {
     expect(missing.perm("dynasX").currentDP).toBe(12000);
   });
 
+  it("does not partially pay when the opponent has no security card", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT19-042", as: "dynasX", under: ["BT19-041"] }], security: ["BT19-030"] },
+        1: { security: [] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("dynasX"));
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.perm("dynasX").currentDP).toBe(12000);
+  });
+
   it("shares one once-per-turn use between evolution and attack timings", async () => {
     const s = setupEngine(
       {

@@ -65,7 +65,7 @@ describe("BT19-081 Kiriha Aonuma", () => {
             actions: [
               {
                 kind: "PlaceUnder",
-                target: { filter: { controller: "mine", zone: "underTamer" }, count: "any" },
+                target: { filter: { controller: "mine", zone: "underTamer" }, count: "all", upTo: true },
                 underFilter: { isTriggerSource: true },
                 asDigiXrosMaterial: true,
                 cost: {

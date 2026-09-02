@@ -1,11 +1,21 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("BT19-047 Ballistamon", () => {
+  it("requires the exact AtlurBallistamon name for its On Play evolution", () => {
+    expect(runtimeCompiledCard("BT19-047")?.effects[0]?.actions[0]).toMatchObject({
+      kind: "Digivolve",
+      into: {
+        nameOrTrait: [{ tokens: ["AtlurBallistamon"], match: "nameExact" }],
+      },
+    });
+  });
+
   it("On Play may freely evolve into AtlurBallistamon from under a Tamer", async () => {
     const s = setupEngine(
       {

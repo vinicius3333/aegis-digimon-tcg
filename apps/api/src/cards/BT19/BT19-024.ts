@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT19-024 — do not regenerate.
 // Added AllTurns Replacement implementing <Decode (Blue Lv.4)>: when this Digimon
 // would leave the battle area other than by battle, play 1 Blue Lv.4 from its

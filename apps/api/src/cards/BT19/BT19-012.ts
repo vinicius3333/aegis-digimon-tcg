@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT19-012 — do not regenerate.
 // OnDeletion PlaceUnder: removed spurious colors:["Blue"] (not in card text).
 // GrantStatic name "Shoutmon": KB Q3068 — only treated as Shoutmon FOR DigiXros.

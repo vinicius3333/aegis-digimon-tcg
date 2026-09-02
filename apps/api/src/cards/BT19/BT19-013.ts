@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT19-013 — do not regenerate.
 // Replacement PlaceUnder: added from:["digivolutionCards"] (source must be leaving Digimon's stack).
 // OnDeletion PlayWithoutCost: added playCost lte 4 (text: "play cost 4 or lower").

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -14,7 +13,7 @@ const compiled: CompiledCard = {
           kind: "SelectBind",
           target: {
             filter: {
-              controller: "both",
+              controller: "any",
               kind: ["Digimon"],
               excludeSelf: true,
             },
@@ -28,7 +27,7 @@ const compiled: CompiledCard = {
           kind: "Delete",
           target: {
             fromSelectionRef: "chosenHost",
-            filter: { controller: "both", kind: ["Digimon"], excludeSelf: true },
+            filter: { controller: "any", kind: ["Digimon"], excludeSelf: true },
             count: 1,
           },
           cost: {
@@ -48,7 +47,6 @@ const compiled: CompiledCard = {
               },
               count: 1,
             },
-            payCost: false,
             raw: "By playing 1 level 4 or lower Digimon card from the chosen Digimon’s digivolution cards without paying the cost",
           },
           optional: true,
@@ -63,7 +61,7 @@ const compiled: CompiledCard = {
           kind: "SelectBind",
           target: {
             filter: {
-              controller: "both",
+              controller: "any",
               kind: ["Digimon"],
               excludeSelf: true,
             },
@@ -77,7 +75,7 @@ const compiled: CompiledCard = {
           kind: "Delete",
           target: {
             fromSelectionRef: "chosenHost",
-            filter: { controller: "both", kind: ["Digimon"], excludeSelf: true },
+            filter: { controller: "any", kind: ["Digimon"], excludeSelf: true },
             count: 1,
           },
           cost: {
@@ -97,7 +95,6 @@ const compiled: CompiledCard = {
               },
               count: 1,
             },
-            payCost: false,
             raw: "By playing 1 level 4 or lower Digimon card from the chosen Digimon’s digivolution cards without paying the cost",
           },
           optional: true,

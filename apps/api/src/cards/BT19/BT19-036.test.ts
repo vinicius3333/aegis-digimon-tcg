@@ -53,6 +53,21 @@ describe("BT19-036 Wizardmon (X Antibody)", () => {
     expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-102"]);
   });
 
+  it("recognizes an X Antibody trait even when the source name is not Wizardmon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT19-036", as: "wizardX", under: ["BT10-080"] }],
+          hand: [{ card: "BT1-102", as: "option" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("wizardX"));
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-102"]);
+  });
+
   it("does not bottom a hand Option without Wizardmon or X Antibody in the stack", async () => {
     const s = setupEngine(
       {

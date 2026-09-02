@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -120,13 +119,6 @@ const compiled: CompiledCard = {
           kind: "SecurityManipulation",
           op: "trash",
           controller: "opponent",
-          target: {
-            filter: {
-              controller: "opponent",
-            },
-            count: 1,
-          },
-          from: ["security"],
           cost: {
             kind: "return",
             target: {
@@ -136,8 +128,8 @@ const compiled: CompiledCard = {
                 kind: ["Digimon", "Tamer", "Option"],
               },
               count: 10,
-              to: "deckTop",
             },
+            to: "deckTop",
             raw: "By returning 10 non-Digi-Egg cards from your trash to the top of the deck",
           },
           optional: true,

@@ -40,7 +40,7 @@ describe("BT19-102 Luminamon (Nene Version)", () => {
             target: { fromSelectionRef: "chosenHost" },
             optional: true,
             abortOnDecline: true,
-            cost: { kind: "playFromDigivolutionCards", hostTarget: { fromSelectionRef: "chosenHost" }, payCost: false },
+            cost: { kind: "playFromDigivolutionCards", hostTarget: { fromSelectionRef: "chosenHost" } },
           },
         ],
       },
@@ -58,7 +58,7 @@ describe("BT19-102 Luminamon (Nene Version)", () => {
             target: { fromSelectionRef: "chosenHost" },
             optional: true,
             abortOnDecline: true,
-            cost: { kind: "playFromDigivolutionCards", hostTarget: { fromSelectionRef: "chosenHost" }, payCost: false },
+            cost: { kind: "playFromDigivolutionCards", hostTarget: { fromSelectionRef: "chosenHost" } },
           },
         ],
       },
@@ -178,6 +178,7 @@ describe("BT19-102 Luminamon (Nene Version)", () => {
       ),
     ).toBe(true);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === chosenTop)).toBe(true);
+    expect(s.state.memory).toBe(0);
   });
 
   it("optionally plays only a cost-5-or-less card from under your Tamer after natural battle deletion", async () => {

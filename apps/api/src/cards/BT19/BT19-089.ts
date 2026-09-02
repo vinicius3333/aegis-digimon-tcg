@@ -1,8 +1,8 @@
-// @ts-nocheck
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const ownDigimon = { controller: "mine", kind: ["Digimon"] };
-const compiled = {
+const ownDigimon: Filter = { controller: "mine", kind: ["Digimon"] };
+const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
