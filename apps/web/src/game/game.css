@@ -2844,15 +2844,26 @@ button.side-panel__name:focus-visible {
 .match-notice {
   position: relative;
   display: grid;
+  /* The floor is the icon-bodied notices' height: with it, a recovery chip and
+     an effect chip in the same stack read as one family rather than two sizes. */
+  min-height: 3.75rem;
   padding: 0.55rem 2rem 0.55rem 0.55rem;
   grid-template-columns: auto minmax(0, 1fr);
   gap: 0.6rem;
-  align-items: start;
+  align-items: center;
+  /* Whose moment this is, readable before any text: the viewer's accent on the
+     left edge, the opponent's in their attack red. Painted as a border rather
+     than an inset shadow so it cannot be covered by the corner brackets. */
+  border-left: 3px solid var(--battle-marker);
   border-radius: 0.45rem;
   background: linear-gradient(180deg, rgb(20 40 76 / 96%) 0%, rgb(10 20 40 / 96%) 100%);
   box-shadow: 0 12px 30px rgb(4 14 31 / 55%);
   pointer-events: auto;
   animation: match-notice-in var(--t-notice-in, 200ms) ease-out;
+}
+
+.match-notice[data-side="opp"] {
+  border-left-color: var(--battle-attack);
 }
 
 .match-notice::before,
@@ -2884,6 +2895,12 @@ button.side-panel__name:focus-visible {
 .match-notice[data-variant="rejection"]::before,
 .match-notice[data-variant="rejection"]::after {
   border-color: var(--battle-attack);
+}
+
+/* A rejection is the viewer's own moment, but it announces a refusal: the whole
+   frame wears the attack red, accent included, so it never reads as an effect. */
+.match-notice[data-variant="rejection"] {
+  border-left-color: var(--battle-attack);
 }
 
 .match-notice__icon {
@@ -2921,16 +2938,27 @@ button.side-panel__name:focus-visible {
 }
 
 .match-notice__title {
+  display: -webkit-box;
+  overflow: hidden;
   font-family: var(--ds-font-display);
   font-size: 0.85rem;
   color: #fff;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
+/* Clamped so every chip in a stack lands near the same height: the clause is
+   the card's printed text, and the card link right above it opens the full
+   wording for a clause long enough to be cut. */
 .match-notice__text {
+  display: -webkit-box;
+  overflow: hidden;
   margin: 0;
   font-size: 0.72rem;
   line-height: 1.45;
   color: rgb(226 236 255 / 82%);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
 }
 
 /* A named mechanic announces itself in the reference client's pink pill, next to
@@ -2938,6 +2966,10 @@ button.side-panel__name:focus-visible {
 .match-notice[data-variant="keyword"]::before,
 .match-notice[data-variant="keyword"]::after {
   border-color: var(--battle-keyword);
+}
+
+.match-notice[data-variant="keyword"] {
+  border-left-color: var(--battle-keyword);
 }
 
 .match-notice__keyword {
@@ -4661,6 +4693,22 @@ button.side-panel__name:focus-visible {
   }
   .mulligan-actions > button:last-child {
     flex-basis: 100%;
+  }
+
+  /* The phone's single notice band: GameScreen collapses every anchor into one
+     top-center stack here, because four corners on a 390px screen meant a notice
+     could land on the hand, the actions or the field the player is reading. The
+     band sits below the opponent feed and grows downward, newest last. */
+  .match-notice-stack[data-anchor="top-center"] {
+    top: calc(10.5rem + env(safe-area-inset-top, 0px));
+    right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
+    left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
+    width: auto;
+  }
+  /* One line less than the desktop clamp: the band covers the field while it is
+     up, and the card link still opens the full clause. */
+  .match-notice__text {
+    -webkit-line-clamp: 2;
   }
 }
 

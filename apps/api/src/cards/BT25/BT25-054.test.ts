@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { describe, expect, it } from "vitest";
@@ -60,23 +59,34 @@ describe("BT25-054 GreatGrizzlymon", () => {
         0: {
           hand: [{ card: "BT25-054", as: "source" }],
           battleArea: [{ card: "BT1-009", as: "sink", suspended: true }],
+          security: ["BT1-001"],
+          deck: ["BT1-013"],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+        1: { battleArea: [{ card: "BT1-043", as: "target" }], deck: ["BT1-013"] },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 8;
     const subscriptions = advance(s.engine).ledgers.subTriggers;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
-    await settle(() => subscriptions.subscriptionsFor("startOfYourMainPhase", s.perm("target").permanentId).length === 1);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () => subscriptions.subscriptionsFor("startOfYourMainPhase", s.perm("target").permanentId).length === 1,
+    );
+    const sourceId = s.perm("source").permanentId;
+    const sinkId = s.perm("sink").permanentId;
     expect(s.perm("target").isSuspended).toBe(false);
 
     s.state.turnSeat = 1;
-    void (s.engine as unknown as { fireTiming(timing: EffectTiming): Promise<void> }).fireTiming(
-      EffectTiming.OnStartMainPhase,
-    );
-    await settle(() => s.perm("target").isSuspended);
+    const turn = s.engine.runOneTurn();
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
     expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === sinkId));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === sourceId)).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
   });
 
   it("keeps Blocker, both entry grants, and the inherited battle-deletion watcher", () => {
@@ -145,8 +155,12 @@ describe("BT25-054 GreatGrizzlymon", () => {
     );
     s.state.memory = 8;
     const subscriptions = advance(s.engine).ledgers.subTriggers;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
-    await settle(() => subscriptions.subscriptionsFor("startOfYourMainPhase", s.perm("target").permanentId).length === 1);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () => subscriptions.subscriptionsFor("startOfYourMainPhase", s.perm("target").permanentId).length === 1,
+    );
 
     expect(subscriptions.subscriptionsFor("startOfYourMainPhase", s.perm("target").permanentId)).toHaveLength(1);
     subscriptions.sweepExpired(0);

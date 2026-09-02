@@ -49,6 +49,7 @@ describe("EX11-018 Ryugumon", () => {
               optional: true,
               target: {
                 filter: {
+                  hostFilter: { isSelfRef: true },
                   levelComparison: { op: "lte", value: 5 },
                   nameOrTrait: [{ tokens: ["Aqua", "Sea Animal"], match: "traitContains" }],
                 },
@@ -329,6 +330,29 @@ describe("EX11-018 Ryugumon", () => {
       expect(await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], cause)).toBe(1);
       expect(s.state.players[0]!.battleArea).toHaveLength(0);
     }
+  });
+
+  it("plays only from its own digivolution cards, never from a neighbor's stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "source", suspended: true },
+            { card: "BT1-009", as: "neighbor", under: [{ card: "BT10-023", as: "foreign" }] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const foreignId = s.inst("foreign").instanceId;
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect")).toBe(1);
+    await settle();
+
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === foreignId)).toBe(false);
+    expect(s.perm("neighbor").stack.some(({ instanceId }) => instanceId === foreignId)).toBe(true);
+    assertNoLoudGap(s);
   });
 
   it("resolves Decode and accepted Evade in the same deletion window (Q6516)", async () => {

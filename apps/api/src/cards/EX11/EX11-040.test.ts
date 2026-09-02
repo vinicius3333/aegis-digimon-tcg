@@ -27,7 +27,16 @@ describe("EX11-040 Mulemon", () => {
       expect(compiled.effects).toContainEqual(
         expect.objectContaining({
           trigger,
-          actions: [expect.objectContaining({ kind: "Link", from: ["hand", "digivolutionCards"], payCost: false })],
+          actions: [
+            expect.objectContaining({
+              kind: "Link",
+              from: ["hand", "digivolutionCards"],
+              payCost: false,
+              target: expect.objectContaining({
+                filter: expect.objectContaining({ hostFilter: { isSelfRef: true } }),
+              }),
+            }),
+          ],
         }),
       );
     }
@@ -67,6 +76,49 @@ describe("EX11-040 Mulemon", () => {
     expect(s.perm("source").linked.map(({ instanceId }) => instanceId)).toContain(s.inst("maquinamon").instanceId);
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX11-070")).toBe(true);
     expect(s.state.memory).toBe(0);
+    assertNoLoudGap(s);
+  });
+
+  it("cannot link a Maquinamon under another of the controller's Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "source" },
+            { card: "BT1-080", as: "other", under: [{ card: "EX11-027", as: "maquinamon" }] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    expect(s.perm("other").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("maquinamon").instanceId]);
+    expect(s.perm("source").linked).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
+  it("still links but keeps Unchained in hand while the controller has 2 Tamers", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "source" },
+            { card: "BT1-085", as: "firstTamer" },
+            { card: "BT1-086", as: "secondTamer" },
+          ],
+          hand: [
+            { card: "EX11-027", as: "maquinamon" },
+            { card: "EX11-070", as: "unchained" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("maquinamon").instanceId, s.inst("unchained").instanceId);
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    expect(s.perm("source").linked.map(({ instanceId }) => instanceId)).toContain(s.inst("maquinamon").instanceId);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("unchained").instanceId]);
     assertNoLoudGap(s);
   });
 });

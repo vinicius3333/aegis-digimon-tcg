@@ -36,8 +36,15 @@ describe("EX11-034 QueenBeemon", () => {
           {
             kind: "SecurityManipulation",
             op: "addTopOrBottom",
+            controller: "mine",
             faceUp: true,
-            filter: { nameOrTrait: [{ tokens: ["Royal Base"], match: "trait" }] },
+            source: {
+              filter: {
+                controllerDefault: "mine",
+                zone: ["hand", "trash"],
+                nameOrTrait: [{ tokens: ["Royal Base"], match: "trait" }],
+              },
+            },
           },
           { kind: "DeleteBudget", budget: 8 },
         ],
@@ -74,6 +81,42 @@ describe("EX11-034 QueenBeemon", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
     expect(s.state.players[0]!.security[0]).toMatchObject({ cardId: "EX11-025", faceUp: true });
     expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === victimId)).toBe(false);
+    assertNoLoudGap(s);
+  });
+
+  it("leaves a play cost 10 Digimon alive when the placement is declined and the budget stays 8", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "source" }],
+          hand: [{ card: "EX11-025", as: "royalBase" }],
+        },
+        1: { battleArea: [{ card: "BT1-080", as: "cost10" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    const victimId = s.perm("cost10").permanentId;
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("royalBase").instanceId]);
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === victimId)).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("takes the Royal Base placement from the trash as well as the hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "source" }],
+          trash: [{ card: "EX11-025", as: "royalBase" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 0 },
+    );
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("source"));
+    expect(s.state.players[0]!.security[0]).toMatchObject({ cardId: "EX11-025", faceUp: true });
+    expect(s.state.players[0]!.trash).toHaveLength(0);
     assertNoLoudGap(s);
   });
 });

@@ -62,4 +62,30 @@ describe("BT25-049 Armalizamon", () => {
       ],
     });
   });
+
+  it("naturally reduces a Glowing Dawn Option play by trashing a Tamer source", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-049", as: "armalizamon" },
+            { card: "ST23-13", as: "tamer", under: [{ card: "BT1-009", as: "cost", faceUp: false }] },
+          ],
+          hand: [{ card: "P-236", as: "option" }],
+          deck: [{ card: "BT25-041", as: "search" }, { card: "BT1-010" }, { card: "BT1-013" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId, useAs: "option" } as never),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "P-236"));
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
+  });
 });

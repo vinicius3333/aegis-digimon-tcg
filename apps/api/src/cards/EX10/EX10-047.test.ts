@@ -31,7 +31,7 @@ describe("EX10-047 Arukenimon", () => {
       actions: [
         {
           kind: "DeleteByDPBudget",
-          target: { filter: { controller: "opponent", kind: ["Digimon"] } },
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
           baseBudget: 6000,
           upTo: true,
           cost: { kind: "trash", target: { filter: { zone: "hand", controller: "mine" }, count: 1 } },
@@ -82,6 +82,39 @@ describe("EX10-047 Arukenimon", () => {
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("arukenimon"));
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("cost").instanceId);
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([survivorId]);
+  });
+
+  it("spends the hand card but deletes nothing when no single Digimon fits the 6000 budget", async () => {
+    // Exact boundary: 7000 > 6000, so the greedy budget pass can select nothing. The cost is a
+    // processing condition that is still paid once the effect is used, so the hand card goes.
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: CARD_ID, as: "arukenimon" }], hand: [{ card: "BT1-009", as: "cost" }] },
+        1: { battleArea: [{ card: "EX10-043", as: "tooBig", dp: 7000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const tooBigId = s.perm("tooBig").permanentId;
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("arukenimon"));
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("cost").instanceId);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([tooBigId]);
+  });
+
+  it("declining the hand cost keeps the hand and the whole opposing board", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: CARD_ID, as: "arukenimon" }], hand: [{ card: "BT1-009", as: "cost" }] },
+        1: { battleArea: [{ card: "EX10-040", as: "small", dp: 3000 }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const smallId = s.perm("small").permanentId;
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("arukenimon"));
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("cost").instanceId]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([smallId]);
   });
 
   it("Q5129 plays a Myotismon-text Tamer but excludes names already among own Tamers", async () => {

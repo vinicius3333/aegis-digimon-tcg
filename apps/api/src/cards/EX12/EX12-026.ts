@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -12,9 +11,15 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [Inherited][When Attacking][Once Per Turn] If your hand has 7 or fewer cards, <Draw 1>
 //
 // TrashDigivolution: fromTop:false => bottom 2 digivolution cards of 1 opponent Digimon.
-// SelectBind captures the Restrict target once so both attack/block restrictions apply
-// to the SAME Digimon (the text says "1 of their Digimon").
-// digivolutionCardsAtMost:1 is enforced by the interpreter's permanent filter matching.
+// digivolutionCards:"hasAny" keeps the trash clause on a Digimon that actually has sources,
+// matching the set convention (EX12-033/EX12-035) — and the Restrict below still resolves
+// independently when no such Digimon exists.
+// restriction:"attackOrBlock" is one selection that records BOTH prohibitions on the same
+// Digimon, which is what "1 of their Digimon ... can't attack or block" requires; two
+// separate Restrict actions would open two independent target choices.
+// digivolutionCardsAtMost:1 is checked once, at resolution: per KB Q6753 the prohibition
+// stays after the Digimon later gains digivolution cards, so the restriction must NOT be
+// continuous or re-matched against the target filter.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -36,6 +41,7 @@ const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
+              digivolutionCards: "hasAny",
             },
             count: 1,
           },
@@ -43,7 +49,7 @@ const compiled: CompiledCard = {
           fromTop: false,
         },
         {
-          kind: "SelectBind",
+          kind: "Restrict",
           target: {
             filter: {
               controller: "opponent",
@@ -51,25 +57,8 @@ const compiled: CompiledCard = {
               digivolutionCardsAtMost: 1,
             },
             count: 1,
-            bindAs: "restrictTarget",
           },
-        },
-        {
-          kind: "Restrict",
-          target: {
-            fromSelectionRef: "restrictTarget",
-            filter: {},
-          },
-          restriction: "attack",
-          duration: "untilOpponentTurnEnd",
-        },
-        {
-          kind: "Restrict",
-          target: {
-            fromSelectionRef: "restrictTarget",
-            filter: {},
-          },
-          restriction: "block",
+          restriction: "attackOrBlock",
           duration: "untilOpponentTurnEnd",
         },
       ],
@@ -83,6 +72,7 @@ const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
+              digivolutionCards: "hasAny",
             },
             count: 1,
           },
@@ -90,7 +80,7 @@ const compiled: CompiledCard = {
           fromTop: false,
         },
         {
-          kind: "SelectBind",
+          kind: "Restrict",
           target: {
             filter: {
               controller: "opponent",
@@ -98,25 +88,8 @@ const compiled: CompiledCard = {
               digivolutionCardsAtMost: 1,
             },
             count: 1,
-            bindAs: "restrictTarget",
           },
-        },
-        {
-          kind: "Restrict",
-          target: {
-            fromSelectionRef: "restrictTarget",
-            filter: {},
-          },
-          restriction: "attack",
-          duration: "untilOpponentTurnEnd",
-        },
-        {
-          kind: "Restrict",
-          target: {
-            fromSelectionRef: "restrictTarget",
-            filter: {},
-          },
-          restriction: "block",
+          restriction: "attackOrBlock",
           duration: "untilOpponentTurnEnd",
         },
       ],

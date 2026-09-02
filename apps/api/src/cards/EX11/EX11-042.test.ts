@@ -28,6 +28,10 @@ describe("EX11-042 MockingBirdmon", () => {
         from: ["hand", "digivolutionCards"],
         payCost: false,
         optional: true,
+        recipient: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+        // FAILS-WHEN-REVERTED: "THIS Digimon's digivolution cards" — without hostFilter the
+        // pool spans every friendly Digimon's stack.
+        target: { filter: { hostFilter: { isSelfRef: true } } },
       });
     }
     const linked = compiled.effects.find((effect) => effect.trigger === "YourTurn")!;
@@ -76,6 +80,41 @@ describe("EX11-042 MockingBirdmon", () => {
     expect(s.perm("source").linked.map(({ instanceId }) => instanceId)).toContain(s.inst("maquinamon").instanceId);
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(cost5Id);
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(cost6Id);
+    assertNoLoudGap(s);
+  });
+
+  it("links a Maquinamon out of its OWN digivolution cards", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: cardId, as: "source", under: ["EX11-027"] }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    expect(s.perm("source").linked.map(({ cardId: id }) => id)).toEqual(["EX11-027"]);
+    expect(s.perm("source").stack).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
+  /**
+   * FAILS-WHEN-REVERTED: dropping `hostFilter: { isSelfRef: true }` lets the effect pull the
+   * decoy's buried Maquinamon, so both assertions below flip.
+   */
+  it("never pulls a Maquinamon out of another Digimon's digivolution cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "source" },
+            { card: "BT1-019", as: "decoy", under: ["EX11-027"] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    expect(s.perm("source").linked).toHaveLength(0);
+    expect(s.perm("decoy").stack.map(({ cardId: id }) => id)).toEqual(["EX11-027"]);
     assertNoLoudGap(s);
   });
 });

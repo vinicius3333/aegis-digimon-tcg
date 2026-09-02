@@ -2315,7 +2315,15 @@ export function GameScreen({
 
           {!state.gameOver ? <SidePanelStack panels={sidePanels} onDismiss={cues.dismissPanel} /> : null}
 
-          {!state.gameOver ? <NoticeStack notices={cues.notices} onDismiss={cues.dismissNotice} /> : null}
+          {/* Collapsed on a portrait phone only: the landscape phone keeps its
+              right-anchored corners, where the short viewport has no top band. */}
+          {!state.gameOver ? (
+            <NoticeStack
+              notices={cues.notices}
+              collapse={narrowGameLayout && !landscapePhone}
+              onDismiss={cues.dismissNotice}
+            />
+          ) : null}
 
           {attackAnnouncement && !state.gameOver ? (
             <AttackAnnouncementBanner announcement={attackAnnouncement} />

@@ -114,13 +114,24 @@ describe("EX11-032 GrandGalemon", () => {
 
   it("inherits an optional once-per-turn unsuspend when its own host wins a battle", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX11-033", as: "host", under: [cardId], suspended: true }] } },
+      { 0: { battleArea: [{ card: "EX7-034", as: "host", under: [cardId], suspended: true }] } },
       { autoAcceptOptional: true },
     );
     s.state.turnSeat = 0;
     await advance(s.engine).fireSubTrigger("whenBattleWon", { attackerPermanentId: s.perm("host").permanentId });
     expect(s.perm("host").isSuspended).toBe(false);
     s.perm("host").isSuspended = true;
+    await advance(s.engine).fireSubTrigger("whenBattleWon", { attackerPermanentId: s.perm("host").permanentId });
+    expect(s.perm("host").isSuspended).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("leaves a host without the Vortex Warriors trait suspended after it wins a battle", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX11-033", as: "host", under: [cardId], suspended: true }] } },
+      { autoAcceptOptional: true },
+    );
+    s.state.turnSeat = 0;
     await advance(s.engine).fireSubTrigger("whenBattleWon", { attackerPermanentId: s.perm("host").permanentId });
     expect(s.perm("host").isSuspended).toBe(true);
     assertNoLoudGap(s);

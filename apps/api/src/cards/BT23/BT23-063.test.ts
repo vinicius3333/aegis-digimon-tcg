@@ -31,10 +31,11 @@ describe("BT23-063 Sangloupmon", () => {
           trash: [{ card: "BT23-066", as: "matadormon" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 5;
     const before = s.state.memory;
+    await s.ready();
     await (
       s.engine as unknown as {
         fireTiming(timing: EffectTiming, trigger: Record<string, unknown>): Promise<void>;
@@ -66,9 +67,10 @@ describe("BT23-063 Sangloupmon", () => {
           trash: [{ card: "BT23-067", as: "ladydevimon" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 5;
+    await s.ready();
     await (
       s.engine as unknown as {
         fireTiming(timing: EffectTiming, trigger: Record<string, unknown>): Promise<void>;

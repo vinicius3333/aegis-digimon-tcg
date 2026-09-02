@@ -2,7 +2,6 @@ import { compiledEffects, EffectTiming, getCardDefinition } from "@aegis/shared"
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { observe } from "../../engine/testkit/observe.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { compiled } from "./EX12-072.js";
 import "../index.js";
@@ -14,17 +13,37 @@ describe("EX12-072 Metal Empire", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects.find((effect) => effect.trigger === "Static")?.actions[0]).toMatchObject({
       kind: "WaiveColorRequirement",
-      condition: { kind: "youHave", filter: { nameOrTrait: [{ tokens: ["ME"], match: "trait" }] } },
+      // CR 16-42-3 scopes ＜Use Req.＞ to Digimon and Tamers on the field.
+      condition: {
+        kind: "youHave",
+        filter: { kind: ["Digimon", "Tamer"], nameOrTrait: [{ tokens: ["ME"], match: "trait" }] },
+      },
     });
+    // ＜Guard＞ is executed, not flagged. "Guard" is not in the shared `Keyword` union and no
+    // engine seam reads a "Guard" keyword grant, so the persisted GainKeyword was both a type
+    // error and a no-op; this is the printed reminder text as a real leave prevention.
     expect(compiled.effects.find((effect) => effect.trigger === "AllTurns" && effect.isSecurity)).toMatchObject({
       actions: [
         {
-          kind: "GainKeyword",
-          target: { filter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["ME"], match: "trait" }] }, count: "all" },
-          keyword: { keyword: "Guard" },
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          mode: "prevent",
+          leaveCause: "byOpponentEffect",
+          affectsAll: true,
+          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: "all" },
+          cost: {
+            kind: "deleteOwn",
+            target: {
+              filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["ME"], match: "trait" }] },
+              count: 1,
+            },
+          },
         },
       ],
     });
+    expect(compiled.effects.some((effect) => effect.actions.some((action) => action.kind === "GainKeyword"))).toBe(
+      false,
+    );
     expect(compiled.effects.find((effect) => effect.trigger === "Main")?.actions).toEqual([
       { kind: "SecurityManipulation", op: "toHand", controller: "mine", amount: 1, toTop: false },
       {
@@ -47,37 +66,107 @@ describe("EX12-072 Metal Empire", () => {
       ],
     });
     expect(registeredCompiledCards.get(CARD_ID)).toEqual(compiled);
+    expect(compiledEffects[CARD_ID]).toBeDefined();
     expect(compiledEffects[CARD_ID]).toEqual(compiled);
   });
 
-  it("grants Guard only to your ME Digimon while Metal Empire is face-up in security", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "EX12-008", as: "me" },
-          { card: "EX12-005", as: "other" },
-        ],
-        security: [{ card: CARD_ID, as: "metal", faceUp: true }],
-      },
-      1: { battleArea: [{ card: "EX12-008", as: "opposingMe" }] },
-    });
-    await s.ready();
+  const primitivesOf = (engine: unknown) =>
+    (engine as { primitives: { deletePermanent(ids: string[], cause: string): Promise<number> } }).primitives;
 
-    expect(observe(s.engine).hasKeyword(s.perm("me"), "Guard")).toBe(true);
-    expect(observe(s.engine).hasKeyword(s.perm("other"), "Guard")).toBe(false);
-    expect(observe(s.engine).hasKeyword(s.perm("opposingMe"), "Guard")).toBe(false);
+  it("uses the granted Guard to prevent an opponent-effect deletion, paying with an ME Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX12-008", as: "me" },
+            { card: "EX12-005", as: "other" },
+          ],
+          security: [{ card: CARD_ID, as: "metal", faceUp: true }],
+        },
+        1: {},
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const protectedId = s.perm("other").permanentId;
+    const guardId = s.perm("me").permanentId;
+
+    await primitivesOf(s.engine).deletePermanent([protectedId], "byEffect");
+    await settle(() => false, 30);
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === protectedId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === guardId)).toBe(false);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("EX12-008");
   });
 
-  it("does not grant Guard while the security card is face-down", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "EX12-008", as: "me" }],
-        security: [{ card: CARD_ID, as: "metal", faceUp: false }],
+  it("does not protect while the security card is face-down", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX12-008", as: "me" },
+            { card: "EX12-005", as: "other" },
+          ],
+          security: [{ card: CARD_ID, as: "metal", faceUp: false }],
+        },
+        1: {},
       },
-    });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
     await s.ready();
+    const protectedId = s.perm("other").permanentId;
 
-    expect(observe(s.engine).hasKeyword(s.perm("me"), "Guard")).toBe(false);
+    await primitivesOf(s.engine).deletePermanent([protectedId], "byEffect");
+    await settle(() => false, 30);
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === protectedId)).toBe(false);
+  });
+
+  it("cannot pay the Guard cost without an ME Digimon, so the deletion resolves", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-005", as: "other" }],
+          security: [{ card: CARD_ID, as: "metal", faceUp: true }],
+        },
+        1: {},
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const protectedId = s.perm("other").permanentId;
+
+    await primitivesOf(s.engine).deletePermanent([protectedId], "byEffect");
+    await settle(() => false, 30);
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === protectedId)).toBe(false);
+  });
+
+  it("does not prevent a deletion caused by the controller's own effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX12-008", as: "me" },
+            { card: "EX12-005", as: "other" },
+          ],
+          security: [{ card: CARD_ID, as: "metal", faceUp: true }],
+        },
+        1: {},
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    const protectedId = s.perm("other").permanentId;
+
+    await primitivesOf(s.engine).deletePermanent([protectedId], "byEffect");
+    await settle(() => false, 30);
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === protectedId)).toBe(false);
   });
 
   it("returns the bottom security card and places itself face-up at the bottom", async () => {
@@ -213,6 +302,25 @@ describe("EX12-072 Metal Empire", () => {
       s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("target").instanceId),
     ).toBe(true);
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("security").instanceId);
+  });
+
+  // Mutation guard for the CR 16-42-3 kind gate on the ＜Use Req.＞ condition: EX12-073 is an
+  // OPTION whose colors never satisfy this card's colour requirement, yet it carries the [ME]
+  // trait and EX12 Options sit in the battle area. Remove `kind: ["Digimon", "Tamer"]` from the
+  // youHave filter and this play is wrongly allowed.
+  it("is not enabled by a resident Option carrying the Use Req. trait", () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX12-073", as: "residentOption" }],
+        hand: [{ card: CARD_ID, as: "useReqOption" }],
+      },
+    });
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("useReqOption").instanceId })).toEqual({
+      ok: false,
+      reason: "color-requirement-unmet",
+    });
   });
 
   it("matches the complete catalog identity", () => {

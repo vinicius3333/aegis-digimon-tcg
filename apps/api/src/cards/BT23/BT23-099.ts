@@ -29,7 +29,7 @@ export const compiled: CompiledCard = {
               controllerDefault: "mine",
               // KB Q5387: "on the field" = battle area OR breeding area
               kind: ["Digimon"],
-              zone: ["battleArea", "breedingArea"],
+              zone: ["battleArea", "breeding"],
               nameOrTrait: [{ tokens: ["Huckmon"], match: "name" }],
             },
             raw: "you have a Digimon with [Huckmon] in its name on the field (battle area or breeding area)",

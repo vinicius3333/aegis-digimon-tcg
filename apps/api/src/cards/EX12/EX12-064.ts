@@ -1,8 +1,18 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const deleteOrDeDigivolve = [
+// EX12-064 Megadramon.
+// Q6862: the delete is mandatory — with a legal level 4 or lower target the controller must
+// choose and delete it, so the Delete action carries no `optional`.
+// Q6863: choosing a deletion-immune target still satisfies "if this effect didn't delete", which
+// is exactly what `ifThisEffectDidNotDelete` encodes (an immune or prevented target counts as
+// not deleted).
+// Q6864: the [All Turns] watcher also fires for this card's own play; Megadramon carries the
+// [Cyborg] and [ME] traits, so its `sourceFilter` matches the card that installed the watcher.
+// The shared delete/De-Digivolve pair is annotated `Action[]` (the EX12-052 convention). Without
+// the annotation TypeScript widened every `kind` to `string`, so neither `[On Play]` nor
+// `[When Digivolving]` conformed to `CardEffect.actions` — the two reported type errors.
+const deleteOrDeDigivolve: Action[] = [
   {
     kind: "Delete",
     target: {

@@ -70,7 +70,7 @@ describe("BT25-024 Lekismon", () => {
             hand: [{ card: "BT25-026", as: "crescemon" }],
           },
         },
-        { autoAcceptOptional: true, autoSelectCards: true },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 0 },
       );
       s.state.memory = 2;
       await s.ready();
@@ -121,7 +121,7 @@ describe("BT25-024 Lekismon", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 0 },
     );
     s.state.memory = 4;
     await s.ready();

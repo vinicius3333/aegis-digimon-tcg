@@ -30,7 +30,7 @@ describe("BT23-005 Elizamon", () => {
           {
             kind: "Replacement",
             event: "wouldDigivolve",
-            sourceFilter: { isSelfRef: true },
+            sourceFilter: { isSelfRef: true, zone: "battleArea" },
             into: {
               controllerDefault: "mine",
               kind: ["Digimon"],
