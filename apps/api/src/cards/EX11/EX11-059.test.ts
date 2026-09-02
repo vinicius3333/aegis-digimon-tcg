@@ -80,6 +80,30 @@ describe("EX11-059 Reina Oumi", () => {
     assertNoLoudGap(s);
   });
 
+  it("ignores the deletion of a Digimon without the NSo trait", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-059", as: "reina" },
+            { card: "BT1-009", as: "plain" },
+            { card: "EX8-033", as: "fieldMaterial" },
+          ],
+          hand: [{ card: "EX12-032", as: "dnaTarget" }],
+          trash: [{ card: "EX8-013", as: "trashMaterial" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).verb.deletePermanent([s.perm("plain").permanentId], "byEffect");
+    await settle(() => false, 60);
+
+    expect(s.perm("reina").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("dnaTarget").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("trashMaterial").instanceId)).toBe(true);
+    assertNoLoudGap(s);
+  });
+
   it("publishes full IR with distinct field and trash NSo material pools", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects.find((effect) => effect.trigger === "AllTurns")?.actions).toMatchObject([

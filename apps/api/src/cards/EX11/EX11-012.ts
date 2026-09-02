@@ -1,10 +1,13 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // KB Q5800: "they play 1 [Petrification] Token" — the effect controller plays the token
 // as an opponent's Digimon. controller on PlayToken is "mine" (activating player),
 // placedAs:"opponentDigimon" describes placement side.
+// The persisted record used the singular `token`/`amount` alias and the bare name
+// "Petrification"; `PlayTokenAction` requires `tokens`/`count`/`payCost` (the type error left
+// by removing @ts-nocheck) and `resolveTokenCardId` only matches the registry name
+// "Petrification Token", so both are spelled canonically here as BT24-017 does.
 // Cost.to:"deckBottom" added on both return costs — "to the bottom of the deck" (runtime-effect review
 // EX11-012 finding: absent `to` defaults to hand per Cost.to in ir.ts).
 // The Petrification Token reminder text is implemented by TOKEN-Petrification-Token; its
@@ -45,8 +48,9 @@ const compiled: CompiledCard = {
         },
         {
           kind: "PlayToken",
-          token: "Petrification Token",
-          amount: 1,
+          tokens: ["Petrification Token"],
+          count: 1,
+          payCost: false,
           controller: "mine",
           placedAs: "opponentDigimon",
           cost: {
@@ -86,8 +90,9 @@ const compiled: CompiledCard = {
         },
         {
           kind: "PlayToken",
-          token: "Petrification Token",
-          amount: 1,
+          tokens: ["Petrification Token"],
+          count: 1,
+          payCost: false,
           controller: "mine",
           placedAs: "opponentDigimon",
           cost: {

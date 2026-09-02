@@ -1,6 +1,5 @@
 import { digivolutionRequirementsFor } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT25-048.js";
 
@@ -71,6 +70,27 @@ describe("BT25-048 Bearmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.length === 1);
     expect(s.state.players[0]!.hand[0]!.cardId).toBe("BT1-001");
+  });
+
+  it("draws naturally when the inherited Bearmon wins a security battle", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT25-050", as: "winner", under: ["BT25-048"], dp: 12000 }],
+        deck: [{ card: "BT1-001", as: "drawn" }],
+      },
+      1: { security: [{ card: "BT1-009", as: "security" }] },
+    });
+    s.state.memory = 0;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("winner").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
   });
 
   it("records the alternate evolution requirement and inherited timing", () => {

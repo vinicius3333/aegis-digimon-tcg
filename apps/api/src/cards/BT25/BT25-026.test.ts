@@ -294,7 +294,7 @@ describe("BT25-026 — entry effects and inherited restriction", () => {
             trash: [{ card: "BT25-028", as: "dianamon" }],
           },
         },
-        { autoAcceptOptional: true, autoSelectCards: true },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 0 },
       );
       s.state.memory = 2;
       await s.ready();
@@ -308,6 +308,30 @@ describe("BT25-026 — entry effects and inherited restriction", () => {
       expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("dianamon").instanceId);
     },
   );
+
+  it("naturally reacts to playing a red Digimon by evolving Dianamon from trash for 2 memory", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-026", as: "source" }],
+          hand: [{ card: "BT1-009", as: "redSubject" }],
+          trash: [{ card: "BT25-028", as: "dianamon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 0 },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("redSubject").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("source").topCard.cardId === "BT25-028");
+
+    expect(s.perm("source").topCard.cardId).toBe("BT25-028");
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("dianamon").instanceId);
+  });
 
   it("does not use a Dianamon in the opponent's trash", async () => {
     const s = setupEngine(

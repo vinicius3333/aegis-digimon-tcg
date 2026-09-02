@@ -254,4 +254,30 @@ describe("EX12-003 Kapurimon", () => {
       optional: true,
     });
   });
+
+  it("still replaces a leave caused by the opponent's effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX12-016", as: "leaving", under: ["EX12-003"] },
+            { card: "EX12-055", as: "partner" },
+          ],
+          hand: [{ card: "EX12-017", as: "result" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("leaving").permanentId], "byEffect")).toBe(0);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-017"));
+
+    const result = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "EX12-017");
+    expect(result?.stack.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["EX12-016", "EX12-003", "EX12-055"]),
+    );
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX12-017")).toBe(false);
+  });
 });

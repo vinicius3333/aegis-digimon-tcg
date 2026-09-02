@@ -94,6 +94,43 @@ describe("BT25-070 Logamon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("secondLink").instanceId);
   });
 
+  it("naturally activates the Main link effect through the public effect surface", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-070", as: "logamon" }],
+          trash: [{ card: "BT21-009", as: "link" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT25-079", as: "cheap" },
+            { card: "BT25-081", as: "expensive" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    const [effect] = observe(s.engine).activatableEffects(s.perm("logamon")) as { effectKey: string }[];
+    expect(effect).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("logamon").topCard.instanceId,
+        effectKey: effect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("logamon").linked.some((card) => card.instanceId === s.inst("link").instanceId) &&
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT25-079"),
+    );
+
+    expect(s.perm("logamon").linked.map((card) => card.instanceId)).toContain(s.inst("link").instanceId);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT25-081"]);
+  });
+
   it("accepts a valid Link card from this Logamon's stack, but never another Digimon's stack", async () => {
     const valid = setupEngine(
       {

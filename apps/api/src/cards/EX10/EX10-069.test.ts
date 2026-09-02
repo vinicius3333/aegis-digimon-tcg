@@ -34,7 +34,6 @@ describe("EX10-069 Unique Emblem: Gravel Hearts", () => {
         {
           kind: "SubTrigger",
           event: "whenSuspended",
-          delayArmedIntrinsic: true,
           sourceFilter: { controller: "mine", nameOrTrait: [{ tokens: ["Close"], match: "name" }] },
           actions: [
             {
@@ -46,11 +45,16 @@ describe("EX10-069 Unique Emblem: Gravel Hearts", () => {
               target: {
                 filter: { nameOrTrait: [{ tokens: ["Mineral", "Rock"], match: "trait" }] },
               },
-              into: { traits: ["Mineral", "LIBERATOR"] },
+              // Q5183 needs BOTH traits: `traits` alone is OR-matched, so the conjunction is
+              // encoded as the separate `nameOrTrait` and `traits` gates.
+              into: { nameOrTrait: [{ tokens: ["Mineral"], match: "trait" }], traits: ["LIBERATOR"] },
             },
           ],
         },
       ],
+      // The printed ＜Delay＞ is the encoding; `delayArmedIntrinsic` is synthesized onto the
+      // SubTrigger by `withIntrinsicDelayGate` at registration, never carried in the IR.
+      keywords: [{ keyword: "Delay" }],
     });
   });
 
@@ -97,6 +101,52 @@ describe("EX10-069 Unique Emblem: Gravel Hearts", () => {
             { card: "EX10-025", as: "mineral" },
           ],
           hand: ["EX10-029"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.perm("emblem").placedByEffect = true;
+    await s.ready();
+    await advance(s.engine).fireSubTrigger("whenSuspended", { suspendedPermanentId: s.perm("close").permanentId });
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === CARD_ID)).toBe(true);
+    expect(s.perm("mineral").topCard.cardId).toBe("EX10-025");
+  });
+
+  it("Q5183 rejects a Mineral-only hand Digimon that lacks [LIBERATOR]", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "emblem" },
+            { card: "EX10-063", as: "close" },
+            { card: "EX10-025", as: "mineral" },
+          ],
+          // BT7-061 Gigasmon: black Lv.4, [Mineral] but NOT [LIBERATOR], and a legal
+          // black Lv.3 evolution route off Sunarizamon — so only the trait conjunction
+          // can reject it.
+          hand: ["BT7-061"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.perm("emblem").placedByEffect = true;
+    await s.ready();
+    await advance(s.engine).fireSubTrigger("whenSuspended", { suspendedPermanentId: s.perm("close").permanentId });
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === CARD_ID)).toBe(true);
+    expect(s.perm("mineral").topCard.cardId).toBe("EX10-025");
+  });
+
+  it("Q5183 rejects a LIBERATOR-only hand Digimon that lacks [Mineral]", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "emblem" },
+            { card: "EX10-063", as: "close" },
+            { card: "EX10-025", as: "mineral" },
+          ],
+          // BT18-065 Snatchmon: black Lv.4, [LIBERATOR] but NOT [Mineral].
+          hand: ["BT18-065"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

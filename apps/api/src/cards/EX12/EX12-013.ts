@@ -1,10 +1,19 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// [Main][Once Per Turn]: PlayWithoutCost(payCost:true) + sibling wouldBePlayed reduceCost
-// Replacement is the established corpus encoding for "play/use with cost reduced by N"
-// (identical to EX12-050, EX12-041, etc.). The auditor's findings are false positives.
+// EX12-013 BetelGammamon.
+// [Main][Once Per Turn] You may PLAY or USE 1 card with [Gammamon] in its text or the [VB]
+// trait from your hand with the cost reduced by 2.
+//
+// Two verbs, so a Modal with two branches: PlayWithoutCost for the Digimon/Tamer side and
+// UseOptionWithoutCost for the Option side, each `payCost: true` with `reduceCostBy: 2` on the
+// action itself. `runModal` skips a branch with no legal candidate and auto-selects when only
+// one remains, and each branch is `optional: true`, so "you may" survives the branch choice.
+//
+// The reduction is deliberately NOT a sibling `wouldBePlayed` reduceCost Replacement: that shape
+// installs an un-scoped subscription that discounts every play in the window rather than only
+// the card this activation chose, and it has no Option-use path at all (Q6731 forbids stacking
+// two copies' reductions onto one play).
 const compiled: CompiledCard = {
   effects: [
     {

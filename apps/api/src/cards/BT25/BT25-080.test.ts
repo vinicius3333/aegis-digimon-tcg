@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming, getCardDefinition, Zone, type PlayerState } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import "../index.js";
 
@@ -326,5 +327,53 @@ describe("BT25-080 Witchmon", () => {
     await trash(negative, negative.inst("handCard").instanceId);
     await settle(() => false, 60);
     expect(alive(negative.state.players[1] as PlayerState, negativeTarget)).toBe(true);
+  });
+
+  it("does not fire the inherited effect when the opponent's hand is trashed", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-015", as: "host", under: [{ card: CARD }] }] },
+        1: { hand: [{ card: "BT1-013", as: "opponentHand" }], battleArea: [{ card: LEVEL_FIVE, as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 1, byEffectSeat: 1 });
+    await settle(() => false, 60);
+
+    expect(alive(s.state.players[1] as PlayerState, s.perm("target").permanentId)).toBe(true);
+  });
+
+  it("fires the inherited effect from a public Option use that trashes its controller's hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          // Witchmon must be a source on a live Titan host for its inherited effect to be active.
+          battleArea: [{ card: "BT24-015", as: "host", under: [{ card: CARD }] }],
+          hand: [
+            { card: "BT25-101", as: "option" },
+            { card: "BT25-100", as: "handCost" },
+          ],
+          deck: ["AD1-001", "AD1-002"],
+        },
+        1: { battleArea: [{ card: "BT1-013", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    const targetId = s.perm("target").permanentId;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+        useAs: "option",
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(() => !alive(s.state.players[1] as PlayerState, targetId));
+
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("handCost").instanceId)).toBe(true);
+    expect(alive(s.state.players[1] as PlayerState, targetId)).toBe(false);
   });
 });

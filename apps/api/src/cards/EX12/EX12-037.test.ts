@@ -124,6 +124,69 @@ describe("EX12-037 Omnimon", () => {
     expect(s.perm("debuffed").currentDP).toBe(2000);
   });
 
+  it("still deletes but activates no option below the five-source boundary", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "source", under: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"] }],
+          deck: ["BT1-014"],
+          security: ["BT1-015"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "victim", dp: 3000 },
+            { card: "BT1-011", as: "unmodified", dp: 15000 },
+          ],
+          security: ["BT1-016", "BT1-017"],
+        },
+      },
+      { autoChooseOption: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("victim").topCard.instanceId, s.perm("unmodified").topCard.instanceId);
+    await s.ready();
+    const victimId = s.perm("victim").permanentId;
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    await settle(() => false, 100);
+
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === victimId)).toBe(false);
+    expect(s.perm("unmodified").currentDP).toBe(15000);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.decisions.filter(({ req }) => req.kind === "chooseOption")).toHaveLength(0);
+  });
+
+  it("counts a Digi-Egg digivolution card toward the five-source scaling", async () => {
+    // A stack raised through breeding keeps its Digi-Egg at the bottom. The scaling filter is
+    // empty, so every digivolution card counts: egg + 4 Digimon reaches the five-source step.
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "source", under: ["BT1-001", "BT1-009", "BT1-010", "BT1-011", "BT1-012"] }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "victim", dp: 3000 },
+            { card: "BT1-011", as: "debuffed", dp: 15000 },
+          ],
+        },
+      },
+      { autoChooseOption: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("victim").topCard.instanceId, s.perm("debuffed").topCard.instanceId);
+    await s.ready();
+    const victimId = s.perm("victim").permanentId;
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    await settle(() => false, 100);
+
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === victimId)).toBe(false);
+    expect(s.perm("debuffed").currentDP).toBe(2000);
+    expect(s.decisions.filter(({ req }) => req.kind === "chooseOption")).toHaveLength(1);
+  });
+
   it("trashes security and recovers when the second option is chosen", async () => {
     const preferred: string[] = [];
     const s = setupEngine(

@@ -108,7 +108,7 @@ describe("EX11-054 Owen Dreadnought", () => {
         kind: ["Digimon"],
         nameOrTrait: [
           { match: "trait", tokens: ["Reptile"] },
-          { match: "trait", tokens: ["Dragonkin"] },
+          { match: "trait", tokens: ["Dragonkin"], orPrevious: true },
         ],
       });
       expect(action.actions).toMatchObject([

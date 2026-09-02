@@ -91,6 +91,8 @@ export interface GrantStaticAction extends ActionBase {
   tokens?: string[];
   /** The source filter for "effects". */
   filter?: Filter;
+  /** For "effects" grants, confer only the matched cards' effects with this printed trigger (EX10-059). */
+  copyTrigger?: string;
   /** For "effects" grants, omit inherited effects from the matched stack cards. */
   excludeInherited?: boolean;
   /** Copy only the highest matching digivolution card, as required by <Succession>. */

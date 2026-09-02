@@ -44,7 +44,11 @@ describe("EX11-029 Turbomon", () => {
       );
     }
     const linked = compiled.effects.find((effect) => effect.trigger === "YourTurn")!;
-    expect(linked).toMatchObject({ frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenLinked" }] });
+    expect(linked).toMatchObject({
+      frequency: "OncePerTurn",
+      // "When THIS Digimon gets linked" — the bus is board-wide, so the self scope is load-bearing.
+      actions: [{ kind: "SubTrigger", event: "whenLinked", sourceFilter: { isSelfRef: true } }],
+    });
     expect(linked.actions[0]).toMatchObject({
       actions: [{ kind: "PlayWithoutCost", from: ["hand", "trash"], payCost: false }],
     });
@@ -85,6 +89,30 @@ describe("EX11-029 Turbomon", () => {
     await advance(s.engine).fireSubTrigger("whenLinked", { subjectPermanentId: s.perm("source").permanentId });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX11-070"));
     expect(s.state.players[0]!.trash).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
+  // The `whenLinked` bus fires for every link on the board. Without `sourceFilter: {isSelfRef:true}`
+  // this watcher would play [Unchained] when a DIFFERENT Digimon of the controller gets linked.
+  it("does not trigger when another of your Digimon gets linked", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "source" },
+            // A [Maquinamon] host satisfying the link card's own "[Maquinamon] in text"
+            // requirement, and with no `whenLinked` watcher of its own.
+            { card: "EX11-027", as: "other", linked: [{ card: "EX11-027" }] },
+          ],
+          trash: [{ card: "EX11-070", as: "unchained" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await advance(s.engine).fireSubTrigger("whenLinked", { subjectPermanentId: s.perm("other").permanentId });
+    expect(s.state.players[0]!.trash.map(({ cardId: id }) => id)).toEqual(["EX11-070"]);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX11-070")).toBe(false);
     assertNoLoudGap(s);
   });
 

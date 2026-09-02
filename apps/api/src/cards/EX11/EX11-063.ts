@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -25,7 +24,13 @@ export const compiled: CompiledCard = {
           op: "toHand",
           controller: "mine",
           amount: 1,
-          faceDown: true,
+          // "Add your top FACE-DOWN security card to the hand." The interpreter reads
+          // `faceDownOnly` for that scan (security.ts `case "toHand"`); `faceDown` is only
+          // honored by addTop/addBottom, so it left the else-branch taking the literal top
+          // card — wrong whenever a face-up security card sits above it (this card's own
+          // "place face up as the bottom security card" clause and EX11-064's flip both
+          // create that board). KB Q5923-Q5926.
+          faceDownOnly: true,
         },
         {
           kind: "SecurityManipulation",

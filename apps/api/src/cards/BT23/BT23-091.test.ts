@@ -1,6 +1,5 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT23-091.js";
 
@@ -31,6 +30,7 @@ describe("BT23-091 Wolkenapalm", () => {
           ],
         },
         1: {
+          security: ["BT1-001", "BT1-002"],
           battleArea: [
             { card: "BT1-009", as: "lowest" },
             { card: "BT23-101", as: "higher" },
@@ -40,16 +40,82 @@ describe("BT23-091 Wolkenapalm", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const optionId = s.perm("option").topCard!.instanceId;
+    s.perm("option").placedByEffect = true;
     const lowestId = s.perm("lowest").permanentId;
     const higherId = s.perm("higher").permanentId;
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenAttacking", {
-      subjectPermanentId: s.perm("attacker").permanentId,
-      attackerPermanentId: s.perm("attacker").permanentId,
-    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowestId));
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([higherId]);
+  });
+
+  it("does not consume Delay for a non-CS attacker", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-091", as: "option" },
+            { card: "BT1-009", as: "nonCsAttacker" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "target" }],
+          security: ["BT1-001", "BT1-002"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const optionId = s.perm("option").topCard!.instanceId;
+    s.perm("option").placedByEffect = true;
+    const targetId = s.perm("target").permanentId;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("nonCsAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(true);
+  });
+
+  it("does not consume Delay for an opponent-controlled CS attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-091", as: "option" }],
+          security: 2,
+        },
+        1: { battleArea: [{ card: "BT23-006", as: "opponentAttacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const optionId = s.perm("option").topCard!.instanceId;
+    s.perm("option").placedByEffect = true;
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("opponentAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
   });
 
   it("activates Delay in the CS attack window and deletes only a lowest-DP Digimon", () => {
