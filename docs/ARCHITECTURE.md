@@ -49,7 +49,9 @@ behavior.
 The committed `packages/shared/src/effects/effects.json` remains runtime data
 for shared card requirements and client/server lookups. It is a generated
 runtime snapshot, not an authoring source. Use `pnpm effects:sync:set -- --set
-<SET>` to synchronize one set from its authoritative modules and
+<SET> --base <GIT-REF>` to synchronize one set from its authoritative modules,
+restore byte formatting outside that set, and reject out-of-scope semantic
+changes. Use
 `pnpm effects:check:set -- --set <SET> --base <GIT-REF>` to verify catalog-key
 parity, idempotence, and semantic/byte scope.
 

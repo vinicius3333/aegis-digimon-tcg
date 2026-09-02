@@ -9,6 +9,7 @@ import {
   catalogIdsForSet,
   outsideSetBytesMatch,
   parseArguments,
+  rebaseScopedEntriesOntoBase,
   replaceTopLevelEntries,
   semanticScopeDiff,
   setRecordKeyDiff,
@@ -23,6 +24,11 @@ test("parses a scoped set in write and check modes", () => {
   assert.deepEqual(parseArguments(["--check", "--set=BT10", "--base", "origin/main"]), {
     base: "origin/main",
     check: true,
+    set: "BT10",
+  });
+  assert.deepEqual(parseArguments(["--set=BT10", "--base", "origin/main"]), {
+    base: "origin/main",
+    check: false,
     set: "BT10",
   });
   assert.throws(() => parseArguments(["--set", "../BT10"]), /safe set code/);
@@ -154,6 +160,41 @@ test("requires byte-for-byte stability outside the requested set", () => {
 
   assert.equal(outsideSetBytesMatch(base, onlyBt10, "BT10"), true);
   assert.equal(outsideSetBytesMatch(base, outsideWhitespace, "BT10"), false);
+});
+
+test("rebases scoped entries while restoring bytes outside the requested set", () => {
+  const base = `{
+  "BT10-001": { "effects": [] },
+  "BT13-001": { "effects": [] }
+}
+`;
+  const current = `{
+  "BT10-001": {
+    "effects": [{ "trigger": "Main" }]
+  },
+  "BT13-001": {
+    "effects": []
+  }
+}
+`;
+
+  const rebased = rebaseScopedEntriesOntoBase(base, current, "BT10");
+
+  assert.deepEqual(JSON.parse(rebased)["BT10-001"], { effects: [{ trigger: "Main" }] });
+  assert.equal(outsideSetBytesMatch(base, rebased, "BT10"), true);
+});
+
+test("refuses to discard semantic changes outside the requested set", () => {
+  const base = JSON.stringify({ "BT10-001": { effects: [] }, "BT13-001": { effects: [] } });
+  const current = JSON.stringify({
+    "BT10-001": { effects: [{ trigger: "Main" }] },
+    "BT13-001": { effects: [{ trigger: "Security" }] },
+  });
+
+  assert.throws(
+    () => rebaseScopedEntriesOntoBase(base, current, "BT10"),
+    /Refusing to discard semantic changes outside BT10: BT13-001/,
+  );
 });
 
 test("replaces the destination atomically", () => {
