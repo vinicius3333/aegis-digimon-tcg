@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -64,6 +63,8 @@ const compiled: CompiledCard = {
             count: 1,
             isSelf: true,
           },
+          // "isn't affected by THEIR effects" — the opponent's effects, all card kinds.
+          immuneFrom: "opponentEffects",
           duration: "untilOpponentTurnEnd",
           condition: {
             kind: "digivolutionCardCount",
@@ -135,6 +136,8 @@ const compiled: CompiledCard = {
             count: 1,
             isSelf: true,
           },
+          // "isn't affected by THEIR effects" — the opponent's effects, all card kinds.
+          immuneFrom: "opponentEffects",
           duration: "untilOpponentTurnEnd",
           condition: {
             kind: "digivolutionCardCount",

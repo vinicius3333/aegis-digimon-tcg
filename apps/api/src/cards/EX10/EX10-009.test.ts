@@ -40,8 +40,10 @@ describe("EX10-009 Creepymon", () => {
         },
       ],
     });
+    // "This Digimon may attack" prints no "without suspending" clause (contrast BT21-072), so
+    // the effect-driven attack follows the normal declaration rules and taps the attacker.
     expect(compiled.effects?.find((effect) => effect.trigger === "EndOfYourTurn")).toMatchObject({
-      actions: [{ kind: "Attack", withoutSuspending: true, optional: true }],
+      actions: [{ kind: "Attack", withoutSuspending: false, optional: true }],
     });
   });
 
@@ -137,10 +139,10 @@ describe("EX10-009 Creepymon", () => {
     }
   });
 
-  it("attacks while already suspended at end of turn and honors optional refusal", async () => {
+  it("attacks at end of turn, suspending as a normal attack, and honors optional refusal", async () => {
     const accepted = setupEngine(
       {
-        0: { battleArea: [{ card: "EX10-009", as: "creepymon", suspended: true }] },
+        0: { battleArea: [{ card: "EX10-009", as: "creepymon" }] },
         1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true },
@@ -171,5 +173,23 @@ describe("EX10-009 Creepymon", () => {
     await advance(declined.engine).fire(EffectTiming.OnEndTurn, declined.perm("creepymon"));
     await settle(() => declined.decisions.some(({ req }) => req.kind === "optional"));
     expect(declined.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("cannot attack at end of turn while already suspended", async () => {
+    // FAILS-WHEN-REVERTED: `withoutSuspending: true` would let a suspended Creepymon declare
+    // a second, untapped attack. The printed text is the plain "may attack" form.
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX10-009", as: "creepymon", suspended: true }] },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("creepymon"));
+    await settle(() => false, 60);
+
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(observe(s.engine).isAttacking()).toBe(false);
   });
 });

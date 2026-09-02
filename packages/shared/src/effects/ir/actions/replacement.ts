@@ -45,6 +45,11 @@ export interface ReplacementAction extends ActionBase {
   /** Use the number of cards/resources actually paid as this replacement's cost reduction. */
   amountFromPaidCost?: boolean;
   /**
+   * reduceCost per card actually placed by this replacement's `place` cost; the registration
+   * reducers read it as `amountPerPaid` (EX10-061, BT15-102).
+   */
+  amountPerPlaced?: number;
+  /**
    * Mutually exclusive reduceCost amounts the controller chooses between, never summed — for
    * text offering a base reduction plus a conditional larger one "instead" (EX6-006; KB Q3700
    * confirms the controller may still pick the smaller amount). Each entry's `condition` gates

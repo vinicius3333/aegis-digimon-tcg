@@ -70,6 +70,69 @@ describe("EX11-061 Mirai Kinosaki", () => {
     assertNoLoudGap(s);
   });
 
+  it("plays only the level 3 [Puppet] out of a mixed hand", async () => {
+    // EX11-021 is a [Puppet] Digimon at the WRONG level and BT1-090 matches nothing; both are
+    // listed before the legal card, so a broken level or trait bound would take one of them.
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-061", as: "mirai" },
+            { card: "EX11-020", as: "digivolvedPuppet" },
+          ],
+          hand: [
+            { card: "EX11-021", as: "levelFourPuppet" },
+            { card: "BT1-090", as: "unrelated" },
+            { card: "EX11-020", as: "levelThreePuppet" },
+          ],
+          deck: ["AD1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenOneOfYoursDigivolves", {
+      subjectPermanentId: s.perm("digivolvedPuppet").permanentId,
+    });
+    await settle(() => s.perm("mirai").isSuspended);
+
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX11-021", "BT1-090"]);
+    expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "EX11-020")).toHaveLength(2);
+    assertNoLoudGap(s);
+  });
+
+  it("declines the suspend cost, plays nothing, and arms no turn-end deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-061", as: "mirai" },
+            { card: "EX11-020", as: "unrelatedPuppet" },
+          ],
+          hand: [{ card: "EX11-020", as: "playedByMirai" }],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenOneOfYoursDigivolves", {
+      subjectPermanentId: s.perm("unrelatedPuppet").permanentId,
+    });
+
+    expect(s.decisions.some((d) => d.req.kind === "optional")).toBe(true);
+    expect(s.perm("mirai").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX11-020"]);
+
+    // The delayed delete lives INSIDE the watcher and only ever targets what the play produced,
+    // so the Puppet already on the board survives the turn-end window.
+    await advance(s.engine).fireSubTrigger("endOfTurn", { turnSeat: 0 });
+    expect(s.perm("unrelatedPuppet").topCard?.cardId).toBe("EX11-020");
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
   it("publishes full exclusive IR with the delayed delete inside the digivolve watcher", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects.find((effect) => effect.trigger === "YourTurn")?.actions).toMatchObject([

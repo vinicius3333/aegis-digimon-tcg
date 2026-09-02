@@ -93,13 +93,11 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [
-    {
-      cost: 2,
-      isAlternate: true,
-      traits: ["StandardApp"],
-    },
-  ],
+  // No `digivolutionRequirement`: Warpmon prints no [Digivolve] line. Its only evolution route
+  // is the catalog evoCost (Black, level 3, cost 2). The record previously carried an invented
+  // alternate `{ cost: 2, traits: ["StandardApp"] }` — "StandardApp" is not a trait any card in
+  // the catalog has (the card's FORMS are "Sup."/"Appmon"), so it granted a cost-2 route with no
+  // level or color gate that only failed to fire because its trait matched nothing.
   linkRequirement: [
     {
       cost: 2,

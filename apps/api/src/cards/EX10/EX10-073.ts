@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -27,8 +26,13 @@ export const compiled: CompiledCard = {
             count: 1,
             isSelf: true,
           },
+          // ＜Security A. +1＞. `securityStrikeCount` (GameEngine.ts) reads `amount ?? 1`, so an
+          // omitted amount already resolved to +1; the explicit value matches the house shape
+          // (EX11-010, BT25-057) and keeps the printed magnitude auditable instead of implicit.
           keyword: {
             keyword: "SecurityAttack",
+            amount: 1,
+            raw: "＜Security A. +1＞",
           },
           duration: "permanent",
         },

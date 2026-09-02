@@ -96,8 +96,9 @@ export interface CardPredicates {
    * `[Bracket]` refs from the clause. `nameExact` is literal card-name equality, so
    * "[Cerberusmon]" excludes "Cerberusmon: Werewolf Mode".
    *
-   * Entries AND by default. One entry carrying `orPrevious` switches the WHOLE array to OR
-   * ("[Data] or [Witchelny] trait" — BT19-029, BT19-055, BT21-054, BT21-080).
+   * Entries are always a union: a card qualifies when any entry matches (`definitionMatches`).
+   * `orPrevious` is an explicit marker of that union ("[Data] or [Witchelny] trait" — BT19-029,
+   * BT19-055, BT21-054, BT21-080); to AND a trait with a name, pair `nameOrTrait` with `traits`.
    */
   nameOrTrait?: {
     tokens: string[];

@@ -62,6 +62,66 @@ describe("EX11-068 Violet Inboots", () => {
     assertNoLoudGap(s);
   });
 
+  it("draws and trashes but does not digivolve when the attack is not by ＜Execute＞ (Q5938)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-068", as: "violet" },
+            { card: "BT20-072", as: "ghost" },
+          ],
+          hand: [
+            { card: "BT1-090", as: "discard" },
+            { card: "EX11-051", as: "evolution" },
+          ],
+          deck: ["AD1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+
+    await s.ready();
+    await advance(s.engine).fireSubTrigger("whenAttacking", {
+      attackerPermanentId: s.perm("ghost").permanentId,
+    });
+
+    expect(s.perm("violet").isSuspended).toBe(true);
+    expect(s.perm("ghost").topCard?.cardId).toBe("BT20-072");
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "EX11-051")).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("ignores an attack by a Digimon without the [Ghost] trait", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-068", as: "violet" },
+            { card: "EX11-049", as: "nonGhost" },
+          ],
+          hand: ["BT1-090"],
+          deck: ["AD1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+
+    await s.ready();
+    await advance(s.engine).fireSubTrigger("whenAttacking", {
+      attackerPermanentId: s.perm("nonGhost").permanentId,
+      attackMechanic: "Execute",
+    });
+
+    expect(s.perm("violet").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
   it("may decline the suspend payment and receives none of the attack rewards", async () => {
     const s = setupEngine(
       {

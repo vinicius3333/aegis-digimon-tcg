@@ -194,4 +194,26 @@ describe("EX12-006 Kakamon", () => {
       }),
     ).toEqual(expect.objectContaining({ ok: false }));
   });
+
+  it("does not accept a Shambala hand card that lacks the SW trait", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-006", as: "source" }],
+          hand: [{ card: "EX12-011", as: "nearMatch" }],
+          deck: ["BT1-010"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 0;
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("source"));
+    await settle();
+
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("nearMatch").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-010"]);
+    expect(s.state.memory).toBe(0);
+  });
 });

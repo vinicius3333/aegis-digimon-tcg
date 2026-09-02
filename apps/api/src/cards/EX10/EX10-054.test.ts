@@ -134,6 +134,30 @@ describe("EX10-054 VenomMyotismon", () => {
     ).toHaveLength(2);
   });
 
+  it("On Deletion deletes nothing when no opposing Digimon is suspended", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: CARD_ID, as: "venom" }] },
+        1: {
+          battleArea: [
+            { card: "EX10-040", as: "standing" },
+            { card: "EX10-064", as: "suspendedTamer", suspended: true },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    const standingId = s.perm("standing").permanentId;
+    const tamerId = s.perm("suspendedTamer").permanentId;
+    await advance(s.engine).verb.deletePermanent([s.perm("venom").permanentId], "byEffect");
+    await settle(() => s.state.pendingDecision === null);
+    // The clause reads "suspended Digimon": a suspended TAMER is not a legal target either.
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual(
+      expect.arrayContaining([standingId, tamerId]),
+    );
+  });
+
   it("On Deletion deletes only an opposing suspended Digimon", async () => {
     const preferred: string[] = [];
     const s = setupEngine(

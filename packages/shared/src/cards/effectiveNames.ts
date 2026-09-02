@@ -32,7 +32,8 @@ function parsedStaticNameAliases(def: CardDefinition): string[] {
   const aliases: string[] = [];
   const aliasPhrases = [
     ...(text.match(/(?:name of )?this card(?:\/(?:Digimon|Tamer))?[^.。]*also treated[^.。]*/gi) ?? []),
-    ...(text.match(/\(Rule\)\s*Name:\s*(?:Also\s+)?treated as(?:\s+having)?[^.。]*/gi) ?? []),
+    // The catalog prints both "(Rule) Name:" and "[Rule] Name:"; KB Q759 applies either in every zone.
+    ...(text.match(/[[(]Rule[\])]\s*Name:\s*(?:Also\s+)?treated as(?:\s+having)?[^.。]*/gi) ?? []),
   ];
   for (const phrase of aliasPhrases) {
     for (const match of phrase.matchAll(/\[([^\]]+)\]/g)) {

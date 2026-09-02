@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -17,11 +16,14 @@ const compiled: CompiledCard = {
               zone: "trash",
               controller: "mine",
               kind: ["Digimon"],
+              // "1 [Virus] trait Digimon card WITH [Greymon] in its name" is a CONJUNCTION.
+              // A two-entry `nameOrTrait` array cannot express it: `definitionMatches` treats
+              // that array as a UNION (`filter.nameOrTrait.some(...)`), so the pair matched any
+              // Virus Digimon OR any Greymon-named Digimon — BT1-015 (Vaccine Greymon) and
+              // EX10-006 itself (Virus Agumon) both qualified. `traits` is checked as its own
+              // AND-ed clause, so splitting the trait half onto it restores the printed gate.
+              traits: ["Virus"],
               nameOrTrait: [
-                {
-                  tokens: ["Virus"],
-                  match: "trait",
-                },
                 {
                   tokens: ["Greymon"],
                   match: "name",

@@ -64,6 +64,93 @@ describe("EX11-074 Vortexdramon", () => {
     });
   });
 
+  it("takes the cost-6 [GrandGalemon] route while a [Shoto Kazama] Tamer is in play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-032", as: "base" },
+            { card: "EX11-062", as: "shoto" },
+          ],
+          hand: [{ card: "EX11-074", as: "vortexdramon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 8;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("vortexdramon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX11-074");
+
+    expect(s.perm("base").topCard.cardId).toBe("EX11-074");
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["EX11-032"]);
+    expect(s.state.memory).toBe(2);
+    assertNoLoudGap(s);
+  });
+
+  it("refuses the alternate route without a [Shoto Kazama] on the board", async () => {
+    // The Tamer is a `controllerControls` availability gate, not an evolution base: a level 5
+    // GrandGalemon has no ordinary route into this level 7 card.
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX11-032", as: "base" }],
+          hand: [{ card: "EX11-074", as: "vortexdramon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 8;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("vortexdramon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("base").topCard.cardId).toBe("EX11-032");
+    assertNoLoudGap(s);
+  });
+
+  it("refuses the alternate route from a level 5 base that is not [GrandGalemon]", async () => {
+    // EX11-033 is the same colour and level as GrandGalemon and shares [LIBERATOR], and the
+    // Shoto Kazama gate is satisfied — only `namesExact` separates the two bases. It has no
+    // ordinary route into a level 7 card either, so nothing else can carry the digivolution.
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-033", as: "base" },
+            { card: "EX11-062", as: "shoto" },
+          ],
+          hand: [{ card: "EX11-074", as: "vortexdramon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 8;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("vortexdramon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("base").topCard.cardId).toBe("EX11-033");
+    assertNoLoudGap(s);
+  });
+
   it("Q5948-Q5954 rewards suspending your Digimon and filters opposing Digimon effects", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(

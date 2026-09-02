@@ -2,6 +2,7 @@ import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@a
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { irNode } from "../../engine/testkit/irNode.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
@@ -23,10 +24,11 @@ describe("EX11-045 Metatromon", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.digivolutionRequirement).toEqual([{ level: 5, texts: ["Maquinamon"], cost: 3, isAlternate: true }]);
     expect(digivolutionRequirementsFor(cardId)).toEqual(compiled.digivolutionRequirement);
-    expect(compiled.effects.find(({ trigger }) => trigger === "Static")?.actions[0]).toMatchObject({
-      kind: "GainKeyword",
-      keyword: { keyword: "Blocker" },
-    });
+    // Printed ＜Blocker＞ lives on the keyword line, the shape registration reads for printed
+    // keywords (peers EX11-035 / EX11-073).
+    expect(compiled.effects.filter(({ trigger }) => trigger === "Static").flatMap(({ keywords }) => keywords)).toEqual(
+      expect.arrayContaining([expect.objectContaining({ keyword: "Blocker" })]),
+    );
     for (const trigger of ["OnPlay", "WhenDigivolving", "WhenAttacking"]) {
       const effect = compiled.effects.find((candidate) => candidate.trigger === trigger)!;
       expect(effect).toMatchObject({
@@ -48,6 +50,13 @@ describe("EX11-045 Metatromon", () => {
       kind: "Delete",
       target: { filter: { superlative: "lowestPlayCost" } },
     });
+  });
+
+  it("carries printed Blocker on the field", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: cardId, as: "source" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("source"), "Blocker")).toBe(true);
+    assertNoLoudGap(s);
   });
 
   it("de-digivolves 2 and restricts an opposing Digimon from evolving", async () => {
