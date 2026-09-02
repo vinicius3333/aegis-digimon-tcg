@@ -18,8 +18,8 @@ describe("digivolutionRequirementsFor / BT26 alternate digivolve coverage", () =
     expect(digivolutionRequirementsFor("EX11-024")).toEqual([]);
   });
 
-  it("preserves EX11-026's unrestricted level 2 alternate route", () => {
-    expect(digivolutionRequirementsFor("EX11-026")).toEqual([{ level: 2, cost: 0, isAlternate: true }]);
+  it("does not expose EX11-026's ordinary EvoCost as an alternate requirement", () => {
+    expect(digivolutionRequirementsFor("EX11-026")).toEqual([]);
   });
 
   it("does not expose EX11-028's ordinary EvoCost as an alternate requirement", () => {
