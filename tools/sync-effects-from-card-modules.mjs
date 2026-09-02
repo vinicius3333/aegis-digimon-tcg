@@ -16,6 +16,7 @@ const MAX_CATALOG_BYTES = 32 * 1024 * 1024;
 function usage() {
   return [
     "Usage: pnpm effects:sync:set -- --set <SET>",
+    "       pnpm effects:sync:set -- --set <SET> --base <GIT-REF>",
     "       pnpm effects:check:set -- --set <SET>",
     "       pnpm effects:check:set -- --set <SET> --base <GIT-REF>",
     "",
@@ -233,6 +234,20 @@ export function outsideSetBytesMatch(baseDocument, currentDocument, set) {
   return maskSetRecordValues(baseDocument, set) === maskSetRecordValues(currentDocument, set);
 }
 
+export function rebaseScopedEntriesOntoBase(baseDocument, currentDocument, set) {
+  const scope = semanticScopeDiff(baseDocument, currentDocument, set);
+  if (scope.outsideSet.length > 0) {
+    throw new Error(`Refusing to discard semantic changes outside ${set}: ${scope.outsideSet.join(", ")}`);
+  }
+
+  const replacements = new Map(
+    [...topLevelEntryRanges(currentDocument)]
+      .filter(([key]) => key.startsWith(`${set}-`))
+      .map(([key, range]) => [key, range.value]),
+  );
+  return replaceTopLevelEntries(baseDocument, replacements);
+}
+
 function canonicalJson(value) {
   if (Array.isArray(value)) return JSON.stringify(value.map((entry) => JSON.parse(canonicalJson(entry))));
   if (value !== null && typeof value === "object") {
@@ -243,7 +258,7 @@ function canonicalJson(value) {
   return JSON.stringify(value);
 }
 
-function verifyScopeAgainstBase(document, set, base) {
+function readEffectsAtBase(base) {
   const effectsGitPath = relative(ROOT, EFFECTS_PATH).replaceAll("\\", "/");
   const result = spawnSync("git", ["show", `${base}:${effectsGitPath}`], {
     cwd: ROOT,
@@ -255,11 +270,15 @@ function verifyScopeAgainstBase(document, set, base) {
   if (result.status !== 0)
     throw new Error(`Unable to read effects.json at ${base}:\n${result.stderr || result.stdout}`);
 
-  const scope = semanticScopeDiff(result.stdout, document, set);
+  return result.stdout;
+}
+
+function verifyScopeAgainstBase(document, set, base, baseDocument = readEffectsAtBase(base)) {
+  const scope = semanticScopeDiff(baseDocument, document, set);
   if (scope.outsideSet.length > 0) {
     throw new Error(`Found semantic changes outside ${set}: ${scope.outsideSet.join(", ")}`);
   }
-  if (!outsideSetBytesMatch(result.stdout, document, set)) {
+  if (!outsideSetBytesMatch(baseDocument, document, set)) {
     throw new Error(`Found byte changes outside ${set}.`);
   }
   console.log(
@@ -352,13 +371,17 @@ async function main() {
   const { base, check, set } = parseArguments(process.argv.slice(2));
   const cardIds = catalogIdsForSet(set);
   if (cardIds.length === 0) throw new Error(`No catalog cards found for ${set}.`);
-  const original = readFileSync(EFFECTS_PATH, "utf8");
-  const keyDiff = setRecordKeyDiff(original, set, cardIds);
+  const current = readFileSync(EFFECTS_PATH, "utf8");
+  const keyDiff = setRecordKeyDiff(current, set, cardIds);
   if (keyDiff.missing.length > 0 || keyDiff.extra.length > 0) {
     throw new Error(
       `${set} effects.json keys do not match the card catalog. Missing: ${keyDiff.missing.join(", ") || "none"}; extra: ${keyDiff.extra.join(", ") || "none"}.`,
     );
   }
+
+  const baseDocument = base === undefined ? undefined : readEffectsAtBase(base);
+  const original =
+    !check && baseDocument !== undefined ? rebaseScopedEntriesOntoBase(baseDocument, current, set) : current;
 
   buildRuntime();
   const records = await compiledRecordsForSet(set, cardIds);
@@ -372,12 +395,12 @@ async function main() {
   );
 
   const updated = replaceTopLevelEntries(original, replacements);
-  const changed = updated !== original;
+  const changed = updated !== current;
 
   if (check && changed) {
     throw new Error(`${set} effects.json records are stale. Run: pnpm effects:sync:set -- --set ${set}`);
   }
-  if (base !== undefined) verifyScopeAgainstBase(updated, set, base);
+  if (base !== undefined) verifyScopeAgainstBase(updated, set, base, baseDocument);
   if (!check && changed) writeAtomically(EFFECTS_PATH, updated);
 
   console.log(
