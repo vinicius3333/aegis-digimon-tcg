@@ -33450,7 +33450,7 @@
               "kind": "selfDigivolutionStackHasTrait",
               "filter": {
                 "nameOrTrait": [
-                  { "tokens": ["Garudamon"], "match": "name" },
+                  { "tokens": ["Garudamon"], "match": "nameExact" },
                   { "tokens": ["X Antibody"], "match": "trait" }
                 ]
               },
@@ -33485,7 +33485,7 @@
               "kind": "selfDigivolutionStackHasTrait",
               "filter": {
                 "nameOrTrait": [
-                  { "tokens": ["Garudamon"], "match": "name" },
+                  { "tokens": ["Garudamon"], "match": "nameExact" },
                   { "tokens": ["X Antibody"], "match": "trait" }
                 ]
               },
@@ -33521,7 +33521,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Garudamon"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Garudamon"], "cost": 0, "isAlternate": true }]
   },
   "BT16-012": {
     "effects": [
@@ -33738,7 +33738,7 @@
                   "kind": "selfDigivolutionStackHasTrait",
                   "filter": {
                     "nameOrTrait": [
-                      { "tokens": ["Phoenixmon"], "match": "name" },
+                      { "tokens": ["Phoenixmon"], "match": "nameExact" },
                       { "tokens": ["X Antibody"], "match": "trait" }
                     ]
                   },
@@ -33761,7 +33761,7 @@
               "kind": "selfDigivolutionStackHasTrait",
               "filter": {
                 "nameOrTrait": [
-                  { "tokens": ["Phoenixmon"], "match": "name" },
+                  { "tokens": ["Phoenixmon"], "match": "nameExact" },
                   { "tokens": ["X Antibody"], "match": "trait" }
                 ]
               },
@@ -33809,7 +33809,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Phoenixmon"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Phoenixmon"], "cost": 2, "isAlternate": true }]
   },
   "BT16-016": {
     "effects": [
@@ -35046,7 +35046,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "colors": ["Green"], "level": 2, "cost": 0 }]
+    "digivolutionRequirement": [{ "colors": ["Green"], "level": 2, "cost": 0, "isAlternate": false }]
   },
   "BT16-038": {
     "effects": [
@@ -35339,7 +35339,7 @@
           {
             "kind": "SelectBind",
             "target": {
-              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "filter": { "controller": "opponent", "kind": ["Digimon"], "unsuspended": true },
               "count": 1,
               "bindAs": "suspended"
             },
@@ -35377,7 +35377,7 @@
           {
             "kind": "SelectBind",
             "target": {
-              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "filter": { "controller": "opponent", "kind": ["Digimon"], "unsuspended": true },
               "count": 1,
               "bindAs": "suspended"
             },
@@ -35682,7 +35682,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "level": 6, "traits": ["Insectoid"], "cost": 2, "isAlternate": true, "playCostLte": 13 }
+      { "level": 6, "traits": ["Insectoid"], "cost": 2, "isAlternate": true, "basePlayCostMax": 13 }
     ]
   },
   "BT16-049": {
@@ -36004,20 +36004,30 @@
           {
             "kind": "GrantStatic",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-            "grant": { "kind": "Protection", "protections": ["dpReduction", "deDigivolve"] },
+            "grant": "dpReductionImmunity",
+            "tokens": ["DeDigivolveImmunity"],
             "duration": "untilOpponentTurnEnd",
             "condition": { "kind": "securityAtLeast", "value": 3 }
           },
           {
+            "kind": "SelectBind",
+            "target": {
+              "filter": { "controller": "mine", "kind": ["Digimon"] },
+              "count": 1,
+              "bindAs": "blockerRebootTarget"
+            },
+            "condition": { "kind": "securityAtMost", "value": 3, "raw": "you have 3 or fewer security cards" }
+          },
+          {
             "kind": "GainKeyword",
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+            "target": { "fromSelectionRef": "blockerRebootTarget", "filter": {}, "count": 1 },
             "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" },
             "duration": "untilOpponentTurnEnd",
             "condition": { "kind": "securityAtMost", "value": 3, "raw": "you have 3 or fewer security cards" }
           },
           {
             "kind": "GainKeyword",
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+            "target": { "fromSelectionRef": "blockerRebootTarget", "filter": {}, "count": 1 },
             "keyword": { "keyword": "Reboot", "raw": "＜Reboot＞" },
             "duration": "untilOpponentTurnEnd",
             "condition": { "kind": "securityAtMost", "value": 3, "raw": "you have 3 or fewer security cards" }
@@ -36030,20 +36040,30 @@
           {
             "kind": "GrantStatic",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-            "grant": { "kind": "Protection", "protections": ["dpReduction", "deDigivolve"] },
+            "grant": "dpReductionImmunity",
+            "tokens": ["DeDigivolveImmunity"],
             "duration": "untilOpponentTurnEnd",
             "condition": { "kind": "securityAtLeast", "value": 3 }
           },
           {
+            "kind": "SelectBind",
+            "target": {
+              "filter": { "controller": "mine", "kind": ["Digimon"] },
+              "count": 1,
+              "bindAs": "blockerRebootTarget"
+            },
+            "condition": { "kind": "securityAtMost", "value": 3, "raw": "you have 3 or fewer security cards" }
+          },
+          {
             "kind": "GainKeyword",
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+            "target": { "fromSelectionRef": "blockerRebootTarget", "filter": {}, "count": 1 },
             "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" },
             "duration": "untilOpponentTurnEnd",
             "condition": { "kind": "securityAtMost", "value": 3, "raw": "you have 3 or fewer security cards" }
           },
           {
             "kind": "GainKeyword",
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+            "target": { "fromSelectionRef": "blockerRebootTarget", "filter": {}, "count": 1 },
             "keyword": { "keyword": "Reboot", "raw": "＜Reboot＞" },
             "duration": "untilOpponentTurnEnd",
             "condition": { "kind": "securityAtMost", "value": 3, "raw": "you have 3 or fewer security cards" }
@@ -36553,11 +36573,8 @@
           {
             "kind": "GrantStatic",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "grant": {
-              "copyEffectsFromDigivolution": {
-                "filter": "This Digimon gains all of the effects on cards with [Gammamon] in their names in this Digimon's digivolution cards"
-              }
-            },
+            "grant": "effects",
+            "filter": { "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "name" }] },
             "duration": "permanent"
           }
         ]
@@ -36568,11 +36585,8 @@
           {
             "kind": "GrantStatic",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "grant": {
-              "copyEffectsFromDigivolution": {
-                "filter": "This Digimon gains all of the effects on cards with [Gammamon] in their names in this Digimon's digivolution cards"
-              }
-            },
+            "grant": "effects",
+            "filter": { "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "name" }] },
             "duration": "permanent"
           }
         ],
@@ -37016,7 +37030,7 @@
             "optional": true,
             "abortOnDecline": true
           },
-          { "kind": "Delete", "target": { "fromSelectionRef": "chosenDigimon", "count": 1 } },
+          { "kind": "Delete", "target": { "filter": {}, "fromSelectionRef": "chosenDigimon", "count": 1 } },
           {
             "kind": "Delete",
             "target": {
@@ -37043,7 +37057,7 @@
             "optional": true,
             "abortOnDecline": true
           },
-          { "kind": "Delete", "target": { "fromSelectionRef": "chosenDigimon", "count": 1 } },
+          { "kind": "Delete", "target": { "filter": {}, "fromSelectionRef": "chosenDigimon", "count": 1 } },
           {
             "kind": "Delete",
             "target": {
@@ -37076,6 +37090,7 @@
               "nameOrTrait": [{ "tokens": ["Leomon"], "match": "name" }]
             },
             "from": ["hand", "trash"],
+            "payCost": true,
             "optional": true
           }
         ]
@@ -37839,7 +37854,8 @@
           },
           {
             "kind": "SubTrigger",
-            "event": "endOfOpponentTurn",
+            "event": "endOfTurn",
+            "turnScope": "opponentsTurn",
             "once": true,
             "on": { "filter": { "boundRef": "playedHawkmonOrSalamon" }, "count": 1 },
             "actions": [
@@ -37876,13 +37892,7 @@
                 "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
                 "amount": -3000,
                 "duration": "forTheTurn",
-                "condition": {
-                  "kind": "allOf",
-                  "conditions": [
-                    { "kind": "isDnaDigivolving", "raw": "DNA digivolving" },
-                    { "kind": "ifThisEffectActed" }
-                  ]
-                }
+                "condition": { "kind": "isDnaDigivolving", "raw": "DNA digivolving" }
               }
             ]
           }
@@ -37922,7 +37932,8 @@
           },
           {
             "kind": "SubTrigger",
-            "event": "endOfOpponentTurn",
+            "event": "endOfTurn",
+            "turnScope": "opponentsTurn",
             "once": true,
             "on": { "filter": { "boundRef": "playedVeemonOrWormmon" }, "count": 1 },
             "actions": [
@@ -37961,13 +37972,7 @@
                   "count": 1
                 },
                 "amount": 3,
-                "condition": {
-                  "kind": "allOf",
-                  "conditions": [
-                    { "kind": "isDnaDigivolving", "raw": "DNA digivolving" },
-                    { "kind": "ifThisEffectActed", "raw": "previous suspend cost was paid" }
-                  ]
-                },
+                "condition": { "kind": "isDnaDigivolving", "raw": "DNA digivolving" },
                 "raw": "If DNA digivolving, by suspending this Tamer, trash any 3 digivolution cards under 1 of your opponent's Digimon."
               }
             ]
@@ -38189,7 +38194,8 @@
           },
           {
             "kind": "SubTrigger",
-            "event": "endOfOpponentTurn",
+            "event": "endOfTurn",
+            "turnScope": "opponentsTurn",
             "once": true,
             "on": { "filter": { "boundRef": "playedArmadillomonOrPatamon" }, "count": 1 },
             "actions": [
@@ -38225,13 +38231,7 @@
                 "kind": "DeDigivolve",
                 "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
                 "amount": 1,
-                "condition": {
-                  "kind": "allOf",
-                  "conditions": [
-                    { "kind": "isDnaDigivolving", "raw": "DNA digivolving" },
-                    { "kind": "ifThisEffectActed", "raw": "previous suspend cost was paid" }
-                  ]
-                }
+                "condition": { "kind": "isDnaDigivolving", "raw": "DNA digivolving" }
               }
             ]
           }
@@ -39184,7 +39184,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "multicolor": true, "names": ["Magnamon"], "cost": 5, "isAlternate": true }]
+    "digivolutionRequirement": [{ "names": ["Magnamon"], "colorCount": 2, "cost": 5, "isAlternate": true }]
   },
   "BT17-001": {
     "effects": [
