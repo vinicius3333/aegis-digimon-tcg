@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -43,11 +42,16 @@ const compiled: CompiledCard = {
                 filter: {
                   controller: "mine",
                   kind: ["Option"],
+                  // The printed clause caps neither the Option's cost nor its color count.
+                  // `UseOptionWithoutCost` defaults to a play cost ceiling of 5 and to
+                  // single-colored Options, so both have to be opened explicitly (BT25-083).
+                  playCostLte: 99,
                   nameOrTrait: [{ tokens: ["Mutant", "ME"], match: "trait" }],
                 },
                 from: ["hand"],
                 payCost: true,
                 reduceCostBy: 2,
+                allowMultiColor: true,
                 optional: true,
               },
             ],

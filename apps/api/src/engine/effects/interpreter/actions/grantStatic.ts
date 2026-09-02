@@ -233,6 +233,7 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
             ctx.fx.conferStackEffects(permanentId, stackCard.instanceId, duration, {
               excludeInherited: action.excludeInherited === true,
               granterInstanceId: ctx.source.instanceId,
+              ...(action.copyTrigger !== undefined ? { trigger: action.copyTrigger } : {}),
             });
           }
         }

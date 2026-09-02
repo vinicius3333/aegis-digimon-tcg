@@ -1,13 +1,24 @@
 import type { Action, CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
+// CR 2-3-2-4: "[Aqua] or [Sea Animal] in any of its traits" matches every trait that CONTAINS
+// the bracketed text, not the trait spelled exactly. No card carries a bare [Aqua] trait — the
+// real traits are [Aquatic], [Aquabeast] and [Ancient Aquabeast] — so an exact match made the
+// whole Aqua half of this card dead, while [Sea Beast] must still stay out.
+const aquaOrSeaAnimalTraits = [
+  { tokens: ["Aqua"], match: "traitContains" as const },
+  { tokens: ["Sea Animal"], match: "traitContains" as const, orPrevious: true },
+];
 const aquaOrSeaAnimal: Filter = {
   controller: "mine",
   kind: ["Digimon"],
-  nameOrTrait: [
-    { tokens: ["Aqua"], match: "trait" },
-    { tokens: ["Sea Animal"], match: "trait", orPrevious: true },
-  ],
+  nameOrTrait: aquaOrSeaAnimalTraits,
+};
+// The placement pays with "1 level 5 or lower CARD", not a Digimon card: any levelled card in
+// hand with a matching trait qualifies.
+const placeableAquaOrSeaAnimalCard: Filter = {
+  controller: "mine",
+  nameOrTrait: aquaOrSeaAnimalTraits,
 };
 const suspendCost = {
   kind: "suspend",
@@ -34,7 +45,11 @@ export const compiled: CompiledCard = {
           cost: {
             kind: "place",
             target: {
-              filter: { ...aquaOrSeaAnimal, levelComparison: { op: "lte", value: 5 }, zone: "hand" },
+              filter: {
+                ...placeableAquaOrSeaAnimalCard,
+                levelComparison: { op: "lte", value: 5 },
+                zone: "hand",
+              },
               count: 1,
               from: ["hand"],
             },

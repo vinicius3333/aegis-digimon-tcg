@@ -36,7 +36,7 @@ describe("EX11-026 Pteromon", () => {
     });
     const compiled = runtimeCompiledCard(cardId)!;
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
-    expect(compiled.digivolutionRequirement).toEqual([{ level: 2, cost: 0, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toBeUndefined();
     for (const trigger of ["WhenMoving", "OnPlay"]) {
       expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
         actions: [
@@ -44,11 +44,13 @@ describe("EX11-026 Pteromon", () => {
           {
             kind: "ModifyDP",
             amount: 3000,
-            condition: { kind: "ifThisEffectActed" },
+            duration: "untilOpponentTurnEnd",
+            condition: { kind: "lastSuspendedIsMine" },
             target: {
               filter: {
+                controller: "mine",
                 nameOrTrait: [
-                  { tokens: ["Avian", "Bird"], match: "trait" },
+                  { tokens: ["Avian", "Bird"], match: "traitContains" },
                   { tokens: ["Vortex Warriors"], match: "trait" },
                 ],
               },
@@ -72,10 +74,14 @@ describe("EX11-026 Pteromon", () => {
         ],
       }),
     );
-    expect(digivolutionRequirementsFor(cardId)).toEqual(compiled.digivolutionRequirement);
+    expect(digivolutionRequirementsFor(cardId)).toEqual([]);
     expect(compiled.effects.some(({ isSecurity }) => isSecurity)).toBe(false);
   });
 
+  // Controller gate for "If this effect suspended YOUR Digimon": suspending the OPPONENT's
+  // Digimon (allowed by Q5816) leaves the bonus unprocessed. The source is itself a [Bird Dragon]
+  // and so a legal buff target, which is what makes this a real guard — swap the condition back
+  // to `ifThisEffectActed` and the source gains +3000 here.
   it("may suspend an opposing Digimon but then does not grant the conditional DP bonus", async () => {
     const s = setupEngine(
       {
@@ -110,6 +116,63 @@ describe("EX11-026 Pteromon", () => {
     assertNoLoudGap(s);
   });
 
+  // Trait-mix proof for the printed "with [Avian] or [Bird] IN ANY OF ITS TRAITS or the
+  // [Vortex Warriors] trait" (KB Q839/Q6517). Pteromon's own [Bird Dragon] trait only qualifies
+  // under partial matching, EX8-074 only under the exact [Vortex Warriors] branch, and
+  // BT1-009 [Mini Dragon] under neither. With `match: "trait"` (exact) the [Bird Dragon] source
+  // would drop out of the candidate set and this assertion fails.
+  it("offers partial-trait and Vortex Warriors allies but never a non-matching trait", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "source", dp: 1000 },
+            { card: "EX8-074", as: "vortex", dp: 11000 },
+            { card: "BT1-009", as: "offTrait", dp: 3000 },
+          ],
+        },
+      },
+      { autoSelectCards: false },
+    );
+    const firing = advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const suspendDecision = s.decisions.find(({ req }) => req.decisionId === s.state.pendingDecision!.decisionId)!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: suspendDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("source").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const buffDecision = s.decisions.find(({ req }) => req.decisionId === s.state.pendingDecision!.decisionId)!.req;
+    const candidates = buffDecision.options?.candidateInstanceIds ?? [];
+    expect(candidates).toEqual(expect.arrayContaining([s.perm("source").permanentId, s.perm("vortex").permanentId]));
+    expect(candidates).not.toContain(s.perm("offTrait").permanentId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: buffDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("source").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await firing;
+
+    expect(s.perm("source").isSuspended).toBe(true);
+    expect(s.perm("source").currentDP).toBe(4000);
+    assertNoLoudGap(s);
+  });
+
   it("may decline suspension and leaves every Digimon unchanged", async () => {
     const s = setupEngine(
       {
@@ -139,7 +202,7 @@ describe("EX11-026 Pteromon", () => {
     assertNoLoudGap(s);
   });
 
-  it("accepts the printed unrestricted Lv.2 alternate route and rejects Lv.3", async () => {
+  it("digivolves only over a green level 2 by its ordinary route and has no colour-free alternate", () => {
     const valid = setupEngine({
       0: { battleArea: [{ card: "EX11-003", as: "level2" }], hand: [{ card: cardId, as: "source" }] },
     });
@@ -150,6 +213,20 @@ describe("EX11-026 Pteromon", () => {
         instanceId: valid.inst("source").instanceId,
       }),
     ).toEqual({ ok: true });
+
+    const offColour = setupEngine({
+      0: { battleArea: [{ card: "BT1-002", as: "redLevel2" }], hand: [{ card: cardId, as: "source" }] },
+    });
+    for (const useAlternateCost of [false, true]) {
+      expect(
+        offColour.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: offColour.perm("redLevel2").permanentId,
+          instanceId: offColour.inst("source").instanceId,
+          useAlternateCost,
+        }),
+      ).toEqual({ ok: false, reason: "invalid-evolution" });
+    }
 
     const invalid = setupEngine({
       0: { battleArea: [{ card: "BT1-009", as: "level3" }], hand: [{ card: cardId, as: "source" }] },

@@ -677,6 +677,17 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const self = ctx.source.permanent();
       return (self?.linked.length ?? 0) >= (cond.value ?? 0);
     }
+    case "selfLinkedMatchesFilter": {
+      // "This Digimon linked with [X]" (EX11-006): count the SOURCE host's link cards whose
+      // definition matches the filter. An off-field source or a missing filter is never linked.
+      const self = ctx.source.permanent();
+      if (self === undefined || cond.filter === undefined) return false;
+      const filter = cond.filter;
+      const matches = self.linked.filter((card) =>
+        definitionMatches(filter, ctx.game.definitionOf(card as never)),
+      ).length;
+      return matches >= (cond.count ?? 1);
+    }
     case "selfDigivolutionCountExactly": {
       const self = ctx.source.permanent();
       return (self?.stack.length ?? 0) === (cond.value ?? 0);

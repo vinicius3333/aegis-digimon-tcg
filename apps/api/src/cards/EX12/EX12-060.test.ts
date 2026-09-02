@@ -91,6 +91,13 @@ describe("EX12-060 Chaosdramon", () => {
               target: {
                 count: 2,
                 from: ["hand", "trash"],
+                // The printed cost takes "cards", not Digimon: a level 5 or lower Digi-Egg
+                // with a matching trait is legal material, so the filter must carry no kind gate.
+                filter: {
+                  controller: "mine",
+                  levelComparison: { op: "lte", value: 5 },
+                  nameOrTrait: [{ tokens: ["Machine", "Cyborg", "ME"], match: "trait" }],
+                },
               },
             },
             optional: true,
@@ -130,6 +137,31 @@ describe("EX12-060 Chaosdramon", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowOneId)).toBe(false);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowTwoId)).toBe(false);
     expect(s.perm("stacked").stack.length).toBe(1);
+  });
+
+  it("accepts a level 2 [ME] Digi-Egg as one of the two placed materials", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "source" }],
+          hand: [{ card: "EX12-055", as: "materialOne" }],
+          // EX12-003 Kapurimon is a Lv.2 Digi-Egg with the [ME] trait, and the cost is printed
+          // over "cards". FAILS-WHEN-REVERTED: restore `kind: ["Digimon"]` on the place-cost
+          // filter and only one legal material remains, so the payment cannot be made.
+          trash: [{ card: "EX12-003", as: "digiEggMaterial" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "low" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    await settle(() => s.perm("source").stack.length === 2);
+
+    expect(s.perm("source").stack.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["EX12-003", "EX12-055"]),
+    );
+    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX12-003")).toBe(false);
   });
 
   it("may decline the exact payment after De-Digivolve resolves", async () => {

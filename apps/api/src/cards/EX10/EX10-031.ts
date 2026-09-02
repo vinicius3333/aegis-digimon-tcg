@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -9,40 +8,51 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // play 1 play cost 4 or lower card from its digivolution cards without paying the cost.
 // Text: [DigiXros -1] [SkullKnightmon] x [DeadlyAxemon]
 // KB Q5090: "w/[Knightmon] in text" includes any card with Knightmon in name/traits/effects.
-// Fixes: added GrantStatic deDigivolve protection; added DeadlyAxemon to DigiXros materials;
+// Fixes: added the <De-Digivolve> protection; added DeadlyAxemon to DigiXros materials;
 // added kind filter to PlayWithoutCost target.
+// Audit fix (EX10 card-by-card): the protection and the +3000 DP are ONE selected Digimon. The
+// previous shape bound the choice with `GrantStatic.selectionRef` and read it back with an
+// action-level `ModifyDP.fromSelectionRef` — neither key is read by the interpreter (`selectionRef`
+// appears nowhere in grantStatic.ts; `fromSelectionRef` lives on `Target`, not on the action), so
+// the DP buff ran a SECOND independent selection and could land on a different Digimon. Rebuilt on
+// the SelectBind + `Target.fromSelectionRef` pair the same set's EX10-029 already proves, which is
+// also the only typed encoding. `byOpponentEffectsOnly` records the printed "THEIR <De-Digivolve>
+// effects"; the de-digivolve site (primitives.ts deDigivolve) currently reads the restriction
+// without passing `byOpponentEffect`, so it over-blocks the controller's own <De-Digivolve> too.
 const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnPlay",
       actions: [
         {
-          kind: "GrantStatic",
+          kind: "SelectBind",
           target: {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
             },
             count: 1,
+            bindAs: "protected",
           },
-          selectionRef: "protected",
-          grant: {
-            kind: "Protection",
-            protections: ["deDigivolve"],
-            from: "opponent",
+        },
+        {
+          kind: "Restrict",
+          target: {
+            filter: {},
+            count: 1,
+            fromSelectionRef: "protected",
           },
+          restriction: "cantBeDeDigivolved",
+          byOpponentEffectsOnly: true,
           duration: "untilOpponentTurnEnd",
         },
         {
           kind: "ModifyDP",
           target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-            },
+            filter: {},
             count: 1,
+            fromSelectionRef: "protected",
           },
-          fromSelectionRef: "protected",
           amount: 3000,
           duration: "untilOpponentTurnEnd",
         },
@@ -52,32 +62,34 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "GrantStatic",
+          kind: "SelectBind",
           target: {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
             },
             count: 1,
+            bindAs: "protected",
           },
-          selectionRef: "protected",
-          grant: {
-            kind: "Protection",
-            protections: ["deDigivolve"],
-            from: "opponent",
+        },
+        {
+          kind: "Restrict",
+          target: {
+            filter: {},
+            count: 1,
+            fromSelectionRef: "protected",
           },
+          restriction: "cantBeDeDigivolved",
+          byOpponentEffectsOnly: true,
           duration: "untilOpponentTurnEnd",
         },
         {
           kind: "ModifyDP",
           target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-            },
+            filter: {},
             count: 1,
+            fromSelectionRef: "protected",
           },
-          fromSelectionRef: "protected",
           amount: 3000,
           duration: "untilOpponentTurnEnd",
         },
@@ -100,6 +112,10 @@ const compiled: CompiledCard = {
                   controller: "mine",
                   kind: ["Digimon", "Tamer", "Option"],
                   playCostLte: 4,
+                  // "from ITS digivolution cards": scope the pool to this Digimon's own stack.
+                  // Without a host gate the loose-card search offers every controlled Digimon's
+                  // stack (targeting/loose.ts only self-scopes on an explicit hostFilter).
+                  hostFilter: { isSelfRef: true },
                 },
                 count: 1,
               },

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -38,6 +37,35 @@ export const compiled: CompiledCard = {
           from: ["hand"],
           payCost: false,
           optional: true,
+        },
+      ],
+    },
+    // Printed LINK effect (catalog `linkEffect`), active only while this card is plugged in
+    // sideways with a host Digimon: "[All Turns] When this Digimon would leave the battle area,
+    // by placing 1 of its link cards as its bottom digivolution card, it doesn't leave."
+    // `isLinked` scopes the window to the linked state; "this Digimon" is the HOST, which is what
+    // `ctx.source.permanent()` resolves to for a linked source, so `isSelfRef` covers both the
+    // protected permanent and the pool of "its link cards" (zone `linked`). A Replacement whose
+    // cost is present with no payload actions resolves as mode "prevent". KB Q5823: the placement
+    // still fires "when digivolution cards are added" watchers; Q5824 excludes ＜Mind Link＞ cards,
+    // which never enter `linked`.
+    {
+      trigger: "AllTurns",
+      isLinked: true,
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          sourceFilter: { isSelfRef: true },
+          actions: [],
+          cost: {
+            kind: "place",
+            target: { filter: { isSelfRef: true, zone: "linked" }, from: ["linked"], count: 1 },
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "self",
+            raw: "by placing 1 of its link cards as its bottom digivolution card, it doesn't leave",
+          },
         },
       ],
     },

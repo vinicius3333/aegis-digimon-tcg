@@ -2091,7 +2091,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
    * delete, which moves the whole permanent) — such ids are skipped. Returns the
    * instances actually moved.
    */
-  const trash = async (instanceIds: string[], opts?: { byEffectSeat?: Seat }): Promise<CardInstance[]> => {
+  const trash = async (
+    instanceIds: string[],
+    opts?: { byEffectSeat?: Seat; byRule?: boolean },
+  ): Promise<CardInstance[]> => {
     // "Effects can't trash it" (§15-1-3, EX9-005). The restriction is keyed by permanent, so it
     // covers every card that permanent owns — its top card, digivolution stack, and link cards.
     // `stackTrashLock` remains the narrower, seat-aware lock for stack cards alone (EX11-070);
@@ -2106,14 +2109,16 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     });
     const moved: CardInstance[] = [];
     // SubTrigger bus (System B): "when a link card is trashed" (whenLinkTrashed) fires for each
-    // instance that, at trash time, sits in a permanent's `linked` list — a GENUINE trash of a
-    // link card. A link-card REPLACE swaps the linked card via a different path and does NOT route
-    // through this verb, so it never fires here (KB EX10-062 Q5172 / EX10-073 Q5188). The host
+    // instance that, at trash time, sits in a permanent's `linked` list — a GENUINE effect trash of
+    // a link card. The CR 4-9-5 over-limit sweep routes through this verb with `byRule` and is
+    // excluded below (KB EX10-062 Q5172 / EX10-073 Q5188). The host
     // permanent (whose link card this is) is carried as `subjectPermanentId` so a watcher can gate
     // on "this Digimon" / "an opponent's Digimon".
     const linkTrashed: { instanceId: string; hostPermanentId: string }[] = [];
     const optionBattleAreaTrashed: string[] = [];
-    if (engine.fireSubTrigger) {
+    // CR 4-9-5's over-limit sweep is rule processing, not an effect: a watcher reading "when
+    // effects trash any of this Digimon's link cards" must not see it (Q5088, Q5172, Q5188).
+    if (engine.fireSubTrigger && opts?.byRule !== true) {
       for (const instanceId of instanceIds) {
         const host = hostOfLinkedInstance(state, instanceId);
         if (host !== undefined) linkTrashed.push({ instanceId, hostPermanentId: host });

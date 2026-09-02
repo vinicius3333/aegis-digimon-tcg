@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -153,6 +152,8 @@ const compiled: CompiledCard = {
       sharedUseKey: "ir-shared-0",
     },
   ],
+  coverage: "full",
+  residual: [],
   digivolutionRequirement: [
     {
       level: 6,
@@ -215,8 +216,6 @@ const compiled: CompiledCard = {
       ],
     },
   ],
-  coverage: "full",
-  residual: [],
 };
 
 registerIrCard("EX12-037", compiled);

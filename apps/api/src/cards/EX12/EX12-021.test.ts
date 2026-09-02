@@ -52,6 +52,47 @@ describe("EX12-021 Gabumon", () => {
     expect(s.state.memory).toBe(1);
   });
 
+  it("still gains the memory after paying the cost when the deck is empty and nothing is drawn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-021", as: "source" }],
+          hand: [{ card: "EX12-007", as: "cost" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("source"));
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId));
+
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("cannot pay the trash cost with a matching card that is not in the hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-021", as: "source" }],
+          trash: [{ card: "EX12-007", as: "inTrash" }],
+          deck: ["BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("source"));
+    await settle();
+
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["EX12-007"]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-010"]);
+    expect(s.state.memory).toBe(0);
+  });
+
   it("may decline the hand-trash cost and then neither draws nor gains memory", async () => {
     const s = setupEngine(
       {
@@ -163,6 +204,7 @@ describe("EX12-021 Gabumon", () => {
               count: 1,
               filter: {
                 controller: "mine",
+                zone: "hand",
                 nameOrTrait: [
                   { tokens: ["Garurumon"], match: "name" },
                   { tokens: ["VB"], match: "trait" },
@@ -171,9 +213,12 @@ describe("EX12-021 Gabumon", () => {
             },
           },
         },
-        { kind: "GainMemory", amount: 1, condition: { kind: "ifThisEffectActed" } },
+        { kind: "GainMemory", amount: 1 },
       ],
     });
+    expect(compiled.effects.find((effect) => effect.trigger === "StartOfYourMainPhase")?.actions[1]).not.toHaveProperty(
+      "condition",
+    );
     expect(compiled.effects.find((effect) => effect.isInherited)).toMatchObject({
       trigger: "WhenAttacking",
       frequency: "OncePerTurn",

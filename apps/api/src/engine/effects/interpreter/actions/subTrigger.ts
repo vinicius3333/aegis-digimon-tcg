@@ -168,7 +168,10 @@ export async function runSubTrigger(
   let anchorPermanentId = playerScoped ? undefined : self?.permanentId;
   let expiresOnTurnEndOf: typeof ctx.source.ownerSeat | undefined;
   if (action.on !== undefined) {
-    const targetIds = await resolvePermanentTargets(ctx, action.on);
+    // Q6740: a granted trigger can be given to a permanent that is currently unaffected by
+    // effects; grantedEffectAffectableGate suppresses it at fire time instead. Mirrors
+    // runGainTriggeredEffect, which already preserves the selection.
+    const targetIds = await resolvePermanentTargets(ctx, action.on, { preserveUnaffectableSelection: true });
     const grantTo = targetIds[0];
     if (grantTo === undefined) return; // no eligible permanent chosen => nothing is granted
     anchorPermanentId = grantTo;

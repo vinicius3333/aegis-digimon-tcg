@@ -88,7 +88,16 @@ describe("EX12-033 Amphimon", () => {
     });
     expect(compiled.effects.find((effect) => effect.trigger === "Main")).toMatchObject({
       actions: [
-        { kind: "TrashDigivolution", amount: 4, scope: "acrossDigimon", fromTop: false },
+        {
+          kind: "TrashDigivolution",
+          amount: 4,
+          scope: "acrossDigimon",
+          fromTop: false,
+          // The pooled scope reads every eligible host, so the target count is "all". The
+          // effects.json snapshot still carries the compiler's "any", a value `Target.count`
+          // (number | "all") does not admit; that record needs regenerating from this module.
+          target: { count: "all" },
+        },
         {
           kind: "Return",
           to: "hand",
@@ -133,6 +142,39 @@ describe("EX12-033 Amphimon", () => {
 
     expect(s.state.players[0]!.trash).toHaveLength(2);
     expect(s.perm("opponent").currentDP).toBe(4000);
+  });
+
+  it("resolves the same clause from the [Counter] window", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: cardId, as: "source" }], hand: ["BT1-001", "BT1-002", "BT1-003"] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 20000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnCounterTiming, s.perm("source"));
+    await settle(() => s.perm("opponent").currentDP === 8000);
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.perm("opponent").currentDP).toBe(8000);
+  });
+
+  it("leaves DP and hand untouched when the may-trash clause is declined", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: cardId, as: "source" }], hand: ["BT1-001", "BT1-002", "BT1-003"] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 20000 }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    await settle(() => false, 60);
+
+    expect(s.state.players[0]!.hand).toHaveLength(3);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.perm("opponent").currentDP).toBe(20000);
   });
 
   it("trashes four cards across opponent Digimon/Tamer stacks and returns an empty Tamer", async () => {

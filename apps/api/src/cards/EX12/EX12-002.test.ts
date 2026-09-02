@@ -18,7 +18,7 @@ describe("EX12-002 Mococomon", () => {
           hand: [{ card: "EX12-045", as: "target" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 0;
     await s.ready();
@@ -47,7 +47,7 @@ describe("EX12-002 Mococomon", () => {
         },
         1: { battleArea: [{ card: "EX12-022", as: "opponentSw" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     await s.ready();
 
@@ -74,7 +74,7 @@ describe("EX12-002 Mococomon", () => {
           hand: [{ card: "EX12-012", as: "target" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.turnSeat = 1;
     await s.ready();
@@ -99,7 +99,7 @@ describe("EX12-002 Mococomon", () => {
           hand: [{ card: "EX12-011", as: "nearMatch" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     await s.ready();
 
@@ -121,7 +121,7 @@ describe("EX12-002 Mococomon", () => {
           hand: [{ card: "EX12-012", as: "target" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     await s.ready();
 
@@ -145,7 +145,7 @@ describe("EX12-002 Mococomon", () => {
           hand: [{ card: "EX12-012", as: "first" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     await s.ready();
 
@@ -216,7 +216,13 @@ describe("EX12-002 Mococomon", () => {
           deck: ["EX12-006", "EX12-012", "EX12-022", "EX12-025", "EX12-039"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false, preferInstanceIds: preferred },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        autoOrderTriggers: false,
+        preferInstanceIds: preferred,
+      },
     );
     preferred.push(s.inst("target").instanceId);
     s.state.memory = 10;
@@ -273,5 +279,29 @@ describe("EX12-002 Mococomon", () => {
       reduceCost: 2,
       optional: true,
     });
+  });
+
+  it("does not digivolve into an SW card whose digivolution requirements the host cannot meet", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX12-006", as: "host", under: ["EX12-002"] },
+            { card: "EX12-022", as: "played" },
+          ],
+          hand: [{ card: "EX12-045", as: "tooHigh" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenPlayed", {
+      subjectPermanentId: s.perm("played").permanentId,
+    });
+    await settle();
+
+    expect(s.perm("host").topCard?.cardId).toBe("EX12-006");
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX12-045")).toBe(true);
   });
 });

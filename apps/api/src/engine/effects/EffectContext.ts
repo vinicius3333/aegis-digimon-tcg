@@ -846,7 +846,7 @@ export interface Primitives {
    * the whenLinkTrashed SubTrigger (KB EX10-062/EX10-073) — the watcher body is awaited so it
    * sequences before control returns (WR-01). Non-link trashes resolve synchronously-fast.
    */
-  trash(instanceIds: string[], opts?: { byEffectSeat?: Seat }): Promise<CardInstance[]>;
+  trash(instanceIds: string[], opts?: { byEffectSeat?: Seat; byRule?: boolean }): Promise<CardInstance[]>;
   /** Trash a breeding permanent as a whole without treating the move as deletion. */
   trashBreedingPermanent?(seat: Seat, opts?: { byEffectSeat?: Seat }): Promise<CardInstance[]>;
   /**

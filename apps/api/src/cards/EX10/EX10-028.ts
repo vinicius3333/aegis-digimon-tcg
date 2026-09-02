@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -9,6 +8,9 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   digivolution cards (filter is on the CARD being trashed, not the host Digimon).
 //   Effect: 1 of your Mineral/Rock trait Digimon gains <Reboot>, <Blocker>, and +3000 DP
 //   until opponent's turn ends. All three apply to the same chosen Digimon; use selectionRef.
+//   A `fromSelectionRef` target resolves straight to the bound permanent, so the `filter` and
+//   `count` the Target type requires are inert here and must stay inert: they exist only so
+//   the record typechecks (same shape as EX10-029's bound Restrict).
 // Inherited: whenTrashedFromDigivolutionCards — sourceFilter gates on the HOST Digimon
 //   having Mineral or Rock trait (the Digimon whose stack this card was in).
 const compiled: CompiledCard = {
@@ -60,6 +62,8 @@ const compiled: CompiledCard = {
         {
           kind: "GainKeyword",
           target: {
+            filter: {},
+            count: 1,
             fromSelectionRef: "chosen",
           },
           keyword: {
@@ -71,6 +75,8 @@ const compiled: CompiledCard = {
         {
           kind: "ModifyDP",
           target: {
+            filter: {},
+            count: 1,
             fromSelectionRef: "chosen",
           },
           amount: 3000,
@@ -125,6 +131,8 @@ const compiled: CompiledCard = {
         {
           kind: "GainKeyword",
           target: {
+            filter: {},
+            count: 1,
             fromSelectionRef: "chosen",
           },
           keyword: {
@@ -136,6 +144,8 @@ const compiled: CompiledCard = {
         {
           kind: "ModifyDP",
           target: {
+            filter: {},
+            count: 1,
             fromSelectionRef: "chosen",
           },
           amount: 3000,

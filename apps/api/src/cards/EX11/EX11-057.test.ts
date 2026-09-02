@@ -99,6 +99,53 @@ describe("EX11-057 Suzune Kazuki", () => {
     assertNoLoudGap(s);
   });
 
+  it("trashes exactly one source with a single Ice-Snow Digimon and none with a near-miss trait", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          // EX11-015 has [Ice-Snow]; BT1-011's [Dinosaur] is the non-matching control.
+          battleArea: ["EX11-015", "BT1-011"],
+          hand: [{ card: "EX11-057", as: "suzune" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", under: ["BT1-001"], as: "first" },
+            { card: "BT1-011", under: ["BT1-002"], as: "second" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("suzune").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("first").stack.length + s.perm("second").stack.length === 1);
+
+    expect(s.perm("first").stack.length + s.perm("second").stack.length).toBe(1);
+    assertNoLoudGap(s);
+  });
+
+  it("trashes nothing when no Ice-Snow Digimon is on the board", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: ["BT1-011"], hand: [{ card: "EX11-057", as: "suzune" }] },
+        1: { battleArea: [{ card: "BT1-010", under: ["BT1-001"], as: "first" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("suzune").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => false, 60);
+
+    expect(s.perm("first").stack).toHaveLength(1);
+    assertNoLoudGap(s);
+  });
+
   it("publishes exclusive full IR with pooled scaling and the paid opponent-source watcher", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects.find((effect) => effect.trigger === "OnPlay")?.actions).toMatchObject([

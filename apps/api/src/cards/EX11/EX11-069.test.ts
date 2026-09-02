@@ -46,7 +46,11 @@ describe("EX11-069 Yuuki", () => {
           ],
         },
       },
-      { autoSelectCards: true, autoAcceptOptional: true },
+      // EX11-050 matches EX11-049 on BOTH its printed evoCost (Purple/Red Lv.4, cost 4) and its
+      // alternate requirement (Lv.4 [Dark Dragon]/[Evil Dragon], cost 3), so the interpreter opens
+      // the route `chooseOption` prompt (digivolve.ts). Answer it with the printed route
+      // (index 0): 4 - 1 = 3 memory.
+      { autoSelectCards: true, autoAcceptOptional: true, autoChooseOption: true },
     );
     s.state.turnSeat = 0;
     s.state.memory = 5;
@@ -60,6 +64,68 @@ describe("EX11-069 Yuuki", () => {
     expect(s.perm("other").topCard.cardId).toBe("EX11-049");
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("EX11-052");
+    assertNoLoudGap(s);
+  });
+
+  const attackSetup = (handSize: number) =>
+    setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-069", as: "yuuki" },
+            { card: "EX11-049", as: "attacker" },
+          ],
+          hand: Array.from({ length: handSize }, () => "BT1-090"),
+          trash: [{ card: "EX11-050", as: "evolution" }],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, autoChooseOption: true },
+    );
+
+  it("evolves at exactly 4 cards in hand", async () => {
+    const s = attackSetup(4);
+    s.state.turnSeat = 0;
+    s.state.memory = 5;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenAttacking", { attackerPermanentId: s.perm("attacker").permanentId });
+
+    expect(s.perm("attacker").topCard.cardId).toBe("EX11-050");
+    expect(s.state.memory).toBe(2);
+    assertNoLoudGap(s);
+  });
+
+  it("does not evolve at 5 cards in hand", async () => {
+    const s = attackSetup(5);
+    s.state.turnSeat = 0;
+    s.state.memory = 5;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenAttacking", { attackerPermanentId: s.perm("attacker").permanentId });
+
+    expect(s.perm("attacker").topCard.cardId).toBe("EX11-049");
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("EX11-050");
+    assertNoLoudGap(s);
+  });
+
+  it("does not return a trash card at end of all turns with 5 cards in hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX11-069", as: "yuuki" }],
+          hand: Array.from({ length: 5 }, () => "BT1-090"),
+          trash: [{ card: "EX11-050", as: "darkDragon" }],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("yuuki"));
+
+    expect(s.perm("yuuki").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand).toHaveLength(5);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("EX11-050");
     assertNoLoudGap(s);
   });
 

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -84,6 +83,12 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenLinked",
+          // "When THIS Digimon gets linked": `whenLinked` is a board-wide bus, and an unfiltered
+          // watcher fires for every link on the board. `isSelfRef` binds it to this permanent,
+          // matching the peer idiom (BT23-016, BT24-006).
+          sourceFilter: {
+            isSelfRef: true,
+          },
           actions: [
             {
               kind: "PlayWithoutCost",

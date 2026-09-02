@@ -53,7 +53,18 @@ describe("EX11-041 Oblivimon", () => {
           kind: "SubTrigger",
           event: "whenCheckedFaceUpSecurity",
           sourceFilter: { controllerDefault: "mine" },
-          actions: [{ kind: "SecurityManipulation", op: "addBottom", faceUp: true, optional: true }],
+          actions: [
+            {
+              kind: "SecurityManipulation",
+              op: "addBottom",
+              faceUp: true,
+              optional: true,
+              // FAILS-WHEN-REVERTED: without detachPermanentTop the whole permanent is moved
+              // and its digivolution cards are trashed (KB Q5875/Q5888).
+              detachPermanentTop: true,
+              source: { filter: { isSelfRef: true }, isSelf: true },
+            },
+          ],
         },
       ],
     });
@@ -85,6 +96,58 @@ describe("EX11-041 Oblivimon", () => {
     expect(opponent.stack).toHaveLength(0);
     expect(opponent.topCard.cardId).toBe("BT1-009");
     expect(s.perm("source").topCard.cardId).toBe("EX11-043");
+    assertNoLoudGap(s);
+  });
+
+  /**
+   * KB Q5875 / Q5888: "this Digimon's top stacked card" is the permanent's OWN top card. Only
+   * that card leaves for security; the digivolution cards stay and the next one is promoted.
+   * FAILS-WHEN-REVERTED: dropping `detachPermanentTop` moves the whole permanent to security
+   * and trashes the stack, so the survivor lookup and the empty-trash assertion both flip.
+   */
+  it("sheds only its own top card to the security bottom and promotes the stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "source", under: ["BT1-009", "BT1-019"] }],
+          security: ["BT1-019"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const permanentId = s.perm("source").permanentId;
+    const promotedInstanceId = s.perm("source").stack.at(-1)!.instanceId;
+    await advance(s.engine).fireSubTrigger("whenCheckedFaceUpSecurity", {
+      attackerPermanentId: permanentId,
+      securityInstanceId: s.state.players[0]!.security[0]!.instanceId,
+    });
+    expect(s.state.players[0]!.security.at(-1)).toMatchObject({ cardId, faceUp: true });
+    const survivor = s.state.players[0]!.battleArea.find((permanent) => permanent.permanentId === permanentId);
+    expect(survivor).toBeDefined();
+    expect(survivor!.topCard.instanceId).toBe(promotedInstanceId);
+    expect(survivor!.stack.map(({ cardId: id }) => id)).toEqual(["BT1-009"]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
+  it("keeps the permanent and the security stack untouched when the optional placement is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "source", under: ["BT1-009", "BT1-019"] }],
+          security: ["BT1-019"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireSubTrigger("whenCheckedFaceUpSecurity", {
+      attackerPermanentId: s.perm("source").permanentId,
+      securityInstanceId: s.state.players[0]!.security[0]!.instanceId,
+    });
+    expect(s.state.players[0]!.security.map(({ cardId: id }) => id)).toEqual(["BT1-019"]);
+    expect(s.perm("source").topCard.cardId).toBe(cardId);
     assertNoLoudGap(s);
   });
 });

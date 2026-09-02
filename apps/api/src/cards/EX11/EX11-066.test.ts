@@ -64,6 +64,20 @@ describe("EX11-066 Xeno", () => {
     assertNoLoudGap(s);
   });
 
+  it("still gains the memory when the deck is empty and the draw moves nothing", async () => {
+    // "＜Draw 1＞ and gain 1 memory" — the trash cost gates both halves, but the memory gain is
+    // not conditional on the draw succeeding. Only the cost may cancel it.
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX11-066", as: "xeno" }], hand: ["P-244"], deck: [] } },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 0;
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("xeno"));
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.memory).toBe(1);
+    assertNoLoudGap(s);
+  });
+
   it("does not gain memory when the Vemmon discard cost is declined", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "EX11-066", as: "xeno" }], hand: ["P-244"], deck: ["BT1-001"] } },
@@ -275,6 +289,10 @@ describe("EX11-066 Xeno", () => {
         },
         { kind: "GainMemory", amount: 1 },
       ]);
+      const gainMemory = compiled.effects.find((effect) => effect.trigger === trigger)!.actions[1] as {
+        condition?: unknown;
+      };
+      expect(gainMemory.condition, `${trigger} memory gain must not depend on the draw`).toBeUndefined();
     }
     const watchers = compiled.effects.find((effect) => effect.trigger === "AllTurns")!.actions;
     expect(watchers).toHaveLength(2);

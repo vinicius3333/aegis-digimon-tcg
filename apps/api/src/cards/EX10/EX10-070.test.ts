@@ -34,7 +34,6 @@ describe("EX10-070 God Grade Unleashed", () => {
           kind: "SubTrigger",
           event: "whenLinkTrashed",
           sourceFilter: { controller: "mine", kind: ["Digimon"] },
-          delayArmedIntrinsic: true,
           actions: [
             {
               kind: "Link",
@@ -47,6 +46,9 @@ describe("EX10-070 God Grade Unleashed", () => {
           ],
         },
       ],
+      // The printed ＜Delay＞ is the encoding; `delayArmedIntrinsic` is synthesized onto the
+      // SubTrigger by `withIntrinsicDelayGate` at registration, never carried in the IR.
+      keywords: [{ keyword: "Delay" }],
     });
   });
 
@@ -104,6 +106,31 @@ describe("EX10-070 God Grade Unleashed", () => {
     await s.ready();
     await advance(s.engine).verb.trash([s.inst("oldLink").instanceId]);
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === CARD_ID)).toBe(true);
+  });
+
+  it("does not arm for an OPPONENT's Digimon's link card (sourceFilter controller: mine)", async () => {
+    // "any of YOUR Digimon's link cards": without `controller: "mine"` the watcher would arm on
+    // the opponent's link trash and spend this card's ＜Delay＞.
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "godGrade" }],
+          trash: [{ card: "EX10-024", as: "newLink" }],
+        },
+        1: {
+          battleArea: [{ card: "EX10-029", as: "opponentHost", linked: [{ card: "EX10-024", as: "opponentLink" }] }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.perm("godGrade").placedByEffect = true;
+    await s.ready();
+    await advance(s.engine).verb.trash([s.inst("opponentLink").instanceId]);
+    await settle(() => false, 30);
+
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === CARD_ID)).toBe(true);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("newLink").instanceId);
+    expect(s.perm("opponentHost").linked).toHaveLength(0);
   });
 
   it("Q5184 does not trigger when link-limit replacement trashes the existing linked card", async () => {

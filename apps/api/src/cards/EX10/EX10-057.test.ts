@@ -30,8 +30,48 @@ describe("EX10-057 Piedmon", () => {
       optional: true,
     });
     expect(compiled.effects?.find(({ trigger }) => trigger === "AllTurns")).toMatchObject({
-      actions: [{ kind: "Restrict", on: "digivolveTarget" }],
+      actions: [
+        {
+          kind: "RestrictDigivolveInto",
+          target: { isSelf: true },
+          into: { nameOrTrait: [{ tokens: ["Apocalymon"], match: "name" }] },
+          duration: "permanent",
+        },
+      ],
     });
+  });
+
+  it("installs a live 'only into [Apocalymon]' digivolve constraint from its own IR", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: CARD_ID, as: "piedmon" }] } });
+    await s.ready();
+    await advance(s.engine).recompute();
+    const ledger = advance(s.engine).ledgers.continuous;
+    const permanentId = s.perm("piedmon").permanentId;
+
+    // [Apocalymon] (BT15-102) is the only legal digivolution result.
+    expect(ledger.digivolveIntoAllowed(permanentId, getCardDefinition("BT15-102")!)).toBe(true);
+    // Quartzmon (BT12-057) has a legal EvoCost row but is rejected by the printed constraint.
+    expect(ledger.digivolveIntoAllowed(permanentId, getCardDefinition("BT12-057")!)).toBe(false);
+    // A neighbouring Purple Mega is likewise rejected — the constraint is name-scoped, not
+    // color- or level-scoped.
+    expect(ledger.digivolveIntoAllowed(permanentId, getCardDefinition("EX10-058")!)).toBe(false);
+  });
+
+  it("leaves an unrelated Digimon's digivolve choices untouched", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: CARD_ID, as: "piedmon" },
+          { card: "EX10-058", as: "other" },
+        ],
+      },
+    });
+    await s.ready();
+    await advance(s.engine).recompute();
+    const ledger = advance(s.engine).ledgers.continuous;
+
+    expect(ledger.digivolveIntoAllowed(s.perm("other").permanentId, getCardDefinition("BT12-057")!)).toBe(true);
+    expect(ledger.digivolveIntoAllowed(s.perm("piedmon").permanentId, getCardDefinition("BT12-057")!)).toBe(false);
   });
 
   it("plays itself from hand for 6 only when every controlled Digimon has Dark Masters in its text", async () => {

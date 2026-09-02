@@ -46,6 +46,10 @@ describe("EX12-056 Cho-Hakkaimon", () => {
           event: "wouldLeavePlay",
           mode: "prevent",
           leaveCause: "byOpponentEffect",
+          affectsAll: true,
+          // "they don't leave" — the protected set is every OTHER of your Digimon in the
+          // same leave event, never a single chosen one.
+          target: { filter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] }, count: "all" },
           sourceFilter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] },
           cost: { kind: "deleteOwn", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
         },

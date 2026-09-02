@@ -117,6 +117,62 @@ describe("EX12-034 Erlangmon", () => {
     expect(s.state.players[1]!.deck.some((card) => card.cardId === "BT1-009")).toBe(true);
   });
 
+  it("returns at most one Digimon per turn however often your Digimon are played", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: cardId, as: "source" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "lowest" },
+            { card: "BT1-014", as: "higher" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const lowestId = s.perm("lowest").permanentId;
+    const higherId = s.perm("higher").permanentId;
+
+    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("source").permanentId });
+    await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === lowestId));
+
+    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("source").permanentId });
+    await settle(() => false, 60);
+
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([higherId]);
+    expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT1-009"]);
+  });
+
+  it("plays at most one SW card per turn across successive leave events", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "source" },
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-009", as: "second" },
+          ],
+          hand: ["EX12-039", "EX12-039"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("first").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-039"));
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("second").permanentId], "byEffect")).toBe(1);
+    await settle(() => false, 60);
+
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "EX12-039")).toHaveLength(
+      1,
+    );
+  });
+
   it("plays a real 9000-DP Blocker token and triggers its watcher when Erlangmon itself is played (Q6775)", async () => {
     const s = setupEngine(
       {
