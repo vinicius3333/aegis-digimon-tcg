@@ -96,6 +96,42 @@ describe("EX11-007 Agumon", () => {
     assertNoLoudGap(s);
   });
 
+  it("selects across a mixed pool: the name branch matches a Cyborg MetalTyrannomon", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-024", as: "nameOnly" },
+            { card: "EX11-008", as: "reptile" },
+            { card: "BT1-009", as: "nonMatching" },
+          ],
+          hand: [{ card: "EX11-007", as: "agumon" }],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds },
+    );
+    // BT1-024 MetalTyrannomon carries [Tyrannomon] in its NAME but only the [Cyborg] trait, so
+    // it is eligible through the name branch alone; BT1-009 Monodramon ([Mini Dragon]) matches
+    // neither branch.
+    preferInstanceIds.push(s.perm("nameOnly").permanentId);
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("agumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasPierce(s.perm("nameOnly")));
+
+    expect(observe(s.engine).hasKeyword(s.perm("nameOnly"), "Raid")).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("nameOnly"))).toBe(true);
+    // "1 of your Digimon" is a single selection: the other eligible Reptile gets nothing.
+    expect(observe(s.engine).hasKeyword(s.perm("reptile"), "Raid")).toBe(false);
+    expect(observe(s.engine).hasPierce(s.perm("reptile"))).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("nonMatching"), "Raid")).toBe(false);
+    expect(observe(s.engine).hasPierce(s.perm("nonMatching"))).toBe(false);
+    assertNoLoudGap(s);
+  });
+
   it("cannot grant the keywords to an opponent or an ineligible own Digimon", async () => {
     const s = setupEngine(
       {

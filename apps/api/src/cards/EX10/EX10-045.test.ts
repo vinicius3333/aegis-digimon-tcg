@@ -49,7 +49,12 @@ describe("EX10-045 Tuwarmon", () => {
               },
             },
           },
-          { kind: "GainKeyword", target: { fromSelectionRef: "chosen" }, keyword: { keyword: "Retaliation" } },
+          {
+            kind: "GainKeyword",
+            target: { fromSelectionRef: "chosen", filter: {}, count: 1 },
+            keyword: { keyword: "Retaliation" },
+            duration: "untilOpponentTurnEnd",
+          },
         ],
       });
     }
@@ -99,6 +104,52 @@ describe("EX10-045 Tuwarmon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("target"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("target"), "Retaliation")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("plain"), "Blocker")).toBe(false);
+  });
+
+  it("cannot pay from a non-Bagra Army host's digivolution cards, so neither keyword is granted", async () => {
+    // Trait-mix negative: the only stack on the board belongs to EX10-028 Landramon
+    // ([Mineral]/[LIBERATOR]), while the [Bagra Army] Digimon on the board has an empty stack.
+    // The cost filter's hostFilter is the only thing keeping this unpayable.
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "tuwarmon" },
+            { card: "EX10-028", as: "wrongTraitHost", under: [{ card: "BT1-009", as: "offLimits" }] },
+            { card: "EX10-031", as: "target" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("tuwarmon"));
+    expect(s.perm("wrongTraitHost").stack.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("offLimits").instanceId,
+    );
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(observe(s.engine).hasKeyword(s.perm("target"), "Blocker")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("target"), "Retaliation")).toBe(false);
+  });
+
+  it("declining the trash cost grants neither keyword and keeps the digivolution card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "tuwarmon" },
+            { card: "EX10-026", as: "costHost", under: [{ card: "BT1-009", as: "cost" }] },
+            { card: "EX10-031", as: "target" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("tuwarmon"));
+    expect(s.perm("costHost").stack.map(({ instanceId }) => instanceId)).toContain(s.inst("cost").instanceId);
+    expect(observe(s.engine).hasKeyword(s.perm("target"), "Blocker")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("target"), "Retaliation")).toBe(false);
   });
 
   it("DigiXros uses one Damemon and one ChuuChuumon for -2 each", async () => {

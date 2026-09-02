@@ -177,7 +177,7 @@ describe("EX12-046 Shishimamon", () => {
         0: { battleArea: [{ card: cardId, as: "source" }], hand: [{ card: "EX12-047", as: "target" }] },
         1: { security: ["BT1-011"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 2;
     await s.ready();
@@ -193,7 +193,7 @@ describe("EX12-046 Shishimamon", () => {
   it("can react to a later opposing removal when an earlier one had no legal evolution", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: cardId, as: "source" }] }, 1: { security: ["BT1-011"] } },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 2;
     await s.ready();
@@ -217,7 +217,7 @@ describe("EX12-046 Shishimamon", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     await s.ready();
     expect(getEffectModule(cardId)?.effectsForTiming(EffectTiming.OnEndAttack, s.perm("source") as never)).toHaveLength(
@@ -240,7 +240,7 @@ describe("EX12-046 Shishimamon", () => {
       {
         0: { battleArea: [{ card: "BT1-058", as: "source", under: [cardId] }], hand: ["BT26-012"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     await s.ready();
     await advance(s.engine).fireForPermanent(EffectTiming.OnEndAttack, s.perm("source"), {
@@ -263,7 +263,7 @@ describe("EX12-046 Shishimamon", () => {
         },
         1: { security: ["BT1-009"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 2;
     await s.ready();

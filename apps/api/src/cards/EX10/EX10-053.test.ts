@@ -156,6 +156,23 @@ describe("EX10-053 Regulusmon", () => {
     expect(s.perm("regulus").isSuspended).toBe(false);
   });
 
+  it("does not attack at end of turn with only 4 digivolution cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "regulus", under: ["BT1-009", "BT1-010", "BT1-009", "BT1-010"] }],
+        },
+        1: { security: ["BT1-009", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.OnEndTurn, s.perm("regulus"));
+    await settle(() => s.state.pendingDecision === null);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.perm("regulus").isSuspended).toBe(false);
+  });
+
   it("the inherited watcher gains 1 memory only once for opposing deletions on the owner's turn", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "EX10-074", as: "host", under: [{ card: CARD_ID }] }] },

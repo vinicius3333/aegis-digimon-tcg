@@ -1,10 +1,20 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
+//
+// KNOWN TYPE GAP (seam request, EX10 audit batch B): `event: "whenSecurityBattleEnded"` is a
+// REAL runtime event — `securityCheck.ts` fires it after the security battle resolves and
+// `interpreter/actions/subTrigger.ts` subscribes it with a dedicated gate — but it is missing
+// from the shared `SubTriggerEvent` union in
+// packages/shared/src/effects/ir/actions/subTrigger.ts, so this module cannot typecheck
+// without editing shared. `timing: "endOfBattle"` is provenance-only annotation (see
+// CardEffect.timing); the SubTrigger is what actually defers the play. Same shape as the
+// proven BT3-011 / BT23-007 / BT23-010 / BT23-028 / BT23-052 siblings. Do not "fix" this by
+// deleting the SubTrigger — that would resolve the play during the security check instead of
+// after the battle.
 const compiled: CompiledCard = {
   effects: [
     {

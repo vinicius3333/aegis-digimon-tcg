@@ -1,6 +1,7 @@
 import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
@@ -76,7 +77,62 @@ describe("EX11-027 Maquinamon", () => {
       rest: "deckBottom",
     });
     expect(compiled.effects[0]?.actions[1]).toMatchObject({ kind: "Link", payCost: false, optional: true });
+    // The printed LINK effect is a clause of this card, so `coverage: "full"` is only honest
+    // while it is encoded: an [All Turns] leave-replacement active in the linked state.
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "AllTurns",
+        isLinked: true,
+        actions: [
+          expect.objectContaining({
+            kind: "Replacement",
+            event: "wouldLeavePlay",
+            sourceFilter: { isSelfRef: true },
+            cost: expect.objectContaining({
+              kind: "place",
+              destination: "digivolutionStack",
+              position: "bottom",
+              host: "self",
+              target: { filter: { isSelfRef: true, zone: "linked" }, from: ["linked"], count: 1 },
+            }),
+          }),
+        ],
+      }),
+    );
     expect(digivolutionRequirementsFor(cardId)).toEqual(compiled.digivolutionRequirement);
+  });
+
+  // Printed link effect: "[All Turns] When this Digimon would leave the battle area, by placing 1
+  // of its link cards as its bottom digivolution card, it doesn't leave." KB Q5823 confirms the
+  // placement is a real digivolution-card addition.
+  it("keeps its host on the field by placing itself as the bottom digivolution card", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX11-033", as: "host", linked: [{ card: cardId }] }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    expect(s.perm("host").linked).toHaveLength(1);
+
+    expect(await advance(s.engine).verb.deletePermanent([hostId], "byEffect")).toBe(0);
+
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === hostId)).toBe(true);
+    expect(s.perm("host").linked).toHaveLength(0);
+    expect(s.perm("host").stack.map(({ cardId: id }) => id)).toEqual([cardId]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
+  it("lets its controller decline the link replacement and lose the host", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX11-033", as: "host", linked: [{ card: cardId }] }] } },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    expect(await advance(s.engine).verb.deletePermanent([hostId], "byEffect")).toBe(1);
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === hostId)).toBe(false);
+    assertNoLoudGap(s);
   });
 
   it("may decline the free link after resolving the mandatory reveal", async () => {

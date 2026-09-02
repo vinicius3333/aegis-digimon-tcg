@@ -41,7 +41,7 @@ describe("EX12-050 SymbareAngoramon", () => {
               reduceCostBy: 2,
               allowMultiColor: true,
               optional: true,
-              filter: { kind: ["Option"] },
+              filter: { kind: ["Option"], playCostLte: 99 },
             },
           ],
         ],

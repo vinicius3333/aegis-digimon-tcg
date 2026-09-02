@@ -108,4 +108,42 @@ describe("EX10-061 Apocalymon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 1);
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([apocalymonId]);
   });
+
+  it("Rushes every [Dark Masters] Digimon but deletes only the ones this effect played", async () => {
+    // Two pins that the KB cases above do not isolate:
+    //   * the ＜Rush＞ grant is `count: "all"` over [Dark Masters] Digimon, so a copy that was
+    //     already on the board gains it too, and a non-[Dark Masters] Digimon does not;
+    //   * `DelayedDelete` is scoped to the permanents this effect PLAYED, so the pre-existing
+    //     [Dark Masters] Digimon and the plain Digimon both survive the turn end.
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX10-061", as: "apocalymon", under: ["EX10-012"] },
+            { card: "EX10-035", as: "resident" },
+            { card: "BT1-009", as: "plain" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoOrderTriggers: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("apocalymon"));
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX10-012"));
+
+    const played = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "EX10-012")!;
+    expect(observe(s.engine).hasKeyword(played, "Rush")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("resident"), "Rush")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("plain"), "Rush")).toBe(false);
+
+    const playedId = played.permanentId;
+    await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
+    await settle(() => !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === playedId));
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId).sort()).toEqual([
+      "BT1-009",
+      "EX10-035",
+      "EX10-061",
+    ]);
+  });
 });

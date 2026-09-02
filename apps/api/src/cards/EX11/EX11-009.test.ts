@@ -133,6 +133,39 @@ describe("EX11-009 Tyrannomon", () => {
     assertNoLoudGap(s);
   });
 
+  it("plays no other Tamer from hand: the target is named [Ryutaro Williams]", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX11-008", as: "base" }],
+          hand: [
+            { card: "EX11-009", as: "tyrannomon" },
+            { card: "EX11-057", as: "otherTamer" },
+          ],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("tyrannomon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX11-009");
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("otherTamer").instanceId);
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "EX11-057")).toHaveLength(
+      0,
+    );
+    assertNoLoudGap(s);
+  });
+
   it("may decline the free Ryutaro play", async () => {
     const s = setupEngine(
       {

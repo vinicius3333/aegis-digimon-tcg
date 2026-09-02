@@ -88,4 +88,23 @@ describe("EX11-035 Zephagamon", () => {
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT16-007")).toBe(true);
     assertNoLoudGap(s);
   });
+
+  it("ignores an opponent's Digimon suspending", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "source" }],
+          hand: [{ card: "BT16-007", as: "avian" }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("avian").instanceId);
+    await advance(s.engine).verb.suspend([s.perm("opponent").permanentId]);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("avian").instanceId]);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    assertNoLoudGap(s);
+  });
 });

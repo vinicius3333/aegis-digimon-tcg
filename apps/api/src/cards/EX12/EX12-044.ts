@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -118,6 +117,9 @@ const compiled: CompiledCard = {
                 filter: {
                   controller: "mine",
                   kind: ["Digimon"],
+                  // CR 16-36-1: ＜Decode＞ plays from THAT Digimon's digivolution cards. Without
+                  // this host gate the loose-card resolver pools every stack the controller owns.
+                  hostFilter: { isSelfRef: true },
                   levelComparison: { op: "lte", value: 4 },
                   nameOrTrait: [{ tokens: ["Holy Beast", "NSp", "VB"], match: "trait" }],
                 },

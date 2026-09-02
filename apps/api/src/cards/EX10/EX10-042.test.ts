@@ -82,7 +82,13 @@ describe("EX10-042 GulusGammamon", () => {
           hand: [{ card: "EX10-053", as: "regulus" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      // EX10-053 Regulusmon is reachable from this Lv.4 [Gammamon]-name base by BOTH its printed
+      // evoCost (Purple/Red Lv.4 cost 5) and its alternate "[Digivolve] Lv.4 w/[Gammamon] in name:
+      // Cost 5". A paying effect-driven digivolve then opens the route `chooseOption` prompt
+      // (interpreter/actions/digivolve.ts) that nothing here answered, so the suite hung on the
+      // decision and never saw the evolution. Index 0 is the printed route; both cost 5, so the
+      // reduced payment asserted below is the same either way.
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("gammamon").instanceId, s.inst("regulus").instanceId);
     s.state.memory = 4;

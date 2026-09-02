@@ -159,6 +159,35 @@ describe("EX11-017 Skadimon", () => {
     assertNoLoudGap(s);
   });
 
+  it("watches the opponent's plays too, and blocks both being suspended and suspending to attack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: cardId, as: "source" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "stacked", under: ["BT1-001", "BT1-002", "BT1-003"] },
+            { card: "BT1-011", as: "newcomer" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireSubTrigger("whenPlayed", {
+      subjectPermanentId: s.perm("newcomer").permanentId,
+    });
+    await settle(() => s.state.players[1]!.trash.length === 3);
+
+    expect(s.perm("stacked").stack).toHaveLength(0);
+    expect(s.state.players[1]!.trash).toHaveLength(3);
+    const restricted = [s.perm("stacked"), s.perm("newcomer")].filter((permanent) =>
+      observe(s.engine).isRestricted(permanent, "suspend"),
+    );
+    expect(restricted).toHaveLength(1);
+    expect(observe(s.engine).isRestricted(restricted[0]!, "beSuspended")).toBe(true);
+    assertNoLoudGap(s);
+  });
+
   it("ignores Skadimon itself but reacts to the next other Digimon", async () => {
     const s = setupEngine(
       {
@@ -204,6 +233,7 @@ describe("EX11-017 Skadimon", () => {
           {
             kind: "Restrict",
             restriction: "suspend",
+            blocksCombatSuspend: true,
             duration: "untilOpponentTurnEnd",
             target: { filter: { controller: "opponent", digivolutionCards: "none" }, count: 1 },
           },
