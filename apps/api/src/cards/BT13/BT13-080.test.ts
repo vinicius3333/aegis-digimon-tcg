@@ -9,14 +9,13 @@ import { compiled } from "./BT13-080.js";
 
 describe("BT13-080 ProtoGizmon", () => {
   it("reduces its play cost by deleting a level 2 Digimon in the breeding area", () => {
-    const replacement = compiled.effects?.find((entry) => entry.trigger === "Static")?.actions?.[0] as {
-      actions?: unknown[];
-    };
+    const replacement = compiled.effects?.find((entry) => entry.trigger === "Static")?.actions?.[0];
     expect(replacement).toMatchObject({
       kind: "Replacement",
       event: "wouldBePlayed",
       sourceFilter: { isSelfRef: true },
     });
+    if (replacement?.kind !== "Replacement") throw new Error("Expected play replacement action");
     expect(replacement.actions?.[0]).toMatchObject({
       kind: "Replacement",
       event: "wouldBePlayed",
@@ -45,12 +44,7 @@ describe("BT13-080 ProtoGizmon", () => {
   });
 
   it("returns two Gizmon cards before optionally playing Gizmon: AT", () => {
-    const action = compiled.effects?.find((entry) => entry.trigger === "OnDeletion")?.actions?.[0] as {
-      actions?: Array<{ kind?: string; target?: { filter?: { nameOrTrait?: unknown[] } } }>;
-      cost?: { kind?: string; to?: string; orderReturnedCards?: boolean; target?: unknown };
-      optional?: boolean;
-      abortOnDecline?: boolean;
-    };
+    const action = compiled.effects?.find((entry) => entry.trigger === "OnDeletion")?.actions?.[0];
     expect(action).toMatchObject({
       kind: "CostGatedBlock",
       optional: true,
@@ -81,7 +75,13 @@ describe("BT13-080 ProtoGizmon", () => {
         },
       ],
     });
-    const atReference = (action.actions?.[0]?.target?.filter?.nameOrTrait?.[0] ?? {}) as never;
+    expect(action?.kind).toBe("CostGatedBlock");
+    if (action?.kind !== "CostGatedBlock") throw new Error("Expected CostGatedBlock action");
+    const play = action.actions[0];
+    expect(play?.kind).toBe("PlayWithoutCost");
+    if (play?.kind !== "PlayWithoutCost") throw new Error("Expected PlayWithoutCost action");
+    const atReference = play.target.filter.nameOrTrait?.[0];
+    if (atReference === undefined) throw new Error("Expected Gizmon: AT name reference");
     expect(matchNameOrTrait(definitionOf("BT13-083"), atReference)).toBe(true);
     expect(matchNameOrTrait(definitionOf("BT13-086"), atReference)).toBe(false);
   });

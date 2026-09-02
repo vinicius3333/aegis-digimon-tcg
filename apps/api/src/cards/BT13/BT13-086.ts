@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -42,6 +41,7 @@ export const compiled: CompiledCard = {
           kind: "GainKeyword",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           keyword: { keyword: "Blocker", raw: "＜Blocker＞" },
+          duration: "permanent",
         },
       ],
     },

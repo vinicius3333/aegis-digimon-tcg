@@ -7,15 +7,15 @@ import { compiled } from "./BT13-099.js";
 
 describe("BT13-099 Spencer Damon", () => {
   it("debuffs one opposing Digimon when one of your yellow Digimon becomes suspended", () => {
-    const watcher = compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions?.[0] as {
-      actions?: unknown[];
-    };
+    const watcher = compiled.effects.find((entry) => entry.trigger === "AllTurns")?.actions[0];
+    expect(watcher?.kind).toBe("SubTrigger");
+    if (watcher?.kind !== "SubTrigger") throw new Error("BT13-099 AllTurns watcher must be a SubTrigger");
     expect(watcher).toMatchObject({
       kind: "SubTrigger",
       event: "whenSuspended",
       sourceFilter: { controller: "mine", kind: ["Digimon"], colors: ["Yellow"] },
     });
-    expect(watcher.actions?.[0]).toMatchObject({
+    expect(watcher.actions[0]).toMatchObject({
       kind: "ModifyDP",
       amount: -1000,
       duration: "untilOpponentTurnEnd",
@@ -26,19 +26,27 @@ describe("BT13-099 Spencer Damon", () => {
   it("becomes a 3000 DP Blocker Digimon through the opponent's turn at six or fewer total security", () => {
     const effect = compiled.effects?.find((entry) => entry.trigger === "EndOfYourTurn");
     expect(effect).toMatchObject({ frequency: "OncePerTurn" });
-    expect(effect?.actions?.some((action) => (action as { kind?: string }).kind === "GrantStatic")).toBe(true);
-    expect(effect?.actions?.find((action) => (action as { kind?: string }).kind === "GrantStatic")).toMatchObject({
+    const grantStatic = effect?.actions.find((action) => action.kind === "GrantStatic");
+    expect(grantStatic?.kind).toBe("GrantStatic");
+    if (grantStatic?.kind !== "GrantStatic") throw new Error("BT13-099 must grant a static Digimon form");
+    expect(grantStatic).toMatchObject({
       grant: "kinds",
       target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
       tokens: ["Digimon"],
       staticEffect: { kind: "SetBaseDP", value: 3000 },
       duration: "untilOpponentTurnEnd",
     });
-    expect(effect?.actions?.find((action) => (action as { kind?: string }).kind === "Restrict")).toMatchObject({
+    const restrict = effect?.actions.find((action) => action.kind === "Restrict");
+    expect(restrict?.kind).toBe("Restrict");
+    if (restrict?.kind !== "Restrict") throw new Error("BT13-099 must restrict digivolution");
+    expect(restrict).toMatchObject({
       restriction: "digivolve",
       duration: "untilOpponentTurnEnd",
     });
-    expect(effect?.actions?.find((action) => (action as { kind?: string }).kind === "GainKeyword")).toMatchObject({
+    const gainKeyword = effect?.actions.find((action) => action.kind === "GainKeyword");
+    expect(gainKeyword?.kind).toBe("GainKeyword");
+    if (gainKeyword?.kind !== "GainKeyword") throw new Error("BT13-099 must grant Blocker");
+    expect(gainKeyword).toMatchObject({
       keyword: expect.objectContaining({ keyword: "Blocker" }),
       duration: "untilOpponentTurnEnd",
     });

@@ -75,7 +75,7 @@ export type CostType =
   | "playcost" // alternative spelling of "play"
   | "playCost"; // alternative spelling of "play"
 
-export interface CostModifierAction extends ActionBase {
+interface NumericCostModifierAction extends ActionBase {
   kind: "CostModifier";
   costType: CostType;
   /**
@@ -87,8 +87,8 @@ export interface CostModifierAction extends ActionBase {
    */
   mode?: "delta" | "set" | "raiseCeiling" | "reduce";
   amount: number;
-  /** Defaults to the source card for the self form. */
-  target: Target;
+  /** Defaults to the source card for the self form; level-ceiling modifiers carry no permanent target. */
+  target?: Target;
   /** Modify the selected battle-area permanent's current play cost, not matching cards in loose zones. */
   existingPermanent?: boolean;
   /**
@@ -96,7 +96,8 @@ export interface CostModifierAction extends ActionBase {
    * permanent that may evolve into it (BT3-031).
    */
   sourceFilter?: Filter;
-  duration: EffectDurationRef;
+  /** Context-only ceiling modifiers and nested pay-time reducers do not install a timed grant. */
+  duration?: EffectDurationRef;
   /**
    * `amount` is a per-unit literal multiplied by a runtime count from the inherited `scaling`.
    * For mode "set" the resolved count IS the absolute cost.
@@ -120,7 +121,36 @@ export interface CostModifierAction extends ActionBase {
    * destination in hand.
    */
   into?: Filter;
+  /** Reserved for the nested dynamic variant below. */
+  dynamicFrom?: never;
 }
+
+/**
+ * Nested `wouldBePlayed` reducer whose value is the printed play cost of the Digimon paid as its
+ * deletion cost (BT13-103). The enclosing Replacement installs the pay-time reducer and consumes
+ * this node; it is not a standalone persistent modifier, so it has no target or duration.
+ */
+interface DeletedDigimonPlayCostModifierAction extends ActionBase {
+  kind: "CostModifier";
+  mode: "reduce";
+  costType: "play";
+  amount: null;
+  dynamicFrom: "deletedDigimonPlayCost";
+  cost: Cost & { kind: "deleteOwn"; target: Target };
+  target?: never;
+  duration?: never;
+  existingPermanent?: never;
+  sourceFilter?: never;
+  scaled?: never;
+  handResident?: never;
+  restriction?: never;
+  once?: never;
+  onConsume?: never;
+  consumeBindAs?: never;
+  into?: never;
+}
+
+export type CostModifierAction = NumericCostModifierAction | DeletedDigimonPlayCostModifierAction;
 
 /**
  * "When this card would be played, by [an OPTIONAL payment], reduce this card's play cost by

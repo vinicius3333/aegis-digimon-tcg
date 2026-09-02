@@ -50,6 +50,7 @@ describe("BT13-098 Richard Sampson", () => {
       },
       ignoreRequirements: true,
       from: ["hand"],
+      payCost: true,
       into: { nameOrTrait: [{ match: "nameExact", tokens: ["Kentaurosmon"] }] },
       cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
       condition: { kind: "totalSecurityCount", op: "lte", value: 6 },

@@ -14,10 +14,9 @@ describe("BT13-097 Thomas H. Norstein", () => {
   });
 
   it("draws for both players after a matching Digimon attacks, paying by suspending this Tamer", () => {
-    const watcher = compiled.effects?.find((entry) => entry.trigger === "YourTurn")?.actions?.[0] as {
-      sourceFilter?: unknown;
-      actions?: unknown[];
-    };
+    const watcher = compiled.effects.find((entry) => entry.trigger === "YourTurn")?.actions[0];
+    expect(watcher?.kind).toBe("SubTrigger");
+    if (watcher?.kind !== "SubTrigger") throw new Error("BT13-097 YourTurn watcher must be a SubTrigger");
     expect(watcher).toMatchObject({
       kind: "SubTrigger",
       event: "whenAttacking",

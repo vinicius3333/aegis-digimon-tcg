@@ -3,10 +3,11 @@ import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./BT13-055.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { effectsOf } from "../../engine/effects/collect.js";
 
 function handMainEffectKey(s: ReturnType<typeof setupEngine>): string {
-  const source = (s.engine as any).cardSourceOf(s.inst("lamort"));
+  const source = observe(s.engine).cardSource(s.inst("lamort"));
   return effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("BT13-055/"))!
     .effectKey;
 }

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -20,6 +19,12 @@ export const compiled: CompiledCard = {
           mode: "raiseCeiling",
           costType: "level",
           amount: 2,
+          target: {
+            filter: { isSelfRef: true },
+            count: 1,
+            isSelf: true,
+          },
+          duration: "forTheTurn",
           condition: {
             kind: "youHave",
             filter: {

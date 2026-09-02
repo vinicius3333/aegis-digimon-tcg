@@ -1,20 +1,15 @@
-import { EffectTiming, type CardInstance } from "@aegis/shared";
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { getEffectModule } from "../../engine/effects/registry.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-109.js";
 
 async function resolveMain(s: ReturnType<typeof setupEngine>, optionId: string): Promise<void> {
-  const engine = s.engine as unknown as {
-    buildEffectContext(source: unknown, trigger: unknown): EffectContext;
-    cardSourceOf(instance: CardInstance): unknown;
-  };
-  const source = engine.cardSourceOf(s.inst(optionId));
-  const effects = getEffectModule("BT13-109")!.effectsForTiming(EffectTiming.OnUseOption, source as never);
-  const context = engine.buildEffectContext(source, {});
-  for (const effect of effects) await effect.resolve(context);
+  s.state.memory = 10;
+  await s.ready();
+  const result = s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst(optionId).instanceId });
+  if (!result.ok) throw new Error(`Could not use BT13-109: ${result.reason}`);
+  await settle();
 }
 
 describe("BT13-109 BT13-109", () => {
@@ -106,7 +101,7 @@ describe("BT13-109 BT13-109", () => {
 
     expect(s.perm("base").topCard?.cardId).toBe("BT13-088");
     expect(s.perm("base").stack.some((card) => card.cardId === "BT13-084")).toBe(true);
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(4);
   });
 
   it("resolves the Main effect through a real option play", async () => {

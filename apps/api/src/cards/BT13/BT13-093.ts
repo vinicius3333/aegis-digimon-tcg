@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT13-093 — do not regenerate.
 // OnDeletion PlaceUnder: added optional:true (Q&A confirms "you don't have to place").
 import type { CompiledCard } from "@aegis/shared";

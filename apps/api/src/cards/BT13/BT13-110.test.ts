@@ -8,10 +8,9 @@ import "./BT13-007.js";
 import "./BT13-040.js";
 
 function activatableEffects(s: ReturnType<typeof setupEngine>, instanceId: string) {
-  (s.engine as unknown as { syncActivatableEffects(): void }).syncActivatableEffects();
-  return JSON.parse(
-    s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === instanceId)?.activatableEffectsJson ?? "[]",
-  ) as Array<{ instanceId: string; effectKey: string; description?: string }>;
+  const permanent = s.state.players[0]!.battleArea.find((candidate) => candidate.topCard?.instanceId === instanceId);
+  if (permanent === undefined) throw new Error(`Permanent not found for ${instanceId}`);
+  return observe(s.engine).activatableEffects(permanent);
 }
 
 describe("BT13-110 Royal Knights of the Purge", () => {

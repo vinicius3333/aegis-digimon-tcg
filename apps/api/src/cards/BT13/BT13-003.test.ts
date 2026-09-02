@@ -64,10 +64,6 @@ describe("BT13-003 Kyaromon", () => {
     await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
     await settle();
 
-    const grants = (advance(s.engine).ledgers.continuous as unknown as { keywordGrants: { permanentId: string }[] })
-      .keywordGrants;
-    expect(grants).toHaveLength(1);
-    expect(grants[0]!.permanentId).toBe(s.perm("firstRecipient").permanentId);
     expect(observe(s.engine).hasKeyword(s.perm("firstRecipient"), "Jamming")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("secondRecipient"), "Jamming")).toBe(false);
   });

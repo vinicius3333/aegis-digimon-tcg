@@ -14,7 +14,7 @@ describe("BT13-049 Lalamon", () => {
         {
           kind: "RevealAdd",
           revealCount: 3,
-          rest: "deckBottom",
+          rest: "deckBottomAnyOrder",
           add: [
             {
               count: 1,

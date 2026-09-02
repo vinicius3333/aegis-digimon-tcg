@@ -148,7 +148,7 @@ describe("BT13-015 RizeGreymon", () => {
     );
     const marcusId = s.perm("marcus").topCard.instanceId;
     await s.ready();
-    const [effect] = observe(s.engine).activatableEffects(s.perm("agumon")) as { effectKey: string }[];
+    const [effect] = observe(s.engine).activatableEffects(s.perm("agumon"));
     expect(
       s.engine.applyIntent(0, {
         type: "activateEffect",

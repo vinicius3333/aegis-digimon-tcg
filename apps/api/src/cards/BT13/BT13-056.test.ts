@@ -7,7 +7,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 
 function mainEffectKey(s: ReturnType<typeof setupEngine>): string {
-  const source = (s.engine as any).cardSourceOf(s.perm("leo").topCard!);
+  const source = observe(s.engine).cardSource(s.perm("leo"));
   return effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("BT13-056/"))!
     .effectKey;
 }

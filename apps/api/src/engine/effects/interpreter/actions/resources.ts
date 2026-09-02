@@ -252,6 +252,10 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
       return false;
     }
     case "CostModifier": {
+      if (action.amount === null && action.dynamicFrom === "deletedDigimonPlayCost") {
+        unsupported(ctx, action, "dynamic deleted-Digimon play-cost modifier must be nested under wouldBePlayed");
+        return false;
+      }
       // Cost modification recorded in the cost-calculation layer (the play/digivolve cost
       // calc consults it). A scaled DELTA multiplies by the runtime count when known.
       // A SET mode records an absolute base cost (setFixed) computed BEFORE additive

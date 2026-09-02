@@ -19,7 +19,12 @@ const saveRequirement = compiled.digivolutionRequirement?.find((requirement) => 
 if (saveRequirement !== undefined) saveRequirement.colors = ["Red", "Black", "Purple"];
 const placement = whenDigivolving?.actions[0];
 const levelScaling = whenDigivolving?.actions[1];
-if (placement?.kind === "PlaceUnder" && levelScaling?.kind === "CostModifier" && levelScaling.scaling !== undefined) {
+if (
+  placement?.kind === "PlaceUnder" &&
+  levelScaling?.kind === "CostModifier" &&
+  typeof levelScaling.amount === "number" &&
+  levelScaling.scaling !== undefined
+) {
   placement.targetIsPermanent = true;
   placement.shedOwnCards = true;
   placement.scaling = { ...levelScaling.scaling, unit: "colors", levelCeilingAdd: levelScaling.amount };

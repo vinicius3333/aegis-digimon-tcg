@@ -8,14 +8,23 @@ import { compiled } from "./BT13-008.js";
 
 describe("BT13-008 Agumon", () => {
   it("keeps the bracketed Marcus Damon reference exact", () => {
-    const target = compiled.effects[0]!.actions[0] as unknown as {
-      target: { filter: { nameOrTrait: [{ tokens: string[]; match: string }] } };
-    };
-    const reference = target.target.filter.nameOrTrait[0]!;
+    const action = compiled.effects[0]?.actions[0];
+    expect(action?.kind).toBe("SelectBind");
+    if (action?.kind !== "SelectBind") throw new Error("Expected SelectBind action");
+    const reference = action.target.filter.nameOrTrait?.[0];
+    if (reference === undefined) throw new Error("Expected Marcus Damon name reference");
 
     expect(reference).toEqual({ tokens: ["Marcus Damon"], match: "nameExact" });
-    expect(matchNameOrTrait(definitionOf("BT12-092"), reference as never)).toBe(true);
-    expect(matchNameOrTrait(definitionOf("AD1-021"), reference as never)).toBe(false);
+    expect(matchNameOrTrait(definitionOf("BT12-092"), reference)).toBe(true);
+    expect(matchNameOrTrait(definitionOf("AD1-021"), reference)).toBe(false);
+  });
+
+  it("binds the chosen Marcus Damon once for the entire three-action bundle", () => {
+    const actions = compiled.effects[0]?.actions;
+    expect(actions?.[0]).toMatchObject({ target: { bindAs: "chosenMarcus" } });
+    expect(actions?.[1]).toMatchObject({ target: { fromSelectionRef: "chosenMarcus" } });
+    expect(actions?.[2]).toMatchObject({ target: { fromSelectionRef: "chosenMarcus" } });
+    expect(actions?.[3]).toMatchObject({ target: { fromSelectionRef: "chosenMarcus" } });
   });
 
   it("digivolves from Koromon for 0 memory through its alternate requirement", async () => {
@@ -38,20 +47,23 @@ describe("BT13-008 Agumon", () => {
   });
 
   it("makes one Marcus Damon a 3000 DP Digimon that cannot digivolve for the turn", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "BT13-008", as: "agumon" },
             { card: "BT12-092", as: "marcus" },
+            { card: "BT12-092", as: "otherMarcus" },
           ],
           security: ["BT1-001"],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.perm("marcus").topCard.instanceId);
     await s.ready();
-    const [effect] = observe(s.engine).activatableEffects(s.perm("agumon")) as { effectKey: string }[];
+    const [effect] = observe(s.engine).activatableEffects(s.perm("agumon"));
 
     expect(
       s.engine.applyIntent(0, {
@@ -65,6 +77,8 @@ describe("BT13-008 Agumon", () => {
 
     expect(s.perm("marcus").currentDP).toBe(3000);
     expect(observe(s.engine).isRestricted(s.perm("marcus"), "digivolve")).toBe(true);
+    expect(s.perm("otherMarcus").currentDP).not.toBe(3000);
+    expect(observe(s.engine).isRestricted(s.perm("otherMarcus"), "digivolve")).toBe(false);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",

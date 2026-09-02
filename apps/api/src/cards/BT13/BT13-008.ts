@@ -1,7 +1,5 @@
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-
-type Actions = CompiledCard["effects"][number]["actions"];
 
 const marcusTarget = {
   filter: {
@@ -9,7 +7,21 @@ const marcusTarget = {
     nameOrTrait: [{ tokens: ["Marcus Damon"], match: "nameExact" as const }],
   },
   count: 1 as const,
-};
+  bindAs: "chosenMarcus",
+} satisfies Target;
+
+const chosenMarcusTarget = {
+  filter: {},
+  count: 1,
+  fromSelectionRef: "chosenMarcus",
+} satisfies Target;
+
+const becomeDigimonActions = [
+  { kind: "SelectBind", target: marcusTarget },
+  { kind: "GrantStatic", target: chosenMarcusTarget, grant: "kinds", tokens: ["Digimon"], duration: "forTheTurn" },
+  { kind: "SetBaseDP", target: chosenMarcusTarget, value: 3000, duration: "forTheTurn" },
+  { kind: "Restrict", target: chosenMarcusTarget, restriction: "digivolve", duration: "forTheTurn" },
+] satisfies Action[];
 
 export const compiled: CompiledCard = {
   effects: [
@@ -17,11 +29,7 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       effectKey: "BT13-008/become-digimon",
       frequency: "OncePerTurn",
-      actions: [
-        { kind: "GrantStatic", target: marcusTarget, grant: "kinds", tokens: ["Digimon"], duration: "forTheTurn" },
-        { kind: "SetBaseDP", target: marcusTarget, value: 3000, duration: "forTheTurn" },
-        { kind: "Restrict", target: marcusTarget, restriction: "digivolve", duration: "forTheTurn" },
-      ] as unknown as Actions,
+      actions: becomeDigimonActions,
     },
     {
       trigger: "YourTurn",

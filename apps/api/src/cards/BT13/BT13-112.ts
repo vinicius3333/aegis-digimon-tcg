@@ -1,10 +1,9 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Q2366/Q2367: the second modal branch selects one card of each distinct name from
 // the breeding-area stacks and plays every card that can be played.
-const modalEffect = () => ({
+const modalEffect = (): Action => ({
   kind: "Modal",
   optional: true,
   choose: 1,

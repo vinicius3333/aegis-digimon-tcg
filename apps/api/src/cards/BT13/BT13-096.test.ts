@@ -20,15 +20,15 @@ describe("BT13-096 Homer Yushima", () => {
   });
 
   it("places a blue level 4 or lower Digimon from hand under the played Digimon", () => {
-    const watcher = compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions?.[0] as {
-      actions?: unknown[];
-    };
+    const watcher = compiled.effects.find((entry) => entry.trigger === "AllTurns")?.actions[0];
+    expect(watcher?.kind).toBe("SubTrigger");
+    if (watcher?.kind !== "SubTrigger") throw new Error("BT13-096 AllTurns watcher must be a SubTrigger");
     expect(watcher).toMatchObject({
       kind: "SubTrigger",
       event: "whenPlayed",
       sourceFilter: { controllerDefault: "mine", kind: ["Digimon"], colors: ["Blue"] },
     });
-    expect(watcher.actions?.[0]).toMatchObject({
+    expect(watcher.actions[0]).toMatchObject({
       kind: "CostGatedBlock",
       cost: {
         kind: "suspend",

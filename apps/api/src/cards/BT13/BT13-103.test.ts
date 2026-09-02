@@ -14,7 +14,8 @@ describe("BT13-103 Akihiro Kurata", () => {
       event: "wouldBePlayed",
       sourceFilter: { controllerDefault: "mine", nameOrTrait: [{ match: "name", tokens: ["Belphemon"] }] },
     });
-    expect((replacement as { actions?: unknown[] }).actions?.[0]).toMatchObject({
+    if (replacement?.kind !== "Replacement") throw new Error("Expected Replacement action");
+    expect(replacement.actions?.[0]).toMatchObject({
       kind: "CostModifier",
       mode: "reduce",
       costType: "play",
@@ -95,7 +96,9 @@ describe("BT13-103 Akihiro Kurata", () => {
     );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("belphemon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("belphemon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-091"));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-091")).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-083")).toBe(false);
