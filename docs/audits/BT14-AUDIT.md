@@ -4,6 +4,8 @@ Status: complete — 102/102 cards have reproducible 10/10 evidence.
 
 Audit date: 2026-09-01
 
+Typed revalidation date: 2026-09-02
+
 This report supersedes `BT14-STATIC-AUDIT.md`, `BT14-AUDIT-LEDGER.md`, the
 historical `internal-docs/audits/BT14.md`, and the provisional range reports in
 `internal-docs/audits/BT14/`. The earlier files remain as historical review
@@ -66,26 +68,56 @@ Every card below has a direct focused test at
   `ArraySchema`, restoring workspace typechecks without changing runtime behavior.
 - The persisted effects catalog is recalculated from executable modules through
   `pnpm effects:sync:set -- --set BT14`; `pnpm effects:check:set -- --set BT14`
-  verifies drift, and adding `--base origin/main` proves semantic scope. Exactly
-  57 BT14 records changed semantically and zero records outside BT14 changed.
+  verifies drift, and adding `--base origin/main` proves semantic scope.
+
+## Typed revalidation
+
+- Removed the remaining TypeScript suppressions from 101 direct modules; BT14-077
+  was already typed. BT14 now has zero `@ts-nocheck` directives, zero production
+  `registerCard` calls, zero `RawUnparsed` actions, and no unsafe casts in its
+  production modules.
+- Replaced stale generated shapes with supported typed IR: selection references
+  now carry concrete targets, target filters include their counts and card kinds,
+  recovery omits an invalid controller field, and DP comparisons use the integer
+  equivalent supported by the runtime.
+- Scoped BT14-020's deletion replacement to Gomamon cards beneath the deleting
+  Digimon, with a competing-stack negative test. Scoped BT14-086's Mind Link to
+  Digimon so a matching DigiPolice Tamer cannot become a target.
+- Added the effect-origin guard to BT14-070, typed BT14-097's original-card-info
+  grant, and preserved BT14-088's printed cost rule: an ineligible breeding card
+  now aborts before Gennai is suspended.
+- Added precise shared IR contracts for the existing `whenDigimonReturnsToHand`
+  subtrigger and original-card-info static grant. The public test observer now
+  validates and returns typed activatable-effect payloads instead of forcing
+  card tests through casts.
+- Reconciled an EX11-026 shared regression test left stale by the latest `main`
+  merge: its ordinary green level-2 EvoCost is not exposed as an alternate
+  digivolution requirement.
+- `packages/shared/src/effects/effects.json` was regenerated with the scoped
+  synchronization tool; it was not edited manually.
 
 ## Executed gates
 
-- Corrected-card and added-evidence suites: 11 files, 56 tests passed.
+- Typed/semantic focused cards: 17 files, 90 tests passed.
 - Persisted catalog contract: 105 tests passed.
-- BT14 collection: 103 files, 537 tests passed, one worker, no file parallelism.
-- Core mechanisms: 11 files, 700 tests passed, one worker, no file parallelism.
-- Synchronized-array regression suite: 2 files, 7 tests passed.
-- Synchronization-tool unit suite: 5 tests passed.
-- Shared and API builds passed inside the bounded synchronization checks.
-- Workspace typechecks passed serially with an explicit 300-second limit.
-- Oxlint and Oxfmt checks passed on the changed source, tool, and documentation
-  files. The generated JSON passed syntax, persisted equality, and scoped
-  semantic-diff checks.
+- BT14 collection: 103 files, 540 tests passed, one fork, no file parallelism.
+- Core mechanisms: 9 files, 774 tests passed, one fork, no file parallelism.
+- Move-permanent regressions: 5 files, 24 tests passed, one fork, no file
+  parallelism.
+- Shared suite: 8 files, 133 tests passed, one fork, no file parallelism.
+- Synchronized state arrays: 6 files, 49 tests passed, one fork, no file
+  parallelism.
+- Web effect projection: 4 files, 131 tests passed, one fork, no file parallelism.
+- Effect-snapshot synchronization tool: 10 tests passed.
+- Shared build and shared, API, and web typechecks passed serially.
+- Oxlint and Oxfmt passed on all changed TypeScript and documentation files. The
+  generated JSON passed syntax, persisted equality, and scoped semantic and byte
+  checks.
 - `git diff --check` passed.
-- Persisted semantic diff: 57 changed records, all 57 within BT14, zero outside
-  the audited set.
+- Persisted semantic diff: 59 changed records, all 59 within BT14, with zero
+  semantic or byte changes outside the audited set; the subsequent scoped
+  `--check` passed.
 
-All Vitest commands used explicit timeouts, `--maxWorkers=1`, and
-`--no-file-parallelism`. Build, synchronization, formatting, and typecheck
-commands also used explicit limits; workspace typechecks ran with concurrency 1.
+All Vitest commands used explicit timeouts, a single fork, and no file
+parallelism. Builds, synchronization, formatting, and typechecks also used
+explicit limits and ran serially.
