@@ -24768,7 +24768,7 @@
                   "count": "all"
                 }
               },
-              { "kind": "Recover", "controller": "mine", "amount": 1, "condition": { "kind": "ifThisEffectActed" } }
+              { "kind": "Recover", "amount": 1, "condition": { "kind": "ifThisEffectActed" } }
             ]
           },
           {
@@ -24790,7 +24790,7 @@
                   "count": "all"
                 }
               },
-              { "kind": "Recover", "controller": "mine", "amount": 1, "condition": { "kind": "ifThisEffectActed" } }
+              { "kind": "Recover", "amount": 1, "condition": { "kind": "ifThisEffectActed" } }
             ]
           }
         ]
@@ -24810,7 +24810,7 @@
             "actions": [
               {
                 "kind": "TrashDigivolution",
-                "target": { "sourceRef": "triggerSubject" },
+                "target": { "filter": {}, "count": 1, "sourceRef": "triggerSubject" },
                 "amount": 2,
                 "fromTop": false
               }
@@ -24857,7 +24857,11 @@
               {
                 "kind": "PlayWithoutCost",
                 "target": {
-                  "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Gomamon"], "match": "name" }] },
+                  "filter": {
+                    "controller": "mine",
+                    "hostFilter": { "isSelfRef": true },
+                    "nameOrTrait": [{ "tokens": ["Gomamon"], "match": "name" }]
+                  },
                   "count": 1
                 },
                 "from": ["digivolutionCards"],
@@ -24973,7 +24977,7 @@
             "actions": [
               {
                 "kind": "TrashDigivolution",
-                "target": { "sourceRef": "triggerSubject" },
+                "target": { "filter": {}, "count": 1, "sourceRef": "triggerSubject" },
                 "amount": 2,
                 "fromTop": false
               }
@@ -25662,7 +25666,7 @@
               },
               {
                 "kind": "GainKeyword",
-                "target": { "filter": { "isSelfRef": true } },
+                "target": { "filter": { "isSelfRef": true }, "count": 1 },
                 "keyword": { "keyword": "SecurityAttack", "amount": 1, "raw": "＜Security Attack +1＞" },
                 "count": 1,
                 "duration": "forTheTurn"
@@ -26780,7 +26784,15 @@
       {
         "trigger": "YourTurn",
         "actions": [
-          { "kind": "SubTrigger", "event": "whenTrashedFromHand", "actions": [{ "kind": "GainMemory", "amount": 1 }] }
+          {
+            "kind": "SubTrigger",
+            "event": "whenTrashedFromHand",
+            "fireCondition": {
+              "kind": "triggerByYourEffect",
+              "raw": "when one of your effects trashes a card in your hand"
+            },
+            "actions": [{ "kind": "GainMemory", "amount": 1 }]
+          }
         ],
         "isInherited": true,
         "frequency": "OncePerTurn"
@@ -27600,6 +27612,7 @@
             "kind": "MindLink",
             "target": {
               "filter": {
+                "kind": ["Digimon"],
                 "or": [
                   { "nameOrTrait": [{ "tokens": ["Numemon"], "match": "name" }] },
                   { "nameOrTrait": [{ "tokens": ["Monzaemon"], "match": "name" }] },
@@ -27826,7 +27839,7 @@
                     "controller": "mine",
                     "kind": ["Digimon"],
                     "location": "breedingArea",
-                    "dp": { "op": "gt", "value": 0 }
+                    "dp": { "op": "gte", "value": 1 }
                   },
                   "count": 1
                 },
@@ -28047,7 +28060,7 @@
           },
           {
             "kind": "Unsuspend",
-            "target": { "fromSelectionRef": "chosen" },
+            "target": { "fromSelectionRef": "chosen", "filter": {}, "count": 1 },
             "condition": {
               "kind": "opponentHasNone",
               "filter": {
@@ -28319,7 +28332,7 @@
           },
           {
             "kind": "GrantStatic",
-            "target": { "sameTarget": true },
+            "target": { "filter": {}, "count": 1, "sameTarget": true },
             "grant": { "dp": 3000, "color": "white", "originalName": "Sukamon" },
             "duration": "untilYourTurnEnd",
             "raw": "Until the end of your turn, change that Digimon into being white, having 3000 DP, and having an original name of [Sukamon]."
@@ -28328,8 +28341,7 @@
       }
     ],
     "coverage": "full",
-    "residual": [],
-    "ruleText": ["Name: Also treated as having [Sukamon]."]
+    "residual": []
   },
   "BT14-098": {
     "effects": [
