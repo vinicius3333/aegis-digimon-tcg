@@ -1,10 +1,10 @@
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const family = [
   { tokens: ["Angel", "Archangel"], match: "trait" },
   { tokens: ["Fallen Angel"], match: "trait" },
-];
+] satisfies NonNullable<Filter["nameOrTrait"]>;
 export const compiled: CompiledCard = {
   effects: [
     {

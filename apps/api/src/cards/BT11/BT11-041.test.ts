@@ -35,7 +35,12 @@ describe("BT11-041 Etemon", () => {
           kind: "Replacement",
           event: "wouldBeDeleted",
           sourceFilter: { isSelfRef: true },
-          actions: [{ kind: "Prevent", cost: { kind: "deleteOwn", target: { filter: { controller: "any", excludeSelf: true } } } }],
+          actions: [
+            {
+              kind: "Prevent",
+              cost: { kind: "deleteOwn", target: { filter: { controller: "any", excludeSelf: true } } },
+            },
+          ],
         },
       ],
     });
@@ -125,9 +130,7 @@ describe("BT11-041 Etemon", () => {
     expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(0);
 
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(s.perm("host").permanentId);
-    expect(s.state.players[costSeat]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(
-      costPermanentId,
-    );
+    expect(s.state.players[costSeat]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(costPermanentId);
   });
 
   it("Q2076: does not recursively reactivate a would-be-deleted prevention during its own resolution", async () => {

@@ -1,7 +1,7 @@
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const actions = [
+const actions: Action[] = [
   {
     kind: "ModifyDP",
     target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },

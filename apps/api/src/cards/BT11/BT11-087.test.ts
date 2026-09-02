@@ -27,15 +27,25 @@ import "../index.js";
 
 describe("BT11-087 Lilithmon [On Play]", () => {
   it("maps catalog facts and both printed effects to IR", () => {
-    expect(getCardDefinition("BT11-087")).toMatchObject({ cardId: "BT11-087", colors: ["Purple"], level: 6, playCost: 11, dp: 12000, types: ["Demon Lord", "Bagra Army"] });
+    expect(getCardDefinition("BT11-087")).toMatchObject({
+      cardId: "BT11-087",
+      colors: ["Purple"],
+      level: 6,
+      playCost: 11,
+      dp: 12000,
+      types: ["Demon Lord", "Bagra Army"],
+    });
     expect(compiled.effects).toMatchObject([
-      { trigger: "OnPlay", actions: [{ kind: "TrashTopDeck", amount: 4 }, { kind: "Return", to: "hand" }, { kind: "PlaceUnder" }] },
+      {
+        trigger: "OnPlay",
+        actions: [{ kind: "TrashTopDeck", amount: 4 }, { kind: "Return", to: "hand" }, { kind: "PlaceUnder" }],
+      },
       {
         trigger: "OpponentsTurn",
         actions: [
           {
             kind: "SubTrigger",
-            event: "whenOpponentMovedFromBreeding",
+            event: "whenMovedFromBreeding",
             actions: [{ kind: "GainTriggeredEffect", target: { sourceRef: "triggerSubject" } }],
           },
         ],
@@ -44,9 +54,9 @@ describe("BT11-087 Lilithmon [On Play]", () => {
   });
 
   it("has complete registered IR coverage", () => {
-    const compiled = runtimeCompiledCard("BT11-087")!;
-    expect(compiled.coverage).toBe("full");
-    expect(compiled.residual).toHaveLength(0);
+    const registered = runtimeCompiledCard("BT11-087")!;
+    expect(registered.coverage).toBe("full");
+    expect(registered.residual).toHaveLength(0);
   });
 
   it("mills top 4, then adds a Bagra Army card to hand, then places a Bagra Digimon under a Tamer", async () => {

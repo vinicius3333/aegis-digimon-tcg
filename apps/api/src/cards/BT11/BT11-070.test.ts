@@ -18,7 +18,7 @@ describe("BT11-070 Destromon", () => {
       { trigger: "OpponentsTurn", isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "SubTrigger" }] },
     ]);
     expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Vemmon"], cost: 6, isAlternate: true }]);
-    expect(compiled.effects[0]).toMatchObject({ actions: [{ add: [{ underFilter: { isSelfRef: true } }] }] });
+    expect(compiled.effects[0]?.actions[0]).toMatchObject({ add: [{ underFilter: { isSelfRef: true } }] });
   });
 
   it("resolves the reveal-and-trash timing", async () => {

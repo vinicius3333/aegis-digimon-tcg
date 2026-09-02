@@ -17,7 +17,7 @@ export const compiled: CompiledCard = {
           kind: "SubTrigger",
           event: "whenSecurityRemoved",
           sourceFilter: { controller: "opponent" },
-          actions: [{ kind: "ReactivateEffect", fromTrigger: "On Deletion", count: 1, optional: true }],
+          actions: [{ kind: "ReactivateEffect", fromTrigger: "OnDeletion", count: 1, optional: true }],
         },
       ],
       frequency: "OncePerTurn",

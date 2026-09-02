@@ -1,7 +1,7 @@
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const reveal = {
+const reveal: Extract<Action, { kind: "RevealAdd" }> = {
   kind: "RevealAdd",
   revealCount: 4,
   add: [

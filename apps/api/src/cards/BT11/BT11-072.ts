@@ -1,7 +1,7 @@
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const reveal: any = {
+const reveal: Extract<Action, { kind: "RevealAdd" }> = {
   kind: "RevealAdd",
   revealCount: 5,
   add: [
@@ -14,7 +14,6 @@ const reveal: any = {
       filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Cyborg", "Machine"], match: "trait" }] },
       count: 1,
       to: "hand",
-      optional: true,
       orDispositions: [{ to: "placeUnder", underFilter: { isSelfRef: true } }],
     },
   ],
@@ -32,7 +31,11 @@ export const compiled: CompiledCard = {
           kind: "Return",
           to: "deckBottom",
           target: {
-          filter: { zone: "battleArea", controller: "mine", nameOrTrait: [{ tokens: ["Analogman"], match: "nameExact" }] },
+            filter: {
+              zone: "battleArea",
+              controller: "mine",
+              nameOrTrait: [{ tokens: ["Analogman"], match: "nameExact" }],
+            },
             count: 1,
           },
           optional: true,

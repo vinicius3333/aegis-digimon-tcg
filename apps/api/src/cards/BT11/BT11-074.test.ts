@@ -16,8 +16,16 @@ describe("BT11-074 BlackWarGreymon X", () => {
     });
     expect(compiled.effects).toMatchObject([
       { trigger: "Static", keywords: [{ keyword: "Reboot" }] },
-      { trigger: "OpponentsTurn", frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenOpponentAttacks" }] },
-      { trigger: "OpponentsTurn", frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenUnsuspended" }] },
+      {
+        trigger: "OpponentsTurn",
+        frequency: "OncePerTurn",
+        actions: [{ kind: "SubTrigger", event: "whenOpponentAttacks" }],
+      },
+      {
+        trigger: "OpponentsTurn",
+        frequency: "OncePerTurn",
+        actions: [{ kind: "SubTrigger", event: "whenUnsuspended" }],
+      },
     ]);
     expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["BlackWarGreymon"], cost: 2, isAlternate: true }]);
   });

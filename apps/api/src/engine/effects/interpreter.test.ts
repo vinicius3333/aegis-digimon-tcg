@@ -486,6 +486,66 @@ describe("Return result bindings", () => {
     expect(recorder.calls.some((call) => call.verb === "resolveCardEffect")).toBe(false);
   });
 
+  it.each([
+    ["no loose candidates", false],
+    ["an empty up-to selection", true],
+  ] as const)("clears a stale if-you-did receipt after %s", async (_label, withCandidate) => {
+    const source = makeSource({ cardId: "X-RETURN-EMPTY-RECEIPT" });
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({
+      source,
+      recorder,
+      definitionOf: (cardId) =>
+        makeFakeDefinition({
+          cardId,
+          kinds: [CardKind.Digimon],
+          types: cardId === "BAGRA" ? ["Bagra Army"] : [],
+        }),
+      selectCardsAnswer: withCandidate ? () => [] : undefined,
+    });
+    if (withCandidate) {
+      ctx.game.player(0).trash.push({ instanceId: "bagra", cardId: "BAGRA", ownerSeat: 0, faceUp: true } as never);
+    }
+    // Simulate a successful preceding action. A zero-card Return must overwrite this receipt
+    // before an immediately following `ifThisEffectActed` condition is evaluated.
+    ctx.lastEffectActed = true;
+    const module = irCardModule("X-RETURN-EMPTY-RECEIPT", {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "Return",
+              target: {
+                filter: {
+                  zone: "trash",
+                  controller: "mine",
+                  nameOrTrait: [{ tokens: ["Bagra Army"], match: "trait" }],
+                },
+                count: 2,
+                upTo: true,
+              },
+              to: "hand",
+            },
+            {
+              kind: "Draw",
+              amount: 1,
+              controller: "mine",
+              condition: { kind: "ifThisEffectActed" },
+            },
+          ],
+        },
+      ],
+    });
+
+    await module.effectsForTiming(EffectTiming.OnPlay, source)[0]!.resolve(ctx);
+
+    expect(ctx.lastEffectActed).toBe(false);
+    expect(recorder.calls.some((call) => call.verb === "draw")).toBe(false);
+  });
+
   it("does not satisfy an if-you-did branch when the selected permanent was not moved", async () => {
     const target = makeFakePermanent({
       permanentId: "TARGET",

@@ -1,7 +1,7 @@
 import type { CompiledCard, Condition, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const xrosHeart: { filter: Filter; from: ("trash")[] } = {
+const xrosHeart: { filter: Filter; from: "trash"[] } = {
   filter: {
     zone: "trash",
     controller: "mine",

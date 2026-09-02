@@ -19,7 +19,8 @@ export const compiled: CompiledCard = {
               },
               {
                 kind: "opponentHas",
-                filter: { zone: "battleArea", controller: "opponent", kind: ["Digimon"], count: { gte: 2 } },
+                filter: { zone: "battleArea", controller: "opponent", kind: ["Digimon"] },
+                countMin: 2,
               },
             ],
             raw: "a card with [Blue Flare] or [Xros Heart] in this Digimon's digivolution cards and your opponent has 2 or more Digimon in play",

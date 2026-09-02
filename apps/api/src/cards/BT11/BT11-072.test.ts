@@ -18,6 +18,7 @@ describe("BT11-072 Machinedramon", () => {
       { trigger: "OnPlay", actions: [{ kind: "RevealAdd", revealCount: 5 }] },
       { trigger: "OnDeletion", actions: [{ kind: "Return", to: "deckBottom" }, { kind: "PlayWithoutCost" }] },
     ]);
+    expect(compiled.effects[0]?.actions[0]).not.toHaveProperty("add.1.optional");
   });
 
   it("reveals five and trashes unmatched cards", async () => {
@@ -37,7 +38,7 @@ describe("BT11-072 Machinedramon", () => {
           deck: ["BT11-067", "BT1-009", "BT1-010", "BT1-011", "BT1-012"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 20;
 
@@ -131,7 +132,9 @@ describe("BT11-072 Machinedramon", () => {
     await advance(s.engine).verb.deletePermanent([s.perm("deleted").permanentId]);
     await settle(() => s.state.players[0]!.battleArea.length === 0);
 
-    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("replacement").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("replacement").instanceId)).toBe(
+      true,
+    );
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
 });

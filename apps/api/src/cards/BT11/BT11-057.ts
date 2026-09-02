@@ -17,11 +17,22 @@ export const compiled: CompiledCard = {
           kind: "Suspend",
           target: { filter: { controller: "opponent", kind: ["Digimon"], suspended: false }, count: 1 },
           scaling: { per: 1, unit: "namedCount", countSource: "titamonTrashedCards" },
-          condition: { kind: "ifThisEffectActed", raw: "you do" },
+          condition: {
+            kind: "namedCountAtLeast",
+            countSource: "titamonTrashedCards",
+            count: 1,
+            raw: "you trashed at least 1 card",
+          },
         },
         {
           kind: "GainMemory",
           amount: 1,
+          condition: {
+            kind: "namedCountAtLeast",
+            countSource: "titamonTrashedCards",
+            count: 1,
+            raw: "you trashed at least 1 card",
+          },
           scaling: {
             per: 1,
             filter: { zone: "battleArea", controller: "opponent", suspended: true, kind: ["Digimon"] },

@@ -6,16 +6,36 @@ import { compiled } from "./BT11-058.js";
 
 describe("BT11-058 HerculesKabuterimon (X Antibody)", () => {
   it("maps its green mega, Security Attack, and conditional bottom-deck clauses", () => {
-    expect(getCardDefinition("BT11-058")).toMatchObject({ cardId: "BT11-058", colors: ["Green"], level: 6, playCost: 12, dp: 12000 });
-    expect(compiled.effects[0]).toMatchObject({ trigger: "Static", keywords: [{ keyword: "SecurityAttack", amount: 1 }] });
+    expect(getCardDefinition("BT11-058")).toMatchObject({
+      cardId: "BT11-058",
+      colors: ["Green"],
+      level: 6,
+      playCost: 12,
+      dp: 12000,
+    });
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "Static",
+      keywords: [{ keyword: "SecurityAttack", amount: 1 }],
+    });
     expect(compiled.effects[1]).toMatchObject({
       trigger: "WhenDigivolving",
-      actions: [{ kind: "Return", to: "deckBottom", condition: { kind: "selfHasInDigivolutionCards", nameOrTrait: [
-        { tokens: ["HerculesKabuterimon"], match: "nameExact" },
-        { tokens: ["X Antibody"], match: "nameExact" },
-      ] } }],
+      actions: [
+        {
+          kind: "Return",
+          to: "deckBottom",
+          condition: {
+            kind: "selfHasInDigivolutionCards",
+            nameOrTrait: [
+              { tokens: ["HerculesKabuterimon"], match: "nameExact" },
+              { tokens: ["X Antibody"], match: "nameExact" },
+            ],
+          },
+        },
+      ],
     });
-    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["HerculesKabuterimon"], cost: 1, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([
+      { namesExact: ["HerculesKabuterimon"], cost: 1, isAlternate: true },
+    ]);
   });
 
   it("bottom-decks a suspended Digimon when HerculesKabuterimon is in its stack", async () => {
