@@ -1,5 +1,4 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const into = {
@@ -8,7 +7,7 @@ const into = {
     { nameOrTrait: [{ tokens: ["Tyrannomon"], match: "name" }] },
     { nameOrTrait: [{ tokens: ["Dinosaur", "Ceratopsian"], match: "trait" }] },
   ],
-};
+} satisfies Filter;
 
 export const compiled: CompiledCard = {
   effects: [

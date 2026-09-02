@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -13,6 +12,10 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenTrashedFromHand",
+          fireCondition: {
+            kind: "triggerByYourEffect",
+            raw: "when one of your effects trashes a card in your hand",
+          },
           actions: [
             {
               kind: "GainMemory",

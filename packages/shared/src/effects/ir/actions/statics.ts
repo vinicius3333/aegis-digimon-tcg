@@ -74,6 +74,13 @@ export interface AuraAction extends ActionBase {
   while?: Condition;
 }
 
+/** A temporary change to a permanent's base DP, color, or original name. */
+export interface OriginalCardInfoGrant {
+  dp?: number;
+  color?: string;
+  originalName?: string;
+}
+
 /**
  * A static name/trait grant ("also treated as [X]", "gains all effects of cards with [X] in their
  * digivolution cards"), resolved by the continuous-effect layer against the card DB.
@@ -86,7 +93,15 @@ export interface GrantStaticAction extends ActionBase {
    * "immuneToOpponentOptionEffects" stores a beAffected + fromSourceKind:Option restriction for
    * the duration (CAP-A8, BT19-089).
    */
-  grant: "name" | "nameForDigiXros" | "trait" | "effects" | "kinds" | "immuneToOpponentOptionEffects" | string;
+  grant:
+    | "name"
+    | "nameForDigiXros"
+    | "trait"
+    | "effects"
+    | "kinds"
+    | "immuneToOpponentOptionEffects"
+    | string
+    | OriginalCardInfoGrant;
   /** Granted tokens from `[X]` refs. */
   tokens?: string[];
   /** The source filter for "effects". */

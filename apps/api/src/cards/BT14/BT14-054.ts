@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT14-054 — do not regenerate. "By unsuspending this Digimon, suspend
 // 1 opponent Digimon" compiled its cost as an unparsable `raw` (never payable, so the
 // suspend never fired); now a structured `unsuspend` self-cost (payable only when the

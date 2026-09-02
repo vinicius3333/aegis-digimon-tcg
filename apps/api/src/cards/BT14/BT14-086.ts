@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT14-086 — do not regenerate.
 // AllTurns Aura target filters: added Numemon+Monzaemon names alongside [DigiPolice] trait.
 import type { CompiledCard } from "@aegis/shared";
@@ -29,6 +28,7 @@ const compiled: CompiledCard = {
           kind: "MindLink",
           target: {
             filter: {
+              kind: ["Digimon"],
               or: [
                 {
                   nameOrTrait: [{ tokens: ["Numemon"], match: "name" }],

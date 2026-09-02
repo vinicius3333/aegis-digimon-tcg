@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -27,13 +26,19 @@ export const compiled: CompiledCard = {
           event: "whenAddSecurity",
           fireCondition: { kind: "triggerSecurityIsYours" },
           actions: [
-            { kind: "ModifyDP", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 }, amount: -7000, duration: "forTheTurn" },
+            {
+              kind: "ModifyDP",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+              amount: -7000,
+              duration: "forTheTurn",
+            },
             {
               kind: "GainKeyword",
               target: {
                 filter: {
                   isSelfRef: true,
                 },
+                count: 1,
               },
               keyword: { keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" },
               count: 1,

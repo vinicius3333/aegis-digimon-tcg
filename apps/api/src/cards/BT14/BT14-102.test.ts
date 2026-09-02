@@ -6,8 +6,9 @@ import "../index.js";
 
 describe("BT14-102", () => {
   it("offers deleting itself to place a Virus Digimon in security or give -5000 DP", () => {
-    const modal = compiled.effects?.[0]?.actions[0] as any;
+    const modal = compiled.effects?.[0]?.actions[0];
     expect(compiled.effects?.[0]).toMatchObject({ trigger: "WhenAttacking" });
+    if (modal?.kind !== "Modal") throw new Error("BT14-102 must compile a Modal action");
     expect(modal).toMatchObject({
       kind: "Modal",
       choose: 1,

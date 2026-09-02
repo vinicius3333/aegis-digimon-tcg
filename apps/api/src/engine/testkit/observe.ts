@@ -7,6 +7,21 @@ import { attackedWithDigimonInCurrentOrPreviousTurn } from "../turnActivity.js";
 import { effectiveColors, effectiveNames } from "../effects/continuous.js";
 import { cardHasTrait } from "../cards/cardData.js";
 
+export interface ActivatableEffectObservation {
+  instanceId?: string;
+  effectKey: string;
+  description?: string;
+}
+
+function isActivatableEffectObservation(value: unknown): value is ActivatableEffectObservation {
+  if (typeof value !== "object" || value === null) return false;
+  return (
+    typeof Reflect.get(value, "instanceId") === "string" &&
+    typeof Reflect.get(value, "effectKey") === "string" &&
+    typeof Reflect.get(value, "description") === "string"
+  );
+}
+
 /**
  * Named reads over engine state a test cannot see from synced state alone — continuous
  * grants, restrictions and the SubTrigger bus.
@@ -129,9 +144,14 @@ export function observe(engine: GameEngine) {
     },
 
     /** The activatable-effect payload the client would see for a permanent. */
-    activatableEffects(permanent: Permanent): unknown {
+    activatableEffects(permanent: Permanent): ActivatableEffectObservation[] {
       internals.syncActivatableEffects();
-      return permanent.activatableEffectsJson === "" ? [] : JSON.parse(permanent.activatableEffectsJson);
+      if (permanent.activatableEffectsJson === "") return [];
+      const parsed: unknown = JSON.parse(permanent.activatableEffectsJson);
+      if (!Array.isArray(parsed) || !parsed.every(isActivatableEffectObservation)) {
+        throw new Error("Invalid activatable-effects payload");
+      }
+      return parsed;
     },
 
     /** Whether the permanent is still recorded as having attacked during the current turn. */
