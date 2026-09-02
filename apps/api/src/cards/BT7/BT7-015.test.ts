@@ -6,9 +6,7 @@ import "./BT7-015.js";
 
 describe("BT7-015 AvengeKidmon", () => {
   it("declares the hand-play reducer in the BeforePayCost IR window", () => {
-    const costEffect = runtimeCompiledCard("BT7-015")?.effects.find(
-      (effect) => effect.trigger === "BeforePayCost",
-    );
+    const costEffect = runtimeCompiledCard("BT7-015")?.effects.find((effect) => effect.trigger === "BeforePayCost");
 
     expect(costEffect?.actions[0]).toMatchObject({
       kind: "CostModifier",
@@ -25,8 +23,12 @@ describe("BT7-015 AvengeKidmon", () => {
     });
     s.state.memory = 12;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("source").instanceId));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("source").instanceId),
+    );
 
     expect(s.state.memory).toBe(2);
   });

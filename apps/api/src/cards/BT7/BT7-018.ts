@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR — Draw 2 only when played from digivolution cards.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

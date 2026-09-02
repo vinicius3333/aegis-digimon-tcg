@@ -545,6 +545,14 @@ describe("Tamer-onto digivolution cost paths (BT17-012 family)", () => {
     expect(opts.length).toBeGreaterThan(0);
     expect(opts.every((o) => o.cost !== 0)).toBe(true);
   });
+
+  it("uses BT7's canonical target filter for Tamer color and fixed cost", () => {
+    const greenTamer = getDigivolveCostOptions("BT7-047", permOf("BT7-089"));
+    expect(greenTamer).toContainEqual(expect.objectContaining({ type: "alternate", cost: 2 }));
+
+    const redTamer = getDigivolveCostOptions("BT7-047", permOf("BT7-085"));
+    expect(redTamer.some((option) => option.type === "alternate")).toBe(false);
+  });
 });
 
 describe("AD1-002 onto a [Takuya Kanbara] Tamer w/2+ [Hybrid] cards under it", () => {

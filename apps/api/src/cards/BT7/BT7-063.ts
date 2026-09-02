@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
@@ -40,7 +39,7 @@ const compiled: CompiledCard = {
                   kind: ["Digimon"],
                   nameOrTrait: [{ tokens: ["SkullKnightmon", "DeadlyAxemon"], match: "name" }],
                 },
-                requiredNamesExact: ["SkullKnightmon", "DeadlyAxemon"],
+                requiredNamesExactUpTo: ["SkullKnightmon", "DeadlyAxemon"],
                 count: 2,
               },
               from: ["digivolutionCards"],

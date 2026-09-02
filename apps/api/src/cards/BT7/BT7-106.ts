@@ -1,8 +1,9 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const loadedCondition = {
+type ModalAction = Extract<CompiledCard["effects"][number]["actions"][number], { kind: "Modal" }>;
+
+const loadedCondition: NonNullable<ModalAction["optionConditions"]>[number] = {
   kind: "youHave",
   filter: {
     controllerDefault: "mine",
@@ -13,7 +14,7 @@ const loadedCondition = {
   raw: "you have a Digimon with 5 or more digivolution cards and [X Antibody] in its traits",
 };
 
-const effect = {
+const effect: ModalAction = {
   kind: "Modal",
   choose: 1,
   labels: ["Delete a Digimon with play cost 6 or less", "Instead, delete a Digimon without [X Antibody] in its traits"],

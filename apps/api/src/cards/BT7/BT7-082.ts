@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR — the Sistermon Blanc paid as cost is placed under this Digimon.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

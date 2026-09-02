@@ -2,26 +2,38 @@ import { describe, expect, it } from "vitest";
 import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT7-011.js";
+import "./BT7-021.js";
 import "./BT7-022.js";
+import "./BT7-023.js";
+import "./BT7-035.js";
 import "./BT7-036.js";
 import "./BT7-047.js";
+import "./BT7-060.js";
+import "./BT7-061.js";
+import "./BT7-071.js";
 import "./BT7-073.js";
 
 const cases = [
-  { hybrid: "BT7-011", correctTamer: "BT7-085", wrongTamer: "BT7-087", color: "Red" },
-  { hybrid: "BT7-022", correctTamer: "BT7-087", wrongTamer: "BT7-088", color: "Blue" },
-  { hybrid: "BT7-036", correctTamer: "BT7-088", wrongTamer: "BT7-089", color: "Yellow" },
-  { hybrid: "BT7-047", correctTamer: "BT7-089", wrongTamer: "BT7-091", color: "Green" },
-  { hybrid: "BT7-073", correctTamer: "BT7-091", wrongTamer: "BT7-085", color: "Purple" },
+  { hybrid: "BT7-011", correctTamer: "BT7-085", wrongTamer: "BT7-087", color: "Red", cost: 2 },
+  { hybrid: "BT7-021", correctTamer: "BT7-087", wrongTamer: "BT7-088", color: "Blue", cost: 2 },
+  { hybrid: "BT7-022", correctTamer: "BT7-087", wrongTamer: "BT7-088", color: "Blue", cost: 2 },
+  { hybrid: "BT7-023", correctTamer: "BT7-087", wrongTamer: "BT7-088", color: "Blue", cost: 2 },
+  { hybrid: "BT7-035", correctTamer: "BT7-088", wrongTamer: "BT7-089", color: "Yellow", cost: 2 },
+  { hybrid: "BT7-036", correctTamer: "BT7-088", wrongTamer: "BT7-089", color: "Yellow", cost: 2 },
+  { hybrid: "BT7-047", correctTamer: "BT7-089", wrongTamer: "BT7-090", color: "Green", cost: 2 },
+  { hybrid: "BT7-060", correctTamer: "BT7-090", wrongTamer: "BT7-091", color: "Black", cost: 2 },
+  { hybrid: "BT7-061", correctTamer: "BT7-090", wrongTamer: "BT7-091", color: "Black", cost: 3 },
+  { hybrid: "BT7-071", correctTamer: "BT7-091", wrongTamer: "BT7-085", color: "Purple", cost: 2 },
+  { hybrid: "BT7-073", correctTamer: "BT7-091", wrongTamer: "BT7-085", color: "Purple", cost: 2 },
 ] as const;
 
 describe("BT7 Frontier Hybrid Tamer color gates", () => {
   it.each(cases)(
-    "allows $hybrid only on a $color Tamer for cost 2",
-    async ({ hybrid, correctTamer, wrongTamer, color }) => {
+    "allows $hybrid only on a $color Tamer for its $cost cost",
+    async ({ hybrid, correctTamer, wrongTamer, color, cost }) => {
       expect(matchingAlternateDigivolutionRequirement(hybrid, wrongTamer)).toBeUndefined();
       expect(matchingAlternateDigivolutionRequirement(hybrid, correctTamer)).toMatchObject({
-        cost: 2,
+        cost,
         baseIsTamer: true,
         baseColors: [color],
       });
@@ -36,7 +48,7 @@ describe("BT7 Frontier Hybrid Tamer color gates", () => {
           deck: ["BT1-001"],
         },
       });
-      s.state.memory = 2;
+      s.state.memory = cost;
       const hybridId = s.inst("hybrid").instanceId;
 
       expect(

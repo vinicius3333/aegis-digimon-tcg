@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -15,7 +14,7 @@ const compiled: CompiledCard = {
           handResident: true,
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           sourceFilter: { controller: "mine", kind: ["Digimon"], digivolutionStackKind: ["Tamer"] },
-          into: { nameOrTrait: [{ tokens: ["Rhihimon"], match: "name" }] },
+          into: { cardId: "BT7-075" },
           duration: "permanent",
         },
       ],

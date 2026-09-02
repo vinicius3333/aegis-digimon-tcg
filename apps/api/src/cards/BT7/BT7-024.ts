@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -36,7 +35,7 @@ export const compiled: CompiledCard = {
             count: "all",
           },
           restriction: "attack",
-          duration: "untilOwnerTurnEnd",
+          duration: "permanent",
           raw: "Your opponent's level 3 Digimon can't attack.",
         },
       ],

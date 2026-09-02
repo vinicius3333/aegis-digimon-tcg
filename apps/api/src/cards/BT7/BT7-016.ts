@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR — the blocked watcher must be anchored to EmperorGreymon itself.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

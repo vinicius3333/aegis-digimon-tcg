@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -13,11 +12,10 @@ export const compiled: CompiledCard = {
           into: {
             controllerDefault: "mine",
             kind: ["Digimon"],
-            nameOrTrait: [{ tokens: ["DarkKnightmon"], match: "name" }],
+            nameOrTrait: [{ tokens: ["DarkKnightmon"], match: "nameExact" }],
           },
           from: ["hand"],
           payCost: false,
-          draw: true,
           optional: true,
           cost: {
             kind: "place",
@@ -25,7 +23,7 @@ export const compiled: CompiledCard = {
               filter: {
                 controller: "mine",
                 kind: ["Digimon"],
-                nameOrTrait: [{ tokens: ["DeadlyAxemon"], match: "name" }],
+                nameOrTrait: [{ tokens: ["DeadlyAxemon"], match: "nameExact" }],
               },
               count: 1,
               from: ["battleArea"],
@@ -54,6 +52,7 @@ export const compiled: CompiledCard = {
             isSelf: true,
           },
           keyword: { keyword: "SecurityAttack", amount: 1 },
+          duration: "forTheTurn",
           condition: {
             kind: "selfHasNameContaining",
             names: ["Knightmon", "Bagramon"],

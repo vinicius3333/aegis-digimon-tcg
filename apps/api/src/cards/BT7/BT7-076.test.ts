@@ -19,6 +19,21 @@ describe("BT7-076 Orochimon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
   });
 
+  it("does not draw when the opponent's effect trashes this card from hand", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT7-076", as: "orochimon" }],
+        deck: [{ card: "BT7-072", as: "notDrawn" }],
+      },
+    });
+
+    await advance(s.engine).verb.trash([s.inst("orochimon").instanceId], 1);
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("orochimon").instanceId));
+
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("orochimon").instanceId)).toBe(true);
+    expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("notDrawn").instanceId)).toBe(true);
+  });
+
   it("trashes a hand card to gain 1 memory when its host attacks", async () => {
     const s = setupEngine(
       {

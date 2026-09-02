@@ -38,9 +38,7 @@ describe("BT7-040 Rasenmon — Main Digi-Burst", () => {
         effectKey,
       }),
     ).toEqual({ ok: true });
-    await settle(
-      () => s.perm("rasenmon").stack.length === 0 && s.perm("target").currentDP === 3000,
-    );
+    await settle(() => s.perm("rasenmon").stack.length === 0 && s.perm("target").currentDP === 3000);
 
     expect(s.perm("target").currentDP).toBe(3000);
     expect(s.perm("otherTarget").currentDP).toBe(15000);

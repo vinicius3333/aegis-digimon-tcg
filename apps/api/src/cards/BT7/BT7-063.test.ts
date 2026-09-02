@@ -24,7 +24,7 @@ describe("BT7-063 DarkKnightmon", () => {
               actions: [
                 {
                   kind: "PlayWithoutCost",
-                  target: { requiredNamesExact: ["SkullKnightmon", "DeadlyAxemon"] },
+                  target: { requiredNamesExactUpTo: ["SkullKnightmon", "DeadlyAxemon"] },
                   fromOwnDigivolutionStack: true,
                 },
               ],
@@ -184,5 +184,56 @@ describe("BT7-063 DarkKnightmon", () => {
     const playedIds = s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId);
     expect(playedIds).toEqual(expect.arrayContaining([s.inst("skull").instanceId, s.inst("deadly").instanceId]));
     expect(s.state.players[0]!.battleArea.every((permanent) => permanent.isSuspended)).toBe(true);
+  });
+
+  it("plays the sole available named source when the other name is absent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT7-063",
+              under: [{ card: "BT7-058", as: "skull" }],
+              as: "darkKnightmon",
+            },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).verb.deletePermanent([s.perm("darkKnightmon").permanentId], "byEffect");
+
+    const replayed = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard.instanceId === s.inst("skull").instanceId,
+    );
+    expect(replayed?.isSuspended).toBe(true);
+  });
+
+  it("may decline the deletion replacement and play neither named source", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT7-063",
+              under: [
+                { card: "BT7-058", as: "skull" },
+                { card: "BT7-059", as: "deadly" },
+              ],
+              as: "darkKnightmon",
+            },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).verb.deletePermanent([s.perm("darkKnightmon").permanentId], "byEffect");
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("skull").instanceId, s.inst("deadly").instanceId]),
+    );
   });
 });

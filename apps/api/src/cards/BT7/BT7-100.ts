@@ -1,13 +1,12 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const main = [
+const main: CompiledCard["effects"][number]["actions"] = [
   {
     kind: "ModifyDP",
     target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
     amount: -3000,
-    duration: "untilEachTurnEnd",
+    duration: "forTheTurn",
     raw: "1 of your opponent's Digimon gets -3000 DP for the turn.",
   },
   {
@@ -21,7 +20,7 @@ const main = [
       count: 1,
     },
     keyword: { keyword: "SecurityAttack", amount: 1 },
-    duration: "untilEachTurnEnd",
+    duration: "forTheTurn",
     raw: "1 of your [Rasenmon] gains ＜Security Attack +1＞ for the turn.",
   },
 ];

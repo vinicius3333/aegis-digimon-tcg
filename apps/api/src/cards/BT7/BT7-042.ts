@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED — preserve: the opponent-turn aura modifies Security Digimon, not battle-area DP.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
