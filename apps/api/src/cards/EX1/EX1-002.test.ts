@@ -42,6 +42,41 @@ describe("EX1-002 Biyomon", () => {
     expect(p0.hand).toHaveLength(1);
   });
 
+  it("draws before the opponent receives the Blocker response window (Q3189)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX1-003", as: "attacker", under: ["EX1-002"] }],
+        deck: ["BT1-009", "BT1-011"],
+      },
+      1: { battleArea: [{ card: "BT1-072", as: "blocker" }] },
+    });
+    const p0 = s.state.players[0]!;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+
+    // The inherited [When Attacking] Draw 1 resolves before §12's public blocker
+    // response. Observe both state and protocol, then answer with the real intent.
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(p0.hand).toHaveLength(1);
+    expect(s.events.find((event) => event.kind === "blockWindowOpened")).toMatchObject({
+      eligibleBlockerIds: [s.perm("blocker").permanentId],
+    });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "declareBlock",
+        blockerPermanentId: s.perm("blocker").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+  });
+
   it("does not draw again when a second player attack occurs in the same turn", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "EX1-003", as: "attacker", under: ["EX1-002"] }], deck: ["BT1-009", "BT1-011", "BT1-012"] },
