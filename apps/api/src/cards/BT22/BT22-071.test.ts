@@ -71,4 +71,32 @@ describe("BT22-071 Devimon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT22-092"));
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT22-092")).toBe(true);
   });
+
+  it("returns a Flame Digimon from trash through its inherited effect in a public battle", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-069", as: "host", dp: 1000, suspended: true, under: ["BT22-071"] }],
+          trash: [{ card: "BT22-010", as: "flame" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const flameId = s.inst("flame").instanceId;
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("host").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === flameId));
+
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === flameId)).toBe(true);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+  });
 });

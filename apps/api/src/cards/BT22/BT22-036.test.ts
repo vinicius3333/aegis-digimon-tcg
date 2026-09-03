@@ -23,7 +23,7 @@ describe("BT22-036 Chaperomon", () => {
         destination: "digivolutionStack",
         hostFilter: { controller: "mine", nameOrTrait: [{ tokens: ["Shoemon"], match: "name" }] },
       },
-      into: { isSelfRef: true },
+      into: { filter: { isSelfRef: true }, count: 1, isSelf: true },
       cost: 3,
       ignoreDigivolutionRequirements: true,
     });

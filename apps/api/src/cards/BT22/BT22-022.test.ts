@@ -27,6 +27,7 @@ describe("BT22-022 Veedramon", () => {
       sourceFilter: {
         controllerDefault: "mine",
         kind: ["Digimon"],
+        isSelfRef: true,
         nameOrTrait: [{ tokens: ["Veedramon"], match: "name" }],
       },
     });
@@ -151,5 +152,33 @@ describe("BT22-022 Veedramon", () => {
     }
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
+  });
+
+  it("protects only the Veedramon carrying this inherited effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT22-022", under: ["BT22-022"], as: "protected" },
+            { card: "BT22-022", as: "other" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+
+    advance(s.engine).verb.enterEffectResolution(1 as Seat, ["Digimon"]);
+    try {
+      expect(await advance(s.engine).verb.deletePermanent([s.perm("other").permanentId], "byEffect")).toBe(1);
+      expect(await advance(s.engine).verb.deletePermanent([s.perm("protected").permanentId], "byEffect")).toBe(0);
+    } finally {
+      advance(s.engine).verb.leaveEffectResolution();
+    }
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      s.perm("protected").permanentId,
+    ]);
+    expect(s.perm("protected").isSuspended).toBe(true);
   });
 });

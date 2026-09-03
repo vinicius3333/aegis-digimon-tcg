@@ -66,4 +66,38 @@ describe("BT22-075 Fakemon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === linkedId));
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === linkedId)).toBe(true);
   });
+
+  it("plays its linked card through a public battle leave", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT22-075",
+              as: "fakemon",
+              dp: 1000,
+              suspended: true,
+              linked: [{ card: "BT22-071", as: "linked" }],
+            },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const linkedId = s.inst("linked").instanceId;
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("fakemon").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === linkedId));
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === linkedId)).toBe(true);
+  });
 });

@@ -1,6 +1,11 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, KeywordRef } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+const overclockKeyword = {
+  keyword: "Overclock",
+  qualifier: "Puppet",
+  raw: "＜Overclock ([Puppet] Trait)＞",
+} satisfies KeywordRef & { qualifier: string };
 
 // Hand-authored override for BT22-040 (Cendrillmon).
 // <Overclock ([Puppet] Trait)> is a Static keyword, not an EndOfYourTurn grant.
@@ -10,13 +15,7 @@ export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
-      keywords: [
-        {
-          keyword: "Overclock",
-          qualifier: "Puppet",
-          raw: "＜Overclock ([Puppet] Trait)＞",
-        },
-      ],
+      keywords: [overclockKeyword],
       actions: [],
     },
     {

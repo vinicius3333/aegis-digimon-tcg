@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-authored override: KB Q4869 — Attack is gated on the "By paying 3 cost" condition.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

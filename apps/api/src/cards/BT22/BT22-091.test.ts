@@ -93,4 +93,32 @@ describe("BT22-091 Arata Sanada", () => {
     expect(s.state.memory).toBe(memory);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === arataId)).toBe(true);
   });
+
+  it("suspends during a real opponent attack when a CS redirect target exists", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT22-091", as: "arata" },
+            { card: "BT22-053", as: "target" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("arata").isSuspended, 400);
+
+    expect(s.perm("arata").isSuspended).toBe(true);
+  });
 });

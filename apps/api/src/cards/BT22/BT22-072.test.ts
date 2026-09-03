@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./BT22-072.js";
 import "./index.js";
 
 type EngineInternals = {
@@ -109,5 +110,40 @@ describe("BT22-072 Lekismon", () => {
     await internals(s).primitives.deletePermanent([hostId], "byEffect");
     await settle();
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === hostId)).toBe(false);
+  });
+
+  it("prevents a public battle deletion by trashing the same-level pair", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT22-072",
+              as: "host",
+              dp: 1000,
+              suspended: true,
+              under: ["BT22-069", "BT22-069", "BT22-072"],
+            },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    const hostId = s.perm("host").permanentId;
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: hostId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.filter((card) => card.cardId === "BT22-069").length === 2);
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === hostId)).toBe(true);
+    expect(s.state.players[0]!.trash.filter((card) => card.cardId === "BT22-069")).toHaveLength(2);
   });
 });

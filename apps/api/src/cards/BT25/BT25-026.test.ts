@@ -126,7 +126,9 @@ function makeHarness(turnSeat: Seat): Harness {
       makeDefinition({
         cardId: card.cardId,
         nameEn: card.cardId === DIANAMON ? "Dianamon" : card.cardId,
+        level: card.cardId === DIANAMON ? 6 : 5,
         colors: colorsByCard[card.cardId] ?? [],
+        evoCosts: [{ color: "Blue", level: 5, memoryCost: 3 }] as never,
       }),
     linkMax: () => 1,
   };

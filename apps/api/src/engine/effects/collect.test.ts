@@ -157,6 +157,44 @@ describe("gatherTriggeredEffects (full instance -> source -> collection chain)",
     expect(collected.map((c) => c.effect.effectKey)).toEqual(["BT7-089/ir-35-0", "BT7-089/ir-35-1"]);
     expect(collected[0]?.source.cardId).toBe("BT7-089");
   });
+
+  it("checks a conferred effect's provenance-specific key against the use tracker", () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          {
+            card: "BT22-078",
+            as: "boltmon",
+            under: [{ card: "BT22-010", as: "flameMain" }],
+          },
+        ],
+      },
+    });
+    s.state.turnSeat = 0;
+    const permanent = s.perm("boltmon");
+    const stackCard = s.inst("flameMain");
+    const tracker = new UseTracker();
+    const continuous = new ContinuousEffectLedger();
+    continuous.conferStackEffects(permanent.permanentId, stackCard.instanceId, {
+      trigger: "Main",
+      granterInstanceId: permanent.topCard.instanceId,
+    });
+    const environment = {
+      state: s.state,
+      fx: unimplementedPrimitives(),
+      ask: unimplementedDecisions(),
+      tracker,
+      continuous,
+    };
+
+    const first = gatherTriggeredEffects(environment, EffectTiming.OnDeclaration, [stackCard]);
+    const conferred = first.find((entry) => entry.conferredToPermanentId === permanent.permanentId);
+    expect(conferred?.effect.effectKey).toContain(`/conferral/${permanent.topCard.instanceId}`);
+
+    tracker.register(stackCard.instanceId, conferred!.effect.effectKey);
+    const second = gatherTriggeredEffects(environment, EffectTiming.OnDeclaration, [stackCard]);
+    expect(second.some((entry) => entry.effect.effectKey === conferred!.effect.effectKey)).toBe(false);
+  });
 });
 
 describe("createGameAccess / createCardStateLookup", () => {

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT22-044.js";
 import "./index.js";
 
@@ -16,11 +17,31 @@ describe("BT22-044 Palmon", () => {
           event: "onAddDigivolutionCards",
           sourceFilter: { controllerDefault: "mine" },
           triggerFilter: { isSelfRef: true },
-          addedDigivolutionCardFilter: { nameOrTrait: [{ tokens: ["CS"], match: "trait" }] },
+          addedDigivolutionCardFilter: {
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["CS"], match: "trait" }],
+          },
           actions: [{ kind: "GainMemory", amount: 1 }],
         },
       ],
     });
+  });
+
+  it("does not gain memory for a CS Tamer placed under the stack", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT22-091", as: "tamer" }],
+        battleArea: [{ card: "BT22-046", as: "host", under: ["BT22-044"] }],
+      },
+    });
+    await s.ready();
+    const initialMemory = s.state.memory;
+
+    await advance(s.engine).verb.placeUnder(s.perm("host").permanentId, [s.inst("tamer").instanceId]);
+    await settle();
+
+    expect(s.state.memory).toBe(initialMemory);
+    expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("tamer").instanceId)).toBe(true);
   });
 
   it("retains the once-per-turn inherited draw placement cost", () => {

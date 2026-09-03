@@ -20,7 +20,10 @@ describe("BT22-019 Veemon", () => {
       kind: "Replacement",
       event: "wouldLeavePlay",
       leaveCause: "opponentEffect",
-      sourceFilter: { isSelfRef: true },
+      sourceFilter: {
+        isSelfRef: true,
+        nameOrTrait: [{ tokens: ["Veedramon"], match: "name" }],
+      },
       actions: [{ kind: "Prevent", mode: "leavePlay", optional: true, abortOnDecline: true }],
     });
   });
@@ -89,5 +92,26 @@ describe("BT22-019 Veemon", () => {
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT22-022")).toBe(true);
+  });
+
+  it("does not protect a non-Veedramon host carrying BT22-019", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT22-020", under: ["BT22-019"], as: "nonVeedramon" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const hostId = s.perm("nonVeedramon").permanentId;
+
+    // No player Intent currently produces an opponent-effect deletion; use the public advance
+    // verb to drive the same production leave event used by the positive protection test.
+    advance(s.engine).verb.enterEffectResolution(1 as Seat, ["Digimon"]);
+    try {
+      expect(await advance(s.engine).verb.deletePermanent([hostId], "byEffect")).toBe(1);
+    } finally {
+      advance(s.engine).verb.leaveEffectResolution();
+    }
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT22-020")).toBe(true);
   });
 });

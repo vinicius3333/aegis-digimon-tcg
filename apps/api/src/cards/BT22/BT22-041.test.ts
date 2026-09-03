@@ -11,6 +11,7 @@ describe("BT22-041 Kentaurosmon", () => {
     );
     expect(reduction?.actions[0]).toMatchObject({
       event: "wouldBePlayed",
+      sourceFilter: { isSelfRef: true },
       mode: "reduceCost",
       amount: 6,
       condition: { kind: "totalSecurityCount", op: "lte", value: 6 },
@@ -98,6 +99,20 @@ describe("BT22-041 Kentaurosmon", () => {
 
       expect(s.state.memory).toBe(expectedMemory);
     }
+  });
+
+  it("does not reduce another card's play cost at the six-security boundary", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT22-041", as: "kentaurosmon" }], hand: [{ card: "BT22-043", as: "other" }] },
+      1: { security: ["BT1-001", "BT1-002", "BT1-003"] },
+    });
+    await s.ready();
+    s.state.memory = 0;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("other").instanceId })).toEqual({ ok: true });
+    await settle();
+
+    expect(s.state.memory).toBe(-3);
   });
 
   it("trashes one top security to unsuspend, but only on the first suspension each turn", async () => {

@@ -19,6 +19,7 @@ export const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldBePlayed",
+          sourceFilter: { isSelfRef: true },
           mode: "reduceCost",
           amount: 6,
           raw: "When this card would be played, if there are 6 or fewer total cards in both players' security stacks, reduce the play cost by 6",

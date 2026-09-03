@@ -235,6 +235,7 @@ export function createEffectContext(parts: {
   usage?: UseTracker;
   activeTiming?: string;
   activeEffectText?: string;
+  activeEffectKey?: string;
   conferredToPermanentId?: string;
   conferralGranterInstanceId?: string;
 }): EffectContext {
@@ -247,6 +248,7 @@ export function createEffectContext(parts: {
     usage: parts.usage,
     activeTiming: parts.activeTiming,
     activeEffectText: parts.activeEffectText,
+    activeEffectKey: parts.activeEffectKey,
     conferredToPermanentId: parts.conferredToPermanentId,
     conferralGranterInstanceId: parts.conferralGranterInstanceId,
   };

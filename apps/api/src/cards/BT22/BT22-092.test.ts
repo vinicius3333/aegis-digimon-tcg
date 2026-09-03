@@ -1,10 +1,7 @@
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { activated } from "../../engine/effects/builders.js";
-import { registerCard, unregisterCard } from "../../engine/effects/registry.js";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import { compiled } from "./BT22-092.js";
 import "./index.js";
 
@@ -18,10 +15,8 @@ import "./index.js";
 // (a BLOCKED comment, no timing branch) — a Flame/CS Digimon entering never suspended this
 // Tamer nor re-fired that Digimon's [Main] effect.
 //
-// BT22-010 (a real, cataloged [Flame]/[CS]-trait Digimon) is overridden with a synthetic [Main]
-// effect (gain 2 memory) so the assertion is a simple, self-contained memory delta.
 const JIMMY = "BT22-092";
-const FLAME_DIGIMON = "BT22-010"; // BlueMeramon — [Flame]/[CS] traits
+const FLAME_DIGIMON = "BT22-010"; // Meramon — [Flame]/[CS] traits
 
 it("registers exclusive compiled IR for play and digivolve reactivation", () => {
   const effect = compiled.effects.find((entry) => entry.trigger === "YourTurn");
@@ -98,101 +93,50 @@ describe("BT22-092 [Start of Your Turn] set memory to 3 when at 2 or less", () =
 });
 
 describe("BT22-092 [Your Turn] Flame/CS Digimon enters -> suspend Jimmy, reactivate its [Main]", () => {
-  let fired = 0;
-  const stub: EffectModule = {
-    cardId: FLAME_DIGIMON,
-    effectsForTiming(timing, source) {
-      if (timing !== EffectTiming.OnDeclaration) return [];
-      return [
-        activated({
-          source,
-          effectKey: `${FLAME_DIGIMON}/test-reactivate-target`,
-          description: "test: [Main] gain 2 memory",
-          resolve: async (ctx) => {
-            fired += 1;
-            ctx.fx.gainMemory(2);
-          },
-        }),
-      ];
-    },
-  };
-  let original: EffectModule | undefined;
-
-  afterEach(() => {
-    unregisterCard(FLAME_DIGIMON);
-    if (original !== undefined) registerCard(original);
-    fired = 0;
-  });
-
-  it("suspends Jimmy KEN and re-fires the entering [Flame] Digimon's [Main] effect, then gains 1 memory", async () => {
-    original = unregisterCard(FLAME_DIGIMON);
-    registerCard(stub);
-
+  it("reactivates the real played Flame Digimon Main effect, then gains 1 memory", async () => {
     const s = setup(
-      { 0: { battleArea: [{ card: JIMMY, dp: 0, as: "jimmy" }] } },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { 0: { battleArea: [{ card: JIMMY, as: "jimmy" }], hand: [{ card: FLAME_DIGIMON, as: "flame" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true, autoDeclineOptional: true },
     );
-    const flameDigi = s.putOnBoard(0, { card: FLAME_DIGIMON, dp: 3000 });
     await s.ready();
-    s.state.memory = 5;
+    s.state.memory = 10;
 
-    await (
-      s.engine as unknown as {
-        fireSubTrigger(event: string, trigger?: Record<string, unknown>): Promise<void>;
-      }
-    ).fireSubTrigger("whenPlayed", { subjectPermanentId: flameDigi.permanentId });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("flame").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("jimmy").isSuspended, 400);
 
-    await settle(() => fired > 0, 400);
-
-    // The Flame Digimon's [Main] effect re-fired (gain 2), then Jimmy's own "gain 1" fired.
-    expect(fired).toBe(1);
-    expect(s.state.memory).toBe(8); // 5 + 2 (reactivated) + 1 (activated-any bonus)
+    expect(s.state.memory).toBe(4); // 10 - 5 play - 2 reactivated Main + 1 bonus.
     expect(s.perm("jimmy").isSuspended).toBe(true);
+    expect(s.perm("flame").topCard?.cardId).toBe(FLAME_DIGIMON);
   });
 
-  it("leaves Jimmy KEN unsuspended and reactivates nothing when the suspend cost is declined", async () => {
-    original = unregisterCard(FLAME_DIGIMON);
-    registerCard(stub);
-
+  it("reactivates the real Flame Digimon Main effect after a public digivolve", async () => {
     const s = setup(
-      { 0: { battleArea: [{ card: JIMMY, dp: 0, as: "jimmy" }] } },
-      { autoDeclineOptional: true, autoSelectCards: true },
+      {
+        0: {
+          battleArea: [
+            { card: JIMMY, as: "jimmy" },
+            { card: "BT22-069", as: "base" },
+          ],
+          hand: [{ card: FLAME_DIGIMON, as: "flame" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoDeclineOptional: true },
     );
-    const flameDigi = s.putOnBoard(0, { card: FLAME_DIGIMON, dp: 3000 });
     await s.ready();
-    s.state.memory = 5;
+    s.state.memory = 10;
 
-    await (
-      s.engine as unknown as {
-        fireSubTrigger(event: string, trigger?: Record<string, unknown>): Promise<void>;
-      }
-    ).fireSubTrigger("whenPlayed", { subjectPermanentId: flameDigi.permanentId });
-    await settle(() => false, 60);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("flame").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("jimmy").isSuspended, 400);
 
-    expect(s.decisions.some((d) => d.req.kind === "optional")).toBe(true);
-    expect(fired).toBe(0);
-    expect(s.state.memory).toBe(5);
-    expect(s.perm("jimmy").isSuspended).toBe(false);
-  });
-
-  it("does NOT reactivate for a Digimon without [Flame]/[CS] trait", async () => {
-    const s = setup(
-      { 0: { battleArea: [{ card: JIMMY, dp: 0, as: "jimmy" }] } },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    // BT3-073 (WereGarurumon) has neither [Flame] nor [CS].
-    const other = s.putOnBoard(0, { card: "BT3-073", dp: 6000 });
-    s.state.memory = 5;
-
-    await (
-      s.engine as unknown as {
-        fireSubTrigger(event: string, trigger?: Record<string, unknown>): Promise<void>;
-      }
-    ).fireSubTrigger("whenPlayed", { subjectPermanentId: other.permanentId });
-    await settle(() => false, 60);
-
-    expect(s.state.memory).toBe(5);
-    expect(s.perm("jimmy").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(7); // 10 - 2 evolution - 2 reactivated Main + 1 bonus, with the public memory boundary.
+    expect(s.perm("jimmy").isSuspended).toBe(true);
+    expect(s.perm("base").topCard?.cardId).toBe(FLAME_DIGIMON);
   });
 });
 

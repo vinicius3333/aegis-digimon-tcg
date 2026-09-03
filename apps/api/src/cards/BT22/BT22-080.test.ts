@@ -91,6 +91,32 @@ describe("BT22-080 Eater (Human Form)", () => {
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
   });
 
+  it("plays a CS Tamer through a public attack that checks security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-080", as: "human" }],
+          hand: [{ card: "BT22-089", as: "cs-tamer" }],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const humanId = s.perm("human").permanentId;
+    s.state.memory = 0;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: humanId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-089"));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-089")).toBe(true);
+  });
+
   it("lets one inherited copy in breeding optionally reduce an Eater play by 1", async () => {
     const s = setupEngine(
       {

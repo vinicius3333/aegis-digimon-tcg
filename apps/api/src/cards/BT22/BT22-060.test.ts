@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT22-060.js";
 
 describe("BT22-060 Datamon", () => {
@@ -43,19 +44,25 @@ describe("BT22-060 Datamon", () => {
         0: {
           battleArea: [
             {
-              card: "BT22-056",
+              card: "BT22-049",
               as: "base",
-              under: [
-                { card: "BT1-001", faceUp: false },
-                { card: "BT1-002", faceUp: true },
-              ],
             },
           ],
-          hand: [{ card: "BT22-060", as: "datamon" }],
+          hand: [
+            { card: "BT22-049", as: "faceDownSource" },
+            { card: "BT22-049", as: "faceUpSource" },
+            { card: "BT22-060", as: "datamon" },
+          ],
         },
       },
       { autoSelectCards: true },
     );
+    await s.ready();
+    await advance(s.engine).verb.placeUnder(s.perm("base").permanentId, [
+      s.inst("faceDownSource").instanceId,
+      s.inst("faceUpSource").instanceId,
+    ]);
+    s.perm("base").stack.find((card) => card.instanceId === s.inst("faceDownSource").instanceId)!.faceUp = false;
     s.state.memory = 3;
 
     expect(

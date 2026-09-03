@@ -147,6 +147,39 @@ describe("registerIrCard", () => {
     expect(recorder.calls).toContainEqual({ verb: "draw", args: [0, 2] });
     unregisterCard(cardId);
   });
+
+  it("preserves a copied effect key for nested action identities", async () => {
+    const source = makeSource({ cardId: "TEST-COPIED-MAIN-IDENTITY" });
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({ source, recorder });
+    const module = irCardModule(source.cardId, {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenAttacking",
+              raw: "When this Digimon attacks, draw 1",
+              actions: [{ kind: "Draw", controller: "mine", amount: 1 }],
+            },
+          ],
+        },
+      ],
+    });
+    const effect = module.effectsForTiming(EffectTiming.OnUseOption, source)[0]!;
+    const copiedEffectKey = `${effect.effectKey}/conferral/GRANTER#1`;
+    ctx.activeEffectKey = copiedEffectKey;
+
+    await effect.resolve(ctx);
+
+    const installed = recorder.calls.find((call) => call.verb === "subscribeSubTrigger")?.args[0] as {
+      dedupeKey?: string;
+    };
+    expect(installed.dedupeKey).toBe(`${source.instanceId}/${copiedEffectKey}/0`);
+  });
 });
 
 describe("new typed RAW-elimination conditions", () => {

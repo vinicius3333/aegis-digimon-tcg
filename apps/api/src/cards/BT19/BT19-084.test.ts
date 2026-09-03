@@ -117,6 +117,9 @@ function makeHarness(opts: {
         cardId: card.cardId,
         nameEn: card.cardId,
         kinds: ["Digimon"] as never,
+        level: card.cardId === SEC_DIGIMON ? 5 : 4,
+        colors: ["Blue"] as never,
+        evoCosts: [{ color: "Blue", level: 4, memoryCost: 3 }] as never,
         // Tag the Royal Base card with the trait so the place-source filter matches it.
         attributes: card.cardId === ROYAL_BASE ? ["Royal Base"] : [],
       }),
