@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR — suppress the revived Digimon's On Play effects atomically.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

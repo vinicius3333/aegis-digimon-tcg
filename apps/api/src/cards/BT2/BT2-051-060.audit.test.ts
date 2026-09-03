@@ -39,6 +39,7 @@ describe("BT2-051 through BT2-060 IR coverage", () => {
           {
             kind: "GrantCanAttackUnsuspended",
             target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            duration: "permanent",
             condition: {
               kind: "youHave",
               filter: { controllerDefault: "mine", kind: ["Tamer"], colors: ["Green"] },
@@ -53,9 +54,7 @@ describe("BT2-051 through BT2-060 IR coverage", () => {
             kind: "SubTrigger",
             event: "whenDeletesInBattle",
             sourceFilter: { isSelfRef: true },
-            actions: [
-              { kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } },
-            ],
+            actions: [{ kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } }],
           },
         ],
       },

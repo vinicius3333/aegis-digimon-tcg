@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR — returning each Digimon already trashes only that returned Digimon's sources.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

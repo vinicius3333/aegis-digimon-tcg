@@ -27,8 +27,8 @@ const CARD_IDS = [
 describe("BT2-041 through BT2-050 IR coverage", () => {
   it("registers every range card through complete compiled IR", () => {
     for (const cardId of CARD_IDS) {
-      expect(hasRegisteredCompiledCard(cardId), "direct compiled registration for " + cardId).toBe(true);
-      expect(runtimeCompiledCard(cardId), "runtime IR for " + cardId).toMatchObject({ coverage: "full", residual: [] });
+      expect(hasRegisteredCompiledCard(cardId)).toBe(true);
+      expect(runtimeCompiledCard(cardId)).toMatchObject({ coverage: "full", residual: [] });
     }
   });
 
