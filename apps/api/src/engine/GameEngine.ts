@@ -3414,7 +3414,9 @@ export class GameEngine {
     const top = permanent?.topCard;
     if (permanent === undefined || top === undefined) return;
     for (const grant of this.continuous.playerCustomEffectsFor(permanent.permanentId, permanent.controllerSeat)) {
-      this.continuous.addCustomEffectGrant(top.instanceId, top.ownerSeat, grant.token, grant.duration);
+      this.continuous.addCustomEffectGrant(top.instanceId, top.ownerSeat, grant.token, grant.duration, {
+        activationIdentity: grant.activationIdentity,
+      });
     }
   }
 

@@ -4951,8 +4951,14 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   // installed once when the granting effect resolves and survives the continuous recompute, so
   // it is recorded WITHOUT continuousOpt(). It lapses at its boundary (sweep) or when the host
   // permanent leaves the field (dropForPermanent).
-  const grantCustomEffect = (instanceId: string, ownerSeat: Seat, token: string, duration: EffectDuration): void => {
-    continuous.addCustomEffectGrant(instanceId, ownerSeat, token, duration);
+  const grantCustomEffect: NonNullable<Primitives["grantCustomEffect"]> = (
+    instanceId,
+    ownerSeat,
+    token,
+    duration,
+    opts,
+  ): void => {
+    continuous.addCustomEffectGrant(instanceId, ownerSeat, token, duration, { ...continuousOpt(), ...opts });
   };
 
   const grantPlayerCustomEffect: NonNullable<Primitives["grantPlayerCustomEffect"]> = (
@@ -5544,7 +5550,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     customEffectGrants: (permanentId) =>
       continuous
         .listCustomEffectGrants()
-        .filter((grant) => grant.instanceId === access.permanentById(permanentId)?.topCard?.instanceId),
+        .filter(
+          (grant) =>
+            grant.instanceId === access.permanentById(permanentId)?.topCard?.instanceId && grant.isActive?.() !== false,
+        ),
     grantCustom,
     shuffleSecurity,
     revealCard,

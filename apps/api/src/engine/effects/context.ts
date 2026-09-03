@@ -425,7 +425,7 @@ export function gatherTriggeredEffects(
       inheritedOnly?: boolean;
       granterInstanceId?: string;
     }[];
-    customEffectGrants: readonly { instanceId: string; token: string }[];
+    customEffectGrants: readonly { grantId?: number; instanceId: string; token: string; isActive?: () => boolean }[];
     onDeletionAtEndOfAttackProjections: readonly string[];
   },
 ): CollectedEffect[] {

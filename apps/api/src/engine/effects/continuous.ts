@@ -111,6 +111,7 @@ interface PlayerCustomEffectGrant {
   ownerSeat: Seat;
   token: string;
   duration: EffectDuration;
+  activationIdentity: object;
   matches: (permanentId: string) => boolean;
 }
 
@@ -352,6 +353,8 @@ export interface OnDeletionAtEndOfAttackProjection {
  * fires through the SAME OnDestroyedAnyone window as a printed [On Deletion].
  */
 export interface CustomEffectGrant {
+  /** Stable identity for this materialized grant, used to distinguish stacked effect copies. */
+  grantId: number;
   /**
    * The granted card's TOP-CARD instance id (NOT a permanent id). Anchoring on the instance is
    * what lets a granted [On Deletion] still fire on its OWN deletion: when the granted Digimon is
@@ -364,6 +367,12 @@ export interface CustomEffectGrant {
   ownerSeat: Seat;
   token: string;
   duration: EffectDuration;
+  /** One already-resolved granting effect. Equal identities are repeat materializations, not stacks. */
+  activationIdentity?: object;
+  /** Live affected-state gate for a duration-scoped aura grant. */
+  isActive?: () => boolean;
+  /** Persistent clauses are cleared and re-derived on every continuous recompute. */
+  continuous?: boolean;
 }
 
 interface MemoryGainPolicy {
@@ -526,6 +535,7 @@ export class ContinuousEffectLedger {
   private stackEffectConferrals: StackEffectConferral[] = [];
   private onDeletionAtEndOfAttackProjections: OnDeletionAtEndOfAttackProjection[] = [];
   private customEffectGrants: CustomEffectGrant[] = [];
+  private nextCustomEffectGrantId = 1;
   private memoryGainPolicies: MemoryGainPolicy[] = [];
   private costReductionBlocks: CostReductionBlock[] = [];
   private playProhibitions: PlayProhibition[] = [];
@@ -1069,7 +1079,7 @@ export class ContinuousEffectLedger {
     duration: EffectDuration,
     matches: (permanentId: string) => boolean,
   ): void {
-    this.playerCustomEffectGrants.push({ seat, ownerSeat, token, duration, matches });
+    this.playerCustomEffectGrants.push({ seat, ownerSeat, token, duration, activationIdentity: {}, matches });
   }
 
   /** Return active player-scoped named grants that match a newly entered permanent. */
@@ -1412,14 +1422,34 @@ export class ContinuousEffectLedger {
   }
 
   /**
-   * Grant a named custom effect onto a permanent for a duration (GrantStatic grant:"effects"
-   * with tokens). Idempotent per (permanent, token): the granting effect is [Once Per Turn], so
-   * re-granting the same token to the same permanent within a duration just keeps the one entry.
+   * Grant a named custom effect onto a permanent for a duration. Calls without an activation
+   * identity are distinct resolved grants and therefore stack. An explicit identity deduplicates
+   * only repeated materializations of THAT activation (for example, duplicate entry signals).
    */
-  addCustomEffectGrant(instanceId: string, ownerSeat: Seat, token: string, duration: EffectDuration): void {
-    const exists = this.customEffectGrants.some((g) => g.instanceId === instanceId && g.token === token);
+  addCustomEffectGrant(
+    instanceId: string,
+    ownerSeat: Seat,
+    token: string,
+    duration: EffectDuration,
+    opts?: { activationIdentity?: object; isActive?: () => boolean; continuous?: boolean },
+  ): void {
+    const exists =
+      opts?.activationIdentity !== undefined &&
+      this.customEffectGrants.some(
+        (grant) =>
+          grant.instanceId === instanceId &&
+          grant.token === token &&
+          grant.activationIdentity === opts.activationIdentity,
+      );
     if (exists) return;
-    this.customEffectGrants.push({ instanceId, ownerSeat, token, duration });
+    this.customEffectGrants.push({
+      grantId: this.nextCustomEffectGrantId++,
+      instanceId,
+      ownerSeat,
+      token,
+      duration,
+      ...opts,
+    });
   }
 
   /** Keep effects granted to a Digimon attached when that Digimon changes its top card. */
@@ -1554,6 +1584,7 @@ export class ContinuousEffectLedger {
     this.securityAttackInversions = this.securityAttackInversions.filter((i) => !i.continuous);
     this.stackEffectConferrals = this.stackEffectConferrals.filter((c) => !c.continuous);
     this.onDeletionAtEndOfAttackProjections = this.onDeletionAtEndOfAttackProjections.filter((p) => !p.continuous);
+    this.customEffectGrants = this.customEffectGrants.filter((grant) => !grant.continuous);
     this.memoryGainPolicies = this.memoryGainPolicies.filter((p) => !p.continuous);
     this.costReductionBlocks = this.costReductionBlocks.filter((b) => !b.continuous);
     this.playProhibitions = this.playProhibitions.filter((p) => !p.continuous);
