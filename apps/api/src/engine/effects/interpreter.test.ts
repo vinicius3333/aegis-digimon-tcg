@@ -15,10 +15,12 @@ import {
   irCardModule,
   registerIrCard,
   UnsupportedEffectError,
+  applyWouldBePlayedSelfReducer,
   candidateLooseInstances,
   evaluateCondition,
   matchNameOrTrait,
   payCost,
+  wouldBePlayedSelfReducersFor,
 } from "./interpreter.js";
 import { canPayCost } from "./interpreter/costs.js";
 import { getEffectModule, registerCard, unregisterCard } from "./registry.js";
@@ -29,6 +31,7 @@ import "../../cards/EX10/EX10-061.js";
 import "../../cards/EX10/EX10-072.js";
 import "../../cards/EX11/EX11-061.js";
 import "../../cards/EX3/EX3-069.js";
+import "../../cards/BT12/BT12-112.js";
 
 describe("matchNameOrTrait text matching", () => {
   it.each([
@@ -978,6 +981,30 @@ function makeSource(over: Partial<CardSource> = {}): CardSource {
     ...over,
   };
 }
+
+describe("wouldBePlayed self-reducer payment feasibility", () => {
+  it("does not offer BT12-112's Shoutmon payment without a battle-area Shoutmon", async () => {
+    const [reducer] = wouldBePlayedSelfReducersFor("BT12-112");
+    expect(reducer).toBeDefined();
+    const recorder: Recorder = { calls: [] };
+    let optionalPrompts = 0;
+    const ctx = makeContext({
+      source: makeSource({ cardId: "BT12-112" }),
+      recorder,
+      onOptional: () => {
+        optionalPrompts += 1;
+      },
+    });
+
+    await applyWouldBePlayedSelfReducer(ctx, reducer!);
+
+    expect(optionalPrompts).toBe(0);
+    expect(ctx.playCostDelta).toBeUndefined();
+    expect(ctx.selections?.has("bt12112Shoutmon")).toBe(false);
+    expect(ctx.pendingSelfReducerRelocations).toBeUndefined();
+    expect(recorder.calls.some((call) => call.verb === "trashDigivolutionCards")).toBe(false);
+  });
+});
 
 describe("attack cost feasibility", () => {
   it("offers only the copy that can legally attack, including a same-turn Rush Digimon", () => {
@@ -3893,6 +3920,66 @@ describe("v3 IR actions (round-3 fixes) dispatch to real primitives", () => {
       verb: "placeUnder",
       args: ["HOST#UNMOVED", ["UNMOVED"], { belowTop: false, faceUp: true }],
     });
+  });
+
+  it("does not bind a multi-source permanent payment when its atomic move fails", async () => {
+    const host = makeFakePermanent({
+      permanentId: "HOST#ATOMIC",
+      controllerSeat: 0 as Seat,
+      topCard: { instanceId: "HOST-ATOMIC", cardId: "HOST", ownerSeat: 0, faceUp: true } as never,
+    });
+    const sourceA = makeFakePermanent({
+      permanentId: "SOURCE-A",
+      controllerSeat: 0 as Seat,
+      topCard: { instanceId: "SOURCE-A-CARD", cardId: "SOURCE", ownerSeat: 0, faceUp: true } as never,
+    });
+    const sourceB = makeFakePermanent({
+      permanentId: "SOURCE-B",
+      controllerSeat: 0 as Seat,
+      topCard: { instanceId: "SOURCE-B-CARD", cardId: "SOURCE", ownerSeat: 0, faceUp: true } as never,
+    });
+    const source = makeSource({ cardId: "ATOMIC-COST", permanent: () => host });
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({
+      source,
+      recorder,
+      ownBattleArea: [host, sourceA, sourceB],
+      definitionOf: (id) =>
+        makeFakeDefinition({
+          cardId: id,
+          nameEn: id === "SOURCE" ? "Source" : "Host",
+          kinds: ["Digimon"] as never,
+        }),
+    });
+    ctx.fx.relocatePermanentsByEffect = async () => [];
+    ctx.selections = new Map([
+      ["sourceBinding", "previous-source"],
+      ["hostBinding", "previous-host"],
+    ]);
+    const paid = await payCost(ctx, {
+      kind: "place",
+      destination: "digivolutionStack",
+      targetIsPermanent: true,
+      host: "self",
+      bindHostAs: "hostBinding",
+      target: {
+        filter: {
+          controller: "mine",
+          kind: ["Digimon"],
+          nameOrTrait: [{ tokens: ["Source"], match: "name" }],
+        },
+        count: 2,
+        bindAs: "sourceBinding",
+      },
+      raw: "by placing 2 source permanents under this Digimon",
+    });
+
+    expect(paid).toBe(false);
+    expect(ctx.selections?.get("sourceBinding")).toBe("previous-source");
+    expect(ctx.selections?.get("hostBinding")).toBe("previous-host");
+    expect(ctx.game.state.players[0]!.battleArea).toEqual([host, sourceA, sourceB]);
+    expect(host.stack).toHaveLength(0);
+    expect(recorder.calls.filter(({ verb }) => verb === "relocatePermanent")).toHaveLength(0);
   });
 
   it("plays the selected level-limited card from the selected Digimon's stack", async () => {

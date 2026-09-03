@@ -5,6 +5,16 @@ const compiled = structuredClone(getCompiledCard("BT12-055")!);
 const whenDigivolving = compiled.effects.find((effect) => effect.trigger === "WhenDigivolving");
 if (whenDigivolving !== undefined) {
   const dnaCondition = { kind: "isDnaDigivolving" as const };
+  whenDigivolving.actions = whenDigivolving.actions.filter(
+    (action) =>
+      !(
+        action.kind === "ModifyDP" &&
+        action.target.isSelf === true &&
+        action.target.filter.isSelfRef === true &&
+        action.amount === 3000 &&
+        action.condition?.kind === "isDnaDigivolving"
+      ),
+  );
   const suspend = whenDigivolving.actions.find((action) => action.kind === "Suspend");
   if (suspend?.kind === "Suspend") suspend.condition = dnaCondition;
   const attackIndex = whenDigivolving.actions.findIndex((action) => action.kind === "Attack");

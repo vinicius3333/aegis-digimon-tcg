@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, type Seat } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -82,4 +82,39 @@ it("suspends opposing Digimon and Tamers with its Main effect", async () => {
   await settle(() => s.perm("digimon").isSuspended && s.perm("tamer").isSuspended);
   expect(s.perm("digimon").isSuspended).toBe(true);
   expect(s.perm("tamer").isSuspended).toBe(true);
+});
+
+it("keeps a Digimon played after resolution suspended in the opponent's next unsuspend phase", async () => {
+  const s = setupEngine(
+    {
+      0: { hand: [{ card: "BT12-106", as: "option" }], battleArea: [{ card: "BT12-045", as: "green" }] },
+      1: {
+        hand: [{ card: "BT1-009", as: "entrant" }],
+        battleArea: [{ card: "BT1-009", as: "initial" }],
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  await s.ready();
+  s.state.memory = 10;
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+  await settle(() => s.perm("initial").isSuspended);
+
+  // Enter the opponent's turn through the public play intent, then drive the production
+  // unsuspend-phase seam for the exact duration boundary under test.
+  s.state.turnSeat = 1;
+  s.state.memory = 10;
+  expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("entrant").instanceId })).toEqual({
+    ok: true,
+  });
+  await settle(() =>
+    s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("entrant").instanceId),
+  );
+  await advance(s.engine).verb.suspend([s.perm("entrant").permanentId]);
+  const flipped = await (
+    s.engine as unknown as { unsuspendForActivePhase(seat: Seat): Promise<string[]> }
+  ).unsuspendForActivePhase(1);
+
+  expect(s.perm("entrant").isSuspended).toBe(true);
+  expect(flipped).not.toContain(s.perm("entrant").permanentId);
 });

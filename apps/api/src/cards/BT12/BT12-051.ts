@@ -5,6 +5,10 @@ const compiled = structuredClone(getCompiledCard("BT12-051")!);
 const onDeletion = compiled.effects.find((effect) => effect.trigger === "OnDeletion");
 if (onDeletion !== undefined) {
   onDeletion.keywords = [];
+  onDeletion.actions = onDeletion.actions.filter(
+    (action) =>
+      !(action.kind === "PlaceUnder" && action.target.isSelf === true && action.target.filter.isSelfRef === true),
+  );
   onDeletion.actions.unshift({
     kind: "PlaceUnder",
     target: { filter: { isSelfRef: true }, count: 1, isSelf: true },

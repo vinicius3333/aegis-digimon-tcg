@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -17,7 +16,7 @@ const compiled: CompiledCard = {
               to: "hand",
             },
           ],
-          rest: "deckBottom",
+          rest: "deckBottomAnyOrder",
         },
       ],
     },
@@ -39,3 +38,4 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("BT12-007", compiled);
+export { compiled };

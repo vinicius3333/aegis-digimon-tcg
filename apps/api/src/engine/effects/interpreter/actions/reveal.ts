@@ -8,7 +8,7 @@ import { scaleFactor } from "../scaling.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
 import { type LooseCandidate, candidateLooseInstances, pickLoose } from "../targeting/loose.js";
 import { candidatePermanents, effectiveTargetCount, resolvePermanentTargets } from "../targeting/permanents.js";
-import { CardKind, isDigimon } from "@aegis/shared";
+import { CardKind, filterToDistinctColors, isDigimon } from "@aegis/shared";
 import type { Action, Filter, Target } from "@aegis/shared";
 
 /** Cards whose rule text changes a static fact only while they are revealed from deck. */
@@ -296,6 +296,8 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
             ...(spec.countModifier !== undefined ? { countModifier: spec.countModifier } : {}),
           } as Target);
     let chosen = matches.slice(0, want);
+    const requireDifferentColors =
+      primaryFilter.differentColors === true || alternativeFilters.some((filter) => filter.differentColors === true);
     // A bounded reveal selection is confirmed even when only one card is eligible. This keeps
     // every disposition (hand, play, security, place-under, etc.) on the same UI path and lets
     // the player inspect the full reveal, including ineligible cards shown as disabled. Slots
@@ -307,8 +309,24 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
         visibleCards: revealed.map((c) => ({ instanceId: c.instanceId, cardId: c.cardId })),
         min: spec.optional || spec.upTo ? 0 : Math.min(want, matches.length),
         max: want,
+        differentColors: requireDifferentColors,
       });
       chosen = matches.filter((c) => ids.includes(c.instanceId));
+    }
+    // Selection responses are untrusted, and the testkit's deterministic auto-picker does not
+    // infer every card-level constraint.  Sanitize a distinct-colors pick through the same
+    // bipartite-matching helper used by loose-card targeting, retaining the controller's order
+    // while dropping only picks that make the set illegal. `upTo` remains optional: a legal
+    // shorter selection is preserved rather than padded with an unchosen card. An optional
+    // exact-count slot may choose zero, but a non-empty partial response is not an exact count.
+    if (requireDifferentColors) {
+      chosen = filterToDistinctColors(chosen, (card) => revealedDefinition(ctx, card).colors ?? []);
+      // A distinct-color constraint may sanitize an untrusted response to a legal SHORTER
+      // subset, which is correct for `upTo`/optional slots. An exact numeric slot must not
+      // silently become an under-selection when the submitted set cannot satisfy the rule.
+      if (!spec.upTo && spec.count !== "all" && matches.length >= want && chosen.length < want) {
+        chosen = [];
+      }
     }
     for (const c of chosen) {
       taken.add(c.instanceId);

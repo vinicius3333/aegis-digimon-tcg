@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { PlayerState, ServerEvent } from "@aegis/shared";
+import { evaluateCondition } from "./effects/interpreter/conditions.js";
+import { mergeRuleDeletions } from "./GameEngine.js";
 import { setupEngine, settle, type EngineSetup } from "./testkit/harness.js";
 // Boot side-effect: self-registers every compiled-IR card module.
 import "../cards/index.js";
@@ -51,6 +53,51 @@ function resolvedSeats(events: readonly ServerEvent[], cardId: string): number[]
 }
 
 describe("rule-check trigger pool — one group per pass (CR §17-1-3, §15-4-3-3)", () => {
+  it("preserves sweep provenance order when identifying the first deleted permanent", () => {
+    const firstSnapshot = { permanentId: "first" };
+    const secondSnapshot = { permanentId: "second" };
+    const merged = mergeRuleDeletions([
+      {
+        trigger: {
+          deletedPermanentId: "first",
+          deletedPermanentIds: ["first"],
+          deletedPermanentSnapshots: [firstSnapshot],
+        },
+        ascensionCandidates: [],
+        transientCandidates: [],
+      },
+      {
+        trigger: {
+          deletedPermanentId: "second",
+          deletedPermanentIds: ["second"],
+          deletedPermanentSnapshots: [secondSnapshot],
+        },
+        ascensionCandidates: [],
+        transientCandidates: [],
+      },
+    ] as never);
+
+    expect(merged.trigger.deletedPermanentIds).toEqual(["first", "second"]);
+    expect(merged.trigger.deletedPermanentSnapshots).toEqual([firstSnapshot, secondSnapshot]);
+    const condition = { kind: "triggerIsFirstDeletedPermanent" } as const;
+    const context = {
+      game: { opponentOf: (seat: number) => (seat === 0 ? 1 : 0) },
+      source: { ownerSeat: 0, permanent: () => undefined },
+    };
+    expect(
+      evaluateCondition(
+        { ...context, trigger: { ...merged.trigger, deletedPermanentId: "first" } } as never,
+        condition,
+      ),
+    ).toBe(true);
+    expect(
+      evaluateCondition(
+        { ...context, trigger: { ...merged.trigger, deletedPermanentId: "second" } } as never,
+        condition,
+      ),
+    ).toBe(false);
+  });
+
   it("two DIFFERENT sweeps of one pass put their [On Deletion] effects in ONE ordering prompt", async () => {
     // Two separate §17-1-3 conditions, deliberately handled by two different sweeps of the
     // same pass: raw DP below 0 (§17-1-3-2-1) and raw DP exactly 0 (§17-1-3-1-1). Both cards

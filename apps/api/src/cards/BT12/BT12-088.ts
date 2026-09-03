@@ -1,34 +1,59 @@
-import { getCompiledCard } from "@aegis/shared";
-import { EffectTiming } from "@aegis/shared";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import { turnTiming } from "../../engine/effects/builders.js";
+import { type CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const module = registerIrCard("BT12-088", getCompiledCard("BT12-088")!);
-const compiledEffectsForTiming = module.effectsForTiming.bind(module);
-
-module.effectsForTiming = (timing, source: CardSource) => {
-  if (timing === EffectTiming.OnLoseSecurity)
-    return [
-      turnTiming({
-        source,
-        effectKey: "BT12-088/inherited-security-memory",
-        description: "When this Digimon checks security at 10000 or more DP, gain 2 memory.",
-        isInherited: true,
-        maxPerTurn: 1,
-        when: (ctx) => {
-          const host = source.permanent();
-          return (
-            source.isOwnersTurn() &&
-            host !== undefined &&
-            host.currentDP >= 10000 &&
-            ctx.trigger.attackerPermanentId === host.permanentId
-          );
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "StartOfYourTurn",
+      actions: [{ kind: "SetMemory", value: 3, condition: { kind: "memoryAtMost", value: 2 } }],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          amount: 2000,
+          duration: "permanent",
         },
-        resolve: async (ctx) => ctx.fx.gainMemory(2),
-      }),
-    ];
-  return compiledEffectsForTiming(timing, source);
+      ],
+      isInherited: true,
+    },
+    {
+      trigger: "OnLoseSecurity",
+      actions: [
+        {
+          kind: "GainMemory",
+          amount: 2,
+          condition: {
+            kind: "allOf",
+            conditions: [
+              { kind: "isYourTurn" },
+              { kind: "selfDpAtLeast", value: 10000 },
+              { kind: "triggerAttackerIsSelf" },
+            ],
+            raw: "while this Digimon has 10000 or more DP, when this Digimon checks security",
+          },
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          payCost: false,
+        },
+      ],
+      isSecurity: true,
+    },
+  ],
+  coverage: "full",
+  residual: [],
 };
 
-export default module;
+export default registerIrCard("BT12-088", compiled);
+export { compiled };

@@ -931,6 +931,35 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       );
     case "triggerDeletedIsOpponent":
       return ctx.trigger.deletedControllerSeat === ctx.game.opponentOf(ctx.source.ownerSeat);
+    case "triggerDeletedIsYourOther": {
+      const self = ctx.source.permanent();
+      const snapshots = ctx.trigger.deletedPermanentSnapshots;
+      if (self === undefined) return false;
+      if (snapshots !== undefined) {
+        return (
+          !snapshots.some(({ permanentId }) => permanentId === self.permanentId) &&
+          snapshots.some(({ permanentId, controllerSeat, topCardId }) => {
+            const definition = getCardDefinition(topCardId);
+            return (
+              permanentId !== self.permanentId &&
+              controllerSeat === ctx.source.ownerSeat &&
+              definition !== undefined &&
+              isDigimon(definition)
+            );
+          })
+        );
+      }
+      const deleted = ctx.trigger.deletedPermanentId;
+      const definition =
+        ctx.trigger.deletedTopCardId === undefined ? undefined : getCardDefinition(ctx.trigger.deletedTopCardId);
+      return (
+        deleted !== undefined &&
+        deleted !== self.permanentId &&
+        ctx.trigger.deletedControllerSeat === ctx.source.ownerSeat &&
+        definition !== undefined &&
+        isDigimon(definition)
+      );
+    }
     case "triggerDeletedByDpZero":
       return ctx.trigger.deletedByDpZero === true;
     case "triggerIsFirstDeletedPermanent": {

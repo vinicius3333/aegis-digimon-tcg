@@ -1,7 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT12-044.js";
 
@@ -48,4 +48,26 @@ it("gives one opposing Digimon Security Attack -2 when digivolving", async () =>
   expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-2);
   await s.ready();
   expect(observe(s.engine).keywordAmount(s.perm("lamp"), "SecurityAttack")).toBe(1);
+});
+
+it("resolves the digivolution debuff through a public digivolution intent", async () => {
+  const s = setupEngine(
+    {
+      0: { battleArea: [{ card: "BT1-057", as: "base" }], hand: [{ card: "BT12-044", as: "lamp" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+    },
+    { autoSelectCards: true },
+  );
+  s.state.memory = 3;
+  await s.ready();
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("lamp").instanceId,
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.perm("base").topCard?.cardId === "BT12-044");
+  expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-2);
+  expect(s.state.memory).toBe(0);
 });

@@ -13,12 +13,40 @@ describe("BT12-071 AncientWisemon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.turnSeat = 1;
+    await s.ready();
     await advance(s.engine).fireSubTrigger("whenOpponentAttacks", {
       attackerPermanentId: s.perm("attacker").permanentId,
     });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-066"));
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-066")).toBe(true);
-    expect(s.state.players[0]!.trash).toHaveLength(2);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT1-009", "BT1-010"]),
+    );
+  });
+
+  it("resolves the reveal from a public opponent attack intent", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT12-071", as: "ancient" }], deck: ["BT12-066", "BT1-009", "BT1-010"] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-066"));
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-066")).toBe(true);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT1-009", "BT1-010"]),
+    );
   });
 
   it("plays a black level-4 Hybrid from hand on deletion", async () => {
@@ -60,11 +88,15 @@ describe("BT12-071 AncientWisemon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.turnSeat = 1;
+    await s.ready();
     await advance(s.engine).fireSubTrigger("whenOpponentAttacks", {
       attackerPermanentId: s.perm("attacker").permanentId,
     });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-094"));
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-094")).toBe(true);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT1-009", "BT1-010"]),
+    );
   });
 
   it("uses printed play cost and trashes a black cost-7 near-match", async () => {
@@ -76,6 +108,7 @@ describe("BT12-071 AncientWisemon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.turnSeat = 1;
+    await s.ready();
     await advance(s.engine).fireSubTrigger("whenOpponentAttacks", {
       attackerPermanentId: s.perm("attacker").permanentId,
     });
@@ -94,6 +127,7 @@ describe("BT12-071 AncientWisemon", () => {
     );
     const deckBefore = s.state.players[0]!.deck.map(({ instanceId }) => instanceId);
     s.state.turnSeat = 1;
+    await s.ready();
     await advance(s.engine).fireSubTrigger("whenOpponentAttacks", {
       attackerPermanentId: s.perm("attacker").permanentId,
     });

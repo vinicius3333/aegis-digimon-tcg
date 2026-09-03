@@ -798,6 +798,16 @@ export interface Primitives {
     opts?: { belowTop?: boolean; shedOwnCards?: boolean; faceUp?: boolean },
   ): Promise<boolean>;
   /**
+   * Atomic multi-source form of `relocatePermanentByEffect`. Every source is preflighted
+   * before the first permanent leaves play; an invalid source therefore pays nothing and
+   * returns an empty list. The returned ids are exactly the source permanents moved.
+   */
+  relocatePermanentsByEffect?(
+    destPermanentId: string,
+    sourcePermanentIds: string[],
+    opts?: { belowTop?: boolean; shedOwnCards?: boolean; faceUp?: boolean },
+  ): Promise<string[]>;
+  /**
    * Move a whole permanent (top + digivolution stack + linked cards) across the
    * breeding/battle boundary as a card EFFECT, preserving identity, stack, linked cards
    * and suspended state — digivolution cards are NOT trashed and ＜Overflow＞ is NOT
@@ -1853,6 +1863,12 @@ export interface EffectContext {
    * ("select A, then act on B with DP <= A's"). Fresh per `runEffect`; absent means no binding.
    */
   selections?: Map<string, string>;
+  /**
+   * Loose card instances already committed to the action currently being declared. Cost
+   * selection must not reuse one of them (for example, an under-Tamer card chosen as the
+   * imminent digivolution card cannot also pay a would-digivolve placement cost).
+   */
+  reservedCostInstanceIds?: ReadonlySet<string>;
   /**
    * Attribute snapshot of each `SelectBind` target, taken at the moment it was bound. A clause
    * that deletes the chosen Digimon and then compares against it ("delete it and 1 of your

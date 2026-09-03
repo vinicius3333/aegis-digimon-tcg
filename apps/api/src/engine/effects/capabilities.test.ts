@@ -235,6 +235,282 @@ describe("filter.excludeColors (P-155, BT14-097)", () => {
   });
 });
 
+// ---------------------------------------------------------------------------
+// CAP-I1/I2: shared distinct-color RevealAdd and mixed-source PlaceUnder seams
+// ---------------------------------------------------------------------------
+describe("CAP-I1: RevealAdd differentColors validation", () => {
+  it("passes the constraint to the decision and drops an illegal same-color pick", async () => {
+    const revealedCards = [
+      { instanceId: "I1_RED_A", cardId: "I1_RED_A", ownerSeat: 0 as Seat, faceUp: false },
+      { instanceId: "I1_RED_B", cardId: "I1_RED_B", ownerSeat: 0 as Seat, faceUp: false },
+      { instanceId: "I1_BLUE", cardId: "I1_BLUE", ownerSeat: 0 as Seat, faceUp: false },
+    ];
+    const returnedToHand: string[] = [];
+    const returnedToDeck: string[] = [];
+    const definitions: Record<string, CardDefinition> = {};
+    for (const [cardId, color] of [
+      ["I1_RED_A", "Red"],
+      ["I1_RED_B", "Red"],
+      ["I1_BLUE", "Blue"],
+    ] as const) {
+      definitions[cardId] = {
+        ...def(cardId),
+        colors: [color] as never,
+        kinds: ["Digimon"] as never,
+        effectText: "＜Save＞",
+      };
+    }
+    const players = [
+      { seat: 0, battleArea: [], security: [], hand: [], deck: [], trash: [] },
+      { seat: 1, battleArea: [], security: [], hand: [], deck: [], trash: [] },
+    ];
+    const game: GameAccess = {
+      state: { memory: 0, players, turnSeat: 0 } as never,
+      player: (seat: Seat) => players[seat] as never,
+      opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0) as Seat,
+      permanentById: () => undefined,
+      definitionOf: (card: { cardId: string }) => definitions[card.cardId] ?? def(card.cardId),
+      linkMax: () => 1,
+    } as never;
+    let request: { differentColors?: boolean } | undefined;
+    const fx = {
+      reveal: async () => revealedCards,
+      returnToHand: async (ids: string[]) => {
+        returnedToHand.push(...ids);
+        return [];
+      },
+      returnToDeck: async (ids: string[]) => {
+        returnedToDeck.push(...ids);
+        return [];
+      },
+    } as unknown as Primitives;
+    const ask: DecisionApi = {
+      optional: async () => true,
+      chooseTargets: async () => [],
+      selectPermanents: async () => [],
+      selectCards: async (_ctx, options) => {
+        request = options;
+        return options.candidates.slice(0, options.max);
+      },
+      chooseOption: async () => 0,
+    };
+    const source: CardSource = {
+      instanceId: "I1_SOURCE",
+      cardId: "I1_SOURCE",
+      ownerSeat: 0,
+      definition: def("SRC"),
+      permanent: () => undefined,
+      isOnBattleArea: () => false,
+      isOwnersTurn: () => true,
+      hasColor: () => false,
+    } as never;
+    const ctx: EffectContext = { source, trigger: {}, game, fx, ask, selections: new Map() };
+    const ir: CompiledCard = {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "RevealAdd",
+              revealCount: 3,
+              add: [
+                {
+                  filter: { kind: ["Digimon"], keywords: ["Save"], differentColors: true },
+                  count: 2,
+                  upTo: true,
+                },
+              ],
+              rest: "deckBottom",
+            },
+          ],
+        },
+      ],
+    } as unknown as CompiledCard;
+    const effect = irCardModule("CAP-I1", ir).effectsForTiming(EffectTiming.OnPlay, source)[0]!;
+    await effect.resolve(ctx);
+    expect(request?.differentColors).toBe(true);
+    expect(returnedToHand).toEqual(["I1_RED_A"]);
+    expect(returnedToDeck).toEqual(["I1_RED_B", "I1_BLUE"]);
+  });
+
+  it("rejects under-selection for an exact count without moving any revealed card", async () => {
+    const revealedCards = [
+      { instanceId: "I1_EXACT_RED_A", cardId: "I1_EXACT_RED_A", ownerSeat: 0 as Seat, faceUp: false },
+      { instanceId: "I1_EXACT_RED_B", cardId: "I1_EXACT_RED_B", ownerSeat: 0 as Seat, faceUp: false },
+    ];
+    const returnedToHand: string[] = [];
+    const returnedToDeck: string[] = [];
+    const definitions: Record<string, CardDefinition> = {};
+    for (const cardId of ["I1_EXACT_RED_A", "I1_EXACT_RED_B"]) {
+      definitions[cardId] = {
+        ...def(cardId),
+        colors: ["Red"] as never,
+        kinds: ["Digimon"] as never,
+        effectText: "＜Save＞",
+      };
+    }
+    const players = [
+      { seat: 0, battleArea: [], security: [], hand: [], deck: [], trash: [] },
+      { seat: 1, battleArea: [], security: [], hand: [], deck: [], trash: [] },
+    ];
+    const game: GameAccess = {
+      state: { memory: 0, players, turnSeat: 0 } as never,
+      player: (seat: Seat) => players[seat] as never,
+      opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0) as Seat,
+      permanentById: () => undefined,
+      definitionOf: (card: { cardId: string }) => definitions[card.cardId] ?? def(card.cardId),
+      linkMax: () => 1,
+    } as never;
+    const fx = {
+      reveal: async () => revealedCards,
+      returnToHand: async (ids: string[]) => {
+        returnedToHand.push(...ids);
+        return [];
+      },
+      returnToDeck: async (ids: string[]) => {
+        returnedToDeck.push(...ids);
+        return [];
+      },
+    } as unknown as Primitives;
+    const ask: DecisionApi = {
+      optional: async () => true,
+      chooseTargets: async () => [],
+      selectPermanents: async () => [],
+      selectCards: async (_ctx, options) => options.candidates.slice(0, options.max),
+      chooseOption: async () => 0,
+    };
+    const source: CardSource = {
+      instanceId: "I1_EXACT_SOURCE",
+      cardId: "I1_EXACT_SOURCE",
+      ownerSeat: 0,
+      definition: def("SRC"),
+      permanent: () => undefined,
+      isOnBattleArea: () => false,
+      isOwnersTurn: () => true,
+      hasColor: () => false,
+    } as never;
+    const ctx: EffectContext = { source, trigger: {}, game, fx, ask, selections: new Map() };
+    const ir: CompiledCard = {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "RevealAdd",
+              revealCount: 2,
+              add: [
+                {
+                  filter: { kind: ["Digimon"], keywords: ["Save"], differentColors: true },
+                  count: 2,
+                },
+              ],
+              rest: "deckBottom",
+            },
+          ],
+        },
+      ],
+    } as unknown as CompiledCard;
+    const effect = irCardModule("CAP-I1-EXACT", ir).effectsForTiming(EffectTiming.OnPlay, source)[0]!;
+    await effect.resolve(ctx);
+
+    expect(returnedToHand).toEqual([]);
+    expect(returnedToDeck).toEqual(["I1_EXACT_RED_A", "I1_EXACT_RED_B"]);
+  });
+});
+
+describe("CAP-I2: mixed-source PlaceUnder exact selection and ordering", () => {
+  it("selects exactly one of each required name, keeps the requested order, and moves atomically", async () => {
+    DEFS.MIX_HOST = { kinds: ["Digimon"], nameEn: "Mix Host" };
+    DEFS.MIX_TAMER = { kinds: ["Tamer"], nameEn: "Takato Matsuki" };
+    DEFS.MIX_GROW = { kinds: ["Digimon"], nameEn: "Growlmon" };
+    DEFS.MIX_WAR = { kinds: ["Digimon"], nameEn: "WarGrowlmon" };
+    DEFS.MIX_EXTRA = { kinds: ["Digimon"], nameEn: "Othermon" };
+    const host = perm("I2_HOST", 0 as Seat, "MIX_HOST");
+    const tamer = perm("I2_TAMER", 0 as Seat, "MIX_TAMER");
+    const grow = { instanceId: "I2_GROW", cardId: "MIX_GROW", ownerSeat: 0 as Seat, faceUp: true };
+    const war = { instanceId: "I2_WAR", cardId: "MIX_WAR", ownerSeat: 0 as Seat, faceUp: true };
+    const extra = { instanceId: "I2_EXTRA", cardId: "MIX_EXTRA", ownerSeat: 0 as Seat, faceUp: true };
+    const players = [
+      { seat: 0, battleArea: [host, tamer], security: [], hand: [], deck: [], trash: [grow, war, extra] },
+      { seat: 1, battleArea: [], security: [], hand: [], deck: [], trash: [] },
+    ];
+    const game: GameAccess = {
+      state: { memory: 0, players, turnSeat: 0 } as never,
+      player: (seat: Seat) => players[seat] as never,
+      opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0) as Seat,
+      permanentById: (id: string) =>
+        [...players[0]!.battleArea, ...players[1]!.battleArea].find((p) => p.permanentId === id),
+      definitionOf: (card: { cardId: string }) => def(card.cardId),
+      linkMax: () => 1,
+    } as never;
+    const placements: string[] = [];
+    const order = [war.instanceId, tamer.topCard!.instanceId, grow.instanceId];
+    const fx = {
+      relocatePermanentByEffect: async (_destination: string, permanentId: string) => {
+        placements.push(`permanent:${permanentId}`);
+        return true;
+      },
+      placeUnder: async (_destination: string, ids: string[]) => {
+        placements.push(...ids.map((id) => `card:${id}`));
+        return ids.map((instanceId) => ({ instanceId, cardId: "MIX", ownerSeat: 0 as Seat }));
+      },
+    } as unknown as Primitives;
+    const ask: DecisionApi = {
+      optional: async () => true,
+      chooseTargets: async (_ctx, options) => options.candidates.slice(0, 1),
+      selectPermanents: async () => [],
+      selectCards: async (_ctx, options) => options.candidates.slice(0, options.max),
+      orderCards: async () => order,
+      chooseOption: async () => 0,
+    };
+    const source: CardSource = {
+      instanceId: "I2_SOURCE",
+      cardId: "I2_HOST",
+      ownerSeat: 0,
+      definition: def("MIX_HOST"),
+      permanent: () => host,
+      isOnBattleArea: () => true,
+      isOwnersTurn: () => true,
+      hasColor: () => false,
+    } as never;
+    const ctx: EffectContext = { source, trigger: {}, game, fx, ask, selections: new Map() };
+    const ir: CompiledCard = {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "PlaceUnder",
+              target: {
+                filter: { kind: ["Tamer", "Digimon"] },
+                count: 3,
+                requiredNamesExact: ["Takato Matsuki", "Growlmon", "WarGrowlmon"],
+              },
+              mixedSources: { battleAreaPermanents: true, trash: true },
+              destination: {
+                filter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Mix Host"], match: "nameExact" }] },
+                count: 1,
+              },
+              position: "bottom",
+              order: "any",
+            },
+          ],
+        },
+      ],
+    } as unknown as CompiledCard;
+    const effect = irCardModule("CAP-I2", ir).effectsForTiming(EffectTiming.OnDeclaration, source)[0]!;
+    await effect.resolve(ctx);
+    expect(placements).toEqual(["card:I2_GROW", "permanent:I2_TAMER", "card:I2_WAR"]);
+    expect(placements).not.toContain("card:I2_EXTRA");
+  });
+});
+
 describe("condition.permanentCount + filter.distinctNames (BT21-010)", () => {
   function gatedModifyDP(condition: unknown) {
     return [
@@ -6021,6 +6297,90 @@ describe("zone:battleArea filter on Return target (CAP-C-08, BT19-101)", () => {
     expect(returnedIds).toHaveLength(1);
     // Must be one of the opponent permanents' top-card instance ids.
     expect(["OPP1#i", "OPP2#i"]).toContain(returnedIds[0]);
+  });
+
+  it("orders all digivolution cards before returning the host, without moving a partial order", async () => {
+    const host = perm("ORDER_HOST", 1 as Seat, "RED", ["RED", "WHITE"]);
+    const src = source("BT12-112-cap-return", perm("ORDER_SRC", 0 as Seat, "SRC"));
+    const { ctx } = makeCtx({ source: src, opponent: [host] });
+    const returned: string[][] = [];
+    let offeredVisibleCards: { instanceId: string; cardId: string }[] | undefined;
+    ctx.fx = {
+      returnToDeck: async (instanceIds: string[]) => {
+        returned.push([...instanceIds]);
+        return [];
+      },
+    } as unknown as Primitives;
+    ctx.ask = {
+      optional: async () => true,
+      chooseTargets: async (_c, o) => o.candidates.slice(0, o.max),
+      selectPermanents: async (_c, o) => o.candidates.slice(0, o.max),
+      selectCards: async (_c, o) => o.candidates.slice(0, o.max),
+      orderCards: async (_c, o) => {
+        offeredVisibleCards = o.visibleCards;
+        return [...o.candidates].reverse();
+      },
+      chooseOption: async () => 0,
+    };
+
+    await runMain(
+      "BT12-112-cap-return",
+      [
+        {
+          kind: "Return",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          to: "deckBottom",
+          order: "any",
+          returnDigivolutionCardsFirst: true,
+        },
+      ],
+      ctx,
+      src,
+    );
+
+    expect(returned).toEqual([["ORDER_HOST#s1", "ORDER_HOST#s0"], ["ORDER_HOST#i"]]);
+    expect(offeredVisibleCards).toEqual([
+      { instanceId: "ORDER_HOST#s0", cardId: "RED" },
+      { instanceId: "ORDER_HOST#s1", cardId: "WHITE" },
+    ]);
+  });
+
+  it("falls back to the complete stack order when an order response is incomplete", async () => {
+    const host = perm("INVALID_ORDER_HOST", 1 as Seat, "RED", ["RED", "WHITE"]);
+    const src = source("BT12-112-cap-invalid-order", perm("INVALID_ORDER_SRC", 0 as Seat, "SRC"));
+    const { ctx } = makeCtx({ source: src, opponent: [host] });
+    const returned: string[][] = [];
+    ctx.fx = {
+      returnToDeck: async (instanceIds: string[]) => {
+        returned.push([...instanceIds]);
+        return [];
+      },
+    } as unknown as Primitives;
+    ctx.ask = {
+      optional: async () => true,
+      chooseTargets: async (_c, o) => o.candidates.slice(0, o.max),
+      selectPermanents: async (_c, o) => o.candidates.slice(0, o.max),
+      selectCards: async (_c, o) => o.candidates.slice(0, o.max),
+      orderCards: async (_c, o) => o.candidates.slice(0, 1),
+      chooseOption: async () => 0,
+    };
+
+    await runMain(
+      "BT12-112-cap-invalid-order",
+      [
+        {
+          kind: "Return",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          to: "deckBottom",
+          order: "any",
+          returnDigivolutionCardsFirst: true,
+        },
+      ],
+      ctx,
+      src,
+    );
+
+    expect(returned).toEqual([["INVALID_ORDER_HOST#s0", "INVALID_ORDER_HOST#s1"], ["INVALID_ORDER_HOST#i"]]);
   });
 });
 

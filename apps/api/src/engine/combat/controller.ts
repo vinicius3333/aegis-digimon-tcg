@@ -106,6 +106,8 @@ export interface CombatTrigger {
   deletedPermanentSnapshots?: TriggerInfo["deletedPermanentSnapshots"];
   /** The sole surviving battle participant that caused the deletion; absent for ties. */
   deletingPermanentId?: string;
+  /** Controller of the first deleted permanent. */
+  deletedControllerSeat?: Seat;
   /** Why the permanent left play, for deletion-condition gates. */
   removalCause?: RemovalCause;
   deletedTopCardId?: string;
@@ -1310,6 +1312,17 @@ export class CombatController {
       if (sacrificeMoved.length > 0) {
         await this.hooks.fireTiming(EffectTiming.OnDestroyedAnyone, {
           deletedPermanentId: sacrifice.permanentId,
+          deletedPermanentIds: [sacrifice.permanentId],
+          deletedControllerSeat: sacrifice.controllerSeat,
+          deletedPermanentSnapshots: sacrifice.topCard
+            ? [
+                {
+                  permanentId: sacrifice.permanentId,
+                  controllerSeat: sacrifice.controllerSeat,
+                  topCardId: sacrifice.topCard.cardId,
+                },
+              ]
+            : [],
           deletedInstanceIds: sacrificeMoved,
           deletedWasStackInstanceIds: sacrificeStackIds,
         });
@@ -1353,11 +1366,24 @@ export class CombatController {
     // sourceFilter ("a Digimon with <Blocker>") can resolve the loser's live traits/controller
     // (post-removal the permanent is gone and could not be matched). Distinct from
     // whenDeletesInBattle (the WINNER's reaction, fired below).
+    const deletedPermanentSnapshots = postCardPreventionDeletedIds.flatMap((permanentId) => {
+      const permanent = this.access.permanentById(permanentId);
+      return permanent?.topCard === undefined
+        ? []
+        : [
+            {
+              permanentId,
+              controllerSeat: permanent.controllerSeat,
+              topCardId: permanent.topCard.cardId,
+            },
+          ];
+    });
     for (const permanentId of postCardPreventionDeletedIds) {
       if (this.access.permanentById(permanentId)?.topCard === undefined) continue;
       await this.hooks.fireSubTrigger?.("onDeletionOf", {
         deletedPermanentId: permanentId,
         deletedPermanentIds: postCardPreventionDeletedIds,
+        deletedPermanentSnapshots,
         deletedControllerSeat: this.access.permanentById(permanentId)?.controllerSeat,
         deletedTopCardId: this.access.permanentById(permanentId)?.topCard?.cardId,
         removalCause: "byBattle",
@@ -1390,6 +1416,7 @@ export class CombatController {
     if (tokenDeletionIds.length > 0) {
       await this.hooks.fireTiming(EffectTiming.OnDestroyedAnyone, {
         deletedInstanceIds: tokenDeletionIds,
+        deletedPermanentSnapshots,
         removalCause: "byBattle",
       });
     }
@@ -1460,6 +1487,8 @@ export class CombatController {
       const deletionTrigger = {
         deletedPermanentId: deleted[0],
         deletedPermanentIds: deleted,
+        deletedControllerSeat: deletedPermanentSnapshots.find(({ permanentId }) => permanentId === deleted[0])
+          ?.controllerSeat,
         deletedPermanentSnapshots,
         deletedInstanceIds,
         deletedWasStackInstanceIds,
