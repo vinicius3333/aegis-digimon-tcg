@@ -39,7 +39,7 @@ import { detachableLinkedCards, detachLinkedCard, detachTraitTokens } from "./ef
 import { canAttackerDeclare, hasSummoningSickness } from "./combat/legality.js";
 import { rollTurnActivity } from "./turnActivity.js";
 import { resolveKeywords } from "./combat/keywords.js";
-import { WinCheck, runSecurityCheck, type SecurityCheckDeps } from "./security/index.js";
+import { WinCheck, runSecurityCheck, type SecurityCheckDeps, type SecurityCheckReason } from "./security/index.js";
 import { SecurityDpLedger } from "./security/securityDp.js";
 import { DeletionMaxDpLedger } from "./deletionMaxDp.js";
 import { DpDeleteBudgetLedger } from "./dpDeleteBudget.js";
@@ -770,8 +770,8 @@ export class GameEngine {
       },
       consultLeavePrevention: async (permanentIds) => this.consultLeavePrevention(permanentIds, "byBattle"),
       dropPermanentSubscriptions: (permanentId) => this.dropPermanentSubscriptions(permanentId),
-      checkSecurity: async (defenderSeat, attackerPermanentId) =>
-        this.runSecurityCheck(defenderSeat, attackerPermanentId),
+      checkSecurity: async (defenderSeat, attackerPermanentId, reason) =>
+        this.runSecurityCheck(defenderSeat, attackerPermanentId, reason),
       // The pierce read seam: combat consults both the temporary modifier ledger and
       // the resolved printed/continuous keyword state. Printed ＜Piercing＞ lives in the
       // latter; only effect-granted, battle-scoped Piercing lives in the former.
@@ -4666,7 +4666,11 @@ export class GameEngine {
    */
   private securityCheckDepth = 0;
 
-  private async runSecurityCheck(defenderSeat: Seat, attackerPermanentId: string): Promise<void> {
+  private async runSecurityCheck(
+    defenderSeat: Seat,
+    attackerPermanentId: string,
+    reason: SecurityCheckReason = "attack",
+  ): Promise<void> {
     // Re-derive the continuous tier at the start of the live security battle so the
     // continuous ModifySecurityDP (ST3-12's [Opponent's Turn] +2000) is re-applied under its
     // guard before any securityCardDp read — the deferred IR-01 fix. recomputeContinuousEffects
@@ -4707,6 +4711,11 @@ export class GameEngine {
         }),
       resolveSecurityEffect: async (card, resolvingAttackerId, wasFaceUp) =>
         this.resolveSecurityEffect(card, resolvingAttackerId, wasFaceUp),
+      // Reveal hint only: true whenever the card HAS a [Security] effect that would
+      // activate, even if that effect later declines to do anything. The client uses it to
+      // dock the card while the effect resolves, matching the reference client.
+      hasSecurityEffect: (card, hintAttackerId, wasFaceUp) =>
+        this.securityEffectsFor(card, hintAttackerId, wasFaceUp).length > 0,
       dpOf: (permanentId) => this.access.permanentById(permanentId)?.currentDP ?? 0,
       hasKeyword: (permanentId, keyword) => {
         const permanent = this.access.permanentById(permanentId);
@@ -4737,9 +4746,15 @@ export class GameEngine {
     };
     this.securityCheckDepth += 1;
     try {
-      await runSecurityCheck(this.state, emitWithLog, this.win, deps, defenderSeat, {
-        permanentId: attackerPermanentId,
-      });
+      await runSecurityCheck(
+        this.state,
+        emitWithLog,
+        this.win,
+        deps,
+        defenderSeat,
+        { permanentId: attackerPermanentId },
+        reason,
+      );
     } finally {
       this.securityCheckDepth -= 1;
     }
@@ -4751,8 +4766,9 @@ export class GameEngine {
    * module for effects filed under {@link EffectTiming.SecuritySkill}; if any
    * trigger, it runs them through the same ordered stack resolver every other timing
    * uses (scoped to this one card so only its security effect fires). Returns true
-   * when at least one security effect existed — the security loop then skips the
-   * normal battle (the effect took precedence).
+   * when at least one security effect ACTUALLY activated: an effect that could not
+   * activate, or an optional the owner declined, leaves the card to be trashed as if it
+   * had no security effect (KB Q886).
    *
    * The card is still IN the security stack (face-up) when this runs — the loop
    * removes it after resolution — so a [Security] "play this card" effect
@@ -4769,11 +4785,7 @@ export class GameEngine {
     attackerPermanentId: string,
     securityWasFaceUp?: boolean,
   ): Promise<boolean> {
-    const source = this.cardSourceOf(card);
-    const securityEffects = effectsOf(EffectTiming.SecuritySkill, source).filter((effect) => {
-      const ctx = this.buildEffectContext(source, { securityWasFaceUp });
-      return canTrigger(effect, ctx, this.tracker);
-    });
+    const securityEffects = this.securityEffectsFor(card, attackerPermanentId, securityWasFaceUp);
     log(
       "[resolveSecurityEffect]",
       card.cardId,
@@ -4782,15 +4794,8 @@ export class GameEngine {
     );
     if (securityEffects.length === 0) return false;
 
-    // Security-effect disable (DisableSecurityEffect, the security half of the source
-    // rule implementation split): while the attacker carries the disable, this flipped card's
-    // {Security} effect does not activate. Returning false (as if it had no security effect)
-    // lets the loop trash an Option (KB Q886) and battle a Digimon normally.
+    const source = this.cardSourceOf(card);
     const def = lookupDefinition(card.cardId);
-    if (def !== undefined && this.continuous.isSecurityEffectDisabled(attackerPermanentId, def)) {
-      log("[resolveSecurityEffect]", card.cardId, "SECURITY EFFECT DISABLED by attacker", attackerPermanentId);
-      return false;
-    }
 
     // A DUAL card's [Security] clause printed on its Digimon face resolves as a
     // Digimon effect (BT26-075 Q7102), even though the physical card is also an
@@ -4801,6 +4806,10 @@ export class GameEngine {
       def?.isDualCard === true && def.effectText?.includes("[Security]") === true
         ? [CardKind.Digimon]
         : [...(def?.kinds ?? source.definition.kinds)];
+    // KB Q886: an Option whose [Security] effect could not activate (condition unmet) or
+    // whose optional was declined is simply trashed — nothing activated, so the check must
+    // not report an "effect" resolution.
+    let activated = false;
     for (const effect of securityEffects) {
       const ctx = {
         ...this.buildEffectContext(source, { securityWasFaceUp }),
@@ -4822,9 +4831,37 @@ export class GameEngine {
         ctx.fx.leaveEffectResolution?.();
       }
       this.tracker.register(source.instanceId, effect.effectKey);
+      activated = true;
     }
-    log("[resolveSecurityEffect]", card.cardId, "returning true");
-    return true;
+    log("[resolveSecurityEffect]", card.cardId, `returning ${activated}`);
+    return activated;
+  }
+
+  /**
+   * The [Security] effects of `card` that would activate under this attacker right now —
+   * the shared lookup behind both {@link resolveSecurityEffect} and the
+   * `hasSecurityEffect` reveal hint, so the hint can never disagree with what resolves.
+   *
+   * Security-effect disable (DisableSecurityEffect, the security half of the source rule
+   * implementation split): while the attacker carries the disable, this flipped card's
+   * {Security} effect does not activate at all. Reporting none lets the security loop trash
+   * an Option (KB Q886) and battle a Digimon normally.
+   */
+  private securityEffectsFor(
+    card: CardInstance,
+    attackerPermanentId: string,
+    securityWasFaceUp?: boolean,
+  ): ReturnType<typeof effectsOf> {
+    const source = this.cardSourceOf(card);
+    const def = lookupDefinition(card.cardId);
+    if (def !== undefined && this.continuous.isSecurityEffectDisabled(attackerPermanentId, def)) {
+      log("[securityEffectsFor]", card.cardId, "SECURITY EFFECT DISABLED by attacker", attackerPermanentId);
+      return [];
+    }
+    return effectsOf(EffectTiming.SecuritySkill, source).filter((effect) => {
+      const ctx = this.buildEffectContext(source, { securityWasFaceUp });
+      return canTrigger(effect, ctx, this.tracker);
+    });
   }
 
   /**

@@ -45,3 +45,63 @@ describe("effect announcements fired inside a security check", () => {
     }
   });
 });
+
+/**
+ * The reveal hints (`hasSecurityEffect`, `isDigimon`) are read at the engine seam, from the
+ * same [Security] effect lookup `resolveSecurityEffect` performs, so the client can dock a
+ * card with a [Security] effect for the whole resolution instead of guessing from the close.
+ */
+describe("securityRevealed presentation hints", () => {
+  type RevealedEvent = Extract<ServerEvent, { kind: "securityRevealed" }>;
+
+  async function reveal(securityCardId: string): Promise<RevealedEvent> {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "AD1-001", dp: 3000, as: "attacker" }] },
+      1: { security: [{ card: securityCardId }] },
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((e) => e.kind === "securityRevealed"));
+    const event = s.events.find((e): e is RevealedEvent => e.kind === "securityRevealed");
+    expect(event).toBeDefined();
+    return event as RevealedEvent;
+  }
+
+  it("marks a Digimon without a [Security] effect as isDigimon only", async () => {
+    const event = await reveal("AD1-001");
+    expect(event.isDigimon).toBe(true);
+    expect(event.hasSecurityEffect).toBe(false);
+  });
+
+  it("marks an Option with a [Security] effect as hasSecurityEffect, not a Digimon", async () => {
+    const event = await reveal("BT1-093");
+    expect(event.hasSecurityEffect).toBe(true);
+    expect(event.isDigimon).toBe(false);
+  });
+});
+
+/** The player-directed win on empty security is untouched by the ＜Piercing＞ guard. */
+describe("a player-directed attack into empty security", () => {
+  it("wins the game", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "AD1-001", dp: 3000, as: "attacker" }] },
+      1: { security: [] },
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.gameOver);
+
+    expect(s.state.winnerSeat).toBe(0);
+    expect(s.events.some((e) => e.kind === "gameOver" && e.reason === "security")).toBe(true);
+  });
+});

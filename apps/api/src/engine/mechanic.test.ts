@@ -1811,6 +1811,43 @@ describe("A3 Piercing — a winning piercing attacker then checks security (BLK-
     assertNoLoudGap(s);
   });
 
+  // Comprehensive Rules 11-5-1-2 / 1-2-3-1: the game is won when an attack is successful
+  // against the PLAYER and that player has 0 security. A ＜Piercing＞ check follows an attack
+  // that was successful against a DIGIMON, so it can never win — the reference client guards
+  // the same path with `SecurityCards.Count >= 1`.
+  //
+  // FAILS-WHEN-REVERTED: without the `reason` seam on runSecurityCheck, the empty-security
+  // branch declares seat 0 the winner and `state.gameOver` flips to true.
+  it("a piercing winner into EMPTY security does not win the game", async () => {
+    const s = setup();
+    const p0 = s.state.players[0] as PlayerState;
+    const p1 = s.state.players[1] as PlayerState;
+
+    const attacker = digimon(0, 9000);
+    p0.battleArea.push(attacker);
+    const defender = digimon(1, 3000);
+    defender.isSuspended = true;
+    p1.battleArea.push(defender);
+    // No security cards at all.
+    expect(p1.security).toHaveLength(0);
+
+    modifierWrite(s).addPierceGrant(attacker.permanentId, EFFECT_DURATION_TURN);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attacker.permanentId,
+        target: { kind: "permanent", permanentId: defender.permanentId },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => !p1.battleArea.some((p) => p.permanentId === defender.permanentId));
+    expect(s.state.gameOver).toBe(false);
+    expect(s.events.some((e) => e.kind === "gameOver")).toBe(false);
+    expect(s.events.some((e) => e.kind === "securityRevealed")).toBe(false);
+    assertNoLoudGap(s);
+  });
+
   it("a NON-piercing winner does NOT check security (negative — no pierce grant)", async () => {
     const s = setup();
     const p0 = s.state.players[0] as PlayerState;

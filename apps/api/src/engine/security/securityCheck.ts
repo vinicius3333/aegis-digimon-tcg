@@ -29,24 +29,35 @@ import type { WinCheck } from "./winCheck.js";
  *   3. Otherwise loop up to `Strike` times while security cards remain:
  *      a. take the top security card (security[0]), reveal it (faceUp = true) and
  *         announce the reveal (`securityRevealed`) before anything it causes,
- *      b. fire the OnSecurityCheck trigger,
- *      c. run its [Security] effect, if any (the card is STILL in the security
+ *      b. run its [Security] effect, if any (the card is STILL in the security
  *         stack, so a [Security] "play this card" effect can locate it there),
+ *      c. fire the OnSecurityCheck trigger,
  *      d. remove it from the security stack (by instanceId; skipped if the
  *         effect already moved it out),
  *      e. fire OnLoseSecurity + whenSecurityRemoved watchers,
- *      f. if no [Security] effect ran and the card is a Digimon -> battle the
- *         attacker (DP compare),
+ *      f. if the card is still a Security Digimon -> battle the attacker (DP compare),
  *      g. the checked card goes to trash unless an effect relocated it,
  *      h. stop early if the attacker has left play.
  *
+ * Step b runs BEFORE step c: Comprehensive Rules 15-16-10-2 — "a triggered [Security]
+ * effect will immediately activate without pending activation. Therefore, [Security]
+ * effects take precedence for activation even when they trigger simultaneously with
+ * other effects" — confirmed by KB Q6085/Q2221.
+ *
  * Steps d/e run BEFORE the battle (Comprehensive Rules 13-1-6: "a checked card is
  * removed from the security stack" happens at the check; the battle is the later
- * 13-1-8-3 step). KB Q6085/Q2221 confirm the ordering: a [Security] effect activates
- * first, then the pending "performs a security check" and "a card was removed from the
- * security stack" triggers, and only then the battle. So an attacker deleted BY the
- * battle still fires its whenSecurityRemoved watchers (e.g. BT14-001's inherited
- * ＜Draw 1＞), while one removed by the [Security] effect does not (KB Q2611/Q2629).
+ * 13-1-8-3 step). So an attacker deleted BY the battle still fires its
+ * whenSecurityRemoved watchers (e.g. BT14-001's inherited ＜Draw 1＞), while one removed
+ * by the [Security] effect does not (KB Q2611/Q2629).
+ *
+ * Known limitation (Comprehensive Rules 13-1-6 + 15-4-3-5): OnSecurityCheck and
+ * OnLoseSecurity are one simultaneous trigger set in the rules — the checked card is
+ * removed from the stack AS it is checked, so both timings occur at the same point and
+ * the turn player orders all of them first. This engine opens the two timing windows in
+ * sequence instead, because the resolver's collect/fixpoint is keyed on a single
+ * EffectTiming. Consequence: a non-turn-player OnSecurityCheck effect resolves before a
+ * turn-player OnLoseSecurity effect. Fixing it needs a multi-timing window in
+ * effects/stack.ts, not a change here.
  *
  * The pieces this subsystem does not own — firing the effect stack at a timing
  * window, activating a card's [Security] effect, and the concrete deletePermanent
@@ -59,6 +70,14 @@ import type { WinCheck } from "./winCheck.js";
 export interface SecurityCheckAttacker {
   permanentId: string;
 }
+
+/**
+ * What opened the check. A player-directed attack is the only one that can win the game
+ * against an empty security stack (Comprehensive Rules 11-5-1-2); ＜Piercing＞ follows a
+ * battle against a Digimon and never wins (16-7, and the reference client's
+ * `SecurityCards.Count >= 1` guard).
+ */
+export type SecurityCheckReason = "attack" | "piercing";
 
 /**
  * Ports the security check needs from subsystems it does not own. The engine
@@ -129,6 +148,15 @@ export interface SecurityCheckDeps {
    */
   resolveSecurityEffect(card: CardInstance, attackerPermanentId: string, wasFaceUp?: boolean): Promise<boolean>;
 
+  /**
+   * Whether the revealed card carries a [Security] effect that would activate now — the
+   * same lookup `resolveSecurityEffect` performs, without resolving anything. Published as
+   * the `hasSecurityEffect` hint on `securityRevealed` so the client can dock the card at
+   * the side of the screen for the whole resolution, the way the reference client does.
+   * Optional so the security unit tests need no change; absent => no hint is emitted.
+   */
+  hasSecurityEffect?(card: CardInstance, attackerPermanentId: string, wasFaceUp?: boolean): boolean;
+
   /** currentDP of a field permanent (for the battle compare). */
   dpOf(permanentId: string): number;
 
@@ -164,6 +192,9 @@ export interface SecurityCheckDeps {
  *
  * @param defenderSeat the seat whose security is being checked (the attacked player)
  * @param attacker     the attacking permanent
+ * @param reason       what opened the check: `"attack"` (a successful player-directed
+ *                     attack) or `"piercing"`. Only `"attack"` can win the game on empty
+ *                     security — see below.
  * @returns nothing; mutates GameState (security/trash zones) and may end the game
  */
 export async function runSecurityCheck(
@@ -173,15 +204,20 @@ export async function runSecurityCheck(
   deps: SecurityCheckDeps,
   defenderSeat: Seat,
   attacker: SecurityCheckAttacker,
+  reason: SecurityCheckReason = "attack",
 ): Promise<void> {
   const defender: PlayerState | undefined = state.players[defenderSeat];
   if (defender === undefined) return;
 
   if (deps.strikeFor(attacker) <= 0) return; // Source: `if (AttackingPermanent.Strike == 0) yield break;`
 
-  // Empty security + a landing player attack => the attacker's controller wins.
-  // Source: AttackProcess.DetermineAttackOutcome, `SecurityCards.Count == 0`.
+  // Empty security ends the game only for an attack that was successful against the
+  // PLAYER (Comprehensive Rules 11-5-1-2 / 1-2-3-1). A ＜Piercing＞ check follows a battle
+  // against a Digimon, so the attack was successful against that Digimon, not the player:
+  // it checks security but can never win. The reference client guards the same path with
+  // `SecurityCards.Count >= 1`.
   if (defender.security.length === 0) {
+    if (reason !== "attack") return;
     const attackerPermanent = deps.permanentById(attacker.permanentId);
     if (attackerPermanent) {
       win.declareWinner(attackerPermanent.controllerSeat, "security");
@@ -222,11 +258,23 @@ export async function runSecurityCheck(
     // the triggers, the [Security] effect and any decision it opens, the battle — is a
     // consequence of this card, and the client cannot present it as one until it has been
     // told which card was flipped. `securityChecked` closes the check with the outcome.
+    // Presentation hints, read before anything resolves: whether the card carries a
+    // [Security] effect that will activate now (the client docks it at the side of the
+    // screen for the whole resolution) and whether it is a Security Digimon (it holds
+    // centre-stage for its battle).
+    const hints =
+      deps.hasSecurityEffect === undefined
+        ? {}
+        : {
+            hasSecurityEffect: deps.hasSecurityEffect(revealed, attacker.permanentId, wasAlreadyFaceUp),
+            isDigimon: deps.isDigimon(revealed),
+          };
     emit({
       kind: "securityRevealed",
       seat: defenderSeat,
       revealedCardId: revealed.cardId,
       attackerPermanentId: attacker.permanentId,
+      ...hints,
     });
 
     if (wasAlreadyFaceUp) {
@@ -244,30 +292,31 @@ export async function runSecurityCheck(
       await deps.fireFaceUpSecurityAdded?.({ seat: defenderSeat, instanceId: revealed.instanceId });
     }
 
+    // Resolve the card's own [Security] effect FIRST — before the triggers this check
+    // fired. Comprehensive Rules 15-16-10-2: a [Security] effect activates immediately
+    // without pending activation, so it takes precedence even over effects that triggered
+    // simultaneously (KB Q6085/Q2221).
+    //
+    // It resolves WHILE the card is still in the security stack (Comprehensive Rules
+    // §15-14-5: a {Security} effect activates while its card is face-up in the security
+    // stack), so a [Security] "play this card" effect (playFromSecurity) can locate it
+    // there. The battle, if any, happens after the removal triggers below.
+    const securityEffectActivated = await deps.resolveSecurityEffect(revealed, attacker.permanentId, wasAlreadyFaceUp);
+
     // Triggers that watch the check / the security loss.
     await deps.fireTiming(EffectTiming.OnSecurityCheck, {
       attackerPermanentId: attacker.permanentId,
       securityInstanceId: revealed.instanceId,
     });
 
-    // A permanent's OnSecurityCheck-timed reaction (just fired above) may have already
-    // relocated the revealed card out of the security stack — e.g. Baihumon's "when
-    // your security is checked, if that card is a Digimon with [Deva], play it
-    // WITHOUT BATTLING and without paying the cost" (EX5-053, KB Q3644/Q3645). When
-    // that happens, skip the normal resolve-and-battle branch entirely: the card was
-    // already handled by the effect, so battling it again would be wrong.
-    const relocatedByOnSecurityCheck = !defender.security.some((c) => c.instanceId === revealed.instanceId);
-
-    // Resolve the card's [Security] effect WHILE it is still in the security stack
-    // (Comprehensive Rules §15-14-5: a {Security} effect activates while its card is
-    // face-up in the security stack). A [Security] "play this card" effect
-    // (playFromSecurity) must still be able to locate the card in security at
-    // resolution time. The battle, if any, happens after the removal triggers below.
-    const hadSecurityEffect =
-      relocatedByOnSecurityCheck ||
-      (await deps.resolveSecurityEffect(revealed, attacker.permanentId, wasAlreadyFaceUp));
-    // An attacker that already left play (e.g. via the [Security] effect) never battles.
+    // Either the [Security] effect or an OnSecurityCheck-timed reaction may have already
+    // relocated the revealed card out of the security stack — e.g. Baihumon's "when your
+    // security is checked, if that card is a Digimon with [Deva], play it WITHOUT BATTLING
+    // and without paying the cost" (EX5-053, KB Q3644/Q3645). A relocated card is not a
+    // Security Digimon any more, so it never battles.
     const remainsInSecurity = defender.security.some((card) => card.instanceId === revealed.instanceId);
+    const hadSecurityEffect = securityEffectActivated || !remainsInSecurity;
+    // An attacker that already left play (e.g. via the [Security] effect) never battles.
     const battlesAttacker =
       remainsInSecurity && deps.isDigimon(revealed) && deps.permanentById(attacker.permanentId) !== undefined;
     const resolution: "effect" | "battle" | "trashed" = battlesAttacker

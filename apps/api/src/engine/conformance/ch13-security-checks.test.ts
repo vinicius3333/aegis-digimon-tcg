@@ -226,7 +226,12 @@ describe("§13-1 Security Checks (comprehensive-0153)", () => {
     expect(h.state.players[0]?.battleArea.some((p) => p.permanentId === ATTACKER_ID)).toBe(false);
   });
 
-  it("13-1-8-2: an effect triggered by the security check is fully resolved before the next action begins", async () => {
+  it("15-16-10-2: the [Security] effect activates before the effects the check triggered", async () => {
+    cite(
+      "comprehensive-0216",
+      "15-16-10-2 a triggered [Security] effect activates immediately without pending activation, " +
+        "so it takes precedence even over effects that triggered simultaneously (KB Q6085/Q2221)",
+    );
     cite(
       "comprehensive-0153",
       "13-1-8-2-1 an effect triggered by a security check is resolved before the next action begins",
@@ -245,13 +250,13 @@ describe("§13-1 Security Checks (comprehensive-0153)", () => {
     });
     await runSecurityCheck(h.state, () => {}, h.win, h.deps, 1, attacker);
 
-    // OnSecurityCheck resolves fully (including any [Security] effect activation) BEFORE
-    // OnLoseSecurity (the "next action") begins.
-    const idxCheck = order.indexOf(EffectTiming.OnSecurityCheck);
+    // The [Security] effect goes first, then the OnSecurityCheck window, and each resolves
+    // fully before the next action (the OnLoseSecurity window) begins.
     const idxEffect = order.indexOf("resolveSecurityEffect");
+    const idxCheck = order.indexOf(EffectTiming.OnSecurityCheck);
     const idxLose = order.indexOf(EffectTiming.OnLoseSecurity);
-    expect(idxCheck).toBeLessThan(idxEffect);
-    expect(idxEffect).toBeLessThan(idxLose);
+    expect(idxEffect).toBeLessThan(idxCheck);
+    expect(idxCheck).toBeLessThan(idxLose);
   });
 });
 

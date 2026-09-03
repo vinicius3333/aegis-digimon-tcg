@@ -14,6 +14,7 @@ import { eligibleBlockers, hasCollision, type ContinuousLegalityReader } from ".
 import { fragmentCountOf } from "./keywords.js";
 import { resolvePermanentBattle } from "./resolve.js";
 import { recordDigimonAttack } from "../turnActivity.js";
+import type { SecurityCheckReason } from "../security/securityCheck.js";
 
 /**
  * The attack lifecycle + block window (subsystem: attack-and-block).
@@ -180,7 +181,7 @@ export interface CombatHooks {
    * by running the security check (subsystem: security-and-win-check). The engine
    * binds this to runSecurityCheck(...); combat never flips a security card itself.
    */
-  checkSecurity: (defenderSeat: Seat, attackerPermanentId: string) => Promise<void>;
+  checkSecurity: (defenderSeat: Seat, attackerPermanentId: string, reason: SecurityCheckReason) => Promise<void>;
   /**
    * Whether a permanent currently has ＜Piercing＞ (subsystem: keyword-abilities).
    * Read post-win in resolveDigimonBattle: a piercing attacker that deletes the
@@ -756,7 +757,7 @@ export class CombatController {
         // back to a player-directed security check just because `defender` is undefined.
       } else if (defender === undefined) {
         // Player-directed, unblocked: hand off to security-and-win-check.
-        await this.hooks.checkSecurity(this.access.opponentOf(attackerSeat), attacker.permanentId);
+        await this.hooks.checkSecurity(this.access.opponentOf(attackerSeat), attacker.permanentId, "attack");
       } else if (this.access.isBattleAreaDigimon(defender) && this.access.isBattleAreaDigimon(attacker)) {
         await this.resolveDigimonBattle(attacker, defender);
       }
@@ -1541,7 +1542,13 @@ export class CombatController {
       // runSecurityCheck hand-off rather than building a new security path. The pierce
       // grant is server-only state (ModifierLedger.hasPierce), never client-supplied.
       if (allowPiercing && this.hooks.hasPierce?.(attacker.permanentId) === true) {
-        await this.hooks.checkSecurity(this.access.opponentOf(attacker.controllerSeat), attacker.permanentId);
+        // "piercing": this attack was successful against a DIGIMON, so an empty security
+        // stack must not end the game (Comprehensive Rules 11-5-1-2 / 16-7).
+        await this.hooks.checkSecurity(
+          this.access.opponentOf(attacker.controllerSeat),
+          attacker.permanentId,
+          "piercing",
+        );
       }
     }
 

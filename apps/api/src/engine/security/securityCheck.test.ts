@@ -331,3 +331,126 @@ describe("runSecurityCheck", () => {
     expect(h.state.players[1]?.trash.map((c) => c.instanceId)).toEqual([top.instanceId]);
   });
 });
+
+describe("runSecurityCheck: win on empty security (CR 11-5-1-2 / 1-2-3-1)", () => {
+  it("a ＜Piercing＞ check into empty security does not win the game and reveals nothing", async () => {
+    // The piercing attack was successful against a DIGIMON, not the player, so 11-5-1-2 does
+    // not apply. The reference client guards the same path with `SecurityCards.Count >= 1`.
+    const h = harness([]);
+    await runSecurityCheck(h.state, h.events.push.bind(h.events), h.win, h.deps, 1, attacker, "piercing");
+
+    expect(h.state.gameOver).toBe(false);
+    expect(h.state.winnerSeat).toBe(-1);
+    expect(h.events).toEqual([]);
+  });
+
+  it("a player-directed attack into empty security still wins", async () => {
+    const h = harness([]);
+    await runSecurityCheck(h.state, h.events.push.bind(h.events), h.win, h.deps, 1, attacker, "attack");
+
+    expect(h.state.gameOver).toBe(true);
+    expect(h.state.winnerSeat).toBe(0);
+  });
+
+  it("a ＜Piercing＞ check with cards left still checks them", async () => {
+    const card = makeSecurityCard(1, 0, "OPTION-X");
+    const h = harness([card]);
+    await runSecurityCheck(h.state, h.events.push.bind(h.events), h.win, h.deps, 1, attacker, "piercing");
+
+    expect(card.faceUp).toBe(true);
+    expect(h.state.players[1]?.trash.map((c) => c.instanceId)).toContain(card.instanceId);
+    expect(h.state.gameOver).toBe(false);
+  });
+});
+
+describe("runSecurityCheck: ordering and reveal hints", () => {
+  it("the [Security] effect activates before the OnSecurityCheck window (CR 15-16-10-2, Q6085/Q2221)", async () => {
+    const order: (EffectTiming | string)[] = [];
+    const card = makeSecurityCard(1, 0);
+    const h = harness([card], {
+      fireTiming: async (timing) => {
+        order.push(timing);
+      },
+      resolveSecurityEffect: async () => {
+        order.push("securityEffect");
+        return true;
+      },
+    });
+    await runSecurityCheck(h.state, () => {}, h.win, h.deps, 1, attacker);
+
+    expect(order).toEqual(["securityEffect", EffectTiming.OnSecurityCheck, EffectTiming.OnLoseSecurity]);
+  });
+
+  it("emits the hasSecurityEffect / isDigimon hints on securityRevealed", async () => {
+    const card = makeSecurityCard(1, 0, "SEC-EFFECT");
+    const emitted: ServerEvent[] = [];
+    const h = harness([card], {
+      hasSecurityEffect: () => true,
+      resolveSecurityEffect: async () => true,
+      isDigimon: () => true,
+      dpOf: () => 9000,
+    });
+    await runSecurityCheck(h.state, (e) => emitted.push(e), h.win, h.deps, 1, attacker);
+
+    expect(emitted[0]).toEqual({
+      kind: "securityRevealed",
+      seat: 1,
+      revealedCardId: "SEC-EFFECT",
+      attackerPermanentId: ATTACKER_ID,
+      hasSecurityEffect: true,
+      isDigimon: true,
+    });
+  });
+
+  it("reads the hint BEFORE the effect resolves, so a self-relocating effect still docks", async () => {
+    const card = makeSecurityCard(1, 0, "SEC-EFFECT");
+    const emitted: ServerEvent[] = [];
+    const h = harness([card], {
+      hasSecurityEffect: () => true,
+      resolveSecurityEffect: async (moved) => {
+        h.state.players[1]?.hand.push(moved);
+        const security = h.state.players[1]?.security;
+        security?.splice(
+          security.findIndex((c) => c.instanceId === moved.instanceId),
+          1,
+        );
+        return true;
+      },
+    });
+    await runSecurityCheck(h.state, (e) => emitted.push(e), h.win, h.deps, 1, attacker);
+
+    expect(emitted[0]).toMatchObject({ kind: "securityRevealed", hasSecurityEffect: true, isDigimon: false });
+  });
+
+  it("omits the hints entirely when the dep is absent (older callers)", async () => {
+    const card = makeSecurityCard(1, 0, "OPTION-X");
+    const emitted: ServerEvent[] = [];
+    const h = harness([card]);
+    await runSecurityCheck(h.state, (e) => emitted.push(e), h.win, h.deps, 1, attacker);
+
+    expect(emitted[0]).toEqual({
+      kind: "securityRevealed",
+      seat: 1,
+      revealedCardId: "OPTION-X",
+      attackerPermanentId: ATTACKER_ID,
+    });
+  });
+
+  it("an Option whose [Security] effect did nothing closes as trashed, not effect (KB Q886)", async () => {
+    const card = makeSecurityCard(1, 0, "OPTION-X");
+    const emitted: ServerEvent[] = [];
+    const h = harness([card], {
+      // The card HAS a security effect (so the client docks it), but nothing activated.
+      hasSecurityEffect: () => true,
+      resolveSecurityEffect: async () => false,
+    });
+    await runSecurityCheck(h.state, (e) => emitted.push(e), h.win, h.deps, 1, attacker);
+
+    expect(emitted).toContainEqual({
+      kind: "securityChecked",
+      seat: 1,
+      revealedCardId: "OPTION-X",
+      resolution: "trashed",
+    });
+  });
+});
