@@ -17,8 +17,8 @@ describe("EX1-013 Veemon", () => {
 
   it("does not trigger during the opponent's turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX1-019", as: "host", suspended: true, under: ["EX1-013", "BT1-032"] }], deck: [] },
-      1: { battleArea: [{ card: "BT1-070", as: "opponent" }], deck: ["BT1-001"] },
+      0: { battleArea: [{ card: "EX1-019", as: "host", suspended: true, under: ["EX1-013", "BT1-032"] }], hand: ["BT1-009"], deck: ["BT1-001"] },
+      1: { battleArea: [{ card: "BT1-070", as: "opponent" }], hand: ["BT1-009"], deck: ["BT1-001"] },
     });
     s.state.memory = 5;
     const loop = s.engine.startTurnLoop();
@@ -29,7 +29,7 @@ describe("EX1-013 Veemon", () => {
     const memoryBefore = s.state.memory;
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
     expect(s.state.memory).toBe(memoryBefore);
-    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
 
