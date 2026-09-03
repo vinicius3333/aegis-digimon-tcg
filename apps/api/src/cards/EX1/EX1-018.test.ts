@@ -41,6 +41,19 @@ describe("EX1-018 Zudomon", () => {
     ).toEqual({ ok: true });
   });
 
+  it("rejects an unsuspended opposing Digimon with a digivolution stack", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX1-018", as: "zudomon" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "stacked", under: ["BT1-001"] }] },
+    });
+    await s.ready();
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("zudomon").permanentId,
+      target: { kind: "permanent", permanentId: s.perm("stacked").permanentId },
+    })).toEqual({ ok: false, reason: "illegal-target" });
+  });
+
   it("leaves a stackless opposing target unchanged when no source can be trashed", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "EX1-014", as: "base" }], hand: [{ card: "EX1-018", as: "evo" }] },
@@ -53,11 +66,18 @@ describe("EX1-018 Zudomon", () => {
   });
 
   it("removes the unsuspended-target permission outside your turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX1-018", as: "zudomon" }] }, 1: { battleArea: [{ card: "BT1-009", as: "eligible" }] } });
-    await s.ready();
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX1-018", as: "zudomon" }], deck: [] },
+      1: { battleArea: [{ card: "BT1-009", as: "eligible" }], deck: ["BT1-001"] },
+    });
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     expect(observe(s.engine).canAttackUnsuspended(s.perm("zudomon"))).toBe(true);
-    s.state.turnSeat = 1;
-    await advance(s.engine).recompute();
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    await s.ready();
     expect(observe(s.engine).canAttackUnsuspended(s.perm("zudomon"))).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await loop;
   });
 });
