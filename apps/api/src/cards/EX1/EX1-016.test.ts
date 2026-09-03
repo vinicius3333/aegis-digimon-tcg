@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./EX1-016.js";
 
 describe("EX1-016 Ikkakumon", () => {
@@ -31,5 +33,26 @@ describe("EX1-016 Ikkakumon", () => {
         target: { kind: "permanent", permanentId: s.perm("ineligible").permanentId },
       }),
     ).toEqual({ ok: false, reason: "illegal-target" });
+  });
+
+  it("does not grant the permission during the opponent's turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX1-016", as: "ikkakumon" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "eligible" }] },
+    });
+    await s.ready();
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
+    expect(observe(s.engine).canAttackUnsuspended(s.perm("ikkakumon"))).toBe(false);
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("ikkakumon").permanentId, target: { kind: "permanent", permanentId: s.perm("eligible").permanentId } })).toEqual({ ok: false, reason: "not-your-turn" });
+  });
+
+  it("cannot use the permission against a suspended Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX1-016", as: "ikkakumon" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "suspended", suspended: true, under: ["BT1-030"] }] },
+    });
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("ikkakumon").permanentId, target: { kind: "permanent", permanentId: s.perm("suspended").permanentId } })).toEqual({ ok: true });
   });
 });
