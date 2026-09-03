@@ -120,4 +120,27 @@ describe("EX1-062 SkullGreymon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("expert").instanceId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("bond").instanceId)).toBe(true);
   });
+
+  it("may decline playing Agumon from the trash", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX1-062", as: "skull" }], trash: [{ card: "BT1-010", as: "agumon" }] },
+        1: { security: ["BT1-001"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("skull").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("agumon").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+  });
 });
