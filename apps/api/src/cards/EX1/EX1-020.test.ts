@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
@@ -12,8 +11,6 @@ describe("EX1-020 Plesiomon", () => {
       1: { battleArea: [{ card: "BT1-009", as: "target" }] },
     });
     await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.None, s.perm("plesiomon"));
 
     expect(observe(s.engine).canAttackUnsuspended(s.perm("plesiomon"))).toBe(true);
     expect(
@@ -36,7 +33,6 @@ describe("EX1-020 Plesiomon", () => {
     await s.ready();
     const before = s.state.players[0]!.hand.length;
 
-    await advance(s.engine).fire(EffectTiming.None, s.perm("plesiomon"));
     await advance(s.engine).verb.trashDigivolutionCards(
       s.perm("opponent").permanentId,
       [s.perm("opponent").stack[0]!.instanceId],
@@ -52,7 +48,6 @@ describe("EX1-020 Plesiomon", () => {
     });
     await s.ready();
     const before = s.state.players[0]!.hand.length;
-    await advance(s.engine).fire(EffectTiming.None, s.perm("plesiomon"));
     await advance(s.engine).verb.trashDigivolutionCards(s.perm("own").permanentId, [s.perm("own").stack[0]!.instanceId], 0);
     expect(s.state.players[0]!.hand.length).toBe(before);
   });
@@ -63,7 +58,6 @@ describe("EX1-020 Plesiomon", () => {
       1: { battleArea: [{ card: "BT1-032", as: "opponent", under: ["BT1-030", "BT1-031"] }] },
     });
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.None, s.perm("plesiomon"));
     await advance(s.engine).verb.trashDigivolutionCards(s.perm("opponent").permanentId, [s.perm("opponent").stack[0]!.instanceId], 0);
     expect(s.state.players[0]!.hand).toHaveLength(2);
     await advance(s.engine).verb.trashDigivolutionCards(s.perm("opponent").permanentId, [s.perm("opponent").stack[0]!.instanceId], 0);
@@ -72,13 +66,17 @@ describe("EX1-020 Plesiomon", () => {
 
   it("does not draw during the opponent's turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX1-020", as: "plesiomon" }], deck: ["BT1-009", "BT1-009"] },
-      1: { battleArea: [{ card: "BT1-032", as: "opponent", under: ["BT1-030"] }] },
+      0: { battleArea: [{ card: "EX1-020", as: "plesiomon" }], deck: [] },
+      1: { battleArea: [{ card: "BT1-032", as: "opponent", under: ["BT1-030"] }], deck: ["BT1-001"] },
     });
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
     await s.ready();
-    s.state.turnSeat = 1;
-    await advance(s.engine).fire(EffectTiming.None, s.perm("plesiomon"));
     await advance(s.engine).verb.trashDigivolutionCards(s.perm("opponent").permanentId, [s.perm("opponent").stack[0]!.instanceId], 0);
     expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await loop;
   });
 });
