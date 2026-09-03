@@ -3,6 +3,7 @@ import { EffectTiming, type CardInstance, type Seat } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import "./EX2-060.js";
 
@@ -198,10 +199,10 @@ describe("EX2-060 Rika Nonaka", () => {
 
   it("[When Attacking] suspends self and uses a Plug-In Option from hand", () => {
     const effect = registeredCompiledCards.get("EX2-060")?.effects.find((entry) => entry.trigger === "YourTurn");
-    const actions = (effect?.actions[0] as { actions?: unknown[] }).actions ?? [];
-    expect(actions).toEqual(
+    const action = effect?.actions[0] as { cost?: unknown; actions?: unknown[] };
+    expect(action.cost).toEqual(expect.objectContaining({ kind: "suspend" }));
+    expect(action.actions).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ kind: "Suspend" }),
         expect.objectContaining({ kind: "UseOptionWithoutCost", from: ["hand"], payCost: false }),
       ]),
     );
@@ -209,14 +210,14 @@ describe("EX2-060 Rika Nonaka", () => {
 
   it("requires the Tamer suspension as the activation cost", () => {
     const effect = registeredCompiledCards.get("EX2-060")?.effects.find((entry) => entry.trigger === "YourTurn");
-    const actions = (effect?.actions[0] as { actions?: unknown[] }).actions ?? [];
-    expect(actions[0]).toMatchObject({ kind: "Suspend", target: { isSelf: true } });
+    const action = effect?.actions[0] as { cost?: { kind?: string; target?: { isSelf?: boolean } } };
+    expect(action).toMatchObject({ cost: { kind: "suspend", target: { isSelf: true } } });
   });
 
   it("filters the used card to Plug-In Options", () => {
     const effect = registeredCompiledCards.get("EX2-060")?.effects.find((entry) => entry.trigger === "YourTurn");
     const actions = (effect?.actions[0] as { actions?: unknown[] }).actions ?? [];
-    expect(actions[1]).toMatchObject({
+    expect(actions[0]).toMatchObject({
       kind: "UseOptionWithoutCost",
       filter: { nameOrTrait: [{ tokens: ["Plug-In"], match: "name" }] },
     });
@@ -227,5 +228,62 @@ describe("EX2-060 Rika Nonaka", () => {
     const sourceFilter = (effect?.actions[0] as { sourceFilter?: { nameOrTrait?: { tokens?: string[] }[] } })
       .sourceFilter;
     expect(sourceFilter?.nameOrTrait?.[0]?.tokens).toEqual(["Renamon", "Kyubimon", "Taomon", "Sakuyamon"]);
+  });
+
+  it("publicly suspends Rika and uses a matching Plug-In Option when Renamon attacks", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX2-019", as: "renamon" },
+            { card: "EX2-060", as: "rika" },
+          ],
+          hand: [{ card: "P-095", as: "plugIn" }],
+          deck: ["BT1-001"],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target" }], security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("renamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("rika").isSuspended && !s.state.players[0]!.hand.some((c) => c.cardId === "P-095"));
+    expect(s.perm("rika").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand.some((c) => c.cardId === "P-095")).toBe(false);
+  });
+
+  it("does not use the Plug-In Option when Rika is already suspended", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX2-019", as: "renamon" },
+            { card: "EX2-060", as: "rika", suspended: true },
+          ],
+          hand: [{ card: "P-095", as: "plugIn" }],
+          deck: ["BT1-001"],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target" }], security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("renamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]!.hand.some((c) => c.cardId === "P-095")).toBe(true);
   });
 });

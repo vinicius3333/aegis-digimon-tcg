@@ -153,14 +153,18 @@ const compiled: CompiledCard = {
             kind: ["Digimon"],
             nameOrTrait: [{ tokens: ["Renamon", "Kyubimon", "Taomon", "Sakuyamon"], match: "name" }],
           },
+          cost: {
+            kind: "suspend",
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            raw: "by suspending this Tamer",
+          },
+          optional: true,
           actions: [
-            { kind: "Suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, optional: true },
             {
               kind: "UseOptionWithoutCost",
               filter: { controller: "mine", kind: ["Option"], nameOrTrait: [{ tokens: ["Plug-In"], match: "name" }] },
               from: ["hand"],
               payCost: false,
-              condition: { kind: "selfIsSuspended", raw: "after suspending this Tamer" },
             },
           ],
         },
