@@ -34,7 +34,7 @@ describe("EX1-008 MetalGreymon", () => {
   it("does not delete an opposing Digimon when the attack targets a Digimon", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "EX1-008", as: "attacker" }] },
-      1: { battleArea: [{ card: "BT1-010", as: "target", dp: 4000, suspended: true }] },
+      1: { battleArea: [{ card: "BT1-010", as: "target", dp: 8000, suspended: true }] },
     });
     await s.ready();
     expect(
