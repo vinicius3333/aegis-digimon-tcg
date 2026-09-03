@@ -44,7 +44,7 @@ describe("EX1-009 WarGreymon", () => {
             { card: "ST1-12", as: "tamer" },
           ],
         },
-        1: { battleArea: [{ card: "BT1-072", as: "blocker", suspended: true }] },
+        1: { battleArea: [{ card: "BT1-072", as: "blocker", dp: 13000, suspended: true }] },
       },
       { autoSelectCards: true },
     );
