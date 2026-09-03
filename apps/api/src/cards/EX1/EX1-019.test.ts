@@ -64,8 +64,8 @@ describe("EX1-019 Paildramon", () => {
 
   it("does not apply the unblockable restriction during the opponent turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX1-022", as: "imperialdramon", under: ["EX1-019"] }], deck: [] },
-      1: { battleArea: [{ card: "BT1-070" }], deck: ["BT1-001"] },
+      0: { battleArea: [{ card: "EX1-022", as: "imperialdramon", under: ["EX1-019"] }], hand: ["BT1-009"], deck: ["BT1-001"] },
+      1: { battleArea: [{ card: "BT1-070" }], hand: ["BT1-009"], deck: ["BT1-001"] },
     });
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
@@ -73,7 +73,7 @@ describe("EX1-019 Paildramon", () => {
     await advance(s.engine).waitForMainPhase(1);
     await s.ready();
     expect(observe(s.engine).isRestricted(s.perm("imperialdramon"), "cantBeBlocked")).toBe(false);
-    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
 });
