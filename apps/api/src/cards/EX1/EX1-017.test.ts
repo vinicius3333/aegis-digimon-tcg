@@ -52,7 +52,7 @@ describe("EX1-017 WereGarurumon", () => {
     s.state.memory = 5;
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
-    await settle(() => false, 40);
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX1-017"));
     expect(s.state.memory).toBe(5);
   });
 
@@ -68,7 +68,9 @@ describe("EX1-017 WereGarurumon", () => {
     await settle(() => s.state.memory === 6);
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
     expect(attack()).toEqual({ ok: true });
-    await settle(() => false, 40);
+    await settle(
+      () => s.events.filter((event) => event.kind === "effectResolved" && event.sourceCardId === "EX1-017").length >= 2,
+    );
     expect(s.state.memory).toBe(6);
   });
 });
