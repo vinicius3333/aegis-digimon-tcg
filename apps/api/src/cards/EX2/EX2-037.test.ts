@@ -30,4 +30,20 @@ describe("EX2-037 Reapermon", () => {
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await turnLoop;
   });
+
+  it("de-digivolves only once when the opponent unsuspends twice in one turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: ["EX2-037"] },
+      1: { battleArea: [{ card: "EX2-037", as: "target", under: ["EX2-032", "EX2-031"], suspended: true }] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    await advance(s.engine).verb.unsuspend([s.perm("target").permanentId]);
+    expect(s.perm("target").stack).toHaveLength(1);
+
+    await advance(s.engine).verb.suspend([s.perm("target").permanentId]);
+    await advance(s.engine).verb.unsuspend([s.perm("target").permanentId]);
+    expect(s.perm("target").stack).toHaveLength(1);
+  });
 });

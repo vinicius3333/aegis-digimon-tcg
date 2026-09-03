@@ -6,7 +6,7 @@ import "./EX2-036.js";
 describe("EX2-036 GroundLocomon", () => {
   it("can attack players and gains 1000 DP per Cyborg or Machine in trash", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX2-036", as: "groundLocomon" }], trash: ["EX2-031", "EX2-034"] },
+      0: { battleArea: [{ card: "EX2-036", as: "groundLocomon" }], trash: ["EX2-031", "EX2-034", "EX2-014"] },
       1: { security: ["BT1-001"] },
     });
     await s.ready();
@@ -34,5 +34,26 @@ describe("EX2-036 GroundLocomon", () => {
         target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: false, reason: "illegal-target" });
+  });
+
+  it("keeps its trash-based DP bonus on the opponent's turn but only restricts attacks on its own turn", async () => {
+    const opponentTurn = setupEngine({
+      0: { battleArea: [{ card: "EX2-036", as: "groundLocomon" }], trash: ["EX2-031", "EX2-034"] },
+      1: { deck: ["BT1-001"] },
+    });
+    opponentTurn.state.turnSeat = 1;
+    await opponentTurn.ready();
+    expect(opponentTurn.perm("groundLocomon").currentDP).toBe(13000);
+    expect(observe(opponentTurn.engine).isRestricted(opponentTurn.perm("groundLocomon"), "cantAttackDigimon")).toBe(
+      false,
+    );
+
+    const ownTurn = setupEngine({
+      0: { battleArea: [{ card: "EX2-036", as: "groundLocomon" }], trash: ["EX2-031", "EX2-034"] },
+      1: { deck: ["BT1-001"] },
+    });
+    await ownTurn.ready();
+    expect(ownTurn.perm("groundLocomon").currentDP).toBe(13000);
+    expect(observe(ownTurn.engine).isRestricted(ownTurn.perm("groundLocomon"), "cantAttackDigimon")).toBe(true);
   });
 });

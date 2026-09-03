@@ -81,5 +81,37 @@ describe("EX2-022 Antylamon", () => {
     await settle(() => !s.perm("antylamon").isSuspended);
     expect(s.perm("antylamon").isSuspended).toBe(false);
     expect(s.state.players[0]!.security).toHaveLength(1);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("antylamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("antylamon").isSuspended);
+    expect(s.perm("antylamon").isSuspended).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+  });
+
+  it("may decline trashing security and remains suspended", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX2-022", as: "antylamon" }], security: ["BT1-001", "BT1-002"] },
+        1: { security: ["BT1-003"] },
+      },
+      { autoDeclineOptional: true, autoOrderTriggers: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("antylamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("antylamon").isSuspended);
+    expect(s.perm("antylamon").isSuspended).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(2);
   });
 });

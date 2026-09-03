@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX2-024.js";
+import "../BT4/BT4-104.js";
+import "../BT1/BT1-102.js";
 
 describe("EX2-024 Sakuyamon", () => {
   it("unsuspends a Digimon and returns one Plug-In Option per Tamer when digivolving", async () => {
@@ -35,5 +38,48 @@ describe("EX2-024 Sakuyamon", () => {
     );
     expect([s.perm("ally").isSuspended, s.perm("base").isSuspended]).toContain(false);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("plugin").instanceId)).toBe(true);
+  });
+
+  it("triggers its Option effect after a cost-2 use and not a cheaper use", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX2-024", as: "sakuyamon" }],
+          hand: [
+            { card: "BT4-104", as: "cheap" },
+            { card: "BT1-102", as: "option1" },
+            { card: "BT1-102", as: "option2" },
+          ],
+          security: ["BT1-001"],
+          deck: ["BT1-002"],
+        },
+        1: { battleArea: [{ card: "EX2-014", as: "target", dp: 10000 }], deck: ["BT1-003"] },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cheap").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT4-104"));
+    expect(s.perm("target").currentDP).toBe(10000);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option1").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.filter((card) => card.cardId === "BT1-102").length === 1);
+    expect(s.perm("target").currentDP).toBe(7000);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option2").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.filter((card) => card.cardId === "BT1-102").length === 2);
+    expect(s.perm("target").currentDP).toBe(4000);
+    const turnLoop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("target").currentDP).toBe(10000);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await turnLoop;
   });
 });
