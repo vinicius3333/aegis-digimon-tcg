@@ -205,7 +205,8 @@ describe("BT19-098 King Device", () => {
 
     const compiled = runtimeCompiledCard("BT19-098");
     expect(compiled?.effects.find((entry) => entry.trigger === "Security")?.actions[0]).toMatchObject({
-      target: { optional: true },
+      optional: true,
+      target: { from: ["hand"] },
     });
   });
 });

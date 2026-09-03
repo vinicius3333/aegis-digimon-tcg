@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -69,6 +68,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlaceInBattleAreaSelf",
+          optional: true,
           target: {
             filter: {
               controller: "mine",
@@ -78,7 +78,6 @@ const compiled: CompiledCard = {
             },
             count: 1,
             from: ["hand"],
-            optional: true,
           },
         },
         { kind: "AddToHandSelf" },

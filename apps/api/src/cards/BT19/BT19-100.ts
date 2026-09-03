@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -13,7 +12,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   without paying the cost.
 //
 // KB Q3176-Q3178: "all of your Digimon and Tamers" = battle area only.
-// KB Q3181: Security check effect must activate (not optional) when triggered.
+// KB Q3181: the Security effect itself must activate when triggered; its printed "may play"
+// action remains optional.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -34,10 +34,10 @@ const compiled: CompiledCard = {
             {
               kind: "ModifyDP",
               target: {
+                sourceRef: "triggerSubject",
                 filter: {
                   controller: "opponent",
                   kind: ["Digimon"],
-                  isAttacking: true,
                 },
                 count: 1,
               },
@@ -65,7 +65,7 @@ const compiled: CompiledCard = {
           kind: "SecurityManipulation",
           op: "addTop",
           controller: "mine",
-          source: "this",
+          source: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           faceUp: true,
           condition: {
             kind: "youHaveNone",
@@ -120,6 +120,7 @@ const compiled: CompiledCard = {
           },
           from: ["hand"],
           payCost: false,
+          optional: true,
         },
       ],
       isSecurity: true,

@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT19-022 — do not regenerate.
 // OnDeletion first PlaceUnder: removed spurious colors:["Blue"]; added underFilter under Tamers.
 import type { CompiledCard } from "@aegis/shared";

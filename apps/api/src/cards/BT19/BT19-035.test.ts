@@ -128,4 +128,21 @@ describe("BT19-035 ShootingStarmon", () => {
     await advance(negative.engine).fireForPermanent(EffectTiming.OnUseAttack, negative.perm("host"));
     expect(negative.perm("target").currentDP).toBe(5000);
   });
+
+  it("resolves the inherited attack reduction from a public attack intent", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT19-038", as: "host", under: ["BT19-035"] }] },
+      1: { battleArea: [{ card: "BT19-020", as: "target" }] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").currentDP === 3000);
+    expect(s.perm("target").currentDP).toBe(3000);
+  });
 });

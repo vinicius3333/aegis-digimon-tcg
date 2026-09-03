@@ -1,6 +1,8 @@
 # BT19 Static Card Implementation Re-audit
 
-Status: static card-by-card coverage recorded; execution gates deferred
+> Historical report: superseded by `docs/audits/BT19-AUDIT.md`, which records the completed 102/102 10/10 audit and executed gates.
+
+Status: historical provisional evidence; no longer the completion authority
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 

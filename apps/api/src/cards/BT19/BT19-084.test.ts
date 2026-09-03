@@ -221,4 +221,32 @@ describe("BT19-084 — face-up-security digivolve source + result-bound place cl
     expect(s.state.players[0]!.security.at(-1)?.instanceId).toBe(s.inst("royalBase").instanceId);
     expect(s.state.players[0]!.security.at(-1)?.faceUp).toBe(true);
   });
+
+  it("activates the Main effect through the public activation intent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT19-084", as: "winr" },
+            { card: "BT1-009", as: "source" },
+          ],
+          security: [{ card: "AD1-001", faceUp: true }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const entries = JSON.parse(s.perm("winr").activatableEffectsJson ?? "[]") as { effectKey: string }[];
+    expect(entries.length).toBeGreaterThan(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("winr").topCard!.instanceId,
+        effectKey: entries[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("winr").isSuspended);
+    expect(s.perm("winr").isSuspended).toBe(true);
+  });
 });

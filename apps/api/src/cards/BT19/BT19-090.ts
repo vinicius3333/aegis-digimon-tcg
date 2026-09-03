@@ -1,21 +1,21 @@
-// @ts-nocheck
+import type { Action, CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const xrosHeart = {
+const xrosHeart: Filter = {
   controller: "mine",
   zone: "underTamers",
   kind: ["Digimon"],
   nameOrTrait: [{ tokens: ["Xros Heart"], match: "trait" }],
   dp: { op: "lte", value: 4000 },
 };
-const playFromTamer = {
+const playFromTamer: Action = {
   kind: "PlayWithoutCost",
   target: { filter: xrosHeart, count: 1 },
   from: ["underTamers"],
   payCost: false,
   optional: true,
 };
-const compiled = {
+const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Main",

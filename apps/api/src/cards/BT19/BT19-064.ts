@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -51,10 +50,8 @@ const compiled: CompiledCard = {
           },
           restriction: "beAffected",
           duration: "untilOpponentTurnEnd",
-          sourceFilter: {
-            controller: "opponent",
-            kind: ["Digimon"],
-          },
+          fromSourceKind: ["Digimon"],
+          byOpponentEffectsOnly: true,
         },
       ],
     },
@@ -87,10 +84,8 @@ const compiled: CompiledCard = {
           },
           restriction: "beAffected",
           duration: "untilOpponentTurnEnd",
-          sourceFilter: {
-            controller: "opponent",
-            kind: ["Digimon"],
-          },
+          fromSourceKind: ["Digimon"],
+          byOpponentEffectsOnly: true,
         },
       ],
     },

@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT19-081 — do not regenerate.
 // KB Q3142/Q3143/Q3144: the [All Turns] effect allows placing cards from under any of your
 // Tamers as DigiXros materials when a [Blue Flare] trait Digimon with DigiXros requirements
@@ -62,7 +61,8 @@ const compiled: CompiledCard = {
                   controller: "mine",
                   zone: "underTamer",
                 },
-                count: "any",
+                count: "all",
+                upTo: true,
               },
               underFilter: {
                 isTriggerSource: true,

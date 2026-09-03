@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -52,7 +51,11 @@ const compiled: CompiledCard = {
         {
           kind: "Restrict",
           target: {
-            fromSelectionRef: "deDigivolveTarget",
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
           },
           restriction: "digivolve",
           duration: "untilOpponentTurnEnd",

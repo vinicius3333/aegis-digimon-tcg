@@ -32,9 +32,11 @@ export const tokenDefinitions: readonly CardDefinition[] = [
     colors: [CardColor.Black],
     effectText: "＜Blocker＞ ＜Decoy (Black)＞ [Your Turn] This Digimon can't attack.",
   }),
-  tok("WarGrowlmon Token", { level: 5, dp: 5000, playCost: 5, colors: [CardColor.Red] }),
-  tok("Taomon Token", { level: 4, dp: 4000, playCost: 4, colors: [CardColor.Yellow] }),
-  tok("Rapidmon Token", { level: 5, dp: 5000, playCost: 5, colors: [CardColor.Yellow] }),
+  // BT19-091: Q3162 confirms these tokens have no level. Their printed DP/colors
+  // are 6000 Red, 6000 Yellow, and 6000 Green respectively.
+  tok("WarGrowlmon Token", { dp: 6000, playCost: -1, colors: [CardColor.Red] }),
+  tok("Taomon Token", { dp: 6000, playCost: -1, colors: [CardColor.Yellow] }),
+  tok("Rapidmon Token", { dp: 6000, playCost: -1, colors: [CardColor.Green] }),
   tok("AthoRenePor Token", { level: 6, dp: 6000, playCost: 6, colors: [CardColor.White] }),
   tok("Petrification Token", { dp: 3000, playCost: -1, colors: [CardColor.White] }),
   tok("Hinukamuy Token", { dp: 6000, playCost: -1, colors: [CardColor.White] }),

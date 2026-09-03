@@ -1,21 +1,66 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("BT19-019 Shellmon", () => {
-  it.each([0, 1])("with %i existing Tamer(s), may play Yao Qinglan from hand for free", async (tamerCount) => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT19-019", as: "shell" },
-          ...(tamerCount === 1 ? [{ card: "BT19-081", as: "existing" }] : []),
-        ],
-        hand: [{ card: "BT19-082", as: "yao" }],
+  it("naturally evolves from a level-3 Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT19-018", as: "base" }],
+          hand: [{ card: "BT19-019", as: "shell" }],
+        },
+        1: { security: ["BT1-001"] },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("shell").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "BT19-019");
+    expect(s.state.memory).toBe(8);
+  });
+
+  it("naturally resolves its inherited memory gain after a public attack", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT19-020", as: "host", under: ["BT19-019"] }] },
+      1: { security: ["BT1-001"] },
+    });
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.memory === 1);
+    expect(s.state.memory).toBe(1);
+  });
+
+  it.each([0, 1])("with %i existing Tamer(s), may play Yao Qinglan from hand for free", async (tamerCount) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT19-019", as: "shell" },
+            ...(tamerCount === 1 ? [{ card: "BT19-081", as: "existing" }] : []),
+          ],
+          hand: [{ card: "BT19-082", as: "yao" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 0;
     await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("shell"));
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT19-082")).toBe(true);
@@ -24,19 +69,29 @@ describe("BT19-019 Shellmon", () => {
   });
 
   it("with 2 Tamers, cannot play Yao Qinglan", async () => {
-    const s = setupEngine({ 0: {
-      battleArea: [{ card: "BT19-019", as: "shell" }, { card: "BT19-081" }, { card: "BT19-079" }],
-      hand: [{ card: "BT19-082", as: "yao" }],
-    } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT19-019", as: "shell" }, { card: "BT19-081" }, { card: "BT19-079" }],
+          hand: [{ card: "BT19-082", as: "yao" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("shell"));
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT19-082"]);
   });
 
   it("may decline the eligible free play", async () => {
-    const s = setupEngine({ 0: {
-      battleArea: [{ card: "BT19-019", as: "shell" }],
-      hand: [{ card: "BT19-082", as: "yao" }],
-    } }, { autoDeclineOptional: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT19-019", as: "shell" }],
+          hand: [{ card: "BT19-082", as: "yao" }],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
     await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("shell"));
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT19-082"]);
   });

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT19-067.js";
 
 describe("BT19-067", () => {
@@ -22,5 +23,20 @@ describe("BT19-067", () => {
       },
       { trigger: "Static", isInherited: true, keywords: [{ keyword: "Retaliation" }] },
     ]);
+  });
+
+  it("resolves the trash Tamer play from a public play intent", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "BT19-067", as: "imp" }], trash: ["BT18-093"] } },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+      },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("imp").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT18-093"));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT18-093")).toBe(true);
   });
 });

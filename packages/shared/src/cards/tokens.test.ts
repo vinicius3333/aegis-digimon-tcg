@@ -47,6 +47,30 @@ describe("LM-018 Gyuukimon Token", () => {
   });
 });
 
+describe("BT19-091 Trinity Burst tokens", () => {
+  it("preserves the printed 6000 DP colors and no-level identity", () => {
+    const expected = [
+      ["WarGrowlmon Token", "Red"],
+      ["Taomon Token", "Yellow"],
+      ["Rapidmon Token", "Green"],
+    ] as const;
+
+    for (const [name, color] of expected) {
+      const cardId = resolveTokenCardId(name);
+      expect(cardId).toBe(`TOKEN-${name.replaceAll(" ", "-")}`);
+      expect(tokenDefinitions.find(({ cardId: id }) => id === cardId)).toMatchObject({
+        nameEn: name,
+        kinds: ["Digimon"],
+        colors: [color],
+        dp: 6000,
+        playCost: -1,
+        isToken: true,
+      });
+      expect(tokenDefinitions.find(({ cardId: id }) => id === cardId)).not.toHaveProperty("level");
+    }
+  });
+});
+
 describe("EX7-058 Volée & Zerdrücken Token", () => {
   it("preserves the printed identity, level, DP, color, and keywords", () => {
     const cardId = resolveTokenCardId("Volée & Zerdrücken");

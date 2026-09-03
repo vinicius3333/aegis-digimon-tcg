@@ -8,10 +8,18 @@ describe("BT19-039 SkullBaluchimon", () => {
   it.each([EffectTiming.OnPlay, EffectTiming.WhenDigivolving])(
     "%s may trash top security to delete level 4 or lower and gain 1 memory",
     async (timing) => {
-      const s = setupEngine({
-        0: { battleArea: [{ card: "BT19-039", as: "skull" }], security: ["BT19-030", "BT19-031"] },
-        1: { battleArea: [{ card: "BT19-020", as: "level4" }, { card: "BT19-038", as: "level5" }] },
-      }, { autoAcceptOptional: true, autoSelectCards: true });
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT19-039", as: "skull" }], security: ["BT19-030", "BT19-031"] },
+          1: {
+            battleArea: [
+              { card: "BT19-020", as: "level4" },
+              { card: "BT19-038", as: "level5" },
+            ],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
       s.state.memory = 0;
       await advance(s.engine).fireForPermanent(timing, s.perm("skull"));
       expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT19-031"]);
@@ -24,10 +32,13 @@ describe("BT19-039 SkullBaluchimon", () => {
   it.each([EffectTiming.OnPlay, EffectTiming.WhenDigivolving])(
     "%s may decline the security cost and then neither deletes nor gains memory",
     async (timing) => {
-      const s = setupEngine({
-        0: { battleArea: [{ card: "BT19-039", as: "skull" }], security: ["BT19-030"] },
-        1: { battleArea: [{ card: "BT19-020", as: "target" }] },
-      }, { autoDeclineOptional: true, autoSelectCards: true });
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT19-039", as: "skull" }], security: ["BT19-030"] },
+          1: { battleArea: [{ card: "BT19-020", as: "target" }] },
+        },
+        { autoDeclineOptional: true, autoSelectCards: true },
+      );
       s.state.memory = 0;
       await advance(s.engine).fireForPermanent(timing, s.perm("skull"));
       expect(s.state.players[0]!.security).toHaveLength(1);
@@ -37,9 +48,15 @@ describe("BT19-039 SkullBaluchimon", () => {
   );
 
   it("On Deletion recovers exactly the top deck card", async () => {
-    const s = setupEngine({ 0: {
-      battleArea: [{ card: "BT19-039", as: "skull" }], deck: ["BT19-030", "BT19-031"],
-    } }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT19-039", as: "skull" }],
+          deck: ["BT19-030", "BT19-031"],
+        },
+      },
+      { autoSelectCards: true },
+    );
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("skull").permanentId], "byEffect");
     await settle(() => s.state.players[0]!.security.length === 1);
@@ -48,9 +65,10 @@ describe("BT19-039 SkullBaluchimon", () => {
   });
 
   it("inherited effect may unsuspend its host once per turn only when controller security is reduced", async () => {
-    const s = setupEngine({ 0: { battleArea: [
-      { card: "BT19-040", as: "host", under: ["BT19-039"], suspended: true },
-    ] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT19-040", as: "host", under: ["BT19-039"], suspended: true }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 1 });
     expect(s.perm("host").isSuspended).toBe(true);
@@ -59,5 +77,24 @@ describe("BT19-039 SkullBaluchimon", () => {
     s.perm("host").isSuspended = true;
     await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
     expect(s.perm("host").isSuspended).toBe(true);
+  });
+
+  it("resolves On Play security payment from a public play intent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT19-039", as: "skull" }],
+          security: ["BT19-030"],
+        },
+        1: { battleArea: [{ card: "BT19-020", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("skull").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 0);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });

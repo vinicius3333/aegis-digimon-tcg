@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -31,34 +30,6 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "SecurityManipulation",
-          op: "trashTop",
-          controller: "opponent",
-          amount: 1,
-          condition: {
-            kind: "selfHasInDigivolutionCards",
-            nameOrTrait: [
-              { tokens: ["Dynasmon"], match: "name" },
-              { tokens: ["X Antibody"], match: "trait" },
-            ],
-            raw: "[Dynasmon]/[X Antibody] is in this Digimon's digivolution cards",
-          },
-          cost: {
-            kind: "trash",
-            target: {
-              filter: {
-                controller: "mine",
-                zone: "security",
-                position: "top",
-              },
-              count: 1,
-            },
-            raw: "by trashing the top card of your security stack",
-          },
-          optional: true,
-          abortOnDecline: true,
-        },
-        {
           kind: "ModifyDP",
           target: {
             filter: {
@@ -77,6 +48,24 @@ const compiled: CompiledCard = {
             ],
             raw: "[Dynasmon]/[X Antibody] is in this Digimon's digivolution cards",
           },
+          cost: {
+            kind: "compound",
+            costs: [
+              {
+                kind: "trash",
+                target: { filter: { controller: "mine", zone: "security", position: "top" }, count: 1 },
+                raw: "by trashing the top card of your security stack",
+              },
+              {
+                kind: "trash",
+                target: { filter: { controller: "opponent", zone: "security", position: "top" }, count: 1 },
+                raw: "by trashing the top card of your opponent's security stack",
+              },
+            ],
+            raw: "by trashing the top cards of both players' security stacks",
+          },
+          optional: true,
+          abortOnDecline: true,
         },
       ],
       frequency: "OncePerTurn",
@@ -86,34 +75,6 @@ const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
-          kind: "SecurityManipulation",
-          op: "trashTop",
-          controller: "opponent",
-          amount: 1,
-          condition: {
-            kind: "selfHasInDigivolutionCards",
-            nameOrTrait: [
-              { tokens: ["Dynasmon"], match: "name" },
-              { tokens: ["X Antibody"], match: "trait" },
-            ],
-            raw: "[Dynasmon]/[X Antibody] is in this Digimon's digivolution cards",
-          },
-          cost: {
-            kind: "trash",
-            target: {
-              filter: {
-                controller: "mine",
-                zone: "security",
-                position: "top",
-              },
-              count: 1,
-            },
-            raw: "by trashing the top card of your security stack",
-          },
-          optional: true,
-          abortOnDecline: true,
-        },
-        {
           kind: "ModifyDP",
           target: {
             filter: {
@@ -132,6 +93,24 @@ const compiled: CompiledCard = {
             ],
             raw: "[Dynasmon]/[X Antibody] is in this Digimon's digivolution cards",
           },
+          cost: {
+            kind: "compound",
+            costs: [
+              {
+                kind: "trash",
+                target: { filter: { controller: "mine", zone: "security", position: "top" }, count: 1 },
+                raw: "by trashing the top card of your security stack",
+              },
+              {
+                kind: "trash",
+                target: { filter: { controller: "opponent", zone: "security", position: "top" }, count: 1 },
+                raw: "by trashing the top card of your opponent's security stack",
+              },
+            ],
+            raw: "by trashing the top cards of both players' security stacks",
+          },
+          optional: true,
+          abortOnDecline: true,
         },
       ],
       frequency: "OncePerTurn",

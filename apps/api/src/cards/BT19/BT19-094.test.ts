@@ -1,8 +1,35 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
 describe("BT19-094 Seventh Divine Cruz", () => {
+  it("deletes down to the security count through a public Option play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT19-094", as: "option" }],
+          security: 1,
+          battleArea: [{ card: "BT19-040" }, { card: "BT19-067" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-010", as: "second" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
   it("preserves Trash-only Lucemon X Antibody timing, branch recovery, delete-until-security count, and Security play", () => {
     const card = runtimeCompiledCard("BT19-094");
 

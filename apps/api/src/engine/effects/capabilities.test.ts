@@ -12194,7 +12194,7 @@ describe("LANE-F-8: asDigiXrosMaterial + underFilter.isTriggerSource (BT19-081)"
                 actions: [
                   {
                     kind: "PlaceUnder",
-                    target: { filter: { controller: "mine", zone: "underTamer" }, count: "any" },
+                    target: { filter: { controller: "mine", zone: "underTamer" }, count: "all", upTo: true },
                     underFilter: { isTriggerSource: true },
                     asDigiXrosMaterial: true,
                   },
@@ -12225,11 +12225,17 @@ describe("LANE-F-8: asDigiXrosMaterial + underFilter.isTriggerSource (BT19-081)"
       ownerSeat: 0 as Seat,
       faceUp: false,
     };
+    const otherMatCard = {
+      instanceId: "OTHER_MAT_F8#i",
+      cardId: "RED",
+      ownerSeat: 0 as Seat,
+      faceUp: false,
+    };
     const tamerPerm = {
       permanentId: "TAMER_F8",
       controllerSeat: 0 as Seat,
       topCard: { instanceId: "TAMER_F8#top", cardId: "HERO_A", ownerSeat: 0 as Seat, faceUp: true },
-      stack: [matCard],
+      stack: [matCard, otherMatCard],
       linked: [],
       baseDP: 0,
       currentDP: 0,
@@ -12275,7 +12281,7 @@ describe("LANE-F-8: asDigiXrosMaterial + underFilter.isTriggerSource (BT19-081)"
       optional: async () => true,
       chooseTargets: async (_c: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max),
       selectPermanents: async (_c: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max),
-      selectCards: async (_c: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max),
+      selectCards: async (_c: unknown, o: { candidates: string[] }) => o.candidates.slice(0, 1),
       chooseOption: async () => 0,
     };
 
@@ -12309,7 +12315,7 @@ describe("LANE-F-8: asDigiXrosMaterial + underFilter.isTriggerSource (BT19-081)"
           actions: [
             {
               kind: "PlaceUnder",
-              target: { filter: { controller: "mine", zone: "underTamer" }, count: "all" },
+              target: { filter: { controller: "mine", zone: "underTamer" }, count: "all", upTo: true },
               underFilter: { isTriggerSource: true },
               asDigiXrosMaterial: true,
             },
@@ -12326,7 +12332,7 @@ describe("LANE-F-8: asDigiXrosMaterial + underFilter.isTriggerSource (BT19-081)"
     expect(placed.length).toBeGreaterThan(0);
     // The host should be the "trigger source" (the Digimon being played), not the Tamer.
     expect(placed[0]!.hostId).toBe("PLAYED_F8");
-    expect(placed[0]!.instanceIds).toContain("MAT_F8#i");
+    expect(placed[0]!.instanceIds).toEqual(["MAT_F8#i"]);
   });
 });
 

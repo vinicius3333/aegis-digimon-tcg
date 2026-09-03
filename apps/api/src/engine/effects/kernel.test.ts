@@ -334,8 +334,8 @@ describe("passesPlacementGuard (inherited/linked vs printed)", () => {
     expect(passesPlacementGuard(eff, ctx)).toBe(true);
   });
 
-  it("does not treat a Digi-Egg host in the battle area as a Digimon", () => {
-    const stackSource = fakeSource({ instanceId: "source#1", permanent: () => permanent });
+  it("only treats a DP-bearing Digi-Egg host in the battle area as a Digimon", () => {
+    const stackSource = fakeSource({ instanceId: "ess#1", permanent: () => permanent });
     const eff = staticModifier({
       source: stackSource,
       effectKey: "battle-area-digi-egg",
@@ -346,6 +346,21 @@ describe("passesPlacementGuard (inherited/linked vs printed)", () => {
     const ctx = fakeContext(stackSource, digiEggTop);
 
     expect(passesPlacementGuard(eff, ctx)).toBe(false);
+
+    const motherTop: Partial<GameAccess> = {
+      definitionOf: () => ({
+        cardId: "EX2-007",
+        set: "EX2",
+        nameEn: "Mother D-Reaper",
+        kinds: [CardKind.DigiEgg],
+        colors: [],
+        playCost: -1,
+        dp: 15_000,
+        evoCosts: [],
+        maxCountInDeck: 4,
+      }),
+    };
+    expect(passesPlacementGuard(eff, fakeContext(stackSource, motherTop))).toBe(true);
   });
 });
 
