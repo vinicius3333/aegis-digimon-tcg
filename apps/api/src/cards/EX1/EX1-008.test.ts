@@ -50,7 +50,7 @@ describe("EX1-008 MetalGreymon", () => {
   });
 
   it("grants inherited Piercing to a Machine host", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-042", as: "machine", under: ["EX1-008"] }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT2-066", as: "machine", under: ["EX1-008"] }] } });
     await s.ready();
     expect(observe(s.engine).hasPierce(s.perm("machine"))).toBe(true);
   });
@@ -62,7 +62,7 @@ describe("EX1-008 MetalGreymon", () => {
   });
 
   it("limits inherited Piercing to your turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-042", as: "machine", under: ["EX1-008"] }] }, 1: { battleArea: [{ card: "BT1-070" }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT2-066", as: "machine", under: ["EX1-008"] }] }, 1: { battleArea: [{ card: "BT1-070" }] } });
     await s.ready();
     s.state.turnSeat = 1;
     await advance(s.engine).recompute();
@@ -71,7 +71,7 @@ describe("EX1-008 MetalGreymon", () => {
 
   it("uses real battle resolution to pierce security after attacking a Digimon", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-042", as: "attacker", under: ["EX1-008"] }] },
+      0: { battleArea: [{ card: "BT2-066", as: "attacker", under: ["EX1-008"] }] },
       1: { battleArea: [{ card: "BT1-070", as: "target", dp: 3000, suspended: true }], security: ["BT1-001", "BT1-001"] },
     });
     await s.ready();
