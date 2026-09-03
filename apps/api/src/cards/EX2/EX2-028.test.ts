@@ -16,8 +16,8 @@ describe("EX2-028 Parasitemon", () => {
       {
         0: {
           battleArea: [
-            { card: "EX2-028", as: "parasite", under: ["EX2-025"] },
-            { card: "EX2-014", as: "other" },
+            { card: "EX2-028", as: "parasite", under: [{ card: "EX2-025", as: "parasiteSource" }] },
+            { card: "EX2-014", as: "other", under: [{ card: "EX2-025", as: "existingSource" }] },
           ],
         },
         1: { security: ["BT1-001"] },
@@ -33,6 +33,9 @@ describe("EX2-028 Parasitemon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("other").stack.some((card) => card.instanceId === s.inst("parasite").instanceId));
-    expect(s.perm("other").stack.map((card) => card.cardId)).toEqual(["EX2-028"]);
+    expect(s.perm("other").stack.map((card) => card.cardId)).toEqual(["EX2-028", "EX2-025"]);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("parasiteSource").instanceId)).toBe(
+      true,
+    );
   });
 });
