@@ -44,6 +44,7 @@ describe("BT17-044 Morphomon", () => {
             {
               kind: "Digivolve",
               from: ["hand"],
+              payCost: true,
               reduceCost: 3,
               optional: true,
               into: { nameOrTrait: [{ tokens: ["Eosmon"], match: "name" }] },

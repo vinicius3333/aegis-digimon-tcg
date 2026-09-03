@@ -2,6 +2,7 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, it, expect } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./BT17-100.js";
 import "./index.js";
 
 // A3 for BT17-100 (Doomsday Clock, Black Option):
@@ -54,6 +55,7 @@ describe("BT17-100 Doomsday Clock — [Main] plays Diaboromon Token", () => {
   it("targets a Diaboromon without an existing Doomsday Clock", async () => {
     const place = (await import("./BT17-100.js")).compiled.effects?.find((e) => e.trigger === "Main")?.actions?.[1];
     expect(place).toMatchObject({
+      position: "bottom",
       underFilter: { nameOrTrait: [{ tokens: ["Diaboromon"] }], excludeCardsNamed: ["Doomsday Clock"] },
     });
   });
@@ -99,6 +101,7 @@ describe("BT17-100 Doomsday Clock — [Main] plays Diaboromon Token", () => {
     const hasToken = p0?.battleArea.some((p) => p.topCard?.cardId.startsWith("TOKEN-"));
     expect(hasToken).toBe(true);
     expect(s.perm("cleanHost").stack.some((card) => card.instanceId === clockId)).toBe(true);
+    expect(s.perm("cleanHost").stack.at(0)?.instanceId).toBe(clockId);
     expect(s.perm("taintedHost").stack.some((card) => card.instanceId === clockId)).toBe(false);
   });
 });

@@ -1,6 +1,7 @@
 // Playing cards from hand, deck, trash, and security.
 
 import type { EffectContext } from "../../EffectContext.js";
+import { requireOpponentAsk } from "../../../decisions/decisionApi.js";
 import { evaluateCondition } from "../conditions.js";
 import type { ActionScope } from "../dispatch.js";
 import { definitionMatches } from "../matching/definition.js";
@@ -533,7 +534,11 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
               )
               .filter((instanceId, index, all) => all.indexOf(instanceId) === index)
           : undefined;
-      const chosen = await pickLoose(ctx, playCostAdjustedTarget, candidates, undefined, ctx.ask, visibleZoneIds);
+      const asker = playCostAdjustedTarget.chooser === "opponent" ? requireOpponentAsk(ctx) : ctx.ask;
+      const chosen = await pickLoose(ctx, playCostAdjustedTarget, candidates, undefined, asker, visibleZoneIds);
+      if (playCostAdjustedTarget.chooser === "opponent" && action.optional === true) {
+        ctx.lastOpponentDeclined = chosen.length === 0;
+      }
       const costReduction = paidReduction(ctx, action) ?? action.costReduction;
       if (chosen.length > 0) {
         // Options are USED, not played as permanents. `playInstances` intentionally rejects

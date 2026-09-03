@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-written override for BT17-056 (Parasimon).
 // Fix: the [All Turns] reveal-3 effect must place 1 [Parasitemon] OR 1 level-5-or-lower
 // black Digimon card AMONG the revealed cards as this Digimon's bottom digivolution card,

@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const tamer = {
+const tamer: Filter = {
   controller: "mine",
   kind: ["Tamer"],
   nameOrTrait: [{ tokens: ["Tai Kamiya", "Kari Kamiya"], match: "name" }],
@@ -34,26 +33,42 @@ export const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
-          kind: "PlayWithoutCost",
-          target: { filter: tamer, count: 1 },
-          from: ["hand"],
-          payCost: false,
+          kind: "Modal",
+          choose: 1,
           optional: true,
+          options: [
+            [
+              {
+                kind: "PlayWithoutCost",
+                target: { filter: tamer, count: 1 },
+                from: ["hand"],
+                payCost: false,
+              },
+            ],
+            [{ kind: "Hatch" }],
+          ],
         },
-        { kind: "Hatch", optional: true },
       ],
     },
     {
       trigger: "OnDeletion",
       actions: [
         {
-          kind: "PlayWithoutCost",
-          target: { filter: tamer, count: 1 },
-          from: ["hand"],
-          payCost: false,
+          kind: "Modal",
+          choose: 1,
           optional: true,
+          options: [
+            [
+              {
+                kind: "PlayWithoutCost",
+                target: { filter: tamer, count: 1 },
+                from: ["hand"],
+                payCost: false,
+              },
+            ],
+            [{ kind: "Hatch" }],
+          ],
         },
-        { kind: "Hatch", optional: true },
       ],
       isInherited: true,
     },

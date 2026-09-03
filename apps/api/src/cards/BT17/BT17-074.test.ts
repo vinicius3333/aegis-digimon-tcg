@@ -9,8 +9,8 @@ describe("BT17-074 Eosmon — when digivolving play", () => {
     expect(action).toMatchObject({
       kind: "PlayWithoutCost",
       from: ["hand"],
-      payCost: true,
-      costOverride: 2,
+      payCost: false,
+      cost: { kind: "payMemory", memory: 2 },
       condition: { kind: "isYourTurn" },
       optional: true,
       target: {
@@ -33,11 +33,13 @@ describe("BT17-074 Eosmon — when digivolving play", () => {
     });
     expect(compiled.effects.find((entry) => entry.trigger === "WhenDigivolving")?.actions[1]).toMatchObject({
       kind: "PlayWithoutCost",
-      controller: "opponent",
       from: ["hand"],
-      target: { filter: { controller: "opponent", kind: ["Tamer"] } },
+      target: { filter: { controller: "opponent", kind: ["Tamer"] }, upTo: true, chooser: "opponent" },
       condition: { kind: "ifThisEffectActed", raw: "you did" },
     });
+    expect(compiled.effects.find((entry) => entry.trigger === "WhenDigivolving")?.actions[1]).not.toHaveProperty(
+      "controller",
+    );
     expect(compiled.effects.find((entry) => entry.isInherited)?.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenOpponentAttacks",

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -26,6 +25,8 @@ export const compiled: CompiledCard = {
         {
           kind: "GrantStatic",
           target: {
+            filter: {},
+            count: 1,
             fromSelectionRef: "marcusTarget",
           },
           grant: "kinds",
@@ -35,6 +36,8 @@ export const compiled: CompiledCard = {
         {
           kind: "SetBaseDP",
           target: {
+            filter: {},
+            count: 1,
             fromSelectionRef: "marcusTarget",
           },
           value: 3000,
@@ -43,6 +46,8 @@ export const compiled: CompiledCard = {
         {
           kind: "Restrict",
           target: {
+            filter: {},
+            count: 1,
             fromSelectionRef: "marcusTarget",
           },
           restriction: "digivolve",
@@ -51,6 +56,8 @@ export const compiled: CompiledCard = {
         {
           kind: "GainKeyword",
           target: {
+            filter: {},
+            count: 1,
             fromSelectionRef: "marcusTarget",
           },
           keyword: {

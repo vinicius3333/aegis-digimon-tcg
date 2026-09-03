@@ -487,6 +487,10 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     // the printed "if they don't" tail (BT13-102), instead of opening a separate
     // source-controller prompt that loses the opponent-decline receipt.
     (action.kind !== "Trash" || action.chooser !== "opponent") &&
+    // An opponent-directed optional play is THEIR up-to card selection. The
+    // PlayWithoutCost resolver routes it through ctx.ask.opponent and a zero-card
+    // selection records that the preceding action did not act.
+    (action.kind !== "PlayWithoutCost" || action.target.chooser !== "opponent") &&
     // RedirectAttack with chooser:"opponent" owns its optional decline at the combat
     // primitive so the defending player, rather than the source controller, decides
     // whether to switch targets (BT4-075 / Q1224-Q1227).

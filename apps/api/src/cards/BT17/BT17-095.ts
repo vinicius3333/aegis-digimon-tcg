@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -34,26 +33,13 @@ export const compiled: CompiledCard = {
       ],
     },
     {
-      trigger: "Main",
-      actions: [
-        {
-          requiresDelayArmed: true,
-          kind: "DnaDigivolve",
-          materials: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
-          looseMaterials: { filter: { zone: "hand", controller: "mine", kind: ["Digimon"] }, count: 1, from: ["hand"] },
-          into: { controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Omnimon"], match: "name" }] },
-          payCost: false,
-          optional: true,
-        },
-      ],
-      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
-    },
-    {
       trigger: "AllTurns",
+      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
       actions: [
         {
           kind: "Replacement",
           event: "wouldLeavePlay",
+          mode: "instead",
           leaveCause: "otherThanBattle",
           sourceFilter: {
             controller: "mine",
@@ -68,19 +54,24 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
-              kind: "GainKeyword",
-              target: {
-                filter: {
-                  isSelfRef: true,
-                },
+              kind: "DnaDigivolve",
+              materials: {
+                filter: { controller: "mine", kind: ["Digimon"] },
                 count: 1,
-                isSelf: true,
+                includeRef: "triggerSubject",
               },
-              keyword: {
-                keyword: "Delay",
-                raw: "＜Delay＞",
+              looseMaterials: {
+                filter: { zone: "hand", controller: "mine", kind: ["Digimon"] },
+                count: 1,
+                from: ["hand"],
               },
-              duration: "permanent",
+              into: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Omnimon"], match: "name" }],
+              },
+              payCost: true,
+              optional: true,
             },
           ],
         },

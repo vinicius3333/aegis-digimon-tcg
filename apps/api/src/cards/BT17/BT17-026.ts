@@ -1,5 +1,4 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import { CardColor, type CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Behavior is executed by the shared interpreter; this file only carries the IR and
@@ -88,8 +87,7 @@ const compiled: CompiledCard = {
           ],
           costOverride: 3,
           asLevel: 4,
-          asColors: ["Blue"],
-          virtualBase: { level: 4, colors: ["Blue"] },
+          virtualBase: { level: 4, colors: [CardColor.Blue] },
         },
       ],
       isFromHand: true,

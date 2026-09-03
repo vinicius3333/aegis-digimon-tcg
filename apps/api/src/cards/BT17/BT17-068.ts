@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -28,6 +27,7 @@ export const compiled: CompiledCard = {
                   },
                   count: 1,
                 },
+                to: "deckBottom",
                 raw: "by returning 1 [Apocalymon] from your trash to the bottom of the deck",
               },
               optional: true,

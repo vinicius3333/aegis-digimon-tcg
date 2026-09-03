@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -13,6 +12,7 @@ export const compiled: CompiledCard = {
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
           keyword: { keyword: "SecurityAttack", amount: -1, raw: "＜Security Attack -1＞" },
           duration: "untilOpponentTurnEnd",
+          includeLaterEntrants: true,
           condition: {
             kind: "selfDigivolutionStackHasTrait",
             filter: { nameOrTrait: [{ tokens: ["Leon Alexander"], match: "name" }] },

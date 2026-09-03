@@ -9,7 +9,15 @@ describe("BT17-022", () => {
   it("can digivolve onto a yellow Tamer as level 3", () => {
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "Static",
-      actions: [{ kind: "Digivolve", asLevel: 3, onto: { filter: { kind: ["Tamer"], colors: ["Yellow"] } } }],
+      actions: [
+        {
+          kind: "Digivolve",
+          asLevel: 3,
+          payCost: true,
+          target: { count: 1, filter: { kind: ["Tamer"], colors: ["Yellow"] } },
+          onto: { filter: { kind: ["Tamer"], colors: ["Yellow"] } },
+        },
+      ],
     });
   });
 

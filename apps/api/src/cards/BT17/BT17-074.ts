@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -40,8 +39,12 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           from: ["hand"],
-          payCost: true,
-          costOverride: 2,
+          payCost: false,
+          cost: {
+            kind: "payMemory",
+            memory: 2,
+            raw: "for a cost of 2",
+          },
           condition: {
             kind: "isYourTurn",
           },
@@ -57,11 +60,12 @@ export const compiled: CompiledCard = {
               kind: ["Tamer"],
             },
             count: 1,
+            upTo: true,
+            chooser: "opponent",
           },
           from: ["hand"],
           payCost: false,
           optional: true,
-          controller: "opponent",
           condition: {
             kind: "ifThisEffectActed",
             raw: "you did",

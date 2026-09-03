@@ -22,10 +22,23 @@ describe("BT17-087 Marcus Damon", () => {
       trigger: "OnPlay",
       actions: [
         { kind: "SelectBind", target: { bindAs: "marcusTarget" } },
-        { kind: "GrantStatic", target: { fromSelectionRef: "marcusTarget" }, grant: "kinds", tokens: ["Digimon"] },
-        { kind: "SetBaseDP", target: { fromSelectionRef: "marcusTarget" }, value: 3000 },
-        { kind: "Restrict", target: { fromSelectionRef: "marcusTarget" }, restriction: "digivolve" },
-        { kind: "GainKeyword", target: { fromSelectionRef: "marcusTarget" }, keyword: { keyword: "Blocker" } },
+        {
+          kind: "GrantStatic",
+          target: { filter: {}, count: 1, fromSelectionRef: "marcusTarget" },
+          grant: "kinds",
+          tokens: ["Digimon"],
+        },
+        { kind: "SetBaseDP", target: { filter: {}, count: 1, fromSelectionRef: "marcusTarget" }, value: 3000 },
+        {
+          kind: "Restrict",
+          target: { filter: {}, count: 1, fromSelectionRef: "marcusTarget" },
+          restriction: "digivolve",
+        },
+        {
+          kind: "GainKeyword",
+          target: { filter: {}, count: 1, fromSelectionRef: "marcusTarget" },
+          keyword: { keyword: "Blocker" },
+        },
       ],
     });
   });

@@ -34,6 +34,22 @@ describe("BT17-102 Greymon — [When Digivolving] delete opponent Digimon (KB Q4
     });
   });
 
+  it("offers exactly one On Deletion recovery choice: play a Tamer or hatch", () => {
+    for (const effect of compiled.effects?.filter((entry) => entry.trigger === "OnDeletion") ?? []) {
+      expect(effect.actions).toEqual([
+        expect.objectContaining({
+          kind: "Modal",
+          choose: 1,
+          optional: true,
+          options: [
+            [expect.objectContaining({ kind: "PlayWithoutCost" })],
+            [expect.objectContaining({ kind: "Hatch" })],
+          ],
+        }),
+      ]);
+    }
+  });
+
   it("[When Digivolving] deletes 1 opponent Digimon with DP ≤ Greymon's 5000 DP", async () => {
     const s = setupEngine(
       {
@@ -80,6 +96,7 @@ describe("BT17-102 Greymon — [When Digivolving] delete opponent Digimon (KB Q4
     const s = setupEngine(
       {
         0: {
+          eggDeck: [{ card: "BT14-001", as: "unusedEgg" }],
           battleArea: [
             {
               card: GREYMON,
@@ -108,6 +125,7 @@ describe("BT17-102 Greymon — [When Digivolving] delete opponent Digimon (KB Q4
 
     await settle(() => p0?.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-093"), 1200);
     expect(p0?.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-093")).toBe(true);
+    expect(p0?.breeding).toBeUndefined();
   });
 
   it("naturally hatches when the optional Tai/Kari Tamer branch has no candidate", async () => {
@@ -127,7 +145,9 @@ describe("BT17-102 Greymon — [When Digivolving] delete opponent Digimon (KB Q4
         },
         1: { battleArea: [{ card: "BT1-009", dp: 12000, as: "attacker" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      // Prefer the first offered entry: the unavailable Tamer branch must be filtered,
+      // leaving Hatch as the only selectable option.
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 0 },
     );
     const p0 = s.state.players[0];
     s.state.turnSeat = 1;

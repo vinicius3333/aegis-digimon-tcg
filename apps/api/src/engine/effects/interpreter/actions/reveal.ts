@@ -12,7 +12,10 @@ import { CardKind, isDigimon } from "@aegis/shared";
 import type { Action, Filter, Target } from "@aegis/shared";
 
 /** Cards whose rule text changes a static fact only while they are revealed from deck. */
-export function revealedDefinition(ctx: EffectContext, card: import("@aegis/shared").CardInstance): DefinitionFacts {
+export function revealedDefinition(
+  ctx: { game: Pick<EffectContext["game"], "definitionOf"> },
+  card: import("@aegis/shared").CardInstance,
+): DefinitionFacts {
   const def = ctx.game.definitionOf(card) as DefinitionFacts;
   const withOmekamonAlias = card.cardId === "BT15-060" ? { nameAliases: ["Omnimon"] } : {};
   // BT17-068 is printed Lv5 and is also treated as Lv6 while revealed. Keep the

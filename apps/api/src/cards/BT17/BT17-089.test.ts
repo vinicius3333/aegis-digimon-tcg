@@ -39,24 +39,27 @@ describe("BT17-089 Rhythm", () => {
       event: "whenSuspended",
       sourceFilter: { isSelfRef: true },
     });
-    const suspensionTrigger = compiled.effects?.[1]?.actions[0] as any;
-    expect(suspensionTrigger?.actions?.[0]).toMatchObject({ kind: "GainMemory", amount: 1 });
-    expect(suspensionTrigger?.actions?.[1]).toMatchObject({
-      kind: "Draw",
-      condition: {
-        kind: "youHave",
-        filter: {
-          nameOrTrait: [{ tokens: ["Argomon"], match: "name" }],
-          orFilters: [
-            {
-              controllerDefault: "mine",
-              kind: ["Digimon"],
-              colors: ["Yellow"],
-              nameOrTrait: [{ tokens: ["Agumon", "Greymon"], match: "name" }],
+    expect(compiled.effects?.[1]?.actions[0]).toMatchObject({
+      actions: [
+        { kind: "GainMemory", amount: 1 },
+        {
+          kind: "Draw",
+          condition: {
+            kind: "youHave",
+            filter: {
+              nameOrTrait: [{ tokens: ["Argomon"], match: "name" }],
+              orFilters: [
+                {
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  colors: ["Yellow"],
+                  nameOrTrait: [{ tokens: ["Agumon", "Greymon"], match: "name" }],
+                },
+              ],
             },
-          ],
+          },
         },
-      },
+      ],
     });
   });
 

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -12,6 +11,7 @@ export const compiled: CompiledCard = {
         {
           kind: "PlaceUnder",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          position: "bottom",
           underFilter: {
             controller: "mine",
             nameOrTrait: [{ tokens: ["Diaboromon"], match: "name" }],

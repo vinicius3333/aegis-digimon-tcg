@@ -1,4 +1,3 @@
-// @ts-nocheck
 // SpawnToken target), not the base "Diaboromon"; the play is gated on this Digimon having
 // had the [Unidentified] trait (evaluated against its card definition).
 import type { CompiledCard } from "@aegis/shared";
@@ -27,16 +26,8 @@ export const compiled: CompiledCard = {
                 isSelf: true,
               },
               into: {
-                filter: {
-                  controllerDefault: "mine",
-                  nameOrTrait: [
-                    {
-                      tokens: ["Infermon"],
-                      match: "name",
-                    },
-                  ],
-                },
-                count: 1,
+                controllerDefault: "mine",
+                nameOrTrait: [{ tokens: ["Infermon"], match: "name" }],
               },
               from: ["hand"],
               payCost: false,
@@ -68,16 +59,8 @@ export const compiled: CompiledCard = {
                 isSelf: true,
               },
               into: {
-                filter: {
-                  controllerDefault: "mine",
-                  nameOrTrait: [
-                    {
-                      tokens: ["Infermon"],
-                      match: "name",
-                    },
-                  ],
-                },
-                count: 1,
+                controllerDefault: "mine",
+                nameOrTrait: [{ tokens: ["Infermon"], match: "name" }],
               },
               from: ["hand"],
               payCost: false,
