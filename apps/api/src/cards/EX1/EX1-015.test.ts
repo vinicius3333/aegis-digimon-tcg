@@ -58,7 +58,7 @@ describe("EX1-015 Garurumon", () => {
     }, { autoDeclineOptional: true, autoSelectCards: true });
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
-    await settle(() => false, 40);
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX1-015"));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("matt").instanceId)).toBe(true);
   });
 
@@ -69,7 +69,7 @@ describe("EX1-015 Garurumon", () => {
     }, { autoAcceptOptional: true, autoSelectCards: true });
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
-    await settle(() => false, 40);
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX1-015"));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("matt").instanceId)).toBe(true);
   });
 
@@ -84,7 +84,9 @@ describe("EX1-015 Garurumon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 2);
     await advance(s.engine).verb.unsuspend([s.perm("attacker").permanentId]);
     expect(attack()).toEqual({ ok: true });
-    await settle(() => false, 40);
+    await settle(
+      () => s.events.filter((event) => event.kind === "effectResolved" && event.sourceCardId === "EX1-015").length >= 2,
+    );
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("matt2").instanceId)).toBe(true);
   });
