@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../engine/testkit/advance.js";
-import { setupEngine } from "../engine/testkit/harness.js";
+import { setupEngine, type EngineSetup } from "../engine/testkit/harness.js";
 import { observe } from "../engine/testkit/observe.js";
 import "./BT7/BT7-005.js";
 import "./BT7/BT7-056.js";
@@ -10,6 +10,16 @@ import "./BT8/BT8-069.js";
 import "./BT9/BT9-066.js";
 import "./ST13/ST13-05.js";
 import "./ST13/ST13-14.js";
+
+async function placeByEffect(s: EngineSetup, hostAlias: string, sourceAlias: string): Promise<void> {
+  const driver = advance(s.engine);
+  driver.verb.enterEffectResolution(0, ["Digimon"]);
+  try {
+    await driver.verb.placeUnder(s.perm(hostAlias).permanentId, [s.inst(sourceAlias).instanceId]);
+  } finally {
+    driver.verb.leaveEffectResolution();
+  }
+}
 
 describe("digivolution-card placement watcher scope", () => {
   it("installs a filtered watcher for every scoped BT7-BT9 and ST13 source-placement effect", async () => {
@@ -67,23 +77,19 @@ describe("digivolution-card placement watcher scope", () => {
     await s.ready();
     const kyokyomonBaseDP = s.perm("kyokyomonHost").currentDP;
 
-    await advance(s.engine).verb.placeUnder(s.perm("unrelatedHost").permanentId, [
-      s.inst("unrelatedSource").instanceId,
-    ]);
+    await placeByEffect(s, "unrelatedHost", "unrelatedSource");
     expect(s.state.players[0]!.hand).not.toContainEqual(s.inst("drawn"));
     expect(s.state.memory).toBe(0);
     expect(s.perm("kyokyomonHost").currentDP).toBe(kyokyomonBaseDP);
 
-    await advance(s.engine).verb.placeUnder(s.perm("dorimonHost").permanentId, [s.inst("dorimonSource").instanceId]);
+    await placeByEffect(s, "dorimonHost", "dorimonSource");
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
     expect(s.state.memory).toBe(0);
 
-    await advance(s.engine).verb.placeUnder(s.perm("dorumonHost").permanentId, [s.inst("dorumonSource").instanceId]);
+    await placeByEffect(s, "dorumonHost", "dorumonSource");
     expect(s.state.memory).toBe(1);
 
-    await advance(s.engine).verb.placeUnder(s.perm("kyokyomonHost").permanentId, [
-      s.inst("kyokyomonSource").instanceId,
-    ]);
+    await placeByEffect(s, "kyokyomonHost", "kyokyomonSource");
     expect(s.perm("kyokyomonHost").currentDP).toBe(kyokyomonBaseDP + 1_000);
   });
 
@@ -104,10 +110,10 @@ describe("digivolution-card placement watcher scope", () => {
     await s.ready();
     const baseDP = s.perm("ouryumon").currentDP;
 
-    await advance(s.engine).verb.placeUnder(s.perm("opposingHost").permanentId, [s.inst("opponentSource").instanceId]);
+    await placeByEffect(s, "opposingHost", "opponentSource");
     expect(s.perm("ouryumon").currentDP).toBe(baseDP);
 
-    await advance(s.engine).verb.placeUnder(s.perm("alliedHost").permanentId, [s.inst("alliedSource").instanceId]);
+    await placeByEffect(s, "alliedHost", "alliedSource");
     expect(s.perm("ouryumon").currentDP).toBe(baseDP + 2_000);
   });
 });

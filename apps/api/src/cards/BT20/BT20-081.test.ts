@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-081.js";
+import "./index.js";
 
 describe("BT20-081 Fenriloogamon: Takemikazuchi", () => {
   it("provides Blast DNA Digivolve from hand", () => {
@@ -37,10 +40,128 @@ describe("BT20-081 Fenriloogamon: Takemikazuchi", () => {
           abortOnDecline: true,
           cost: {
             kind: "trash",
-            target: { filter: { controller: "mine", zone: "security" }, count: 1, fromTop: true },
+            target: { filter: { controller: "mine", zone: "security", position: "top" }, count: 1 },
           },
         },
       ],
     });
+  });
+
+  it("applies the DP reduction to two distinct recipients before the conditional delete is eligible", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-080", as: "host" }],
+          hand: [{ card: "BT20-081", as: "takemikazuchi" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT10-055", as: "first" },
+            { card: "BT8-017", as: "second" },
+            { card: "BT1-080", as: "third" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("first").instanceId, s.inst("second").instanceId);
+    s.state.memory = 6;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("takemikazuchi").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "BT20-081");
+
+    expect(s.perm("first").currentDP).toBe(3000);
+    expect(s.perm("second").currentDP).toBe(3000);
+    expect(s.perm("third").currentDP).toBe(12000);
+    expect(s.state.players[1]!.battleArea).toHaveLength(3);
+  });
+
+  it("naturally gives two distinct opposing Digimon -10000, then deletes one after the Tamer check", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-080", under: ["BT20-085"], as: "host" }],
+          hand: [{ card: "BT20-081", as: "takemikazuchi" }],
+        },
+        1: {
+          battleArea: [
+            // Use printed-DP vanilla Digimon: `ready()` and the digivolve seam recompute
+            // currentDP from the authoritative card definition, so a fixture-only `dp: 20000`
+            // override would be lost before the -10000 effect resolves.
+            { card: "BT10-055", as: "first" },
+            { card: "BT8-017", as: "second" },
+            { card: "BT1-080", as: "third" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("first").instanceId, s.inst("second").instanceId);
+    s.state.memory = 6;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("takemikazuchi").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "BT20-081");
+
+    const remaining = s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId);
+    expect(remaining).toHaveLength(2);
+    expect(remaining).toContain("BT1-080");
+    expect(remaining).toContain("BT8-017");
+    expect(s.perm("third").currentDP).toBe(12000);
+    expect(s.perm("second").currentDP).toBe(3000);
+  });
+
+  it("pays the top-security cost to reactivate When Digivolving during an attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-080", under: ["BT20-085"], as: "host" }],
+          hand: [{ card: "BT20-081", as: "takemikazuchi" }],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT10-055", as: "first" },
+            { card: "BT8-017", as: "second" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("takemikazuchi").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "BT20-081");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 2);
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-002", "BT1-003"]);
+    // The reactivated When Digivolving effect applies its second -10000/delete pass,
+    // so both opposing Digimon are gone after the attack.
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });

@@ -20,7 +20,7 @@ describe("BT20-060 Alphamon: Ouryuken", () => {
       expect(actions[1]).toMatchObject({
         kind: "Trash",
         condition: { kind: "isDnaDigivolving" },
-        target: { filter: { controller: "opponent", zone: "security" }, count: 1, fromTop: true },
+        target: { filter: { controller: "opponent", zone: "security", position: "top" }, count: 1 },
       });
       expect(actions[2]).toMatchObject({
         kind: "GainKeyword",

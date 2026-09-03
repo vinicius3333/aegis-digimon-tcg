@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -36,7 +35,7 @@ export const compiled: CompiledCard = {
               controller: "mine",
               zone: "hand",
             },
-            count: "untilHandHas",
+            count: 1,
             untilHandSize: 4,
           },
           trackCount: "trashedThisEffect",
@@ -71,7 +70,7 @@ export const compiled: CompiledCard = {
               controller: "mine",
               zone: "hand",
             },
-            count: "untilHandHas",
+            count: 1,
             untilHandSize: 4,
           },
           trackCount: "trashedThisEffect",

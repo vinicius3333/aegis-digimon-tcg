@@ -381,6 +381,23 @@ export async function runSecurityManipulation(
         };
       }
       const resolvedPermanentIds = await resolvePermanentTargets(ctx, source);
+      // Some cards place the top card of a Digimon's digivolution stack as security
+      // rather than the Digimon's current top card (BT20-084). Keep this separate from
+      // `detachPermanentTop`: the former removes one stack card, while the latter
+      // promotes the permanent's identity after detaching its current top card.
+      if (action.fromDigivolutionTop === true) {
+        for (const permanentId of resolvedPermanentIds) {
+          const permanent = ctx.game.permanentById(permanentId);
+          const topDigivolutionCard = permanent?.stack[permanent.stack.length - 1];
+          if (topDigivolutionCard === undefined) continue;
+          const destinationSeat = action.ownerSecurity === true ? topDigivolutionCard.ownerSeat : seat;
+          await ctx.fx.addSecurity(destinationSeat, [topDigivolutionCard.instanceId], {
+            toTop: await placementToTop(),
+            faceUp: action.faceUp,
+          });
+        }
+        return;
+      }
       const ids = topInstanceIds(ctx, resolvedPermanentIds);
       if (ids.length === 0) return;
       // "on top of ITS OWNER's security stack" (LM-020): the destination follows each placed

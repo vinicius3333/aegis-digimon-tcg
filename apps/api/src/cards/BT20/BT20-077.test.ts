@@ -13,7 +13,7 @@ describe("BT20-077 HeavyMetaldramon", () => {
       expect(actions[0]).toMatchObject({
         kind: "Trash",
         trackCount: "trashedThisEffect",
-        target: { count: "untilHandHas", untilHandSize: 4 },
+        target: { count: 1, untilHandSize: 4 },
       });
       expect(actions[1]).toMatchObject({
         kind: "PlayWithoutCost",

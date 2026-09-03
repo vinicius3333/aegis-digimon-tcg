@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -53,6 +52,7 @@ export const compiled: CompiledCard = {
           target: {
             filter: {
               isSelfRef: true,
+              zone: "battleArea",
             },
             count: 1,
             isSelf: true,

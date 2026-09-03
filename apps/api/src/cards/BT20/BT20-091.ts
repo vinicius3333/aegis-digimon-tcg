@@ -1,17 +1,17 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Condition, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const royalKnight = {
+const royalKnight: Filter = {
   controllerDefault: "mine",
   kind: ["Digimon"],
+  zone: "battleArea",
   nameOrTrait: [{ tokens: ["Royal Knight"], match: "trait" }],
 };
-const royalKnightOnYourTurn = {
+const royalKnightOnYourTurn: Condition = {
   kind: "allOf",
   conditions: [{ kind: "isYourTurn" }, { kind: "triggerSubjectMatchesFilter", filter: royalKnight }],
 };
-const paidDrawAndMemory = [
+const paidDrawAndMemory: Action[] = [
   {
     kind: "Draw" as const,
     controller: "mine" as const,

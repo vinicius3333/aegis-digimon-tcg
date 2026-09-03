@@ -11,6 +11,7 @@ describe("BT20-005 Kapurimon", () => {
     expect(effect?.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenCheckedFaceUpSecurity",
+      sourceFilter: { isSelfRef: true },
       actions: [{ kind: "GainKeyword", duration: "forTheTurn", target: { isSelf: true } }],
     });
   });
@@ -43,5 +44,26 @@ describe("BT20-005 Kapurimon", () => {
     ).toEqual({ ok: true });
     await settle(() => faceDown.state.players[1]!.security.length === 0);
     expect(observe(faceDown.engine).hasKeyword(faceDown.perm("attacker"), "Jamming")).toBe(false);
+  });
+
+  it("does not grant Jamming when another allied Digimon checks face-up security", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT20-011", dp: 5000, as: "host", under: ["BT20-005"] },
+          { card: "BT20-011", dp: 5000, as: "otherAttacker" },
+        ],
+      },
+      1: { security: [{ card: "BT1-107", faceUp: true }] },
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("otherAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Jamming")).toBe(false);
   });
 });

@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming, type Seat } from "@aegis/shared";
-import { setupEngine, type BoardSpec, type EngineSetup } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type BoardSpec, type EngineSetup } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-089.js";
 import "./index.js";
 
@@ -75,12 +76,17 @@ describe("BT20-089 Code Cracker Fang & Hacker Judge — Tamer effects", () => {
       (effect) => effect.trigger === "AllTurns" && effect.actions.some((action) => action.kind === "SubTrigger"),
     );
     expect(mindLinkEffect).not.toHaveProperty("isInherited");
+    expect(mindLinkEffect?.actions).toMatchObject([
+      { sourceFilter: { controller: "mine", kind: ["Digimon"] } },
+      { sourceFilter: { controller: "mine", kind: ["Digimon"] } },
+    ]);
 
     const inheritedPlay = compiled.effects.find((effect) => effect.trigger === "EndOfAllTurns");
     expect(inheritedPlay?.actions[0]).toMatchObject({
       kind: "PlayWithoutCost",
       fromOwnDigivolutionStack: true,
       payCost: false,
+      target: { filter: { nameOrTrait: [{ tokens: ["Eiji Nagasumi"], match: "nameExact" }] } },
     });
   });
 
@@ -117,5 +123,63 @@ describe("BT20-089 Code Cracker Fang & Hacker Judge — Tamer effects", () => {
     // Memory at OnStartMainPhase should be 0 (no gain fired).
     expect(h.memoryAfterStartMainPhase.length).toBeGreaterThanOrEqual(1);
     expect(h.memoryAfterStartMainPhase[0]).toBe(0);
+  });
+
+  it("naturally Mind Links to a qualifying Digimon when that Digimon is played", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CC_FANG, as: "tamer" }],
+          hand: [{ card: "BT20-029", as: "pulsemon" }],
+        },
+        1: { deck: DECK_FILLER },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pulsemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("pulsemon").stack.some((card) => card.cardId === CC_FANG));
+
+    expect(s.perm("pulsemon").stack.map((card) => card.cardId)).toContain(CC_FANG);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === CC_FANG)).toBe(false);
+  });
+
+  it("naturally grants the three inherited keywords to a qualifying linked host", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-029", as: "host", under: [CC_FANG] }] },
+      1: { deck: DECK_FILLER },
+    });
+    await s.ready();
+
+    expect(s.perm("host").stack.map((card) => card.cardId)).toContain(CC_FANG);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Alliance")).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Barrier")).toBe(true);
+  });
+
+  it("does not Mind Link when an opponent plays the qualifying Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: CC_FANG, as: "tamer" }] },
+        1: { hand: [{ card: "BT20-029", as: "opponentPulsemon" }], deck: DECK_FILLER },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentPulsemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-029"));
+
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.stack.some((card) => card.cardId === CC_FANG)),
+    ).toBe(false);
   });
 });

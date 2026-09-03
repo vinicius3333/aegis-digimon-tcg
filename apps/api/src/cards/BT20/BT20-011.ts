@@ -7,10 +7,8 @@
 // (documented behavior) drives a single Jogress: CanSelectCardCondition gates the result on
 // `IsDigimon && (CardTraits.Contains("Free") || ContainsCardName("Imperialdramon"))`
 // and calls DNADigivolvePermanentsIntoHandOrTrashCard(payCost:true, isHand:true).
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-
-type Actions = CompiledCard["effects"][number]["actions"];
 
 const dnaBody = [
   {
@@ -45,7 +43,7 @@ const dnaBody = [
     optional: true,
     condition: { kind: "isYourTurn", raw: "it's your turn" },
   },
-] as unknown as Actions;
+] satisfies Action[];
 
 export const compiled: CompiledCard = {
   effects: [
@@ -70,7 +68,7 @@ export const compiled: CompiledCard = {
           amount: 2000,
           duration: "permanent",
         },
-      ] as unknown as Actions,
+      ] satisfies Action[],
       isInherited: true,
     },
   ],
