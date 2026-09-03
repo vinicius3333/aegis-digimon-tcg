@@ -28,6 +28,32 @@ describe("EX1-032 Magnadramon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("security").instanceId)).toBe(true);
   });
 
+  it("can trash the top security card when digivolving while already unsuspended", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX1-029", as: "base" }],
+          hand: [{ card: "EX1-032", as: "evo" }],
+          security: [{ card: "BT1-009", as: "security" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("security").instanceId));
+    expect(s.perm("base").isSuspended).toBe(false);
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("security").instanceId)).toBe(false);
+  });
+
   it("may decline the security trash and leave an already suspended stack unchanged", async () => {
     const s = setupEngine(
       {
@@ -40,7 +66,13 @@ describe("EX1-032 Magnadramon", () => {
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evo").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "EX1-032");
     expect(s.perm("base").isSuspended).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(1);
@@ -78,20 +110,34 @@ describe("EX1-032 Magnadramon", () => {
       1: { security: ["BT1-001", "BT1-001"] },
     });
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("magnadramon").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("magnadramon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("magnadramon").isSuspended);
     expect(s.state.players[0]!.security).toHaveLength(4);
-    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("notRecovered").instanceId)).toBe(false);
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("notRecovered").instanceId)).toBe(
+      false,
+    );
   });
 
   it("recovers only once across two public attacks in one turn", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX1-032", as: "magnadramon" }, { card: "BT1-030", as: "blueColor" }],
+          battleArea: [
+            { card: "EX1-032", as: "magnadramon" },
+            { card: "BT1-030", as: "blueColor" },
+          ],
           security: ["BT1-001", "BT1-001"],
           hand: [{ card: "BT1-036", as: "unsuspender" }],
-          deck: [{ card: "BT1-009", as: "firstRecovery" }, { card: "BT1-010", as: "secondRecovery" }],
+          deck: [
+            { card: "BT1-009", as: "firstRecovery" },
+            { card: "BT1-010", as: "secondRecovery" },
+          ],
         },
         1: { security: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"] },
       },
@@ -99,15 +145,26 @@ describe("EX1-032 Magnadramon", () => {
     );
     s.state.memory = 10;
     await s.ready();
-    const attack = () => s.engine.applyIntent(0, { type: "attack" as const, attackerPermanentId: s.perm("magnadramon").permanentId, target: { kind: "player" as const } });
+    const attack = () =>
+      s.engine.applyIntent(0, {
+        type: "attack" as const,
+        attackerPermanentId: s.perm("magnadramon").permanentId,
+        target: { kind: "player" as const },
+      });
     expect(attack()).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 3 && s.perm("magnadramon").isSuspended);
-    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("firstRecovery").instanceId)).toBe(true);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("unsuspender").instanceId })).toEqual({ ok: true });
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("firstRecovery").instanceId)).toBe(
+      true,
+    );
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("unsuspender").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => !s.perm("magnadramon").isSuspended);
     expect(attack()).toEqual({ ok: true });
     await settle(() => s.perm("magnadramon").isSuspended && s.state.pendingDecision === undefined);
     expect(s.state.players[0]!.security).toHaveLength(3);
-    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("secondRecovery").instanceId)).toBe(false);
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("secondRecovery").instanceId)).toBe(
+      false,
+    );
   });
 });

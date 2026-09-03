@@ -19,6 +19,7 @@ const compiled: CompiledCard = {
             count: 1,
             isSelf: true,
           },
+          allowCostWithoutTarget: true,
           cost: {
             kind: "trash",
             target: {
