@@ -73,15 +73,19 @@ describe("EX1-070 Fight for Your Pride!", () => {
           hand: [{ card: "EX1-070", as: "option" }],
           battleArea: [{ card: "EX1-063", as: "myotismon" }, { card: "EX1-056", as: "purpleSource" }],
           trash: [{ card: "EX1-057", as: "played" }],
-          deck: ["BT1-001", "BT1-001", "BT1-001"],
-          security: ["BT1-001", "BT1-001", "BT1-001"],
+          deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+          security: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
         },
-        1: { deck: ["BT1-001", "BT1-001", "BT1-001"], security: ["BT1-001", "BT1-001", "BT1-001"] },
+        1: {
+          deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+          security: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+        },
       },
       { autoSelectCards: true, preferInstanceIds },
     );
     s.state.memory = 4;
     preferInstanceIds.push(s.inst("played").instanceId);
+    await s.ready();
     const loop = s.engine.startTurnLoop();
     const played = () => s.state.players[0]!.battleArea.find((p) => p.topCard.cardId === "EX1-057");
     await advance(s.engine).waitForMainPhase(0);
@@ -94,6 +98,7 @@ describe("EX1-070 Fight for Your Pride!", () => {
     await advance(s.engine).waitForMainPhase(1);
     expect(observe(s.engine).hasKeyword(played()!, "Blocker")).toBe(true);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.state.turnSeat === 0 && s.state.phase === "Main", 5000);
     await advance(s.engine).waitForMainPhase(0);
     expect(observe(s.engine).hasKeyword(played()!, "Blocker")).toBe(false);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
