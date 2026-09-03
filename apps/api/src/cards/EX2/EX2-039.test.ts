@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX2-039.js";
 import "./EX2-040.js";
 import "./EX2-043.js";
+import "./EX2-041.js";
 import "./EX2-074.js";
 
 describe("EX2-039 Impmon", () => {
@@ -114,5 +116,73 @@ describe("EX2-039 Impmon", () => {
 
     expect(s.perm("blastMode").currentDP).toBe(18_000);
     assertNoLoudGap(s);
+  });
+
+  it("does not mill when the direct-trash optional effect is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX2-039", as: "resident" },
+            { card: "EX2-041", as: "deleter" },
+          ],
+          deck: [
+            { card: "EX2-039", as: "trashedImpmon" },
+            { card: "BT1-001", as: "fillerOne" },
+            { card: "BT1-002", as: "fillerTwo" },
+            { card: "BT1-003", as: "fillerThree" },
+            { card: "BT1-004", as: "fillerFour" },
+          ],
+        },
+      },
+      { autoOrderTriggers: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const deleterId = s.perm("deleter").permanentId;
+    // No current public intent directly mills a chosen card; deleting EX2-041 drives its
+    // production On Deletion top-deck trash effect, which emits the same event.
+    void advance(s.engine).verb.deletePermanent([deleterId]);
+    await settle(() => s.decisions.length > 0);
+    const optionalDecision = s.decisions.find(({ req }) => req.kind === "optional");
+    expect(optionalDecision).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: optionalDecision!.req.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("trashedImpmon").instanceId);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("fillerThree").instanceId,
+      s.inst("fillerFour").instanceId,
+    ]);
+  });
+
+  it("does not trigger its deck-trash effect when Impmon is only revealed", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX2-039", as: "playedImpmon" }],
+          deck: [
+            { card: "EX2-039", as: "revealedImpmon" },
+            { card: "EX2-044", as: "beelzemon" },
+            { card: "EX2-065", as: "aiMako" },
+            { card: "BT1-001", as: "filler" },
+          ],
+          trash: [{ card: "EX2-039", as: "trashImpmon" }],
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("playedImpmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("beelzemon").instanceId));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("beelzemon").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("trashImpmon").instanceId);
+    expect(s.state.players[0]!.trash).toHaveLength(1);
   });
 });
