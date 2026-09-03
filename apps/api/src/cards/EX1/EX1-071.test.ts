@@ -7,10 +7,13 @@ import "../BT3/BT3-040.js";
 import "../BT13/BT13-059.js";
 import "../EX2/EX2-070.js";
 import "../BT7/BT7-085.js";
+import "../BT7/BT7-112.js";
 import "../BT8/BT8-057.js";
 import "../BT10/BT10-050.js";
 import "../BT10/BT10-052.js";
 import "../BT15/BT15-045.js";
+import "../BT6/BT6-087.js";
+import "../BT6/BT6-018.js";
 import "../BT12/BT12-017.js";
 import "./EX1-047.js";
 import "./EX1-052.js";
@@ -344,18 +347,19 @@ describe("EX1-071 Win Rate: 60%!", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("yellowCost").instanceId)).toBe(true);
   });
 
-  it("reduces an effect-driven Takuya evolution after five Hybrids are placed (Q3264)", async () => {
+  it("reduces an effect-driven Digimon evolution after Win Rate is used (Q3264)", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT7-085", as: "takuya" }],
+          battleArea: [{ card: "BT1-010", as: "agumon" }, { card: "BT6-087", as: "tai" }],
           hand: [
             { card: "EX1-071", as: "option" },
-            { card: "BT12-017", as: "emperor" },
+            { card: "BT6-018", as: "bond" },
             { card: "BT1-020", as: "redCost" },
           ],
-          trash: ["BT7-011", "BT7-011", "BT7-011", "BT7-011", "BT7-011"],
+          deck: ["BT1-001", "BT1-001"],
+          security: ["BT1-001", "BT1-001"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds },
@@ -365,19 +369,20 @@ describe("EX1-071 Win Rate: 60%!", () => {
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-071"));
-    const takuya = s.perm("takuya");
-    const mainEffect = (observe(s.engine).activatableEffects(takuya) as Array<{ effectKey: string }>).find(
-      (entry) => entry.effectKey === "BT7-085/main-digivolve",
+    const before = s.state.memory;
+    const tai = s.perm("tai");
+    const mainEffect = (observe(s.engine).activatableEffects(tai) as Array<{ effectKey: string }>).find(
+      (entry) => entry.effectKey === "BT6-087/main-digivolve-bond-of-bravery",
     );
     expect(mainEffect).toBeDefined();
     expect(s.engine.applyIntent(0, {
       type: "activateEffect",
-      sourceInstanceId: takuya.topCard.instanceId,
+      sourceInstanceId: tai.topCard.instanceId,
       effectKey: mainEffect!.effectKey,
     })).toEqual({ ok: true });
-    await settle(() => s.perm("takuya").topCard.cardId === "BT12-017");
-    expect(s.perm("takuya").stack).toHaveLength(6);
+    await settle(() => s.perm("agumon").topCard.cardId === "BT6-018");
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("redCost").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(before);
   });
 
   it("does not let Win Rate bypass Digivolution Plug-In S's printed cost cap (Q3359)", async () => {
@@ -403,6 +408,40 @@ describe("EX1-071 Win Rate: 60%!", () => {
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX2-070"));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tooExpensive").instanceId)).toBe(true);
     expect(s.perm("base").topCard.cardId).toBe("EX1-047");
+  });
+
+  it("processes Susanoomon's alternate Tamer effect before Win Rate (Q1688)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT7-085", as: "takuya" }],
+          hand: [
+            { card: "EX1-071", as: "option" },
+            { card: "BT7-112", as: "susanoomon" },
+            { card: "BT1-020", as: "sameColorHand" },
+          ],
+          trash: [
+            "BT7-011", "BT7-011", "BT7-011", "BT7-011", "BT7-011",
+            "BT7-011", "BT7-011", "BT7-011", "BT7-011", "BT7-011",
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-071"));
+    const before = s.state.memory;
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("takuya").permanentId,
+      instanceId: s.inst("susanoomon").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("takuya").topCard.cardId === "BT7-112");
+    expect(s.state.memory).toBe(before - 7);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("sameColorHand").instanceId)).toBe(true);
+
   });
 
   it("keeps Win Rate's pending reduction after Shivamon suspends and locks Options (Q1736)", async () => {
