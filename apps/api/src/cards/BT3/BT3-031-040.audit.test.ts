@@ -31,7 +31,7 @@ describe("BT3-031 through BT3-040 IR coverage", () => {
               amount: 2,
               handResident: true,
               sourceFilter: expect.objectContaining({
-                nameOrTrait: [{ tokens: ["Paildramon", "Dinobeemon"], match: "name" }],
+                nameOrTrait: [{ tokens: ["Paildramon", "Dinobeemon"], match: "nameExact" }],
               }),
             }),
           ]),

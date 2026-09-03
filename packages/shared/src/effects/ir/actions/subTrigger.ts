@@ -61,7 +61,7 @@ export type SubTriggerEvent =
   | "whenMovedFromBreeding"
   | "whenOpponentMovedFromBreeding"
   | "whenBattleWon"
-  | "whenSecurityBattleEnded"
+  | "whenSecurityBattleEnded" // delayed Security bodies resolve after the checked card reaches trash
   | "whenHandCardTrashed"
   | "whenHandTrashed" // once per trash ACTION, not per card (KB Q6400/Q6401)
   | "whenTrashedFromSecurity"

@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR — the digivolution-cost reduction is active while this card is in hand.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
@@ -32,7 +31,7 @@ const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Paildramon", "Dinobeemon"],
-                match: "name",
+                match: "nameExact",
               },
             ],
           },

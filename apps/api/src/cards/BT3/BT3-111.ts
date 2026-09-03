@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -11,7 +10,10 @@ const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldDigivolve",
-          sourceFilter: { controller: "mine", nameOrTrait: [{ tokens: ["Paildramon", "Dinobeemon"], match: "name" }] },
+          sourceFilter: {
+            controller: "mine",
+            nameOrTrait: [{ tokens: ["Paildramon", "Dinobeemon"], match: "nameExact" }],
+          },
           into: { zone: "hand", controller: "mine" },
           actions: [
             {
