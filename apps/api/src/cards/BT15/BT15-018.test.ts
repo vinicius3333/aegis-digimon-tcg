@@ -1,15 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCompiledCard } from "@aegis/shared";
+import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
+import { compiled } from "./BT15-018.js";
 
 describe("BT15-018 memory gates", () => {
   it("compiles each printed memory condition against the correct side", () => {
-    const compiled = getCompiledCard("BT15-018");
-    expect(compiled).toBeDefined();
-
-    const conditions = compiled!.effects.map((effect) => effect.actions[0]!.condition);
+    const conditions = compiled.effects.map((effect) => effect.actions[0]!.condition);
     expect(conditions).toEqual([
       { kind: "memoryAtLeast", value: 4, controller: "opponent" },
       { kind: "memoryAtMost", value: 4, controller: "mine" },

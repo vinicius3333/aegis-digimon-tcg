@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -61,8 +60,12 @@ const compiled: CompiledCard = {
                 kind: "selfHasInDigivolutionCards",
                 nameOrTrait: [
                   {
-                    tokens: ["Plesiomon", "X Antibody"],
+                    tokens: ["Plesiomon"],
                     match: "name",
+                  },
+                  {
+                    tokens: ["X Antibody"],
+                    match: "trait",
                   },
                 ],
                 raw: "[Plesiomon]/[X Antibody] is in this Digimon's digivolution cards",

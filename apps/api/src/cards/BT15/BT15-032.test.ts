@@ -24,7 +24,19 @@ describe("BT15-032", () => {
           kind: "SubTrigger",
           event: "whenOpponentAttacks",
           sourceFilter: { controller: "opponent", digivolutionCardsCompareToSource: "lte" },
-          actions: [{ kind: "GainMemory", amount: 2, condition: { kind: "selfHasInDigivolutionCards" } }],
+          actions: [
+            {
+              kind: "GainMemory",
+              amount: 2,
+              condition: {
+                kind: "selfHasInDigivolutionCards",
+                nameOrTrait: [
+                  { tokens: ["Plesiomon"], match: "name" },
+                  { tokens: ["X Antibody"], match: "trait" },
+                ],
+              },
+            },
+          ],
         },
       ],
     }));
@@ -58,7 +70,9 @@ describe("BT15-032", () => {
         instanceId: s.inst("plesiomonX").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.hand.some(({ instanceId }) => instanceId === s.inst("firstEqual").instanceId));
+    await settle(() =>
+      s.state.players[1]!.hand.some(({ instanceId }) => instanceId === s.inst("firstEqual").instanceId),
+    );
 
     expect(
       s.engine.applyIntent(0, {
@@ -81,6 +95,32 @@ describe("BT15-032", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT15-032", as: "watcher", under: [{ card: "BT14-029", as: "plesiomon" }] }],
+        security: ["BT1-001"],
+      },
+      1: {
+        battleArea: [{ card: "BT15-029", as: "attacker", under: ["BT15-023"] }],
+      },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.memory === -2);
+
+    expect(s.state.memory).toBe(-2);
+  });
+
+  it("accepts a non-Plesiomon X Antibody trait card underneath", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT15-032", as: "watcher", under: [{ card: "BT15-005", as: "xAntibody" }] }],
         security: ["BT1-001"],
       },
       1: {

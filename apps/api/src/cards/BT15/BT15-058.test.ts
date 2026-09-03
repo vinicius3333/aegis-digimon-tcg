@@ -28,7 +28,7 @@ describe("BT15-058", () => {
     expect(compiled.effects?.[1]).toMatchObject({
       trigger: "OnPlay",
       actions: [
-        { kind: "SelectBind", target: { bindAs: "suspended" } },
+        { kind: "SelectBind", target: { bindAs: "suspended", filter: { unsuspended: true } } },
         { kind: "Suspend", target: { fromSelectionRef: "suspended" } },
         {
           kind: "Restrict",

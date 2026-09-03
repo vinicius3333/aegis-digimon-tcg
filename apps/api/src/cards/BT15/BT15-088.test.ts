@@ -15,7 +15,7 @@ describe("BT15-088", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
   });
 
-  it("may play a red Tamer costing 4 or less and return a red Digimon from trash with Sora", () => {
+  it("may play a red Tamer costing 4 or less, then must return a red Digimon from trash with Sora", () => {
     expect(compiled.effects?.[0]?.actions[0]).toMatchObject({
       kind: "PlayWithoutCost",
       from: ["hand"],
@@ -26,8 +26,8 @@ describe("BT15-088", () => {
       kind: "Return",
       to: "hand",
       condition: { kind: "youHave" },
-      optional: true,
     });
+    expect(compiled.effects?.[0]?.actions[1]?.optional).toBeUndefined();
   });
   it("may play Biyomon from hand or trash and returns itself from security", () =>
     expect(compiled.effects?.[1]).toMatchObject({

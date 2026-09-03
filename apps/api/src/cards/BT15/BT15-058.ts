@@ -1,18 +1,18 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Hand-authored override (runtime-effect fix). "Suspend 1 of your opponent's Digimon. If [a
 // DigiPolice Tamer is in this Digimon's digivolution cards], THAT Digimon can't unsuspend
 // until the end of their turn." — bind the suspended Digimon and restrict that same one
 // (the prior IR independently re-targeted an opponent Digimon for the Restrict).
-const suspendThenRestrict = () => [
+const suspendThenRestrict = (): Action[] => [
   {
     kind: "SelectBind",
     target: {
       filter: {
         controller: "opponent",
         kind: ["Digimon"],
+        unsuspended: true,
       },
       count: 1,
       bindAs: "suspended",

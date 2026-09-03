@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -35,7 +34,7 @@ const compiled: CompiledCard = {
                       },
                     ],
                     distinctNames: true,
-                    zone: "trashOrBattleArea",
+                    zone: ["trash", "battleArea"],
                   },
                   count: 3,
                   upTo: true,

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT15-081.js";
@@ -78,5 +79,36 @@ describe("BT15-081", () => {
     expect(s.perm("leviamon").topCard.cardId).toBe("BT15-081");
     expect(s.perm("leviamon").stack.map((card) => card.cardId)).toContain("EX5-063");
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT15-007")).toBe(false);
+  });
+
+  it("does not react when the opponent effect-plays a Digimon into breeding", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX5-063", as: "leviamon" }],
+          trash: [{ card: "BT15-081", as: "fromTrash" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT15-055", as: "victim" },
+            { card: "BT15-062", as: "gigadramon" },
+          ],
+          hand: [{ card: "BT15-066", as: "machinedramon" }],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("victim").permanentId);
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    await advance(s.engine).runTurn(1);
+    await settle(() => s.state.players[1]!.breeding?.topCard?.cardId === "BT15-066");
+
+    expect(s.state.players[1]!.breeding?.topCard?.cardId).toBe("BT15-066");
+    expect(s.perm("leviamon").topCard.cardId).toBe("EX5-063");
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("fromTrash").instanceId);
   });
 });

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -91,8 +90,7 @@ const compiled: CompiledCard = {
       keywords: [
         {
           keyword: "Piercing",
-          raw:
-            "(When this Digimon attacks and deletes an opponent's Digimon and survives the battle, it performs any security checks it normally would).",
+          raw: "(When this Digimon attacks and deletes an opponent's Digimon and survives the battle, it performs any security checks it normally would).",
         },
       ],
     },

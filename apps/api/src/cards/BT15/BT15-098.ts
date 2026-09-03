@@ -1,9 +1,16 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const myotismon = { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Myotismon"], match: "name" }] };
-const venomMyotismon = { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["VenomMyotismon"], match: "name" }] };
+const myotismon: Filter = {
+  controller: "mine",
+  kind: ["Digimon"],
+  nameOrTrait: [{ tokens: ["Myotismon"], match: "name" }],
+};
+const venomMyotismon: Filter = {
+  controller: "mine",
+  kind: ["Digimon"],
+  nameOrTrait: [{ tokens: ["VenomMyotismon"], match: "name" }],
+};
 
 export const compiled: CompiledCard = {
   effects: [
@@ -16,7 +23,13 @@ export const compiled: CompiledCard = {
           optional: false,
           abortOnDecline: true,
           actions: [
-            { kind: "PlayWithoutCost", target: { filter: myotismon, count: 1 }, from: ["trash"], payCost: false, optional: true },
+            {
+              kind: "PlayWithoutCost",
+              target: { filter: myotismon, count: 1 },
+              from: ["trash"],
+              payCost: false,
+              optional: true,
+            },
             { kind: "PlaceInBattleAreaSelf" },
           ],
         },

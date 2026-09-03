@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -27,7 +26,7 @@ const compiled: CompiledCard = {
         },
         {
           kind: "Restrict",
-          target: { fromSelectionRef: "suspendedTarget" },
+          target: { filter: {}, count: 1, fromSelectionRef: "suspendedTarget" },
           restriction: "unsuspend",
           duration: "untilOpponentNextUnsuspendPhase",
           condition: { kind: "digiXrosCount", minimum: 2, raw: "if DigiXrosing with 2 cards" },
