@@ -4,6 +4,8 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT3/BT3-040.js";
 import "../BT13/BT13-059.js";
+import "./EX1-047.js";
+import "./EX1-052.js";
 import "./EX1-071.js";
 
 describe("EX1-071 Win Rate: 60%!", () => {
@@ -252,5 +254,28 @@ describe("EX1-071 Win Rate: 60%!", () => {
     const id = s.inst("securityOption").instanceId;
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === id)).toBe(true);
+  });
+
+  it("does not reduce a matching digivolution performed in the breeding area (Q3259)", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "EX1-047", as: "breedingBase" },
+        battleArea: [{ card: "BT1-085", as: "tamer" }],
+        hand: [{ card: "EX1-071", as: "option" }, { card: "EX1-052", as: "evo" }, { card: "EX1-050", as: "cost" }],
+        deck: ["BT1-009"],
+      },
+    }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-071"));
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("breedingBase").permanentId,
+      instanceId: s.inst("evo").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("breedingBase").topCard.cardId === "EX1-052");
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
   });
 });
