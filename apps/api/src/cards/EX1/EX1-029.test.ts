@@ -63,17 +63,33 @@ describe("EX1-029 MagnaAngemon", () => {
 
   it("keeps the attack bonus through the opponent turn and expires after it", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX1-029", as: "magna", dp: 7000 }], security: ["BT1-001", "BT1-001", "BT1-001"] },
-      1: { security: ["BT1-001", "BT1-001"] },
+      0: {
+        battleArea: [{ card: "EX1-029", as: "magna", dp: 7000 }],
+        security: ["BT1-001", "BT1-001", "BT1-001"],
+        hand: ["BT1-009"],
+        deck: ["BT1-001", "BT1-001", "BT1-001"],
+      },
+      1: {
+        security: ["BT1-001", "BT1-001"],
+        hand: ["BT1-009"],
+        deck: ["BT1-001", "BT1-001", "BT1-001"],
+      },
     });
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("magna").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
     await settle(() => s.perm("magna").currentDP === 11000);
-    s.state.turnSeat = 1;
-    await advance(s.engine).recompute();
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    await s.ready();
     expect(s.perm("magna").currentDP).toBe(11000);
-    await advance(s.engine).runTurn(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    await s.ready();
     expect(s.perm("magna").currentDP).toBe(7000);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("does not gain memory twice when public security replacement repeats in one turn", async () => {
