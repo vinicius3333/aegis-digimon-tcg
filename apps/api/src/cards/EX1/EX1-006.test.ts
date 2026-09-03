@@ -40,6 +40,32 @@ describe("EX1-006 Garudamon", () => {
     expect(s.state.memory).toBe(5);
   });
 
+  it("gains memory before the opponent receives the Blocker response (Q3195)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-025", as: "attacker", under: ["EX1-006"] }] },
+      1: { battleArea: [{ card: "BT1-072", as: "blocker" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.state.memory).toBe(6);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "declareBlock",
+        blockerPermanentId: s.perm("blocker").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+  });
+
   it("gains memory only once across two player attacks in one turn", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-025", as: "attacker", under: ["EX1-006"] }] },
