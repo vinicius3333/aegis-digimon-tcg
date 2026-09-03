@@ -61,9 +61,9 @@ describe("EX1-005 Tyrannomon", () => {
   });
 
   it("grants inherited +2000 DP only to a Tyrannomon-named host on your turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX1-005", as: "host", under: ["EX1-005"], dp: 4000 }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-024", as: "host", under: ["EX1-005"], dp: 7000 }] } });
     await s.ready();
-    expect(s.perm("host").currentDP).toBe(6000);
+    expect(s.perm("host").currentDP).toBe(9000);
   });
 
   it("honors refusal of the optional Taiga play", async () => {
@@ -78,29 +78,29 @@ describe("EX1-005 Tyrannomon", () => {
   });
 
   it("shows the Your Turn Green grant on the EX1-005 host", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX1-005", as: "host", under: ["EX1-005"], dp: 4000 }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX1-005", as: "host", under: ["BT1-010"], dp: 4000 }] } });
     await s.ready();
     expect(observe(s.engine).effectiveColors(s.perm("host"))).toContain("Green");
-    expect(s.perm("host").currentDP).toBe(6000);
+    expect(s.perm("host").currentDP).toBe(4000);
   });
 
   it("excludes a non-Tyrannomon host from the inherited DP bonus", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX1-004", as: "host", under: ["EX1-005"], dp: 5000 }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-020", as: "host", under: ["EX1-005"], dp: 6000 }] } });
     await s.ready();
-    expect(s.perm("host").currentDP).toBe(5000);
+    expect(s.perm("host").currentDP).toBe(6000);
   });
 
   it("does not grant the inherited DP or Green effect during the opponent turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX1-005", as: "host", under: ["EX1-005"], dp: 4000 }] }, 1: { battleArea: [{ card: "BT1-070" }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-024", as: "host", under: ["EX1-005"], dp: 7000 }] }, 1: { battleArea: [{ card: "BT1-070" }] } });
     await s.ready();
     s.state.turnSeat = 1;
     await advance(s.engine).recompute();
-    expect(s.perm("host").currentDP).toBe(4000);
+    expect(s.perm("host").currentDP).toBe(7000);
     expect(observe(s.engine).effectiveColors(s.perm("host"))).not.toContain("Green");
   });
 
   it("does not apply the inherited DP effect to a Tyrannomon in breeding", async () => {
-    const s = setupEngine({ 0: { breeding: { card: "EX1-005", as: "host", under: ["EX1-005"], dp: 4000 } } });
+    const s = setupEngine({ 0: { breeding: { card: "EX1-005", as: "host", under: ["BT1-010"], dp: 4000 } } });
     await s.ready();
     expect(s.perm("host").currentDP).toBe(4000);
   });
