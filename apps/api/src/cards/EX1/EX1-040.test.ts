@@ -26,6 +26,41 @@ describe("EX1-040 MegaKabuterimon", () => {
     expect(s.state.memory).toBe(-2);
   });
 
+  it("Q3226: applies the crossing digivolution cost before the continuing security check", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX1-040", as: "mega" }], hand: [{ card: "BT1-083", as: "evo" }] },
+        1: { security: ["BT1-001", "BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+    const startEventIndex = s.events.length;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("mega").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    const attackEvents = s.events.slice(startEventIndex);
+    const memoryIndex = attackEvents.findIndex(
+      (event) => event.kind === "memoryChanged" && event.reason === "digivolve" && event.to < 0,
+    );
+    const revealedIndex = attackEvents.findIndex((event) => event.kind === "securityRevealed");
+    const checkedIndex = attackEvents.findIndex((event) => event.kind === "securityChecked");
+    expect(memoryIndex).toBeGreaterThanOrEqual(0);
+    expect(revealedIndex).toBeGreaterThan(memoryIndex);
+    expect(checkedIndex).toBeGreaterThan(revealedIndex);
+    expect(attackEvents.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.perm("mega").topCard.cardId).toBe("BT1-083");
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.memory).toBe(-2);
+  });
+
   it("can choose the Ancient Insect branch while attacking", async () => {
     const s = setupEngine(
       {
