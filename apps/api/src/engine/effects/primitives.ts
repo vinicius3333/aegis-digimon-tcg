@@ -4947,10 +4947,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     continuous.projectOnDeletionAtEndOfAttack(permanentId, durationForTarget(permanentId, duration));
   };
 
-  // A named custom effect grant is a one-shot, DURATION-scoped grant (NOT continuous): it is
-  // installed once when the granting effect resolves and survives the continuous recompute, so
-  // it is recorded WITHOUT continuousOpt(). It lapses at its boundary (sweep) or when the host
-  // permanent leaves the field (dropForPermanent).
+  // A named custom effect grant keeps the provenance of the effect that installs it. A resolved
+  // duration grant survives continuous recompute, while a GrantAura continuous pass marks its
+  // derived grant for replacement on the next pass. Both lapse at the duration boundary (sweep)
+  // or when the host permanent leaves the field (dropForPermanent).
   const grantCustomEffect: NonNullable<Primitives["grantCustomEffect"]> = (
     instanceId,
     ownerSeat,
