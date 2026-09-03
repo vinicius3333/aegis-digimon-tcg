@@ -39,7 +39,10 @@ describe("EX2-041 Dobermon", () => {
             { card: "BT1-002", as: "millTwo" },
             { card: "BT1-003", as: "millThree" },
           ],
-          trash: [{ card: "BT10-093", as: "returnee" }],
+          trash: [
+            { card: "BT10-093", as: "returnee" },
+            { card: "EX2-060", as: "wrongColor" },
+          ],
         },
       },
       { autoSelectCards: true },
@@ -47,7 +50,8 @@ describe("EX2-041 Dobermon", () => {
     const dobermonId = s.perm("dobermon").permanentId;
     await advance(s.engine).verb.deletePermanent([dobermonId], "byEffect");
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("returnee").instanceId);
-    expect(s.state.players[0]!.trash).toHaveLength(4);
+    expect(s.state.players[0]!.trash).toHaveLength(5);
     expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("wrongColor").instanceId);
   });
 });

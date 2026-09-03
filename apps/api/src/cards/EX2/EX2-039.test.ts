@@ -13,7 +13,14 @@ describe("EX2-039 Impmon", () => {
       {
         0: {
           hand: [{ card: "EX2-039", as: "impmon" }],
-          deck: [{ card: "EX2-044", as: "beelzemon" }, { card: "EX2-065", as: "aiMako" }, "BT1-001", "BT1-002"],
+          deck: [
+            { card: "EX2-044", as: "beelzemon" },
+            { card: "EX2-065", as: "aiMako" },
+            "EX2-014",
+            "EX2-015",
+            "EX2-031",
+            "EX2-032",
+          ],
         },
       },
       { autoSelectCards: true, autoOrderTriggers: true },
@@ -22,10 +29,15 @@ describe("EX2-039 Impmon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("impmon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.hand.length === 2);
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.deck.map((card) => card.cardId).join(",") === "EX2-031,EX2-032,EX2-014,EX2-015",
+    );
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("beelzemon").instanceId, s.inst("aiMako").instanceId]),
     );
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["EX2-031", "EX2-032", "EX2-014", "EX2-015"]);
   });
 
   it("does not recursively trigger an Impmon trashed by EX2-039's own mill", async () => {

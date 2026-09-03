@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, Primitives, SubTriggerInstall } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
@@ -147,6 +148,7 @@ describe("EX2-043 Gulfmon", () => {
           battleArea: [
             { card: "EX2-042", as: "base" },
             { card: "EX2-040", as: "target", suspended: true },
+            { card: "EX2-040", as: "secondTarget", suspended: true },
           ],
           hand: [{ card: "EX2-043", as: "gulfmon" }, "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
           deck: Array.from({ length: 8 }, () => "BT1-001"),
@@ -170,7 +172,14 @@ describe("EX2-043 Gulfmon", () => {
 
     expect(s.perm("base").topCard.cardId).toBe("EX2-043");
     expect(s.perm("target").isSuspended).toBe(false);
+    expect(s.perm("secondTarget").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand.length).toBe(5);
+    await advance(s.engine).fireSubTrigger("whenHandTrashed", {
+      handTrashedSeat: 0,
+      byEffectSeat: 0,
+    });
+    await settle();
+    expect(s.perm("secondTarget").isSuspended).toBe(true);
   });
 
   it("leaves a five-card hand intact while trimming the other player's hand to five", async () => {
