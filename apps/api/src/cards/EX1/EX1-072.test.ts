@@ -64,7 +64,7 @@ describe("EX1-072 Emergency Program Shutdown!", () => {
       },
       { autoDeclineOptional: true },
     );
-    s.state.memory = 3;
+    s.state.memory = 4;
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shutdown").instanceId })).toEqual({ ok: true });
