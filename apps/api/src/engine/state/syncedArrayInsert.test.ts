@@ -58,10 +58,10 @@ function mirror(state: GameState) {
   return { client, patch };
 }
 
-const ids = (cards: Iterable<{ instanceId: string }>): string[] => Array.from(cards, (card) => card.instanceId);
+const ids = (cards: Iterable<{ instanceId: string }>): string[] => Array.from(cards, (entry) => entry.instanceId);
 /** Undefined for an entry the client decoded without an identity — the blank-card symptom. */
 const decodedIds = (cards: Iterable<CardInstance | undefined>): (string | undefined)[] =>
-  Array.from(cards, (card) => card?.instanceId);
+  Array.from(cards, (entry) => entry?.instanceId);
 
 describe("inserting into synchronized arrays", () => {
   it("puts a bottom digivolution card at the bottom for the client too", () => {

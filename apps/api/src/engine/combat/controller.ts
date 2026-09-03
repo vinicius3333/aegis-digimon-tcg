@@ -1394,9 +1394,9 @@ export class CombatController {
       await this.hooks.fireSubTrigger?.("whenLeavesPlay", { deletedPermanentId: permanentId });
     }
 
-  const attackerTopCardId = attacker.topCard?.cardId;
-  const defenderTopCardId = defender.topCard?.cardId;
-  const deleted: string[] = [];
+    const attackerTopCardId = attacker.topCard?.cardId;
+    const defenderTopCardId = defender.topCard?.cardId;
+    const deleted: string[] = [];
     const deletedInstanceIds: string[] = [];
     const deletedWasStackInstanceIds: string[] = [];
     const deletedWasLinkedInstanceIds: string[] = [];
