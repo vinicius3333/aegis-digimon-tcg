@@ -7,6 +7,10 @@ import "../BT3/BT3-040.js";
 import "../BT13/BT13-059.js";
 import "../EX2/EX2-070.js";
 import "../BT7/BT7-085.js";
+import "../BT8/BT8-057.js";
+import "../BT10/BT10-050.js";
+import "../BT10/BT10-052.js";
+import "../BT15/BT15-045.js";
 import "../BT12/BT12-017.js";
 import "./EX1-047.js";
 import "./EX1-052.js";
@@ -399,6 +403,49 @@ describe("EX1-071 Win Rate: 60%!", () => {
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX2-070"));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tooExpensive").instanceId)).toBe(true);
     expect(s.perm("base").topCard.cardId).toBe("EX1-047");
+  });
+
+  it("keeps Win Rate's pending reduction after Shivamon suspends and locks Options (Q1736)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX1-071", as: "option" },
+            { card: "BT15-045", as: "suspender" },
+            { card: "BT10-052", as: "greenEvo" },
+            { card: "ST9-09", as: "greenCost" },
+            { card: "BT1-106", as: "lockedOption" },
+          ],
+          battleArea: [{ card: "BT10-050", as: "greenBase" }, { card: "BT1-085", as: "tamer" }],
+          deck: ["BT1-001", "BT1-001"],
+          security: ["BT1-001", "BT1-001"],
+        },
+        1: {
+          battleArea: [{ card: "BT8-057", as: "shivamon" }],
+          deck: ["BT1-001", "BT1-001"],
+          security: ["BT1-001", "BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.inst("greenCost").instanceId);
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-071"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("suspender").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("shivamon").isSuspended);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lockedOption").instanceId }).ok).toBe(false);
+    const before = s.state.memory;
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("greenBase").permanentId,
+      instanceId: s.inst("greenEvo").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("greenBase").topCard.cardId === "BT10-052");
+    expect(s.state.memory).toBe(before);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("greenCost").instanceId)).toBe(true);
   });
 
   it("adds itself to hand from security", async () => {
