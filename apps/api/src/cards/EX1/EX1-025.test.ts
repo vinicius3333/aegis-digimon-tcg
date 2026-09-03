@@ -32,7 +32,7 @@ describe("EX1-025 Salamon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => false, 40);
+    await settle(() => s.perm("host").isSuspended);
     expect(s.state.players[0]!.hand).toHaveLength(1);
   });
 
@@ -53,7 +53,7 @@ describe("EX1-025 Salamon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => false, 40);
+    await settle(() => s.perm("host").isSuspended);
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });
 });
