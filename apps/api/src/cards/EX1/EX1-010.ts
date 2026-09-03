@@ -9,16 +9,10 @@ const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
-          kind: "SubTrigger",
-          event: "whenAttacking",
-          actions: [
-            {
-              kind: "Draw",
-              controller: "mine",
-              amount: 2,
-              condition: { kind: "attackTargetsPlayer", raw: "when this Digimon attacks a player" },
-            },
-          ],
+          kind: "Draw",
+          controller: "mine",
+          amount: 2,
+          condition: { kind: "attackTargetsPlayer", raw: "when this Digimon attacks a player" },
         },
       ],
     },
