@@ -248,7 +248,7 @@ describe("EX1-071 Win Rate: 60%!", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("greenCost").instanceId)).toBe(true);
   });
 
-  it("does not trash a Hybrid from hand before Takuya places five from trash (Q3261)", async () => {
+  it("does not trash a fifth Hybrid from hand before Takuya places five from trash (Q3261)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -257,7 +257,7 @@ describe("EX1-071 Win Rate: 60%!", () => {
             { card: "EX1-071", as: "option" },
             { card: "BT7-011", as: "handHybrid" },
           ],
-          trash: ["BT7-011", "BT7-011", "BT7-011", "BT7-011", "BT7-011"],
+          trash: ["BT7-011", "BT7-011", "BT7-011", "BT7-011"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
@@ -270,15 +270,9 @@ describe("EX1-071 Win Rate: 60%!", () => {
     const takuya = s.perm("takuya");
     const activatable = observe(s.engine).activatableEffects(takuya) as Array<{ effectKey: string }>;
     const mainEffect = activatable.find((entry) => entry.effectKey === "BT7-085/main-digivolve");
-    expect(mainEffect).toBeDefined();
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: takuya.topCard.instanceId,
-      effectKey: mainEffect!.effectKey,
-    })).toEqual({ ok: true });
-    await settle(() => s.perm("takuya").stack.length === 5);
-
-    expect(s.perm("takuya").stack).toHaveLength(5);
+    expect(mainEffect).toBeUndefined();
+    expect(s.perm("takuya").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.filter((card) => card.cardId === "BT7-011")).toHaveLength(4);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("handHybrid").instanceId)).toBe(true);
   });
 
