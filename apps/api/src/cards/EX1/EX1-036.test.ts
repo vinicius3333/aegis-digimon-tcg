@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT1/BT1-070.js";
+import "../BT1/BT1-075.js";
 import "./EX1-036.js";
 
 describe("EX1-036 Togemon", () => {
@@ -9,7 +10,7 @@ describe("EX1-036 Togemon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX1-038", as: "host", under: ["EX1-036"], dp: 5000 }],
+          battleArea: [{ card: "BT1-075", as: "host", under: ["BT1-064", "EX1-036"], dp: 5000 }],
           hand: [{ card: "BT1-070", as: "suspender" }],
         },
         1: { battleArea: [{ card: "BT1-070", as: "opponent" }] },
@@ -31,7 +32,7 @@ describe("EX1-036 Togemon", () => {
       {
         0: {
           battleArea: [
-            { card: "EX1-038", as: "host", under: ["EX1-036"], dp: 5000 },
+            { card: "BT1-075", as: "host", under: ["BT1-064", "EX1-036"], dp: 5000 },
             { card: "BT1-070", as: "ownTarget" },
           ],
           hand: [
@@ -90,7 +91,7 @@ describe("EX1-036 Togemon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX1-038", as: "host", under: ["EX1-036"], dp: 5000 }],
+          battleArea: [{ card: "BT1-075", as: "host", under: ["BT1-064", "EX1-036"], dp: 5000 }],
           hand: ["BT1-001"],
           deck: ["BT1-001", "BT1-002"],
           security: ["BT1-001", "BT1-001"],
