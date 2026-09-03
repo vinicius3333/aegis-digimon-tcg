@@ -39,7 +39,7 @@ describe("EX1-012 Gomamon", () => {
     );
     s.state.memory = 3;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gomamon").instanceId })).toEqual({ ok: true });
-    await settle(() => false, 40);
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "EX1-012"));
     expect(s.perm("target").stack).toHaveLength(0);
   });
 
@@ -50,7 +50,7 @@ describe("EX1-012 Gomamon", () => {
     );
     s.state.memory = 3;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gomamon").instanceId })).toEqual({ ok: true });
-    await settle(() => false, 40);
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "EX1-012"));
     expect(s.perm("raised").stack).toHaveLength(1);
   });
 });
