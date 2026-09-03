@@ -3,6 +3,8 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./EX1-008.js";
+import "../BT8/BT8-104.js";
+import "../BT1/BT1-017.js";
 
 describe("EX1-008 MetalGreymon", () => {
   it("deletes an opposing Digimon with 4000 DP or less when attacking a player", async () => {
@@ -45,8 +47,36 @@ describe("EX1-008 MetalGreymon", () => {
         target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => false, 40);
+    await settle(() => s.perm("attacker").isSuspended);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  it("deletes the eligible target before the public Blocker response (Q3197)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX1-008", as: "attacker" }] },
+        1: {
+          battleArea: [
+            { card: "ST18-07", as: "smallBlocker", dp: 4000 },
+            { card: "BT1-072", as: "remainingBlocker" },
+          ],
+          security: ["BT1-001", "BT1-001"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("smallBlocker").permanentId, s.perm("smallBlocker").topCard.instanceId);
+    const deletedId = s.perm("smallBlocker").topCard.instanceId;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === deletedId));
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.events.find((event) => event.kind === "blockWindowOpened")).toMatchObject({
+      eligibleBlockerIds: [s.perm("remainingBlocker").permanentId],
+    });
+    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("remainingBlocker").permanentId })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
   });
 
   it("grants inherited Piercing to a Machine host", async () => {
@@ -61,12 +91,55 @@ describe("EX1-008 MetalGreymon", () => {
     expect(observe(s.engine).hasPierce(s.perm("dragon"))).toBe(true);
   });
 
-  it("limits inherited Piercing to your turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT2-066", as: "machine", under: ["EX1-008"] }] }, 1: { battleArea: [{ card: "BT1-070" }] } });
+  it("uses the Dragonkin alternative in a real battle and Piercing security check", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-025", as: "dragon", under: ["EX1-008"] }] },
+      1: { battleArea: [{ card: "BT1-070", as: "target", dp: 3000, suspended: true }], security: ["BT1-001"] },
+    });
     await s.ready();
-    s.state.turnSeat = 1;
-    await advance(s.engine).recompute();
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("dragon").permanentId, target: { kind: "permanent", permanentId: s.perm("target").permanentId } })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+  });
+
+  it("keeps Piercing's already-open second check after source loss (Q3196)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT6-017", as: "attacker", under: ["EX1-008"] }],
+          hand: [{ card: "BT1-017", as: "grantor" }],
+        },
+        1: { battleArea: [{ card: "BT1-070", as: "target", dp: 3000, suspended: true }], security: ["BT8-104", "BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("attacker").permanentId);
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("grantor").instanceId })).toEqual({ ok: true });
+    await settle(() => observe(s.engine).keywordAmount(s.perm("attacker"), "SecurityAttack") === 1);
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "permanent", permanentId: s.perm("target").permanentId } })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(2);
+    expect(s.perm("attacker").topCard.cardId).toBe("EX1-008");
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT6-017")).toBe(true);
+  });
+
+  it("limits inherited Piercing to your turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT2-066", as: "machine", under: ["EX1-008"] }], deck: [] },
+      1: { battleArea: [{ card: "BT1-070" }], deck: ["BT1-001"] },
+    });
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    await s.ready();
     expect(observe(s.engine).hasPierce(s.perm("machine"))).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("uses real battle resolution to pierce security after attacking a Digimon", async () => {
