@@ -28,19 +28,19 @@ describe("EX1-007 Megadramon", () => {
   });
 
   it("grants inherited Security Attack +1 to a Machine host on your turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-042", as: "machine", under: ["EX1-007"] }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT2-066", as: "machine", under: ["EX1-007"] }] } });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("machine"), "SecurityAttack")).toBe(true);
   });
 
   it("does not grant Security Attack +1 to a non-Machine host", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-041", as: "host", under: ["EX1-007"] }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-025", as: "host", under: ["EX1-007"] }] } });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "SecurityAttack")).toBe(false);
   });
 
   it("does not grant the inherited keyword during the opponent turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-042", as: "machine", under: ["EX1-007"] }] }, 1: { battleArea: [{ card: "BT1-070" }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT2-066", as: "machine", under: ["EX1-007"] }] }, 1: { battleArea: [{ card: "BT1-070" }] } });
     await s.ready();
     s.state.turnSeat = 1;
     await advance(s.engine).recompute();
