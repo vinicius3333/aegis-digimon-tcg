@@ -129,6 +129,10 @@ export async function runStaticAction(ctx: EffectContext, action: Action): Promi
             event: "onEnterFieldAnyone",
             activationContext: ctx,
             once: false,
+            // This is a triggered, duration-scoped watcher. Pin it outside the continuous tier
+            // because a concurrent continuous recompute may otherwise make the ambient
+            // `continuousOpt()` flag appear true while this effect is installing it.
+            continuous: false,
             expiresOnTurnEndOf: ctx.game.opponentOf(ctx.source.ownerSeat),
             matches: (subCtx) => {
               const id = subCtx.trigger.subjectPermanentId;

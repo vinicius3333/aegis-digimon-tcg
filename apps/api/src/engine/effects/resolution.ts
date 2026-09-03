@@ -137,7 +137,7 @@ export function buildResolutionEnv(env: EffectEnvironment, deps: ResolutionDeps)
           (id, traits) => env.continuous.linkCostReductionGrant(id, traits),
           (permanent, printedName) => effectiveNames(env.continuous, permanent, printedName),
         ),
-        fx: env.fx,
+        fx: env.fxForSource?.(collected.source) ?? env.fx,
         ask: env.ask,
         usage: env.tracker,
         // Provenance the client shows next to a decision: the PRINTED window the effect is
