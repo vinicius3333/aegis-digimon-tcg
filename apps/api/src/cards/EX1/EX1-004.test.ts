@@ -3,20 +3,29 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX1-004.js";
 
+async function evolveIntoGreymon(s: ReturnType<typeof setupEngine>): Promise<void> {
+  s.state.memory = 5;
+  await s.ready();
+  expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("attacker").permanentId, instanceId: s.inst("evo").instanceId })).toEqual({ ok: true });
+  await settle(() => s.perm("attacker").topCard.cardId === "EX1-004");
+  expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("attacker").permanentId, instanceId: s.inst("host").instanceId })).toEqual({ ok: true });
+  await settle(() => s.perm("attacker").topCard.cardId === "BT1-020");
+}
+
 describe("EX1-004 Greymon", () => {
   it("plays a Tai Kamiya costing 3 or less on attack", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-020", as: "attacker", under: ["EX1-004"] }],
-          hand: [{ card: "ST1-12", as: "tai" }],
+          battleArea: [{ card: "BT1-009", as: "attacker" }],
+          hand: [{ card: "EX1-004", as: "evo" }, { card: "BT1-020", as: "host" }, { card: "ST1-12", as: "tai" }],
         },
         1: { security: ["BT1-001", "BT1-001"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const taiId = s.inst("tai").instanceId;
-    await s.ready();
+    await evolveIntoGreymon(s);
 
     expect(
       s.engine.applyIntent(0, {
@@ -34,14 +43,14 @@ describe("EX1-004 Greymon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-020", as: "attacker", under: ["EX1-004"] }],
-          hand: [{ card: "BT1-085", as: "tai" }],
+          battleArea: [{ card: "BT1-009", as: "attacker" }],
+          hand: [{ card: "EX1-004", as: "evo" }, { card: "BT1-020", as: "host" }, { card: "BT1-085", as: "tai" }],
         },
         1: { security: ["BT1-001", "BT1-001"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await s.ready();
+    await evolveIntoGreymon(s);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -57,14 +66,14 @@ describe("EX1-004 Greymon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-020", as: "attacker", under: ["EX1-004"] }],
-          hand: [{ card: "AD1-022", as: "combinedTai" }],
+          battleArea: [{ card: "BT1-009", as: "attacker" }],
+          hand: [{ card: "EX1-004", as: "evo" }, { card: "BT1-020", as: "host" }, { card: "AD1-022", as: "combinedTai" }],
         },
         1: { security: ["BT1-001", "BT1-001"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await s.ready();
+    await evolveIntoGreymon(s);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -80,14 +89,14 @@ describe("EX1-004 Greymon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-020", as: "attacker", under: ["EX1-004"] }],
-          hand: [{ card: "ST1-12", as: "tai" }],
+          battleArea: [{ card: "BT1-009", as: "attacker" }],
+          hand: [{ card: "EX1-004", as: "evo" }, { card: "BT1-020", as: "host" }, { card: "ST1-12", as: "tai" }],
         },
         1: { security: ["BT1-001", "BT1-001"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    await s.ready();
+    await evolveIntoGreymon(s);
     expect(s.engine.applyIntent(0, {
       type: "attack",
       attackerPermanentId: s.perm("attacker").permanentId,
@@ -102,14 +111,14 @@ describe("EX1-004 Greymon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-020", as: "attacker", under: ["EX1-004"] }],
-          hand: [{ card: "ST1-12", as: "tai1" }, { card: "ST1-12", as: "tai2" }],
+          battleArea: [{ card: "BT1-009", as: "attacker" }],
+          hand: [{ card: "EX1-004", as: "evo" }, { card: "BT1-020", as: "host" }, { card: "ST1-12", as: "tai1" }, { card: "ST1-12", as: "tai2" }],
         },
         1: { security: ["BT1-001", "BT1-001", "BT1-001"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await s.ready();
+    await evolveIntoGreymon(s);
     const attack = () => s.engine.applyIntent(0, {
       type: "attack",
       attackerPermanentId: s.perm("attacker").permanentId,
