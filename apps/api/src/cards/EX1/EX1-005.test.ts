@@ -137,12 +137,19 @@ describe("EX1-005 Tyrannomon", () => {
   });
 
   it("does not grant the inherited DP or Green effect during the opponent turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-024", as: "host", under: ["EX1-005"], dp: 7000 }] }, 1: { battleArea: [{ card: "BT1-070" }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-024", as: "host", under: ["EX1-005"], dp: 7000 }], hand: ["BT1-009"], deck: ["BT1-001"] },
+      1: { battleArea: [{ card: "BT1-070" }], hand: ["BT1-009"], deck: ["BT1-001"] },
+    });
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
     await s.ready();
-    s.state.turnSeat = 1;
-    await advance(s.engine).recompute();
     expect(s.perm("host").currentDP).toBe(7000);
     expect(observe(s.engine).effectiveColors(s.perm("host"))).not.toContain("Green");
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("does not apply the inherited DP effect to a Tyrannomon in breeding", async () => {
