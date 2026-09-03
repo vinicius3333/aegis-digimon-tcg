@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../BT4/BT4-072.js";
@@ -117,5 +118,28 @@ describe("EX1-052 Etemon", () => {
     });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Jamming")).toBe(false);
+  });
+
+  it("expires inherited Jamming when the opponent's turn begins", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: ["BT1-009"],
+          battleArea: [{ card: "EX1-053", as: "host", under: ["EX1-052", "EX1-047"] }],
+          deck: ["BT1-010", "BT1-011"],
+        },
+        1: { hand: ["BT1-009"], deck: ["BT1-010", "BT1-011"] },
+      },
+      { autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Jamming")).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Jamming")).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });
