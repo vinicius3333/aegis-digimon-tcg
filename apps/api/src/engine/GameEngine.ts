@@ -2880,6 +2880,7 @@ export class GameEngine {
     );
     for (const { source, effect } of continuousEffects) {
       const ctx = this.buildEffectContext(source, {}, noPromptAsk);
+      ctx.continuousPass = true;
       // Persistent effects re-apply whenever their guard holds; canTrigger here is
       // the builder's on-field/`when` gate (maxPerTurn is irrelevant — uncounted).
       if (!canTrigger(effect, ctx, this.tracker)) continue;
@@ -2904,6 +2905,7 @@ export class GameEngine {
         ...this.buildEffectContext(source, {}, noPromptAsk),
         activeTiming: EffectTiming[EffectTiming.None],
         activeEffectText: effect.description,
+        continuousPass: true,
         conferredToPermanentId,
         conferralGranterInstanceId,
       }),
@@ -2914,6 +2916,7 @@ export class GameEngine {
         ...this.buildEffectContext(source, {}, noPromptAsk),
         activeTiming: EffectTiming[EffectTiming.None],
         activeEffectText: effect.description,
+        continuousPass: true,
         conferredToPermanentId,
         conferralGranterInstanceId,
       };
@@ -2934,6 +2937,7 @@ export class GameEngine {
         ...this.buildEffectContext(source, {}, noPromptAsk),
         activeTiming: EffectTiming[EffectTiming.None],
         activeEffectText: effect.description,
+        continuousPass: true,
       }),
       this.tracker,
     );
@@ -2942,6 +2946,7 @@ export class GameEngine {
         ...this.buildEffectContext(source, {}, noPromptAsk),
         activeTiming: EffectTiming[EffectTiming.None],
         activeEffectText: effect.description,
+        continuousPass: true,
       };
       if (!canActivate(effect, ctx, this.tracker)) continue;
       await effect.resolve(ctx);

@@ -1292,7 +1292,7 @@ export interface Primitives {
       activationIdentity?: object;
       /** Re-evaluated when the granted effect would trigger. */
       isActive?: () => boolean;
-      /** Override ambient continuous-pass state for an explicitly triggered grant. */
+      /** Explicit continuous-pass provenance; avoids ambient async-scope races. */
       continuous?: boolean;
     },
   ): void;

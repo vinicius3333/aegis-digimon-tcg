@@ -125,9 +125,7 @@ export async function runStaticAction(ctx: EffectContext, action: Action): Promi
           if (top === undefined) return;
           grantCtx.fx.grantCustomEffect?.(top.instanceId, ctx.source.ownerSeat, action.effectText!, grantDuration, {
             activationIdentity,
-            // This aura is installed by a resolved Main/Security effect, even if an async
-            // continuous recompute is also active while its body finishes.
-            continuous: false,
+            continuous: ctx.continuousPass === true,
             // Q2120/Q2121: a duration-scoped Option aura is applied only while this Digimon can
             // be affected by the granting Option. Re-evaluate at trigger collection time.
             isActive: () => {

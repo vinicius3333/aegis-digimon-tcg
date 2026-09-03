@@ -13,6 +13,75 @@ import "../../cards/index.js";
  * play/attack/end-phase intents; no ledger or private engine state is used.
  */
 describe("GrantAuraToOpponents recipient ownership", () => {
+  it("re-derives a persistent aura once per recompute and removes it with its source", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT8-031", as: "auraSource" }],
+        security: ["BT1-001", "BT1-001", "BT1-001"],
+        deck: ["BT1-001", "BT1-001", "BT1-001"],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "firstAttacker", under: ["BT1-001", "BT1-002"], dp: 20_000 },
+          { card: "BT1-009", as: "sourceDeleter", dp: 20_000 },
+          { card: "BT1-009", as: "secondAttacker", under: ["BT1-001", "BT1-002"], dp: 20_000 },
+        ],
+        security: ["BT1-001", "BT1-001", "BT1-001"],
+        deck: ["BT1-001", "BT1-001", "BT1-001"],
+      },
+    });
+    const auraSourceId = s.perm("auraSource").permanentId;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: auraSourceId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("auraSource").isSuspended);
+    await advance(s.engine).waitForMainPhase(1);
+
+    await s.engine.recomputeContinuousEffects();
+    await s.engine.recomputeContinuousEffects();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("firstAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("firstAttacker").stack.length === 1);
+    expect(s.perm("firstAttacker").stack).toHaveLength(1);
+    expect(s.perm("auraSource").isSuspended).toBe(true);
+    expect(s.perm("sourceDeleter").isSuspended).toBe(false);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("sourceDeleter").permanentId,
+        target: { kind: "permanent", permanentId: auraSourceId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === auraSourceId));
+    await s.engine.recomputeContinuousEffects();
+    await s.engine.recomputeContinuousEffects();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("secondAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 1);
+    expect(s.perm("secondAttacker").stack).toHaveLength(2);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
   it("charges the recipient controller after a natural turn transition", async () => {
     const s = setupEngine(
       {
