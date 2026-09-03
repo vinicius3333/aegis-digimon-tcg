@@ -5,7 +5,9 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../BT3/BT3-040.js";
 import "../BT13/BT13-059.js";
+import "../EX2/EX2-070.js";
 import "../BT7/BT7-085.js";
+import "../BT12/BT12-017.js";
 import "./EX1-047.js";
 import "./EX1-052.js";
 import "./EX1-071.js";
@@ -274,6 +276,129 @@ describe("EX1-071 Win Rate: 60%!", () => {
     expect(s.perm("takuya").stack).toHaveLength(0);
     expect(s.state.players[0]!.trash.filter((card) => card.cardId === "BT7-011")).toHaveLength(4);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("handHybrid").instanceId)).toBe(true);
+  });
+
+  it("trashes a red card when reducing a red-base-to-white digivolution (Q3258)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-020", as: "redBase" }, { card: "BT1-085", as: "tamer" }],
+          hand: [
+            { card: "EX1-071", as: "option" },
+            { card: "AD1-005", as: "whiteEvo" },
+            { card: "BT1-020", as: "redCost" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.inst("redCost").instanceId);
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-071"));
+    const before = s.state.memory;
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("redBase").permanentId,
+      instanceId: s.inst("whiteEvo").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("redBase").topCard.cardId === "AD1-005");
+    expect(s.state.memory).toBe(before);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("redCost").instanceId)).toBe(true);
+  });
+
+  it("trashes a card matching either color of a multicolor base (Q3262)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-040", as: "multicolorBase" }, { card: "BT1-085", as: "tamer" }],
+          hand: [
+            { card: "EX1-071", as: "option" },
+            { card: "BT11-041", as: "evo" },
+            { card: "BT3-040", as: "yellowCost" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.inst("yellowCost").instanceId);
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-071"));
+    const before = s.state.memory;
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("multicolorBase").permanentId,
+      instanceId: s.inst("evo").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("multicolorBase").topCard.cardId === "BT11-041");
+    expect(s.state.memory).toBe(before);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("yellowCost").instanceId)).toBe(true);
+  });
+
+  it("reduces an effect-driven Takuya evolution after five Hybrids are placed (Q3264)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT7-085", as: "takuya" }],
+          hand: [
+            { card: "EX1-071", as: "option" },
+            { card: "BT12-017", as: "emperor" },
+            { card: "BT1-020", as: "redCost" },
+          ],
+          trash: ["BT7-011", "BT7-011", "BT7-011", "BT7-011", "BT7-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.inst("redCost").instanceId);
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-071"));
+    const takuya = s.perm("takuya");
+    const mainEffect = (observe(s.engine).activatableEffects(takuya) as Array<{ effectKey: string }>).find(
+      (entry) => entry.effectKey === "BT7-085/main-digivolve",
+    );
+    expect(mainEffect).toBeDefined();
+    expect(s.engine.applyIntent(0, {
+      type: "activateEffect",
+      sourceInstanceId: takuya.topCard.instanceId,
+      effectKey: mainEffect!.effectKey,
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("takuya").topCard.cardId === "BT12-017");
+    expect(s.perm("takuya").stack).toHaveLength(6);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("redCost").instanceId)).toBe(true);
+  });
+
+  it("does not let Win Rate bypass Digivolution Plug-In S's printed cost cap (Q3359)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX1-047", as: "base" }, { card: "BT1-085", as: "tamer" }],
+          hand: [
+            { card: "EX1-071", as: "option" },
+            { card: "EX2-070", as: "plugIn" },
+            { card: "BT11-041", as: "tooExpensive" },
+          ],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-071"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("plugIn").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX2-070"));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tooExpensive").instanceId)).toBe(true);
+    expect(s.perm("base").topCard.cardId).toBe("EX1-047");
   });
 
   it("adds itself to hand from security", async () => {
