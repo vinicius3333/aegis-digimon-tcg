@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -76,7 +75,6 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  ruleText: ["Name: Also treated as [Sistermon Noir].", "Trait: Has [Virus] type."],
 };
 
 registerIrCard("BT6-084", compiled);

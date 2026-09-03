@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR — the return is gated by whether the optional hand trash resolved.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
@@ -19,8 +18,8 @@ const compiled: CompiledCard = {
               zone: "hand",
             },
             count: 1,
-            bindResultAs: "discardedCard",
           },
+          bindResultAs: "discardedCard",
           optional: true,
         },
         {

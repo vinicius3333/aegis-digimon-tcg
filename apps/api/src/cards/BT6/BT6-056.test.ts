@@ -23,9 +23,7 @@ describe("BT6-056 Chikurimon", () => {
     const s = setupEngine({
       0: { security: [{ card: "BT6-056", as: "security" }] },
       1: {
-        battleArea: [
-          { card: "BT6-016", under: [{ card: "BT1-021", as: "source" }], as: "attacker", dp: 12000 },
-        ],
+        battleArea: [{ card: "BT6-016", under: [{ card: "BT1-021", as: "source" }], as: "attacker", dp: 12000 }],
       },
     });
     s.state.turnSeat = 1;

@@ -21,8 +21,7 @@ describe("BT6-066 PileVolcamon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    const combat = (s.engine as unknown as { combat: { isAttacking: boolean } }).combat;
-    await settle(() => s.state.phase === Phase.Main && !combat.isAttacking, 5000);
+    await settle(() => s.state.phase === Phase.Main && !observe(s.engine).isAttacking(), 5000);
 
     expect(s.perm("pilevolcamon").isSuspended).toBe(true);
   });

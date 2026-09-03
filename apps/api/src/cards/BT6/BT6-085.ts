@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -20,7 +19,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Eosmon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -53,7 +52,6 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  ruleText: ["You can include up to 50 copies of cards with this card's card number in your deck."],
 };
 
 registerIrCard("BT6-085", compiled);

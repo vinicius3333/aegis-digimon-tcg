@@ -28,7 +28,7 @@ describe("BT6-050 Petaldramon", () => {
     expect(observe(s.engine).hasPierce(s.perm("tamer"))).toBe(true);
   });
 
-  it("does not use its zero-cost Hybrid evolution on a non-green Tamer", async () => {
+  it("does not use its Green-Tamer Hybrid evolution on a non-green Tamer", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT1-085", as: "redTamer" }],

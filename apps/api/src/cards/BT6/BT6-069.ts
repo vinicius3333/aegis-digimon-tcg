@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR — requires a hand trash caused by its controller's effect.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

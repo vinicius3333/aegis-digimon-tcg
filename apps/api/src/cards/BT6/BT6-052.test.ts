@@ -1,5 +1,6 @@
 import { Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT6-052.js";
 
@@ -17,8 +18,10 @@ describe("BT6-052 Entmon", () => {
         target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: true });
-    const combat = (s.engine as unknown as { combat: { isAttacking: boolean } }).combat;
-    await settle(() => s.state.phase === Phase.Main && !combat.isAttacking && !s.perm("entmon").isSuspended, 5000);
+    await settle(
+      () => s.state.phase === Phase.Main && !observe(s.engine).isAttacking() && !s.perm("entmon").isSuspended,
+      5000,
+    );
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(

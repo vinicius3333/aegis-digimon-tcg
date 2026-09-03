@@ -25,7 +25,7 @@ describe("BT6-077 [All Turns] color grant — also treated as black (KB Q1466)",
   }
 
   function effectiveColors(s: Setup, p: Permanent): string[] {
-    return (s.engine as unknown as { effectiveColorsOf(p: Permanent): string[] }).effectiveColorsOf(p);
+    return observe(s.engine).effectiveColors(p);
   }
 
   it("is treated as both Purple (printed) and Black on its OWNER's turn", async () => {
