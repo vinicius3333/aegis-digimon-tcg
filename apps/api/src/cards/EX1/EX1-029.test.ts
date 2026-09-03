@@ -28,4 +28,40 @@ describe("EX1-029 MagnaAngemon", () => {
     await advance(s.engine).fireSubTrigger("whenAddSecurity", { addedToSecuritySeat: 0 });
     expect(s.state.memory).toBe(6);
   });
+
+  it("does not gain the attack bonus with fewer than three security cards", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX1-029", as: "magna", dp: 7000 }], security: ["BT1-001", "BT1-001"] },
+      1: { security: ["BT1-001", "BT1-001"] },
+    });
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("magna").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.perm("magna").isSuspended);
+    expect(s.perm("magna").currentDP).toBe(7000);
+  });
+
+  it("keeps the attack bonus through the opponent turn and expires after it", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX1-029", as: "magna", dp: 7000 }], security: ["BT1-001", "BT1-001", "BT1-001"] },
+      1: { security: ["BT1-001", "BT1-001"] },
+    });
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("magna").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.perm("magna").currentDP === 11000);
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
+    expect(s.perm("magna").currentDP).toBe(11000);
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("magna").currentDP).toBe(7000);
+  });
+
+  it("does not gain memory twice from repeated security additions", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX1-031", as: "host", under: ["EX1-029"] }] } });
+    s.state.memory = 5;
+    await s.ready();
+    await advance(s.engine).fireSubTrigger("whenAddSecurity", { addedToSecuritySeat: 0 });
+    expect(s.state.memory).toBe(6);
+    await advance(s.engine).fireSubTrigger("whenAddSecurity", { addedToSecuritySeat: 0 });
+    expect(s.state.memory).toBe(6);
+  });
 });
