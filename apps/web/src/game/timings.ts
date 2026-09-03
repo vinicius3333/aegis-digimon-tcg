@@ -65,6 +65,20 @@ export const TIMINGS = {
   /** The card leaving for the trash or the field. */
   securityBranchOut: 220,
   /**
+   * How long the docked card is held after its check finally closes, before it leaves.
+   * The reference client holds 300 ms there (`CardController.cs:4106`) — the card has
+   * been on screen for the whole resolution by then, so this is a beat, not a read.
+   */
+  securityDockHold: 300,
+  /** How often the open-ended dock re-checks whether its check has closed. */
+  securityDockPoll: 120,
+  /**
+   * The ceiling on that wait. The dock ends on the matching `securityChecked`, but the
+   * centre-stage track is serial, so a close that never arrives (a dropped event, a
+   * server that stopped answering) may not hold the track for the rest of the match.
+   */
+  securityDockMax: 45_000,
+  /**
    * How long a security card an effect trashed is held readable before it breaks
    * (the reference client's 0.5 s between the reveal and `DestroySecurityEffect`).
    * It is the whole beat the player gets to see which card the stack just lost, so
@@ -234,6 +248,9 @@ export const SECURITY_DESTROY_OUTCOME_AT_MS =
 /** One destroyed security card, end to end: the reveal, the hold, the break and the fade. */
 export const SECURITY_DESTROY_TOTAL_MS = SECURITY_DESTROY_OUTCOME_AT_MS + TIMINGS.clashOutcome + TIMINGS.clashExit;
 
+/** What the docked card still owes the screen once its check has closed: the hold, then the exit. */
+export const SECURITY_DOCK_CLOSE_MS = TIMINGS.securityDockHold + TIMINGS.securityBranchOut;
+
 /** The security-effect branch, end to end: the slide out, the hold, and the exit. */
 export const SECURITY_BRANCH_TOTAL_MS =
   TIMINGS.securityBranchIn + TIMINGS.securityBranchHold + TIMINGS.securityBranchOut;
@@ -302,6 +319,9 @@ export const BATTLE_TIMING_VARIABLES: Readonly<Record<string, number>> = {
   "--t-shield-break": TIMINGS.shieldBreak,
   "--t-shield-flash": TIMINGS.shieldFlash,
   "--t-security-branch": SECURITY_BRANCH_TOTAL_MS,
+  "--t-security-branch-in": TIMINGS.securityBranchIn,
+  "--t-security-branch-out": TIMINGS.securityBranchOut,
+  "--t-security-dock-hold": TIMINGS.securityDockHold,
   "--t-security-count-pop": TIMINGS.securityCountPop,
   "--t-summoning-orbit": TIMINGS.summoningOrbit,
   "--t-clash-enter": TIMINGS.clashAttackerEnter,

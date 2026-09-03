@@ -15,8 +15,11 @@ import {
   CLASH_OUTCOME_AT_MS,
   CLASH_SHATTER_MS,
   CLASH_TOTAL_MS,
+  CLASH_REVEAL_SHOWN_AT_MS,
+  SECURITY_BRANCH_IN_MS,
   SECURITY_BRANCH_TOTAL_MS,
   SECURITY_BREAK_TOTAL_MS,
+  SECURITY_DOCK_CLOSE_MS,
   SECURITY_DESTROY_TOTAL_MS,
   TIMINGS,
 } from "./timings";
@@ -114,6 +117,16 @@ describe("battle timings", () => {
     expect(SECURITY_BREAK_TOTAL_MS + CLASH_TOTAL_MS + SECURITY_BRANCH_TOTAL_MS).toBeLessThanOrEqual(
       SECURITY_EFFECT_NARRATION_MS,
     );
+  });
+
+  // A check the server resolves over several batches docks its card and holds it for as
+  // long as that takes, so the budget the bot waits out is the fixed part — the break, the
+  // reveal and the slide to the dock — plus what is still owed AFTER `securityChecked`.
+  it("keeps the docked check's fixed and post-close beats inside the same budget", () => {
+    expect(
+      SECURITY_BREAK_TOTAL_MS + CLASH_REVEAL_SHOWN_AT_MS + SECURITY_BRANCH_IN_MS + SECURITY_DOCK_CLOSE_MS,
+    ).toBeLessThanOrEqual(SECURITY_EFFECT_NARRATION_MS);
+    expect(SECURITY_DOCK_CLOSE_MS).toBe(TIMINGS.securityDockHold + TIMINGS.securityBranchOut);
   });
 
   // A destruction plays the whole sequence once per card, so the budget the server holds a

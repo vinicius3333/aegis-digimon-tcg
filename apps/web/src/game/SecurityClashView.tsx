@@ -209,7 +209,15 @@ export function SecurityBranch({ scene }: { scene: SecurityBranchScene }) {
   const { t } = useTranslation();
   const cardName = getCardDefinition(scene.cardId)?.nameEn ?? scene.cardId;
   return (
-    <div className="battle-security-branch" data-testid="security-branch" data-side={scene.side} role="status">
+    <div
+      className="battle-security-branch"
+      data-testid="security-branch"
+      data-side={scene.side}
+      // The dock is open-ended, so its slide-in and its exit are two animations rather
+      // than one fixed clip: the state says which of them the card is playing.
+      data-state={scene.state}
+      role="status"
+    >
       <figure className="battle-security-branch__frame">
         <CardFull cardId={scene.cardId} width={BRANCH_CARD_WIDTH} />
         <figcaption className="battle-security-branch__caption">

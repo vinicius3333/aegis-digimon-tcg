@@ -333,8 +333,32 @@ swings left (x → −50) and back to centre, so it arcs.
 
 ### Already covered
 
-Red attack-arc SVG in `AttackArrow`, `securityFeedback` reveal with
-`aegis-flip` (`game.css:355`).
+The whole check now lives in three files: `securityClash.ts` owns the scene model
+and the timeline, `SecurityClashView.tsx` draws it (`SecurityClash`,
+`SecurityEdgeFlash`, `SecurityBranch`), and `useMatchCues.ts` sequences it onto the
+one serial `centerStage` track. Every duration comes from `timings.ts`; the old
+`securityFeedback` overlay and its `aegis-flip` keyframe are gone.
+
+Covered: the shield arming and shattering (`Pile`, `shieldShards`), the edge flash,
+the 233 ms white-out reveal, the double-shot attack arrow, the DP compare and its
+claw, destroy vs. trash, both seats, and the per-check shard seed — `shieldShards`
+derives each break's throws from the break's own key, so back-to-back checks do not
+shatter into the same frame.
+
+**The dock.** `securityRevealed` carries two presentation hints, `hasSecurityEffect`
+and `isDigimon`. A reveal that says `hasSecurityEffect` no longer plays the
+centre-stage scene to its end: the card is shown centre stage for the reveal beat,
+then slides to its side dock (`securityBranchIn`, 220 ms) and **stays there** — the
+reference client's brainstorm slot, `CardController.cs:4062-4232`. The effect's
+notices read beside it and the decisions it asks for open beside it; the dock ends
+only on the matching `securityChecked` (a `securityDockHold` beat, then
+`securityBranchOut`), on a newer reveal replacing the track, on cancellation, or at
+`securityDockMax`. A docked Digimon that also resolved an effect comes back to the
+centre for its battle, which the dock has no attacker to draw against.
+
+A reveal with no hints — an older server, or a replayed history — falls back to the
+centre-stage scene that plays itself out, as does a check whose reveal and close
+arrive in the same batch.
 
 ---
 

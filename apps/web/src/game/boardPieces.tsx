@@ -47,15 +47,35 @@ export interface HandEntry {
   digivolveTargetPermanentIds: readonly string[];
 }
 
-/** Shards the security pane breaks into, each thrown a fixed way so the break is stable. */
-const SHIELD_SHARDS = [
-  { x: -26, y: -22, spin: -140 },
-  { x: 22, y: -26, spin: 120 },
-  { x: -30, y: 14, spin: 95 },
-  { x: 28, y: 18, spin: -110 },
-  { x: -8, y: 32, spin: 160 },
-  { x: 10, y: -34, spin: -75 },
-] as const;
+/** How many pieces the security pane breaks into. */
+const SHIELD_SHARD_COUNT = 6;
+
+/** How far the middle shard is thrown, in pixels. */
+const SHIELD_SHARD_REACH = 34;
+
+/** Deterministic 0..1 from a break's seed and a shard's place in the ring. */
+function shardNoise(seed: number, index: number): number {
+  const value = Math.sin((seed + 1) * 12.9898 + index * 78.233) * 43758.5453;
+  return value - Math.floor(value);
+}
+
+/**
+ * How this break throws its shards. The ring keeps every break balanced; the seed — the
+ * check's own key — jitters the angle, the reach and the spin, so two checks in a row do
+ * not shatter into the same frame (battle-animation-spec.md §4b).
+ */
+export function shieldShards(seed: number): readonly { x: number; y: number; spin: number }[] {
+  return Array.from({ length: SHIELD_SHARD_COUNT }, (_, index) => {
+    const noise = shardNoise(seed, index);
+    const angle = ((index + 0.5 + (noise - 0.5) * 0.7) / SHIELD_SHARD_COUNT) * Math.PI * 2;
+    const reach = SHIELD_SHARD_REACH * (0.62 + noise * 0.6);
+    return {
+      x: Math.round(Math.cos(angle) * reach),
+      y: Math.round(Math.sin(angle) * reach),
+      spin: Math.round(75 + noise * 110) * (index % 2 === 0 ? -1 : 1),
+    };
+  });
+}
 
 export function Pile({
   count,
@@ -68,6 +88,7 @@ export function Pile({
   shield,
   armed,
   breaking,
+  shardSeed,
   faceUp,
   attackLabel,
   riffling,
@@ -90,6 +111,8 @@ export function Pile({
   armed?: boolean;
   /** The pane is shattering on a security check. */
   breaking?: boolean;
+  /** Which break this is, so its shards are thrown differently from the last one's. */
+  shardSeed?: number;
   /** The stack holds a card the opponent has already seen. */
   faceUp?: boolean;
   /** What attacking this stack would be, while it is a legal target being aimed at. */
@@ -141,7 +164,7 @@ export function Pile({
         ) : null}
         {breaking ? (
           <span className="game-security-shield__shards" aria-hidden>
-            {SHIELD_SHARDS.map((shard, index) => (
+            {shieldShards(shardSeed ?? 0).map((shard, index) => (
               <i
                 key={index}
                 style={

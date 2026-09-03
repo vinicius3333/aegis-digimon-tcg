@@ -783,10 +783,10 @@ export function BoardShowcase() {
           <Pile count={2} label="Security" shield="opp" breaking />
         </Case>
         <Stage label="edge flash, viewer attacked" height={220}>
-          <SecurityEdgeFlash scene={{ key: 1, seat: 0, side: "you" }} />
+          <SecurityEdgeFlash scene={{ key: 1, seat: 0, side: "you", seed: 1 }} />
         </Stage>
         <Stage label="edge flash, opponent attacked" height={220}>
-          <SecurityEdgeFlash scene={{ key: 2, seat: 1, side: "opp" }} />
+          <SecurityEdgeFlash scene={{ key: 2, seat: 1, side: "opp", seed: 2 }} />
         </Stage>
       </Section>
 
@@ -797,10 +797,10 @@ export function BoardShowcase() {
         stacked
       >
         <Stage label="viewer's security resolving" height={460}>
-          <SecurityBranch scene={{ key: 1, cardId: CARDS.option, side: "you" }} />
+          <SecurityBranch scene={{ key: 1, cardId: CARDS.option, side: "you", state: "docked" }} />
         </Stage>
         <Stage label="opponent's security resolving" height={460}>
-          <SecurityBranch scene={{ key: 2, cardId: CARDS.opponentChampion, side: "opp" }} />
+          <SecurityBranch scene={{ key: 2, cardId: CARDS.opponentChampion, side: "opp", state: "settled" }} />
         </Stage>
       </Section>
 

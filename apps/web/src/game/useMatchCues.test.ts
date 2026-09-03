@@ -15,6 +15,7 @@ import {
   SECURITY_BREAK_TOTAL_MS,
   SECURITY_DESTROY_OUTCOME_AT_MS,
   SECURITY_DESTROY_TOTAL_MS,
+  SECURITY_DOCK_CLOSE_MS,
   SHOWCASE_TOTAL_MS,
   TIMINGS,
   COMBAT_IMPACT_TOTAL_MS,
@@ -35,6 +36,12 @@ const REVEAL_SHOWN_AT_MS = SECURITY_BREAK_TOTAL_MS + CLASH_OUTCOME_AT_MS;
  * still resolving hands the board over here: its effects read out on a clear board.
  */
 const REVEAL_EXIT_AT_MS = SECURITY_BREAK_TOTAL_MS + CLASH_TOTAL_MS;
+
+/** When a card the server says has a [Security] effect leaves the centre for its dock. */
+const DOCK_AT_MS = SECURITY_BREAK_TOTAL_MS + CLASH_REVEAL_SHOWN_AT_MS;
+
+/** When it has arrived there, which is when what it did may be read out beside it. */
+const DOCKED_AT_MS = DOCK_AT_MS + SECURITY_BRANCH_IN_MS;
 
 const playSound = vi.hoisted(() => vi.fn<(kind: string) => void>());
 vi.mock("../design/sound", () => ({ playSound }));
@@ -57,6 +64,16 @@ const CHECK: ServerEvent = { kind: "securityChecked", seat: 0, revealedCardId: "
 const SECOND_CHECK: ServerEvent = { ...CHECK, revealedCardId: "BT1-011" };
 const SECOND_REVEAL: ServerEvent = { ...REVEAL, revealedCardId: "BT1-011" };
 const EFFECT_CHECK: ServerEvent = { ...CHECK, resolution: "effect" };
+/** A reveal whose card the server says carries a [Security] effect it is about to resolve. */
+const EFFECT_REVEAL: ServerEvent = { ...REVEAL, hasSecurityEffect: true };
+const EFFECT_NOTICE: ServerEvent = {
+  kind: "effectTriggered",
+  seat: 0,
+  sourceCardId: "BT1-010",
+  effectKey: "security",
+  description: "Draw 1.",
+  timing: "Security",
+};
 const TURN_END: ServerEvent = { kind: "turnEnded", endingSeat: 1, nextSeat: 0, turnCount: 4 };
 const COMBAT: ServerEvent = {
   kind: "combatResolved",
@@ -381,6 +398,141 @@ describe("match cues", () => {
     expect(result.current.securityClash).toBeNull();
     expect(result.current.securityRevealPending).toBe(false);
     expect(result.current.securityBranch).not.toBeNull();
+  });
+
+  // The reference client docks a card with a [Security] effect in its brainstorm slot and
+  // keeps it there for the WHOLE resolution — every target pick, every optional yes/no —
+  // closing the slot only once the card is disposed (CardController.cs:4062-4232).
+  it("docks a card whose [Security] effect the server is still resolving", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([ATTACK, EFFECT_REVEAL]);
+    await advance(SECURITY_BREAK_TOTAL_MS);
+    expect(result.current.securityClash?.revealed.cardId).toBe("BT1-010");
+    expect(result.current.securityBranch).toBeNull();
+
+    // The card is seen centre stage, then it leaves for the dock rather than holding the
+    // middle of the board for a resolution of unknown length.
+    await advance(CLASH_REVEAL_SHOWN_AT_MS);
+    expect(result.current.securityClash).toBeNull();
+    expect(result.current.securityBranch).toMatchObject({ cardId: "BT1-010", side: "you", state: "docked" });
+
+    // Open-ended: nothing but the close takes it away.
+    await advance(CLASH_TOTAL_MS + SECURITY_BRANCH_TOTAL_MS);
+    expect(result.current.securityBranch?.state).toBe("docked");
+
+    // The dock notices its close on its next poll, and only then starts leaving.
+    rerender([ATTACK, EFFECT_REVEAL, EFFECT_CHECK]);
+    await advance(TIMINGS.securityDockPoll);
+    expect(result.current.securityBranch?.state).toBe("closing");
+    await advance(SECURITY_DOCK_CLOSE_MS);
+    expect(result.current.securityBranch).toBeNull();
+    expect(result.current.securityClash).toBeNull();
+  });
+
+  // Reveal, dock, then the prompt: the question is asked beside the card that asked it,
+  // and never before the card has arrived at the side.
+  it("opens the check's question only once its card has docked", async () => {
+    const { result, rerender } = renderCuesAwaitingAnswer();
+    await advance(0);
+
+    rerender({ events: [EFFECT_REVEAL], decisionPending: false });
+    await advance(0);
+    expect(result.current.securityRevealPending).toBe(true);
+
+    rerender({ events: [EFFECT_REVEAL], decisionPending: true });
+    await advance(DOCKED_AT_MS - 1);
+    expect(result.current.securityRevealPending).toBe(true);
+
+    await advance(1);
+    expect(result.current.securityRevealPending).toBe(false);
+    // The prompt opens beside the card, not over an empty board.
+    expect(result.current.securityBranch?.state).toBe("docked");
+  });
+
+  it("reads out what the docked card did beside it, not after its close", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([EFFECT_REVEAL, EFFECT_NOTICE]);
+    await advance(DOCKED_AT_MS - 1);
+    expect(result.current.notices).toEqual([]);
+
+    await advance(1);
+    expect(result.current.notices).toHaveLength(1);
+    expect(result.current.securityBranch?.state).toBe("docked");
+  });
+
+  // A Digimon that also resolved a [Security] effect still has a battle to show, and the
+  // dock has no attacker beside it to show it against.
+  it("brings a docked Digimon back to the centre for its battle", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([ATTACK, EFFECT_REVEAL]);
+    await advance(DOCKED_AT_MS);
+    expect(result.current.securityBranch?.state).toBe("docked");
+
+    rerender([ATTACK, EFFECT_REVEAL, CHECK]);
+    await advance(TIMINGS.securityDockPoll + SECURITY_DOCK_CLOSE_MS);
+    await advance(0);
+    expect(result.current.securityBranch).toBeNull();
+    expect(result.current.securityClash?.resolution).toBe("battle");
+
+    await advance(CLASH_TOTAL_MS);
+    expect(result.current.securityClash).toBeNull();
+  });
+
+  // The dock holds the one serial track every centre-stage cue shares, so a close that
+  // never arrives may not wedge it: the next check has to be able to play.
+  it("recovers the centre-stage track when the close never arrives", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([ATTACK, EFFECT_REVEAL]);
+    await advance(DOCKED_AT_MS);
+    expect(result.current.securityBranch?.state).toBe("docked");
+
+    await advance(TIMINGS.securityDockMax + TIMINGS.securityDockPoll);
+    expect(result.current.securityBranch).toBeNull();
+
+    // The track is free again, so a second check plays its whole scene.
+    rerender([ATTACK, EFFECT_REVEAL, SECOND_REVEAL, SECOND_CHECK]);
+    await advance(SECURITY_BREAK_TOTAL_MS);
+    expect(result.current.securityClash?.revealed.cardId).toBe("BT1-011");
+  });
+
+  // A newer check takes the board off a dock still waiting, rather than queueing behind it.
+  it("lets a newer reveal take the board off a dock that is still waiting", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([ATTACK, EFFECT_REVEAL]);
+    await advance(DOCKED_AT_MS);
+    expect(result.current.securityBranch?.state).toBe("docked");
+
+    rerender([ATTACK, EFFECT_REVEAL, SECOND_REVEAL, SECOND_CHECK]);
+    await advance(0);
+    expect(result.current.securityBranch).toBeNull();
+    await advance(SECURITY_BREAK_TOTAL_MS);
+    expect(result.current.securityClash?.revealed.cardId).toBe("BT1-011");
+  });
+
+  // An older server, and a replayed history, send no hint: the card plays the centre-stage
+  // scene out and leaves on its own clock, exactly as before.
+  it("falls back to the centre-stage scene when the reveal carries no hint", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([ATTACK, REVEAL]);
+    await advance(DOCK_AT_MS);
+    expect(result.current.securityBranch).toBeNull();
+    expect(result.current.securityClash).not.toBeNull();
+
+    await advance(CLASH_TOTAL_MS);
+    expect(result.current.securityClash).toBeNull();
+    expect(result.current.securityBranch).toBeNull();
   });
 
   it("leaves a plain check with no branch to hold", async () => {

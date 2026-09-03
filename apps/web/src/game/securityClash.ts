@@ -138,13 +138,31 @@ export interface SecurityBreakScene {
   /** The checked player's seat, which is the shield that shatters. */
   seat: Seat;
   side: SecurityClashSide;
+  /**
+   * Throws this break's shards. The pane is the same six pieces every time, but a
+   * fixed set of directions makes back-to-back checks (Strike 2, a second attack)
+   * read as one repeated frame — so each check derives its own from its key
+   * (battle-animation-spec.md §4b).
+   */
+  seed: number;
 }
+
+/**
+ * How the docked card is currently behaving.
+ * - `docked` — the server is still resolving the check, so the card stays put for as
+ *   long as that takes (the reference client's brainstorm slot, `CardController.cs:4062`).
+ * - `closing` — the check has closed: the card holds a beat and then leaves.
+ * - `settled` — the whole detour is one fixed animation, which is what a check whose
+ *   reveal and close arrived together (or a server that sends no reveal hints) gets.
+ */
+export type SecurityBranchState = "docked" | "closing" | "settled";
 
 /** The revealed card, held on its own side of the screen while its effect resolves. */
 export interface SecurityBranchScene {
   key: number;
   cardId: string;
   side: SecurityClashSide;
+  state: SecurityBranchState;
 }
 
 export function buildSecurityBreakScene({
@@ -156,7 +174,26 @@ export function buildSecurityBreakScene({
   defenderSeat: Seat;
   viewerSeat: Seat;
 }): SecurityBreakScene {
-  return { key, seat: defenderSeat, side: defenderSeat === viewerSeat ? "you" : "opp" };
+  return { key, seat: defenderSeat, side: defenderSeat === viewerSeat ? "you" : "opp", seed: key };
+}
+
+/**
+ * The card parked in the side dock while the server resolves its `[Security]` effect.
+ * Unlike {@link buildSecurityBranchScene} this is built at the REVEAL, off the event's
+ * `hasSecurityEffect` hint, because the resolution is not known yet.
+ */
+export function buildSecurityDockScene({
+  key,
+  revealedCardId,
+  defenderSeat,
+  viewerSeat,
+}: {
+  key: number;
+  revealedCardId: string;
+  defenderSeat: Seat;
+  viewerSeat: Seat;
+}): SecurityBranchScene {
+  return { key, cardId: revealedCardId, side: defenderSeat === viewerSeat ? "you" : "opp", state: "docked" };
 }
 
 /**
@@ -178,7 +215,7 @@ export function buildSecurityBranchScene({
   viewerSeat: Seat;
 }): SecurityBranchScene | null {
   if (normalizeSecurityClashResolution(resolution) !== "effect") return null;
-  return { key, cardId: revealedCardId, side: defenderSeat === viewerSeat ? "you" : "opp" };
+  return { key, cardId: revealedCardId, side: defenderSeat === viewerSeat ? "you" : "opp", state: "settled" };
 }
 
 const RESOLUTIONS: readonly string[] = ["battle", "effect", "trashed"];

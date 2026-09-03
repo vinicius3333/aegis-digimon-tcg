@@ -2263,7 +2263,23 @@
   z-index: calc(var(--ds-z-dialog) - 5);
   left: max(var(--ds-space-4), env(safe-area-inset-left, 0px));
   pointer-events: none;
+}
+
+/* A check whose reveal and close arrived together plays the whole detour as one clip. */
+.battle-security-branch[data-state="settled"] {
   animation: battle-security-branch var(--t-security-branch, 1340ms) ease-out both;
+}
+
+/* A check the server is still resolving docks the card and leaves it there for as long
+   as that takes, so the slide in and the exit are two animations with no clock between
+   them (CardController.cs:4062, the brainstorm slot). */
+.battle-security-branch[data-state="docked"] {
+  animation: battle-security-branch-in var(--t-security-branch-in, 220ms) ease-out both;
+}
+
+.battle-security-branch[data-state="closing"] {
+  animation: battle-security-branch-out var(--t-security-branch-out, 220ms) ease-in var(--t-security-dock-hold, 300ms)
+    both;
 }
 
 .battle-security-branch__frame {
@@ -2284,6 +2300,32 @@
   font-size: 0.7rem;
   font-weight: 700;
   text-align: center;
+}
+
+@keyframes battle-security-branch-in {
+  0% {
+    translate: -2.5rem calc(-50% - var(--security-branch-lift));
+    opacity: 0;
+    scale: 0.72;
+  }
+  100% {
+    translate: 0 calc(-50% - var(--security-branch-lift));
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@keyframes battle-security-branch-out {
+  0% {
+    translate: 0 calc(-50% - var(--security-branch-lift));
+    opacity: 1;
+    scale: 1;
+  }
+  100% {
+    translate: 0 calc(-50% - var(--security-branch-lift) - 2.5rem);
+    opacity: 0;
+    scale: 0.82;
+  }
 }
 
 @keyframes battle-security-branch {
@@ -5249,8 +5291,13 @@ button.side-panel__name:focus-visible {
   }
 
   /* The branch card carries the revealed card, so it keeps its full reading time and
-     only loses the slide — which is also why its resting offset is restated here. */
-  .battle-security-branch {
+     only loses the slide — which is also why its resting offset is restated here. The
+     docked state is open-ended, so with no animation left it simply sits at rest until
+     its check closes and the card is unmounted. */
+  .battle-security-branch,
+  .battle-security-branch[data-state="settled"],
+  .battle-security-branch[data-state="docked"],
+  .battle-security-branch[data-state="closing"] {
     translate: 0 calc(-50% - var(--security-branch-lift));
     animation: none;
   }

@@ -117,11 +117,13 @@ describe("shield break and the security-effect branch", () => {
       key: 1,
       seat: 0,
       side: "you",
+      seed: 1,
     });
     expect(buildSecurityBreakScene({ key: 2, defenderSeat: 1, viewerSeat: 0 })).toEqual({
       key: 2,
       seat: 1,
       side: "opp",
+      seed: 2,
     });
   });
 
@@ -129,7 +131,7 @@ describe("shield break and the security-effect branch", () => {
     const branch = (resolution: string) =>
       buildSecurityBranchScene({ key: 3, revealedCardId: OPTION_CARD_ID, resolution, defenderSeat: 1, viewerSeat: 0 });
 
-    expect(branch("effect")).toEqual({ key: 3, cardId: OPTION_CARD_ID, side: "opp" });
+    expect(branch("effect")).toEqual({ key: 3, cardId: OPTION_CARD_ID, side: "opp", state: "settled" });
     expect(branch("battle")).toBeNull();
     expect(branch("trashed")).toBeNull();
     expect(branch("nonsense-from-a-future-server")).toBeNull();
