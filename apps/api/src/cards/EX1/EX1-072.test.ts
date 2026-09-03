@@ -69,6 +69,7 @@ describe("EX1-072 Emergency Program Shutdown!", () => {
     await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shutdown").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-072"));
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX1-072"));
     await advance(s.engine).waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentOption").instanceId }).ok).toBe(false);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
