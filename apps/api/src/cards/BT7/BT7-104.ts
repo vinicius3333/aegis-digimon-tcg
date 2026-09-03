@@ -1,8 +1,7 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const main = [
+const main: CompiledCard["effects"][number]["actions"] = [
   {
     kind: "SelectBind",
     target: {

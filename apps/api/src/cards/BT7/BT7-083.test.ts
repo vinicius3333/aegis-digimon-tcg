@@ -5,6 +5,18 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT7-083.js";
 
 describe("BT7-083 Sistermon Ciel (Awakened)", () => {
+  it("keeps the printed Rule name alias", () => {
+    expect(runtimeCompiledCard("BT7-083")?.effects.find((effect) => effect.trigger === "Rule")).toMatchObject({
+      actions: [
+        {
+          kind: "GrantStatic",
+          grant: "name",
+          tokens: ["Sistermon Noir (Awakened)"],
+        },
+      ],
+    });
+  });
+
   it("limits the deletion cost source to Sistermon Ciel in hand or trash", () => {
     expect(runtimeCompiledCard("BT7-083")?.effects[0]?.actions[0]).toMatchObject({
       kind: "PlaceUnder",

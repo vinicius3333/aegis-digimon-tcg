@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT7-047 (MetalKabuterimon) — do not regenerate over this file.
 // The generated [When Digivolving] gate ("If a card with [Hybrid] in its traits or
 // [J.P. Shibayama] is in this Digimon's digivolution cards") was a raw condition —
@@ -17,19 +16,16 @@ const compiled: CompiledCard = {
           kind: "Digivolve",
           target: {
             filter: {
+              controller: "mine",
               kind: ["Tamer"],
-              color: "green",
+              colors: ["Green"],
             },
             count: 1,
-            upTo: false,
-            isSelf: false,
           },
-          from: "hand",
-          costSuffix: "2",
-          asIf: {
-            level: 3,
-            color: "green",
-          },
+          payCost: true,
+          from: ["hand"],
+          costOverride: 2,
+          asLevel: 3,
         },
       ],
     },
@@ -59,7 +55,7 @@ const compiled: CompiledCard = {
                 },
                 {
                   tokens: ["J.P. Shibayama"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -71,6 +67,14 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [
+    {
+      cost: 2,
+      isAlternate: true,
+      baseIsTamer: true,
+      baseColors: ["Green"],
+    },
+  ],
 };
 
 registerIrCard("BT7-047", compiled);

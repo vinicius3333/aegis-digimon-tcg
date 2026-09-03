@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR — the inherited watcher only reacts to attacks declared at a player.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

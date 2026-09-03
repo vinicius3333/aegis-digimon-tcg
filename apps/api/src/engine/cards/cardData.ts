@@ -17,7 +17,11 @@ import {
   type Permanent,
   type ZoneRef,
 } from "@aegis/shared";
-import { tamerOntoDigivolveColors, tamerOntoDigivolveLevel } from "./tamerOntoDigivolve.js";
+import {
+  tamerOntoDigivolveColors,
+  tamerOntoDigivolveCostOverride,
+  tamerOntoDigivolveLevel,
+} from "./tamerOntoDigivolve.js";
 import type { GameAccess } from "../effects/EffectContext.js";
 
 /**
@@ -558,7 +562,12 @@ export function matchingAlternateDigivolutionRequirement(
     const evolvingDef = resolve(evolving);
     const evo = evolvingDef.evoCosts.find((c) => c.level === tamerOntoLevel && baseDef.colors.includes(c.color));
     if (evo === undefined) return undefined;
-    return { cost: evo.memoryCost, isAlternate: true, baseIsTamer: true };
+    return {
+      cost: tamerOntoDigivolveCostOverride(evolvingId) ?? evo.memoryCost,
+      isAlternate: true,
+      baseIsTamer: true,
+      ...(tamerColors === undefined ? {} : { baseColors: [...tamerColors] }),
+    };
   }
 
   if (requirements.length === 0) return undefined;

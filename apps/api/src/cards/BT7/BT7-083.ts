@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -69,6 +68,21 @@ const compiled: CompiledCard = {
             count: 1,
           },
           to: "hand",
+        },
+      ],
+    },
+    {
+      trigger: "Rule",
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: {
+            filter: { isSelfRef: true },
+            count: 1,
+            isSelf: true,
+          },
+          grant: "name",
+          tokens: ["Sistermon Noir (Awakened)"],
         },
       ],
     },

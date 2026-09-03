@@ -8,9 +8,7 @@ import "./BT7-103.js";
 
 describe("BT7-103 Mugen", () => {
   it("restricts the same opposing Digimon that the preceding action suspended", () => {
-    const whenDigivolving = runtimeCompiledCard("BT7-103")?.effects.find(
-      (effect) => effect.trigger === "Main",
-    );
+    const whenDigivolving = runtimeCompiledCard("BT7-103")?.effects.find((effect) => effect.trigger === "Main");
 
     expect(whenDigivolving?.actions[1]).toMatchObject({
       kind: "Restrict",

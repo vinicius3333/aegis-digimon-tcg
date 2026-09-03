@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -9,7 +8,9 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "GainKeyword",
-          keyword: { keyword: "Recovery", amount: 1, source: "deck" },
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          keyword: { keyword: "Recovery", amount: 1, raw: "＜Recovery +1 (Deck)＞" },
+          duration: "permanent",
           condition: {
             kind: "selfDigivolutionStackHasTrait",
             filter: { nameOrTrait: [{ tokens: ["Hybrid"], match: "trait" }] },

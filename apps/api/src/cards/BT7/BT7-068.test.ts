@@ -14,7 +14,14 @@ describe("BT7-068 Lopmon", () => {
           trigger: "YourTurn",
           isInherited: true,
           frequency: "OncePerTurn",
-          actions: [{ kind: "SubTrigger", event: "whenPlayed", sourceFilter: { kind: ["Tamer"] }, actions: [{ kind: "GainMemory", amount: 1 }] }],
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenPlayed",
+              sourceFilter: { kind: ["Tamer"] },
+              actions: [{ kind: "GainMemory", amount: 1 }],
+            },
+          ],
         },
       ],
     });

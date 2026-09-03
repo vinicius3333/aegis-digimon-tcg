@@ -305,25 +305,50 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     }
     case "zoneCount": {
       // Generic resource-count gate: "if you/your opponent have N or more/fewer cards
-      // in your/their hand|trash|security|deck". Sizes the seat's zone and compares.
+      // in your/their hand|trash|security|deck". Sizes the seat's zone and compares. The
+      // digivolution-card branch also keeps the shared `zone` field total after
+      // `playedFromZone` gained that source-zone value for BT7-018.
       const seat = cond.seat === "opponent" ? opp : mine;
       const player = ctx.game.player(seat);
       const zone = cond.zone ?? "hand";
-      const size =
-        zone === "battleArea"
-          ? player.battleArea.filter(
-              (permanent) =>
-                permanent.topCard !== undefined &&
-                (cond.filter === undefined || definitionMatches(cond.filter, ctx.game.definitionOf(permanent.topCard))),
-            ).length
-          : zone === "security"
-            ? securityCountForCondition(ctx, seat)
-            : player[zone].length;
+      let size: number;
+      switch (zone) {
+        case "battleArea":
+          size = player.battleArea.filter(
+            (permanent) =>
+              permanent.topCard !== undefined &&
+              (cond.filter === undefined || definitionMatches(cond.filter, ctx.game.definitionOf(permanent.topCard))),
+          ).length;
+          break;
+        case "security":
+          size = securityCountForCondition(ctx, seat);
+          break;
+        case "digivolutionCards":
+          size = Array.from(player.battleArea).reduce((total, permanent) => total + permanent.stack.length, 0);
+          break;
+        case "hand":
+        case "trash":
+        case "deck":
+          size = player[zone].length;
+          break;
+        default:
+          return false;
+      }
       const value = cond.value ?? 0;
-      if (cond.op === "eq") return size === value;
-      if (cond.op === "lt") return size < value;
-      if (cond.op === "gt") return size > value;
-      return cond.op === "lte" ? size <= value : size >= value;
+      switch (cond.op ?? "gte") {
+        case "eq":
+          return size === value;
+        case "lt":
+          return size < value;
+        case "gt":
+          return size > value;
+        case "lte":
+          return size <= value;
+        case "gte":
+          return size >= value;
+        default:
+          return false;
+      }
     }
     case "combinedTrashCount": {
       const size = ctx.game.player(mine).trash.length + ctx.game.player(opp).trash.length;

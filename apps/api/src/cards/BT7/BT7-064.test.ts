@@ -24,7 +24,10 @@ describe("BT7-064 DoruGreymon", () => {
   it("places a black X-Antibody card from hand to protect the digivolving DoruGreymon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT7-064", under: ["BT7-062"], as: "host" }], hand: [{ card: "BT7-062", as: "placed" }] },
+        0: {
+          battleArea: [{ card: "BT7-064", under: ["BT7-062"], as: "host" }],
+          hand: [{ card: "BT7-062", as: "placed" }],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -39,7 +42,10 @@ describe("BT7-064 DoruGreymon", () => {
   it("accepts a black X-Antibody Option as a digivolution-card source", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT7-064", under: ["BT7-062"], as: "host" }], hand: [{ card: "BT16-098", as: "placed" }] },
+        0: {
+          battleArea: [{ card: "BT7-064", under: ["BT7-062"], as: "host" }],
+          hand: [{ card: "BT16-098", as: "placed" }],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

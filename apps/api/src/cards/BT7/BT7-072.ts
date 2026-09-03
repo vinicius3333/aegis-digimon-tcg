@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -38,7 +37,7 @@ export const compiled: CompiledCard = {
           kind: "ModifyDP",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           amount: 2000,
-          duration: "untilEachTurnEnd",
+          duration: "forTheTurn",
           scaling: {
             per: 1,
             unit: "trash",

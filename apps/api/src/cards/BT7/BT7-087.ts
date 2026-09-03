@@ -1,5 +1,4 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import { CardColor, type CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   effects: [
@@ -43,7 +42,7 @@ const compiled: CompiledCard = {
           from: ["hand"],
           payCost: true,
           optional: true,
-          virtualBase: { level: 5, colors: ["Blue"] },
+          virtualBase: { level: 5, colors: [CardColor.Blue] },
           condition: { kind: "namedCountAtLeast", countSource: "bt7KojiHybridCount", count: 5 },
         },
       ],

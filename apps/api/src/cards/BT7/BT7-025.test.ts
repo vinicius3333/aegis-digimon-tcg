@@ -71,7 +71,10 @@ describe("BT7-025 Beowolfmon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT7-025", under: [{ card: "BT6-049", as: "hybrid" }], as: "beowolf" }] },
-        1: { battleArea: [{ card: "BT6-049", under: [{ card: "BT1-010", as: "targetSource" }], as: "target" }], security: ["BT1-101"] },
+        1: {
+          battleArea: [{ card: "BT6-049", under: [{ card: "BT1-010", as: "targetSource" }], as: "target" }],
+          security: ["BT1-101"],
+        },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
@@ -86,7 +89,9 @@ describe("BT7-025 Beowolfmon", () => {
     await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
 
     expect(s.perm("beowolf").stack.some((card) => card.instanceId === s.inst("hybrid").instanceId)).toBe(true);
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("target").permanentId)).toBe(true);
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("target").permanentId),
+    ).toBe(true);
     expect(s.perm("target").stack.some((card) => card.instanceId === s.inst("targetSource").instanceId)).toBe(true);
   });
 });

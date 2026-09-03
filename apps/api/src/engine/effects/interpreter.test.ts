@@ -278,6 +278,14 @@ describe("new typed RAW-elimination conditions", () => {
     ).toBe(true);
   });
 
+  it("rejects malformed zoneCount zones and operators without throwing", () => {
+    const { ctx } = conditionContext();
+    expect(evaluateCondition(ctx, { kind: "zoneCount", zone: "discard" as never, op: "gte", value: 0 })).toBe(false);
+    expect(evaluateCondition(ctx, { kind: "zoneCount", zone: "hand", op: "approximately" as never, value: 0 })).toBe(
+      false,
+    );
+  });
+
   it("checks named attack procedures and the empty breeding slot", () => {
     const { ctx } = conditionContext({ trigger: { attackMechanic: "Execute" } });
     expect(evaluateCondition(ctx, { kind: "triggerAttackBy", keyword: "Execute" })).toBe(true);

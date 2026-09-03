@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR — source placement must happen under this inherited host.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
@@ -34,7 +33,7 @@ const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Kota Domoto"],
-                    match: "name",
+                    match: "nameExact",
                   },
                 ],
               },

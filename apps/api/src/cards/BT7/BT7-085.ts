@@ -1,5 +1,4 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import { CardColor, type CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   effects: [
@@ -43,7 +42,7 @@ const compiled: CompiledCard = {
           from: ["hand"],
           payCost: true,
           optional: true,
-          virtualBase: { level: 5, colors: ["Red"] },
+          virtualBase: { level: 5, colors: [CardColor.Red] },
           condition: { kind: "namedCountAtLeast", countSource: "bt7TakuyaHybridCount", count: 5 },
         },
       ],
@@ -51,7 +50,6 @@ const compiled: CompiledCard = {
     {
       trigger: "YourTurn",
       isInherited: true,
-      continuousPriority: 0,
       actions: [
         {
           kind: "Aura",
@@ -64,7 +62,6 @@ const compiled: CompiledCard = {
     {
       trigger: "YourTurn",
       isInherited: true,
-      continuousPriority: 1,
       actions: [
         {
           kind: "Aura",

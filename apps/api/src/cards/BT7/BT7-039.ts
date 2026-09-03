@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -29,6 +28,7 @@ const compiled: CompiledCard = {
         },
         {
           kind: "Draw",
+          controller: "mine",
           amount: 1,
           scaling: { per: 1, unit: "namedCount", countSource: "stefilmonPlaced" },
           condition: { kind: "namedCountAtLeast", countSource: "stefilmonPlaced", count: 1 },

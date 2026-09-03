@@ -12,9 +12,9 @@ describe("BT7-031 Herissmon", () => {
       {
         0: {
           // Legal yellow stack: L2 egg -> L3 Herissmon -> L4 Filmon.
-            battleArea: [
-              {
-                card: "BT7-034",
+          battleArea: [
+            {
+              card: "BT7-034",
               under: ["BT1-005", { card: "BT7-031", as: "herissmon" }],
               as: "host",
             },

@@ -172,7 +172,7 @@ export interface Condition {
   controller?: "mine" | "self" | "opponent";
   // For `zoneCount`: which player's zone, which zone, and the comparison.
   seat?: "mine" | "opponent" | "any";
-  zone?: "hand" | "trash" | "security" | "deck" | "battleArea";
+  zone?: "hand" | "trash" | "security" | "deck" | "battleArea" | "digivolutionCards";
   op?: "gte" | "lte" | "lt" | "gt" | "eq";
   /** For `boardCountCompare`: left operand, default opponent. */
   left?: "mine" | "opponent";

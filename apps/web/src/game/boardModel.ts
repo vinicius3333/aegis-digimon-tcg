@@ -6,7 +6,7 @@ import {
   getCardDefinition,
   digivolutionRequirementsFor,
   effectiveStaticNames,
-  tamerOntoDigivolveLevel,
+  tamerOntoDigivolveSpec,
   baseGrantedDigivolveFor,
   getCompiledCard,
   intrinsicDigivolutionCostReductionFor,
@@ -551,7 +551,8 @@ function alternateDigivolveMatches(
   viewer: PlayerState | undefined,
 ): { req: DigivolutionRequirement; cost: number }[] {
   const requirements = digivolutionRequirementsFor(handCardId) ?? [];
-  const tamerOntoLevel = tamerOntoDigivolveLevel(handCardId);
+  const tamerOntoSpec = tamerOntoDigivolveSpec(handCardId);
+  const tamerOntoLevel = tamerOntoSpec?.asLevel;
   const matches: { req: DigivolutionRequirement; cost: number }[] = [];
 
   for (const req of requirements) {
@@ -562,10 +563,27 @@ function alternateDigivolveMatches(
 
   if (tamerOntoLevel !== undefined && baseDef.kinds.includes(CardKind.Tamer)) {
     // Generic "onto one of your <color> Tamers as if a level-N Digimon": legal onto a Tamer that
-    // shares a color with an EvoCost at the "as if" level; the cost is that EvoCost's memory cost.
+    // satisfies the printed Tamer-color filter and shares a color with an EvoCost at the "as if"
+    // level. A printed fixed cost takes precedence over the ordinary level-N EvoCost.
+    if (
+      tamerOntoSpec?.baseColors !== undefined &&
+      !tamerOntoSpec.baseColors.some((color) => baseDef.colors.includes(color as (typeof baseDef.colors)[number]))
+    ) {
+      return matches;
+    }
     const evo = hand.evoCosts.find((ev) => ev.level === tamerOntoLevel && baseDef.colors.includes(ev.color));
-    if (evo)
-      matches.push({ req: { cost: evo.memoryCost, isAlternate: true, baseIsTamer: true }, cost: evo.memoryCost });
+    if (evo) {
+      const cost = tamerOntoSpec?.costOverride ?? evo.memoryCost;
+      matches.push({
+        req: {
+          cost,
+          isAlternate: true,
+          baseIsTamer: true,
+          ...(tamerOntoSpec?.baseColors === undefined ? {} : { baseColors: tamerOntoSpec.baseColors }),
+        },
+        cost,
+      });
+    }
   }
 
   return matches;
@@ -582,6 +600,12 @@ function altRequirementMatches(
   if (!requirementHasGate(req)) return false;
   const baseLevel = baseDef.level;
   if (req.baseIsTamer && !baseDef.kinds.includes(CardKind.Tamer)) return false;
+  if (
+    req.baseColors &&
+    req.baseColors.length > 0 &&
+    !req.baseColors.some((color) => baseDef.colors.includes(color as (typeof baseDef.colors)[number]))
+  )
+    return false;
   if (req.level !== undefined && baseLevel !== req.level) return false;
   if (req.levelMin !== undefined && (baseLevel === undefined || baseLevel < req.levelMin)) return false;
   if (req.levelMax !== undefined && (baseLevel === undefined || baseLevel > req.levelMax)) return false;

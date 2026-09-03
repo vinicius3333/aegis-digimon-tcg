@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -35,6 +34,7 @@ const compiled: CompiledCard = {
           kind: "ModifyDP",
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
           amount: -3000,
+          duration: "forTheTurn",
           scaling: { per: 1, unit: "namedCount", countSource: "rasenmonDigiBurst" },
           condition: { kind: "namedCountAtLeast", countSource: "rasenmonDigiBurst", count: 1 },
         },

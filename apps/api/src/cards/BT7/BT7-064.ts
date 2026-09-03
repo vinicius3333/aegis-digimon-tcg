@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -47,6 +46,7 @@ const compiled: CompiledCard = {
           kind: "GainKeyword",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           keyword: { keyword: "SecurityAttack", amount: 1 },
+          duration: "forTheTurn",
           condition: {
             kind: "selfDigivolutionStackHasTrait",
             filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] },

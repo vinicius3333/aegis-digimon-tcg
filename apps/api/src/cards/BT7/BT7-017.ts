@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT7-017 — do not regenerate.
 // WhenDigivolving: PlaceUnder added from:["hand","trash"], underFilter:self, position:top;
 // removed misplaced scaling (it belongs on the Delete action). Added Delete action with

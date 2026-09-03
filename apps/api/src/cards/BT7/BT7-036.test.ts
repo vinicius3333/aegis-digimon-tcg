@@ -4,6 +4,29 @@ import { observe } from "../../engine/testkit/observe.js";
 import "./BT7-036.js";
 
 describe("BT7-036 Zephyrmon", () => {
+  it("digivolves onto a yellow Tamer for the printed fixed cost of 2", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT7-088", as: "base" }],
+        hand: [{ card: "BT7-036", as: "evolving" }],
+        security: [{ card: "BT1-048", as: "security" }],
+      },
+    });
+    s.state.memory = 2;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).securityDp(0) === 3000);
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base").topCard.cardId).toBe("BT7-036");
+  });
+
   it("gives all of your Security Digimon +3000 DP through the opponent's next turn", async () => {
     const s = setupEngine({
       0: {
