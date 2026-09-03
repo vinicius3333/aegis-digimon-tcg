@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./EX1-069.js";
 import "./EX1-072.js";
 
 describe("EX1-072 Emergency Program Shutdown!", () => {
@@ -41,5 +42,40 @@ describe("EX1-072 Emergency Program Shutdown!", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("opponentOption").instanceId }).ok).toBe(
       false,
     );
+  });
+
+  it("expires after the opponent's next turn, allowing Option use again", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX1-072", as: "shutdown" }],
+          battleArea: [{ card: "BT11-095", as: "blueSource" }],
+          deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+          security: ["BT1-001", "BT1-001", "BT1-001"],
+        },
+        1: {
+          hand: [{ card: "EX1-069", as: "opponentOption" }],
+          battleArea: [{ card: "EX1-047", as: "blackSource" }],
+          deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+          security: ["BT1-001", "BT1-001", "BT1-001"],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 3;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shutdown").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-072"));
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentOption").instanceId }).ok).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentOption").instanceId }).ok).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });
