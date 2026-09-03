@@ -46,6 +46,7 @@ const compiled: CompiledCard = {
             raw: "by suspending this Digimon",
           },
           optional: true,
+          abortOnDecline: true,
         },
       ],
     },

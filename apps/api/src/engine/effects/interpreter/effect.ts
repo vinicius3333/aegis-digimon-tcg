@@ -658,7 +658,7 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
  * Kinds that also reach cards in hand/deck/trash/security are deliberately absent: their empty
  * board scan says nothing about whether the action can do something.
  */
-const BOARD_TARGETED_ACTION_KINDS = new Set<Action["kind"]>(["SetBaseDP"]);
+const BOARD_TARGETED_ACTION_KINDS = new Set<Action["kind"]>(["Delete", "SetBaseDP"]);
 
 /**
  * Whether any of `actions` consumes the named selection as its own source — a
@@ -723,6 +723,23 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
   // board scans and are left to their own action's gate.
   const boardTargetOf = (action: Action): Target | undefined => {
     if (!BOARD_TARGETED_ACTION_KINDS.has(action.kind)) return undefined;
+    // Some rulings explicitly allow paying the processing cost even when the payload has no
+    // target (BT15-009). Those actions opt out of declaration-time target gating.
+    if (action.kind !== "RawUnparsed" && action.allowCostWithoutTarget === true) return undefined;
+    // A scaled/bound deletion can acquire its target only after a cost or earlier action has
+    // produced the value it compares against. Keep those on the resolver's transactional
+    // preflight; only statically answerable deletion targets are safe to gate here.
+    if (
+      action.kind === "Delete" &&
+      (action.dpCeilingScaling !== undefined ||
+        action.totalDpCapScaling !== undefined ||
+        action.playCostCeiling !== undefined ||
+        action.scaling !== undefined ||
+        action.target.filter.playCostLteScaling !== undefined ||
+        /"(lastDeleted|selectionRef|namedCount|sameNameAsSelection|levelEq)"/.test(JSON.stringify(action.target)))
+    ) {
+      return undefined;
+    }
     const target = (action as { target?: Target }).target;
     if (target === undefined || target.fromSelectionRef !== undefined) return undefined;
     const filter = target.filter;
