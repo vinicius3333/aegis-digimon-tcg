@@ -51,6 +51,37 @@ describe("EX1-070 Fight for Your Pride!", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
 
+  it("plays a purple level-4-or-lower Digimon during a real security check", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+        1: {
+          security: [{ card: "EX1-070", as: "option" }],
+          trash: [
+            { card: "EX1-057", as: "eligible" },
+            { card: "EX1-061", as: "tooHigh" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const eligibleId = s.inst("eligible").instanceId;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === eligibleId));
+
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === eligibleId)).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("tooHigh").instanceId)).toBe(true);
+  });
+
   it("does not grant Blocker when the required Myotismon is absent", async () => {
     const s = setupEngine(
       {

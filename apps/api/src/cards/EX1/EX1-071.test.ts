@@ -547,6 +547,28 @@ describe("EX1-071 Win Rate: 60%!", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === id)).toBe(true);
   });
 
+  it("adds itself to its owner's hand during a real security check", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      1: { security: [{ card: "EX1-071", as: "securityOption" }] },
+    });
+    const id = s.inst("securityOption").instanceId;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === id));
+
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.hand.some((card) => card.instanceId === id)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === id)).toBe(false);
+  });
+
   it("does not reduce a matching digivolution performed in the breeding area (Q3259)", async () => {
     const s = setupEngine(
       {

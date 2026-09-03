@@ -59,6 +59,37 @@ describe("EX1-072 Emergency Program Shutdown!", () => {
     );
   });
 
+  it("applies its turn lock and returns to its owner's hand during a real security check", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "EX1-069", as: "opponentOption" }],
+        battleArea: [
+          { card: "BT1-009", as: "attacker" },
+          { card: "EX1-047", as: "blackSource" },
+        ],
+      },
+      1: { security: [{ card: "EX1-072", as: "shutdown" }] },
+    });
+    const shutdownId = s.inst("shutdown").instanceId;
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === shutdownId));
+
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.hand.some((card) => card.instanceId === shutdownId)).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("opponentOption").instanceId }).ok).toBe(
+      false,
+    );
+  });
+
   it("expires after the opponent's next turn, allowing Option use again", async () => {
     const s = setupEngine(
       {

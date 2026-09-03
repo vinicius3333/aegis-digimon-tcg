@@ -5,6 +5,7 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../BT1/BT1-084.js";
 import "../BT1/BT1-106.js";
 import "../BT10/BT10-029.js";
+import "../EX5/EX5-063.js";
 import "../BT1/BT1-114.js";
 import "./EX1-047.js";
 import "./EX1-048.js";
@@ -377,69 +378,39 @@ describe("EX1-073 Machinedramon", () => {
     );
   });
 
-  it("can pay deletion prevention again for a separate deletion event (Q6030)", async () => {
+  it("can prevent both sequential deletions produced by one effect (Q6030)", async () => {
     const s = setupEngine(
       {
         0: {
+          hand: [{ card: "EX5-063", as: "leviamon" }],
+        },
+        1: {
           battleArea: [
             {
               card: "EX1-073",
               as: "machine",
-              under: ["EX1-050", "EX1-050", "BT1-020", "BT1-020"],
+              under: ["EX1-008", "EX1-050", "BT1-020", "BT1-021"],
             },
           ],
-          deck: ["BT1-001", "BT1-001"],
-          security: ["BT1-001", "BT1-001"],
-        },
-        1: {
-          battleArea: [
-            { card: "BT1-084", dp: 15_000, as: "firstAttacker" },
-            { card: "BT1-084", dp: 15_000, as: "secondAttacker" },
-          ],
-          deck: ["BT1-001", "BT1-001"],
-          security: ["BT1-001", "BT1-001"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
-    const loop = s.engine.startTurnLoop();
-    await advance(s.engine).waitForMainPhase(0);
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("machine").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("machine").isSuspended);
-    await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 13;
+    await s.ready();
 
-    expect(
-      s.engine.applyIntent(1, {
-        type: "attack",
-        attackerPermanentId: s.perm("firstAttacker").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("machine").permanentId },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("machine").stack.length === 2);
-    expect(
-      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("machine").permanentId),
-    ).toBe(true);
-
-    expect(
-      s.engine.applyIntent(1, {
-        type: "attack",
-        attackerPermanentId: s.perm("secondAttacker").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("machine").permanentId },
-      }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("leviamon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("machine").stack.length === 0);
+
     expect(s.perm("machine").stack).toHaveLength(0);
     expect(
-      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("machine").permanentId),
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("machine").permanentId),
     ).toBe(true);
-
-    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
-    await loop;
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["EX1-008", "EX1-050", "BT1-020", "BT1-021"]),
+    );
+    expect(s.state.memory).toBe(0);
   });
 });
