@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../BT2/BT2-058.js";
@@ -95,5 +96,28 @@ describe("EX1-056 DemiDevimon", () => {
     await settle(() => s.events.some((event) => event.kind === "combatResolved"));
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("expires its Digimon-attack restriction during the opponent's turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: ["BT1-009"],
+          battleArea: [{ card: "EX1-056", as: "demidevimon" }],
+          deck: ["BT1-010", "BT1-011"],
+        },
+        1: { hand: ["BT1-009"], deck: ["BT1-010", "BT1-011"] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    expect(observe(s.engine).isRestricted(s.perm("demidevimon"), "cantAttackDigimon")).toBe(true);
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(observe(s.engine).isRestricted(s.perm("demidevimon"), "cantAttackDigimon")).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });
