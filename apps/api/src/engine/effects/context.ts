@@ -384,6 +384,8 @@ export function unimplementedDecisions(): DecisionApi {
 export interface EffectEnvironment {
   state: GameState;
   fx: Primitives;
+  /** Resolve effect verbs from the collected source's controller/owner context. */
+  fxForSource?: (source: CardSource) => Primitives;
   ask: DecisionApi;
   /** Per-turn use ledger for maxPerTurn accounting (engine-owned, reset each turn). */
   tracker: UseTracker;
@@ -466,7 +468,7 @@ export function gatherTriggeredEffects(
       source,
       trigger: env.triggerInfo ?? {},
       game,
-      fx: env.fx,
+      fx: env.fxForSource?.(source) ?? env.fx,
       ask: env.ask,
       usage: env.tracker,
       // The PRINTED window ("[Main]", "[When Attacking]") the decision is attributed to, which
