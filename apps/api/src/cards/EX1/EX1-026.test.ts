@@ -8,7 +8,7 @@ describe("EX1-026 Gatomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX1-028", as: "host", under: ["EX1-026"] }],
+          battleArea: [{ card: "BT1-057", as: "host", under: ["BT1-006", "BT1-030", "EX1-026"] }],
           security: ["BT1-001", "BT1-001", "BT1-001"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }], security: ["BT1-001", "BT1-001"] },
@@ -29,7 +29,10 @@ describe("EX1-026 Gatomon", () => {
 
   it("does not modify a target when security is below three", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX1-028", as: "host", under: ["EX1-026"] }], security: ["BT1-001", "BT1-001"] },
+      0: {
+        battleArea: [{ card: "BT1-057", as: "host", under: ["BT1-006", "BT1-030", "EX1-026"] }],
+        security: ["BT1-001", "BT1-001"],
+      },
       1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }], security: ["BT1-001", "BT1-001"] },
     });
     await s.ready();
@@ -40,7 +43,10 @@ describe("EX1-026 Gatomon", () => {
 
   it("modifies only once across two player attacks in one turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX1-028", as: "host", under: ["EX1-026"] }], security: ["BT1-001", "BT1-001", "BT1-001"] },
+      0: {
+        battleArea: [{ card: "BT1-057", as: "host", under: ["BT1-006", "BT1-030", "EX1-026"] }],
+        security: ["BT1-001", "BT1-001", "BT1-001"],
+      },
       1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }], security: ["BT1-001", "BT1-001", "BT1-001"] },
     });
     await s.ready();
