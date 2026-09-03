@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -19,7 +18,6 @@ export const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: 1,
-            bindResultAs: "deleted",
           },
         },
         {
@@ -35,23 +33,12 @@ export const compiled: CompiledCard = {
           },
           from: ["trash"],
           payCost: false,
-          bindResultAs: "playedByGorgon",
+          suppressOnPlayEffects: true,
           condition: {
-            kind: "bindingExists",
-            ref: "deleted",
+            kind: "ifThisEffectActed",
             raw: "you do",
           },
           optional: true,
-        },
-        {
-          kind: "DisableTimingEffect",
-          duration: "permanent",
-          target: {
-            count: 1,
-            filter: { boundRef: "playedByGorgon" },
-          },
-          timings: ["onPlay"],
-          condition: { kind: "bindingExists", ref: "playedByGorgon" },
         },
       ],
     },

@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-authored override — do not regenerate.
 // OnPlay+WhenDigivolving: 3 separate bottom PlaceUnder actions (1 per named card from trash).
 // Errata (2022-09-05): Fujinmon (not Fuijinmon). Source zone: trash (per text and errata).

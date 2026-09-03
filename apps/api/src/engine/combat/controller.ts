@@ -1394,15 +1394,9 @@ export class CombatController {
       await this.hooks.fireSubTrigger?.("whenLeavesPlay", { deletedPermanentId: permanentId });
     }
 
-    const attackerTopCardId = attacker.topCard?.cardId;
-    const defenderTopCardId = defender.topCard?.cardId;
-    const deletedPermanentSnapshots = postCardPreventionDeletedIds.flatMap((permanentId) => {
-      const permanent = this.access.permanentById(permanentId);
-      return permanent?.topCard === undefined
-        ? []
-        : [{ permanentId, controllerSeat: permanent.controllerSeat, topCardId: permanent.topCard.cardId }];
-    });
-    const deleted: string[] = [];
+  const attackerTopCardId = attacker.topCard?.cardId;
+  const defenderTopCardId = defender.topCard?.cardId;
+  const deleted: string[] = [];
     const deletedInstanceIds: string[] = [];
     const deletedWasStackInstanceIds: string[] = [];
     const deletedWasLinkedInstanceIds: string[] = [];

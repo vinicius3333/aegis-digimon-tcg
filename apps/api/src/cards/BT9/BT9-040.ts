@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -44,6 +43,7 @@ export const compiled: CompiledCard = {
             amount: 1,
             raw: "＜Recovery +1 (Deck)＞",
           },
+          duration: "permanent",
           condition: {
             kind: "allOf",
             conditions: [

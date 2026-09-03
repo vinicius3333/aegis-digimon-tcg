@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED — preserve: inherited deletion checks the live host's Alphamon name.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

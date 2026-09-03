@@ -6,13 +6,57 @@ import "./BT9-102.js";
 describe("BT9-102 Attack of the Heavy Mobile Digimon!", () => {
   it("matches catalog values and all-Machine grant and security IR", () => {
     expect(getCardDefinition("BT9-102")).toMatchObject({
-      colors: ["Black"], kinds: ["Option"], playCost: 0,
-      securityEffectText: "[Security] You may trash 1 Digimon card with [Cyborg] or [Machine] in its traits in your hand to delete 1 of your opponent’s Digimon whose play cost is less than or equal to the trashed card’s play cost.",
+      colors: ["Black"],
+      kinds: ["Option"],
+      playCost: 0,
+      securityEffectText:
+        "[Security] You may trash 1 Digimon card with [Cyborg] or [Machine] in its traits in your hand to delete 1 of your opponent’s Digimon whose play cost is less than or equal to the trashed card’s play cost.",
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], effects: [
-        { trigger: "Main", actions: [{ kind: "GainKeyword", keyword: { keyword: "Rush" }, duration: "forTheTurn", optional: true, includeLaterEntrants: true, target: { count: "all", filter: { levels: [6], traits: ["Machine"] } } }, { kind: "GrantStatic", grant: "effects", tokens: ["OnPlayBlitzIfHasDigivolutionCard"], includeLaterEntrants: true, target: { count: "all", filter: { levels: [6], traits: ["Machine"] } } }] },
-        { trigger: "Security", isSecurity: true, actions: [{ kind: "Delete", optional: true, cost: { kind: "trash" } }] },
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "GainKeyword",
+              keyword: { keyword: "Rush" },
+              duration: "forTheTurn",
+              optional: true,
+              includeLaterEntrants: true,
+              target: { count: "all", filter: { levels: [6], traits: ["Machine"] } },
+            },
+            {
+              kind: "GrantStatic",
+              grant: "effects",
+              tokens: ["OnPlayBlitzIfHasDigivolutionCard"],
+              includeLaterEntrants: true,
+              target: { count: "all", filter: { levels: [6], traits: ["Machine"] } },
+            },
+          ],
+        },
+        {
+          trigger: "Security",
+          isSecurity: true,
+          actions: [
+            {
+              kind: "Delete",
+              optional: true,
+              cost: {
+                kind: "trash",
+                target: { filter: { kind: ["Digimon"] }, count: 1 },
+                bindResultAs: "trashedSecurityCard",
+              },
+              target: {
+                filter: {
+                  kind: ["Digimon"],
+                  relativeTo: { attr: "playCost", op: "lte", selectionRef: "trashedSecurityCard" },
+                },
+              },
+            },
+          ],
+        },
       ],
     });
     const rush = compiled.effects.find((effect) => effect.trigger === "Main")!.actions[0]!;

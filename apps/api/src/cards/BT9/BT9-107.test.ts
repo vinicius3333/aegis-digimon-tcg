@@ -8,12 +8,34 @@ import "./BT9-109.js";
 describe("BT9-107 Metal Impulse", () => {
   it("matches catalog values and repeated bound De-Digivolve, then-delete, and security IR", () => {
     expect(getCardDefinition("BT9-107")).toMatchObject({
-      colors: ["Purple", "Black"], kinds: ["Option"], playCost: 6,
+      colors: ["Purple", "Black"],
+      kinds: ["Option"],
+      playCost: 6,
       securityEffectText: "[Security] Activate this card's [Main] effect.",
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], effects: [
-        { trigger: "Main", actions: [{ kind: "Trash", target: { count: 3, upTo: true }, trackCount: "metalImpulseDiscarded" }, { kind: "SelectBind", target: { bindAs: "metalImpulseTarget" } }, { kind: "DeDigivolve", amount: 1, target: { fromSelectionRef: "metalImpulseTarget" }, scaling: { unit: "namedCount", countSource: "metalImpulseDiscarded" }, stopAtLevel: 3 }, { kind: "Delete", target: { filter: { levelComparison: { op: "lte", value: 4 } } } }] },
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            { kind: "Trash", target: { count: 3, upTo: true }, trackCount: "metalImpulseDiscarded" },
+            { kind: "SelectBind", target: { bindAs: "metalImpulseTarget" } },
+            {
+              kind: "DeDigivolve",
+              amount: 1,
+              target: {
+                filter: { controller: "opponent", kind: ["Digimon"] },
+                count: 1,
+                fromSelectionRef: "metalImpulseTarget",
+              },
+              scaling: { unit: "namedCount", countSource: "metalImpulseDiscarded" },
+              stopAtLevel: 3,
+            },
+            { kind: "Delete", target: { filter: { levelComparison: { op: "lte", value: 4 } } } },
+          ],
+        },
         { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },
       ],
     });

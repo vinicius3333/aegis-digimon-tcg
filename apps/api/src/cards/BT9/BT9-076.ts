@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR — downstream branches inspect the color of the card actually trashed.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

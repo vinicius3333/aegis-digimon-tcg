@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT9-056 (Dinotigermon) — do not regenerate over this file.
 // The generated [When Attacking] gate ("If a card with [Leomon] in its name or
 // [X Antibody] is in this Digimon's digivolution cards" — KB Q1852) was a raw

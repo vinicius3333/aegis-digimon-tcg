@@ -1,5 +1,4 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Hand-authored IR for BT9-018 (Dinorexmon).
@@ -17,6 +16,24 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //    KB Q1818: effect is optional (you may decline; if you do, OncePerTurn is not consumed).
 //    KB Q1820: can fire for multiple simultaneously suspended Digimon.
 //    Fix: SubTrigger on whenSuspended (the previously-dead "whenDigimonSuspended" name collapsed onto it), sourceFilter opponent Digimon DP≤6000, optional Delete.
+
+type DeleteSuspendedDigimonAction = Extract<Action, { kind: "Delete" }> & {
+  preserveOncePerTurnOnDecline: true;
+};
+
+const deleteSuspendedDigimon: DeleteSuspendedDigimonAction = {
+  kind: "Delete",
+  target: {
+    filter: {
+      controller: "opponent",
+      kind: ["Digimon"],
+    },
+    count: "all",
+    sourceRef: "triggerSubject",
+  },
+  optional: true,
+  preserveOncePerTurnOnDecline: true,
+};
 
 export const compiled: CompiledCard = {
   effects: [
@@ -71,21 +88,7 @@ export const compiled: CompiledCard = {
               value: 6000,
             },
           },
-          actions: [
-            {
-              kind: "Delete",
-              target: {
-                filter: {
-                  controller: "opponent",
-                  kind: ["Digimon"],
-                },
-                count: "all",
-                sourceRef: "triggerSubject",
-              },
-              optional: true,
-              preserveOncePerTurnOnDecline: true,
-            },
-          ],
+          actions: [deleteSuspendedDigimon],
         },
       ],
       frequency: "OncePerTurn",
