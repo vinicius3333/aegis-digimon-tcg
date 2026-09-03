@@ -15,12 +15,25 @@ describe("EX1-065 Diaboromon", () => {
           { card: "EX1-065", as: "source" },
           { card: "EX1-065", as: "other" },
         ],
+        hand: ["BT1-009"],
+        deck: ["BT1-009", "BT1-009"],
+        security: ["BT1-009", "BT1-009"],
+      },
+      1: {
+        hand: ["BT1-009"],
+        deck: ["BT1-009", "BT1-009"],
+        security: ["BT1-009", "BT1-009"],
       },
     });
-    s.state.turnSeat = 1;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     await s.ready();
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
     expect(observe(s.engine).hasKeyword(s.perm("source"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("other"), "Blocker")).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("may play a Diaboromon Token from security", async () => {
@@ -99,7 +112,9 @@ describe("EX1-065 Diaboromon", () => {
       s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "TOKEN-Diaboromon"),
     );
 
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "TOKEN-Diaboromon")).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "TOKEN-Diaboromon")).toBe(
+      true,
+    );
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
   });
 

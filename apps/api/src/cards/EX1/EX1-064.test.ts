@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX1-064.js";
 
@@ -91,7 +90,10 @@ describe("EX1-064 Piedmon", () => {
       {
         0: {
           hand: [{ card: "EX1-064", as: "piedmon" }],
-          battleArea: [{ card: "EX1-056", as: "purpleSource" }],
+          battleArea: [
+            { card: "EX1-056", as: "firstAttacker", dp: 10000 },
+            { card: "BT1-011", as: "secondAttacker", dp: 10000 },
+          ],
           deck: ["BT1-001", "BT1-001"],
         },
         1: {
@@ -104,17 +106,30 @@ describe("EX1-064 Piedmon", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 12;
+    await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("piedmon").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-064"));
 
-    await advance(s.engine).verb.unsuspend([s.perm("first").permanentId]);
-    await advance(s.engine).verb.deletePermanent([s.perm("first").permanentId], "byEffect");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("firstAttacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("first").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("first").instanceId));
     expect(s.state.players[0]!.deck).toHaveLength(1);
 
-    await advance(s.engine).verb.unsuspend([s.perm("second").permanentId]);
-    await advance(s.engine).verb.deletePermanent([s.perm("second").permanentId], "byEffect");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("secondAttacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("second").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("second").instanceId));
     expect(s.state.players[0]!.deck).toHaveLength(1);
   });
 });

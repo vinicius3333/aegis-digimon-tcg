@@ -1,8 +1,9 @@
+import { Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../BT18/BT18-077.js";
+import "../ST15/ST15-15.js";
 import "./EX1-063.js";
 
 describe("EX1-063 VenomMyotismon", () => {
@@ -128,10 +129,15 @@ describe("EX1-063 VenomMyotismon", () => {
   });
 
   it("enforces once per turn across two attacks by the same VenomMyotismon", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX1-063", as: "venom" }],
+          battleArea: [
+            { card: "EX1-063", as: "venom" },
+            { card: "BT1-085", as: "tai" },
+          ],
+          hand: [{ card: "ST15-15", as: "unsuspendOption" }],
           trash: [
             { card: "EX1-056", as: "first" },
             { card: "EX1-057", as: "second" },
@@ -139,8 +145,10 @@ describe("EX1-063 VenomMyotismon", () => {
         },
         1: { security: ["BT1-001", "BT1-001"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.perm("venom").topCard.instanceId);
+    s.state.memory = 4;
     await s.ready();
 
     expect(
@@ -150,9 +158,17 @@ describe("EX1-063 VenomMyotismon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX1-056"));
+    await settle(
+      () =>
+        s.state.phase === Phase.Main &&
+        !observe(s.engine).isAttacking() &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX1-056"),
+    );
 
-    await advance(s.engine).verb.unsuspend([s.perm("venom").permanentId]);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("unsuspendOption").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.phase === Phase.Main && !s.perm("venom").isSuspended);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
