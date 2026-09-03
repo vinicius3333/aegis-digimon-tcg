@@ -48,6 +48,28 @@ describe("EX1-045 Hagurumon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("machine").instanceId)).toBe(false);
   });
 
+  it("accepts a Cyborg Digimon as the public discard cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX1-045", as: "hagurumon" },
+            { card: "BT1-024", as: "cyborg" },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hagurumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cyborg").instanceId));
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cyborg").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand).toHaveLength(2);
+  });
+
   it("does not accept a non-Machine/Cyborg Digimon as the trash cost", async () => {
     const s = setupEngine(
       {
