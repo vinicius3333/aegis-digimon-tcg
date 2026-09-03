@@ -56,6 +56,54 @@ describe("EX1-050 MetalMamemon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT11-072")).toBe(false);
   });
 
+  it("trashes all revealed non-Machine cards when no level 6 Machine is found", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX1-047", as: "base" }],
+          hand: [{ card: "EX1-050", as: "evo" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.length === 3);
+    expect(s.state.players[0]!.trash).toHaveLength(3);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT11-072")).toBe(false);
+  });
+
+  it("resolves a reveal of fewer than three cards after the digivolution draw", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX1-047", as: "base" }],
+          hand: [{ card: "EX1-050", as: "evo" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.length === 1);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.players[0]!.trash).toHaveLength(1);
+  });
+
   it("deletes an opposing Digimon with play cost 5 or less when a Machine host attacks", async () => {
     const s = setupEngine(
       {
