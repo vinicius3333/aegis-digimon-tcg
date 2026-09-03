@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 // Behavioral A3 for EX2-055 (Reaper) — BeforePayCost: trash 7+ digivolution cards from the bottom
@@ -59,7 +60,7 @@ describe("EX2-055 BeforePayCost: trash 7+ from a Mother D-Reaper's bottom → se
       },
       { autoDeclineOptional: true },
     );
-    s.state.memory = 10;
+    s.state.memory = 30;
 
     expect(
       s.engine.applyIntent(0, {
@@ -70,7 +71,7 @@ describe("EX2-055 BeforePayCost: trash 7+ from a Mother D-Reaper's bottom → se
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard.cardId === "EX2-055"));
 
     expect(s.perm("mother").stack).toHaveLength(7);
-    expect(s.state.memory).toBe(-10);
+    expect(s.state.memory).toBe(10);
   });
 
   it("lets the player choose to trash more than 7 bottom sources", async () => {
@@ -202,5 +203,80 @@ describe("EX2-055 BeforePayCost: trash 7+ from a Mother D-Reaper's bottom → se
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.perm("reaper").isSuspended).toBe(false);
     expect(s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === "EX2-055")).toHaveLength(1);
+  });
+
+  it("has Rush and can attack on the same turn after its free play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX2-007", as: "mother", under: Array.from({ length: 7 }, () => "EX2-046") }],
+          hand: [{ card: "EX2-055", as: "reaper" }],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("reaper").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("reaper").instanceId),
+    );
+    expect(observe(s.engine).hasKeyword(s.perm("reaper"), "Rush")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("reaper").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+  });
+
+  it("does not set its cost to 0 with only six Mother D-Reaper sources", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX2-007", as: "mother", under: Array.from({ length: 6 }, () => "EX2-046") }],
+          hand: [{ card: "EX2-055", as: "reaper" }],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 30;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("reaper").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("reaper").instanceId),
+    );
+    expect(s.state.memory).toBe(10);
+    expect(s.perm("mother").stack).toHaveLength(6);
+  });
+
+  it("does not unsuspend or place cards when fewer than two Searchers are in trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX2-055", as: "reaper", under: ["BT1-009"] }],
+          trash: [{ card: "EX2-046", as: "onlySearcher" }],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("reaper").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("reaper").isSuspended).toBe(true);
+    expect(s.perm("reaper").stack).toHaveLength(1);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("onlySearcher").instanceId);
   });
 });

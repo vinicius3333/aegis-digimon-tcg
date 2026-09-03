@@ -136,20 +136,54 @@ describe("EX2-049 [Main] reveal 5 → place ADR-02 Searcher under a Mother D-Rea
   });
 
   it("returns the selected Searcher to the deck when no Mother D-Reaper exists", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "EX2-049", as: "source" }],
-        deck: [{ card: "EX2-046", as: "adr" }, "BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX2-049", as: "source" }],
+          deck: [{ card: "EX2-046", as: "adr" }, "BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
     await s.ready();
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.perm("source").topCard.instanceId,
-      effectKey: "EX2-049/ir-27-0",
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("source").topCard.instanceId,
+        effectKey: "EX2-049/ir-27-0",
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.deck.length === 5);
     expect(s.state.players[0]!.deck).toHaveLength(5);
     expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("adr").instanceId)).toBe(true);
+  });
+
+  it("leaves the source ready and the deck and Mother unchanged when activation is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX2-049", as: "source" },
+            { card: "EX2-007", as: "mother" },
+          ],
+          deck: [{ card: "EX2-046", as: "declinedAdr" }, "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    await s.ready();
+    const deckBefore = s.state.players[0]!.deck.map((card) => card.instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("source").topCard!.instanceId,
+        effectKey: "EX2-049/ir-27-0",
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX2-049"));
+    expect(s.perm("source").isSuspended).toBe(false);
+    expect(s.perm("mother").stack).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(deckBefore);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(s.inst("declinedAdr").instanceId);
   });
 });
