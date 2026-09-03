@@ -328,6 +328,7 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
       if (
         typeof action.grant === "object" &&
         action.grant !== null &&
+        "targetFilter" in action.grant &&
         action.grant.keyword === "EndOfAttack" &&
         action.grant.targetFilter.keyword === "OnDeletion"
       ) {

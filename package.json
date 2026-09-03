@@ -27,8 +27,6 @@
     "start": "pnpm --filter @aegis/api start",
     "clean": "pnpm -r exec rm -rf dist",
     "check:release": "node tools/check-release.mjs",
-    "effects:sync:set": "node tools/sync-effects-from-card-modules.mjs",
-    "effects:check:set": "node tools/sync-effects-from-card-modules.mjs --check",
     "release:sync": "node tools/sync-release-artifacts.mjs",
     "check:commits": "node tools/check-commit-messages.mjs",
     "release:prepare": "node tools/prepare-release.mjs"

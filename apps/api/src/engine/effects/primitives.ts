@@ -1968,7 +1968,12 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         state.players.find((owner) => owner.breeding?.permanentId === sourcePermanentId)?.breeding;
       return permanent?.topCard === undefined ? undefined : permanent;
     });
-    if (sources.some((source) => source === undefined)) return [];
+    if (
+      sources.some((source) => source === undefined) ||
+      sourcePermanentIds.some((sourcePermanentId) => isRestricted(sourcePermanentId, "leaveBattleAreaExceptByDeletion"))
+    ) {
+      return [];
+    }
 
     // `relocatePermanent` is synchronous and the checks above cover every failure it can
     // report. Complete preflight means no async callback can interleave between source moves;
@@ -3188,18 +3193,6 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // STILL a live permanent — so a watcher's captured sourceFilter ("a [Puppet] Digimon")
     // can resolve and gate on the deleted card's live traits/controller before it leaves the
     // field. The body (e.g. draw) runs immediately; OnDestroyedAnyone (System A) follows below.
-    const deletedPermanentSnapshots = toDelete.flatMap((permanentId) => {
-      const permanent = access.permanentById(permanentId);
-      return permanent?.topCard === undefined
-        ? []
-        : [
-            {
-              permanentId,
-              controllerSeat: permanent.controllerSeat,
-              topCardId: permanent.topCard.cardId,
-            },
-          ];
-    });
     if (engine.fireSubTrigger) {
       for (const permanentId of toDelete) {
         const deleted = access.permanentById(permanentId);

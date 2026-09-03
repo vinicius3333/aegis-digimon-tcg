@@ -1560,6 +1560,34 @@ describe("primitives: placeUnder / link", () => {
     expect(h.events).toHaveLength(0);
   });
 
+  it("keeps a multi-source move atomic when one source cannot leave except by deletion", async () => {
+    const h = harness({
+      turnSeat: 0,
+      board: {
+        0: {
+          battleArea: [battleDigimon("dest", 5000), battleDigimon("sourceA", 3000), battleDigimon("sourceB", 3000)],
+        },
+      },
+    });
+    const destination = h.s.perm("dest");
+    const sourceA = h.s.perm("sourceA");
+    const sourceB = h.s.perm("sourceB");
+    const originalStack = destination.stack.slice();
+    const originalBattleArea = h.state.players[0]!.battleArea.slice();
+    h.continuous.addRestriction(sourceB.permanentId, "leaveBattleAreaExceptByDeletion", EffectDuration.Permanent);
+
+    const moved = await h.fx.relocatePermanentsByEffect?.(destination.permanentId, [
+      sourceA.permanentId,
+      sourceB.permanentId,
+    ]);
+
+    expect(moved).toEqual([]);
+    expect(h.state.players[0]!.battleArea).toEqual(originalBattleArea);
+    expect(destination.stack).toEqual(originalStack);
+    expect(h.state.players[0]!.trash).toHaveLength(0);
+    expect(h.events).toHaveLength(0);
+  });
+
   // WR-01 (iteration 3): bounce (returnToHand/returnToDeck/addSecurity, all via
   // collectForReturn) is the sixth leave seam. A bounced permanent's top card going back
   // to hand is a TRUE leave-the-battle-area — the permanentId is spliced out and a re-play
