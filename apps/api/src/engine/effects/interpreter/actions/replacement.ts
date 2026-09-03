@@ -440,11 +440,17 @@ export async function runReplacement(
         ? {
             controllerSeat: ownerSeat,
             ...(self === undefined ? { activationContext: ctx } : {}),
+            // "When THIS card would be played" (`isSelfRef`) only ever describes the bearer's own
+            // play. Once the bearer is a resident on the field its subscription still exists, so
+            // without this identity check every later play by the same seat would be offered the
+            // bearer's cost (BT15-102's "place up to 3 [Dark Masters]" prompt on any other card).
             appliesTo: (target: Permanent, originZone?: ZoneRef) =>
               target.controllerSeat === ownerSeat &&
               !target.inBreeding &&
               (target.permanentId.startsWith("pending-play-") && target.topCard !== undefined
-                ? definitionMatches(replacementSourceFilter ?? {}, ctx.game.definitionOf(target.topCard)) &&
+                ? (replacementSourceFilter?.isSelfRef !== true ||
+                    target.topCard.instanceId === ctx.source.instanceId) &&
+                  definitionMatches(replacementSourceFilter ?? {}, ctx.game.definitionOf(target.topCard)) &&
                   (replacementSourceFilter?.zone === undefined ||
                     (originZone !== undefined &&
                       (Array.isArray(replacementSourceFilter.zone)

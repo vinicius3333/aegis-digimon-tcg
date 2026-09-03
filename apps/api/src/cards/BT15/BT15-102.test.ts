@@ -73,6 +73,35 @@ describe("BT15-102", () => {
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT15-066")).toBe(false);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("shedSource").instanceId);
   });
+  it("does not offer its cost reduction when another card is played while it is on the field", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT15-031", as: "metalSeadramonHand" }],
+          trash: [
+            { card: "BT15-031", as: "metalSeadramon" },
+            { card: "BT15-052", as: "puppetmon" },
+          ],
+          battleArea: [{ card: "BT15-102", as: "apocalymon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 11;
+    await s.ready();
+
+    expect(s.inst("metalSeadramonHand").projectedPlayCost).toBe(11);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("metalSeadramonHand").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT15-031"));
+
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(0);
+    expect(s.state.memory).toBe(0);
+    const apocalymon = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "BT15-102");
+    expect(apocalymon?.stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash).toHaveLength(2);
+  });
   it("at end of turn may place a level 6 or lower trash card underneath and trashes opponent deck per level 6 source", () =>
     expect(compiled.effects?.[1]).toMatchObject({
       trigger: "EndOfYourTurn",
