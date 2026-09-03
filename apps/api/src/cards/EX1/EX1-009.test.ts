@@ -20,7 +20,7 @@ describe("EX1-009 WarGreymon", () => {
           security: ["BT1-001", "BT1-001"],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     const blockerId = s.perm("blocker").topCard.instanceId;
     await s.ready();
@@ -58,5 +58,40 @@ describe("EX1-009 WarGreymon", () => {
     ).toEqual({ ok: true });
     await settle(() => false, 40);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  it("requires a Tamer before deleting a Blocker", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX1-009", as: "attacker" }] },
+        1: { battleArea: [{ card: "BT1-072", as: "blocker" }], security: ["BT1-001", "BT1-001"] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => false, 40);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  it("allows a real Blitz attack after digivolving past zero memory", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-021", as: "base" }, { card: "ST1-12", as: "tamer" }],
+          hand: [{ card: "EX1-009", as: "evo" }],
+        },
+        1: { security: ["BT1-001", "BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 1;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evo").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX1-009");
+    expect(s.state.memory).toBeLessThan(0);
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("base").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 });
