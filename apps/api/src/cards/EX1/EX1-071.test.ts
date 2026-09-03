@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../BT3/BT3-040.js";
 import "../BT13/BT13-059.js";
+import "../BT7/BT7-085.js";
 import "./EX1-047.js";
 import "./EX1-052.js";
 import "./EX1-071.js";
@@ -244,6 +246,40 @@ describe("EX1-071 Win Rate: 60%!", () => {
 
     expect(s.state.memory).toBe(before);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("greenCost").instanceId)).toBe(true);
+  });
+
+  it("does not trash a Hybrid from hand before Takuya places five from trash (Q3261)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT7-085", as: "takuya" }],
+          hand: [
+            { card: "EX1-071", as: "option" },
+            { card: "BT7-011", as: "handHybrid" },
+          ],
+          trash: ["BT7-011", "BT7-011", "BT7-011", "BT7-011", "BT7-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-071"));
+
+    const takuya = s.perm("takuya");
+    const activatable = observe(s.engine).activatableEffects(takuya) as Array<{ effectKey: string }>;
+    const mainEffect = activatable.find((entry) => entry.effectKey === "BT7-085/main-digivolve");
+    expect(mainEffect).toBeDefined();
+    expect(s.engine.applyIntent(0, {
+      type: "activateEffect",
+      sourceInstanceId: takuya.topCard.instanceId,
+      effectKey: mainEffect!.effectKey,
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("takuya").stack.length === 5);
+
+    expect(s.perm("takuya").stack).toHaveLength(5);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("handHybrid").instanceId)).toBe(true);
   });
 
   it("adds itself to hand from security", async () => {
