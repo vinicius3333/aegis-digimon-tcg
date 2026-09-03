@@ -8,7 +8,7 @@ describe("EX1-023 Elecmon", () => {
   it("gives an opposing Digimon Security Attack -1 when its host is deleted", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX1-024", as: "host", under: ["EX1-023"] }] },
+        0: { battleArea: [{ card: "BT1-051", as: "host", under: ["BT1-006", "EX1-023"] }] },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
       },
       { autoSelectCards: true },
@@ -19,7 +19,7 @@ describe("EX1-023 Elecmon", () => {
 
   it("does not grant the reduction to an opposing Tamer", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX1-024", as: "host", under: ["EX1-023"] }] },
+      0: { battleArea: [{ card: "BT1-051", as: "host", under: ["BT1-006", "EX1-023"] }] },
       1: { battleArea: [{ card: "ST1-12", as: "tamer" }] },
     }, { autoSelectCards: true });
     await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
@@ -28,7 +28,7 @@ describe("EX1-023 Elecmon", () => {
 
   it("expires the Security Attack reduction at the end of the turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX1-024", as: "host", under: ["EX1-023"] }] },
+      0: { battleArea: [{ card: "BT1-051", as: "host", under: ["BT1-006", "EX1-023"] }] },
       1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
     });
     await s.ready();
