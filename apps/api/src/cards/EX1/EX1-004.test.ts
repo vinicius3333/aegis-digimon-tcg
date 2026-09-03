@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX1-004.js";
 
@@ -73,5 +74,53 @@ describe("EX1-004 Greymon", () => {
     ).toEqual({ ok: true });
     await settle(() => false, 40);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("combinedTai").instanceId)).toBe(true);
+  });
+
+  it("honors the optional refusal when a legal Tai Kamiya is available", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-012", as: "attacker", under: ["EX1-004"] }],
+          hand: [{ card: "ST1-12", as: "tai" }],
+        },
+        1: { security: ["BT1-001", "BT1-001"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => false, 40);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tai").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+  });
+
+  it("plays at most one Tai Kamiya across two player attacks in one turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-012", as: "attacker", under: ["EX1-004"] }],
+          hand: [{ card: "ST1-12", as: "tai1" }, { card: "ST1-12", as: "tai2" }],
+        },
+        1: { security: ["BT1-001", "BT1-001", "BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const attack = () => s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    });
+    expect(attack()).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 2);
+    await advance(s.engine).verb.unsuspend([s.perm("attacker").permanentId]);
+    expect(attack()).toEqual({ ok: true });
+    await settle(() => false, 40);
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tai2").instanceId)).toBe(true);
   });
 });
