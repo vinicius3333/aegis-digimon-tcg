@@ -137,10 +137,11 @@ describe("EX1-061 Myotismon", () => {
     );
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    await s.ready();
+    await settle(() => observe(s.engine).canAttackUnsuspended(s.perm("retaliationAttacker")));
     expect(observe(s.engine).canAttackUnsuspended(s.perm("retaliationAttacker"))).toBe(true);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
+    await settle(() => !observe(s.engine).canAttackUnsuspended(s.perm("retaliationAttacker")));
     expect(observe(s.engine).canAttackUnsuspended(s.perm("retaliationAttacker"))).toBe(false);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
