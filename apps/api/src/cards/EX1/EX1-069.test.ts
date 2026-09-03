@@ -68,9 +68,36 @@ describe("EX1-069 Ultimate Connection!", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-069"));
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(false);
+  });
+
+  it("does not offer absent, wrong-level, or wrong-trait cards as the cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX1-069", as: "option" },
+            { card: "EX1-047", as: "wrongLevel" },
+            { card: "BT1-020", as: "wrongTrait" },
+          ],
+          battleArea: [{ card: "EX1-047", as: "blackSource" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 1;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-069"));
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("wrongLevel").instanceId, s.inst("wrongTrait").instanceId]),
+    );
   });
 });
