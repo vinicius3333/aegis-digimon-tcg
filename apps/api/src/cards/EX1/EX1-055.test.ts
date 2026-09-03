@@ -150,4 +150,30 @@ describe("EX1-055 Tapirmon", () => {
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
+
+  it("does not draw when the host carrying Tapirmon is deleted", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX1-058", as: "host", under: ["EX1-055"], dp: 1000 }],
+        deck: ["BT1-009"],
+      },
+      1: {
+        battleArea: [{ card: "BT1-010", as: "target", dp: 5000, suspended: true }],
+        deck: ["BT1-009"],
+      },
+    });
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-058"));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+  });
 });
