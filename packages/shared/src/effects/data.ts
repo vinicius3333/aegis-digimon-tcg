@@ -1113,8 +1113,9 @@ export interface TamerOntoDigivolveSpec {
 /**
  * The executable details for a card that may digivolve from hand onto one of your <color>
  * Tamers as if the Tamer is a level-N Digimon (Frontier hybrids: BT4-025, BT17-012, ...), or
- * undefined when the card has no such path. Derived from the compiled IR — canonical modules put
- * the Tamer filter in `target.filter`; legacy generated records may carry it in `onto`. Kept in
+ * undefined when the card has no such path. Derived from compiled IR: current modules put the
+ * Tamer filter in a `Digivolve` action's `target.filter`; legacy records may carry it in a
+ * `TamerOntoDigivolve` action's `onto`. Kept in
  * @aegis/shared so the SERVER (digivolve legality/cost) and the CLIENT (target highlighting +
  * cost labels) can share the level, allowed Tamer colors, and any printed fixed cost. For such
  * cards the compiled `digivolutionRequirement` is a
@@ -1134,7 +1135,9 @@ export function tamerOntoDigivolveSpec(cardId: string): TamerOntoDigivolveSpec |
         target?: { filter?: unknown };
         onto?: unknown;
       };
-      if (act.kind !== "Digivolve" || typeof act.asLevel !== "number") continue;
+      if ((act.kind !== "TamerOntoDigivolve" && act.kind !== "Digivolve") || typeof act.asLevel !== "number") {
+        continue;
+      }
       const targetFilter = act.target?.filter as
         | { kind?: unknown; colors?: DigivolutionRequirement["baseColors"] }
         | undefined;

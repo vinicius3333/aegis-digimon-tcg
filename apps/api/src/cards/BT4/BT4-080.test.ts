@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine } from "../../engine/testkit/harness.js";
+import "./BT4-080.js";
 
 describe("BT4-080 Bakemon", () => {
   it("has no card effects", async () => {

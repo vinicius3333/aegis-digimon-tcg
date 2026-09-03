@@ -1,10 +1,26 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT4-099.js";
 
 describe("BT4-099 Heir of Dragons", () => {
+  it("encodes the printed exclusions as exact names", () => {
+    const compiled = runtimeCompiledCard("BT4-099");
+    expect(compiled?.effects[0]?.actions[1]).toMatchObject({
+      condition: {
+        filter: {
+          excludeNameOrTrait: [
+            { tokens: ["DoruGreymon"], match: "nameExact" },
+            { tokens: ["BurningGreymon"], match: "nameExact" },
+            { tokens: ["DexDoruGreymon"], match: "nameExact" },
+          ],
+        },
+      },
+    });
+  });
+
   it("draws 2 and deletes a 4000 DP Digimon while Greymon is present", async () => {
     const s = setupEngine(
       {
@@ -51,7 +67,9 @@ describe("BT4-099 Heir of Dragons", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 5;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.deck.length === 0);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });

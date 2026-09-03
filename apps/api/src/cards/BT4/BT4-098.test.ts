@@ -63,13 +63,25 @@ describe("BT4-098 Atomic Inferno", () => {
 
   it("grants the security aura to an own Digimon played afterward", async () => {
     const s = setupEngine({
-      0: { security: [{ card: "BT4-098", as: "securityOption", faceUp: true }] },
+      0: {
+        security: [{ card: "BT4-098", as: "securityOption", faceUp: true }],
+        deck: ["BT1-001", "BT1-002"],
+      },
+      1: { deck: ["BT1-001", "BT1-002"] },
     });
+    s.state.turnSeat = 1;
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
 
     s.putOnBoard(0, { card: "BT4-018", as: "entrant" });
     await settle(() => observe(s.engine).keywordAmount(s.perm("entrant"), "SecurityAttack") === 1);
 
     expect(observe(s.engine).keywordAmount(s.perm("entrant"), "SecurityAttack")).toBe(1);
+
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    await advance(s.engine).runTurn(0);
+
+    expect(observe(s.engine).keywordAmount(s.perm("entrant"), "SecurityAttack")).toBe(0);
   });
 });

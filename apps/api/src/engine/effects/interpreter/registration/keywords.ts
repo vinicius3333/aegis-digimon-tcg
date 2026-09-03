@@ -273,16 +273,19 @@ export function synthesizedOverclockTrait(
 
 /**
  * Detect the "digivolve from hand onto a <color> Tamer as if it is a level N Digimon"
- * mechanic in a card's compiled IR and record its `asLevel` in the side registry. Current
- * typed IR carries the Tamer filter in `target.filter`; legacy generated IR may use `onto`.
- * A printed fixed cost that differs from the level-N evo cost is carried by `costOverride`.
+ * mechanic in a card's compiled IR and record it in the side registry. Current typed IR
+ * carries the Tamer filter in a `Digivolve` action's `target.filter`; legacy records may use
+ * `TamerOntoDigivolve` with `onto`. A printed fixed cost that differs from the level-N evo
+ * cost is carried by `costOverride`.
  */
 export function registerTamerOntoFromEffects(cardId: string, effects: readonly CardEffect[]): void {
   for (const effect of effects) {
     if (effect.trigger !== "Static") continue;
     for (const action of effect.actions ?? []) {
-      if (action.kind !== "Digivolve" || typeof action.asLevel !== "number") continue;
-      const targetFilter = action.target?.filter;
+      if ((action.kind !== "TamerOntoDigivolve" && action.kind !== "Digivolve") || typeof action.asLevel !== "number") {
+        continue;
+      }
+      const targetFilter = action.kind === "Digivolve" ? action.target?.filter : undefined;
       const onto = action.onto as
         | {
             filter?: { kind?: unknown; colors?: readonly TamerBaseColor[] };
@@ -295,7 +298,12 @@ export function registerTamerOntoFromEffects(cardId: string, effects: readonly C
         Array.isArray(targetFilter?.kind) && targetFilter.kind.includes("Tamer") ? targetFilter : ontoFilter;
       const tamerKind = tamerFilter?.kind;
       if (Array.isArray(tamerKind) && tamerKind.includes("Tamer")) {
-        registerTamerOntoDigivolve(cardId, action.asLevel, tamerFilter?.colors, action.costOverride);
+        registerTamerOntoDigivolve(
+          cardId,
+          action.asLevel,
+          tamerFilter?.colors,
+          action.kind === "Digivolve" ? action.costOverride : undefined,
+        );
         return;
       }
     }

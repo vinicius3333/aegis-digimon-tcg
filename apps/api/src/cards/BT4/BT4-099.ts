@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -31,7 +30,11 @@ const compiled: CompiledCard = {
           condition: {
             kind: "youHave",
             filter: {
-              excludeNames: ["DoruGreymon", "BurningGreymon", "DexDoruGreymon"],
+              excludeNameOrTrait: [
+                { tokens: ["DoruGreymon"], match: "nameExact" },
+                { tokens: ["BurningGreymon"], match: "nameExact" },
+                { tokens: ["DexDoruGreymon"], match: "nameExact" },
+              ],
               controller: "mine",
               kind: ["Digimon"],
               nameOrTrait: [

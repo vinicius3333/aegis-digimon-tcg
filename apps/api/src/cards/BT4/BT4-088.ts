@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR — watches cards removed from its controller's security stack.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

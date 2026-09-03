@@ -122,6 +122,7 @@ const IMPLEMENTED_ACTION_KINDS = {
   StackTrashLock: true,
   SubTrigger: true,
   Suspend: true,
+  TamerOntoDigivolve: true,
   Trash: true,
   TrashDigivolution: true,
   trashSecurityTop: true,

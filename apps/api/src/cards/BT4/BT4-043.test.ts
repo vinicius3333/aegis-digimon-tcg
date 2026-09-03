@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine } from "../../engine/testkit/harness.js";
+import "./BT4-043.js";
 
 describe("BT4-043 Crowmon", () => {
   it("has no card effects", async () => {

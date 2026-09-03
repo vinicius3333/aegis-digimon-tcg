@@ -944,6 +944,8 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     case "DigiXrosMaterialZoneExpansion":
     case "AllowDigiXrosMaterialsFromTrash":
       return await runDigivolutionAction(ctx, action, scope);
+    case "TamerOntoDigivolve":
+      return false;
     case "Modal":
     case "ConditionalBranch":
     case "DelayedEffect":

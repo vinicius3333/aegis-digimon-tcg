@@ -83,10 +83,10 @@ describe("BT4-021 through BT4-030 IR coverage", () => {
       trigger: "Static",
       actions: [
         {
-          kind: "Digivolve",
-          from: "hand",
+          kind: "TamerOntoDigivolve",
+          from: ["hand"],
           asLevel: 3,
-          onto: { filter: { controller: "mine", kind: ["Tamer"], colors: ["Blue"] }, count: 1 },
+          onto: { controller: "mine", kind: ["Tamer"], colors: ["Blue"] },
         },
       ],
     });
@@ -157,8 +157,16 @@ describe("BT4-021 through BT4-030 IR coverage", () => {
                   {
                     kind: "anyOf",
                     conditions: [
-                      { kind: "selfDigivolutionStackCountAtLeast", count: 1, filter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Hybrid"], match: "trait" }] } },
-                      { kind: "selfDigivolutionStackCountAtLeast", count: 1, filter: { kind: ["Tamer"], colors: ["Blue"] } },
+                      {
+                        kind: "selfDigivolutionStackCountAtLeast",
+                        count: 1,
+                        filter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Hybrid"], match: "trait" }] },
+                      },
+                      {
+                        kind: "selfDigivolutionStackCountAtLeast",
+                        count: 1,
+                        filter: { kind: ["Tamer"], colors: ["Blue"] },
+                      },
                     ],
                   },
                 ],

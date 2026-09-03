@@ -95,6 +95,14 @@ export interface DigivolveAction extends ActionBase {
   bindResultAs?: string;
 }
 
+/** Static registration metadata for "digivolve from hand onto a Tamer as level N". */
+export interface TamerOntoDigivolveAction extends ActionBase {
+  kind: "TamerOntoDigivolve";
+  onto: Filter;
+  asLevel: number;
+  from: ZoneRef[];
+}
+
 export interface DigivolveViaPlacementAction extends Omit<ActionBase, "cost"> {
   kind: "DigivolveViaPlacement";
   placeCost: {

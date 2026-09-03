@@ -2,10 +2,12 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { internalsOf } from "../../engine/testkit/internals.js";
+import "./BT4-008.js";
 import "./BT4-017.js";
 
 function mainEffectKey(s: ReturnType<typeof setupEngine>): string {
-  const source = (s.engine as any).cardSourceOf(s.perm("rize").topCard!);
+  const source = internalsOf(s.engine).cardSourceOf(s.perm("rize").topCard!);
   return effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("BT4-017/"))!
     .effectKey;
 }
@@ -46,6 +48,7 @@ describe("BT4-017 RizeGreymon", () => {
       { autoSelectCards: true, autoAcceptOptional: true },
     );
     await s.engine.recomputeContinuousEffects();
+    const agumonId = s.perm("rize").stack.find((card) => card.cardId === "BT4-008")!.instanceId;
 
     expect(
       s.engine.applyIntent(0, {
@@ -58,7 +61,8 @@ describe("BT4-017 RizeGreymon", () => {
 
     expect(s.perm("rize").stack).toHaveLength(0);
     expect(s.perm("rize").topCard?.cardId).toBe("BT4-017");
-    expect(s.state.players[0]!.trash).toHaveLength(2);
+    expect(s.state.players[0]!.trash).toHaveLength(1);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === agumonId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT1-085")).toBe(true);
   });
 

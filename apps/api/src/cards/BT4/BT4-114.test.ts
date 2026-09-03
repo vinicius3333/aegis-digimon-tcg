@@ -1,9 +1,26 @@
 import { describe, expect, it } from "vitest";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT4-114.js";
 
 describe("BT4-114 AncientGarurumon", () => {
+  it("encodes KendoGarurumon as an exact-name exclusion", () => {
+    const compiled = runtimeCompiledCard("BT4-114");
+    expect(compiled?.effects[0]?.actions[0]).toMatchObject({
+      target: {
+        filter: {
+          or: [
+            expect.objectContaining({
+              excludeNameOrTrait: [{ tokens: ["KendoGarurumon"], match: "nameExact" }],
+            }),
+            expect.anything(),
+          ],
+        },
+      },
+    });
+  });
+
   it("unsuspends an own Hybrid Digimon when attacking", async () => {
     const s = setupEngine(
       {
@@ -75,7 +92,12 @@ describe("BT4-114 AncientGarurumon", () => {
 
   it("may play a blue level 4 or lower Hybrid from hand when deleted", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT4-114", as: "ancient", under: ["BT1-038"] }], hand: [{ card: "BT12-024", as: "hybrid" }] } },
+      {
+        0: {
+          battleArea: [{ card: "BT4-114", as: "ancient", under: ["BT1-038"] }],
+          hand: [{ card: "BT12-024", as: "hybrid" }],
+        },
+      },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
     await advance(s.engine).verb.deletePermanent([s.perm("ancient").permanentId], "byEffect");

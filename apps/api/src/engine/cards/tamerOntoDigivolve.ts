@@ -2,10 +2,10 @@
  * Side registry for the "digivolve this card from your hand onto one of your
  * <color> Tamers as if the Tamer is a level N Digimon" mechanic.
  *
- * The mechanic compiles to a `Static` `Digivolve` action carrying a Tamer `target.filter`
- * and `asLevel`. That action is the source of truth for executable alternate-path legality.
- * The interpreter records the level, printed Tamer colors, and any fixed cost here so the
- * imperative digivolution validation API can consume the same registered information; then
+ * Current typed IR uses a `Static` `Digivolve` action with a Tamer `target.filter`; legacy
+ * records may use `TamerOntoDigivolve` with `onto`. The interpreter records their level,
+ * printed Tamer colors, and any fixed cost here so the imperative digivolution validation
+ * API consumes the same executable information; then
  * {@link cardData.matchingAlternateDigivolutionRequirement} derives the correctly-gated
  * requirement (Tamer base + allowed Tamer color + shared color + the printed fixed cost or
  * level-N evolution cost).

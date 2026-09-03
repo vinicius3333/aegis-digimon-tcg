@@ -2,9 +2,23 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./BT4-092.js";
 
 describe("BT4-092 Marcus Damon", () => {
+  it("encodes the printed exclusions as exact names", () => {
+    const compiled = runtimeCompiledCard("BT4-092");
+    expect(compiled?.effects[1]?.actions[0]).toMatchObject({
+      sourceFilter: {
+        excludeNameOrTrait: [
+          { tokens: ["DoruGreymon"], match: "nameExact" },
+          { tokens: ["BurningGreymon"], match: "nameExact" },
+          { tokens: ["DexDoruGreymon"], match: "nameExact" },
+        ],
+      },
+    });
+  });
+
   it("sets memory to 3 at the start of the turn", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT4-092", as: "marcus" }] } });
     s.state.memory = 1;

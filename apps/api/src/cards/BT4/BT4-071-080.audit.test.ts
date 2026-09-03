@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { CompiledCard } from "@aegis/shared";
 import { hasRegisteredCompiledCard, runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { irNode } from "../../engine/testkit/irNode.js";
+import type { IrNode } from "../../engine/testkit/irNode.js";
 import "./BT4-071.js";
 import "./BT4-072.js";
 import "./BT4-073.js";
@@ -12,8 +14,6 @@ import "./BT4-078.js";
 import "./BT4-079.js";
 import "./BT4-080.js";
 
-type Node = Record<string, any>;
-
 const CARD_IDS = Array.from({ length: 10 }, (_, index) => `BT4-${String(index + 71).padStart(3, "0")}`);
 
 function card(id: string): CompiledCard {
@@ -22,19 +22,19 @@ function card(id: string): CompiledCard {
   return compiled;
 }
 
-function effect(id: string, trigger: string): Node {
+function effect(id: string, trigger: string): IrNode {
   const found = card(id).effects.find((candidate) => candidate.trigger === trigger);
   if (!found) throw new Error(`Missing ${trigger} effect for ${id}`);
-  return found as Node;
+  return irNode(found);
 }
 
 describe("BT4-071 through BT4-080 direct IR audit evidence", () => {
   it("registers every card in ascending order as residual-free direct runtime IR", () => {
     for (const id of CARD_IDS) {
       const ir = card(id);
-      expect(hasRegisteredCompiledCard(id), id).toBe(true);
-      expect(ir.coverage, id).toBe("full");
-      expect(ir.residual, id).toEqual([]);
+      expect(hasRegisteredCompiledCard(id)).toBe(true);
+      expect(ir.coverage).toBe("full");
+      expect(ir.residual).toEqual([]);
     }
   });
 
@@ -56,7 +56,7 @@ describe("BT4-071 through BT4-080 direct IR audit evidence", () => {
             revealCount: 2,
             add: [
               {
-                filter: { nameOrTrait: [{ tokens: ["Commandramon"], match: "name" }] },
+                filter: { nameOrTrait: [{ tokens: ["Commandramon"], match: "nameExact" }] },
                 count: 1,
                 to: "play",
                 optional: true,
@@ -71,7 +71,7 @@ describe("BT4-071 through BT4-080 direct IR audit evidence", () => {
 
   it("keeps BT4-072's Digi-Burst cost on its timed DP effect and its inherited aura separate", () => {
     const main = effect("BT4-072", "Main");
-    expect(main.actions.map((action: Node) => action.kind)).toEqual(["ModifyDP"]);
+    expect(main.actions.map((action: IrNode) => action.kind)).toEqual(["ModifyDP"]);
     expect(main.actions[0]).toMatchObject({
       target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
       amount: 2000,
