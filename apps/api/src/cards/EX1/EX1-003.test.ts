@@ -53,6 +53,50 @@ describe("EX1-003 Birdramon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
+  it("deletes the eligible Blocker before the public blocker response (Q3190)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-020", as: "attacker", under: ["EX1-003"] }] },
+        1: {
+          battleArea: [
+            { card: "ST18-07", as: "smallBlocker", dp: 3000 },
+            { card: "BT1-072", as: "remainingBlocker" },
+          ],
+          security: ["BT1-001", "BT1-001"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("smallBlocker").permanentId, s.perm("smallBlocker").topCard.instanceId);
+    const deletedId = s.perm("smallBlocker").topCard.instanceId;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === deletedId));
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      s.perm("remainingBlocker").permanentId,
+    ]);
+    expect(s.events.find((event) => event.kind === "blockWindowOpened")).toMatchObject({
+      eligibleBlockerIds: [s.perm("remainingBlocker").permanentId],
+    });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "declareBlock",
+        blockerPermanentId: s.perm("remainingBlocker").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+  });
+
   it("works after a legal public level-3-to-Birdramon evolution and higher host", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-012", as: "base" }], hand: [{ card: "EX1-003", as: "evo" }, { card: "BT1-020", as: "host" }] },
