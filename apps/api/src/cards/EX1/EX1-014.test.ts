@@ -39,8 +39,8 @@ describe("EX1-014 ExVeemon", () => {
 
   it("does not grant inherited Jamming outside your turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX1-019", as: "freeHost", under: ["EX1-014"] }], deck: [] },
-      1: { battleArea: [{ card: "BT1-070" }], deck: ["BT1-001"] },
+      0: { battleArea: [{ card: "EX1-019", as: "freeHost", under: ["EX1-014"] }], hand: ["BT1-009"], deck: ["BT1-001"] },
+      1: { battleArea: [{ card: "BT1-070" }], hand: ["BT1-009"], deck: ["BT1-001"] },
     });
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
@@ -48,7 +48,7 @@ describe("EX1-014 ExVeemon", () => {
     await advance(s.engine).waitForMainPhase(1);
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("freeHost"), "Jamming")).toBe(false);
-    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
 });
