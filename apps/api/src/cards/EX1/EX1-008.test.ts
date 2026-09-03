@@ -4,7 +4,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./EX1-008.js";
 import "../BT8/BT8-104.js";
-import "../BT1/BT1-017.js";
+import "../BT6/BT6-017.js";
 
 describe("EX1-008 MetalGreymon", () => {
   it("deletes an opposing Digimon with 4000 DP or less when attacking a player", async () => {
@@ -104,22 +104,15 @@ describe("EX1-008 MetalGreymon", () => {
   });
 
   it("keeps Piercing's already-open second check after source loss (Q3196)", async () => {
-    const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: {
-          battleArea: [{ card: "BT6-017", as: "attacker", under: ["EX1-008"] }],
-          hand: [{ card: "BT1-017", as: "grantor" }],
-        },
+        0: { battleArea: [{ card: "BT6-017", as: "attacker", under: ["EX1-008"] }] },
         1: { battleArea: [{ card: "BT1-070", as: "target", dp: 3000, suspended: true }], security: ["BT8-104", "BT1-001"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      { autoSelectCards: true },
     );
-    preferred.push(s.perm("attacker").permanentId);
-    s.state.memory = 5;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("grantor").instanceId })).toEqual({ ok: true });
-    await settle(() => observe(s.engine).keywordAmount(s.perm("attacker"), "SecurityAttack") === 1);
+    expect(observe(s.engine).keywordAmount(s.perm("attacker"), "SecurityAttack")).toBe(1);
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "permanent", permanentId: s.perm("target").permanentId } })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
     expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(2);

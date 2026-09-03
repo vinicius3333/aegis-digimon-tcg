@@ -225,6 +225,12 @@ export async function runSecurityCheck(
     return;
   }
 
+  // Piercing opens a security check from the already-resolved battle result. The number of
+  // checks that attack would normally perform is determined when that attack opens; a checked
+  // card may then remove the source that granted Piercing or a Security Attack bonus (EX1-008
+  // Q3196). Ordinary player-directed attacks retain live strike re-evaluation because effects
+  // resolved by an earlier security card can legitimately change later checks.
+  const piercingStrike = reason === "piercing" ? deps.strikeFor(attacker) : undefined;
   let checkedCount = 0;
   // Security checks resolve one card at a time. Re-read the attacker's live Strike
   // before every next card: a resolved Security effect can add/remove
@@ -236,7 +242,7 @@ export async function runSecurityCheck(
     // Security Attack aura. Refresh both the strike read and the synchronized ledger/UI
     // before deciding whether the next card is checked (BT1-085 Q947).
     await deps.recomputeContinuousEffects?.();
-    if (checkedCount >= deps.strikeFor(attacker)) break;
+    if (checkedCount >= (piercingStrike ?? deps.strikeFor(attacker))) break;
     // Stop if the attacker left play (Source: StopSecurityCheck()).
     if (deps.permanentById(attacker.permanentId) === undefined) break;
     if (defender.security.length === 0) break;
