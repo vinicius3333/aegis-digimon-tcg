@@ -13,9 +13,24 @@ describe("BT8-100 Disaster Blaster", () => {
         {
           trigger: "Main",
           actions: [
-            { kind: "SelectBind", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1, bindAs: "target" } },
-            { kind: "ModifyDP", amount: -3000, duration: "forTheTurn", condition: { kind: "not", condition: { kind: "anyOf" } }, target: { fromSelectionRef: "target" } },
-            { kind: "ModifyDP", amount: -6000, duration: "forTheTurn", condition: { kind: "anyOf" }, target: { fromSelectionRef: "target" } },
+            {
+              kind: "SelectBind",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1, bindAs: "target" },
+            },
+            {
+              kind: "ModifyDP",
+              amount: -3000,
+              duration: "forTheTurn",
+              condition: { kind: "not", condition: { kind: "anyOf" } },
+              target: { fromSelectionRef: "target" },
+            },
+            {
+              kind: "ModifyDP",
+              amount: -6000,
+              duration: "forTheTurn",
+              condition: { kind: "anyOf" },
+              target: { fromSelectionRef: "target" },
+            },
           ],
         },
         { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },
@@ -75,6 +90,49 @@ describe("BT8-100 Disaster Blaster", () => {
     });
     await settle(() => s.perm("target").currentDP !== before);
     expect(s.perm("target").currentDP).toBe(before - 6000);
+  });
+
+  it("counts a multicolor Tamer placed in a digivolution stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT8-034", as: "stacked", under: ["BT11-094"] }],
+          hand: [{ card: "BT8-100", as: "option" }],
+        },
+        1: { battleArea: [{ card: "BT8-017", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    const before = s.perm("target").currentDP;
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").currentDP !== before);
+    expect(s.perm("target").currentDP).toBe(before - 6000);
+  });
+
+  it("does not count a multicolor card placed under a Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT8-090", under: ["BT11-094"] }, "BT8-034"],
+          hand: [{ card: "BT8-100", as: "option" }],
+        },
+        1: { battleArea: [{ card: "BT8-017", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    const before = s.perm("target").currentDP;
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").currentDP !== before);
+
+    expect(s.perm("target").currentDP).toBe(before - 3000);
   });
 
   it("activates the same conditional Main effect from security", async () => {

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -15,8 +14,8 @@ const compiled: CompiledCard = {
               kind: ["Digimon", "Tamer"],
             },
             count: 1,
-            bindResultAs: "samadhiSuspended",
           },
+          bindResultAs: "samadhiSuspended",
           cost: {
             kind: "suspend",
             target: {
@@ -33,11 +32,8 @@ const compiled: CompiledCard = {
         {
           kind: "Restrict",
           target: {
-            sameTarget: true,
-            filter: {
-              controller: "opponent",
-              suspended: true,
-            },
+            fromSelectionRef: "samadhiSuspended",
+            filter: {},
             count: 1,
           },
           condition: {

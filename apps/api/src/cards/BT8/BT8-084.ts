@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT8-084 — do not regenerate.
 // WhenDigivolving PlaceUnder: add from:["trash"]; ModifyDP scaling: isSelfRef (this Digimon's colors).
 import type { CompiledCard } from "@aegis/shared";

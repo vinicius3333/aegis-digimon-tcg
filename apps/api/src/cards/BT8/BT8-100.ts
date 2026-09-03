@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Condition } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const multicolorCondition = {
+const multicolorCondition: Condition = {
   kind: "anyOf",
   conditions: [
     {
@@ -11,7 +10,7 @@ const multicolorCondition = {
     },
     {
       kind: "youHave",
-      filter: { zone: "digivolutionCards", kind: ["Digimon"], multicolor: true },
+      filter: { zone: "digivolutionCards", multicolor: true, hostFilter: { kind: ["Digimon"] } },
     },
   ],
 };

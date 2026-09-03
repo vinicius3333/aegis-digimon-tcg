@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT8-069 — do not regenerate.
 // WhenDigivolving: added from:hand, underFilter:self, position:bottom; added Delete gated
 // action. YourTurn SubTrigger: added Restrict("can't be deleted") action. The printed

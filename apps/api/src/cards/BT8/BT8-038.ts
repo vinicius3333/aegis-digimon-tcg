@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -32,20 +31,6 @@ const compiled: CompiledCard = {
             },
             count: 1,
             isSelf: true,
-          },
-          scaling: {
-            per: 1,
-            filter: {
-              zone: "trash",
-              controller: "mine",
-              nameOrTrait: [
-                {
-                  tokens: ["Armor Form"],
-                  match: "trait",
-                },
-              ],
-            },
-            unit: "trash",
           },
         },
         {

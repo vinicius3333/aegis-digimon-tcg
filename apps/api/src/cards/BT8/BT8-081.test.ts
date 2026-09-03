@@ -3,6 +3,7 @@ import { EffectTiming, Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { internalsOf } from "../../engine/testkit/internals.js";
 import { compiled } from "./BT8-081.js";
 import "./BT8-081.js";
 import "../BT7/BT7-040.js";
@@ -82,7 +83,7 @@ describe("BT8-081 Rasenmon Fury Mode", () => {
     s.state.phase = Phase.Main;
     s.perm("rasenmon").isSuspended = true;
     const before = s.perm("rasenmon").currentDP;
-    const source = (s.engine as any).cardSourceOf(s.perm("rasenmon").topCard);
+    const source = internalsOf(s.engine).cardSourceOf(s.perm("rasenmon").topCard);
     const effectKey = effectsOf(EffectTiming.OnDeclaration, source)[0]!.effectKey;
     expect(
       s.engine.applyIntent(0, {
@@ -106,7 +107,7 @@ describe("BT8-081 Rasenmon Fury Mode", () => {
     await s.ready();
     s.state.phase = Phase.Main;
     const before = s.perm("host").currentDP;
-    const source = (s.engine as any).cardSourceOf(s.perm("host").topCard);
+    const source = internalsOf(s.engine).cardSourceOf(s.perm("host").topCard);
     const effectKey = effectsOf(EffectTiming.OnDeclaration, source)[0]!.effectKey;
     expect(
       s.engine.applyIntent(0, {

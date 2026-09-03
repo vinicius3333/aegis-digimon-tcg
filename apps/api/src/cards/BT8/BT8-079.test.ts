@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import type { PlayerState } from "@aegis/shared";
 import { makeInstance as instance, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT8-079.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -17,7 +16,7 @@ describe("BT8-079 SkullSatamon", () => {
       },
       { autoSelectCards: true },
     );
-    const mine = s.state.players[0] as PlayerState;
+    const mine = s.state.players[0]!;
     s.state.memory = 3;
     expect(
       s.engine.applyIntent(0, {

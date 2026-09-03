@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED — preserve: inherited text grants unsuspended-target legality, not Vortex.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

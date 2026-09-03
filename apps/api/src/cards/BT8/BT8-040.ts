@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Condition } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const trashedThisEffect = { kind: "ifThisEffectActed" };
+const trashedThisEffect: Condition = { kind: "ifThisEffectActed" };
 
 const compiled: CompiledCard = {
   effects: [

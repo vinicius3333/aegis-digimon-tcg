@@ -23,6 +23,26 @@ describe("BT8-038 Magnamon", () => {
     expect(s.perm("base").isSuspended).toBe(false);
   });
 
+  it("unsuspends even when there are no Armor Forms in trash", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-027", as: "base", suspended: true }],
+        hand: [{ card: "BT8-038", as: "evolving" }],
+      },
+    });
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("base").isSuspended).toBe(false);
+    expect(s.perm("base").currentDP).toBe(7000);
+  });
+
   it("digivolves from Veemon for 3 and keeps its DP boost after Armor Purge", async () => {
     const s = setupEngine(
       {
