@@ -26,4 +26,28 @@ describe("EX2-004 Gummymon", () => {
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
   });
+
+  it("does not draw when one of its controller's Digimon becomes suspended", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX2-026", as: "host", under: ["EX2-004"] }],
+          deck: [{ card: "BT1-001", as: "notDrawn" }],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoOrderTriggers: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("notDrawn").instanceId)).toBe(false);
+  });
 });

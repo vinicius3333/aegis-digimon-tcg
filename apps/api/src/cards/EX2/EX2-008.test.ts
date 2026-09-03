@@ -42,4 +42,23 @@ describe("EX2-008 Guilmon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
+
+  it("does not add cards when none of the top four match either name", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX2-008", as: "guilmon" }],
+          deck: ["EX2-014", "EX2-015", "EX2-016", "EX2-017"],
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("guilmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX2-008"));
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck).toHaveLength(4);
+  });
 });

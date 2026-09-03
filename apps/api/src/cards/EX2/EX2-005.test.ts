@@ -8,4 +8,10 @@ describe("EX2-005 Hopmon", () => {
     await s.ready();
     expect(s.perm("host").currentDP).toBe(7000);
   });
+
+  it("does not boost its host for a non-black Tamer", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX2-015", as: "host", under: ["EX2-005"] }, "EX2-056"] } });
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(6000);
+  });
 });

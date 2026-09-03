@@ -8,4 +8,10 @@ describe("EX2-002 Xiaomon", () => {
     await s.ready();
     expect(s.perm("host").currentDP).toBe(7000);
   });
+
+  it("does not boost a host that is not level 4", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX2-013", as: "host", under: ["EX2-002"] }] } });
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(1000);
+  });
 });

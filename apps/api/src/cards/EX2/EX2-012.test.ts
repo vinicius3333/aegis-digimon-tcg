@@ -80,6 +80,7 @@ function makeCtx(
     ownerDeck?: CardInstance[];
     opponentDeck?: CardInstance[];
     deleteReturns?: number;
+    optionalAccepted?: boolean;
   } = {},
 ): EffectContext {
   const {
@@ -89,6 +90,7 @@ function makeCtx(
     ownerDeck = Array.from({ length: 5 }, (_, i) => card(`deck-0-${i}`, OTHER_ID, 0)),
     opponentDeck = Array.from({ length: 5 }, (_, i) => card(`deck-1-${i}`, OTHER_ID, 1)),
     deleteReturns = 1,
+    optionalAccepted = true,
   } = opts;
 
   const players = [
@@ -156,7 +158,7 @@ function makeCtx(
   } as unknown as Primitives;
 
   const ask: DecisionApi = {
-    optional: async () => true,
+    optional: async () => optionalAccepted,
     chooseTargets: async (_c, o) => o.candidates.slice(0, o.max),
     selectPermanents: async (_c, o) => o.candidates.slice(0, o.max),
     selectCards: async (_c, o) => o.candidates.slice(0, o.max),
@@ -290,6 +292,20 @@ describe("EX2-012 Megidramon", () => {
     const recorder: Recorder = { calls: [] };
     const source = makeSource();
     const ctx = makeCtx(recorder, source, { ownerHand: [], ownerTrash: [] });
+
+    const effects = module!.effectsForTiming(EffectTiming.OnDestroyedAnyone, source);
+    await effects[0]!.resolve(ctx);
+    expect(recorder.calls.filter((call) => call.verb === "playInstances")).toHaveLength(0);
+  });
+
+  it("[On Deletion] may be declined even when Guilmon and Takato are available", async () => {
+    const recorder: Recorder = { calls: [] };
+    const source = makeSource();
+    const ctx = makeCtx(recorder, source, {
+      ownerHand: [card("guilmon-1", GUILMON_ID)],
+      ownerTrash: [card("takato-1", TAKATO_ID)],
+      optionalAccepted: false,
+    });
 
     const effects = module!.effectsForTiming(EffectTiming.OnDestroyedAnyone, source);
     await effects[0]!.resolve(ctx);
