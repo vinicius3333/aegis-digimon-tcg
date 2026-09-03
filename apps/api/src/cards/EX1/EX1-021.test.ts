@@ -73,7 +73,6 @@ describe("EX1-021 MetalGarurumon", () => {
     s.state.memory = 6;
     expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evo").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.memory === 3);
-    console.log("Q3207 debug", s.state.memory, s.state.players[0]!.hand.length, s.events.slice(-10));
     expect(s.state.players[0]!.hand).toHaveLength(5);
     expect(s.state.memory).toBe(3);
   });
