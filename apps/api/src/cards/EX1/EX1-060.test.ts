@@ -66,15 +66,21 @@ describe("EX1-060 LadyDevimon", () => {
             { card: "EX1-056", as: "first" },
             { card: "EX1-057", as: "second" },
           ],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
-        1: { hand: ["BT1-009"], deck: ["BT1-010", "BT1-011"] },
+        1: {
+          hand: ["BT1-009"],
+          deck: ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016", "BT1-017"],
+          security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
       },
       { autoSelectCards: true },
     );
-    const loop = s.engine.startTurnLoop();
-    await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 10;
     await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option1").instanceId })).toEqual({
       ok: true,
     });
@@ -89,6 +95,7 @@ describe("EX1-060 LadyDevimon", () => {
     // The [Once Per Turn] inherited effect does not refund the second trash play.
     expect(s.state.memory).toBe(3);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.state.turnSeat === 1 && s.state.phase === "Main", 5000);
     await advance(s.engine).waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
