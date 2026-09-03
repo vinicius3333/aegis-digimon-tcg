@@ -129,6 +129,33 @@ describe("SubTriggerRegistry", () => {
     expect(registry.costReductionFor("wouldBePlayed", "P1")).toBe(0);
   });
 
+  it("keeps distinct consumable reductions with the same activation identity", () => {
+    const registry = new SubTriggerRegistry();
+    const first = registry.subscribeReplacement({
+      event: "wouldDigivolve",
+      sourcePermanentId: "P1",
+      sourceInstanceId: "I1",
+      activationIdentity: "EX1-033/action-0",
+      mode: "reduceCost",
+      amount: 1,
+      consumeOnActivate: true,
+      description: "first attack reduction",
+    });
+    const second = registry.subscribeReplacement({
+      event: "wouldDigivolve",
+      sourcePermanentId: "P1",
+      sourceInstanceId: "I1",
+      activationIdentity: "EX1-033/action-0",
+      mode: "reduceCost",
+      amount: 1,
+      consumeOnActivate: true,
+      description: "second attack reduction",
+    });
+
+    expect(second).not.toBe(first);
+    expect(registry.costReductionFor("wouldDigivolve", "P1")).toBe(2);
+  });
+
   it("sums DNA memory only for participating materials and a matching result", () => {
     const registry = new SubTriggerRegistry();
     for (const [sourcePermanentId, color] of [

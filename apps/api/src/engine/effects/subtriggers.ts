@@ -409,6 +409,8 @@ export class SubTriggerRegistry {
         replacement.sourcePermanentId === sub.sourcePermanentId &&
         replacement.sourceInstanceId === sub.sourceInstanceId &&
         sub.activationIdentity !== undefined &&
+        sub.consumeOnActivate !== true &&
+        replacement.consumeOnActivate !== true &&
         replacement.activationIdentity === sub.activationIdentity,
     );
     if (existing !== undefined) return existing.id;
