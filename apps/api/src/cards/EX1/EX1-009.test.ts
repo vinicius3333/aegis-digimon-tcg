@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX1-009.js";
+import "./EX1-048.js";
 
 describe("EX1-009 WarGreymon", () => {
   it("has Blitz and deletes an opposing Blocker when attacking a player with a Tamer", async () => {
@@ -56,7 +57,7 @@ describe("EX1-009 WarGreymon", () => {
         target: { kind: "permanent", permanentId: s.perm("blocker").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => false, 40);
+    await settle(() => s.perm("attacker").isSuspended);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
@@ -70,8 +71,41 @@ describe("EX1-009 WarGreymon", () => {
     );
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
-    await settle(() => false, 40);
+    await settle(() => s.perm("attacker").isSuspended);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  it("deletes an inherited Blocker before the public blocker response (Q3198/Q3199)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX1-009", as: "attacker" },
+            { card: "ST1-12", as: "tamer" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT2-066", as: "inheritedBlocker", under: ["EX1-048"] },
+            { card: "BT1-072", as: "printedBlocker" },
+          ],
+          security: ["BT1-001", "BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("inheritedBlocker").permanentId, s.perm("inheritedBlocker").topCard.instanceId);
+    const inheritedId = s.perm("inheritedBlocker").topCard.instanceId;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === inheritedId));
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.events.find((event) => event.kind === "blockWindowOpened")).toMatchObject({
+      eligibleBlockerIds: [s.perm("printedBlocker").permanentId],
+    });
+    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("printedBlocker").permanentId })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
   });
 
   it("allows a real Blitz attack after digivolving past zero memory", async () => {
