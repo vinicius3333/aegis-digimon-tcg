@@ -45,7 +45,7 @@ rg -n 'RawUnparsed' apps/api/src/cards/EX1         # no matches
 | EX1-022 | Imperialdramon: Dragon Mode | Q3209 | [001–025] entry: Free-stack actions; distinct source colors DP scaling | 2 tests passed | 10/10 |
 | EX1-023 | Elecmon | none | [001–025] entry: inherited deletion Security Attack −1 for turn | 1 tests passed | 10/10 |
 | EX1-024 | Patamon | none | reveal 4; OR trait alternatives Angel, Archangel, or Three Great Angels; no-match bottom-deck boundary tested | 5 tests passed | 10/10 |
-| EX1-025 | Salamon | none | [001–025] entry: inherited 3-security attack Draw 1 OPT | 1 tests passed | 10/10 |
+| EX1-025 | Salamon | none | inherited 3-or-more-security player-attack Draw 1; fewer-than-3 rejection and second-attack once-per-turn boundary pass | 2 tests passed | 10/10 |
 | EX1-026 | Gatomon | Q3210 | [026–049] entry: inherited 3-security attack −2000 for turn | 1 tests passed | 10/10 |
 | EX1-027 | Leomon | Q3211 | [026–049] entry: Security Recovery +1 and post-check security count | 3 tests passed | 10/10 |
 | EX1-028 | Angemon | Q3212 | [026–049] entry: inherited 3-security attack +1000 through opponent turn | 2 tests passed | 10/10 |

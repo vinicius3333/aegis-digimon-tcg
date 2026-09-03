@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX1-025.js";
 
@@ -22,5 +23,37 @@ describe("EX1-025 Salamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.length === 1);
     expect(s.state.players[0]!.hand).toHaveLength(1);
+
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => false, 40);
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+  });
+
+  it("does not draw with fewer than 3 security cards", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX1-028", as: "host", under: ["EX1-025"] }],
+        deck: ["BT1-009"],
+        security: ["BT1-001", "BT1-001"],
+      },
+      1: { security: ["BT1-001", "BT1-001"] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => false, 40);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
   });
 });
