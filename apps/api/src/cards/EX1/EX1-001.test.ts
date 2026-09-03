@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX1-001.js";
 
@@ -34,5 +35,40 @@ describe("EX1-001 Agumon", () => {
     expect(["ST1-12", "BT1-009"]).toContain(p0.hand[0]!.cardId);
     expect(p0.deck).toHaveLength(3);
     expect(p0.deck.some((card) => card.cardId === "BT1-011")).toBe(true);
+  });
+
+  it("accepts a non-red Agumon-name card and fires only once per turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "attacker", under: ["EX1-001"] }],
+          deck: ["BT11-046", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
+        1: { security: ["BT1-001", "BT1-001", "BT1-001"] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length === 1);
+    expect(s.state.players[0]!.hand[0]!.cardId).toBe("BT11-046");
+
+    await advance(s.engine).verb.unsuspend([s.perm("attacker").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => false, 40);
+    expect(s.state.players[0]!.hand).toHaveLength(1);
   });
 });
