@@ -84,7 +84,11 @@ describe("EX1-060 LadyDevimon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option1").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX1-056"));
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX1-056") &&
+        s.state.memory === 7,
+    );
     // EX1-070 costs 4; the inherited effect refunds 1 for the first trash play.
     expect(s.state.memory).toBe(7);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("second").instanceId)).toBe(true);
