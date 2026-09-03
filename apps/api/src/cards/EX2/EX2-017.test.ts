@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./EX2-017.js";
 
 describe("EX2-017 Leomon", () => {
@@ -26,5 +28,28 @@ describe("EX2-017 Leomon", () => {
     );
     expect(s.state.memory).toBe(5);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
+  });
+
+  it("has Blocker only during the opponent's turn while a Tamer is in play", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX2-017", as: "leomon" },
+          { card: "EX2-059", as: "tamer" },
+        ],
+        deck: ["BT1-001"],
+      },
+      1: { deck: ["BT1-001"] },
+    });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("leomon"), "Blocker")).toBe(false);
+
+    const turnLoop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(observe(s.engine).hasKeyword(s.perm("leomon"), "Blocker")).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await turnLoop;
   });
 });
