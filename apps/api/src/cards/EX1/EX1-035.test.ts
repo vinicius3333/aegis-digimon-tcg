@@ -47,6 +47,34 @@ describe("EX1-035 Kabuterimon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("evo").instanceId)).toBe(true);
   });
 
+  it("continues the attack after the digivolution cost crosses memory to the opponent (Q3224)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX1-035", as: "kabuterimon" }],
+          hand: [{ card: "BT1-076", as: "evo" }],
+          deck: ["BT1-001", "BT1-001"],
+        },
+        1: { security: ["BT1-001", "BT1-001"], deck: ["BT1-001", "BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("kabuterimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("kabuterimon").topCard.cardId === "BT1-076");
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.state.memory).toBeLessThan(0);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.perm("kabuterimon").topCard.cardId).toBe("BT1-076");
+  });
+
   it("does not offer a non-Insectoid or an evolution with invalid level/cost requirements", async () => {
     const nonTrait = setupEngine(
       {
