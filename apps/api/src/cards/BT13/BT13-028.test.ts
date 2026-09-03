@@ -1,13 +1,13 @@
 import { EffectTiming, type CardInstance } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import type { CardSource } from "../../engine/effects/CardSource.js";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT13-028.js";
 
 function handMainEffectKey(s: EngineSetup, instance: CardInstance): string {
-  const source = (s.engine as unknown as { cardSourceOf(card: CardInstance): CardSource }).cardSourceOf(instance);
+  const source = observe(s.engine).cardSource(instance);
   return effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("BT13-028/"))!
     .effectKey;
 }

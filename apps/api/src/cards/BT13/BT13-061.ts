@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -33,7 +32,7 @@ export const compiled: CompiledCard = {
               to: "hand",
             },
           ],
-          rest: "deckBottom",
+          rest: "deckBottomAnyOrder",
           condition: {
             kind: "isOpponentsTurn",
             raw: "it's your opponent's turn",

@@ -1,7 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT13-072.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 
@@ -64,16 +64,38 @@ describe("BT13-072 DoruGreymon", () => {
 
   it("places one revealed X Antibody card under itself and applies DP immunity", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT13-072", as: "doru" }], deck: ["BT9-055", "BT1-009", "BT1-010"] } },
+      {
+        0: {
+          battleArea: [{ card: "BT13-066", as: "base" }],
+          hand: [{ card: "BT13-072", as: "doru" }],
+          // The mandatory digivolution draw consumes the first card before
+          // [When Digivolving] reveals the next three.
+          deck: ["BT1-009", "BT9-055", "BT1-010", "BT1-011"],
+        },
+      },
       { autoSelectCards: true },
     );
+    s.state.memory = 3;
     await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("doru"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("doru").instanceId,
+      }),
+    ).toEqual({ ok: true });
 
-    expect(s.perm("doru").stack.map((card) => card.cardId)).toContain("BT9-055");
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-010"]);
-    expect(observe(s.engine).isRestricted(s.perm("doru"), "dpImmune")).toBe(true);
+    await settle(
+      () =>
+        s.perm("base").topCard?.cardId === "BT13-072" && s.perm("base").stack.some((card) => card.cardId === "BT9-055"),
+    );
+
+    expect(s.perm("base").topCard?.cardId).toBe("BT13-072");
+    expect(s.perm("base").stack.map((card) => card.cardId)).toContain("BT9-055");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-009");
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-010", "BT1-011"]);
+    expect(observe(s.engine).isRestricted(s.perm("base"), "dpImmune")).toBe(true);
   });
 
   it("places an X Antibody Digimon from hand under the inherited host at turn end", async () => {

@@ -51,7 +51,10 @@ describe("BT13-057 Rosemon", () => {
   it("accepts the optional digivolving condition, pays one legal target, and unsuspends this Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT13-057", as: "rose", suspended: true }] },
+        0: {
+          battleArea: [{ card: "BT13-053", as: "base", suspended: true }],
+          hand: [{ card: "BT13-057", as: "rose" }],
+        },
         1: {
           battleArea: [
             { card: "BT13-047", as: "opponent" },
@@ -61,12 +64,20 @@ describe("BT13-057 Rosemon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 3;
     await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("rose"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("rose").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(
-      () => !s.perm("rose").isSuspended && (s.perm("opponent").isSuspended || s.perm("opponentTamer").isSuspended),
+      () => !s.perm("base").isSuspended && (s.perm("opponent").isSuspended || s.perm("opponentTamer").isSuspended),
     );
-    expect(s.perm("rose").isSuspended).toBe(false);
+    expect(s.perm("base").topCard?.cardId).toBe("BT13-057");
+    expect(s.perm("base").isSuspended).toBe(false);
     expect(s.perm("opponent").isSuspended).toBe(true);
     expect(s.perm("opponentTamer").isSuspended).toBe(true);
   });

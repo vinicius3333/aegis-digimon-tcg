@@ -399,8 +399,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   if (
     action.kind === "CostModifier" &&
     action.existingPermanent === true &&
-    action.target !== undefined &&
-    candidatePermanents(ctx, action.target).length === 0
+    (action.target === undefined || candidatePermanents(ctx, action.target).length === 0)
   ) {
     return action.abortOnDecline === true;
   }
@@ -421,6 +420,10 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     if (candidatePermanents(ctx, target).length === 0) return action.abortOnDecline === true;
   }
   const structuredCost = action.kind !== "RawUnparsed" && typeof action.cost !== "number" ? action.cost : undefined;
+  if (action.kind === "CostModifier" && action.amount === null && action.dynamicFrom === "deletedDigimonPlayCost") {
+    unsupported(ctx, action, "dynamic deleted-Digimon play-cost modifier must be nested under wouldBePlayed");
+    return false;
+  }
   const costCreatesTrashCandidate =
     structuredCost?.kind === "trashBottomFaceDownUnderTamer" ||
     structuredCost?.kind === "trashBottomFaceDownUnderDigimon";

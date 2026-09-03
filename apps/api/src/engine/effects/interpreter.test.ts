@@ -4142,9 +4142,11 @@ describe("round-3 regression: dropped semantics now captured in the IR", () => {
 
   it("P4: BT13-074 grants Jamming to YOUR Digimon (controller not inverted)", () => {
     const all = requireCard("BT13-074");
-    const jam = allActions(all).find((a) => a.kind === "GainKeyword" && a.keyword.keyword === "Jamming");
+    const jam = allActions(all).find(
+      (a) => a.kind === "Aura" && a.effect.kind === "keyword" && a.effect.keyword.keyword === "Jamming",
+    );
     expect(jam).toBeTruthy();
-    expect((jam as { target: { filter: { controller: string } } }).target.filter.controller).toBe("mine");
+    expect((jam as { target: { filter: { controllerDefault: string } } }).target.filter.controllerDefault).toBe("mine");
   });
 
   it("P4: BT20-034 restriction targets opponent Digimon only (not Tamers)", () => {
@@ -4227,8 +4229,8 @@ describe("round-3 regression: dropped semantics now captured in the IR", () => {
   });
 
   it("P2: BT13-074 emits both ＜Jamming＞ and ＜Reboot＞ grants", () => {
-    const grants = allActions(requireCard("BT13-074")).filter((a) => a.kind === "GainKeyword");
-    const kws = grants.map((g) => (g as { keyword: { keyword: string } }).keyword.keyword);
+    const grants = allActions(requireCard("BT13-074")).filter((a) => a.kind === "Aura" && a.effect.kind === "keyword");
+    const kws = grants.map((g) => (g as { effect: { keyword: { keyword: string } } }).effect.keyword.keyword);
     expect(kws).toEqual(expect.arrayContaining(["Jamming", "Reboot"]));
   });
 });

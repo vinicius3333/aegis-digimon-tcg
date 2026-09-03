@@ -182,7 +182,7 @@ export function observe(engine: GameEngine) {
     /** Whether an effect of the given card kind may grant memory to a seat. */
     canGainMemoryFromEffect(seat: Seat, sourceKinds: string[]): boolean {
       return internals.continuous.canGainMemoryFromEffect(seat, {
-        definition: { kinds: sourceKinds } as never,
+        definition: { kinds: sourceKinds },
       });
     },
 

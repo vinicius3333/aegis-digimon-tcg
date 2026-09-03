@@ -80,6 +80,30 @@ describe("BT13-102 Keenan Crier", () => {
     expect(s.perm("keenan").isSuspended).toBe(true);
   });
 
+  it("reacts through a real opponent Tamer play that effect-plays a Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT13-102", as: "keenan" }] },
+        1: {
+          hand: [
+            { card: "BT13-101", as: "opponentTamer" },
+            { card: "BT13-035", as: "pawn" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentTamer").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-035"));
+    expect(s.perm("keenan").isSuspended).toBe(true);
+  });
+
   it("does not react when the opponent ordinarily plays a Digimon", async () => {
     const s = setupEngine(
       {
@@ -91,7 +115,9 @@ describe("BT13-102 Keenan Crier", () => {
     s.state.turnSeat = 1;
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("ordinary").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("ordinary").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-035"));
 
     expect(s.perm("keenan").isSuspended).toBe(false);

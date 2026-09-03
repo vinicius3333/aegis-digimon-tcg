@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -121,9 +120,7 @@ export const compiled: CompiledCard = {
           event: "whenOpponentAttacks",
           actions: [
             {
-              kind: "RedirectAttack",
-              mode: "endAttack",
-              allowCostWithoutTarget: true,
+              kind: "EndAttack",
               cost: {
                 kind: "trash",
                 target: {

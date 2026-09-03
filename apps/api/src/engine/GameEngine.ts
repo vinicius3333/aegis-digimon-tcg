@@ -678,7 +678,7 @@ export class GameEngine {
     this.memory = new MemoryGauge(this.state, this.hooks.emit, (seat, opts) => {
       const kinds = opts.isTamerEffect ? [CardKind.Tamer] : [CardKind.Digimon];
       return this.continuous.canGainMemoryFromEffect(seat, {
-        definition: { kinds } as CardDefinition,
+        definition: { kinds },
       });
     });
     this.access = new GameStateAccess(this.state, this.memory, this.hooks.emit);

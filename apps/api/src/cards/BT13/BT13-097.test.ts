@@ -14,10 +14,9 @@ describe("BT13-097 Thomas H. Norstein", () => {
   });
 
   it("draws for both players after a matching Digimon attacks, paying by suspending this Tamer", () => {
-    const watcher = compiled.effects?.find((entry) => entry.trigger === "YourTurn")?.actions?.[0] as {
-      sourceFilter?: unknown;
-      actions?: unknown[];
-    };
+    const watcher = compiled.effects.find((entry) => entry.trigger === "YourTurn")?.actions[0];
+    expect(watcher?.kind).toBe("SubTrigger");
+    if (watcher?.kind !== "SubTrigger") throw new Error("BT13-097 YourTurn watcher must be a SubTrigger");
     expect(watcher).toMatchObject({
       kind: "SubTrigger",
       event: "whenAttacking",
@@ -81,6 +80,37 @@ describe("BT13-097 Thomas H. Norstein", () => {
     await settle(() => s.perm("thomas").isSuspended);
 
     expect(s.perm("thomas").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand.length).toBe(myHand + 1);
+    expect(s.state.players[1]!.hand.length).toBe(theirHand + 1);
+  });
+
+  it("draws for both players from a real Gaomon attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT13-097", as: "thomas" },
+            { card: "BT13-021", as: "gaomon" },
+          ],
+          deck: ["BT1-001"],
+        },
+        1: { security: ["BT1-002"], deck: ["BT1-003"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const myHand = s.state.players[0]!.hand.length;
+    const theirHand = s.state.players[1]!.hand.length;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gaomon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("thomas").isSuspended);
+
     expect(s.state.players[0]!.hand.length).toBe(myHand + 1);
     expect(s.state.players[1]!.hand.length).toBe(theirHand + 1);
   });

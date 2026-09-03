@@ -10,8 +10,7 @@ describe("BT13-107 Vulcan Crusher", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Main")?.actions?.slice(0, 2)).toMatchObject([
       {
         kind: "SelectBind",
-        bindAs: "chosenDigimon",
-        target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+        target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1, bindAs: "chosenDigimon" },
       },
       {
         kind: "Return",
@@ -89,10 +88,14 @@ describe("BT13-107 Vulcan Crusher", () => {
     );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vulcan").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vulcan").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("low").instanceId));
 
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("high").instanceId)).toBe(true);
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("high").instanceId),
+    ).toBe(true);
     expect(s.perm("host").topCard.cardId).toBe("BT1-009");
     expect(s.perm("host").stack).toHaveLength(0);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT13-058")).toBe(true);
@@ -117,7 +120,9 @@ describe("BT13-107 Vulcan Crusher", () => {
     );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vulcan").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vulcan").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("target").instanceId));
 
     expect(s.perm("host").topCard.cardId).toBe("EX2-007");
@@ -146,7 +151,9 @@ describe("BT13-107 Vulcan Crusher", () => {
     );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vulcan").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vulcan").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("target").instanceId));
 
     expect(s.perm("host").topCard.cardId).toBe("BT13-058");
@@ -172,7 +179,9 @@ describe("BT13-107 Vulcan Crusher", () => {
     );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vulcan").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vulcan").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("target").instanceId));
 
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT13-001")).toBe(true);
@@ -198,7 +207,9 @@ describe("BT13-107 Vulcan Crusher", () => {
     );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vulcan").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vulcan").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("target").instanceId));
 
     expect(s.perm("host").topCard.cardId).toBe("BT13-058");

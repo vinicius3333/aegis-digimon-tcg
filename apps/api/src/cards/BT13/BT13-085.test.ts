@@ -9,6 +9,7 @@ describe("BT13-085 Crowmon", () => {
       kind: "Digivolve",
       target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
       from: ["trash"],
+      payCost: true,
       optional: true,
       into: { nameOrTrait: [{ match: "nameExact", tokens: ["Ravemon"] }] },
       condition: { kind: "youHave", filter: { controllerDefault: "mine", kind: ["Tamer"] }, raw: "you have a Tamer" },
@@ -50,7 +51,10 @@ describe("BT13-085 Crowmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT13-085", as: "crow" }, { card: "BT13-100", as: "tamer" }],
+          battleArea: [
+            { card: "BT13-085", as: "crow" },
+            { card: "BT13-100", as: "tamer" },
+          ],
           trash: [{ card: "BT13-089", as: "ravemon" }],
         },
         1: { security: ["BT1-001"] },

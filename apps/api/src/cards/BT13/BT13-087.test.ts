@@ -31,15 +31,13 @@ describe("BT13-087 Dynasmon", () => {
   });
 
   it("deletes all opposing level 4 or lower Digimon when another matching Digimon is played", () => {
-    const watcher = compiled.effects?.find((entry) => entry.trigger === "YourTurn")?.actions?.[0] as {
-      sourceFilter?: unknown;
-      actions?: unknown[];
-    };
+    const watcher = compiled.effects?.find((entry) => entry.trigger === "YourTurn")?.actions?.[0];
     expect(watcher).toMatchObject({
       kind: "SubTrigger",
       event: "whenPlayed",
       sourceFilter: { controllerDefault: "mine", excludeSelf: true, kind: ["Digimon"] },
     });
+    if (watcher?.kind !== "SubTrigger") throw new Error("Expected played SubTrigger action");
     expect(watcher.sourceFilter).toMatchObject({
       nameOrTrait: [
         { match: "name", tokens: ["Lucemon"] },
@@ -83,7 +81,9 @@ describe("BT13-087 Dynasmon", () => {
     );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dynasmon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dynasmon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT18-034"));
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT18-034", "BT13-017"]);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-001", "BT1-002"]);

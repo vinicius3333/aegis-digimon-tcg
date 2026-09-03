@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -18,8 +17,8 @@ export const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: 1,
+            bindAs: "chosenDigimon",
           },
-          bindAs: "chosenDigimon",
         },
         {
           kind: "Return",

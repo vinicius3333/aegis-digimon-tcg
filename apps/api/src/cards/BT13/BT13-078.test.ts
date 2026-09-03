@@ -54,6 +54,21 @@ describe("BT13-078 Phascomon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT1-002");
   });
 
+  it("draws before trashing through a real opponent turn end", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009", under: ["BT13-078"], as: "host" }], deck: ["BT1-002"] },
+        1: { deck: ["BT1-003"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT1-002");
+  });
+
   it("does not repeat the inherited draw-trash effect on a second same-turn timing", async () => {
     const s = setupEngine(
       {

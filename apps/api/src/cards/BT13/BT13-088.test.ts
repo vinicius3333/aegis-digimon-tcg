@@ -43,10 +43,11 @@ describe("BT13-088 Belphemon: Sleep Mode", () => {
   it("ends an opponent's attack by trashing two cards from hand once per opponent turn", () => {
     const effect = compiled.effects?.find((entry) => entry.trigger === "OpponentsTurn");
     expect(effect).toMatchObject({ frequency: "OncePerTurn" });
-    expect((effect?.actions?.[0] as { actions?: unknown[] }).actions?.[0]).toMatchObject({
-      kind: "RedirectAttack",
-      mode: "endAttack",
-      allowCostWithoutTarget: true,
+    const watcher = effect?.actions?.[0];
+    expect(watcher?.kind).toBe("SubTrigger");
+    if (watcher?.kind !== "SubTrigger") throw new Error("Expected SubTrigger action");
+    expect(watcher.actions?.[0]).toMatchObject({
+      kind: "EndAttack",
       optional: true,
       abortOnDecline: true,
       cost: { kind: "trash", target: { filter: { zone: "hand", controller: "mine" }, count: 2 } },

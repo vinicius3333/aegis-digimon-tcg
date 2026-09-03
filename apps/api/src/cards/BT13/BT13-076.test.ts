@@ -5,14 +5,21 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT13-076.js";
 
 describe("BT13-076 KingEtemon", () => {
+  it("records the alternate Etemon/Sukamon evolution path as source-name matching", () => {
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 5, names: ["Etemon", "Sukamon"], cost: 4, isAlternate: true },
+    ]);
+  });
+
   it("debuffs one opposing Digimon when an Etemon or Sukamon is deleted", () => {
     const watcher = compiled.effects?.find((effect) => effect.trigger === "AllTurns");
-    const trigger = watcher?.actions?.[0] as { actions?: unknown[]; sourceFilter?: unknown };
+    const trigger = watcher?.actions?.[0];
     expect(trigger).toMatchObject({
       kind: "SubTrigger",
       event: "onDeletionOf",
       sourceFilter: { controller: "any", kind: ["Digimon"], excludeSelf: true },
     });
+    if (trigger?.kind !== "SubTrigger") throw new Error("Expected deletion SubTrigger action");
     expect(trigger.sourceFilter).toMatchObject({ nameOrTrait: [{ match: "name", tokens: ["Etemon", "Sukamon"] }] });
     expect(trigger.actions).toEqual([
       {

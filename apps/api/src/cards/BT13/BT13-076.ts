@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -110,12 +109,7 @@ export const compiled: CompiledCard = {
   digivolutionRequirement: [
     {
       level: 5,
-      nameOrTrait: [
-        {
-          tokens: ["Etemon", "Sukamon"],
-          match: "name",
-        },
-      ],
+      names: ["Etemon", "Sukamon"],
       cost: 4,
       isAlternate: true,
     },

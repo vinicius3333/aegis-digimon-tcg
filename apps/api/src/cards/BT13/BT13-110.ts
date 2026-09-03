@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -69,6 +68,7 @@ export const compiled: CompiledCard = {
           kind: "GainKeyword",
           target: {
             filter: { boundRef: "playedDigimon" },
+            count: 1,
           },
           keyword: {
             keyword: "Rush",

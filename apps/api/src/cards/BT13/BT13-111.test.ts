@@ -54,9 +54,10 @@ describe("BT13-111 Gallantmon", () => {
       kind: "Replacement",
       event: "wouldBePlayed",
       sourceFilter: { isSelfRef: true },
-      scaling: { per: 5, unit: "cards", filter: { controllerDefault: "both", zone: "trash" } },
+      scaling: { per: 5, unit: "cards", filter: { controller: "any", zone: "trash" } },
     });
-    expect((replacement as { actions?: unknown[] }).actions?.[0]).toMatchObject({
+    if (replacement?.kind !== "Replacement") throw new Error("Expected a replacement action");
+    expect(replacement.actions?.[0]).toMatchObject({
       kind: "Replacement",
       mode: "reduceCost",
       amount: 2,
