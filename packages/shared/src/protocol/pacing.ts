@@ -15,6 +15,12 @@ export const SECURITY_CHECK_NARRATION_MS = 2_300;
 /**
  * A check whose card resolves an effect, which also detours the revealed card to
  * the side of the screen while its effect notice reads.
+ *
+ * A check the server resolves over several batches parks that card in a side dock for
+ * as long as the resolution takes, so the client's clock is not one fixed run: the
+ * budget covers the longest case (reveal and close in the same batch) and, for the
+ * docked case, the fixed reveal beats plus the hold and exit still owed once
+ * `securityChecked` arrives. `apps/web/src/game/timings.test.ts` asserts both.
  */
 export const SECURITY_EFFECT_NARRATION_MS = 3_650;
 

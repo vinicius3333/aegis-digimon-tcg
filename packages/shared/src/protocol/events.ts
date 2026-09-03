@@ -121,6 +121,16 @@ export type ServerEvent =
       seat: Seat;
       revealedCardId: string;
       attackerPermanentId: string;
+      /**
+       * Presentation hints known at the reveal, so the client can stage the card the way
+       * the reference client does: a card with a [Security] effect docks at the side of the
+       * screen while the effect resolves; a Security Digimon holds centre-stage for its
+       * battle; anything else is simply shown and trashed. Absent on events from older
+       * servers or replays, in which case the client falls back to the `securityChecked`
+       * resolution.
+       */
+      hasSecurityEffect?: boolean;
+      isDigimon?: boolean;
     }
   | {
       kind: "securityChecked";
