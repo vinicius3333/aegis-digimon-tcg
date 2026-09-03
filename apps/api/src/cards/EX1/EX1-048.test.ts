@@ -83,12 +83,13 @@ describe("EX1-048 Andromon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT11-072", as: "host", under: ["EX1-048"] }],
-        hand: ["BT1-001"],
+        hand: ["BT1-009"],
         deck: ["BT1-001", "BT1-002"],
         security: ["BT1-001", "BT1-001"],
       },
       1: {
-        hand: ["BT1-001"],
+        battleArea: [{ card: "BT1-010", as: "attacker" }],
+        hand: ["BT1-009"],
         deck: ["BT1-001", "BT1-002"],
         security: ["BT1-001", "BT1-001"],
       },
@@ -99,6 +100,19 @@ describe("EX1-048 Andromon", () => {
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(true);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("host").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(s.perm("host").isSuspended).toBe(true);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
