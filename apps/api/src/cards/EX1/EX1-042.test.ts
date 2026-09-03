@@ -8,8 +8,8 @@ describe("EX1-042 Rosemon", () => {
       0: { battleArea: [{ card: "EX1-042", as: "rosemon", dp: 11000 }] },
       1: {
         battleArea: [
-          { card: "BT1-070", suspended: true },
-          { card: "BT1-073", suspended: true },
+          { card: "BT1-070", as: "opponentOne", suspended: true },
+          { card: "BT1-073", as: "opponentTwo", suspended: true },
         ],
       },
     });
@@ -17,11 +17,36 @@ describe("EX1-042 Rosemon", () => {
     expect(s.perm("rosemon").currentDP).toBe(13000);
   });
 
-  it("suspends an opposing Digimon on attack", async () => {
+  it("counts zero suspended opposing Digimon and excludes a suspended ally", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX1-042", as: "rosemon", dp: 11000 },
+          { card: "BT1-070", suspended: true },
+        ],
+      },
+      1: { battleArea: [{ card: "BT1-076", as: "opponent" }] },
+    });
+    await s.ready();
+    expect(s.perm("rosemon").currentDP).toBe(11000);
+  });
+
+  it("suspends exactly one opposing unsuspended Digimon on attack", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX1-042", as: "rosemon" }] },
-        1: { battleArea: [{ card: "BT1-076", as: "target" }], security: ["BT1-001", "BT1-001"] },
+        0: {
+          battleArea: [
+            { card: "EX1-042", as: "rosemon" },
+            { card: "BT1-070", as: "ownTarget" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-076", as: "alreadySuspended", suspended: true },
+            { card: "BT1-070", as: "target" },
+          ],
+          security: ["BT1-001", "BT1-001"],
+        },
       },
       { autoSelectCards: true },
     );
@@ -35,5 +60,7 @@ describe("EX1-042 Rosemon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("target").isSuspended);
     expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.perm("alreadySuspended").isSuspended).toBe(true);
+    expect(s.perm("ownTarget").isSuspended).toBe(false);
   });
 });
