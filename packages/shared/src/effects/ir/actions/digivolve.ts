@@ -114,6 +114,8 @@ export interface PlaceUnderAction extends ActionBase {
   kind: "PlaceUnder";
   /** Cards placed as digivolution cards or under a Tamer. */
   target: Target;
+  /** When sourcing from under Tamers, restrict the selected cards to one Tamer host. */
+  underTamerHostScope?: "single" | "any";
   /** Legacy compiler shape: printed placement quantity stored on the action instead of `target.count`. */
   count?: number | "all";
   underFilter?: Filter;

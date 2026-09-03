@@ -5,6 +5,7 @@ import type { Filter, Target } from "../filters/filter.js";
 import type { Controller } from "../filters/zones.js";
 import type { Condition } from "../predicates/conditions.js";
 import type { Cost } from "../predicates/costs.js";
+import type { Scaling } from "../predicates/scaling.js";
 import type { Action } from "./action.js";
 import type { ActionBase } from "./base.js";
 
@@ -218,6 +219,8 @@ export interface ReducePlayCostAction extends ActionBase {
     | { kind: "deletedSacrificePlayCost" }
     /** `value` per unit actually paid, for the repeatable payments. */
     | { kind: "perPaid"; value: number };
+  /** Multiply an automatic reduction by a live board count. */
+  scaling?: Scaling;
 }
 
 /** Run a group of actions only once one shared activation cost is paid. */

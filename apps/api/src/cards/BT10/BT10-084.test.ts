@@ -1,8 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
-  CardKind,
-  EffectDuration,
   EffectTiming,
+  type Action,
   type CardDefinition,
   type GameState,
   type Permanent,
@@ -20,9 +19,13 @@ import {
 } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
+import type { EffectContext, Primitives } from "../../engine/effects/EffectContext.js";
+import type { ContinuousEffectLedger } from "../../engine/effects/continuous.js";
+import { runTrashDigivolution } from "../../engine/effects/interpreter/actions/placeUnder.js";
 import { GameEngine, type GameEngineHooks } from "../../engine/GameEngine.js";
 import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine as setupCardEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT10-084.js";
 
 // A3 for BT10-084 (Tactimon)
@@ -31,10 +34,10 @@ import { compiled } from "./BT10-084.js";
 //   those Digimon gain ＜Blocker＞ until end of opponent's turn.
 // [Opponent's Turn] Replacement: digivolution-card trash redirect.
 //
-// Primary A3: [On Play] calls grantKeyword(Blocker, UntilOpponentTurnEnd) for each
-// Digimon played. Without the effect the grant would not be made.
+// Primary A3: [On Play] plays up to two qualifying Digimon and grants each played
+// Digimon Blocker until the end of the opponent's turn.
 //
-// FAILS-WHEN-REVERTED: if [On Play] were removed, grantKeyword would never be called.
+// FAILS-WHEN-REVERTED: if [On Play] were removed, the real battle-area assertions would fail.
 
 const CARD_ID = "BT10-084";
 
@@ -83,124 +86,6 @@ function makeSource(over: Partial<CardSource> = {}): CardSource {
   };
 }
 
-interface FxRecord {
-  playInstancesCalled: { ids: string[] }[];
-  grantKeywordCalled: { permanentId: string; keyword: string; duration: EffectDuration }[];
-}
-
-function makeContext(opts: {
-  source?: CardSource;
-  ownerBattleArea?: Permanent[];
-  ownerTrash?: { instanceId: string; cardId: string }[];
-  playedPermanents?: Permanent[];
-  definitions?: Record<string, Partial<CardDefinition>>;
-  record?: FxRecord;
-}): EffectContext {
-  const {
-    source,
-    ownerBattleArea = [],
-    ownerTrash = [],
-    playedPermanents = [],
-    definitions = {},
-    record = { playInstancesCalled: [], grantKeywordCalled: [] },
-  } = opts;
-
-  const players = [
-    { seat: 0 as Seat, battleArea: ownerBattleArea, hand: [], trash: ownerTrash, security: [], deck: [] },
-    { seat: 1 as Seat, battleArea: [], hand: [], trash: [], security: [], deck: [] },
-  ];
-  const state = { memory: 0, players, turnSeat: 0 as Seat } as unknown as GameState;
-
-  const game: GameAccess = {
-    state,
-    player: (seat: Seat) => players[seat] as never,
-    opponentOf: (s) => (s === 0 ? 1 : 0),
-    permanentById: (id) => ownerBattleArea.find((p) => p.permanentId === id),
-    definitionOf: (card: { cardId: string }) => {
-      const over = definitions[card.cardId] ?? {};
-      return fakeDef({ cardId: card.cardId, ...over });
-    },
-  };
-
-  const fx: Primitives = {
-    playInstances: async (ids: string[]) => {
-      record.playInstancesCalled.push({ ids: [...ids] });
-      return playedPermanents;
-    },
-    grantKeyword: (permanentId: string, keyword: string, duration: EffectDuration) => {
-      record.grantKeywordCalled.push({ permanentId, keyword, duration });
-    },
-    draw: async () => [],
-    gainMemory: () => {},
-    gainMemoryForSeat: () => {},
-    restrictMemoryGain: () => {},
-    restrictCostReduction: () => {},
-    declareWinner: () => {},
-    setMemory: () => {},
-    modifyDP: () => {},
-    setBaseDP: () => {},
-    playFromHand: async () => [],
-    playFromSecurity: async () => undefined,
-    digivolveFromInstance: async () => undefined,
-    dnaDigivolveInto: async () => undefined,
-    deDigivolve: () => [],
-    placeUnder: async () => [],
-    placeOwnTopAtStackBottom: () => false,
-    relocatePermanent: () => false,
-    link: async () => [],
-    trash: async () => [],
-    trashDigivolutionCards: async () => [],
-    trashFromSecurity: async () => [],
-    deletePermanent: async () => 0,
-    suspend: async () => [],
-    unsuspend: () => {},
-    returnToHand: async () => [],
-    returnToDeck: async () => [],
-    reveal: async () => [],
-    searchDeck: async () => [],
-    addSecurity: async () => {},
-    grantPierce: () => {},
-    changeEvoCost: () => {},
-    changePlayCost: () => {},
-    grantNameTrait: () => {},
-    grantLinkMax: () => {},
-    grantLinkCostReduction: () => {},
-    waiveColorRequirement: () => {},
-    shuffleSecurity: () => {},
-    securityToHand: () => [],
-    recoverToSecurity: async () => [],
-    flipTopSecurity: () => false,
-    flipSecurityFaceUp: () => false,
-    forceAttack: async () => {},
-    redirectAttack: async () => {},
-    subscribeSubTrigger: () => 0,
-    subscribeReplacement: () => 0,
-    conferStackEffects: () => {},
-    fireOptionUsed: async () => {},
-    fireOnDiscardLibrary: async () => {},
-    fireWhenTrashedFromDeck: async () => {},
-    restrict: () => {},
-    cannotIgnoreDigivolution: () => {},
-    addColorGrant: () => {},
-    movePermanentZone: async () => false,
-    hatch: () => undefined,
-    placeUnderFromEggDeck: async () => undefined,
-    placeAsTopFromEggDeck: async () => undefined,
-    endAttack: () => {},
-    useOptionFromHand: async () => [],
-  } as unknown as Primitives;
-
-  const ask: DecisionApi = {
-    optional: async () => true,
-    chooseTargets: async (_c, o) => o.candidates.slice(0, o.max ?? 1),
-    selectPermanents: async (_c, o) => o.candidates.slice(0, o.max ?? 1),
-    selectCards: async (_c, o) => o.candidates.slice(0, o.max ?? 2),
-    chooseOption: async () => 0,
-  };
-
-  return { source: source ?? makeSource(), trigger: {}, game, fx, ask };
-}
-
 describe("BT10-084 (Tactimon)", () => {
   const module = getEffectModule(CARD_ID);
 
@@ -214,85 +99,99 @@ describe("BT10-084 (Tactimon)", () => {
     expect(module!.effectsForTiming(EffectTiming.WhenDigivolving, source)).toHaveLength(0);
   });
 
-  it("[On Play] calls grantKeyword Blocker on played Digimon with UntilOpponentTurnEnd", async () => {
-    // Primary A3: each played Digimon permanent gets Blocker for UntilOpponentTurnEnd.
-    const source = makeSource();
-    const effects = module!.effectsForTiming(EffectTiming.OnPlay, source);
-    expect(effects.length).toBeGreaterThanOrEqual(1);
-
-    // Two Bagra Army Lv.4 Digimon in trash.
-    const trashCard1 = { instanceId: "bagra-1", cardId: "BT10-BAG1" };
-    const trashCard2 = { instanceId: "bagra-2", cardId: "BT10-BAG2" };
-    const playedPerm1 = {
-      permanentId: "played-perm-1",
-      controllerSeat: 0 as Seat,
-      topCard: { instanceId: "bagra-1", cardId: "BT10-BAG1", ownerSeat: 0 as Seat },
-    } as unknown as Permanent;
-    const playedPerm2 = {
-      permanentId: "played-perm-2",
-      controllerSeat: 0 as Seat,
-      topCard: { instanceId: "bagra-2", cardId: "BT10-BAG2", ownerSeat: 0 as Seat },
-    } as unknown as Permanent;
-
-    const record: FxRecord = { playInstancesCalled: [], grantKeywordCalled: [] };
-    const tactimonPermanent = makePermanent("tactimon-p", 0, CARD_ID);
-    const sourceWithPerm = makeSource({ permanent: () => tactimonPermanent });
-
-    const ctx = makeContext({
-      source: sourceWithPerm,
-      ownerBattleArea: [tactimonPermanent],
-      ownerTrash: [trashCard1, trashCard2],
-      playedPermanents: [playedPerm1, playedPerm2],
-      definitions: {
-        "BT10-BAG1": {
-          cardId: "BT10-BAG1",
-          nameEn: "BagraDigimon1",
-          kinds: [CardKind.Digimon] as never,
-          level: 4,
-          types: ["Bagra Army"] as never,
+  it("[On Play] plays two qualifying Digimon and grants each Blocker until the opponent's turn ends", async () => {
+    const s = setupCardEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "tactimon" }],
+          trash: [
+            { card: "BT10-075", as: "damemon" },
+            { card: "BT10-076", as: "troopmon" },
+            { card: "BT10-081", as: "baalmon" },
+          ],
         },
-        "BT10-BAG2": {
-          cardId: "BT10-BAG2",
-          nameEn: "BagraDigimon2",
-          kinds: [CardKind.Digimon] as never,
-          level: 3,
-          types: ["Bagra Army"] as never,
-        },
+        1: { security: 1 },
       },
-      record,
-    });
-
-    await effects[0]!.resolve(ctx);
-
-    // playInstances was called.
-    expect(record.playInstancesCalled.length).toBeGreaterThanOrEqual(1);
-
-    // grantKeyword called for each played Digimon with Blocker + UntilOpponentTurnEnd.
-    const onPlay = compiled.effects?.find((entry) => entry.trigger === "OnPlay");
-    expect(onPlay?.actions).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ kind: "PlayWithoutCost" }),
-        expect.objectContaining({
-          kind: "GainKeyword",
-          keyword: { keyword: "Blocker" },
-          duration: "untilOpponentTurnEnd",
-        }),
-      ]),
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
+    s.state.memory = 13;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tactimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId !== CARD_ID).length === 2 &&
+        s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("baalmon").instanceId),
+    );
+
+    const played = ["damemon", "troopmon"].map((alias) =>
+      s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.instanceId === s.inst(alias).instanceId),
+    );
+    expect(played.every((permanent) => permanent !== undefined)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("baalmon").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(0);
+
+    const ledger = (s.engine as unknown as { continuous: ContinuousEffectLedger }).continuous;
+    for (const permanent of played) {
+      expect(permanent).toBeDefined();
+      expect(observe(s.engine).hasKeyword(permanent!, "Blocker")).toBe(true);
+    }
+    ledger.sweep(s.state, "ownerTurnEnd", 0);
+    for (const permanent of played) {
+      expect(observe(s.engine).hasKeyword(permanent!, "Blocker")).toBe(true);
+    }
+    ledger.sweep(s.state, "opponentTurnEnd", 1);
+    for (const permanent of played) {
+      expect(observe(s.engine).hasKeyword(permanent!, "Blocker")).toBe(false);
+    }
+  });
+
+  it("[On Play] excludes Bagra Army Digimon above level 4", async () => {
+    const s = setupCardEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "tactimon" }],
+          trash: [{ card: "BT10-081", as: "baalmon" }],
+        },
+        1: { security: 1 },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 13;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tactimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === CARD_ID) &&
+        s.state.players[0]!.battleArea.length === 1 &&
+        s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("baalmon").instanceId) &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("baalmon").instanceId)).toBe(true);
   });
 
   it("[On Play] targets only Bagra Army Digimon at level 4 or lower from trash", async () => {
     const onPlay = compiled.effects?.find((entry) => entry.trigger === "OnPlay");
     expect(onPlay?.actions[0]).toMatchObject({ kind: "PlayWithoutCost", from: ["trash"], optional: true });
     expect(onPlay?.actions[0]).toMatchObject({
-      target: { filter: { levelMax: 4, nameOrTrait: [{ tokens: ["Bagra Army"] }] } },
+      target: {
+        filter: {
+          levelComparison: { op: "lte", value: 4 },
+          nameOrTrait: [{ tokens: ["Bagra Army"] }],
+        },
+      },
     });
   });
 });
 
 // --- [Opponent's Turn] digivolution-card-trash redirect: full-engine A3 -----------------------
 //
-// The fake-context tests above cover [On Play]. The redirect clause is a persistent, continuous
+// The real-engine test above covers [On Play]. The redirect clause is a persistent, continuous
 // Replacement install (EffectTiming.None) consulted through GameEngine's own
 // consultDigivolutionTrashRedirect wiring (subtriggers.ts / digivolutionTrashRedirect.ts), so it
 // needs a REAL GameEngine to prove end to end — a fake CardSource/EffectContext can't exercise
@@ -382,17 +281,24 @@ describe("BT10-084 (Tactimon) [Opponent's Turn] digivolution-card-trash redirect
     // pass (mirrors how it would be armed mid-match).
     await advance(engine).recompute();
 
-    const fx = primitivesOf(engine);
     const originalStackSize = other.stack.length;
-    // An effect is about to trash the OTHER Digimon's stack (amount 3, "trash as many as
-    // possible" per Q2004) — this is the exact seam interpreter.ts's TrashDigivolution/payCost
-    // sites call before selecting which cards to take.
-    const redirected = await fx.redirectDigivolutionTrashHosts([other.permanentId]);
+    const tactimonMaterialIds = tactimon.stack.map((card) => card.instanceId);
+    const internals = engine as unknown as {
+      cardSourceOf(card: CardInstanceClass): CardSource;
+      buildEffectContext(source: CardSource, trigger: Record<string, never>): EffectContext;
+    };
+    const ctx = internals.buildEffectContext(internals.cardSourceOf(other.topCard), {});
+    await runTrashDigivolution(ctx, {
+      kind: "TrashDigivolution",
+      amount: 3,
+      fromTop: true,
+      target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+    } satisfies Extract<Action, { kind: "TrashDigivolution" }>);
 
-    expect(redirected).toEqual([tactimon.permanentId]);
-    // The original target was never touched by the redirect consult itself — only the calling
-    // site's subsequent trashDigivolutionCards call (not exercised here) would move cards.
+    expect(ctx.lastEffectActed).toBe(true);
     expect(other.stack.length).toBe(originalStackSize);
+    expect(tactimon.stack).toHaveLength(0);
+    expect(p0.trash.map((card) => card.instanceId)).toEqual(expect.arrayContaining(tactimonMaterialIds));
   });
 
   it("does NOT redirect on the controller's OWN turn — the ability is [Opponent's Turn] only", async () => {

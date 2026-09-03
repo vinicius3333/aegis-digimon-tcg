@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-authored override for BT10-080 (SkullBaluchimon).
 // runtime-effect fix: the hand-trash effect is a future trigger gated to your turn and
 // digivolves one of your Digimon into this card from trash; the When Digivolving

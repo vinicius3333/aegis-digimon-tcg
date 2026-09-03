@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR — the watcher only observes opposing Digimon or Tamers being played.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

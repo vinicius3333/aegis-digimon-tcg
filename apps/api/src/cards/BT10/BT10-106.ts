@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -8,23 +7,24 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   effects: [
     {
-      trigger: "Static",
+      trigger: "BeforePayCost",
       actions: [
         {
-          kind: "Replacement",
-          event: "wouldBePlayed",
-          sourceFilter: {
-            controllerDefault: "mine",
-          },
-          actions: [
-            {
-              kind: "Replacement",
-              event: "wouldBePlayed",
-              mode: "reduceCost",
-              amount: 1,
-              raw: "reduce its memory cost by 1",
+          kind: "ReducePlayCost",
+          payment: {
+            kind: "automatic",
+            condition: {
+              kind: "youHave",
+              filter: {
+                zone: "battleArea",
+                controllerDefault: "mine",
+                kind: ["Tamer"],
+              },
+              count: 1,
+              raw: "you have a Tamer in play",
             },
-          ],
+          },
+          amount: { kind: "fixed", value: 1 },
           scaling: {
             per: 1,
             filter: {

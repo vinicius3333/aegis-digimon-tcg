@@ -1,12 +1,11 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const optionFilter = {
+const optionFilter: Filter = {
   kind: ["Option"],
   or: [{ nameOrTrait: [{ tokens: ["Plug-In"], match: "name" }] }, { colors: ["Yellow"], playCostLte: 5 }],
 };
-const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
+const self: Target = { filter: { isSelfRef: true }, count: 1, isSelf: true };
 const compiled: CompiledCard = {
   effects: [
     {
@@ -14,6 +13,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "UseOptionWithoutCost",
+          filter: optionFilter,
           target: { filter: optionFilter, count: 1, from: ["hand"] },
           payCost: false,
           optional: true,

@@ -409,6 +409,18 @@ export async function runPlaceUnder(
           : ["hand", "trash", "deck"];
   const candidates = candidateLooseInstances(ctx, levelCeilingTarget, zones);
   if (candidates.length === 0) return;
+  let scopedCandidates = candidates;
+  const underTamerZones = new Set<ZoneRef>(["underMyTamers", "underTamers", "underTamer"]);
+  if (action.underTamerHostScope === "single" && zones.length > 0 && zones.every((zone) => underTamerZones.has(zone))) {
+    const hostIds = [...new Set(candidates.map((candidate) => candidate.hostPermanentId))].filter(
+      (hostId): hostId is string => hostId !== undefined,
+    );
+    const selectedHostIds =
+      hostIds.length <= 1 ? hostIds : await ctx.ask.chooseTargets(ctx, { candidates: hostIds, min: 1, max: 1 });
+    const selectedHostId = selectedHostIds[0];
+    if (selectedHostId === undefined) return;
+    scopedCandidates = candidates.filter((candidate) => candidate.hostPermanentId === selectedHostId);
+  }
   // Destination host (priority): explicit `destination` selector (BT19-038: place a card
   // from hand/trash under a chosen Tamer) > `underFilter` > the source permanent itself.
   let hostId: string | undefined;
@@ -457,23 +469,23 @@ export async function runPlaceUnder(
   // EX10-025 require 2 when 2 exist but still permit the single available card (Q5078-Q5079).
   const placementTarget =
     typeof action.count === "number"
-      ? { ...levelCeilingTarget, count: Math.min(action.count, candidates.length) }
+      ? { ...levelCeilingTarget, count: Math.min(action.count, scopedCandidates.length) }
       : action.count === "all"
-        ? { ...levelCeilingTarget, count: candidates.length }
+        ? { ...levelCeilingTarget, count: scopedCandidates.length }
         : levelCeilingTarget;
   let chosen = await pickLoose(
     ctx,
     placementTarget,
-    candidates,
+    scopedCandidates,
     undefined,
     ctx.ask,
-    candidates.map((candidate) => candidate.instanceId),
+    scopedCandidates.map((candidate) => candidate.instanceId),
   );
   if (action.order === "any" && chosen.length > 1 && ctx.ask.orderCards !== undefined) {
     chosen = await ctx.ask.orderCards(ctx, {
       candidates: chosen,
       visibleCards: chosen
-        .map((instanceId) => candidates.find((candidate) => candidate.instanceId === instanceId))
+        .map((instanceId) => scopedCandidates.find((candidate) => candidate.instanceId === instanceId))
         .filter((candidate): candidate is LooseCandidate => candidate !== undefined)
         .map(({ instanceId, cardId }) => ({ instanceId, cardId })),
       destination: "stackBottom",

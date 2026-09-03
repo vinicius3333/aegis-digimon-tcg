@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT10-021 — do not regenerate.
 // WhenAttacking: added block Restrict; condition changed to raw covering Blue Flare + opponent 2+.
 // Explicit battle-area zones preserve the printed "in play" scope for all three conditions.
