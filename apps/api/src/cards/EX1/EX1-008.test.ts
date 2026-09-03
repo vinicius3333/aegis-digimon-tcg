@@ -122,8 +122,8 @@ describe("EX1-008 MetalGreymon", () => {
 
   it("limits inherited Piercing to your turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT2-066", as: "machine", under: ["EX1-008"] }], deck: [] },
-      1: { battleArea: [{ card: "BT1-070" }], deck: ["BT1-001"] },
+      0: { battleArea: [{ card: "BT2-066", as: "machine", under: ["EX1-008"] }], hand: ["BT1-009"], deck: ["BT1-001"] },
+      1: { battleArea: [{ card: "BT1-070" }], hand: ["BT1-009"], deck: ["BT1-001"] },
     });
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
@@ -131,7 +131,7 @@ describe("EX1-008 MetalGreymon", () => {
     await advance(s.engine).waitForMainPhase(1);
     await s.ready();
     expect(observe(s.engine).hasPierce(s.perm("machine"))).toBe(false);
-    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
 
