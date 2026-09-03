@@ -37,8 +37,8 @@ describe("EX1-016 Ikkakumon", () => {
 
   it("does not grant the permission during the opponent's turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX1-016", as: "ikkakumon" }], deck: [] },
-      1: { battleArea: [{ card: "BT1-009", as: "eligible" }], deck: ["BT1-001"] },
+      0: { battleArea: [{ card: "EX1-016", as: "ikkakumon" }], hand: ["BT1-009"], deck: ["BT1-001"] },
+      1: { battleArea: [{ card: "BT1-009", as: "eligible" }], hand: ["BT1-009"], deck: ["BT1-001"] },
     });
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
@@ -47,7 +47,7 @@ describe("EX1-016 Ikkakumon", () => {
     await s.ready();
     expect(observe(s.engine).canAttackUnsuspended(s.perm("ikkakumon"))).toBe(false);
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("ikkakumon").permanentId, target: { kind: "permanent", permanentId: s.perm("eligible").permanentId } })).toEqual({ ok: false, reason: "not-your-turn" });
-    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
 
