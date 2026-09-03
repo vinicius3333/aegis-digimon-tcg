@@ -3927,6 +3927,7 @@ export class GameEngine {
     return {
       state: this.state,
       fx: this.primitives,
+      fxForSource: (source) => this.effectPrimitives(source.ownerSeat),
       ask: this.decisionApi,
       tracker: this.tracker,
       continuous: this.continuous,
