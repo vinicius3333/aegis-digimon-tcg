@@ -45,4 +45,40 @@ describe("EX1-020 Plesiomon", () => {
 
     expect(s.state.players[0]!.hand.length).toBe(before + 2);
   });
+
+  it("does not draw when your own digivolution card is trashed", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX1-020", as: "plesiomon" }, { card: "BT1-032", as: "own", under: ["BT1-030"] }], deck: ["BT1-009", "BT1-009"] },
+    });
+    await s.ready();
+    const before = s.state.players[0]!.hand.length;
+    await advance(s.engine).fire(EffectTiming.None, s.perm("plesiomon"));
+    await advance(s.engine).verb.trashDigivolutionCards(s.perm("own").permanentId, [s.perm("own").stack[0]!.instanceId], 0);
+    expect(s.state.players[0]!.hand.length).toBe(before);
+  });
+
+  it("draws only once when two opponent sources are trashed in one turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX1-020", as: "plesiomon" }], deck: ["BT1-009", "BT1-009", "BT1-010", "BT1-010"] },
+      1: { battleArea: [{ card: "BT1-032", as: "opponent", under: ["BT1-030", "BT1-031"] }] },
+    });
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.None, s.perm("plesiomon"));
+    await advance(s.engine).verb.trashDigivolutionCards(s.perm("opponent").permanentId, [s.perm("opponent").stack[0]!.instanceId], 0);
+    expect(s.state.players[0]!.hand).toHaveLength(2);
+    await advance(s.engine).verb.trashDigivolutionCards(s.perm("opponent").permanentId, [s.perm("opponent").stack[0]!.instanceId], 0);
+    expect(s.state.players[0]!.hand).toHaveLength(2);
+  });
+
+  it("does not draw during the opponent's turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX1-020", as: "plesiomon" }], deck: ["BT1-009", "BT1-009"] },
+      1: { battleArea: [{ card: "BT1-032", as: "opponent", under: ["BT1-030"] }] },
+    });
+    await s.ready();
+    s.state.turnSeat = 1;
+    await advance(s.engine).fire(EffectTiming.None, s.perm("plesiomon"));
+    await advance(s.engine).verb.trashDigivolutionCards(s.perm("opponent").permanentId, [s.perm("opponent").stack[0]!.instanceId], 0);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+  });
 });
