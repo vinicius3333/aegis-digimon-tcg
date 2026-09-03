@@ -62,8 +62,8 @@ describe("EX2-072 Blue Card", () => {
 
     expect(s.perm("renamon").topCard.cardId).toBe("EX2-021");
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("bonusDraw").instanceId);
-    // Blue Card pays 3, the revealed digivolution is free, and Renamon's
-    // inherited effect refunds 1 memory for using a 2+-cost Option.
-    expect(s.state.memory).toBe(memoryBefore - 2);
+    // Blue Card pays 3 and the revealed digivolution is free. The standalone
+    // Renamon is not an evolution source, so its inherited effect does not apply.
+    expect(s.state.memory).toBe(memoryBefore - 3);
   });
 });
