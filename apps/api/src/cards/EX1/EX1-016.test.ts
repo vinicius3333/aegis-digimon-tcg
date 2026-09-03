@@ -23,7 +23,7 @@ describe("EX1-016 Ikkakumon", () => {
   it("can't use that permission against an unsuspended Digimon with digivolution cards", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "EX1-016", as: "ikkakumon" }] },
-      1: { battleArea: [{ card: "BT1-010", as: "ineligible", under: ["BT1-009"] }] },
+      1: { battleArea: [{ card: "BT1-010", as: "ineligible", under: ["BT1-001"] }] },
     });
     await s.ready();
     expect(
@@ -54,7 +54,7 @@ describe("EX1-016 Ikkakumon", () => {
   it("cannot use the permission against a suspended Digimon", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "EX1-016", as: "ikkakumon" }] },
-      1: { battleArea: [{ card: "BT1-009", as: "suspended", suspended: true, under: ["BT1-030"] }] },
+      1: { battleArea: [{ card: "BT1-009", as: "suspended", suspended: true, under: ["BT1-001"] }] },
     });
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("ikkakumon").permanentId, target: { kind: "permanent", permanentId: s.perm("suspended").permanentId } })).toEqual({ ok: true });
