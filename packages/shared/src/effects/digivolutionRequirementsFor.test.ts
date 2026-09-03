@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import cards from "../cards/data/cards.json" with { type: "json" };
-import { digivolutionRequirementsFor } from "./data.js";
+import { digivolutionRequirementsFor, dnaDigivolutionRequirementsFor } from "./data.js";
 import { digiXrosRequirementFor, digiXrosTrashNameAllowanceFor } from "./data.js";
 
 // Regression for the corresponding regression coverage finding 1: BT26 is hand-implemented
@@ -18,8 +18,8 @@ describe("digivolutionRequirementsFor / BT26 alternate digivolve coverage", () =
     expect(digivolutionRequirementsFor("EX11-024")).toEqual([]);
   });
 
-  it("preserves EX11-026's unrestricted level 2 alternate route", () => {
-    expect(digivolutionRequirementsFor("EX11-026")).toEqual([{ level: 2, cost: 0, isAlternate: true }]);
+  it("does not expose EX11-026's ordinary EvoCost as an alternate requirement", () => {
+    expect(digivolutionRequirementsFor("EX11-026")).toEqual([]);
   });
 
   it("does not expose EX11-028's ordinary EvoCost as an alternate requirement", () => {
@@ -109,6 +109,41 @@ describe("digivolutionRequirementsFor / BT26 alternate digivolve coverage", () =
       { materials: [{ names: ["Vemmon"] }], count: 1, maxMaterials: 4 },
     ]);
     expect(digiXrosTrashNameAllowanceFor("BT18-065")).toEqual(["Vemmon"]);
+  });
+
+  it("keeps BT18-041's catalog header and all four Q2965 DNA color pairs in persisted data", () => {
+    const card = cards.find(({ cardId }) => cardId === "BT18-041");
+    expect(card?.effectText).toContain("[DNA Digivolution] Blue/Yellow Lv.5 + Green/Black Lv.5: Cost 0");
+    expect(dnaDigivolutionRequirementsFor("BT18-041")).toEqual([
+      {
+        cost: 0,
+        materials: [
+          { color: "Blue", level: 5 },
+          { color: "Green", level: 5 },
+        ],
+      },
+      {
+        cost: 0,
+        materials: [
+          { color: "Blue", level: 5 },
+          { color: "Black", level: 5 },
+        ],
+      },
+      {
+        cost: 0,
+        materials: [
+          { color: "Yellow", level: 5 },
+          { color: "Green", level: 5 },
+        ],
+      },
+      {
+        cost: 0,
+        materials: [
+          { color: "Yellow", level: 5 },
+          { color: "Black", level: 5 },
+        ],
+      },
+    ]);
   });
 
   it("keeps BT20-058's three distinct named DigiXros -2 slots", () => {

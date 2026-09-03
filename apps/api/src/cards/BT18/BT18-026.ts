@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -143,7 +142,6 @@ export const compiled: CompiledCard = {
       isAlternate: true,
     },
   ],
-  ruleText: ["Trait: Has [Ice-Snow] type."],
 };
 
 registerIrCard("BT18-026", compiled);

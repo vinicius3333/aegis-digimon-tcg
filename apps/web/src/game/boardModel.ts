@@ -77,34 +77,39 @@ export function eventsAfter(events: readonly ServerEvent[], previous?: ServerEve
 
 /** Find one server-valid-looking DNA material assignment for a hand card on the current board. */
 export function findDnaMaterialCombination(cardId: string, permanents: readonly Permanent[]): string[] | undefined {
-  const requirement = getCompiledCard(cardId)?.dnaDigivolveRequirement?.[0];
-  if (!requirement || requirement.materials.length < 2) return undefined;
+  const requirements = getCompiledCard(cardId)?.dnaDigivolveRequirement;
+  if (!requirements) return undefined;
   const digimon = permanents.filter((permanent) => {
     const def = permanent.topCard ? getCardDefinition(permanent.topCard.cardId) : undefined;
     return def?.kinds.includes(CardKind.Digimon) === true;
   });
-  const matches = (permanent: Permanent, spec: (typeof requirement.materials)[number]) => {
-    const def = permanent.topCard ? getCardDefinition(permanent.topCard.cardId) : undefined;
-    if (!def) return false;
-    if (spec.level !== undefined && def.level !== spec.level) return false;
-    if (spec.color !== undefined && !def.colors.some((color) => color.toLowerCase() === spec.color!.toLowerCase()))
-      return false;
-    if (spec.names?.length && !spec.names.some((name) => def.nameEn.includes(name))) return false;
-    const traits = [...(def.forms ?? []), ...(def.attributes ?? []), ...(def.types ?? [])];
-    if (spec.traits?.length && !spec.traits.some((trait) => traits.includes(trait))) return false;
-    return true;
-  };
-  const assign = (slot: number, used: Set<string>, result: string[]): string[] | undefined => {
-    if (slot === requirement.materials.length) return result;
-    for (const permanent of digimon) {
-      if (used.has(permanent.permanentId) || !matches(permanent, requirement.materials[slot]!)) continue;
-      const nextUsed = new Set(used).add(permanent.permanentId);
-      const found = assign(slot + 1, nextUsed, [...result, permanent.permanentId]);
-      if (found) return found;
-    }
-    return undefined;
-  };
-  return assign(0, new Set(), []);
+  for (const requirement of requirements) {
+    if (requirement.materials.length < 2) continue;
+    const matches = (permanent: Permanent, spec: (typeof requirement.materials)[number]) => {
+      const def = permanent.topCard ? getCardDefinition(permanent.topCard.cardId) : undefined;
+      if (!def) return false;
+      if (spec.level !== undefined && def.level !== spec.level) return false;
+      if (spec.color !== undefined && !def.colors.some((color) => color.toLowerCase() === spec.color!.toLowerCase()))
+        return false;
+      if (spec.names?.length && !spec.names.some((name) => def.nameEn.includes(name))) return false;
+      const traits = [...(def.forms ?? []), ...(def.attributes ?? []), ...(def.types ?? [])];
+      if (spec.traits?.length && !spec.traits.some((trait) => traits.includes(trait))) return false;
+      return true;
+    };
+    const assign = (slot: number, used: Set<string>, result: string[]): string[] | undefined => {
+      if (slot === requirement.materials.length) return result;
+      for (const permanent of digimon) {
+        if (used.has(permanent.permanentId) || !matches(permanent, requirement.materials[slot]!)) continue;
+        const nextUsed = new Set(used).add(permanent.permanentId);
+        const found = assign(slot + 1, nextUsed, [...result, permanent.permanentId]);
+        if (found) return found;
+      }
+      return undefined;
+    };
+    const found = assign(0, new Set(), []);
+    if (found) return found;
+  }
+  return undefined;
 }
 
 export type HandCardEvolutionRoute =

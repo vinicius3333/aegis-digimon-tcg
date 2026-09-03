@@ -50,6 +50,33 @@ describe("BT18-011 Agunimon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT12-009")).toBe(true);
   });
 
+  it("returns a Ten Warriors Digimon from trash when digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT12-013", as: "burning" }],
+          hand: [{ card: "BT18-011", as: "agunimon" }],
+          trash: [{ card: "BT18-017", as: "tenWarriors" }],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("burning").permanentId,
+        instanceId: s.inst("agunimon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("burning").topCard?.cardId === "BT18-011");
+
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tenWarriors").instanceId)).toBe(true);
+  });
+
   it("returns a Tamer with inherited effects but not a plain Tamer", async () => {
     const s = setupEngine(
       {

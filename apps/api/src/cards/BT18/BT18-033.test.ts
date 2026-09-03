@@ -19,6 +19,7 @@ describe("BT18-033 Patamon", () => {
           payCost: false,
           optional: true,
           abortOnDecline: true,
+          cost: { to: "deckBottom" },
         },
       ],
     });

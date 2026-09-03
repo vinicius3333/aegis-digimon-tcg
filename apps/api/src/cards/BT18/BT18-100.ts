@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -11,7 +10,7 @@ export const compiled: CompiledCard = {
           kind: "Digivolve",
           target: {
             filter: {
-              zone: "breedingArea",
+              zone: "breeding",
               controller: "mine",
             },
             count: 1,

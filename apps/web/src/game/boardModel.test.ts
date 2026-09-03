@@ -282,6 +282,20 @@ describe("findDnaMaterialCombination", () => {
     ]);
   });
 
+  it("tries every printed DNA requirement until BT18-041 finds a legal color pair", () => {
+    const permanent = (permanentId: string, cardId: string) =>
+      ({
+        permanentId,
+        topCard: { instanceId: `${permanentId}-top`, cardId },
+        stack: [],
+        linked: [],
+      }) as unknown as Permanent;
+
+    expect(
+      findDnaMaterialCombination("BT18-041", [permanent("blue", "BT1-040"), permanent("black", "BT10-064")]),
+    ).toEqual(["blue", "black"]);
+  });
+
   it("preserves both legal choices when Ordinemon is dropped onto a dual-color material", () => {
     const permanent = (permanentId: string) =>
       ({

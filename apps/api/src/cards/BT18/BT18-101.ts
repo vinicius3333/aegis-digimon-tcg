@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -56,12 +55,6 @@ export const compiled: CompiledCard = {
           kind: "SecurityManipulation",
           op: "trash",
           controller: "opponent",
-          target: {
-            filter: {
-              controller: "opponent",
-            },
-            count: 1,
-          },
           from: ["security"],
           bindResultAs: "trashedSecurity",
         },

@@ -13,7 +13,7 @@ describe("BT18-082 Lucemon: Chaos Mode", () => {
         {
           kind: "Delete",
           target: {
-            filter: { controller: "opponent" },
+            filter: { controller: "opponent", kind: ["Digimon", "Tamer"] },
             count: 1,
             upTo: true,
             chooser: "opponent",
@@ -35,7 +35,12 @@ describe("BT18-082 Lucemon: Chaos Mode", () => {
     const whenDigivolvingDelete = compiled.effects[1]!.actions[0]!;
     expect(whenDigivolvingDelete).toMatchObject({
       kind: "Delete",
-      target: { count: 1, upTo: true, chooser: "opponent" },
+      target: {
+        count: 1,
+        upTo: true,
+        chooser: "opponent",
+        filter: { kind: ["Digimon", "Tamer"] },
+      },
     });
     expect(whenDigivolvingDelete).not.toHaveProperty("optional");
     expect(whenDigivolvingDelete).not.toHaveProperty("controller");
@@ -77,6 +82,36 @@ describe("BT18-082 Lucemon: Chaos Mode", () => {
     expect(s.state.players[0]!.security.some((card) => card.cardId === "BT1-001")).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-003")).toBe(true);
+  });
+
+  it("offers only an opponent's Digimon or Tamer, never an Option, for the deletion choice", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "BT18-082", as: "chaos" }], deck: ["BT1-001"], security: ["BT1-002"] },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "victim" },
+          { card: "BT18-099", as: "opponentOption" },
+        ],
+        security: ["BT1-003"],
+      },
+    });
+    s.perm("opponentOption").placedByEffect = true;
+    s.state.memory = 13;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("chaos").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+
+    const decision = s.decisions.at(-1)!.req;
+    expect(decision.options?.candidateInstanceIds).toContain(s.perm("victim").permanentId);
+    expect(decision.options?.candidateInstanceIds).not.toContain(s.perm("opponentOption").permanentId);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
   });
 
   it("naturally resolves only the opponent deletion branch when that choice deletes a permanent", async () => {

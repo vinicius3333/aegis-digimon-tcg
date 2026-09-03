@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -8,7 +7,40 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
-      trigger: ["StartOfYourMainPhase", "OnPlay"],
+      trigger: "StartOfYourMainPhase",
+      actions: [
+        {
+          kind: "Trash",
+          target: {
+            filter: {
+              zone: "hand",
+              controller: "mine",
+            },
+            count: 1,
+          },
+          raw: "By trashing 1 card in your hand",
+        },
+        {
+          kind: "SecurityManipulation",
+          op: "trashTop",
+          controller: "opponent",
+          amount: 1,
+          optionalFor: "opponent",
+          bindResultAs: "opponentTrashedSecurity",
+        },
+        {
+          kind: "Recover",
+          amount: 1,
+          optional: false,
+          condition: {
+            kind: "lastEffectDidNotAct",
+            raw: "opponent didn't trash security",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "OnPlay",
       actions: [
         {
           kind: "Trash",

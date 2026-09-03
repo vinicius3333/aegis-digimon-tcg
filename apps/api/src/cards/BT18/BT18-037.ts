@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -29,7 +28,6 @@ export const compiled: CompiledCard = {
           kind: "Search",
           controller: "mine",
           searchZone: "security",
-          zone: "security",
           filter: {
             controller: "mine",
             nameOrTrait: [

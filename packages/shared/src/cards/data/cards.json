@@ -25137,7 +25137,7 @@
     "forms": ["Mega"],
     "attributes": ["Virus"],
     "types": ["Cyborg", "NSp"],
-    "effectText": "[On Play] [When Digivolving] [On Deletion] 1 of your opponent's Digimon gains ＜Security Attack -2＞until the end of their turn. Then, ＜De-Digivolve1＞ 1 of your opponent's Digimon.",
+    "effectText": "[DNA Digivolution] Blue/Yellow Lv.5 + Green/Black Lv.5: Cost 0\n[On Play] [When Digivolving] [On Deletion] 1 of your opponent's Digimon gains ＜Security Attack -2＞until the end of their turn. Then, ＜De-Digivolve1＞ 1 of your opponent's Digimon.",
     "rarity": "U",
     "maxCountInDeck": 4,
     "imageId": "BT18-041"

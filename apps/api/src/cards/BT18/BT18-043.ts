@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -15,7 +14,10 @@ const compiled: CompiledCard = {
           event: "wouldDigivolve",
           sourceFilter: {
             controller: "mine",
-            or: [{ kind: ["Digimon"], isSelfRef: true }, { kind: ["Tamer"] }],
+            or: [
+              { kind: ["Digimon"], isSelfRef: true },
+              { controller: "mine", kind: ["Tamer"] },
+            ],
           },
           into: {
             controllerDefault: "mine",

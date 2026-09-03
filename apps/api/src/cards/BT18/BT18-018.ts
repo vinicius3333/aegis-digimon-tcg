@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -66,6 +65,10 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenDeletesInBattle",
+          sourceFilter: {
+            isSelfRef: true,
+            zone: "battleArea",
+          },
           actions: [
             {
               kind: "GainKeyword",

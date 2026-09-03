@@ -10,7 +10,7 @@ describe("BT18-037 Lobomon", () => {
     expect(compiled.effects[0]).toMatchObject({
       trigger: "WhenDigivolving",
       actions: [
-        { kind: "Search", searchZone: "security", zone: "security", optional: true, count: 1, to: "hand" },
+        { kind: "Search", searchZone: "security", optional: true, count: 1, to: "hand" },
         { kind: "Recover", amount: 1, condition: { kind: "bindingExists", ref: "searched" } },
         { kind: "SecurityManipulation", op: "shuffle", controller: "mine" },
       ],

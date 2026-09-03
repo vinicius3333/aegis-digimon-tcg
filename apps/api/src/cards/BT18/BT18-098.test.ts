@@ -48,7 +48,7 @@ describe("BT18-098 Dragon's Roar", () => {
         {
           kind: "SecurityManipulation",
           op: "addBottom",
-          source: "this",
+          source: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           condition: { kind: "zoneCount", seat: "mine", zone: "security", op: "lte", value: 2 },
         },
       ],
@@ -81,6 +81,31 @@ describe("BT18-098 Dragon's Roar", () => {
     expect(
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("option").instanceId),
     ).toBe(false);
+  });
+
+  it("does not resolve the Main then-clause when the security-trash cost is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["BT18-036"],
+          hand: [{ card: "BT18-098", as: "option" }],
+          security: ["BT1-110", "BT1-111", "BT1-112"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 12000 }] },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("target").currentDP).toBe(12000);
+    expect(s.state.players[0]!.security).toHaveLength(3);
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(false);
   });
 
   it("naturally fires the security-trash trigger from Main, then applies the Main DP reduction", async () => {

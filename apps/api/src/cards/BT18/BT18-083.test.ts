@@ -37,7 +37,11 @@ describe("BT18-083 LordKnightmon", () => {
           keyword: { keyword: "Collision" },
           duration: "permanent",
           target: {
-            filter: { controllerDefault: "any", dp: { op: "lte", relativeToSource: true } },
+            filter: {
+              controllerDefault: "any",
+              kind: ["Digimon"],
+              dp: { op: "lte", relativeToSource: true },
+            },
             count: "all",
           },
         },
@@ -52,12 +56,14 @@ describe("BT18-083 LordKnightmon", () => {
           { card: "BT18-083", as: "lordKnightmon" },
           { card: "BT1-009", as: "ownLow", dp: 3000 },
           { card: "BT1-060", as: "ownHigh", dp: 13000 },
+          { card: "BT18-087", as: "ownTamer" },
         ],
       },
       1: {
         battleArea: [
           { card: "BT1-009", as: "opponentLow", dp: 3000 },
           { card: "BT1-060", as: "opponentHigh", dp: 13000 },
+          { card: "BT18-087", as: "opponentTamer" },
         ],
       },
     });
@@ -67,5 +73,7 @@ describe("BT18-083 LordKnightmon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("opponentLow"), "Collision")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("ownHigh"), "Collision")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("opponentHigh"), "Collision")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("ownTamer"), "Collision")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("opponentTamer"), "Collision")).toBe(false);
   });
 });
