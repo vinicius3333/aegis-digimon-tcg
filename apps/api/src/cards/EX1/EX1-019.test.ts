@@ -45,13 +45,35 @@ describe("EX1-019 Paildramon", () => {
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("imperialdramon").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 1);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.events.some((event) => event.kind === "blockWindowOpened")).toBe(false);
+  });
+
+  it("can attack an opponent's suspended Digimon while unblockable (Q3205)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX1-022", as: "imperialdramon", under: ["EX1-019"] }] },
+      1: { battleArea: [{ card: "BT1-070", as: "suspended", suspended: true }] },
+    });
+    await s.ready();
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("imperialdramon").permanentId,
+      target: { kind: "permanent", permanentId: s.perm("suspended").permanentId },
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("imperialdramon").isSuspended);
   });
 
   it("does not apply the unblockable restriction during the opponent turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX1-022", as: "imperialdramon", under: ["EX1-019"] }] }, 1: { battleArea: [{ card: "BT1-070" }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX1-022", as: "imperialdramon", under: ["EX1-019"] }], deck: [] },
+      1: { battleArea: [{ card: "BT1-070" }], deck: ["BT1-001"] },
+    });
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
     await s.ready();
-    s.state.turnSeat = 1;
-    await advance(s.engine).recompute();
     expect(observe(s.engine).isRestricted(s.perm("imperialdramon"), "cantBeBlocked")).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await loop;
   });
 });
