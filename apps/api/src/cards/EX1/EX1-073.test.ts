@@ -80,12 +80,24 @@ describe("EX1-073 Machinedramon", () => {
     );
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("machine").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("machine").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("machine").isSuspended);
     const ended = s.engine.applyIntent(0, { type: "endPhase" });
     expect(ended.ok || ended.reason === "not-your-turn").toBe(true);
     await advance(s.engine).waitForMainPhase(1);
-    expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "permanent", permanentId: s.perm("machine").permanentId } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("machine").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 0);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map((c) => c.cardId)).toEqual(expect.arrayContaining(["EX1-073", "EX1-008"]));
@@ -138,7 +150,10 @@ describe("EX1-073 Machinedramon", () => {
         },
         1: {
           hand: [{ card: "BT1-106", as: "dpOption" }],
-          battleArea: [{ card: "BT10-029", as: "yellowSource" }, { card: "BT1-084", as: "attacker" }],
+          battleArea: [
+            { card: "BT10-029", as: "yellowSource" },
+            { card: "BT1-084", as: "attacker" },
+          ],
           deck: ["BT1-001", "BT1-001"],
           security: ["BT1-001", "BT1-001"],
         },
@@ -150,16 +165,30 @@ describe("EX1-073 Machinedramon", () => {
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
     const before = s.perm("machine").currentDP;
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("dpOption").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("dpOption").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT1-106"));
     expect(s.perm("machine").currentDP).toBe(before);
     await advance(s.engine).waitForMainPhase(0);
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("machine").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("machine").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("machine").isSuspended);
     const ended = s.engine.applyIntent(0, { type: "endPhase" });
     expect(ended.ok || ended.reason === "not-your-turn").toBe(true);
     await advance(s.engine).waitForMainPhase(1);
-    expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "permanent", permanentId: s.perm("machine").permanentId } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("machine").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("machine").stack.length === 0);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.perm("machine").stack).toHaveLength(0);
@@ -188,12 +217,24 @@ describe("EX1-073 Machinedramon", () => {
     );
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("machine").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("machine").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("machine").isSuspended);
     const ended = s.engine.applyIntent(0, { type: "endPhase" });
     expect(ended.ok || ended.reason === "not-your-turn").toBe(true);
     await advance(s.engine).waitForMainPhase(1);
-    expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "permanent", permanentId: s.perm("machine").permanentId } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("machine").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("machine").stack.length === 0);
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
     expect(s.perm("machine").stack).toHaveLength(0);
@@ -274,14 +315,28 @@ describe("EX1-073 Machinedramon", () => {
     );
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("machine").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("machine").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("machine").isSuspended);
     await advance(s.engine).waitForMainPhase(1);
     expect(observe(s.engine).hasKeyword(s.perm("machine"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("machine"), "Reboot")).toBe(true);
-    expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
-    expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("machine").permanentId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("machine").permanentId }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("machine").stack.length === 2);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.perm("machine").stack).toHaveLength(2);
@@ -311,7 +366,9 @@ describe("EX1-073 Machinedramon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 12;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("machine").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("machine").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("machine").stack.length === 5);
     expect(s.perm("machine").stack).toHaveLength(5);
     expect(new Set(s.perm("machine").stack.map((card) => card.cardId)).size).toBe(5);
@@ -365,9 +422,9 @@ describe("EX1-073 Machinedramon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("machine").stack.length === 2);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("machine").permanentId)).toBe(
-      true,
-    );
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("machine").permanentId),
+    ).toBe(true);
 
     expect(
       s.engine.applyIntent(1, {
@@ -378,9 +435,9 @@ describe("EX1-073 Machinedramon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("machine").stack.length === 0);
     expect(s.perm("machine").stack).toHaveLength(0);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("machine").permanentId)).toBe(
-      true,
-    );
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("machine").permanentId),
+    ).toBe(true);
 
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;

@@ -30,10 +30,18 @@ describe("EX1-010 Phoenixmon", () => {
       1: { battleArea: [{ card: "BT1-072", as: "blocker" }] },
     });
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("phoenixmon").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("phoenixmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
     expect(s.state.players[0]!.hand).toHaveLength(2);
-    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "combatResolved"));
   });
 

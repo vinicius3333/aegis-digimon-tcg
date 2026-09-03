@@ -36,7 +36,9 @@ describe("EX1-007 Megadramon", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("megadramon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("megadramon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX1-007"));
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.pendingDecision).toBeUndefined();

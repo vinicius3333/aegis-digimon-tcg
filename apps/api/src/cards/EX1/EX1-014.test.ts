@@ -29,7 +29,13 @@ describe("EX1-014 ExVeemon", () => {
       1: { security: ["BT1-020"] },
     });
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("exveemon").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("exveemon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.events.find((event) => event.kind === "securityChecked")).toMatchObject({
@@ -39,7 +45,11 @@ describe("EX1-014 ExVeemon", () => {
 
   it("does not grant inherited Jamming outside your turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX1-019", as: "freeHost", under: ["EX1-014"] }], hand: ["BT1-009"], deck: ["BT1-001"] },
+      0: {
+        battleArea: [{ card: "EX1-019", as: "freeHost", under: ["EX1-014"] }],
+        hand: ["BT1-009"],
+        deck: ["BT1-001"],
+      },
       1: { battleArea: [{ card: "BT1-070" }], hand: ["BT1-009"], deck: ["BT1-001"] },
     });
     const loop = s.engine.startTurnLoop();

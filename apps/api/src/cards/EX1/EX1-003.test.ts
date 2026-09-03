@@ -98,17 +98,44 @@ describe("EX1-003 Birdramon", () => {
   });
 
   it("works after a legal public level-3-to-Birdramon evolution and higher host", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-012", as: "base" }], hand: [{ card: "EX1-003", as: "evo" }, { card: "BT1-020", as: "host" }] },
-      1: { battleArea: [{ card: "BT1-009", as: "target", dp: 3000 }], security: ["BT1-001", "BT1-001"] },
-    }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-012", as: "base" }],
+          hand: [
+            { card: "EX1-003", as: "evo" },
+            { card: "BT1-020", as: "host" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 3000 }], security: ["BT1-001", "BT1-001"] },
+      },
+      { autoSelectCards: true },
+    );
     s.state.memory = 6;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evo").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "EX1-003");
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("host").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("host").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT1-020");
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("base").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.trash.length > 0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });

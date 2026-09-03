@@ -21,9 +21,19 @@ describe("EX1-027 Leomon", () => {
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     await s.ready();
-    expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "securityChecked") && s.state.pendingDecision === undefined);
-    expect(s.events.some((event) => event.kind === "securityRecovered" && event.seat === 0 && event.amount === 1)).toBe(true);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.events.some((event) => event.kind === "securityChecked") && s.state.pendingDecision === undefined,
+    );
+    expect(s.events.some((event) => event.kind === "securityRecovered" && event.seat === 0 && event.amount === 1)).toBe(
+      true,
+    );
     expect(s.state.players[0]!.security).toHaveLength(3);
     expect(s.events.some((event) => event.kind === "securityChecked")).toBe(true);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
@@ -47,8 +57,16 @@ describe("EX1-027 Leomon", () => {
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     await s.ready();
-    expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "securityChecked") && s.state.pendingDecision === undefined);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.events.some((event) => event.kind === "securityChecked") && s.state.pendingDecision === undefined,
+    );
     expect(s.state.players[0]!.security).toHaveLength(4);
     expect(s.events.some((event) => event.kind === "securityRecovered")).toBe(false);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
@@ -72,9 +90,19 @@ describe("EX1-027 Leomon", () => {
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     await s.ready();
-    expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "securityChecked") && s.state.pendingDecision === undefined);
-    expect(s.events.some((event) => event.kind === "securityRecovered" && event.seat === 0 && event.amount === 1)).toBe(true);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.events.some((event) => event.kind === "securityChecked") && s.state.pendingDecision === undefined,
+    );
+    expect(s.events.some((event) => event.kind === "securityRecovered" && event.seat === 0 && event.amount === 1)).toBe(
+      true,
+    );
     expect(s.state.players[0]!.security).toHaveLength(4);
     expect(s.events.some((event) => event.kind === "securityChecked")).toBe(true);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });

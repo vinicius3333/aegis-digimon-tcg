@@ -46,7 +46,13 @@ describe("EX1-016 Ikkakumon", () => {
     await advance(s.engine).waitForMainPhase(1);
     await s.ready();
     expect(observe(s.engine).canAttackUnsuspended(s.perm("ikkakumon"))).toBe(false);
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("ikkakumon").permanentId, target: { kind: "permanent", permanentId: s.perm("eligible").permanentId } })).toEqual({ ok: false, reason: "not-your-turn" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ikkakumon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("eligible").permanentId },
+      }),
+    ).toEqual({ ok: false, reason: "not-your-turn" });
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
@@ -57,6 +63,12 @@ describe("EX1-016 Ikkakumon", () => {
       1: { battleArea: [{ card: "BT1-009", as: "suspended", suspended: true, under: ["BT1-001"] }] },
     });
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("ikkakumon").permanentId, target: { kind: "permanent", permanentId: s.perm("suspended").permanentId } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ikkakumon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("suspended").permanentId },
+      }),
+    ).toEqual({ ok: true });
   });
 });

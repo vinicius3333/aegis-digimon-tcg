@@ -52,15 +52,20 @@ describe("EX1-070 Fight for Your Pride!", () => {
   });
 
   it("does not grant Blocker when the required Myotismon is absent", async () => {
-    const s = setupEngine({
-      0: {
-        hand: [{ card: "EX1-070", as: "option" }],
-        battleArea: [{ card: "EX1-056", as: "purpleSource" }],
-        trash: [{ card: "EX1-057", as: "played" }],
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX1-070", as: "option" }],
+          battleArea: [{ card: "EX1-056", as: "purpleSource" }],
+          trash: [{ card: "EX1-057", as: "played" }],
+        },
       },
-    }, { autoSelectCards: true });
+      { autoSelectCards: true },
+    );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "EX1-057"));
     expect(s.state.players[0]!.battleArea.some((p) => observe(s.engine).hasKeyword(p, "Blocker"))).toBe(false);
   });
@@ -71,7 +76,10 @@ describe("EX1-070 Fight for Your Pride!", () => {
       {
         0: {
           hand: [{ card: "EX1-070", as: "option" }],
-          battleArea: [{ card: "EX1-063", as: "myotismon" }, { card: "EX1-056", as: "purpleSource" }],
+          battleArea: [
+            { card: "EX1-063", as: "myotismon" },
+            { card: "EX1-056", as: "purpleSource" },
+          ],
           trash: [{ card: "EX1-057", as: "played" }],
           deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
           security: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
@@ -89,7 +97,9 @@ describe("EX1-070 Fight for Your Pride!", () => {
     const loop = s.engine.startTurnLoop();
     const played = () => s.state.players[0]!.battleArea.find((p) => p.topCard.cardId === "EX1-057");
     await advance(s.engine).waitForMainPhase(0);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => {
       const permanent = played();
       return permanent !== undefined && observe(s.engine).hasKeyword(permanent, "Blocker");

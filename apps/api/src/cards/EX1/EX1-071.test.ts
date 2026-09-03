@@ -273,7 +273,9 @@ describe("EX1-071 Win Rate: 60%!", () => {
     );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-071"));
 
     const takuya = s.perm("takuya");
@@ -290,7 +292,10 @@ describe("EX1-071 Win Rate: 60%!", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-020", as: "redBase" }, { card: "BT1-085", as: "tamer" }],
+          battleArea: [
+            { card: "BT1-020", as: "redBase" },
+            { card: "BT1-085", as: "tamer" },
+          ],
           hand: [
             { card: "EX1-071", as: "option" },
             { card: "AD1-005", as: "whiteEvo" },
@@ -303,14 +308,18 @@ describe("EX1-071 Win Rate: 60%!", () => {
     preferInstanceIds.push(s.inst("redCost").instanceId);
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-071"));
     const before = s.state.memory;
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("redBase").permanentId,
-      instanceId: s.inst("whiteEvo").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("redBase").permanentId,
+        instanceId: s.inst("whiteEvo").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("redBase").topCard.cardId === "AD1-005");
     expect(s.state.memory).toBe(before);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("redCost").instanceId)).toBe(true);
@@ -321,7 +330,10 @@ describe("EX1-071 Win Rate: 60%!", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT11-040", as: "multicolorBase" }, { card: "BT1-085", as: "tamer" }],
+          battleArea: [
+            { card: "BT11-040", as: "multicolorBase" },
+            { card: "BT1-085", as: "tamer" },
+          ],
           hand: [
             { card: "EX1-071", as: "option" },
             { card: "BT11-041", as: "evo" },
@@ -334,14 +346,18 @@ describe("EX1-071 Win Rate: 60%!", () => {
     preferInstanceIds.push(s.inst("yellowCost").instanceId);
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-071"));
     const before = s.state.memory;
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("multicolorBase").permanentId,
-      instanceId: s.inst("evo").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("multicolorBase").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("multicolorBase").topCard.cardId === "BT11-041");
     expect(s.state.memory).toBe(before);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("yellowCost").instanceId)).toBe(true);
@@ -352,7 +368,10 @@ describe("EX1-071 Win Rate: 60%!", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-010", as: "agumon" }, { card: "BT6-087", as: "tai" }],
+          battleArea: [
+            { card: "BT1-010", as: "agumon" },
+            { card: "BT6-087", as: "tai" },
+          ],
           hand: [
             { card: "EX1-071", as: "option" },
             { card: "BT6-018", as: "bond" },
@@ -367,7 +386,9 @@ describe("EX1-071 Win Rate: 60%!", () => {
     preferInstanceIds.push(s.inst("redCost").instanceId);
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-071"));
     const before = s.state.memory;
     const tai = s.perm("tai");
@@ -375,11 +396,13 @@ describe("EX1-071 Win Rate: 60%!", () => {
       (entry) => entry.effectKey === "BT6-087/main-digivolve-bond-of-bravery",
     );
     expect(mainEffect).toBeDefined();
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: tai.topCard.instanceId,
-      effectKey: mainEffect!.effectKey,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: tai.topCard.instanceId,
+        effectKey: mainEffect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("agumon").topCard.cardId === "BT6-018");
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("redCost").instanceId)).toBe(true);
     expect(s.state.memory).toBe(before);
@@ -389,7 +412,10 @@ describe("EX1-071 Win Rate: 60%!", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX1-047", as: "base" }, { card: "BT1-085", as: "tamer" }],
+          battleArea: [
+            { card: "EX1-047", as: "base" },
+            { card: "BT1-085", as: "tamer" },
+          ],
           hand: [
             { card: "EX1-071", as: "option" },
             { card: "EX2-070", as: "plugIn" },
@@ -402,9 +428,13 @@ describe("EX1-071 Win Rate: 60%!", () => {
     );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-071"));
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("plugIn").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("plugIn").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX2-070"));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tooExpensive").instanceId)).toBe(true);
     expect(s.perm("base").topCard.cardId).toBe("EX1-047");
@@ -421,8 +451,16 @@ describe("EX1-071 Win Rate: 60%!", () => {
             { card: "BT1-020", as: "sameColorHand" },
           ],
           trash: [
-            "BT7-011", "BT7-011", "BT7-011", "BT7-011", "BT7-011",
-            "BT7-011", "BT7-011", "BT7-011", "BT7-011", "BT7-011",
+            "BT7-011",
+            "BT7-011",
+            "BT7-011",
+            "BT7-011",
+            "BT7-011",
+            "BT7-011",
+            "BT7-011",
+            "BT7-011",
+            "BT7-011",
+            "BT7-011",
           ],
         },
       },
@@ -430,18 +468,21 @@ describe("EX1-071 Win Rate: 60%!", () => {
     );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-071"));
     const before = s.state.memory;
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("takuya").permanentId,
-      instanceId: s.inst("susanoomon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("takuya").permanentId,
+        instanceId: s.inst("susanoomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("takuya").topCard.cardId === "BT7-112");
     expect(s.state.memory).toBe(before - 7);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("sameColorHand").instanceId)).toBe(true);
-
   });
 
   it("keeps Win Rate's pending reduction after Shivamon suspends and locks Options (Q1736)", async () => {
@@ -456,7 +497,10 @@ describe("EX1-071 Win Rate: 60%!", () => {
             { card: "ST9-09", as: "greenCost" },
             { card: "BT1-106", as: "lockedOption" },
           ],
-          battleArea: [{ card: "BT10-050", as: "greenBase" }, { card: "BT1-085", as: "tamer" }],
+          battleArea: [
+            { card: "BT10-050", as: "greenBase" },
+            { card: "BT1-085", as: "tamer" },
+          ],
           deck: ["BT1-001", "BT1-001"],
           security: ["BT1-001", "BT1-001"],
         },
@@ -471,17 +515,23 @@ describe("EX1-071 Win Rate: 60%!", () => {
     preferInstanceIds.push(s.inst("greenCost").instanceId);
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-071"));
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("suspender").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("suspender").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("shivamon").isSuspended);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lockedOption").instanceId }).ok).toBe(false);
     const before = s.state.memory;
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("greenBase").permanentId,
-      instanceId: s.inst("greenEvo").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("greenBase").permanentId,
+        instanceId: s.inst("greenEvo").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("greenBase").topCard.cardId === "BT10-052");
     expect(s.state.memory).toBe(before);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("greenCost").instanceId)).toBe(true);
@@ -498,23 +548,34 @@ describe("EX1-071 Win Rate: 60%!", () => {
   });
 
   it("does not reduce a matching digivolution performed in the breeding area (Q3259)", async () => {
-    const s = setupEngine({
-      0: {
-        breeding: { card: "EX1-047", as: "breedingBase" },
-        battleArea: [{ card: "BT1-085", as: "tamer" }],
-        hand: [{ card: "EX1-071", as: "option" }, { card: "EX1-052", as: "evo" }, { card: "EX1-050", as: "cost" }],
-        deck: ["BT1-009"],
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "EX1-047", as: "breedingBase" },
+          battleArea: [{ card: "BT1-085", as: "tamer" }],
+          hand: [
+            { card: "EX1-071", as: "option" },
+            { card: "EX1-052", as: "evo" },
+            { card: "EX1-050", as: "cost" },
+          ],
+          deck: ["BT1-009"],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-071"));
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("breedingBase").permanentId,
-      instanceId: s.inst("evo").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("breedingBase").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("breedingBase").topCard.cardId === "EX1-052");
     expect(s.state.memory).toBe(5);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);

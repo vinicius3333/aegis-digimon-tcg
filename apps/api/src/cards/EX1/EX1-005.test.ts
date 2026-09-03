@@ -69,11 +69,25 @@ describe("EX1-005 Tyrannomon", () => {
 
   it("honors refusal of the optional Taiga play", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX1-001", as: "base" }], hand: [{ card: "BT2-088", as: "taiga" }, { card: "EX1-005", as: "evo" }] } },
+      {
+        0: {
+          battleArea: [{ card: "EX1-001", as: "base" }],
+          hand: [
+            { card: "BT2-088", as: "taiga" },
+            { card: "EX1-005", as: "evo" },
+          ],
+        },
+      },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     s.state.memory = 4;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evo").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "EX1-005");
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("taiga").instanceId)).toBe(true);
   });
@@ -90,14 +104,19 @@ describe("EX1-005 Tyrannomon", () => {
       {
         0: {
           hand: [{ card: "ST4-03", as: "tentomon" }],
-          deck: [{ card: "EX1-005", as: "revealedTyrannomon" }, { card: "ST4-12", as: "bottomBefore" }],
+          deck: [
+            { card: "EX1-005", as: "revealedTyrannomon" },
+            { card: "ST4-12", as: "bottomBefore" },
+          ],
         },
       },
       { autoSelectCards: true },
     );
     s.state.memory = 3;
     const revealedId = s.inst("revealedTyrannomon").instanceId;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tentomon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tentomon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.deck.at(-1)?.instanceId === revealedId);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === revealedId)).toBe(false);
     expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(revealedId);
@@ -112,7 +131,13 @@ describe("EX1-005 Tyrannomon", () => {
     });
     s.state.memory = 5;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("tyrannomon").permanentId, instanceId: s.inst("evo").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("tyrannomon").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("tyrannomon").topCard.cardId === "EX1-039");
   });
 
@@ -125,7 +150,11 @@ describe("EX1-005 Tyrannomon", () => {
     });
     s.state.memory = 5;
     await s.ready();
-    const result = s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("tyrannomon").permanentId, instanceId: s.inst("evo").instanceId });
+    const result = s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("tyrannomon").permanentId,
+      instanceId: s.inst("evo").instanceId,
+    });
     expect(result.ok).toBe(false);
     expect(s.perm("tyrannomon").topCard.cardId).toBe("EX1-005");
   });
@@ -138,7 +167,11 @@ describe("EX1-005 Tyrannomon", () => {
 
   it("does not grant the inherited DP or Green effect during the opponent turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-024", as: "host", under: ["EX1-005"], dp: 7000 }], hand: ["BT1-009"], deck: ["BT1-001"] },
+      0: {
+        battleArea: [{ card: "BT1-024", as: "host", under: ["EX1-005"], dp: 7000 }],
+        hand: ["BT1-009"],
+        deck: ["BT1-001"],
+      },
       1: { battleArea: [{ card: "BT1-070" }], hand: ["BT1-009"], deck: ["BT1-001"] },
     });
     const loop = s.engine.startTurnLoop();

@@ -61,7 +61,9 @@ describe('A3 EX1-068 — granted "[When Attacking] Lose 2 memory"', () => {
     s.state.memory = 1;
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("iceWall").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("iceWall").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-068"));
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
@@ -72,7 +74,9 @@ describe('A3 EX1-068 — granted "[When Attacking] Lose 2 memory"', () => {
       target: { kind: "player" },
     });
     expect(attackRes).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "memoryChanged" && event.from === before && event.to === before - 2));
+    await settle(() =>
+      s.events.some((event) => event.kind === "memoryChanged" && event.from === before && event.to === before - 2),
+    );
     expect(s.state.players[0]!.security.length).toBe(2);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
@@ -114,75 +118,98 @@ describe('A3 EX1-068 — granted "[When Attacking] Lose 2 memory"', () => {
   });
 
   it("Q3256: a Digimon played after Ice Wall still loses memory when attacking", async () => {
-    const s = setupEngine({
-      0: {
-        hand: [{ card: "EX1-068", as: "iceWall" }],
-        battleArea: [{ card: "AD1-006", as: "blueSource" }],
-        deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
-        security: ["BT1-001", "BT1-001", "BT1-001"],
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX1-068", as: "iceWall" }],
+          battleArea: [{ card: "AD1-006", as: "blueSource" }],
+          deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+          security: ["BT1-001", "BT1-001", "BT1-001"],
+        },
+        1: {
+          hand: [
+            { card: "BT14-058", as: "later" },
+            { card: "BT14-086", as: "source" },
+          ],
+          deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+          security: ["BT1-001", "BT1-001", "BT1-001"],
+        },
       },
-      1: {
-        hand: [{ card: "BT14-058", as: "later" }, { card: "BT14-086", as: "source" }],
-        deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
-        security: ["BT1-001", "BT1-001", "BT1-001"],
-      },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 1;
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("iceWall").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("iceWall").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-068"));
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("later").instanceId })).toEqual({ ok: true });
     await settle(() => observe(s.engine).hasKeyword(s.perm("later"), "Rush"));
     const before = s.state.memory;
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("later").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "memoryChanged" && event.from === before && event.to === before - 2));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("later").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.events.some((event) => event.kind === "memoryChanged" && event.from === before && event.to === before - 2),
+    );
     expect(s.state.players[0]!.security.length).toBe(2);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
 
   it("Q3257: a Blitz attack still pays Ice Wall's memory loss", async () => {
-    const s = setupEngine({
-      0: {
-        hand: [{ card: "EX1-068", as: "iceWall" }],
-        battleArea: [{ card: "AD1-006", as: "blueSource" }],
-        deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
-        security: ["BT1-001", "BT1-001", "BT1-001"],
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX1-068", as: "iceWall" }],
+          battleArea: [{ card: "AD1-006", as: "blueSource" }],
+          deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+          security: ["BT1-001", "BT1-001", "BT1-001"],
+        },
+        1: {
+          battleArea: [{ card: "BT14-016", as: "base" }],
+          hand: [{ card: "BT14-017", as: "blitz" }],
+          deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+          security: ["BT1-001", "BT1-001", "BT1-001"],
+        },
       },
-      1: {
-        battleArea: [{ card: "BT14-016", as: "base" }],
-        hand: [{ card: "BT14-017", as: "blitz" }],
-        deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
-        security: ["BT1-001", "BT1-001", "BT1-001"],
-      },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 20;
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("iceWall").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("iceWall").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-068"));
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
-    expect(s.engine.applyIntent(1, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("blitz").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("blitz").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => observe(s.engine).hasKeyword(s.perm("base"), "Blitz"));
     const before = s.state.memory;
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("base").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "memoryChanged" && event.from === before && event.to === before - 2));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.events.some((event) => event.kind === "memoryChanged" && event.from === before && event.to === before - 2),
+    );
     expect(s.state.players[0]!.security.length).toBe(2);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
@@ -191,7 +218,10 @@ describe('A3 EX1-068 — granted "[When Attacking] Lose 2 memory"', () => {
   it("Q2120: the grant expires after the opponent's next turn", async () => {
     const s = setupEngine({
       0: {
-        hand: [{ card: "EX1-068", as: "iceWall" }, { card: "BT1-090", as: "ownerAction" }],
+        hand: [
+          { card: "EX1-068", as: "iceWall" },
+          { card: "BT1-090", as: "ownerAction" },
+        ],
         battleArea: [{ card: "AD1-006", as: "blueSource" }],
         deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
         security: ["BT1-001", "BT1-001", "BT1-001"],
@@ -210,26 +240,32 @@ describe('A3 EX1-068 — granted "[When Attacking] Lose 2 memory"', () => {
     s.state.memory = 10;
     const game = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("iceWall").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("iceWall").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("iceWall").instanceId));
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
     const firstMemory = s.state.memory;
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("first").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("first").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 2);
     expect(s.state.memory).toBe(firstMemory - 2);
     await settle(() => s.state.turnCount >= 3 && s.state.turnSeat === 1);
     await advance(s.engine).waitForMainPhase(1);
     const secondMemory = s.state.memory;
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("second").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("second").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 1);
     expect(s.state.memory).toBe(secondMemory);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
@@ -237,38 +273,50 @@ describe('A3 EX1-068 — granted "[When Attacking] Lose 2 memory"', () => {
   });
 
   it("Q2121: a Digimon immune to opponent Options ignores Ice Wall's grant", async () => {
-    const s = setupEngine({
-      0: {
-        hand: [{ card: "EX1-068", as: "iceWall" }],
-        battleArea: [{ card: "AD1-006", as: "blueSource" }],
-        security: ["BT1-001", "BT1-001", "BT1-001"],
-        deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX1-068", as: "iceWall" }],
+          battleArea: [{ card: "AD1-006", as: "blueSource" }],
+          security: ["BT1-001", "BT1-001", "BT1-001"],
+          deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+        },
+        1: {
+          hand: [{ card: "BT19-089", as: "immunity" }],
+          battleArea: [
+            { card: "BT1-009", as: "target" },
+            { card: "BT1-085", as: "redTamer" },
+          ],
+          security: ["BT1-001", "BT1-001", "BT1-001"],
+          deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+        },
       },
-      1: {
-        hand: [{ card: "BT19-089", as: "immunity" }],
-        battleArea: [{ card: "BT1-009", as: "target" }, { card: "BT1-085", as: "redTamer" }],
-        security: ["BT1-001", "BT1-001", "BT1-001"],
-        deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
-      },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("immunity").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("immunity").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT19-089"));
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("iceWall").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("iceWall").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-068"));
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
     const before = s.state.memory;
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("target").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("target").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 2);
     expect(s.state.memory).toBe(before);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });

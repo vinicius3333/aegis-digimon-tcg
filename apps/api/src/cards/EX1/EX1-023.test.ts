@@ -31,7 +31,9 @@ describe("EX1-023 Elecmon", () => {
     await advance(s.engine).waitForMainPhase(1);
     await s.ready();
     s.state.memory = 10;
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
@@ -47,7 +49,10 @@ describe("EX1-023 Elecmon", () => {
           deck: ["BT1-001", "BT1-001"],
         },
         1: {
-          battleArea: [{ card: "ST6-03", as: "cost" }, { card: "ST1-12", as: "tamer" }],
+          battleArea: [
+            { card: "ST6-03", as: "cost" },
+            { card: "ST1-12", as: "tamer" },
+          ],
           hand: [{ card: "ST6-15", as: "option" }],
           deck: ["BT1-001", "BT1-001"],
         },
@@ -60,7 +65,9 @@ describe("EX1-023 Elecmon", () => {
     await advance(s.engine).waitForMainPhase(1);
     await s.ready();
     s.state.memory = 10;
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
     expect(observe(s.engine).keywordAmount(s.perm("tamer"), "SecurityAttack")).toBe(0);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
@@ -76,7 +83,10 @@ describe("EX1-023 Elecmon", () => {
           deck: ["BT1-001", "BT1-001"],
         },
         1: {
-          battleArea: [{ card: "ST6-03", as: "cost" }, { card: "ST6-08", as: "opponent" }],
+          battleArea: [
+            { card: "ST6-03", as: "cost" },
+            { card: "ST6-08", as: "opponent" },
+          ],
           hand: [{ card: "ST6-15", as: "option" }],
           deck: ["BT1-001", "BT1-001"],
         },
@@ -89,7 +99,9 @@ describe("EX1-023 Elecmon", () => {
     await advance(s.engine).waitForMainPhase(1);
     await s.ready();
     s.state.memory = 10;
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });

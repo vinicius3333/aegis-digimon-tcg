@@ -47,20 +47,31 @@ describe("EX1-018 Zudomon", () => {
       1: { battleArea: [{ card: "BT1-009", as: "stacked", under: ["BT1-001"] }] },
     });
     await s.ready();
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("zudomon").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("stacked").permanentId },
-    })).toEqual({ ok: false, reason: "illegal-target" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("zudomon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("stacked").permanentId },
+      }),
+    ).toEqual({ ok: false, reason: "illegal-target" });
   });
 
   it("leaves a stackless opposing target unchanged when no source can be trashed", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "EX1-014", as: "base" }], hand: [{ card: "EX1-018", as: "evo" }] },
-      1: { battleArea: [{ card: "BT1-032", as: "target" }] },
-    }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX1-014", as: "base" }], hand: [{ card: "EX1-018", as: "evo" }] },
+        1: { battleArea: [{ card: "BT1-032", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
     s.state.memory = 4;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evo").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "EX1-018");
     expect(s.perm("target").stack).toHaveLength(0);
   });

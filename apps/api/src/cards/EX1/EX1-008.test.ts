@@ -69,13 +69,21 @@ describe("EX1-008 MetalGreymon", () => {
     preferred.push(s.perm("smallBlocker").permanentId, s.perm("smallBlocker").topCard.instanceId);
     const deletedId = s.perm("smallBlocker").topCard.instanceId;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === deletedId));
     await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
     expect(s.events.find((event) => event.kind === "blockWindowOpened")).toMatchObject({
       eligibleBlockerIds: [s.perm("remainingBlocker").permanentId],
     });
-    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("remainingBlocker").permanentId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("remainingBlocker").permanentId }),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "combatResolved"));
   });
 
@@ -97,7 +105,13 @@ describe("EX1-008 MetalGreymon", () => {
       1: { battleArea: [{ card: "BT1-070", as: "target", dp: 3000, suspended: true }], security: ["BT1-001"] },
     });
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("dragon").permanentId, target: { kind: "permanent", permanentId: s.perm("target").permanentId } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("dragon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
@@ -107,13 +121,22 @@ describe("EX1-008 MetalGreymon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT6-017", as: "attacker", under: ["EX1-008"] }] },
-        1: { battleArea: [{ card: "BT1-070", as: "target", dp: 3000, suspended: true }], security: ["BT8-104", "BT1-001"] },
+        1: {
+          battleArea: [{ card: "BT1-070", as: "target", dp: 3000, suspended: true }],
+          security: ["BT8-104", "BT1-001"],
+        },
       },
       { autoSelectCards: true },
     );
     await s.ready();
     expect(observe(s.engine).keywordAmount(s.perm("attacker"), "SecurityAttack")).toBe(1);
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "permanent", permanentId: s.perm("target").permanentId } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
     expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(2);
     expect(s.perm("attacker").topCard.cardId).toBe("EX1-008");
@@ -138,10 +161,19 @@ describe("EX1-008 MetalGreymon", () => {
   it("uses real battle resolution to pierce security after attacking a Digimon", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT2-066", as: "attacker", under: ["EX1-008"] }] },
-      1: { battleArea: [{ card: "BT1-070", as: "target", dp: 3000, suspended: true }], security: ["BT1-001", "BT1-001"] },
+      1: {
+        battleArea: [{ card: "BT1-070", as: "target", dp: 3000, suspended: true }],
+        security: ["BT1-001", "BT1-001"],
+      },
     });
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "permanent", permanentId: s.perm("target").permanentId } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 1);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.trash).toHaveLength(2);

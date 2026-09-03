@@ -34,14 +34,22 @@ describe("GrantAuraToOpponents recipient ownership", () => {
     const loop = s.engine.startTurnLoop();
 
     await advance(s.engine).waitForMainPhase(0);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("iceWall").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("iceWall").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-068"));
 
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
     await s.ready();
     const beforeAttack = s.state.memory;
-    expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "securityChecked"));
 
     const memoryGain = s.events.find(
@@ -64,8 +72,14 @@ describe("GrantAuraToOpponents recipient ownership", () => {
           deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
         },
         1: {
-          battleArea: [{ card: "BT1-009", as: "existing" }, { card: "BT14-086", as: "memoryTamer" }],
-          hand: [{ card: "BT14-058", as: "later" }, { card: "BT14-086", as: "satsuki" }],
+          battleArea: [
+            { card: "BT1-009", as: "existing" },
+            { card: "BT14-086", as: "memoryTamer" },
+          ],
+          hand: [
+            { card: "BT14-058", as: "later" },
+            { card: "BT14-086", as: "satsuki" },
+          ],
           security: ["BT1-001", "BT1-001", "BT1-001"],
           deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
         },
@@ -77,7 +91,9 @@ describe("GrantAuraToOpponents recipient ownership", () => {
     const loop = s.engine.startTurnLoop();
 
     await advance(s.engine).waitForMainPhase(0);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("iceWall").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("iceWall").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-068"));
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
 
@@ -87,14 +103,26 @@ describe("GrantAuraToOpponents recipient ownership", () => {
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("later").instanceId })).toEqual({ ok: true });
     await settle(() => {
       const permanent = s.state.players[1]!.battleArea.find((candidate) => candidate.topCard?.cardId === "BT14-058");
-      return permanent !== undefined && permanent.stack.some((card) => card.cardId === "BT14-086") && observe(s.engine).hasKeyword(permanent, "Rush");
+      return (
+        permanent !== undefined &&
+        permanent.stack.some((card) => card.cardId === "BT14-086") &&
+        observe(s.engine).hasKeyword(permanent, "Rush")
+      );
     });
     await settle(() =>
-      observe(s.engine).customEffectGrants(s.perm("later")).some((grant) => grant.token === "[When Attacking] Lose 2 memory"),
+      observe(s.engine)
+        .customEffectGrants(s.perm("later"))
+        .some((grant) => grant.token === "[When Attacking] Lose 2 memory"),
     );
 
     const beforeLaterAttack = s.state.memory;
-    expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("later").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("later").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "securityChecked"));
     const laterMemoryGain = s.events.find(
       (event) => event.kind === "memoryChanged" && event.reason === "gainMemory" && event.from === beforeLaterAttack,
@@ -107,13 +135,21 @@ describe("GrantAuraToOpponents recipient ownership", () => {
     await s.ready();
 
     const grantedAttackCount = s.events.filter(
-      (event) => event.kind === "effectTriggered" && event.effectKey?.startsWith("granted/[When Attacking] Lose 2 memory"),
+      (event) =>
+        event.kind === "effectTriggered" && event.effectKey?.startsWith("granted/[When Attacking] Lose 2 memory"),
     ).length;
-    expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("existing").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("existing").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "securityChecked"));
     expect(
       s.events.filter(
-        (event) => event.kind === "effectTriggered" && event.effectKey?.startsWith("granted/[When Attacking] Lose 2 memory"),
+        (event) =>
+          event.kind === "effectTriggered" && event.effectKey?.startsWith("granted/[When Attacking] Lose 2 memory"),
       ),
     ).toHaveLength(grantedAttackCount);
 

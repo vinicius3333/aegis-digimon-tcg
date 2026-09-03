@@ -38,7 +38,9 @@ describe("EX1-029 MagnaAngemon", () => {
     preferredSelection.push(s.inst("yellowChoice").instanceId);
     s.state.memory = 6;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("takeru").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("takeru").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(
       () =>
         s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("yellowChoice").instanceId) &&
@@ -56,7 +58,13 @@ describe("EX1-029 MagnaAngemon", () => {
       1: { security: ["BT1-001", "BT1-001"] },
     });
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("magna").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("magna").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("magna").isSuspended);
     expect(s.perm("magna").currentDP).toBe(7000);
   });
@@ -78,7 +86,13 @@ describe("EX1-029 MagnaAngemon", () => {
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("magna").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("magna").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("magna").currentDP === 11000);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
@@ -117,14 +131,18 @@ describe("EX1-029 MagnaAngemon", () => {
     preferredSelection.push(firstChoiceId);
     s.state.memory = 6;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstTakeru").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstTakeru").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === firstChoiceId));
     expect(s.state.players[0]!.security).toHaveLength(2);
     expect(s.state.memory).toBe(3);
 
     const secondChoiceId = s.inst("firstRecovery").instanceId;
     preferredSelection.splice(0, preferredSelection.length, secondChoiceId);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondTakeru").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondTakeru").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(
       () =>
         !s.state.players[0]!.hand.some((card) => card.instanceId === secondTakeruId) &&

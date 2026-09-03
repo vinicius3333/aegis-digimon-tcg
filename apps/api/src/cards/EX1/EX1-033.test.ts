@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT1/BT1-036.js";
 import "../BT7/BT7-054.js";
@@ -147,9 +146,21 @@ describe("EX1-033 Tentomon", () => {
     });
     s.state.memory = 6;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("attacker").isSuspended);
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("ancientEvolution").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("ancientEvolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT7-054");
     expect(s.state.memory).toBe(2);
   });
@@ -163,7 +174,10 @@ describe("EX1-033 Tentomon", () => {
             { card: "BT1-030", as: "blueColor" },
             { card: "BT1-066", as: "base" },
           ],
-          hand: [{ card: "BT1-036", as: "unsuspender" }, { card: "BT1-070", as: "evolution" }],
+          hand: [
+            { card: "BT1-036", as: "unsuspender" },
+            { card: "BT1-070", as: "evolution" },
+          ],
         },
         1: { security: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"] },
       },
@@ -171,14 +185,27 @@ describe("EX1-033 Tentomon", () => {
     );
     s.state.memory = 12;
     await s.ready();
-    const attack = () => s.engine.applyIntent(0, { type: "attack" as const, attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" as const } });
+    const attack = () =>
+      s.engine.applyIntent(0, {
+        type: "attack" as const,
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" as const },
+      });
     expect(attack()).toEqual({ ok: true });
     await settle(() => s.perm("attacker").isSuspended);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("unsuspender").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("unsuspender").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => !s.perm("attacker").isSuspended);
     expect(attack()).toEqual({ ok: true });
     await settle(() => s.perm("attacker").isSuspended);
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolution").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT1-070");
     expect(s.state.memory).toBe(6);
   });
@@ -193,9 +220,21 @@ describe("EX1-033 Tentomon", () => {
       1: { security: ["BT1-001", "BT1-001"] },
     });
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("attacker").isSuspended);
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("breedingBase").permanentId, instanceId: s.inst("breedingEvolution").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("breedingBase").permanentId,
+        instanceId: s.inst("breedingEvolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("breedingBase").topCard.cardId === "EX1-035");
     expect(s.state.memory).toBe(-2);
   });

@@ -81,16 +81,22 @@ describe("EX1-072 Emergency Program Shutdown!", () => {
     await s.ready();
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shutdown").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shutdown").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-072"));
     await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX1-072"));
     await advance(s.engine).waitForMainPhase(1);
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentOption").instanceId }).ok).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentOption").instanceId }).ok).toBe(
+      false,
+    );
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentOption").instanceId }).ok).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentOption").instanceId }).ok).toBe(
+      true,
+    );
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
@@ -104,7 +110,9 @@ describe("EX1-072 Emergency Program Shutdown!", () => {
       1: { security: [{ card: "EX1-072", as: "securityShutdown", faceUp: true }] },
     });
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shutdown").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shutdown").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-072"));
     const securityId = s.inst("securityShutdown").instanceId;
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityShutdown"));
@@ -138,18 +146,23 @@ describe("EX1-072 Emergency Program Shutdown!", () => {
     await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT10-100"));
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shutdown").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shutdown").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-072"));
     await advance(s.engine).waitForMainPhase(1);
     const [delay] = observe(s.engine).activatableEffects(
       s.state.players[1]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT10-100")!,
     ) as Array<{ effectKey: string }>;
     expect(delay).toBeDefined();
-    expect(s.engine.applyIntent(1, {
-      type: "activateEffect",
-      sourceInstanceId: s.state.players[1]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT10-100")!.topCard!.instanceId,
-      effectKey: delay!.effectKey,
-    }).ok).toBe(true);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "activateEffect",
+        sourceInstanceId: s.state.players[1]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT10-100")!
+          .topCard!.instanceId,
+        effectKey: delay!.effectKey,
+      }).ok,
+    ).toBe(true);
     await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT10-100"));
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT10-100")).toBe(true);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
