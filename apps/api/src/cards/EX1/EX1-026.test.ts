@@ -58,4 +58,36 @@ describe("EX1-026 Gatomon", () => {
     await settle(() => s.perm("host").isSuspended);
     expect(s.perm("target").currentDP).toBe(3000);
   });
+
+  it("expires the modifier at the end of the attacking player's turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-057", as: "host", under: ["BT1-006", "BT1-030", "EX1-026"] }],
+          security: ["BT1-001", "BT1-001", "BT1-001"],
+          hand: ["BT1-009"],
+          deck: ["BT1-001", "BT1-001", "BT1-001"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }],
+          security: ["BT1-001", "BT1-001", "BT1-001"],
+          hand: ["BT1-009"],
+          deck: ["BT1-001", "BT1-001", "BT1-001"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.perm("target").currentDP === 3000);
+    expect(s.perm("target").currentDP).toBe(3000);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    await s.ready();
+    expect(s.perm("target").currentDP).toBe(5000);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
 });
