@@ -27,6 +27,41 @@ describe("BT1-100 Grace Cross Freezer", () => {
     expect(observe(s.engine).isRestricted(s.perm("withSource"), "attack")).toBe(false);
   });
 
+  it("keeps the restriction through the opponent turn and expires at that turn end", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: ["BT1-028"],
+        hand: [{ card: "BT1-100", as: "option" }],
+        deck: ["BT1-001"],
+      },
+      1: {
+        battleArea: [{ card: "BT1-010", as: "target" }],
+        deck: ["BT1-002"],
+      },
+    });
+    const controllerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 4;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "attack"));
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await controllerTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(false);
+  });
+
   it("allows a restricted Digimon to attack after it gains a digivolution card (Q965)", async () => {
     const s = setupEngine({
       0: {

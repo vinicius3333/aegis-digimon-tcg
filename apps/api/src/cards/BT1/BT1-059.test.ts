@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./BT1-059.js";
 
 describe("BT1-059 Piximon", () => {
   it("plays for 6 memory as a 9000 DP Digimon", async () => {

@@ -41,8 +41,6 @@ describe("BT1 conditional combat IR coverage", () => {
     expect(kabuterimon.effects[0]?.actions[0]?.scaling).toMatchObject({ per: 1, unit: "cards" });
     expect(digitamamon.effects[0]?.actions[1]).toMatchObject({ kind: "GainMemory", amount: -3, at: "endOfTurn" });
     expect(megaKabuterimon.effects[0]?.actions[0]?.condition).toMatchObject({ kind: "permanentCount", value: 2 });
-    expect(irNode(lillymon.effects[0]?.actions[0])?.target.filter.excludeKeywords).toContainEqual({
-      keyword: "Blocker",
-    });
+    expect(irNode(lillymon.effects[0]?.actions[0])?.target.filter.excludeKeywords).toContain("Blocker");
   });
 });

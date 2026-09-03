@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
@@ -9,7 +8,7 @@ export const compiled: CompiledCard = {
         {
           kind: "Delete",
           target: {
-            filter: { controller: "opponent", kind: ["Digimon"], keywords: [{ keyword: "Blocker" }] },
+            filter: { controller: "opponent", kind: ["Digimon"], keywords: ["Blocker"] },
             count: 1,
           },
         },

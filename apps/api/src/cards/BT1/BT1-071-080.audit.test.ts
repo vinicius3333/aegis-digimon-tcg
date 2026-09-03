@@ -90,7 +90,7 @@ describe("BT1-071 through BT1-080 IR coverage", () => {
     expect(lillymon.effects[0]?.actions[0]).toMatchObject({
       kind: "Suspend",
       target: {
-        filter: { controller: "opponent", kind: ["Digimon"], excludeKeywords: [{ keyword: "Blocker" }] },
+        filter: { controller: "opponent", kind: ["Digimon"], excludeKeywords: ["Blocker"] },
         count: 1,
       },
     });

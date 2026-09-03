@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
@@ -9,7 +8,7 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "Restrict",
-          target: { isSelf: true },
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           restriction: "cantBeBlockedByNoDigivolution",
           duration: "forTheTurn",
         },
