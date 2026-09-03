@@ -27,7 +27,11 @@ describe("BT21-097 App Link", () => {
       from: ["hand"],
       payCost: false,
       optional: true,
-      target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+      target: {
+        filter: { controller: "mine", hasLinkRequirement: true },
+        count: 1,
+      },
+      recipient: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
     });
 
     expect(compiled.effects).toContainEqual(
@@ -78,6 +82,40 @@ describe("BT21-097 App Link", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
+  });
+
+  it("Q4621 uses public end-of-turn Delay to link only a Link-capable card to one of your Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-097", as: "option" },
+            { card: "BT22-016", as: "recipient" },
+          ],
+          hand: [
+            { card: "ST22-08", as: "eligible" },
+            { card: "BT22-016", as: "noLink" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const optionId = s.perm("option").topCard.instanceId;
+    s.perm("option").placedByEffect = true;
+    s.state.turnSeat = 0;
+    s.state.isFirstPlayersFirstTurn = true;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+    await settle(() => mainPhase.isOpen, 500);
+    expect(mainPhase.isOpen).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
+
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
+    expect(s.perm("recipient").linked.some((card) => card.instanceId === s.inst("eligible").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("noLink").instanceId)).toBe(true);
   });
 
   it("Security places itself without changing memory", async () => {

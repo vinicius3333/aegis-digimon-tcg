@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -49,6 +48,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenSecurityRemoved",
+          sourceFilter: { controller: "opponent" },
           fireCondition: {
             kind: "triggerRemovedSecuritySeat",
             seat: "opponent",
@@ -65,12 +65,20 @@ export const compiled: CompiledCard = {
       ],
     },
     {
-      trigger: "AllTurns",
+      trigger: "Main",
       keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
       actions: [
         {
+          requiresDelayArmed: true,
           kind: "Digivolve",
-          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Reptile", "Dragonkin"], match: "trait" }],
+            },
+            count: 1,
+          },
           into: {
             controllerDefault: "mine",
             kind: ["Digimon"],

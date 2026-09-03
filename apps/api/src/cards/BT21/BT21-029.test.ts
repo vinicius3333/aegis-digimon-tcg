@@ -44,8 +44,9 @@ describe("BT21-029 compiled implementation", () => {
           actions: [
             {
               kind: "PlayToken",
-              token: "Petrification Token",
-              amount: 1,
+              tokens: ["Petrification Token"],
+              count: 1,
+              payCost: false,
               controller: "mine",
               placedAs: "opponentDigimon",
             },
@@ -57,8 +58,9 @@ describe("BT21-029 compiled implementation", () => {
           actions: [
             {
               kind: "PlayToken",
-              token: "Petrification Token",
-              amount: 1,
+              tokens: ["Petrification Token"],
+              count: 1,
+              payCost: false,
               controller: "mine",
               placedAs: "opponentDigimon",
             },
@@ -78,7 +80,7 @@ describe("BT21-029 compiled implementation", () => {
   });
 
   it("evolves from a red level 5, may delete exactly one lowest-DP Digimon, and pays 4", async () => {
-    expect(compiled.digivolutionRequirement).toEqual([{ level: 5, colors: ["Red"], cost: 4 }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 5, colors: ["Red"], cost: 4, isAlternate: false }]);
     const s = setupEngine(
       {
         0: {

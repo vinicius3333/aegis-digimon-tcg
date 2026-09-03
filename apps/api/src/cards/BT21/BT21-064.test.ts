@@ -8,7 +8,7 @@ import "../index.js";
 describe("BT21-064 Guilmon", () => {
   it("preserves both zero-cost alternate Digivolution requirements", () => {
     expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["Gigimon"], cost: 0, isAlternate: true },
+      { namesExact: ["Gigimon"], cost: 0, isAlternate: true },
       { level: 2, traits: ["Hero"], cost: 0, isAlternate: true },
     ]);
     expect(compiled.coverage).toBe("full");

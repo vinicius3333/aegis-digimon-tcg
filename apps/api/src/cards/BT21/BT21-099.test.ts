@@ -40,8 +40,8 @@ describe("BT21-099 Xros Up", () => {
     expect(place).toMatchObject({
       kind: "PlaceUnder",
       from: ["hand", "trash"],
-      target: { filter: { controller: "mine", kind: ["Digimon"], keywords: ["Save"] } },
-      underFilter: { controller: "mine", kind: ["Tamer"] },
+      target: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Save"], match: "text" }] } },
+      underFilter: { controller: "mine", kind: ["Tamer"], excludeToken: true },
       position: "bottom",
       optional: true,
     });
@@ -49,8 +49,9 @@ describe("BT21-099 Xros Up", () => {
     expect(digivolve).toMatchObject({
       kind: "Digivolve",
       from: ["trash"],
+      payCost: false,
       optional: true,
-      into: { kind: ["Digimon"], keywords: ["Save"] },
+      into: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Save"], match: "text" }] },
     });
 
     const security = compiled.effects.find((entry) => entry.trigger === "Security");
@@ -59,7 +60,7 @@ describe("BT21-099 Xros Up", () => {
       kind: "PlayWithoutCost",
       from: ["hand", "trash"],
       optional: true,
-      target: { filter: { playCostLte: 5, keywords: ["Save"] } },
+      target: { filter: { playCostLte: 5, nameOrTrait: [{ tokens: ["Save"], match: "text" }] } },
     });
     expect(security?.actions[1]).toEqual({ kind: "AddToHandSelf" });
   });

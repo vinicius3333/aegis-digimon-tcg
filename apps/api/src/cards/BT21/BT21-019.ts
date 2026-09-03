@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -52,7 +51,7 @@ export const compiled: CompiledCard = {
             isSelf: true,
           },
           amount: 2000,
-          duration: "turn",
+          duration: "permanent",
         },
       ],
       isInherited: true,

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -10,14 +9,14 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Option"],
-              nameOrTrait: [{ tokens: ["Ragnarok Cannon"], match: "name" }],
-            },
-            count: 1,
+          kind: "UseOptionWithoutCost",
+          filter: {
+            controller: "mine",
+            kind: ["Option"],
+            // The printed clause names Ragnarok Cannon without a play-cost cap.
+            // UseOptionWithoutCost otherwise defaults to 5, while BT21-098 costs 6.
+            playCostLte: 99,
+            nameOrTrait: [{ tokens: ["Ragnarok Cannon"], match: "nameExact" }],
           },
           from: ["hand", "trash"],
           payCost: false,
@@ -86,7 +85,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [{ names: ["Snatchmon"], cost: 9, isAlternate: true }],
+  digivolutionRequirement: [{ namesExact: ["Snatchmon"], cost: 9, isAlternate: true }],
 };
 
 registerIrCard(cardId, compiled);

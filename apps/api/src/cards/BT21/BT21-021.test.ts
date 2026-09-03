@@ -122,6 +122,40 @@ describe("BT21-021 OmniShoutmon", () => {
     expect(s.state.memory).toBe(3);
   });
 
+  it("Q4530 publicly plays an eligible Tamer at end of attack, then deletes and saves itself", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-021", as: "omni" }],
+          hand: [{ card: "BT21-083", as: "tamer" }],
+        },
+        1: { security: [{ card: "BT1-009", as: "security" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("omni").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard.instanceId === s.inst("tamer").instanceId,
+        ) &&
+        !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("omni").instanceId),
+    );
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("tamer").stack.some((card) => card.instanceId === s.inst("omni").instanceId)).toBe(true);
+  });
+
   it("does not delete itself when the play is declined or no eligible card exists", async () => {
     for (const [card, options] of [
       ["BT21-011", { autoDeclineOptional: true }],

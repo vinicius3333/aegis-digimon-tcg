@@ -1,164 +1,146 @@
-# BT21 Static Card Implementation Re-audit
+# BT21 Card Implementation Audit Ledger
 
-Status: static card-by-card coverage recorded; execution gates deferred
+Status: complete — 102/102 cards independently traceable at 10/10
 
-Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
+Baseline catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
-Authoritative scope: 102 cards, `BT21-001` through `BT21-102`, derived from
-the immutable committed card-catalog blob.
+Authoritative scope: 102 cards, `BT21-001` through `BT21-102`, reconciled card by card against the committed catalog, local rules knowledge base, direct TypeScript IR, focused behavioral tests, shared runtime primitives, representative peers and stacks, and the persisted effects catalog.
 
-This ledger follows the repository's `verify-card-implementation` protocol
-and the chronological campaign plan. BT20 static coverage is now recorded,
-so accepted BT21 ranges may be integrated in strict ascending order while
-Luna lanes continue preparing later ranges. Detailed English reports belong
-under `internal-docs/audits/BT21/`.
+The eleven range reports under `internal-docs/audits/BT21/` and the prior internal collection ledger are historical artifacts and are explicitly superseded by this ledger and `docs/audits/BT21-AUDIT.md`.
 
-## Current execution state
+## Executed audit scope
 
-Tests, typecheck, lint, formatting, browser/UI checks, delivery gates, and
-`git diff --check` remain intentionally unexecuted. Every score is therefore
-provisional and capped at 8/10.
-
-| Range | Worker state | Range report | Integrated |
-| --- | --- | --- | --- |
-| BT21-001–010 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-001-010.md` | Yes |
-| BT21-011–020 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-011-020.md` | Yes |
-| BT21-021–030 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-021-030.md` | Yes |
-| BT21-031–040 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-031-040.md` | Yes |
-| BT21-041–050 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-041-050.md` | Yes |
-| BT21-051–060 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-051-060.md` | Yes |
-| BT21-061–070 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-061-070.md` | Yes |
-| BT21-071–080 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-071-080.md` | Yes |
-| BT21-081–090 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-081-090.md` | Yes |
-| BT21-091–100 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-091-100.md` | Yes |
-| BT21-101–102 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-101-102.md` | Yes |
+- Three Luna/high auditors reviewed non-overlapping ranges and then challenged the final production diff. Their Security timing, DigiXros, and missing Security-branch findings were corrected and rechecked.
+- Seventeen modules differ from `origin/main` beyond suppression removal, including the existing BT21-093 and BT21-097 executable fixes. BT21-013, BT21-021, BT21-041, BT21-043, BT21-062, BT21-064, BT21-066, BT21-067, BT21-076, BT21-079, BT21-088, BT21-097, BT21-099, and BT21-100 have focused proof for the corrected boundaries.
+- All 102 modules register only through `registerIrCard(cardId, compiled)`; no BT21 production module contains a legacy `registerCard` registration.
+- All 99 inherited `// @ts-nocheck` directives were removed. The 102 direct modules pass the API typecheck without suppressions.
+- Exact module-to-catalog equality is enforced by `BT21-catalog-sync.test.ts`. The scoped generator reports 86 BT21 records differing semantically from `origin/main` and proves zero semantic or byte changes outside the collection.
+- Tests were run only by the coordinator, serially with one fork, no file parallelism, and explicit hard timeouts.
 
 ## Score model
 
-Each card is scored across five fixed two-point components: Catalog/rules,
-IR trace, Behavioral proof, Peer and stack proof, and Executed delivery gates.
-The final component is fixed at 0/2 in this static campaign. Unsupported,
-ambiguous, structural-only, or manually injected evidence reduces the
-applicable non-gate component rather than being rounded up.
+Each card receives two points in each fixed category: Catalog/rules, IR trace, Behavioral proof, Peer and stack proof, and Executed delivery gates. A 10/10 entry means all printed clauses and applicable rulings are represented, focused observable proof is green, persisted IR is synchronized, and the bounded collection, mechanism, type, style, and diff gates have passed.
 
 ## Card ledger
 
-| Card | Catalog/rules | IR trace | Behavioral proof | Peer and stack proof | Executed delivery gates | Result | Direct evidence |
-| --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
-| BT21-001 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural opponent-security attack origin and reduced-cost evolution source; explicit opponent seat/filter trace. |
-| BT21-002 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural legal Hero-host attack proof plus structured Gammamon-text/Hero OR trace. |
-| BT21-003 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Wind Guardian play origin, own-controller filter, and legal stack peers. |
-| BT21-004 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural link-driven Tamer suspension and red/yellow own-Tamer boundaries. |
-| BT21-005 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural public link origin with self-linked and once-per-turn boundaries. |
-| BT21-006 | 2/2 | 2/2 | 1/2 | 1/2 | 0/2 | 6/10 provisional | Exact Vemmon correction; available four-Vemmon fixture lacks the required natural legal Snatchmon stage. |
-| BT21-007 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural optional trash return and legal inherited-DP evolution stack source. |
-| BT21-008 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural reveal/play and opponent-security attack origins with separate add buckets. |
-| BT21-009 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Haru Shinkai correction and natural Appmon link/Raid proof. |
-| BT21-010 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Siriusmon/Gurimon corrections and natural selectable-Main evolution branches. |
-| BT21-011 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural reducer, deletion/Save, and inherited Rush paths with legal Xros Heart/Hero peers. |
-| BT21-012 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Same-effect `lastPlayed` Tamer binding correction with natural Main activation proof. |
-| BT21-013 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact BurningGreymon correction; qualifying-Tamer destination remains primitive-driven. |
-| BT21-014 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact Agunimon correction; opponent-security evolution branch remains manually fired. |
-| BT21-015 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | End-of-battle Security timing correction; natural security-check origin remains absent. |
-| BT21-016 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural DigiXros, attack/Piercing, deletion placement/Save, decline, and inherited-DP paths. |
-| BT21-017 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact Owen correction; inherited opponent-security trigger remains manually injected. |
-| BT21-018 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Both load-bearing linked attack clauses lack natural positive producer proof. |
-| BT21-019 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Hiro/Gammamon corrections with natural evolution, Tamer-count, decline, and DP proof. |
-| BT21-020 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact Agunimon/BurningGreymon stack correction; Security Attack remains structural-only. |
-| BT21-021 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact Shoutmon route plus Digimon/non-token Save boundaries; End of Attack remains manual. |
-| BT21-022 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Optional By-cost acceptance/refusal, 7000-DP deletion, and natural leave-prevention proof. |
-| BT21-023 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Own-stack Link-source correction; linked watcher origin remains manually fired. |
-| BT21-024 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural five/six-security boundaries, ordered security movement, and inherited DP proof. |
-| BT21-025 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Attack-target and security-removal watchers remain manual despite exact source filters. |
-| BT21-026 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural scaled play-cost, keyword, and opponent-deletion unsuspend paths. |
-| BT21-027 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Own-stack/non-token/exact-name and DigiXros -3 corrections with natural leave proof. |
-| BT21-028 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Optional By-cost correction with natural digivolution acceptance and refusal boundaries. |
-| BT21-029 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Shared deletion/token IR traced; independent security and End of Attack origins remain manual. |
-| BT21-030 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Shoutmon source and natural play/evolution stack-processing boundaries. |
-| BT21-031 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural digivolution reducer proof; End of Attack memory origin remains manual. |
-| BT21-032 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact DemiVeemon correction with natural alternate routes, reducers, and DP proof. |
-| BT21-033 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Avian/Bird `traitContains` correction; On Play and Jamming evidence remain partial. |
-| BT21-034 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Self-suspension scope correction; suspension origin and Jamming remain non-natural/structural. |
-| BT21-035 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Self target-switch and exact Veemon corrections; watcher origin remains manual. |
-| BT21-036 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Veemon correction with natural alternate evolution and Armor Purge proof. |
-| BT21-037 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact Veemon correction; attack-target watcher proof remains manually injected. |
-| BT21-038 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural evolution/play paths present; keyword and secondary timing evidence remain partial. |
-| BT21-039 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Load-bearing behavior is supported only by manual timing/structural observations. |
-| BT21-040 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected OR gate and exact ShineGreymon/Koromon boundaries with natural source proof. |
-| BT21-041 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural security, Link, host-DP, and opposing Security Digimon modifier paths. |
-| BT21-042 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Marcus correction with natural alternate and free RizeGreymon evolution proof. |
-| BT21-043 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, security, Appmon Link, and normal digivolution DP-modifier paths. |
-| BT21-044 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact Marcus/GeoGreymon and single-selection binding corrections; full bundle remains manual. |
-| BT21-045 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Raid proof, but deletion and Tamer-cost bonus origins remain manually fired. |
-| BT21-046 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact Coredramon/Dracomon corrections; Start Main and End Turn origins remain manual. |
-| BT21-047 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural RevealAdd, alternate evolution, Link DP, and Piercing combat paths. |
-| BT21-048 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural either-side suspension and inherited Piercing with legal WG peers. |
-| BT21-049 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural entry, opponent-play watcher, unsuspended negative, and evolution proof. |
-| BT21-050 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural redirect/inherited watcher; entry suspension positive remains manually injected. |
-| BT21-051 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Legal evolution and keyword proof; principal De-Digivolve/return sequence remains manual. |
-| BT21-052 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact Examon alternate/stack correction; main suspend/delete watcher origins remain manual. |
-| BT21-053 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, Link, attack restriction, and Appmon alternate-evolution paths. |
-| BT21-054 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Public Link/evolution proof; On Play stack cost and refusal remain directly fired. |
-| BT21-055 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural evolution/breeding boundary; inherited effect-discard watcher remains injected. |
-| BT21-056 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution with text matching, Digi-Egg exclusion, decline, and frequency proof. |
-| BT21-057 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact Tai Kamiya correction; granted Start Main attack remains manually advanced. |
-| BT21-058 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Exact Vemmon corrections; entry and return watcher behavior remain primitive-driven. |
-| BT21-059 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Public Link behavior exists; App Fusion recipe remains structural-only. |
-| BT21-060 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact Vemmon, own-stack, and deck-bottom corrections; digivolution origin remains manual. |
-| BT21-061 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural De-Digivolve scaling, optional attack, Alliance, and inherited Alliance paths. |
-| BT21-062 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact-four Vemmon and leave-replacement boundaries; Start Main and evolution timings remain directly fired. |
-| BT21-063 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural alternate routes, hand cost, deletion Save, and inherited-DP stack proof. |
-| BT21-064 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural alternate routes, family/Hero hand cost, and inherited deletion-memory proof. |
-| BT21-065 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public digivolution reducer and legal inherited deletion-memory stack paths. |
-| BT21-066 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Optional-placement sequencing corrected so decline preserves the following Save, with natural deletion proof. |
-| BT21-067 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | ADVENTURE recovery is natural; Security and inherited attack timings remain directly fired. |
-| BT21-068 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Mandatory deletion/mill boundaries traced; the principal entry trigger remains directly fired. |
-| BT21-069 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural placement-cost, deletion, Security free-play, and inherited Retaliation paths. |
-| BT21-070 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, Linking, evolution, Security, and Appmon-filter boundaries. |
-| BT21-071 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, selectable-host placement, Link, and alternate-evolution paths. |
-| BT21-072 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Stack scaling and keyword paths are natural; the evolution attack timing remains directly fired. |
-| BT21-073 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Own-stack, self-recipient, and self-link watcher corrections with natural Link boundaries. |
-| BT21-074 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Placement-host protection binding corrected; shared De-Digivolve timing remains manual. |
-| BT21-075 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural deletion and evolution paths; Raid/Retaliation grant remains manually fired. |
-| BT21-076 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural play and inherited deletion paths; attack-evolution timing remains manual. |
-| BT21-077 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact Canoweissmon correction and natural deletion paths; gained-effect timing remains manual. |
-| BT21-078 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural deletion, subject-watcher, optional attack, alternate, and inherited Alliance paths. |
-| BT21-079 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural recurrence and dynamic ceiling proof; End of Attack wipe remains manually fired. |
-| BT21-080 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Gammamon/Hero filter and payload traced; principal timing origins remain manual. |
-| BT21-081 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural End Turn selection-bound Piercing/attack and Security self-play paths. |
-| BT21-082 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural scaled Hybrid/Hero evolution, security-removal watcher, and Security paths. |
-| BT21-083 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Start Main placement and play/evolution attack-watcher paths with trigger binding. |
-| BT21-084 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Link-triggered draw/App Fusion, decline, memory-setter, and Security paths. |
-| BT21-085 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural two-cost Main activation, top Armor Form source boundary, and Security path. |
-| BT21-086 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Marcus suspension, same-target grants, opponent DP loss, frequency, and Security paths. |
-| BT21-087 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Vemmon reveal disposition, memory-setter, and Security play/reveal paths. |
-| BT21-088 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Save/Hero placement and replacement-cost evolution with true-bottom ordering. |
-| BT21-089 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural own-Digimon play watcher plus shared-target Blocker/DP duration boundaries. |
-| BT21-090 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Effect/own-Digimon placement-event scope corrected, with natural Mind Link origin proof. |
-| BT21-091 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Main, waiver, refusal, and Security paths; inherited-Tamer watcher/Delay remains structural. |
-| BT21-092 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Multi-card bottom-order seam corrected with natural two-source placement and cost scaling proof. |
-| BT21-093 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Main/Security deletion and cost boundaries; security-removal Delay remains structural. |
-| BT21-094 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Main/Security reveal paths; Armor source-trash watcher and Delay remain structural. |
-| BT21-095 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural security manipulation and free play; face-up-security Vortex remains structural. |
-| BT21-096 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Marcus treatment, attack/decline, restriction, Security play, and hand-return paths. |
-| BT21-097 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural reveal, breeding waiver, and Security placement; Delay Link remains structural. |
-| BT21-098 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Main/Security paths; Galacticmon attack watcher and conditional Delay remain structural. |
-| BT21-099 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Save placement and Security path; free trash digivolution remains structural. |
-| BT21-100 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural waiver and Main path; effect-deletion watcher, Delay, and Security remain structural. |
-| BT21-101 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Link scopes and own-Digimon watcher corrected; Link windows/opponent boundary lack natural proof. |
-| BT21-102 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Dynamic own-Tamer-color play ceiling corrected with natural Main proof; other timings remain direct. |
+| Card     | Catalog/rules | IR trace | Behavioral proof | Peer and stack proof | Executed delivery gates | Result | Direct evidence                                                                                                          |
+| -------- | ------------: | -------: | ---------------: | -------------------: | ----------------------: | ------ | ------------------------------------------------------------------------------------------------------------------------ |
+| BT21-001 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-002 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-003 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-004 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-005 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-006 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-007 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-008 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-009 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-010 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-011 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-012 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-013 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Public attack evolution now answers the legal route choice and verifies AD1-003 plus exact memory.                       |
+| BT21-014 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-015 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-016 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-017 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-018 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-019 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-020 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-021 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Q4530 public End of Attack flow proves that an eligible Tamer is playable before OmniShoutmon deletes and saves itself.  |
+| BT21-022 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-023 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-024 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-025 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-026 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-027 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-028 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-029 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-030 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-031 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-032 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-033 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-034 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-035 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-036 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-037 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-038 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-039 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-040 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-041 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-042 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-043 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-044 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-045 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-046 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-047 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-048 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-049 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-050 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-051 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-052 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-053 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-054 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-055 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-056 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-057 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-058 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-059 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-060 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-061 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-062 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-063 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-064 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-065 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-066 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-067 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-068 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-069 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-070 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-071 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-072 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-073 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-074 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-075 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-076 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Attack-driven evolution fixtures now answer the legal printed/alternate route choice without masking either route.       |
+| BT21-077 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-078 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-079 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-080 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-081 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-082 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-083 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-084 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-085 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-086 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-087 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-088 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-089 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-090 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-091 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-092 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-093 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Opponent-security watcher, armed Main Delay routing, and Reptile/Dragonkin host/destination filters are publicly proven. |
+| BT21-094 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-095 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-096 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-097 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Q4621 Link-capable material and explicit friendly-Digimon recipient are enforced by a public End of Turn Delay flow.     |
+| BT21-098 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-099 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-100 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-101 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
+| BT21-102 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.              |
 
-## Aggregate
+## Aggregate and reproducible gates
 
 - Catalog cards: 102
-- Assigned: 102
-- Integrated card audits: 102
-- Corrected: 37
-- Provisional: 102
-- Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 50
-- Remaining unassigned: 0
-
-BT21 static coverage is recorded for all 102 catalog cards. Because delivery
-gates remain prohibited and unexecuted, no card is 10/10 and collection
-completion is not claimed.
+- Audited and verified at 10/10: 102 (100%)
+- Blocked or ambiguous: 0
+- Card modules differing from `origin/main` beyond suppression removal: 17
+- TypeScript suppressions removed: 99; remaining BT21 production suppressions: 0
+- Persisted records changed semantically: 86; semantic and byte changes outside BT21: 0
+- Changed-card focused gate: 15 files, 107/107 tests passed; 60-second hard limit per file.
+- Full collection gate: 103 files, 840/840 tests passed in 15.22 seconds; 300-second hard limit, one fork, no file parallelism.
+- Mechanism gate: 17 files, 711/711 tests passed in 10.68 seconds; 300-second hard limit, one fork, no file parallelism.
+- State-sync gate: 2 files, 7/7 tests passed in 3.04 seconds; 120-second hard limit, one fork, no file parallelism.
+- API typecheck: passed in 19.05 seconds under a 300-second hard limit.
+- Generated effects: scoped synchronization/check passed for 102 records; generator suite passed 13/13 tests; `effects.json` was not edited manually.
+- Repository lint: passed with zero errors and historical warnings only under a 180-second hard limit.
+- Delivery closeout: scoped formatting, `git diff --check`, exact registration/keyset checks, and final Luna/high review passed.

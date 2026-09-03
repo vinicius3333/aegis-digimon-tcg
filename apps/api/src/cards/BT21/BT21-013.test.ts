@@ -247,7 +247,7 @@ describe("BT21-013 Agunimon — observable game behavior", () => {
         },
         1: { security: ["BT1-001", "BT1-002"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
     );
     s.state.memory = 5;
     await s.ready();
@@ -259,6 +259,7 @@ describe("BT21-013 Agunimon — observable game behavior", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("agunimon").topCard.cardId === "AD1-003");
+    expect(s.perm("agunimon").topCard.cardId).toBe("AD1-003");
     expect(s.state.memory).toBe(3);
   });
 

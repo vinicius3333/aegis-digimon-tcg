@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Cost, Filter, SubTriggerEvent } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const targetFilter = {
+const targetFilter: Filter = {
   controller: "mine",
   kind: ["Digimon"],
   nameOrTrait: [
@@ -10,13 +9,13 @@ const targetFilter = {
     { tokens: ["Hero"], match: "trait" },
   ],
 };
-const suspendCost = {
+const suspendCost: Cost = {
   kind: "suspend",
   target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
   raw: "by suspending this Tamer",
 };
 
-function watcher(event: string) {
+function watcher(event: SubTriggerEvent): Action {
   return {
     kind: "SubTrigger",
     event,
