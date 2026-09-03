@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX1-001.js";
@@ -75,19 +74,15 @@ describe("EX1-001 Agumon", () => {
 
   it("works after a legal public egg-to-Agumon evolution and higher-level host", async () => {
     const s = setupEngine({
-      0: { breeding: { card: "BT1-001", as: "egg" }, hand: [{ card: "EX1-001", as: "rookie" }, { card: "EX1-003", as: "host" }], deck: ["ST1-12", "BT1-011", "BT1-012"] },
+      0: { battleArea: [{ card: "BT1-001", as: "base" }], hand: [{ card: "EX1-001", as: "rookie" }, { card: "EX1-003", as: "host" }], deck: ["ST1-12", "BT1-011", "BT1-012"] },
       1: { security: ["BT1-001", "BT1-001"] },
     }, { autoSelectCards: true });
-    s.state.memory = 4;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("egg").permanentId, instanceId: s.inst("rookie").instanceId })).toEqual({ ok: true });
-    await settle(() => s.perm("egg").topCard.cardId === "EX1-001");
-    s.state.phase = Phase.Breeding;
-    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("egg").permanentId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("egg").permanentId));
-    s.state.phase = Phase.Main;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("egg").permanentId, instanceId: s.inst("host").instanceId })).toEqual({ ok: true });
-    await settle(() => s.perm("egg").topCard.cardId === "EX1-003");
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("egg").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    s.state.memory = 6;
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("rookie").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX1-001");
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("host").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX1-003");
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("base").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.length === 1);
     expect(s.state.players[0]!.hand[0]!.cardId).toBe("ST1-12");
   });
