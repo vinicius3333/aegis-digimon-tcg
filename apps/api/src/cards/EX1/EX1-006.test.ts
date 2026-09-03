@@ -6,7 +6,7 @@ import "./EX1-006.js";
 describe("EX1-006 Garudamon", () => {
   it("gains 1 memory only when its Digimon attacks a player", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX1-008", as: "attacker", under: ["EX1-006"] }] },
+      0: { battleArea: [{ card: "BT1-025", as: "attacker", under: ["EX1-006"] }] },
       1: { security: ["BT1-001", "BT1-001"] },
     });
     s.state.memory = 5;
@@ -24,8 +24,8 @@ describe("EX1-006 Garudamon", () => {
 
   it("does not gain memory when its Digimon attacks another Digimon", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX1-008", as: "attacker", under: ["EX1-006"] }] },
-      1: { battleArea: [{ card: "BT1-001", as: "target", suspended: true }] },
+      0: { battleArea: [{ card: "BT1-025", as: "attacker", under: ["EX1-006"] }] },
+      1: { battleArea: [{ card: "BT1-009", as: "target", dp: 10000, suspended: true }] },
     });
     s.state.memory = 5;
     await s.ready();
@@ -36,13 +36,13 @@ describe("EX1-006 Garudamon", () => {
         target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => false, 40);
+    await settle(() => s.perm("attacker").isSuspended);
     expect(s.state.memory).toBe(5);
   });
 
   it("gains memory only once across two player attacks in one turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX1-008", as: "attacker", under: ["EX1-006"] }] },
+      0: { battleArea: [{ card: "BT1-025", as: "attacker", under: ["EX1-006"] }] },
       1: { security: ["BT1-001", "BT1-001", "BT1-001"] },
     });
     s.state.memory = 5;
@@ -56,7 +56,23 @@ describe("EX1-006 Garudamon", () => {
     await settle(() => s.state.memory === 6);
     await advance(s.engine).verb.unsuspend([s.perm("attacker").permanentId]);
     expect(attack()).toEqual({ ok: true });
-    await settle(() => false, 40);
+    await settle(() => s.perm("attacker").isSuspended);
     expect(s.state.memory).toBe(6);
+  });
+
+  it("works after a legal public evolution into EX1-006 and a higher-level host", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX1-003", as: "base" }], hand: [{ card: "EX1-006", as: "evo" }, { card: "BT1-025", as: "host" }] },
+      1: { security: ["BT1-001", "BT1-001"] },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evo").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX1-006");
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("host").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT1-025");
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("base").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.state.memory === 5);
+    expect(s.state.memory).toBe(5);
   });
 });
