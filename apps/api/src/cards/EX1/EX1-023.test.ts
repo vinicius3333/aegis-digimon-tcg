@@ -16,4 +16,25 @@ describe("EX1-023 Elecmon", () => {
     await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
   });
+
+  it("does not grant the reduction to an opposing Tamer", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX1-024", as: "host", under: ["EX1-023"] }] },
+      1: { battleArea: [{ card: "ST1-12", as: "tamer" }] },
+    }, { autoSelectCards: true });
+    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
+    expect(observe(s.engine).keywordAmount(s.perm("tamer"), "SecurityAttack")).toBe(0);
+  });
+
+  it("expires the Security Attack reduction at the end of the turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX1-024", as: "host", under: ["EX1-023"] }] },
+      1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+    });
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
+    expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
+    await advance(s.engine).runTurn(0);
+    expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(0);
+  });
 });
