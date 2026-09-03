@@ -48,17 +48,33 @@ describe("EX1-028 Angemon", () => {
 
   it("keeps the bonus through the opponent turn and expires at its end", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-060", as: "host", under: ["EX1-028"] }], security: ["BT1-001", "BT1-001", "BT1-001"] },
-      1: { security: ["BT1-001", "BT1-001"] },
+      0: {
+        battleArea: [{ card: "BT1-060", as: "host", under: ["EX1-028"] }],
+        security: ["BT1-001", "BT1-001", "BT1-001"],
+        hand: ["BT1-009"],
+        deck: ["BT1-001", "BT1-001", "BT1-001"],
+      },
+      1: {
+        security: ["BT1-001", "BT1-001"],
+        hand: ["BT1-009"],
+        deck: ["BT1-001", "BT1-001", "BT1-001"],
+      },
     });
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
     await settle(() => s.perm("host").currentDP === 7000);
-    s.state.turnSeat = 1;
-    await advance(s.engine).recompute();
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    await s.ready();
     expect(s.perm("host").currentDP).toBe(7000);
-    await advance(s.engine).runTurn(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    await s.ready();
     expect(s.perm("host").currentDP).toBe(6000);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("does not apply the inherited bonus twice in one turn", async () => {
