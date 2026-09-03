@@ -40,4 +40,56 @@ describe("EX1-047 Guardromon", () => {
     await settle(() => s.state.players[0]!.hand.length === 2);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("machine").instanceId)).toBe(true);
   });
+
+  it("honors refusal and leaves an eligible Machine in hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-042", as: "host", under: ["EX1-047"] }],
+          hand: [{ card: "BT1-068", as: "machine" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: { security: ["BT1-001", "BT1-001"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX1-047"));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("machine").instanceId)).toBe(true);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("machine").instanceId)).toBe(false);
+  });
+
+  it("does not accept a non-Machine/Cyborg Digimon as the inherited cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-042", as: "host", under: ["EX1-047"] }],
+          hand: [{ card: "BT1-009", as: "wrongTrait" }],
+          deck: ["BT1-010", "BT1-011"],
+        },
+        1: { security: ["BT1-001", "BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX1-047"));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("wrongTrait").instanceId)).toBe(true);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("wrongTrait").instanceId)).toBe(false);
+  });
 });
