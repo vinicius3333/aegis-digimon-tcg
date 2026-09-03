@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT14-086.js";
-import { Phase } from "@aegis/shared";
+import { getCardDefinition, Phase } from "@aegis/shared";
+import { definitionMatches } from "../../engine/effects/interpreter/matching/definition.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -13,6 +14,12 @@ describe("BT14-086", () => {
       actions: [{ kind: "GainMemory", amount: 1 }],
     });
     expect(compiled.effects?.[1]).toMatchObject({ trigger: "Main", actions: [{ kind: "MindLink" }] });
+    const mindLink = compiled.effects?.[1]?.actions[0];
+    expect(mindLink?.kind).toBe("MindLink");
+    if (mindLink?.kind !== "MindLink") throw new Error("BT14-086 must compile a MindLink action");
+    expect(mindLink.target.filter.kind).toEqual(["Digimon"]);
+    expect(definitionMatches(mindLink.target.filter, getCardDefinition("BT14-058")!)).toBe(true);
+    expect(definitionMatches(mindLink.target.filter, getCardDefinition("BT15-087")!)).toBe(false);
     expect(compiled.effects?.[2]).toMatchObject({
       trigger: "AllTurns",
       isInherited: true,
@@ -72,7 +79,7 @@ describe("BT14-086", () => {
     });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-086"));
     const satsuki = s.state.players[0]!.battleArea.find((perm) => perm.topCard?.cardId === "BT14-086")!;
-    const effects = observe(s.engine).activatableEffects(satsuki) as Array<{ effectKey: string }>;
+    const effects = observe(s.engine).activatableEffects(satsuki);
     expect(effects.length).toBeGreaterThan(0);
     expect(
       s.engine.applyIntent(0, {
@@ -100,5 +107,26 @@ describe("BT14-086", () => {
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await turn;
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-086")).toBe(true);
+  });
+
+  it("naturally plays itself without cost when revealed in security", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT14-071", as: "attacker" }] },
+        1: { security: [{ card: "BT14-086", as: "securitySatsuki" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT14-086"));
+
+    expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT14-086")).toBe(true);
   });
 });

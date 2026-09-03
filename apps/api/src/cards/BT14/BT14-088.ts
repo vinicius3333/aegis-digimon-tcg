@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -43,7 +42,12 @@ export const compiled: CompiledCard = {
               kind: "MovePermanent",
               direction: "toBattle",
               target: {
-                filter: { controller: "mine", kind: ["Digimon"], location: "breedingArea", dp: { op: "gt", value: 0 } },
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  location: "breedingArea",
+                  dp: { op: "gte", value: 1 },
+                },
                 count: 1,
               },
               cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1 } },

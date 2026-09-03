@@ -66,7 +66,7 @@ describe("BT14-087", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("eiji").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-087"));
     const eiji = s.state.players[0]!.battleArea.find((perm) => perm.topCard?.cardId === "BT14-087")!;
-    const effects = observe(s.engine).activatableEffects(eiji) as Array<{ effectKey: string }>;
+    const effects = observe(s.engine).activatableEffects(eiji);
     expect(effects.length).toBeGreaterThan(0);
     expect(
       s.engine.applyIntent(0, {

@@ -74,6 +74,13 @@ export interface AuraAction extends ActionBase {
   while?: Condition;
 }
 
+/** A temporary change to a permanent's base DP, color, or original name. */
+export interface OriginalCardInfoGrant {
+  dp?: number;
+  color?: string;
+  originalName?: string;
+}
+
 /**
  * A static name/trait grant ("also treated as [X]", "gains all effects of cards with [X] in their
  * digivolution cards"), resolved by the continuous-effect layer against the card DB.

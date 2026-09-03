@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -64,7 +63,6 @@ export const compiled: CompiledCard = {
             },
             {
               kind: "Recover",
-              controller: "mine",
               amount: 1,
               condition: { kind: "ifThisEffectActed" },
             },
@@ -99,7 +97,6 @@ export const compiled: CompiledCard = {
             },
             {
               kind: "Recover",
-              controller: "mine",
               amount: 1,
               condition: { kind: "ifThisEffectActed" },
             },

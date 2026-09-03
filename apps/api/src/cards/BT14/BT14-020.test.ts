@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -40,6 +40,7 @@ describe("BT14-020", () => {
                 {
                   kind: "PlayWithoutCost",
                   from: ["digivolutionCards"],
+                  target: { filter: { hostFilter: { isSelfRef: true } } },
                   payCost: false,
                   optional: true,
                 },
@@ -178,6 +179,36 @@ describe("BT14-020", () => {
     expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-030")).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("does not play a Gomamon from another Digimon's stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT14-024",
+              as: "host",
+              under: ["BT14-002", { card: "BT14-020", as: "source" }],
+            },
+            {
+              card: "BT14-024",
+              as: "otherHost",
+              under: [{ card: "BT1-030", as: "remoteGomamon" }],
+            },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-030")).toBe(false);
+    expect(s.perm("otherHost").stack.some((card) => card.instanceId === s.inst("remoteGomamon").instanceId)).toBe(true);
     assertNoLoudGap(s);
   });
 });

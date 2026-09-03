@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT14-093.js";
 import "../index.js";
 
 // A3 behavioral test for BT14-093 (Emissary of Hope):
@@ -14,6 +15,25 @@ import "../index.js";
 const EMISSARY = "BT14-093";
 
 describe("BT14-093 Emissary of Hope [Security] add to hand", () => {
+  it("keeps both the Main and Security contracts in compiled IR", () => {
+    expect(compiled.effects).toMatchObject([
+      {
+        trigger: "Main",
+        actions: [
+          { kind: "Search", searchZone: "security" },
+          { kind: "Digivolve", from: ["security"] },
+          { kind: "SecurityManipulation", op: "shuffle" },
+          { kind: "SecurityManipulation", op: "addTop" },
+        ],
+      },
+      {
+        trigger: "Security",
+        isSecurity: true,
+        actions: [{ kind: "PlayWithoutCost" }, { kind: "AddToHandSelf" }],
+      },
+    ]);
+  });
+
   it("naturally searches security, digivolves, and recovers when T.K. is present", async () => {
     const s = setup(
       {
@@ -31,7 +51,9 @@ describe("BT14-093 Emissary of Hope [Security] add to hand", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("patamon").topCard?.cardId === "BT14-035");
 
     expect(s.perm("patamon").topCard?.cardId).toBe("BT14-035");

@@ -1,5 +1,4 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const bounce = {
@@ -26,7 +25,7 @@ const bounce = {
   optional: true,
   abortOnDecline: true,
   allowCostWithoutTarget: true,
-};
+} satisfies Action;
 
 export const compiled: CompiledCard = {
   effects: [

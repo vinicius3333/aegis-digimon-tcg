@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -59,6 +58,8 @@ const compiled: CompiledCard = {
         {
           kind: "GrantStatic",
           target: {
+            filter: {},
+            count: 1,
             sameTarget: true,
           },
           grant: {
@@ -74,7 +75,6 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  ruleText: ["Name: Also treated as having [Sukamon]."],
 };
 
 registerIrCard("BT14-097", compiled);

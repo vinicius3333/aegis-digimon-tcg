@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-authored override for BT14-067 (Ebemon).
 // runtime-effect fix: reveal opponent deck, choose one revealed Digimon as the play-cost
 // budget reference, delete opponent Digimon up to that total play cost, then return

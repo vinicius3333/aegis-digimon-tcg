@@ -6,6 +6,7 @@ import { canPayCost, payCost, payOneCostOption } from "../costs.js";
 import { describeAction } from "../describe.js";
 import { type ActionScope, installActionRunner } from "../dispatch.js";
 import { unsupported } from "../errors.js";
+import { permanentMatchesFilter } from "../matching/permanent.js";
 import { scaleFactor } from "../scaling.js";
 import { targetFateOf } from "../targetFate.js";
 import { DEFAULT_PLAY_ZONES, candidateLooseInstances, zoneList } from "../targeting/loose.js";
@@ -356,6 +357,18 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     candidatePermanents(ctx, action.target).length === 0
   ) {
     return action.abortOnDecline === true;
+  }
+  // A breeding move with a processing cost is possible only when the controller's current
+  // breeding Digimon satisfies the printed target filter. Preflight before the optional prompt
+  // and generic cost path so an ineligible Lv.-/0-DP card cannot suspend or otherwise pay for a
+  // move that the board handler will reject (BT14-088, Q2463).
+  if (action.kind === "MovePermanent" && action.direction === "toBattle") {
+    const bred = ctx.game.player(ctx.source.ownerSeat).breeding;
+    const eligible =
+      bred?.topCard !== undefined &&
+      ctx.game.definitionOf(bred.topCard).level !== undefined &&
+      (action.target === undefined || permanentMatchesFilter(ctx, bred, action.target.filter, ctx.source));
+    if (!eligible) return action.abortOnDecline === true;
   }
   if (
     action.kind === "Unsuspend" &&
