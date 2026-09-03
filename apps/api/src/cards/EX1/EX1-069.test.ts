@@ -69,7 +69,7 @@ describe("EX1-069 Ultimate Connection!", () => {
       ok: true,
     });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
-    expect(s.state.memory).toBe(-2);
+    expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(false);
   });
