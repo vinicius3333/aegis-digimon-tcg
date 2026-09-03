@@ -7,11 +7,7 @@ const compiled: CompiledCard = {
     {
       trigger: "WhenAttacking",
       actions: [
-        {
-          kind: "SubTrigger",
-          event: "whenAttacking",
-          actions: [{ kind: "Draw", controller: "mine", amount: 1, condition: { kind: "attackTargetsPlayer" } }],
-        },
+        { kind: "Draw", controller: "mine", amount: 1, condition: { kind: "attackTargetsPlayer" } },
       ],
       isInherited: true,
       frequency: "OncePerTurn",
