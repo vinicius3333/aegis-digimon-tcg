@@ -63,4 +63,34 @@ describe("EX1-058 Devimon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX1-061")).toBe(true);
   });
+
+  it("mandatorily returns an eligible candidate from trash after host deletion", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX1-060", as: "host", under: ["EX1-058"], dp: 1000 }],
+          trash: [{ card: "EX1-056", as: "candidate" }],
+          deck: ["BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-010", as: "target", dp: 5000, suspended: true }],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("candidate").instanceId);
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("candidate").instanceId));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("candidate").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX1-058")).toBe(true);
+  });
 });
