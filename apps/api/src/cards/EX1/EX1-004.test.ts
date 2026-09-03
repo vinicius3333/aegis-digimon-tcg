@@ -8,7 +8,7 @@ describe("EX1-004 Greymon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-012", as: "attacker", under: ["EX1-004"] }],
+          battleArea: [{ card: "BT1-020", as: "attacker", under: ["EX1-004"] }],
           hand: [{ card: "ST1-12", as: "tai" }],
         },
         1: { security: ["BT1-001", "BT1-001"] },
@@ -34,7 +34,7 @@ describe("EX1-004 Greymon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-012", as: "attacker", under: ["EX1-004"] }],
+          battleArea: [{ card: "BT1-020", as: "attacker", under: ["EX1-004"] }],
           hand: [{ card: "BT1-085", as: "tai" }],
         },
         1: { security: ["BT1-001", "BT1-001"] },
@@ -49,7 +49,7 @@ describe("EX1-004 Greymon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => false, 40);
+    await settle(() => s.perm("attacker").isSuspended);
     expect(s.state.players[0]!.hand[0]!.instanceId).toBe(s.inst("tai").instanceId);
   });
 
@@ -57,7 +57,7 @@ describe("EX1-004 Greymon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-012", as: "attacker", under: ["EX1-004"] }],
+          battleArea: [{ card: "BT1-020", as: "attacker", under: ["EX1-004"] }],
           hand: [{ card: "AD1-022", as: "combinedTai" }],
         },
         1: { security: ["BT1-001", "BT1-001"] },
@@ -72,7 +72,7 @@ describe("EX1-004 Greymon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => false, 40);
+    await settle(() => s.perm("attacker").isSuspended);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("combinedTai").instanceId)).toBe(true);
   });
 
@@ -80,7 +80,7 @@ describe("EX1-004 Greymon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-012", as: "attacker", under: ["EX1-004"] }],
+          battleArea: [{ card: "BT1-020", as: "attacker", under: ["EX1-004"] }],
           hand: [{ card: "ST1-12", as: "tai" }],
         },
         1: { security: ["BT1-001", "BT1-001"] },
@@ -93,7 +93,7 @@ describe("EX1-004 Greymon", () => {
       attackerPermanentId: s.perm("attacker").permanentId,
       target: { kind: "player" },
     })).toEqual({ ok: true });
-    await settle(() => false, 40);
+    await settle(() => s.perm("attacker").isSuspended);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tai").instanceId)).toBe(true);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
   });
@@ -102,7 +102,7 @@ describe("EX1-004 Greymon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-012", as: "attacker", under: ["EX1-004"] }],
+          battleArea: [{ card: "BT1-020", as: "attacker", under: ["EX1-004"] }],
           hand: [{ card: "ST1-12", as: "tai1" }, { card: "ST1-12", as: "tai2" }],
         },
         1: { security: ["BT1-001", "BT1-001", "BT1-001"] },
@@ -119,7 +119,7 @@ describe("EX1-004 Greymon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 2);
     await advance(s.engine).verb.unsuspend([s.perm("attacker").permanentId]);
     expect(attack()).toEqual({ ok: true });
-    await settle(() => false, 40);
+    await settle(() => s.perm("attacker").isSuspended);
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tai2").instanceId)).toBe(true);
   });
