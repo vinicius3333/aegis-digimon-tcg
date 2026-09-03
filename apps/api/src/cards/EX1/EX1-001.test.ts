@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../BT1/BT1-036.js";
 import "./EX1-001.js";
 
 describe("EX1-001 Agumon", () => {
@@ -42,12 +42,14 @@ describe("EX1-001 Agumon", () => {
       {
         0: {
           battleArea: [{ card: "EX1-003", as: "attacker", under: ["EX1-001"] }],
+          hand: [{ card: "BT1-036", as: "unsuspender" }],
           deck: ["BT11-046", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
         },
         1: { security: ["BT1-001", "BT1-001", "BT1-001"] },
       },
       { autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
 
     expect(
@@ -57,10 +59,17 @@ describe("EX1-001 Agumon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.length === 1);
-    expect(s.state.players[0]!.hand[0]!.cardId).toBe("BT11-046");
+    await settle(() => s.state.players[0]!.hand.length === 2);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT11-046")).toBe(true);
 
-    await advance(s.engine).verb.unsuspend([s.perm("attacker").permanentId]);
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("unsuspender").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.perm("attacker").isSuspended);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -73,16 +82,44 @@ describe("EX1-001 Agumon", () => {
   });
 
   it("works after a legal public egg-to-Agumon evolution and higher-level host", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-001", as: "base" }], hand: [{ card: "EX1-001", as: "rookie" }, { card: "EX1-003", as: "host" }], deck: ["ST1-12", "BT1-011", "BT1-012"] },
-      1: { security: ["BT1-001", "BT1-001"] },
-    }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-001", as: "base" }],
+          hand: [
+            { card: "EX1-001", as: "rookie" },
+            { card: "EX1-003", as: "host" },
+          ],
+          deck: ["ST1-12", "BT1-011", "BT1-012"],
+        },
+        1: { security: ["BT1-001", "BT1-001"] },
+      },
+      { autoSelectCards: true },
+    );
     s.state.memory = 6;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("rookie").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("rookie").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "EX1-001");
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("host").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("host").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "EX1-003");
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("base").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.length === 1);
     expect(s.state.players[0]!.hand[0]!.cardId).toBe("ST1-12");
   });

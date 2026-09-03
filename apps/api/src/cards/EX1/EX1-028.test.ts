@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../BT1/BT1-036.js";
 import "./EX1-028.js";
 
 describe("EX1-028 Angemon", () => {
@@ -63,7 +64,13 @@ describe("EX1-028 Angemon", () => {
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("host").currentDP === 7000);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
@@ -79,14 +86,31 @@ describe("EX1-028 Angemon", () => {
 
   it("does not apply the inherited bonus twice in one turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-060", as: "host", under: ["EX1-028"] }], security: ["BT1-001", "BT1-001", "BT1-001"] },
+      0: {
+        battleArea: [{ card: "BT1-060", as: "host", under: ["EX1-028"] }],
+        hand: [{ card: "BT1-036", as: "unsuspender" }],
+        security: ["BT1-001", "BT1-001", "BT1-001"],
+      },
       1: { security: ["BT1-001", "BT1-001", "BT1-001"] },
     });
+    s.state.memory = 10;
     await s.ready();
-    const attack = () => s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } });
+    const attack = () =>
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      });
     expect(attack()).toEqual({ ok: true });
     await settle(() => s.perm("host").currentDP === 7000);
-    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("unsuspender").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.perm("host").isSuspended);
     expect(attack()).toEqual({ ok: true });
     await settle(() => s.perm("host").isSuspended);
     expect(s.perm("host").currentDP).toBe(7000);
