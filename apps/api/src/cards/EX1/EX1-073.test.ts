@@ -216,4 +216,33 @@ describe("EX1-073 Machinedramon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("machine"), "Blocker")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("machine"), "Reboot")).toBe(false);
   });
+
+  it("caps placement at five unique eligible cards and leaves wrong level/trait cards in hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX1-073", as: "machine" },
+            "EX1-008",
+            "EX1-050",
+            "BT1-021",
+            "BT1-024",
+            "BT10-065",
+            "BT11-067",
+            { card: "EX1-047", as: "wrongLevel" },
+            { card: "BT1-020", as: "wrongTrait" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 12;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("machine").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("machine").stack.length === 5);
+    expect(s.perm("machine").stack).toHaveLength(5);
+    expect(new Set(s.perm("machine").stack.map((card) => card.cardId)).size).toBe(5);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("wrongLevel").instanceId, s.inst("wrongTrait").instanceId]),
+    );
+  });
 });
