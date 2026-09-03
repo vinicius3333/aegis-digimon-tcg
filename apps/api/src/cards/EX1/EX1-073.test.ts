@@ -245,4 +245,70 @@ describe("EX1-073 Machinedramon", () => {
       expect.arrayContaining([s.inst("wrongLevel").instanceId, s.inst("wrongTrait").instanceId]),
     );
   });
+
+  it("can pay deletion prevention again for a separate deletion event (Q6030)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "EX1-073",
+              as: "machine",
+              under: ["EX1-050", "EX1-050", "BT1-020", "BT1-020"],
+            },
+          ],
+          deck: ["BT1-001", "BT1-001"],
+          security: ["BT1-001", "BT1-001"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-084", dp: 15_000, as: "firstAttacker" },
+            { card: "BT1-084", dp: 15_000, as: "secondAttacker" },
+          ],
+          deck: ["BT1-001", "BT1-001"],
+          security: ["BT1-001", "BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("machine").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("machine").isSuspended);
+    await advance(s.engine).waitForMainPhase(1);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("firstAttacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("machine").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("machine").stack.length === 2);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("machine").permanentId)).toBe(
+      true,
+    );
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("secondAttacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("machine").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("machine").stack.length === 0);
+    expect(s.perm("machine").stack).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("machine").permanentId)).toBe(
+      true,
+    );
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
 });
