@@ -18,7 +18,13 @@ describe("BT16-032", () => {
     expect(compiled.effects?.[1]?.actions?.[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenAttackTargetSwitched",
-      actions: [{ kind: "RedirectAttack", mode: "endAttack", optional: true }],
+      actions: [
+        {
+          kind: "RedirectAttack",
+          mode: "endAttack",
+          optional: true,
+        },
+      ],
     });
   });
 

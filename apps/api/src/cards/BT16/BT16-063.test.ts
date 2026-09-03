@@ -29,7 +29,9 @@ describe("BT16-063", () => {
       from: ["battleArea"],
       toTop: false,
       condition: { kind: "isDnaDigivolving" },
-      source: { filter: { zone: "battleArea" } },
+      source: {
+        filter: { zone: "battleArea", level: { lte: { kind: "chooseEitherSecurityCount" } } },
+      },
     });
   });
 
@@ -53,10 +55,7 @@ describe("BT16-063", () => {
     expect(
       s.engine.applyIntent(0, {
         type: "dnaDigivolve",
-        materialPermanentIds: [
-          s.perm("blackMaterial").permanentId,
-          s.perm("yellowMaterial").permanentId,
-        ],
+        materialPermanentIds: [s.perm("blackMaterial").permanentId, s.perm("yellowMaterial").permanentId],
         instanceId: s.inst("shakkou").instanceId,
       }),
     ).toEqual({ ok: true });
@@ -67,5 +66,43 @@ describe("BT16-063", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[1]!.security[0]?.cardId).toBe("BT1-009");
+  });
+
+  it("uses the opponent security count for the level cap and rejects a level-5 target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-061", as: "blackMaterial" },
+            { card: "BT10-035", as: "yellowMaterial" },
+          ],
+          hand: [{ card: "BT16-063", as: "shakkou" }],
+          security: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-027", as: "level4Target" },
+            { card: "BT1-038", as: "level5Target" },
+          ],
+          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 0;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("blackMaterial").permanentId, s.perm("yellowMaterial").permanentId],
+        instanceId: s.inst("shakkou").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-063"));
+
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT1-038"]);
+    expect(s.state.players[1]!.security).toHaveLength(5);
+    expect(s.state.players[1]!.security.some((card) => card.cardId === "BT1-027")).toBe(true);
   });
 });

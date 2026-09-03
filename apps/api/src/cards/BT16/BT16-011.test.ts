@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
+import { definitionOf, matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
+import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-011.js";
 import "../index.js";
 
 describe("BT16-011", () => {
   it("returns a red Digimon from trash and conditionally deletes an opposing Digimon at or below this DP", () => {
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Garudamon"], cost: 0, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Garudamon"], cost: 0, isAlternate: true }]);
     expect(compiled.effects?.[0]?.actions[0]).toMatchObject({ kind: "Return", to: "hand", optional: true });
     expect(compiled.effects?.[0]?.actions[1]).toMatchObject({
       kind: "Delete",
@@ -17,11 +19,28 @@ describe("BT16-011", () => {
       condition: {
         filter: {
           nameOrTrait: [
-            { tokens: ["Garudamon"], match: "name" },
+            { tokens: ["Garudamon"], match: "nameExact" },
             { tokens: ["X Antibody"], match: "trait" },
           ],
         },
       },
+    });
+  });
+
+  it("matches the bracketed Garudamon stack card by exact name", () => {
+    const reference: { tokens: string[]; match: "nameExact" } = {
+      tokens: ["Garudamon"],
+      match: "nameExact",
+    };
+    expect(matchNameOrTrait(definitionOf("BT13-014"), reference)).toBe(true);
+    expect(matchNameOrTrait(definitionOf("BT16-011"), reference)).toBe(false);
+    expect(matchingAlternateDigivolutionRequirement("BT16-011", "BT13-014")).toMatchObject({
+      namesExact: ["Garudamon"],
+      cost: 0,
+    });
+    expect(matchingAlternateDigivolutionRequirement("BT16-011", "BT16-011")).toBeUndefined();
+    expect(compiled.effects?.[0]?.actions[1]).toMatchObject({
+      condition: { filter: { nameOrTrait: [reference, { tokens: ["X Antibody"], match: "trait" }] } },
     });
   });
   it("gains Rush when a red card returns from trash and trashes opponent security on deletion", () => {

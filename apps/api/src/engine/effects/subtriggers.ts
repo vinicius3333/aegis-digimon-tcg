@@ -544,7 +544,7 @@ export class SubTriggerRegistry {
       // is an Option (BT25-100/101, KB Q6471/Q6476).
       const sourceKinds = sub.isLinkedSource === true ? [CardKind.Digimon] : [...(ctx.source?.definition?.kinds ?? [])];
       ctx.effectSourceKinds = sourceKinds;
-      ctx.fx?.enterEffectResolution?.(ctx.source.ownerSeat, sourceKinds);
+      ctx.fx?.enterEffectResolution?.(ctx.source.ownerSeat, sourceKinds, ctx.source.permanent?.()?.permanentId);
       try {
         await sub.run(ctx);
       } finally {

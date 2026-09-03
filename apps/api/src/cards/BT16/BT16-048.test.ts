@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { digivolutionRequirementsFor } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import { compiled } from "./BT16-048.js";
 import "../index.js";
 
@@ -34,8 +35,10 @@ describe("BT16-048", () => {
       actions: [{ kind: "Return", to: "deckBottom", optional: true, abortOnDecline: true, cost: { kind: "suspend" } }],
     });
     expect(digivolutionRequirementsFor("BT16-048")).toEqual([
-      { level: 6, traits: ["Insectoid"], cost: 2, isAlternate: true, playCostLte: 13 },
+      { level: 6, traits: ["Insectoid"], cost: 2, isAlternate: true, basePlayCostMax: 13 },
     ]);
+    expect(matchingAlternateDigivolutionRequirement("BT16-048", "BT16-046")?.cost).toBe(2);
+    expect(matchingAlternateDigivolutionRequirement("BT16-048", "BT16-048")).toBeUndefined();
   });
 
   it("suspends another own Digimon and bottom-decks an opposing Digimon within its DP", async () => {
@@ -64,7 +67,10 @@ describe("BT16-048", () => {
       {
         0: {
           battleArea: [{ card: "BT16-045", as: "base" }],
-          hand: [{ card: "BT16-048", as: "tyrant" }, { card: "BT16-042", as: "played" }],
+          hand: [
+            { card: "BT16-048", as: "tyrant" },
+            { card: "BT16-042", as: "played" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

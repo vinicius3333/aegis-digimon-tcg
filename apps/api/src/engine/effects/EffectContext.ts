@@ -44,6 +44,7 @@ export type EnforcedRestriction =
   | "beSuspended" // "can't be suspended" by effects; combat self-suspend is exempt (BT19-101 KB Q3185)
   | "beTrashed"
   | "beReturned"
+  | "leaveBattleAreaExceptByDeletion"
   | "digivolve"
   | "digivolveToLevel7"
   | "attackTargetChange"
@@ -187,6 +188,8 @@ export interface TriggerInfo {
   attackMechanic?: string;
   /** The defending permanent of the in-flight battle (the original target or the blocker). */
   defenderPermanentId?: string;
+  /** Permanent whose currently resolving effect or battle deleted the event subject. */
+  deletingPermanentId?: string;
   /** The Digimon that declared a block this battle (＜Blocker＞ window). */
   blockerPermanentId?: string;
   targetPermanentId?: string;
@@ -1028,8 +1031,8 @@ export interface Primitives {
     instanceIds: string[],
     opts?: { toTop?: boolean; faceUp?: boolean; detachPermanentTop?: boolean },
   ): Promise<void>;
-  /** Resolution-source stack used by opponent-scoped and source-kind-qualified restrictions. */
-  enterEffectResolution?(seat: Seat, sourceKinds?: string[]): void;
+  /** Resolution-source stack used by ownership, source-kind, and deletion-provenance checks. */
+  enterEffectResolution?(seat: Seat, sourceKinds?: string[], sourcePermanentId?: string): void;
   leaveEffectResolution?(): void;
   restrictSecurityAddsFromEffect?(blockedEffectSeat: Seat, granterSeat: Seat, duration: EffectDuration): void;
   grantPierce(permanentId: string, duration: EffectDuration, opts?: { continuous?: boolean }): void;

@@ -17,7 +17,10 @@ describe("BT16-070", () => {
         abortOnDecline: true,
         target: { bindAs: "chosenDigimon" },
       });
-      expect(effect.actions?.[1]).toMatchObject({ kind: "Delete", target: { fromSelectionRef: "chosenDigimon" } });
+      expect(effect.actions?.[1]).toMatchObject({
+        kind: "Delete",
+        target: { filter: {}, fromSelectionRef: "chosenDigimon" },
+      });
       expect(effect.actions?.[2]).toMatchObject({
         kind: "Delete",
         target: { filter: { relativeTo: { attr: "dp", op: "lte", selectionRef: "chosenDigimon" } } },

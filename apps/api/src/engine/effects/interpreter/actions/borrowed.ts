@@ -136,7 +136,10 @@ function collectForeignCandidates(
     const self = ctx.source.permanent();
     if (self !== undefined) {
       for (const card of self.stack)
-        if (card.faceUp || (action.lastPlacedOnly === true && (ctx.lastPlacedUnderInstanceIds ?? []).includes(card.instanceId)))
+        if (
+          card.faceUp ||
+          (action.lastPlacedOnly === true && (ctx.lastPlacedUnderInstanceIds ?? []).includes(card.instanceId))
+        )
           sources.push({ instanceId: card.instanceId, cardId: card.cardId });
     }
   } else {
@@ -274,26 +277,38 @@ export async function runActivateForeignEffect(
     ...runCtx,
     borrowedEffectOverrides: undefined,
   };
-  for (const borrowed of toRun.slice(0, action.count)) {
-    const eff = borrowed.effect;
-    const borrowedEffectOverrides =
-      action.borrowedEffectOverrides?.sourceCardId === borrowed.sourceCardId &&
-      action.borrowedEffectOverrides.trigger === eff.trigger
-        ? action.borrowedEffectOverrides
-        : undefined;
-    await runEffect(
-      {
-        ...runCtx,
-        borrowedEffectOverrides,
-        activeTiming: eff.trigger,
-        activeEffectText: eff.description ?? describeEffect(eff),
-      },
-      eff,
+  const lenderIsEffectiveSource = action.useLenderAsSource === true && chosen.permanentId !== undefined;
+  if (lenderIsEffectiveSource) {
+    runCtx.fx.enterEffectResolution?.(
+      runCtx.source.ownerSeat,
+      [...(runCtx.source.definition.kinds ?? [])],
+      runCtx.source.permanent()?.permanentId,
     );
-    const registered = registeredBorrowedEffect(ctx, borrowed);
-    if (registered !== undefined && registered.maxPerTurn > 0) {
-      ctx.usage?.register(borrowed.sourceInstanceId, registered.effectKey);
+  }
+  try {
+    for (const borrowed of toRun.slice(0, action.count)) {
+      const eff = borrowed.effect;
+      const borrowedEffectOverrides =
+        action.borrowedEffectOverrides?.sourceCardId === borrowed.sourceCardId &&
+        action.borrowedEffectOverrides.trigger === eff.trigger
+          ? action.borrowedEffectOverrides
+          : undefined;
+      await runEffect(
+        {
+          ...runCtx,
+          borrowedEffectOverrides,
+          activeTiming: eff.trigger,
+          activeEffectText: eff.description ?? describeEffect(eff),
+        },
+        eff,
+      );
+      const registered = registeredBorrowedEffect(ctx, borrowed);
+      if (registered !== undefined && registered.maxPerTurn > 0) {
+        ctx.usage?.register(borrowed.sourceInstanceId, registered.effectKey);
+      }
     }
+  } finally {
+    if (lenderIsEffectiveSource) runCtx.fx.leaveEffectResolution?.();
   }
 }
 
@@ -566,7 +581,9 @@ export async function runActivateMain(ctx: EffectContext): Promise<void> {
   const sourceKinds = ctx.source.definition.kinds;
   const activatesDualOptionFace = sourceKinds.includes(CardKind.Digimon) && sourceKinds.includes(CardKind.Option);
   const mainCtx = activatesDualOptionFace ? { ...ctx, effectSourceKinds: [CardKind.Option] } : ctx;
-  if (activatesDualOptionFace) ctx.fx.enterEffectResolution?.(ctx.source.ownerSeat, [CardKind.Option]);
+  if (activatesDualOptionFace) {
+    ctx.fx.enterEffectResolution?.(ctx.source.ownerSeat, [CardKind.Option], ctx.source.permanent()?.permanentId);
+  }
   try {
     for (const effect of mains) await runEffect(mainCtx, effect);
   } finally {

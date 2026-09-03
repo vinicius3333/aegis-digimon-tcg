@@ -874,6 +874,13 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const definition = cardId !== undefined ? getCardDefinition(cardId) : undefined;
       return definition !== undefined && (definition.level ?? -1) >= (cond.value ?? 0);
     }
+    case "triggerDeletedMatchesFilter": {
+      if (cond.filter === undefined) return false;
+      const cardIds =
+        ctx.trigger.deletedPermanentSnapshots?.map((snapshot) => snapshot.topCardId) ??
+        (ctx.trigger.deletedTopCardId === undefined ? [] : [ctx.trigger.deletedTopCardId]);
+      return cardIds.some((cardId) => definitionMatches(cond.filter!, ctx.game.definitionOf({ cardId } as never)));
+    }
     case "triggerDeletedStackMatchesFilter": {
       const filter = cond.filter;
       if (filter === undefined) return false;
@@ -884,6 +891,8 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
         return card !== undefined && definitionMatches(filter, ctx.game.definitionOf(card));
       });
     }
+    case "triggerDeleterIsSelf":
+      return ctx.source.permanent()?.permanentId === ctx.trigger.deletingPermanentId;
     case "triggerAttackerIsSelf":
       return ctx.source.permanent()?.permanentId === ctx.trigger.attackerPermanentId;
     case "triggerAttackerMatchesFilter": {

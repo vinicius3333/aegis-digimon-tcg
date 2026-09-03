@@ -717,6 +717,10 @@ export class GameEngine {
               blockerPermanentId: trigger.blockerPermanentId,
               ...(trigger.target?.kind === "permanent" ? { targetPermanentId: trigger.target.permanentId } : {}),
               deletedPermanentId: trigger.deletedPermanentId,
+              deletedPermanentIds: trigger.deletedPermanentIds,
+              deletedPermanentSnapshots: trigger.deletedPermanentSnapshots,
+              deletingPermanentId: trigger.deletingPermanentId,
+              removalCause: trigger.removalCause,
               deletedTopCardId: trigger.deletedTopCardId,
               deletedEffectiveColorsByInstanceId: trigger.deletedEffectiveColorsByInstanceId,
               deletedInstanceIds: trigger.deletedInstanceIds,
@@ -737,6 +741,10 @@ export class GameEngine {
           blockerPermanentId: trigger.blockerPermanentId,
           ...(trigger.target?.kind === "permanent" ? { targetPermanentId: trigger.target.permanentId } : {}),
           deletedPermanentId: trigger.deletedPermanentId,
+          deletedPermanentIds: trigger.deletedPermanentIds,
+          deletedPermanentSnapshots: trigger.deletedPermanentSnapshots,
+          deletingPermanentId: trigger.deletingPermanentId,
+          removalCause: trigger.removalCause,
           deletedTopCardId: trigger.deletedTopCardId,
           deletedEffectiveColorsByInstanceId: trigger.deletedEffectiveColorsByInstanceId,
           deletedInstanceIds: trigger.deletedInstanceIds,
@@ -3471,11 +3479,13 @@ export class GameEngine {
       await this.fireSubTrigger("whenOneOfYoursDigivolves", {
         subjectPermanentId,
         enteredByEffect: ownerSeat,
+        ...(opts?.isDnaDigivolve === true ? { isDnaDigivolve: true } : {}),
         ...(opts?.digivolvedFromZone !== undefined ? { digivolvedFromZone: opts.digivolvedFromZone } : {}),
       });
       await this.fireSubTrigger("whenAnyDigivolves", {
         subjectPermanentId,
         enteredByEffect: ownerSeat,
+        ...(opts?.isDnaDigivolve === true ? { isDnaDigivolve: true } : {}),
         ...(opts?.digivolvedFromZone !== undefined ? { digivolvedFromZone: opts.digivolvedFromZone } : {}),
       });
     }
@@ -5762,7 +5772,8 @@ export class GameEngine {
           ...(conferralGranterInstanceId === undefined ? {} : { conferralGranterInstanceId }),
         }),
       tracker: this.tracker,
-      enterEffectResolution: (seat, sourceKinds) => this.primitives.enterEffectResolution?.(seat, sourceKinds),
+      enterEffectResolution: (seat, sourceKinds, sourcePermanentId) =>
+        this.primitives.enterEffectResolution?.(seat, sourceKinds, sourcePermanentId),
       leaveEffectResolution: () => this.primitives.leaveEffectResolution?.(),
     };
   }

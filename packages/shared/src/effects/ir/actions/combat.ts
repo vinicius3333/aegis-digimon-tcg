@@ -47,11 +47,8 @@ export interface BattleAction extends ActionBase {
   target?: Target;
 }
 
-/** "Change the attack target to <target>". */
-export interface RedirectAttackAction extends ActionBase {
+interface RedirectAttackBase extends ActionBase {
   kind: "RedirectAttack";
-  /** The Digimon to be attacked instead. */
-  target: Target;
   /** Also allow the defending player as a legal redirected target. */
   includePlayer?: boolean;
   /**
@@ -61,10 +58,22 @@ export interface RedirectAttackAction extends ActionBase {
   chooser?: "controller" | "opponent";
   /** On decline the attack proceeds unchanged. Absent means mandatory. */
   optional?: boolean;
-  /** "mustAttack" forces the target to attack. */
-  mode?: string;
   controller?: Controller;
 }
+
+/** Change the attack target, or end it after an earlier target switch. */
+export type RedirectAttackAction =
+  | (RedirectAttackBase & {
+      /** The Digimon to be attacked instead. */
+      target: Target;
+      /** "mustAttack" forces the target to attack. */
+      mode?: "mustAttack";
+    })
+  | (RedirectAttackBase & {
+      /** Legacy compiler spelling of the targetless EndAttack action. */
+      mode: "endAttack";
+      target?: never;
+    });
 
 /**
  * Select a permanent purely to BIND it for a later action ("Choose 1 of your [Shoutmon] Digimon.

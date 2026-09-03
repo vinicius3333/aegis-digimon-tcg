@@ -51,6 +51,8 @@ export interface DigivolutionRequirement {
   basePlayCost?: number;
   /** Minimum printed play cost of the base (BT20-101: "play cost 10 or higher"). */
   basePlayCostMin?: number;
+  /** Maximum printed play cost of the base (BT16-048: "play cost 13 or less"). */
+  basePlayCostMax?: number;
   /**
    * A NON-MEMORY enabling cost paid on top of `cost`: place `count` matching cards from `from`
    * at the BOTTOM of the owner's deck (BT7-112). The path is unavailable unless `count`

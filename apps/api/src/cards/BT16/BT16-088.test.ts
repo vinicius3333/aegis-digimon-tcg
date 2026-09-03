@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { irNode } from "../../engine/testkit/irNode.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-088.js";
 import "../index.js";
 
@@ -20,7 +20,8 @@ describe("BT16-088", () => {
         },
         {
           kind: "SubTrigger",
-          event: "endOfOpponentTurn",
+          event: "endOfTurn",
+          turnScope: "opponentsTurn",
           once: true,
           on: { filter: { boundRef: "playedArmadillomonOrPatamon" }, count: 1 },
           actions: [{ kind: "Return", to: "hand" }],
@@ -41,7 +42,7 @@ describe("BT16-088", () => {
             {
               kind: "DeDigivolve",
               amount: 1,
-              condition: { kind: "allOf", conditions: [{ kind: "isDnaDigivolving" }, { kind: "ifThisEffectActed" }] },
+              condition: { kind: "isDnaDigivolving" },
             },
           ],
         },
@@ -83,5 +84,47 @@ describe("BT16-088", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-027")).toBe(false);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("armadillomon").instanceId)).toBe(true);
+  });
+
+  it("suspends for memory and de-digivolves an opponent when a black-and-yellow DNA digivolve resolves", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT16-088", as: "tamer" },
+            { card: "BT10-061", as: "blackMaterial" },
+            { card: "BT10-035", as: "yellowMaterial" },
+          ],
+          hand: [{ card: "BT16-063", as: "shakkou" }],
+          security: [],
+        },
+        1: {
+          battleArea: [{ card: "BT1-015", as: "opponent", under: ["BT1-009"] }],
+          security: [],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("blackMaterial").permanentId, s.perm("yellowMaterial").permanentId],
+        instanceId: s.inst("shakkou").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-063") &&
+        s.perm("tamer").isSuspended &&
+        s.perm("opponent").topCard?.cardId === "BT1-009",
+    );
+
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(s.perm("opponent").topCard?.cardId).toBe("BT1-009");
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-015")).toBe(true);
   });
 });

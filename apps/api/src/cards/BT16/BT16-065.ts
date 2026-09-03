@@ -1,13 +1,12 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const bossFilter = {
+const bossFilter: Filter = {
   kind: ["Digimon"],
   nameOrTrait: [{ tokens: ["Boss"], match: "trait" }],
-} as const;
+};
 
-const revealDelete = {
+const revealDelete: Action = {
   kind: "RevealChooseDeleteBudget",
   revealCount: 3,
   revealController: "mine",
@@ -15,7 +14,7 @@ const revealDelete = {
   deleteFilter: { controller: "opponent", kind: ["Digimon"] },
   deleteCount: 1,
   returnRevealed: "trash",
-} as const;
+};
 
 export const compiled: CompiledCard = {
   effects: [

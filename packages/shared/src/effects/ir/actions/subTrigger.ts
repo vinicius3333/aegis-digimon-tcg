@@ -64,6 +64,7 @@ export type SubTriggerEvent =
   | "whenTrashedFromSecurity"
   | "whenTrashedFromHand"
   | "whenEffectAddsToHand"
+  | "whenCardReturnsFromTrashToHand"
   | "whenEffectAddsToOpponentHand" // any effect-driven hand addition, unlike the draw-only whenOpponentDraws
   | "whenDigimonWouldLeave" // the ＜Delay＞ watcher (BT19-099); aliases whenLeavesPlay at runtime
   | "wouldBeReturned" // BT20-074; CAP-C-11

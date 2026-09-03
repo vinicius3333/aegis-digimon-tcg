@@ -151,8 +151,8 @@ export function advance(engine: GameEngine) {
        * opponent-scoped and source-kind-qualified restrictions see the same context they
        * would mid-resolution. Pair every call with `leaveEffectResolution`.
        */
-      enterEffectResolution(seat: Seat, sourceKinds?: string[]): void {
-        internals.primitives.enterEffectResolution?.(seat, sourceKinds);
+      enterEffectResolution(seat: Seat, sourceKinds?: string[], sourcePermanentId?: string): void {
+        internals.primitives.enterEffectResolution?.(seat, sourceKinds, sourcePermanentId);
       },
       /** Close the window opened by `enterEffectResolution`. */
       leaveEffectResolution(): void {

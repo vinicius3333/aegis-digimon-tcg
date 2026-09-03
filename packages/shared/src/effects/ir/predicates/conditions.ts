@@ -95,7 +95,9 @@ export interface Condition {
     | "triggerDigivolvedSameLevel" // BT9-092
     | "triggerSubjectStackHasSameLevel" // BT22-093: any source shares the current top's level
     | "triggerDeletedLevelAtLeast"
+    | "triggerDeletedMatchesFilter" // at least one deleted permanent's top card matches `filter`
     | "triggerDeletedStackMatchesFilter"
+    | "triggerDeleterIsSelf" // the source permanent caused the current battle/effect deletion (BT16-061)
     | "triggerAttackerIsSelf"
     | "triggerAttackerMatchesFilter"
     | "triggerDefenderIsSelf"

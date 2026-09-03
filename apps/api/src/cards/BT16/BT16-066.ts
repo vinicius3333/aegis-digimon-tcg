@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -22,6 +21,7 @@ const compiled: CompiledCard = {
           },
           optional: true,
           controller: "opponent",
+          chooser: "opponent",
         },
         {
           kind: "GainMemory",
@@ -48,6 +48,7 @@ const compiled: CompiledCard = {
           },
           optional: true,
           controller: "opponent",
+          chooser: "opponent",
         },
         {
           kind: "GainMemory",

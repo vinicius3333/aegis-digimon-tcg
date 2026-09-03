@@ -20,6 +20,7 @@ export type RestrictionKind =
   | "beDeleted"
   | "beTrashed"
   | "beReturned"
+  | "leaveBattleAreaExceptByDeletion"
   | "digivolve"
   | "digivolveToLevel7" // EX3-069, including DNA digivolution
   | "digivolveExceptInto" // POSITIVE constraint; carries an into-filter via RestrictDigivolveInto (EX10-035)

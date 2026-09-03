@@ -10,7 +10,7 @@ describe("BT16-044", () => {
     for (const effect of compiled.effects?.slice(0, 2) ?? []) {
       expect(effect.actions?.[0]).toMatchObject({
         kind: "SelectBind",
-        target: { bindAs: "suspended" },
+        target: { bindAs: "suspended", filter: { unsuspended: true } },
         condition: { kind: "securityAtLeast", value: 3 },
       });
       expect(effect.actions?.[1]).toMatchObject({ kind: "Suspend", target: { fromSelectionRef: "suspended" } });
@@ -91,6 +91,30 @@ describe("BT16-044", () => {
     expect(s.state.memory).toBe(5);
     expect(s.perm("opponent").isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "unsuspend")).toBe(true);
+  });
+
+  it("does not select an already suspended Digimon for the suspend-and-restrict branch", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT16-044", as: "pistmon" }], security: ["BT1-009", "BT1-009", "BT1-009"] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "alreadySuspended", suspended: true },
+            { card: "BT1-009", as: "unsuspended" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 6;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pistmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("unsuspended").isSuspended && s.state.memory === 2);
+
+    expect(observe(s.engine).isRestricted(s.perm("alreadySuspended"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("unsuspended"), "unsuspend")).toBe(true);
   });
 
   it("naturally pays the inherited security cost and unsuspends after attacking", async () => {

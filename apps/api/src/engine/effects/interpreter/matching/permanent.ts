@@ -474,8 +474,13 @@ export function permanentMatchesFilter(
   // stack" (BT16-063). A candidate is legal if it fits at least one of the two counts, which is
   // equivalent to checking against the maximum count.
   {
-    const levelShape = filter.level as { lte?: { kind?: string } } | undefined;
-    if (levelShape?.lte?.kind === "chooseEitherSecurityCount") {
+    const levelShape = filter.level;
+    if (
+      typeof levelShape === "object" &&
+      levelShape !== null &&
+      "lte" in levelShape &&
+      levelShape.lte.kind === "chooseEitherSecurityCount"
+    ) {
       const mine = ctx.game.player(ctx.source.ownerSeat).security.length;
       const opp = ctx.game.player(ctx.game.opponentOf(ctx.source.ownerSeat)).security.length;
       const bound = Math.max(mine, opp);

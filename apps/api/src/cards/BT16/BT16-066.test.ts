@@ -9,6 +9,7 @@ describe("BT16-066", () => {
       expect(effect.actions?.[0]).toMatchObject({
         kind: "Trash",
         controller: "opponent",
+        chooser: "opponent",
         optional: true,
         target: { filter: { kind: ["Digimon"] } },
       });
@@ -43,7 +44,8 @@ describe("BT16-066", () => {
       },
       { autoDeclineOptional: true },
     );
-    s.state.memory = 0;
+    // The normal digivolution costs 1; declining then gains that 1 back.
+    s.state.memory = 1;
     await s.ready();
 
     expect(
@@ -53,7 +55,7 @@ describe("BT16-066", () => {
         instanceId: s.inst("syako").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("source").topCard?.cardId === "BT16-066");
+    await settle(() => s.perm("source").topCard?.cardId === "BT16-066" && s.state.memory === 1);
 
     expect(s.state.memory).toBe(1);
     expect(s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("opponentDigimon").instanceId)).toBe(

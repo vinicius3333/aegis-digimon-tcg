@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -19,10 +18,8 @@ const compiled: CompiledCard = {
             },
             count: 1,
           },
-          grant: {
-            kind: "Protection",
-            protections: ["dpReduction", "deDigivolve"],
-          },
+          grant: "dpReductionImmunity",
+          tokens: ["DeDigivolveImmunity"],
           duration: "untilOpponentTurnEnd",
           condition: {
             kind: "securityAtLeast",
@@ -30,14 +27,24 @@ const compiled: CompiledCard = {
           },
         },
         {
-          kind: "GainKeyword",
+          kind: "SelectBind",
           target: {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
             },
             count: 1,
+            bindAs: "blockerRebootTarget",
           },
+          condition: {
+            kind: "securityAtMost",
+            value: 3,
+            raw: "you have 3 or fewer security cards",
+          },
+        },
+        {
+          kind: "GainKeyword",
+          target: { fromSelectionRef: "blockerRebootTarget", filter: {}, count: 1 },
           keyword: {
             keyword: "Blocker",
             raw: "＜Blocker＞",
@@ -51,13 +58,7 @@ const compiled: CompiledCard = {
         },
         {
           kind: "GainKeyword",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-            },
-            count: 1,
-          },
+          target: { fromSelectionRef: "blockerRebootTarget", filter: {}, count: 1 },
           keyword: {
             keyword: "Reboot",
             raw: "＜Reboot＞",
@@ -83,10 +84,8 @@ const compiled: CompiledCard = {
             },
             count: 1,
           },
-          grant: {
-            kind: "Protection",
-            protections: ["dpReduction", "deDigivolve"],
-          },
+          grant: "dpReductionImmunity",
+          tokens: ["DeDigivolveImmunity"],
           duration: "untilOpponentTurnEnd",
           condition: {
             kind: "securityAtLeast",
@@ -94,14 +93,24 @@ const compiled: CompiledCard = {
           },
         },
         {
-          kind: "GainKeyword",
+          kind: "SelectBind",
           target: {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
             },
             count: 1,
+            bindAs: "blockerRebootTarget",
           },
+          condition: {
+            kind: "securityAtMost",
+            value: 3,
+            raw: "you have 3 or fewer security cards",
+          },
+        },
+        {
+          kind: "GainKeyword",
+          target: { fromSelectionRef: "blockerRebootTarget", filter: {}, count: 1 },
           keyword: {
             keyword: "Blocker",
             raw: "＜Blocker＞",
@@ -115,13 +124,7 @@ const compiled: CompiledCard = {
         },
         {
           kind: "GainKeyword",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-            },
-            count: 1,
-          },
+          target: { fromSelectionRef: "blockerRebootTarget", filter: {}, count: 1 },
           keyword: {
             keyword: "Reboot",
             raw: "＜Reboot＞",

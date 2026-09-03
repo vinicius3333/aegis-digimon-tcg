@@ -386,6 +386,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   if (
     action.kind === "CostModifier" &&
     action.existingPermanent === true &&
+    action.target !== undefined &&
     candidatePermanents(ctx, action.target).length === 0
   ) {
     return action.abortOnDecline === true;

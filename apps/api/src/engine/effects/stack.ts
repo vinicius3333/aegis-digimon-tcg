@@ -490,7 +490,7 @@ async function resolveOne(
   // the physical linked card is an Option (BT25-100/101, KB Q6471/Q6476).
   const sourceKinds = effect.isLinked ? [CardKind.Digimon] : [...(source.definition.kinds ?? [])];
   ctx.effectSourceKinds = sourceKinds;
-  ctx.fx.enterEffectResolution?.(source.ownerSeat, sourceKinds);
+  ctx.fx.enterEffectResolution?.(source.ownerSeat, sourceKinds, source.permanent()?.permanentId);
   try {
     await effect.resolve(ctx);
   } finally {

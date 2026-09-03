@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -81,11 +80,9 @@ const compiled: CompiledCard = {
             count: 1,
             isSelf: true,
           },
-          grant: {
-            copyEffectsFromDigivolution: {
-              filter:
-                "This Digimon gains all of the effects on cards with [Gammamon] in their names in this Digimon's digivolution cards",
-            },
+          grant: "effects",
+          filter: {
+            nameOrTrait: [{ tokens: ["Gammamon"], match: "name" }],
           },
           duration: "permanent",
         },
@@ -103,11 +100,9 @@ const compiled: CompiledCard = {
             count: 1,
             isSelf: true,
           },
-          grant: {
-            copyEffectsFromDigivolution: {
-              filter:
-                "This Digimon gains all of the effects on cards with [Gammamon] in their names in this Digimon's digivolution cards",
-            },
+          grant: "effects",
+          filter: {
+            nameOrTrait: [{ tokens: ["Gammamon"], match: "name" }],
           },
           duration: "permanent",
         },
