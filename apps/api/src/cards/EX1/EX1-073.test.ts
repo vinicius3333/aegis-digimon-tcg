@@ -1,8 +1,10 @@
-import { EffectDuration } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../BT1/BT1-084.js";
+import "../BT1/BT1-106.js";
+import "../BT10/BT10-029.js";
 import "../BT1/BT1-114.js";
 import "./EX1-047.js";
 import "./EX1-048.js";
@@ -62,14 +64,33 @@ describe("EX1-073 Machinedramon", () => {
 
   it("cannot pay deletion prevention with fewer than 2 eligible level-5 sources", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX1-073", as: "machine", under: ["EX1-008"] }] } },
+      {
+        0: {
+          battleArea: [{ card: "EX1-073", as: "machine", under: ["EX1-008"] }],
+          deck: ["BT1-001", "BT1-001"],
+          security: ["BT1-001", "BT1-001"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-084", as: "attacker" }],
+          deck: ["BT1-001", "BT1-001"],
+          security: ["BT1-001", "BT1-001"],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-
-    await advance(s.engine).verb.deletePermanent([s.perm("machine").permanentId], "byEffect");
-
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("machine").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.perm("machine").isSuspended);
+    const ended = s.engine.applyIntent(0, { type: "endPhase" });
+    expect(ended.ok || ended.reason === "not-your-turn").toBe(true);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "permanent", permanentId: s.perm("machine").permanentId } })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map((c) => c.cardId)).toEqual(expect.arrayContaining(["EX1-073", "EX1-008"]));
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("Machine line reuses a Cyborg trashed by Ultimate Connection as Machinedramon material", async () => {
@@ -109,15 +130,41 @@ describe("EX1-073 Machinedramon", () => {
 
   it("cannot have its DP reduced and prevents deletion by trashing 2 level-5 sources", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX1-073", as: "machine", under: ["EX1-008", "EX1-050"] }] } },
+      {
+        0: {
+          battleArea: [{ card: "EX1-073", as: "machine", under: ["EX1-008", "EX1-050"] }],
+          deck: ["BT1-001", "BT1-001"],
+          security: ["BT1-001", "BT1-001"],
+        },
+        1: {
+          hand: [{ card: "BT1-106", as: "dpOption" }],
+          battleArea: [{ card: "BT10-029", as: "yellowSource" }, { card: "BT1-084", as: "attacker" }],
+          deck: ["BT1-001", "BT1-001"],
+          security: ["BT1-001", "BT1-001"],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
     const before = s.perm("machine").currentDP;
-    await advance(s.engine).verb.modifyDP(s.perm("machine").permanentId, -3000, EffectDuration.UntilEachTurnEnd);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("dpOption").instanceId })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT1-106"));
     expect(s.perm("machine").currentDP).toBe(before);
-    await advance(s.engine).verb.deletePermanent([s.perm("machine").permanentId], "byEffect");
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("machine").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.perm("machine").isSuspended);
+    const ended = s.engine.applyIntent(0, { type: "endPhase" });
+    expect(ended.ok || ended.reason === "not-your-turn").toBe(true);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "permanent", permanentId: s.perm("machine").permanentId } })).toEqual({ ok: true });
+    await settle(() => s.perm("machine").stack.length === 0);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.perm("machine").stack).toHaveLength(0);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("trashes prevention cards only from Machinedramon's own stack", async () => {
@@ -128,16 +175,31 @@ describe("EX1-073 Machinedramon", () => {
             { card: "EX1-073", as: "machine", under: ["EX1-008", "EX1-050"] },
             { card: "EX1-060", as: "otherHost", under: ["EX1-061", "EX1-062"] },
           ],
+          deck: ["BT1-001", "BT1-001"],
+          security: ["BT1-001", "BT1-001"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-084", as: "attacker" }],
+          deck: ["BT1-001", "BT1-001"],
+          security: ["BT1-001", "BT1-001"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-
-    await advance(s.engine).verb.deletePermanent([s.perm("machine").permanentId], "byEffect");
-
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("machine").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.perm("machine").isSuspended);
+    const ended = s.engine.applyIntent(0, { type: "endPhase" });
+    expect(ended.ok || ended.reason === "not-your-turn").toBe(true);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "permanent", permanentId: s.perm("machine").permanentId } })).toEqual({ ok: true });
+    await settle(() => s.perm("machine").stack.length === 0);
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
     expect(s.perm("machine").stack).toHaveLength(0);
     expect(s.perm("otherHost").stack).toHaveLength(2);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("combines the historical Cyborg package into one Machinedramon attack", async () => {
@@ -199,22 +261,34 @@ describe("EX1-073 Machinedramon", () => {
               under: ["EX1-048", "EX1-049", "EX1-050", "BT1-114"],
             },
           ],
+          deck: ["BT1-001", "BT1-001"],
+          security: ["BT1-001", "BT1-001"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-084", as: "attacker" }],
+          deck: ["BT1-001", "BT1-001"],
+          security: ["BT1-001", "BT1-001"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
-    await s.ready();
-
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("machine").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.perm("machine").isSuspended);
+    await advance(s.engine).waitForMainPhase(1);
     expect(observe(s.engine).hasKeyword(s.perm("machine"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("machine"), "Reboot")).toBe(true);
-
-    await advance(s.engine).verb.deletePermanent([s.perm("machine").permanentId], "byEffect");
-
+    expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("machine").permanentId })).toEqual({ ok: true });
+    await settle(() => s.perm("machine").stack.length === 2);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.perm("machine").stack).toHaveLength(2);
     expect(observe(s.engine).hasKeyword(s.perm("machine"), "Blocker")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("machine"), "Reboot")).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("caps placement at five unique eligible cards and leaves wrong level/trait cards in hand", async () => {
