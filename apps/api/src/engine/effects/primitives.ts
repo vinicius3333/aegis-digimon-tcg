@@ -4948,9 +4948,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   };
 
   // A named custom effect grant keeps the provenance of the effect that installs it. A resolved
-  // duration grant survives continuous recompute, while a GrantAura continuous pass marks its
-  // derived grant for replacement on the next pass. Both lapse at the duration boundary (sweep)
-  // or when the host permanent leaves the field (dropForPermanent).
+  // duration grant survives continuous recompute and field leave for deletion timing, while a
+  // GrantAura continuous pass marks its derived grant for replacement on the next pass. Duration
+  // and activation-liveness gates determine when each grant stops applying.
   const grantCustomEffect: NonNullable<Primitives["grantCustomEffect"]> = (
     instanceId,
     ownerSeat,
