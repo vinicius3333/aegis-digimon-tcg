@@ -206,6 +206,16 @@ function makeContext(opts: {
       opts.recorder.calls.push({ verb: "redirectDigivolutionTrashHosts", args: [hostPermanentIds] });
       return hostPermanentIds;
     },
+    // Reveal-used Options run with the same complete primitive surface as production.
+    // None of this fixture's Options digivolve, so an attempted call is still observable.
+    digivolveFromInstance: async (...args: unknown[]) => {
+      opts.recorder.calls.push({ verb: "digivolveFromInstance", args });
+      return undefined;
+    },
+    useOptionFromHand: async (...args: unknown[]) => {
+      opts.recorder.calls.push({ verb: "useOptionFromHand", args });
+      return [];
+    },
     hatch: record("hatch"),
     // BT16-082's [Your Turn] clause is gated behind a "whenMovedFromBreeding" SubTrigger
     // (KB Q2668-Q2671 confirm it only fires on that event, not unconditionally every turn).
@@ -603,20 +613,18 @@ describe("RevealAdd cluster A3 — ST21-14 (reveal 3, add 1 ADVENTURE Digimon to
 });
 
 // ---------------------------------------------------------------------------
-// EX7-048: single-add [Three Musketeers] trait Option card, to PLAY (not hand).
+// EX7-048: reveal a [Three Musketeers] Option and USE it without paying the cost.
 // This is the fails-when-reverted discriminator for the per-condition-class fix:
-// reverting the fix causes EX7-048 to emit to:"hand" and playInstances is never
-// called — only returnToHand is called, and the playInstances assertion goes RED.
+// reverting the fix causes EX7-048 to emit to:"hand" and useOptionFromHand is never called.
 // ---------------------------------------------------------------------------
 
-describe("RevealAdd cluster A3 — EX7-048 (reveal 6, add 1 Three Musketeers Option to PLAY, Phase 10.1-01)", () => {
-  it("reveals 6, calls returnToHand then playInstances for the matched card (to:play path), rest -> chosen deck end", async () => {
-    const playInstancesCalls: unknown[][] = [];
+describe("RevealAdd cluster A3 — EX7-048 (reveal 6, use 1 Three Musketeers Option, Phase 10.1-01)", () => {
+  it("reveals 6, stages the match in hand, then uses it without cost; rest -> chosen deck end", async () => {
     const recorder: Recorder = { calls: [] };
     const matchCard = fakeCardInstance("THREEMUSKE-OPT", "ex7048-match");
     const fillers = Array.from({ length: 5 }, (_, i) => fakeCardInstance("FILLER", `ex7048-f${i}`));
 
-    const baseCtx = makeContext({
+    const ctx = makeContext({
       cardId: "EX7-048",
       recorder,
       deckTop: [matchCard, ...fillers],
@@ -626,31 +634,19 @@ describe("RevealAdd cluster A3 — EX7-048 (reveal 6, add 1 Three Musketeers Opt
       },
     });
 
-    // Extend the fx mock to support playInstances (needed for to:"play" disposition).
-    const ctx: typeof baseCtx = {
-      ...baseCtx,
-      fx: {
-        ...baseCtx.fx,
-        playInstances: async (ids: string[], _opts: unknown) => {
-          playInstancesCalls.push(ids);
-          return [] as never;
-        },
-      } as never,
-    };
-
     await resolveCard("EX7-048", EffectTiming.OnPlay, ctx);
 
     const reveals = revealCalls(recorder);
     expect(reveals).toHaveLength(1);
     expect(reveals[0]!.args[1]).toBe(6);
 
-    // The matched card must be returned to hand first (runRevealAdd calls returnToHand
-    // then playInstances for the to:"play" disposition — NOT only returnToHand).
+    // The matched card is staged in hand before the Option-use lifecycle runs.
     expect(handedIds(recorder)).toContain("ex7048-match");
 
-    // Then played from hand (free) — this is the discriminating assertion.
-    expect(playInstancesCalls.length).toBeGreaterThanOrEqual(1);
-    expect(playInstancesCalls.some((ids) => (ids as string[]).includes("ex7048-match"))).toBe(true);
+    const optionUses = recorder.calls.filter((call) => call.verb === "useOptionFromHand");
+    expect(optionUses).toHaveLength(1);
+    expect(optionUses[0]!.args[1]).toBe("ex7048-match");
+    expect(optionUses[0]!.args[3]).toMatchObject({ payCost: false });
 
     // "Return the rest to the top or bottom of the deck" — the mock's chooseOption picks
     // option 0 ("Top of deck"), so the non-matching revealed cards go to the deck TOP.

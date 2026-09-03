@@ -8,8 +8,6 @@ import {
   EffectTiming,
   Phase,
   type Seat,
-  type ServerEvent,
-  type DecisionRequest,
   getCompiledCard,
 } from "@aegis/shared";
 import { GameEngine, type GameEngineHooks } from "./GameEngine.js";
@@ -2976,17 +2974,9 @@ describe("A3 Digi-Burst BT4-054 — Restrict-head <Digi-Burst 2> is paid, not fr
     p1.battleArea.push(target);
 
     const entry = activatableEffects(s, source).find((e) => e.instanceId === sourceInstanceId);
-    expect(entry, "the affordance is surfaced; the cost is enforced at resolution").toBeDefined();
-    expect(
-      s.engine.applyIntent(0, {
-        type: "activateEffect",
-        sourceInstanceId,
-        effectKey: entry!.effectKey,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => false, 50);
+    expect(entry, "an unpayable Digi-Burst must not surface an activation affordance").toBeUndefined();
 
-    // The cost could not be paid: the lone card stayed, and the restriction did NOT apply.
+    // Nothing activated: the lone card stayed, and the restriction did NOT apply.
     expect(source.stack).toHaveLength(1);
     expect(p0.trash.some((c) => c.instanceId === lone.instanceId)).toBe(false);
     expect(ledger(s).hasRestriction(target.permanentId, "unsuspend")).toBe(false);
@@ -4246,7 +4236,6 @@ describe("A3 wrong-permanent cluster — self-reference and compound-clause fixe
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    const tamer = s.perm("tamer");
     const ownGreymon = s.perm("ownGreymon");
     const oppControl = s.perm("oppControl");
     const dpBefore = ownGreymon.currentDP;

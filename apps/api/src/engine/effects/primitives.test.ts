@@ -2813,6 +2813,7 @@ describe("primitives: resolveCardEffect / useOptionFromHand (BT26 gap fix)", () 
             ]
           : [],
     };
+    const previousModule = unregisterCard(OPTION);
     registerCard(module);
     try {
       const ctx = { source: { ownerSeat: 0, instanceId, cardId: OPTION }, fx: h.fx } as unknown as EffectContext;
@@ -2823,6 +2824,7 @@ describe("primitives: resolveCardEffect / useOptionFromHand (BT26 gap fix)", () 
       expect(h.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === instanceId)).toBe(true);
     } finally {
       unregisterCard(OPTION);
+      if (previousModule !== undefined) registerCard(previousModule);
     }
   });
 

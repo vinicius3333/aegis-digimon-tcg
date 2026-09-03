@@ -143,9 +143,9 @@ describe("BT4 persisted IR", () => {
 
   it("derives the printed costs and colors for every Tamer-onto evolution path", () => {
     const expectedPaths = [
-      ["BT4-011", "BT1-085", "BT1-086", { cost: 2, isAlternate: true, baseIsTamer: true }],
-      ["BT4-013", "BT1-085", "BT1-086", { cost: 3, isAlternate: true, baseIsTamer: true }],
-      ["BT4-025", "BT1-086", "BT1-085", { cost: 2, isAlternate: true, baseIsTamer: true }],
+      ["BT4-011", "BT1-085", "BT1-086", { cost: 2, isAlternate: true, baseIsTamer: true, baseColors: ["Red"] }],
+      ["BT4-013", "BT1-085", "BT1-086", { cost: 3, isAlternate: true, baseIsTamer: true, baseColors: ["Red"] }],
+      ["BT4-025", "BT1-086", "BT1-085", { cost: 2, isAlternate: true, baseIsTamer: true, baseColors: ["Blue"] }],
       ["BT4-027", "BT1-086", "BT1-085", { cost: 3, isAlternate: true, baseIsTamer: true, baseColors: ["Blue"] }],
     ] as const;
 
