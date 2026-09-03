@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./EX1-007.js";
@@ -30,5 +31,19 @@ describe("EX1-007 Megadramon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT1-042", as: "machine", under: ["EX1-007"] }] } });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("machine"), "SecurityAttack")).toBe(true);
+  });
+
+  it("does not grant Security Attack +1 to a non-Machine host", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-041", as: "host", under: ["EX1-007"] }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "SecurityAttack")).toBe(false);
+  });
+
+  it("does not grant the inherited keyword during the opponent turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-042", as: "machine", under: ["EX1-007"] }] }, 1: { battleArea: [{ card: "BT1-070" }] } });
+    await s.ready();
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
+    expect(observe(s.engine).hasKeyword(s.perm("machine"), "SecurityAttack")).toBe(false);
   });
 });
