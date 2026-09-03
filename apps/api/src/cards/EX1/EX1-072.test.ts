@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import "../BT10/BT10-100.js";
 import "./EX1-069.js";
 import "./EX1-072.js";
 
@@ -72,7 +74,7 @@ describe("EX1-072 Emergency Program Shutdown!", () => {
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentOption").instanceId }).ok).toBe(false);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
-    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentOption").instanceId }).ok).toBe(true);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
@@ -93,5 +95,50 @@ describe("EX1-072 Emergency Program Shutdown!", () => {
     const securityId = s.inst("securityShutdown").instanceId;
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityShutdown"));
     expect(s.state.players[1]!.hand.some((card) => card.instanceId === securityId)).toBe(true);
+  });
+
+  it("allows Delay on an Option already in the battle area during the lock (Q3266)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX1-072", as: "shutdown" }],
+          battleArea: [{ card: "BT11-095", as: "blueSource" }],
+          deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+          security: ["BT1-001", "BT1-001", "BT1-001"],
+        },
+        1: {
+          hand: [{ card: "BT10-100", as: "boost" }],
+          battleArea: [{ card: "BT10-029", as: "yellowSource" }],
+          deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+          security: ["BT1-001", "BT1-001", "BT1-001"],
+        },
+      },
+      { autoDeclineOptional: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("boost").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT10-100"));
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shutdown").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-072"));
+    await advance(s.engine).waitForMainPhase(1);
+    const [delay] = observe(s.engine).activatableEffects(
+      s.state.players[1]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT10-100")!,
+    ) as Array<{ effectKey: string }>;
+    expect(delay).toBeDefined();
+    expect(s.engine.applyIntent(1, {
+      type: "activateEffect",
+      sourceInstanceId: s.state.players[1]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT10-100")!.topCard!.instanceId,
+      effectKey: delay!.effectKey,
+    }).ok).toBe(true);
+    await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT10-100"));
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT10-100")).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });
