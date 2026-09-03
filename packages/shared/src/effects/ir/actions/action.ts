@@ -105,6 +105,7 @@ import type {
 } from "./restrictions.js";
 import type {
   HandRevealAddAction,
+  LookAction,
   RevealAction,
   RevealAddAction,
   SearchAction,
@@ -181,6 +182,7 @@ export type Action =
   | AllowDigiXrosMaterialsFromTrashAction
   | RevealAddAction
   | HandRevealAddAction
+  | LookAction
   | RevealAction
   | SearchAction
   | SearchSecurityAction

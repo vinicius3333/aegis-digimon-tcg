@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-authored override for BT5-092 (Nokia Shiramine).
 // runtime-effect fix: second effect is a Main-activated cost reduction for digivolving into
 // named cards (Garurumon/Omnimon/Greymon family, excluding DoruGreymon/BurningGreymon/
@@ -47,6 +46,7 @@ export const compiled: CompiledCard = {
               kind: ["Digimon"],
               zone: "battleArea",
             },
+            count: "all",
           },
           into: {
             zone: "hand",

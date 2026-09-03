@@ -2,6 +2,7 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { internalsOf } from "../../engine/testkit/internals.js";
 import "../BT4/BT4-059.js";
 import "./BT5-046.js";
 import "./BT5-050.js";
@@ -21,7 +22,7 @@ describe("BT5-050 Weedmon", () => {
     );
     preferred.push(s.inst("weed").instanceId);
     await s.engine.recomputeContinuousEffects();
-    const source = (s.engine as any).cardSourceOf(s.perm("host").topCard!);
+    const source = internalsOf(s.engine).cardSourceOf(s.perm("host").topCard!);
     const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
       effect.effectKey.startsWith("BT4-059/"),
     )!.effectKey;
@@ -52,7 +53,7 @@ describe("BT5-050 Weedmon", () => {
       { autoSelectCards: true },
     );
     await s.engine.recomputeContinuousEffects();
-    const source = (s.engine as any).cardSourceOf(s.perm("otherHost").topCard!);
+    const source = internalsOf(s.engine).cardSourceOf(s.perm("otherHost").topCard!);
     const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
       effect.effectKey.startsWith("BT5-046/"),
     )!.effectKey;
@@ -75,7 +76,7 @@ describe("BT5-050 Weedmon", () => {
     });
     const weedId = s.inst("weed").instanceId;
     s.state.turnSeat = 1;
-    await (s.engine as any).primitives.trashDigivolutionCards(s.perm("host").permanentId, [weedId], {
+    await internalsOf(s.engine).primitives.trashDigivolutionCards(s.perm("host").permanentId, [weedId], {
       byEffectSeat: 1,
       isDigiBurst: true,
     });

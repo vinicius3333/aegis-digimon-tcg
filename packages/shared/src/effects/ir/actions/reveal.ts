@@ -133,6 +133,15 @@ export interface RevealAction extends ActionBase {
   zone?: ZoneRef;
 }
 
+/** Look at cards in a private zone without moving or publicly revealing them. */
+export interface LookAction extends ActionBase {
+  kind: "Look";
+  /** Whose deck is looked at; omitted means the source owner's deck. */
+  controller?: Controller;
+  count: number;
+  zone: "deck";
+}
+
 export interface SearchAction extends ActionBase {
   kind: "Search";
   controller: Controller;

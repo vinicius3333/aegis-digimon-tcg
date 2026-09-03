@@ -61,6 +61,24 @@ describe("BT5-067 Infermon", () => {
     ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 
+  it("does not treat Keramon (X Antibody) as the exact Keramon shortcut", () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-052", as: "keramonX" }],
+        hand: [{ card: "BT5-067", as: "evolving" }],
+      },
+    });
+    s.state.memory = 4;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("keramonX").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
+
   it("may play a Diaboromon Token when its host is deleted", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "BT5-069", as: "host", under: ["BT5-067"] }] } },

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -55,9 +54,17 @@ const compiled: CompiledCard = {
             amount: 2000,
           },
           while: {
-            kind: "selfHasNameContaining",
-            names: ["Omnimon", "Greymon"],
-            excludeNames: ["DoruGreymon", "BurningGreymon", "DexDoruGreymon"],
+            kind: "allOf",
+            conditions: [
+              { kind: "selfHasNameContaining", names: ["Omnimon", "Greymon"] },
+              {
+                kind: "not",
+                condition: {
+                  kind: "selfHasName",
+                  names: ["DoruGreymon", "BurningGreymon", "DexDoruGreymon"],
+                },
+              },
+            ],
             raw: "this Digimon has [Omnimon] or [Greymon] other than [DoruGreymon], [BurningGreymon], or [DexDoruGreymon] in its name",
           },
         },

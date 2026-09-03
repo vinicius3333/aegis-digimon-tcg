@@ -975,6 +975,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       return await runSecurityAction(ctx, action, scope);
     case "Search":
     case "SearchSecurity":
+    case "Look":
     case "Reveal":
     case "RevealAdd":
     case "HandRevealAdd":

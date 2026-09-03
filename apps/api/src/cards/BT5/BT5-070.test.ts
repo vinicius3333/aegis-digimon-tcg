@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import type { PlayerState } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT5-070.js";
@@ -34,8 +34,8 @@ describe("BT5-070 MetalGarurumon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
-    const player = s.state.players[0] as PlayerState;
-    const opponent = s.state.players[1] as PlayerState;
+    const player = s.state.players[0]!;
+    const opponent = s.state.players[1]!;
     expect(opponent.trash.some((card) => card.instanceId === s.inst("target").instanceId)).toBe(true);
     expect(player.trash.some((card) => card.instanceId === s.inst("sourceA").instanceId)).toBe(true);
     expect(player.trash.some((card) => card.instanceId === s.inst("sourceB").instanceId)).toBe(true);
@@ -53,7 +53,7 @@ describe("BT5-070 MetalGarurumon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    const opp = s.state.players[1] as PlayerState;
+    const opp = s.state.players[1]!;
     s.state.memory = 3;
     expect(
       s.engine.applyIntent(0, {
@@ -76,7 +76,7 @@ describe("BT5-070 MetalGarurumon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    const opp = s.state.players[1] as PlayerState;
+    const opp = s.state.players[1]!;
     s.state.memory = 3;
     expect(
       s.engine.applyIntent(0, {
@@ -101,7 +101,7 @@ describe("BT5-070 MetalGarurumon", () => {
       },
       { autoDeclineOptional: true },
     );
-    const opponent = s.state.players[1] as PlayerState;
+    const opponent = s.state.players[1]!;
     s.state.memory = 3;
     expect(
       s.engine.applyIntent(0, {
@@ -135,7 +135,7 @@ describe("BT5-070 MetalGarurumon", () => {
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("protected").topCard!.instanceId);
-    const opponent = s.state.players[1] as PlayerState;
+    const opponent = s.state.players[1]!;
     s.state.memory = 3;
     expect(
       s.engine.applyIntent(0, {
@@ -156,11 +156,8 @@ describe("BT5-070 MetalGarurumon", () => {
     await s.engine.recomputeContinuousEffects();
     expect(observe(s.engine).hasKeyword(s.perm("metalGarurumon"), "Reboot")).toBe(true);
 
-    const unsuspendedIds = await (
-      s.engine as unknown as { unsuspendForActivePhase(seat: 1): Promise<string[]> }
-    ).unsuspendForActivePhase(1);
+    await advance(s.engine).runTurn(1);
 
     expect(s.perm("metalGarurumon").isSuspended).toBe(false);
-    expect(unsuspendedIds).toContain(s.perm("metalGarurumon").permanentId);
   });
 });

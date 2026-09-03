@@ -82,6 +82,31 @@ export async function runReveal(ctx: EffectContext, action: Extract<Action, { ki
   unsupported(ctx, action, `Reveal from unsupported zone "${String(targetZone)}"`);
 }
 
+/**
+ * Look at private cards without changing their zone, face state, or public event stream.
+ * The zero-card selection request is addressed to the effect controller and carries the
+ * looked-at identities only in its unicast `visibleCards` metadata.
+ */
+export async function runLook(ctx: EffectContext, action: Extract<Action, { kind: "Look" }>): Promise<void> {
+  if (action.zone !== "deck" || action.count <= 0) return;
+  let seat = ctx.source.ownerSeat;
+  if (action.controller === "opponent") {
+    seat = ctx.game.opponentOf(ctx.source.ownerSeat);
+  } else if (action.controller === "any") {
+    const choice = await ctx.ask.chooseOption(ctx, ["Your deck", "Opponent's deck"]);
+    seat = choice === 0 ? ctx.source.ownerSeat : ctx.game.opponentOf(ctx.source.ownerSeat);
+  }
+  const lookedAt = ctx.game.player(seat).deck.slice(0, action.count);
+  if (lookedAt.length === 0) return;
+  await ctx.ask.selectCards(ctx, {
+    candidates: [],
+    min: 0,
+    max: 0,
+    visible: lookedAt.map((card) => card.instanceId),
+    visibleCards: lookedAt.map((card) => ({ instanceId: card.instanceId, cardId: card.cardId })),
+  });
+}
+
 export async function runHandRevealAdd(
   ctx: EffectContext,
   action: Extract<Action, { kind: "HandRevealAdd" }>,
@@ -836,6 +861,10 @@ export async function runRevealAction(ctx: EffectContext, action: Action): Promi
     }
     case "Reveal": {
       await runReveal(ctx, action);
+      return false;
+    }
+    case "Look": {
+      await runLook(ctx, action);
       return false;
     }
     case "RevealAdd": {

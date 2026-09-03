@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { EffectDuration } from "@aegis/shared";
+import { internalsOf } from "../../engine/testkit/internals.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT5-014.js";
@@ -44,9 +46,27 @@ describe("BT5-014 OmniShoutmon", () => {
     ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 
+  it("does not treat a Shoutmon-family name as the exact Shoutmon shortcut", () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT10-013", as: "shoutmonX5" }],
+        hand: [{ card: "BT5-014", as: "evolving" }],
+      },
+    });
+    s.state.memory = 4;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("shoutmonX5").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
+
   it("gives Security Attack +1 to a host with Blitz", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT4-073", as: "host", under: ["BT5-014"] }] } });
-    (s.engine as any).primitives.grantKeyword(s.perm("host").permanentId, "Blitz", "permanent");
+    internalsOf(s.engine).primitives.grantKeyword(s.perm("host").permanentId, "Blitz", EffectDuration.Permanent);
     await s.engine.recomputeContinuousEffects();
 
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Blitz")).toBe(true);

@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR — the opponent-turn battle watcher must be anchored to Mekanorimon.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

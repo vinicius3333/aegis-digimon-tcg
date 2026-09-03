@@ -34,7 +34,7 @@ const compiled: CompiledCard = {
                   match: "name",
                 },
               ],
-              excludeNames: ["KendoGarurumon"],
+              excludeNameOrTrait: [{ tokens: ["KendoGarurumon"], match: "nameExact" }],
             },
             raw: "a Digimon card with [Garurumon] in its name other than [KendoGarurumon] is in this Digimon's digivolution cards",
           },
