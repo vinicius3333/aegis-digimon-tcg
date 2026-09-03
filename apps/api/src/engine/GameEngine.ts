@@ -4812,7 +4812,12 @@ export class GameEngine {
     let activated = false;
     for (const effect of securityEffects) {
       const ctx = {
+        // Security conditions observe the checked card as already removed from the printed
+        // security count while it remains physically present for source lookup (CR 15-14-5,
+        // e.g. EX1-027 Q3211). Preserve the timing provenance here so securityCount predicates
+        // apply the same exclusion in the real attack path as in the SecuritySkill seam.
         ...this.buildEffectContext(source, { securityWasFaceUp }),
+        activeTiming: "SecuritySkill",
         effectSourceKinds: securityEffectSourceKinds,
       };
       if (!canActivate(effect, ctx, this.tracker)) {
