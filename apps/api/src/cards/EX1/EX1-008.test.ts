@@ -5,6 +5,7 @@ import { observe } from "../../engine/testkit/observe.js";
 import "./EX1-008.js";
 import "../BT8/BT8-104.js";
 import "../BT6/BT6-017.js";
+import "../ST1/ST1-07.js";
 
 describe("EX1-008 MetalGreymon", () => {
   it("deletes an opposing Digimon with 4000 DP or less when attacking a player", async () => {
@@ -117,7 +118,34 @@ describe("EX1-008 MetalGreymon", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
   });
 
-  it("keeps Piercing's already-open second check after source loss (Q3196)", async () => {
+  it("keeps Piercing's already-open second check after source loss while Security Attack +1 remains (Q3196)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT6-017", as: "attacker", under: ["ST1-07", "EX1-008"] }] },
+        1: {
+          battleArea: [{ card: "BT1-070", as: "target", dp: 3000, suspended: true }],
+          security: ["BT8-104", "BT1-001"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    expect(observe(s.engine).keywordAmount(s.perm("attacker"), "SecurityAttack")).toBe(2);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(2);
+    expect(s.perm("attacker").topCard.cardId).toBe("EX1-008");
+    expect(observe(s.engine).keywordAmount(s.perm("attacker"), "SecurityAttack")).toBe(1);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT6-017")).toBe(true);
+  });
+
+  it("stops the next Piercing check when De-Digivolve removes Security Attack +1 (Q3196)", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT6-017", as: "attacker", under: ["EX1-008"] }] },
@@ -137,10 +165,11 @@ describe("EX1-008 MetalGreymon", () => {
         target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0);
-    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(2);
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.perm("attacker").topCard.cardId).toBe("EX1-008");
-    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT6-017")).toBe(true);
+    expect(observe(s.engine).keywordAmount(s.perm("attacker"), "SecurityAttack")).toBe(0);
   });
 
   it("limits inherited Piercing to your turn", async () => {

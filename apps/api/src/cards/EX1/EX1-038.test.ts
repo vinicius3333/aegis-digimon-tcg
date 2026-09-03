@@ -4,6 +4,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../BT1/BT1-075.js";
 import "../BT8/BT8-104.js";
+import "../ST1/ST1-07.js";
 import "../ST9/ST9-13.js";
 import "./EX1-038.js";
 
@@ -50,7 +51,38 @@ describe("EX1-038 Stingmon", () => {
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
-  it("keeps the already-open Piercing check after a Free host loses its source (Q3225)", async () => {
+  it("keeps checking after losing Piercing while Security Attack +1 remains (Q3225)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST9-13", as: "freeHost", under: ["ST1-07", "EX1-038", "BT1-075"] }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-070", as: "target", suspended: true, dp: 3000 }],
+          security: ["BT8-104", "BT1-001"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    expect(s.perm("freeHost").topCard.cardId).toBe("ST9-13");
+    expect(observe(s.engine).hasPierce(s.perm("freeHost"))).toBe(true);
+    expect(observe(s.engine).keywordAmount(s.perm("freeHost"), "SecurityAttack")).toBe(2);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("freeHost").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(2);
+    expect(s.perm("freeHost").topCard.cardId).toBe("BT1-075");
+    expect(observe(s.engine).hasPierce(s.perm("freeHost"))).toBe(false);
+    expect(observe(s.engine).keywordAmount(s.perm("freeHost"), "SecurityAttack")).toBe(1);
+  });
+
+  it("stops the next Piercing check when De-Digivolve removes Security Attack +1 (Q3225)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -64,7 +96,6 @@ describe("EX1-038 Stingmon", () => {
       { autoSelectCards: true },
     );
     await s.ready();
-    expect(s.perm("freeHost").topCard.cardId).toBe("ST9-13");
     expect(observe(s.engine).hasPierce(s.perm("freeHost"))).toBe(true);
     expect(observe(s.engine).keywordAmount(s.perm("freeHost"), "SecurityAttack")).toBe(1);
     expect(
@@ -74,10 +105,12 @@ describe("EX1-038 Stingmon", () => {
         target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0);
-    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(2);
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.perm("freeHost").topCard.cardId).toBe("BT1-075");
     expect(observe(s.engine).hasPierce(s.perm("freeHost"))).toBe(false);
+    expect(observe(s.engine).keywordAmount(s.perm("freeHost"), "SecurityAttack")).toBe(0);
   });
 
   it("does not grant inherited Piercing outside your turn", async () => {
