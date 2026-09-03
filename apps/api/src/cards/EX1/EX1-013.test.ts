@@ -14,4 +14,28 @@ describe("EX1-013 Veemon", () => {
     await settle(() => s.state.memory === 6);
     expect(s.state.memory).toBe(6);
   });
+
+  it("does not trigger during the opponent's turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX1-019", as: "host", suspended: true, under: ["EX1-013"] }] },
+      1: { battleArea: [{ card: "BT1-070", as: "opponent" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    s.state.turnSeat = 1;
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    expect(s.state.memory).toBe(5);
+  });
+
+  it("fires only once per turn after two genuine unsuspends", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX1-019", as: "host", suspended: true, under: ["EX1-013"] }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    await advance(s.engine).verb.suspend([s.perm("host").permanentId]);
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    expect(s.state.memory).toBe(6);
+  });
 });
