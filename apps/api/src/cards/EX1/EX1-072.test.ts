@@ -17,13 +17,14 @@ describe("EX1-072 Emergency Program Shutdown!", () => {
         security: ["BT1-001", "BT1-001", "BT1-001"],
       },
       1: {
-        hand: [{ card: "EX1-069", as: "opponentOption" }],
-        battleArea: [{ card: "EX1-047", as: "blackSource" }],
+        hand: [{ card: "BT10-100", as: "opponentOption" }],
+        battleArea: [{ card: "BT10-029", as: "yellowSource" }],
         deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
         security: ["BT1-001", "BT1-001", "BT1-001"],
       },
     });
     s.state.memory = 10;
+    await s.ready();
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shutdown").instanceId })).toEqual({
@@ -68,8 +69,8 @@ describe("EX1-072 Emergency Program Shutdown!", () => {
           security: ["BT1-001", "BT1-001", "BT1-001"],
         },
         1: {
-          hand: [{ card: "EX1-069", as: "opponentOption" }],
-          battleArea: [{ card: "EX1-047", as: "blackSource" }],
+          hand: [{ card: "BT10-100", as: "opponentOption" }],
+          battleArea: [{ card: "BT10-029", as: "yellowSource" }],
           deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
           security: ["BT1-001", "BT1-001", "BT1-001"],
         },
@@ -77,6 +78,7 @@ describe("EX1-072 Emergency Program Shutdown!", () => {
       { autoDeclineOptional: true },
     );
     s.state.memory = 4;
+    await s.ready();
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shutdown").instanceId })).toEqual({ ok: true });
