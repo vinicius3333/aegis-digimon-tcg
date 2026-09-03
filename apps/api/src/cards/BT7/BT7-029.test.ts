@@ -98,7 +98,9 @@ describe("BT7-029 MagnaGarurumon", () => {
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("magna"));
 
     expect(s.perm("other").stack.some((card) => card.instanceId === s.inst("otherHybrid").instanceId)).toBe(true);
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("target").permanentId)).toBe(true);
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("target").permanentId),
+    ).toBe(true);
   });
 
   it("Q1550 shares once-per-turn use between When Digivolving and When Attacking", async () => {

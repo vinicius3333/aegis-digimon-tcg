@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -9,7 +8,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "Digivolve",
-          onto: {
+          target: {
             filter: {
               controller: "mine",
               kind: ["Tamer"],
@@ -18,7 +17,9 @@ const compiled: CompiledCard = {
             count: 1,
           },
           asLevel: 3,
-          from: "hand",
+          from: ["hand"],
+          payCost: true,
+          costOverride: 2,
           optional: true,
         },
       ],
@@ -43,7 +44,7 @@ const compiled: CompiledCard = {
             filter: {
               nameOrTrait: [
                 { tokens: ["Hybrid"], match: "trait" },
-                { tokens: ["Tommy Himi"], match: "name" },
+                { tokens: ["Tommy Himi"], match: "nameExact" },
               ],
             },
             raw: "a card with [Hybrid] in its traits or [Tommy Himi] is in this Digimon's digivolution cards",

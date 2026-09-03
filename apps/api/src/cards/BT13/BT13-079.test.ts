@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-079.js";
 
 describe("BT13-079 Falcomon", () => {
@@ -59,6 +59,28 @@ describe("BT13-079 Falcomon", () => {
 
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("falcomon"));
 
+    expect(observe(s.engine).hasKeyword(s.perm("purpleTarget"), "Retaliation")).toBe(true);
+  });
+
+  it("grants Retaliation through a real Falcomon play", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-080", as: "purpleTarget" }],
+          hand: [{ card: "BT13-079", as: "falcomon" }],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("purpleTarget").permanentId, s.perm("purpleTarget").topCard!.instanceId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("falcomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("purpleTarget"), "Retaliation"));
     expect(observe(s.engine).hasKeyword(s.perm("purpleTarget"), "Retaliation")).toBe(true);
   });
 

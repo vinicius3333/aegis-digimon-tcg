@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED — preserve: the +3000 DP gate matches card NAMES in the live stack, not traits.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

@@ -8,7 +8,7 @@ describe("BT18-034 Lucemon", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
     expect(compiled.digivolutionRequirement).toEqual([{ names: ["Cupimon"], cost: 5, isAlternate: true }]);
-    expect(compiled.effects[1]).toMatchObject({
+    expect(compiled.effects[2]).toMatchObject({
       trigger: "EndOfYourTurn",
       frequency: "OncePerTurn",
       actions: [

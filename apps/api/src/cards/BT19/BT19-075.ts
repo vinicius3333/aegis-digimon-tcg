@@ -1,9 +1,10 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Manual audit correction: the number of Tamers deleted is based on cards trashed from the
 // opponent's hand by this effect, not on the opponent's total board/card count.
+// The All Turns watcher observes other Digimon/Tamers regardless of controller, then trashes
+// the opponent's top security card (not an arbitrary opponent permanent).
 
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
@@ -120,19 +121,15 @@ const compiled: CompiledCard = {
           kind: "SubTrigger",
           event: "onDeletionOf",
           sourceFilter: {
-            controllerDefault: "mine",
             excludeSelf: true,
             kind: ["Digimon", "Tamer"],
           },
           actions: [
             {
-              kind: "Trash",
-              target: {
-                filter: {
-                  controller: "opponent",
-                },
-                count: 1,
-              },
+              kind: "SecurityManipulation",
+              op: "trashTop",
+              controller: "opponent",
+              amount: 1,
             },
           ],
         },

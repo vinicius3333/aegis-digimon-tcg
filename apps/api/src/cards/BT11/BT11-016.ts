@@ -1,5 +1,4 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Scaling } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const redTamerScaling = {
@@ -7,7 +6,7 @@ const redTamerScaling = {
   bonus: 2000,
   filter: { zone: "battleArea", controller: "mine", kind: ["Tamer"], colors: ["Red"] },
   unit: "cards",
-};
+} satisfies Scaling;
 
 export const compiled: CompiledCard = {
   effects: [
@@ -18,7 +17,7 @@ export const compiled: CompiledCard = {
           kind: "SubTrigger",
           event: "whenSecurityRemoved",
           sourceFilter: { controller: "opponent" },
-          actions: [{ kind: "ReactivateEffect", fromTrigger: "On Deletion", count: 1, optional: true }],
+          actions: [{ kind: "ReactivateEffect", fromTrigger: "OnDeletion", count: 1, optional: true }],
         },
       ],
       frequency: "OncePerTurn",

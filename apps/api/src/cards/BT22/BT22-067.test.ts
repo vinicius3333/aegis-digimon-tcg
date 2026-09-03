@@ -46,7 +46,7 @@ describe("BT22-067 LordKnightmon", () => {
         0: {
           battleArea: [{ card: "BT22-068", as: "attacker" }],
           hand: [{ card: "BT22-067", as: "lordknightmon" }],
-          deck: ["BT1-009", "BT1-001", "EX5-007"],
+          deck: ["BT1-009", "BT1-090", "EX5-007"],
         },
         1: { security: ["BT1-001", "BT1-002"] },
       },
@@ -63,7 +63,7 @@ describe("BT22-067 LordKnightmon", () => {
     expect(s.perm("attacker").isSuspended).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-009")).toBe(true);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
-      expect.arrayContaining(["BT1-001", "EX5-007"]),
+      expect.arrayContaining(["BT1-090", "EX5-007"]),
     );
   });
 });

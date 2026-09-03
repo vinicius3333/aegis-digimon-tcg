@@ -8,11 +8,14 @@ import { scaleFactor } from "../scaling.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
 import { type LooseCandidate, candidateLooseInstances, pickLoose } from "../targeting/loose.js";
 import { candidatePermanents, effectiveTargetCount, resolvePermanentTargets } from "../targeting/permanents.js";
-import { CardKind, isDigimon } from "@aegis/shared";
+import { CardKind, filterToDistinctColors, isDigimon } from "@aegis/shared";
 import type { Action, Filter, Target } from "@aegis/shared";
 
 /** Cards whose rule text changes a static fact only while they are revealed from deck. */
-export function revealedDefinition(ctx: EffectContext, card: import("@aegis/shared").CardInstance): DefinitionFacts {
+export function revealedDefinition(
+  ctx: { game: Pick<EffectContext["game"], "definitionOf"> },
+  card: import("@aegis/shared").CardInstance,
+): DefinitionFacts {
   const def = ctx.game.definitionOf(card) as DefinitionFacts;
   const withOmekamonAlias = card.cardId === "BT15-060" ? { nameAliases: ["Omnimon"] } : {};
   // BT17-068 is printed Lv5 and is also treated as Lv6 while revealed. Keep the
@@ -77,6 +80,31 @@ export async function runReveal(ctx: EffectContext, action: Extract<Action, { ki
   }
 
   unsupported(ctx, action, `Reveal from unsupported zone "${String(targetZone)}"`);
+}
+
+/**
+ * Look at private cards without changing their zone, face state, or public event stream.
+ * The zero-card selection request is addressed to the effect controller and carries the
+ * looked-at identities only in its unicast `visibleCards` metadata.
+ */
+export async function runLook(ctx: EffectContext, action: Extract<Action, { kind: "Look" }>): Promise<void> {
+  if (action.zone !== "deck" || action.count <= 0) return;
+  let seat = ctx.source.ownerSeat;
+  if (action.controller === "opponent") {
+    seat = ctx.game.opponentOf(ctx.source.ownerSeat);
+  } else if (action.controller === "any") {
+    const choice = await ctx.ask.chooseOption(ctx, ["Your deck", "Opponent's deck"]);
+    seat = choice === 0 ? ctx.source.ownerSeat : ctx.game.opponentOf(ctx.source.ownerSeat);
+  }
+  const lookedAt = ctx.game.player(seat).deck.slice(0, action.count);
+  if (lookedAt.length === 0) return;
+  await ctx.ask.selectCards(ctx, {
+    candidates: [],
+    min: 0,
+    max: 0,
+    visible: lookedAt.map((card) => card.instanceId),
+    visibleCards: lookedAt.map((card) => ({ instanceId: card.instanceId, cardId: card.cardId })),
+  });
 }
 
 export async function runHandRevealAdd(
@@ -293,6 +321,8 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
             ...(spec.countModifier !== undefined ? { countModifier: spec.countModifier } : {}),
           } as Target);
     let chosen = matches.slice(0, want);
+    const requireDifferentColors =
+      primaryFilter.differentColors === true || alternativeFilters.some((filter) => filter.differentColors === true);
     // A bounded reveal selection is confirmed even when only one card is eligible. This keeps
     // every disposition (hand, play, security, place-under, etc.) on the same UI path and lets
     // the player inspect the full reveal, including ineligible cards shown as disabled. Slots
@@ -304,8 +334,24 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
         visibleCards: revealed.map((c) => ({ instanceId: c.instanceId, cardId: c.cardId })),
         min: spec.optional || spec.upTo ? 0 : Math.min(want, matches.length),
         max: want,
+        differentColors: requireDifferentColors,
       });
       chosen = matches.filter((c) => ids.includes(c.instanceId));
+    }
+    // Selection responses are untrusted, and the testkit's deterministic auto-picker does not
+    // infer every card-level constraint.  Sanitize a distinct-colors pick through the same
+    // bipartite-matching helper used by loose-card targeting, retaining the controller's order
+    // while dropping only picks that make the set illegal. `upTo` remains optional: a legal
+    // shorter selection is preserved rather than padded with an unchosen card. An optional
+    // exact-count slot may choose zero, but a non-empty partial response is not an exact count.
+    if (requireDifferentColors) {
+      chosen = filterToDistinctColors(chosen, (card) => revealedDefinition(ctx, card).colors ?? []);
+      // A distinct-color constraint may sanitize an untrusted response to a legal SHORTER
+      // subset, which is correct for `upTo`/optional slots. An exact numeric slot must not
+      // silently become an under-selection when the submitted set cannot satisfy the rule.
+      if (!spec.upTo && spec.count !== "all" && matches.length >= want && chosen.length < want) {
+        chosen = [];
+      }
     }
     for (const c of chosen) {
       taken.add(c.instanceId);
@@ -815,6 +861,10 @@ export async function runRevealAction(ctx: EffectContext, action: Action): Promi
     }
     case "Reveal": {
       await runReveal(ctx, action);
+      return false;
+    }
+    case "Look": {
+      await runLook(ctx, action);
       return false;
     }
     case "RevealAdd": {

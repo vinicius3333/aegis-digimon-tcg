@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -21,9 +20,7 @@ export const compiled: CompiledCard = {
             ],
           },
           into: {
-            controllerDefault: "mine",
-            kind: ["Digimon"],
-            nameOrTrait: [{ tokens: ["Monzaemon"], match: "name" }],
+            cardId: "BT22-038",
           },
           actions: [
             {
@@ -73,7 +70,8 @@ export const compiled: CompiledCard = {
             target: {
               filter: {
                 isSelfRef: true,
-                digivolutionCardPosition: "bottom",
+                zone: "digivolutionCards",
+                position: "bottom",
                 faceDown: true,
               },
               count: 1,
@@ -118,7 +116,8 @@ export const compiled: CompiledCard = {
             target: {
               filter: {
                 isSelfRef: true,
-                digivolutionCardPosition: "bottom",
+                zone: "digivolutionCards",
+                position: "bottom",
                 faceDown: true,
               },
               count: 1,

@@ -21,6 +21,48 @@ import type { Action, Permanent, Target } from "@aegis/shared";
 import { definitionMatches } from "../matching/definition.js";
 import { COLOR_MAP } from "../maps.js";
 
+function isCompleteCardOrder(candidates: readonly string[], order: readonly string[]): order is string[] {
+  return (
+    order.length === candidates.length &&
+    new Set(order).size === candidates.length &&
+    order.every((instanceId) => candidates.includes(instanceId))
+  );
+}
+
+type StackFirstAction = {
+  order?: "any";
+  returnDigivolutionCardsFirst?: boolean;
+};
+
+async function returnDigivolutionCardsFirst(
+  ctx: EffectContext,
+  action: StackFirstAction,
+  permanentIds: string[],
+): Promise<void> {
+  const stackCardsByPermanent = permanentIds.map((permanentId) =>
+    Array.from(ctx.game.permanentById(permanentId)?.stack ?? []),
+  );
+  const stackIdsByPermanent = stackCardsByPermanent.map((cards) => cards.map((card) => card.instanceId));
+  const stackIds = stackIdsByPermanent.flatMap((ids) => ids);
+  let orderedStackIds = stackIds;
+  if (action.order === "any" && stackIds.length > 1 && ctx.ask.orderCards !== undefined) {
+    const requestedOrder = await ctx.ask.orderCards(ctx, {
+      candidates: stackIds,
+      visibleCards: stackCardsByPermanent
+        .flatMap((cards) => cards)
+        .map(({ instanceId, cardId }) => ({ instanceId, cardId })),
+      destination: "deckBottom",
+    });
+    // A malformed response must not move an arbitrary prefix before the rest of the
+    // stack. Fall back atomically to the printed/default stack order instead.
+    if (isCompleteCardOrder(stackIds, requestedOrder)) orderedStackIds = requestedOrder;
+  }
+  for (const ids of stackIdsByPermanent) {
+    const orderedForPermanent = orderedStackIds.filter((instanceId) => ids.includes(instanceId));
+    if (orderedForPermanent.length > 0) await ctx.fx.returnToDeck(orderedForPermanent, { toTop: false });
+  }
+}
+
 export async function runRemovalAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
   const { scale } = scope;
   switch (action.kind) {
@@ -539,11 +581,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       }
       const permanentIds = await resolvePermanentTargets(ctx, action.target);
       if (action.returnDigivolutionCardsFirst) {
-        for (const permanentId of permanentIds) {
-          const permanent = ctx.game.permanentById(permanentId);
-          const stackIds = permanent?.stack.map((card) => card.instanceId) ?? [];
-          if (stackIds.length > 0) await ctx.fx.returnToDeck(stackIds, { toTop: false });
-        }
+        await returnDigivolutionCardsFirst(ctx, action, permanentIds);
       }
       // `topCardOnly`: "trash the TOP CARD of 1 of your Digimon" (BT8-110). The `trash` verb
       // below moves loose cards, and a permanent's top card is not loose — it would be skipped
@@ -641,12 +679,17 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         const self = ctx.source.permanent();
         const candidates =
           self?.stack.filter((card) => definitionMatches(returnTarget.filter, ctx.game.definitionOf(card))) ?? [];
-        if (candidates.length === 0) return false;
+        if (candidates.length === 0) {
+          ctx.lastEffectActed = false;
+          return false;
+        }
         if (
           action.optional === true &&
           !(await ctx.ask.optional(ctx, "Return a level 6 digivolution card to your hand?"))
-        )
+        ) {
+          ctx.lastEffectActed = false;
           return false;
+        }
         const picked =
           candidates.length === 1
             ? [candidates[0]!.instanceId]
@@ -656,7 +699,10 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
                 max: 1,
                 visibleCards: candidates.map((card) => ({ instanceId: card.instanceId, cardId: card.cardId })),
               });
-        if (picked.length === 0) return false;
+        if (picked.length === 0) {
+          ctx.lastEffectActed = false;
+          return false;
+        }
         const pickedCard = candidates.find((card) => card.instanceId === picked[0]);
         const moved =
           action.to === "hand"
@@ -693,10 +739,21 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       }
       if (returnTarget.totalPlayCostBudget !== undefined) {
         const ids = topInstanceIds(ctx, await resolveTotalPlayCostBudgetTargets(ctx, returnTarget));
-        if (ids.length === 0) return false;
-        if (action.to === "hand") await ctx.fx.returnToHand(ids);
-        else await ctx.fx.returnToDeck(ids, { toTop: action.to === "deckTop" });
+        if (ids.length === 0) {
+          ctx.lastEffectActed = false;
+          return false;
+        }
+        const moved =
+          action.to === "hand"
+            ? await ctx.fx.returnToHand(ids)
+            : await ctx.fx.returnToDeck(ids, { toTop: action.to === "deckTop" });
+        ctx.lastEffectActed = moved.length > 0;
         return false;
+      }
+      let returnPermanentIds: string[] | undefined;
+      if (action.returnDigivolutionCardsFirst) {
+        returnPermanentIds = await resolvePermanentTargets(ctx, returnTarget);
+        await returnDigivolutionCardsFirst(ctx, action, returnPermanentIds);
       }
       // A non-battle-area zone target ("return 1 [X] from your trash/hand/security/... to
       // your hand", BT1-011) sources a LOOSE card instance, not a battle-area permanent —
@@ -715,6 +772,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
             : undefined;
         const chosen = await pickLoose(ctx, returnTarget, candidates, undefined, ctx.ask, visibleZoneIds);
         if (chosen.length === 0) {
+          ctx.lastEffectActed = false;
           if (action.trackCount !== undefined) {
             if (ctx.namedCounts === undefined) ctx.namedCounts = new Map();
             ctx.namedCounts.set(action.trackCount, 0);
@@ -760,8 +818,9 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         }
         return false;
       }
-      let ids = topInstanceIds(ctx, await resolvePermanentTargets(ctx, returnTarget));
+      let ids = topInstanceIds(ctx, returnPermanentIds ?? (await resolvePermanentTargets(ctx, returnTarget)));
       if (ids.length === 0) {
+        ctx.lastEffectActed = false;
         if (action.trackCount !== undefined) {
           if (ctx.namedCounts === undefined) ctx.namedCounts = new Map();
           ctx.namedCounts.set(action.trackCount, 0);

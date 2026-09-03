@@ -6,12 +6,11 @@ import { compiled } from "./BT13-083.js";
 
 describe("BT13-083 Gizmon: AT", () => {
   it("reduces play cost by deleting a level 3 Digimon", () => {
-    const replacement = compiled.effects?.find((entry) => entry.trigger === "Static")?.actions?.[0] as {
-      actions?: unknown[];
-    };
+    const replacement = compiled.effects?.find((entry) => entry.trigger === "Static")?.actions?.[0];
     expect(replacement).toMatchObject({
       sourceFilter: { isSelfRef: true },
     });
+    if (replacement?.kind !== "Replacement") throw new Error("Expected play replacement action");
     expect(replacement.actions?.[0]).toMatchObject({
       kind: "Replacement",
       mode: "reduceCost",
@@ -80,7 +79,7 @@ describe("BT13-083 Gizmon: AT", () => {
   });
 
   it("returns exactly two Gizmon cards in any chosen order before playing Gizmon: XT on deletion", async () => {
-    const preferred = [] as string[];
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {

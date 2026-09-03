@@ -6,6 +6,7 @@ import { canPayCost, payCost, payOneCostOption } from "../costs.js";
 import { describeAction } from "../describe.js";
 import { type ActionScope, installActionRunner } from "../dispatch.js";
 import { unsupported } from "../errors.js";
+import { permanentMatchesFilter } from "../matching/permanent.js";
 import { scaleFactor } from "../scaling.js";
 import { targetFateOf } from "../targetFate.js";
 import { DEFAULT_PLAY_ZONES, candidateLooseInstances, zoneList } from "../targeting/loose.js";
@@ -357,6 +358,18 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   ) {
     return action.abortOnDecline === true;
   }
+  // A breeding move with a processing cost is possible only when the controller's current
+  // breeding Digimon satisfies the printed target filter. Preflight before the optional prompt
+  // and generic cost path so an ineligible Lv.-/0-DP card cannot suspend or otherwise pay for a
+  // move that the board handler will reject (BT14-088, Q2463).
+  if (action.kind === "MovePermanent" && action.direction === "toBattle") {
+    const bred = ctx.game.player(ctx.source.ownerSeat).breeding;
+    const eligible =
+      bred?.topCard !== undefined &&
+      ctx.game.definitionOf(bred.topCard).level !== undefined &&
+      (action.target === undefined || permanentMatchesFilter(ctx, bred, action.target.filter, ctx.source));
+    if (!eligible) return action.abortOnDecline === true;
+  }
   if (
     action.kind === "Unsuspend" &&
     action.cost !== undefined &&
@@ -386,7 +399,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   if (
     action.kind === "CostModifier" &&
     action.existingPermanent === true &&
-    candidatePermanents(ctx, action.target).length === 0
+    (action.target === undefined || candidatePermanents(ctx, action.target).length === 0)
   ) {
     return action.abortOnDecline === true;
   }
@@ -407,6 +420,10 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     if (candidatePermanents(ctx, target).length === 0) return action.abortOnDecline === true;
   }
   const structuredCost = action.kind !== "RawUnparsed" && typeof action.cost !== "number" ? action.cost : undefined;
+  if (action.kind === "CostModifier" && action.amount === null && action.dynamicFrom === "deletedDigimonPlayCost") {
+    unsupported(ctx, action, "dynamic deleted-Digimon play-cost modifier must be nested under wouldBePlayed");
+    return false;
+  }
   const costCreatesTrashCandidate =
     structuredCost?.kind === "trashBottomFaceDownUnderTamer" ||
     structuredCost?.kind === "trashBottomFaceDownUnderDigimon";
@@ -487,6 +504,10 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     // the printed "if they don't" tail (BT13-102), instead of opening a separate
     // source-controller prompt that loses the opponent-decline receipt.
     (action.kind !== "Trash" || action.chooser !== "opponent") &&
+    // An opponent-directed optional play is THEIR up-to card selection. The
+    // PlayWithoutCost resolver routes it through ctx.ask.opponent and a zero-card
+    // selection records that the preceding action did not act.
+    (action.kind !== "PlayWithoutCost" || action.target.chooser !== "opponent") &&
     // RedirectAttack with chooser:"opponent" owns its optional decline at the combat
     // primitive so the defending player, rather than the source controller, decides
     // whether to switch targets (BT4-075 / Q1224-Q1227).
@@ -923,6 +944,8 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     case "DigiXrosMaterialZoneExpansion":
     case "AllowDigiXrosMaterialsFromTrash":
       return await runDigivolutionAction(ctx, action, scope);
+    case "TamerOntoDigivolve":
+      return false;
     case "Modal":
     case "ConditionalBranch":
     case "DelayedEffect":
@@ -954,6 +977,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       return await runSecurityAction(ctx, action, scope);
     case "Search":
     case "SearchSecurity":
+    case "Look":
     case "Reveal":
     case "RevealAdd":
     case "HandRevealAdd":

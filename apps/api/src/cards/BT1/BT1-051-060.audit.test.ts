@@ -68,7 +68,7 @@ describe("BT1-051 through BT1-060 IR coverage", () => {
           kind: "PlayWithoutCost",
           optional: true,
           from: ["hand", "trash"],
-          target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["Tinkermon"], match: "name" }] } },
+          target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["Tinkermon"], match: "nameExact" }] } },
         },
       ],
     });
@@ -83,7 +83,7 @@ describe("BT1-051 through BT1-060 IR coverage", () => {
     expect(piximon.effects).toEqual([]);
     expect(magnaAngemon.effects[0]).toMatchObject({
       trigger: "OnPlay",
-      actions: [{ kind: "Recover", controller: "mine", amount: 1 }],
+      actions: [{ kind: "Recover", amount: 1 }],
     });
     expect(magnaAngemon.effects[1]).toMatchObject({
       trigger: "YourTurn",

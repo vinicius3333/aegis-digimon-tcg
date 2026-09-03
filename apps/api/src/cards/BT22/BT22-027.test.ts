@@ -63,7 +63,7 @@ describe("BT22-027 Ryugumon", () => {
     expect(allTurns?.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "onAddDigivolutionCards",
-      sourceFilter: { isSelfRef: true },
+      sourceFilter: { isSelfRef: true, byEffect: true },
       actions: [
         {
           kind: "Return",
@@ -154,9 +154,14 @@ describe("BT22-027 Ryugumon", () => {
     );
     await s.ready();
 
-    await advance(s.engine).verb.placeUnder(s.perm("ryugumon").permanentId, [s.inst("firstSource").instanceId]);
-    await settle(() => s.state.players[1]!.battleArea.length === 1);
-    await advance(s.engine).verb.placeUnder(s.perm("ryugumon").permanentId, [s.inst("secondSource").instanceId]);
+    advance(s.engine).verb.enterEffectResolution(0, ["Digimon"]);
+    try {
+      await advance(s.engine).verb.placeUnder(s.perm("ryugumon").permanentId, [s.inst("firstSource").instanceId]);
+      await settle(() => s.state.players[1]!.battleArea.length === 1);
+      await advance(s.engine).verb.placeUnder(s.perm("ryugumon").permanentId, [s.inst("secondSource").instanceId]);
+    } finally {
+      advance(s.engine).verb.leaveEffectResolution();
+    }
     await settle();
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
@@ -174,5 +179,21 @@ describe("BT22-027 Ryugumon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-024"));
 
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT22-024"]);
+  });
+
+  it("does not react when a card is manually placed under this Digimon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT22-027", as: "ryugumon" }],
+        hand: [{ card: "BT22-024", as: "source" }],
+      },
+      1: { battleArea: [{ card: "BT22-023", as: "target" }] },
+    });
+    await s.ready();
+
+    await advance(s.engine).verb.placeUnder(s.perm("ryugumon").permanentId, [s.inst("source").instanceId]);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.deck).toHaveLength(0);
   });
 });

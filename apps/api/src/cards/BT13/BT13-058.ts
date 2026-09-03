@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT13-058 (Leopardmon: Leopard Mode) — do not regenerate over this file.
 // Printed text: "[When Digivolving] Suspend 1 of your opponent's Digimon. Until the end of
 // your opponent's turn, 1 of your opponent's Digimon doesn't unsuspend." The generator

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -61,7 +60,7 @@ const compiled: CompiledCard = {
             kind: "keyword",
             keyword: {
               keyword: "Decoy",
-              raw: "＜Decoy＞",
+              raw: "＜Decoy (Black)＞",
             },
           },
           while: {

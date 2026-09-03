@@ -38,6 +38,7 @@ import type {
   DigivolveAction,
   DigivolveViaPlacementAction,
   PlaceUnderAction,
+  TamerOntoDigivolveAction,
   TrashDigivolutionAction,
   WaiveColorRequirementAction,
 } from "./digivolve.js";
@@ -105,6 +106,7 @@ import type {
 } from "./restrictions.js";
 import type {
   HandRevealAddAction,
+  LookAction,
   RevealAction,
   RevealAddAction,
   SearchAction,
@@ -181,11 +183,13 @@ export type Action =
   | AllowDigiXrosMaterialsFromTrashAction
   | RevealAddAction
   | HandRevealAddAction
+  | LookAction
   | RevealAction
   | SearchAction
   | SearchSecurityAction
   | DeDigivolveAction
   | DigivolveAction
+  | TamerOntoDigivolveAction
   | DigivolveViaPlacementAction
   | AttackAction
   | BattleAction

@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const trashTarget = {
+const trashTarget: Target = {
   filter: {
     controller: "mine",
     kind: ["Digimon"],
@@ -14,7 +13,7 @@ const trashTarget = {
   count: 1,
   countModifier: { amount: 1, condition: { kind: "digiXrosCount", minimum: 1 } },
 };
-const gainTarget = {
+const gainTarget: Target = {
   filter: {
     controller: "mine",
     kind: ["Digimon"],
@@ -46,8 +45,6 @@ export const compiled: CompiledCard = {
           from: ["trash"],
           payCost: false,
           optional: true,
-          allOrNone: true,
-          mustPlayExactCountIfPossible: true,
         },
       ],
     },
@@ -60,8 +57,6 @@ export const compiled: CompiledCard = {
           from: ["trash"],
           payCost: false,
           optional: true,
-          allOrNone: true,
-          mustPlayExactCountIfPossible: true,
         },
       ],
     },

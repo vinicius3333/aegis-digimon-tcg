@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -85,8 +84,9 @@ export const compiled: CompiledCard = {
           actions: [
             {
               kind: "PlayToken",
-              token: "Petrification Token",
-              amount: 1,
+              tokens: ["Petrification Token"],
+              count: 1,
+              payCost: false,
               controller: "mine",
               placedAs: "opponentDigimon",
             },
@@ -102,8 +102,9 @@ export const compiled: CompiledCard = {
           actions: [
             {
               kind: "PlayToken",
-              token: "Petrification Token",
-              amount: 1,
+              tokens: ["Petrification Token"],
+              count: 1,
+              payCost: false,
               controller: "mine",
               placedAs: "opponentDigimon",
             },
@@ -116,7 +117,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [{ level: 5, colors: ["Red"], cost: 4 }],
+  digivolutionRequirement: [{ level: 5, colors: ["Red"], cost: 4, isAlternate: false }],
 };
 
 registerIrCard("BT21-029", compiled);

@@ -29,6 +29,13 @@ describe("BT15-066", () => {
     });
   });
 
+  it("restricts this Machinedramon to white evolution targets for its turn", () => {
+    expect(compiled.effects?.[2]).toMatchObject({
+      trigger: "YourTurn",
+      actions: [{ kind: "RestrictDigivolveInto", into: { colors: ["White"] }, duration: "forTheTurn" }],
+    });
+  });
+
   it("restricts this Machinedramon to white evolution targets during its owner's turn", async () => {
     const s = setupEngine({
       0: {

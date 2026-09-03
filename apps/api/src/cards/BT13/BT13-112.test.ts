@@ -121,7 +121,9 @@ describe("BT13-112 Omnimon", () => {
       { byEffectOnly: true },
     );
     s.state.memory = 14;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("omnimon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("omnimon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-112"));
 
     expect(s.state.players[0]!.breeding?.topCard).toBeUndefined();
@@ -148,7 +150,9 @@ describe("BT13-112 Omnimon", () => {
       to: "trash",
       instanceIds: expect.arrayContaining([hostId, blockedId]),
     });
-    expect((s.events[cleanupIndex] as { instanceIds: string[] }).instanceIds).toHaveLength(2);
+    const cleanupEvent = s.events[cleanupIndex];
+    if (cleanupEvent?.kind !== "cardsMoved") throw new Error("Expected breeding cleanup movement");
+    expect(cleanupEvent.instanceIds).toHaveLength(2);
     expect(observe(s.engine).hasKeyword(s.perm("omnimon"), "Rush")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("playableGallantmon"), "Rush")).toBe(true);
   });

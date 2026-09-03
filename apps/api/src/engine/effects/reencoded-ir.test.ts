@@ -547,7 +547,10 @@ describe('digimon -> kind:["Digimon"] (BT20-019 immuneToOpponentEffects grant)',
 });
 
 describe('tamer -> kind:["Tamer"] (BT7-036/BT7-047 digivolve-onto-Tamer base gate)', () => {
-  it.each(["BT7-036", "BT7-047"])("%s only digivolves onto a Tamer, never a Digimon", (cardId) => {
+  it.each([
+    ["BT7-036", CardColor.Yellow],
+    ["BT7-047", CardColor.Green],
+  ])("%s only digivolves onto a Tamer, never a Digimon", (cardId, color) => {
     assertKeysGone(cardId, ["tamer"]);
     const ir = irOf(cardId);
     const digivolve = ir.effects.find((e) => e.trigger === "Static")?.actions[0] as unknown as {
@@ -556,10 +559,10 @@ describe('tamer -> kind:["Tamer"] (BT7-036/BT7-047 digivolve-onto-Tamer base gat
     const filter = digivolve.target.filter;
     expect(filter.kind).toEqual(["Tamer"]);
 
-    expect(definitionMatches(filter, facts({ kinds: [CardKind.Tamer], level: 0 }))).toBe(true);
+    expect(definitionMatches(filter, facts({ kinds: [CardKind.Tamer], colors: [color], level: 0 }))).toBe(true);
     // REVERT-CONFIRM-RED: with the dead `tamer: true` restored, `kind` disappears from the
     // filter entirely, so a same-color Digimon also qualified as a digivolution base.
-    expect(definitionMatches(filter, facts({ kinds: [CardKind.Digimon], level: 3 }))).toBe(false);
+    expect(definitionMatches(filter, facts({ kinds: [CardKind.Digimon], colors: [color], level: 3 }))).toBe(false);
   });
 });
 

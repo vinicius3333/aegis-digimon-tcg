@@ -60,15 +60,7 @@ function legalIntoCandidates(
     actualBaseDef === undefined || virtualBase === undefined
       ? actualBaseDef
       : { ...actualBaseDef, level: virtualBase.level, colors: virtualBase.colors };
-  // Only filter when the base carries a level: a level-less base satisfies no level-gated
-  // requirement (Q4242), and the requirement match is meaningless without it.
-  //
-  // KNOWN GAP: a Tamer base is level-less, so this skips the filter and offers every
-  // `into`-matching card — including Hybrids with no Tamer path, which `digivolveFromInstance`
-  // then refuses. Tightening it (filter level-less bases by the alternate requirement when
-  // `pays`) is correct but currently fails three tests whose fake definitions omit `level`
-  // (BT19-084 x2, BT25-026); those fakes model real leveled Digimon and need fixing first.
-  if (baseDef === undefined || baseDef.level === undefined) return pool;
+  if (baseDef === undefined) return [];
   return pool.filter((c) => {
     const intoDef = ctx.game.definitionOf({ cardId: c.cardId } as never);
     const ordinary = ignoreLevel ? matchingEvoCostIgnoringLevel(intoDef, baseDef) : matchingEvoCost(intoDef, baseDef);
@@ -89,6 +81,10 @@ function legalIntoCandidates(
       virtualBase === undefined && base
         ? ctx.game.baseGrantedDigivolve?.(base.controllerSeat, base, intoDef)
         : undefined;
+    // Tamers and other level-less bases cannot satisfy an ordinary level-gated EvoCost. They
+    // can still use an explicitly printed alternate route (for example Rie -> BT22-067), or a
+    // base-granted route. Filter the selection pool with the same requirement matcher used by
+    // the authoritative digivolve primitive so an invalid name/trait match is never offered.
     if (enforceRequirements && ordinary === undefined && alternate === undefined && baseGranted === undefined)
       return false;
     if (digivolutionCostMax === undefined) return true;
@@ -203,7 +199,7 @@ function visibleDigivolveSourceIds(
 }
 
 export async function runDigivolve(ctx: EffectContext, action: Extract<Action, { kind: "Digivolve" }>): Promise<void> {
-  // Static metadata-only Digivolve actions that register alternate digivolution paths
+  // Legacy static metadata-only Digivolve actions that register alternate digivolution paths
   // (e.g. Frontier tamer-onto effects with `onto` + `asLevel`) carry no runtime `target`
   // and are consumed by registerTamerOntoFromEffects — never resolved.
   if (!action.target) return;

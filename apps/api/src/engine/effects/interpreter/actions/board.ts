@@ -308,11 +308,7 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       // resolvePermanentTargets already binds the same physical recipient for sameTarget.
       ctx.lastEffectActed = ids.length > 0;
       if (action.includeLaterEntrants === true) {
-        const grantedInstanceIds = new Set<string>();
-        for (const id of ids) {
-          const top = ctx.game.permanentById(id)?.topCard;
-          if (top !== undefined) grantedInstanceIds.add(top.instanceId);
-        }
+        const grantedPermanentIds = new Set(ids);
         const expiresOnTurnEndOf =
           action.duration === "forTheTurn" || action.duration === "untilYourTurnEnd"
             ? ctx.source.ownerSeat
@@ -336,18 +332,24 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
             const id = subCtx.trigger.subjectPermanentId;
             const permanent = id === undefined ? undefined : subCtx.game.permanentById(id);
             const top = permanent?.topCard;
-            if (top === undefined || grantedInstanceIds.has(top.instanceId)) return;
+            if (permanent === undefined || top === undefined || grantedPermanentIds.has(permanent.permanentId)) return;
             const futureGrantCount = action.count ?? 1;
-            const grantProvenance = {
+            const futureGrantProvenance = {
               sourceSeat: subCtx.source.ownerSeat,
               sourceKinds: [...subCtx.source.definition.kinds],
               sourceCardId: subCtx.source.cardId,
               sourceEffectText: subCtx.activeEffectText,
             };
             for (let i = 0; i < futureGrantCount; i++) {
-              subCtx.fx.grantKeyword(top.instanceId, kw, toDuration(action.duration), keyword.amount, grantProvenance);
+              subCtx.fx.grantKeyword(
+                permanent.permanentId,
+                kw,
+                toDuration(action.duration),
+                keyword.amount,
+                futureGrantProvenance,
+              );
             }
-            grantedInstanceIds.add(top.instanceId);
+            grantedPermanentIds.add(permanent.permanentId);
           },
         });
         // A successful cost-bearing grant is still an activated effect when the filtered board

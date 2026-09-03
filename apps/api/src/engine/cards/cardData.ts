@@ -17,7 +17,11 @@ import {
   type Permanent,
   type ZoneRef,
 } from "@aegis/shared";
-import { tamerOntoDigivolveColors, tamerOntoDigivolveLevel } from "./tamerOntoDigivolve.js";
+import {
+  tamerOntoDigivolveColors,
+  tamerOntoDigivolveCostOverride,
+  tamerOntoDigivolveLevel,
+} from "./tamerOntoDigivolve.js";
 import type { GameAccess } from "../effects/EffectContext.js";
 
 /**
@@ -339,7 +343,7 @@ export function permanentHasTrait(game: GameAccess, permanent: Permanent, trait:
  * The "digivolve from hand onto a <color> Tamer as if it is a level N Digimon" mechanic is
  * handled separately and FIRST: effects.json carries only a STALE gateless `{cost, isAlternate}`
  * for these cards (it would match any base of any color), so the correctly-gated requirement is
- * derived here from the registered `Static` `Digivolve` action's `asLevel` — a Tamer base that
+ * derived here from the registered static Tamer-onto metadata action's `asLevel` — a Tamer base that
  * shares a color with the evolving card, paying the card's level-N evo cost. For such a card the
  * stale gateless effects.json entry is ignored.
  */
@@ -486,6 +490,7 @@ function matchGatedRequirement(
     // Base play-cost gate: distinguishes same-name reprints ("Play cost 12 [Ceresmon]").
     if (req.basePlayCost !== undefined && baseDef.playCost !== req.basePlayCost) continue;
     if (req.basePlayCostMin !== undefined && baseDef.playCost < req.basePlayCostMin) continue;
+    if (req.basePlayCostMax !== undefined && baseDef.playCost > req.basePlayCostMax) continue;
 
     // Text gate: "[X] in its text" is the full card-information union, not effectText-only
     // (EX12-051 Q6829). A card's name and traits count, as do every printed effect field; the
@@ -557,7 +562,12 @@ export function matchingAlternateDigivolutionRequirement(
     const evolvingDef = resolve(evolving);
     const evo = evolvingDef.evoCosts.find((c) => c.level === tamerOntoLevel && baseDef.colors.includes(c.color));
     if (evo === undefined) return undefined;
-    return { cost: evo.memoryCost, isAlternate: true, baseIsTamer: true };
+    return {
+      cost: tamerOntoDigivolveCostOverride(evolvingId) ?? evo.memoryCost,
+      isAlternate: true,
+      baseIsTamer: true,
+      ...(tamerColors === undefined ? {} : { baseColors: [...tamerColors] }),
+    };
   }
 
   if (requirements.length === 0) return undefined;

@@ -18,11 +18,12 @@ describe("BT13-092 BT13-092", () => {
     expect(compiled.effects[0]).toMatchObject({
       trigger: "WhenDigivolving",
       actions: [
-        { kind: "Trash", chooser: "opponent", target: { filter: { controller: "opponent", zone: "hand" }, count: 1 } },
+        { kind: "Trash", target: { filter: { controller: "opponent", zone: "hand" }, count: 1 } },
         {
           kind: "SecurityManipulation",
-          op: "addTop",
+          op: "toHand",
           controller: "opponent",
+          source: "securityTop",
           condition: { kind: "zoneCount", seat: "opponent", zone: "hand", op: "lte", value: 7 },
         },
       ],
@@ -51,6 +52,51 @@ describe("BT13-092 BT13-092", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT13-092", as: "card" }] } });
     await s.ready();
     expect(s.perm("card").topCard?.cardId).toBe("BT13-092");
+  });
+
+  it("lets the Burst Mode controller choose the opponent hand card and then moves top security to hand when eligible", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-089", as: "ravemon" }],
+          hand: [{ card: "BT13-092", as: "burst" }],
+        },
+        1: {
+          hand: [
+            { card: "BT1-001", as: "first" },
+            { card: "BT1-002", as: "second" },
+          ],
+          security: [{ card: "BT1-003", as: "security" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    const firstId = s.inst("first").instanceId;
+    const secondId = s.inst("second").instanceId;
+    const securityId = s.inst("security").instanceId;
+    preferInstanceIds.push(firstId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("ravemon").permanentId,
+        instanceId: s.inst("burst").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("ravemon").topCard?.cardId === "BT13-092");
+
+    const trashIds = s.state.players[1]!.trash.map((card) => card.instanceId);
+    const handIds = s.state.players[1]!.hand.map((card) => card.instanceId);
+    expect(trashIds).toContain(firstId);
+    expect(trashIds).not.toContain(secondId);
+    expect(trashIds).not.toContain(securityId);
+    expect(handIds).toContain(secondId);
+    expect(handIds).toContain(securityId);
+    expect(handIds).not.toContain(firstId);
+    expect(s.state.players[1]!.security).toHaveLength(0);
   });
 
   it("deletes only opponent Digimon sharing the name returned from their trash", async () => {

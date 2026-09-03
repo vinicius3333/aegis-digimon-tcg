@@ -19,7 +19,7 @@ describe("BT13-061 Gotsumon", () => {
           kind: "RevealAdd",
           revealCount: 3,
           add: [{ filter: { controllerDefault: "mine", colors: ["Black"] }, count: 1, to: "hand" }],
-          rest: "deckBottom",
+          rest: "deckBottomAnyOrder",
           condition: { kind: "isOpponentsTurn" },
         },
       ],

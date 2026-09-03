@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -23,9 +22,7 @@ const compiled: CompiledCard = {
           sourceFilter: {
             kind: ["Digimon"],
             colors: ["Red"],
-            nameOrTrait: [
-              { tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "trait" },
-            ],
+            nameOrTrait: [{ tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "trait" }],
             excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }],
           },
           actions: [
@@ -36,9 +33,7 @@ const compiled: CompiledCard = {
                   controller: "mine",
                   kind: ["Digimon"],
                   colors: ["Red"],
-                  nameOrTrait: [
-                    { tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "trait" },
-                  ],
+                  nameOrTrait: [{ tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "trait" }],
                   excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }],
                   dp: { op: "lte", value: 13000 },
                 },
@@ -58,7 +53,7 @@ const compiled: CompiledCard = {
                 raw: "By returning this Tamer to the hand",
               },
               abortOnDecline: true,
-            } as any,
+            },
           ],
         },
       ],

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -119,7 +118,7 @@ const compiled: CompiledCard = {
       trigger: "YourTurn",
       actions: [
         {
-          kind: "GrantStatic",
+          kind: "GrantImmunity",
           target: {
             filter: {
               isSelfRef: true,
@@ -127,9 +126,7 @@ const compiled: CompiledCard = {
             count: 1,
             isSelf: true,
           },
-          grant: {
-            immunity: true,
-          },
+          immuneFrom: "opponentEffects",
           duration: "forTheTurn",
           condition: {
             kind: "memoryAtMost",

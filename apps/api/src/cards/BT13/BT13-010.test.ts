@@ -10,19 +10,21 @@ import "./BT13-014.js";
 
 describe("BT13-010 Biyomon", () => {
   it("keeps Garudamon and Kristy Damon bracket references exact", () => {
-    const action = compiled.effects[0]!.actions[0] as unknown as {
-      into: { nameOrTrait: [{ tokens: string[]; match: string }] };
-      cost: { target: { filter: { nameOrTrait: [{ tokens: string[]; match: string }] } } };
-    };
-    const garudamonReference = action.into.nameOrTrait[0]!;
-    const kristyReference = action.cost.target.filter.nameOrTrait[0]!;
+    const action = compiled.effects[0]?.actions[0];
+    expect(action?.kind).toBe("Digivolve");
+    if (action?.kind !== "Digivolve") throw new Error("Expected Digivolve action");
+    const garudamonReference = action.into?.nameOrTrait?.[0];
+    const kristyReference = action.cost?.target?.filter.nameOrTrait?.[0];
+    if (garudamonReference === undefined || kristyReference === undefined) {
+      throw new Error("Expected Garudamon and Kristy Damon name references");
+    }
 
     expect(garudamonReference).toEqual({ tokens: ["Garudamon"], match: "nameExact" });
     expect(kristyReference).toEqual({ tokens: ["Kristy Damon"], match: "nameExact" });
-    expect(matchNameOrTrait(definitionOf("BT13-014"), garudamonReference as never)).toBe(true);
-    expect(matchNameOrTrait(definitionOf("BT16-011"), garudamonReference as never)).toBe(false);
-    expect(matchNameOrTrait({ nameEn: "Kristy Damon" }, kristyReference as never)).toBe(true);
-    expect(matchNameOrTrait({ nameEn: "Kristy Damon & Marcus Damon" }, kristyReference as never)).toBe(false);
+    expect(matchNameOrTrait(definitionOf("BT13-014"), garudamonReference)).toBe(true);
+    expect(matchNameOrTrait(definitionOf("BT16-011"), garudamonReference)).toBe(false);
+    expect(matchNameOrTrait({ nameEn: "Kristy Damon" }, kristyReference)).toBe(true);
+    expect(matchNameOrTrait({ nameEn: "Kristy Damon & Marcus Damon" }, kristyReference)).toBe(false);
   });
 
   it("when played by an effect, may return Kristy Damon and digivolve into Garudamon for free", async () => {

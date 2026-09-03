@@ -37,7 +37,9 @@ describe("BT14-088", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gennai").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gennai").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT14-007"));
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT14-007")).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT14-087")).toBe(true);
@@ -82,6 +84,32 @@ describe("BT14-088", () => {
     expect(s.state.players[0]!.breeding).toBeUndefined();
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT14-007")).toBe(true);
     expect(s.perm("gennai").isSuspended).toBe(true);
+  });
+
+  it("does not move a breeding Digimon with 0 DP", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-088", as: "gennai" }],
+          breeding: { card: "BT18-086", as: "larva" },
+          security: ["BT1-085"],
+        },
+        1: { battleArea: [{ card: "BT14-015", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 0);
+    expect(s.state.players[0]!.breeding?.topCard.cardId).toBe("BT18-086");
+    expect(s.perm("gennai").isSuspended).toBe(false);
   });
 
   it("plays itself from security through a natural security check", async () => {

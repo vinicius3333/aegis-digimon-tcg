@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
+const self: Target = { filter: { isSelfRef: true }, count: 1, isSelf: true };
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -33,7 +32,7 @@ export const compiled: CompiledCard = {
           kind: "GrantStatic",
           target: self,
           grant: "effects",
-          filter: { zone: "digivolutionStack", nameOrTrait: [{ tokens: ["Gammamon"], match: "name" }] },
+          filter: { zone: "digivolutionCards", nameOrTrait: [{ tokens: ["Gammamon"], match: "name" }] },
           duration: "permanent",
         },
       ],
@@ -45,7 +44,7 @@ export const compiled: CompiledCard = {
           kind: "GrantStatic",
           target: self,
           grant: "effects",
-          filter: { zone: "digivolutionStack", nameOrTrait: [{ tokens: ["Gammamon"], match: "name" }] },
+          filter: { zone: "digivolutionCards", nameOrTrait: [{ tokens: ["Gammamon"], match: "name" }] },
           duration: "permanent",
         },
       ],

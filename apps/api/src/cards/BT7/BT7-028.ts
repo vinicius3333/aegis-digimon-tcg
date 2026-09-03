@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -65,7 +64,7 @@ const compiled: CompiledCard = {
                 },
                 count: 1,
               },
-              amount: 99,
+              amount: "all",
               raw: "Trash all of the digivolution cards of that Digimon.",
             },
             {

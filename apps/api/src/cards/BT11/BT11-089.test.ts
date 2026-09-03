@@ -17,7 +17,12 @@ import { compiled } from "./BT11-089.js";
 // hand. The 7th known instance of the reveal-to-hand no-op bug class.
 describe("BT11-089 [On Play] reveal 4 -> add 1 red Vaccine Digimon to hand", () => {
   it("maps catalog facts and every printed effect to IR", () => {
-    expect(getCardDefinition("BT11-089")).toMatchObject({ cardId: "BT11-089", colors: ["Red"], kinds: ["Tamer"], playCost: 3 });
+    expect(getCardDefinition("BT11-089")).toMatchObject({
+      cardId: "BT11-089",
+      colors: ["Red"],
+      kinds: ["Tamer"],
+      playCost: 3,
+    });
     expect(compiled.effects).toMatchObject([
       { trigger: "OnPlay", actions: [{ kind: "RevealAdd", revealCount: 4 }] },
       {
@@ -26,7 +31,7 @@ describe("BT11-089 [On Play] reveal 4 -> add 1 red Vaccine Digimon to hand", () 
           {
             kind: "SubTrigger",
             event: "whenPlayed",
-            sourceFilter: { excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }] },
+            sourceFilter: { excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "traitContains" }] },
           },
         ],
       },
@@ -66,7 +71,7 @@ describe("BT11-089 [On Play] reveal 4 -> add 1 red Vaccine Digimon to hand", () 
         0: {
           battleArea: [
             { card: "BT11-089", as: "akiho" },
-            { card: "BT1-012", as: "played-bird" },
+            { card: "BT1-017", as: "played-bird" },
             { card: "BT11-008", as: "other-beast" },
           ],
         },

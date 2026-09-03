@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -87,12 +86,15 @@ export const compiled: CompiledCard = {
           },
           into: {
             controllerDefault: "mine",
+            zone: "hand",
+            kind: ["Digimon"],
             nameOrTrait: [
               {
                 tokens: ["Millenniummon"],
                 match: "name",
               },
             ],
+            hasDnaDigivolutionRequirement: true,
           },
           payCost: true,
           optional: true,

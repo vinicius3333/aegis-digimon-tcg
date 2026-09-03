@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -45,7 +44,7 @@ const compiled: CompiledCard = {
           actions: [
             {
               kind: "DigiXrosMaterialZoneExpansion",
-              zones: ["tamerCards", "trash"],
+              zones: ["underTamers", "trash"],
               duration: "forTheTurn",
               cost: {
                 kind: "suspend",

@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT13-057 (Rosemon) — do not regenerate. Both suspend selections
 // CanSelectPermanentCondition gates on `!permanent.IsSuspended`, and resolution guards
 // on `!IsSuspended && CanSuspend`): a suspend may only target an UNSUSPENDED permanent.

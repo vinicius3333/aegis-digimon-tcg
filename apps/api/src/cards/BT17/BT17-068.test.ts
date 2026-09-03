@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { revealedDefinition } from "../../engine/effects/interpreter/actions/reveal.js";
-import { getCardDefinition } from "@aegis/shared";
+import { CardInstance, getCardDefinition } from "@aegis/shared";
 import { compiled } from "./BT17-068.js";
 import "../BT3/BT3-051.js";
 import "./index.js";
@@ -12,11 +12,15 @@ const GULFMON = "BT17-070"; // Gulfmon Lv6 — eligible for [On Deletion]
 
 describe("BT17-068 Mephistomon — [On Deletion] play Gulfmon from hand", () => {
   it("keeps the Gulfmon-or-level-6-Dark-Masters alternatives distinct", () => {
-    const action = compiled.effects?.[1]?.actions?.[0] as any;
+    const action = compiled.effects?.[1]?.actions?.[0];
+    if (action?.kind !== "PlayWithoutCost") throw new Error("expected the on-deletion play action");
     expect(action.target.filter.nameOrTrait).toEqual([{ tokens: ["Gulfmon"], match: "name" }]);
     expect(action.target.orFilters).toEqual([
       expect.objectContaining({ levels: [6], nameOrTrait: [{ tokens: ["Dark Masters"], match: "trait" }] }),
     ]);
+    expect(compiled.effects[0]?.actions[0]).toMatchObject({
+      actions: [{ cost: { kind: "return", to: "deckBottom" } }],
+    });
   });
 
   it("[On Deletion] plays Gulfmon from hand to battle area when Mephistomon is deleted", async () => {
@@ -109,8 +113,11 @@ describe("BT17-068 Mephistomon — [On Deletion] play Gulfmon from hand", () => 
 
 describe("BT17-068 Mephistomon — revealed level", () => {
   it("is treated as level 6 by revealed-card filters while retaining level 5", () => {
-    const card = { cardId: "BT17-068", instanceId: "meph", ownerSeat: 0 } as any;
-    const def = revealedDefinition({ game: { definitionOf: () => getCardDefinition("BT17-068")! } } as any, card);
+    const card = new CardInstance();
+    card.cardId = "BT17-068";
+    card.instanceId = "meph";
+    card.ownerSeat = 0;
+    const def = revealedDefinition({ game: { definitionOf: () => getCardDefinition("BT17-068")! } }, card);
 
     expect(def.level).toBe(6);
     expect(def.treatedAsLevels).toEqual([5, 6]);

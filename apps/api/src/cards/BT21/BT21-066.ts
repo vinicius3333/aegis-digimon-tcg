@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -91,6 +90,7 @@ export const compiled: CompiledCard = {
           underFilter: {
             controller: "mine",
             kind: ["Tamer"],
+            excludeToken: true,
           },
           optional: true,
         },
@@ -110,6 +110,7 @@ export const compiled: CompiledCard = {
           },
         },
       ],
+      keywords: [{ keyword: "Save", raw: "＜Save＞" }],
     },
     {
       trigger: "YourTurn",
@@ -148,12 +149,9 @@ export const compiled: CompiledCard = {
   ],
   digiXrosRequirement: [
     {
-      materials: [
-        {
-          desc: "1 Digimon card with ＜Save＞ in text",
-        },
-      ],
+      materials: [{ texts: ["Save"] }],
       count: 2,
+      maxMaterials: 1,
     },
   ],
 };

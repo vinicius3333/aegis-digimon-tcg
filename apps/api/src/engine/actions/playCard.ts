@@ -32,7 +32,11 @@ export interface PlayCardIntent {
    * per-material cost reduction). The GameEngine routes these to the DigiXros subsystem; the plain
    * play-card action ignores the field. See `actions/digiXros.ts` and the @aegis/shared DigiXrosPlan.
    */
-  digiXros?: { materialInstanceIds: string[]; expanderPermanentIds?: string[] };
+  digiXros?: {
+    materialInstanceIds: string[];
+    expanderPermanentIds?: string[];
+    underTamerHostPermanentId?: string;
+  };
   /**
    * Present when this play is an Assembly declaration (place the exact named/traited TRASH-card
    * count under the card for a flat cost reduction, §7-3). The GameEngine routes these to the

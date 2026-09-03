@@ -1,52 +1,17 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// "Return to hand" is the default; "return to deckBottom instead" overrides it
-// when opponent has 3+ Digimon. The 'instead' conditional-destination cannot be
-// expressed with a single Return action (ReturnAction.to is fixed). The two-Return
-// encoding selects the Digimon once for the conditioned branch and the constraint
-// that both branches are mutually exclusive requires CAP-E-6 (conditional-instead
-// Return). The Trash of digivolution cards only applies to the deckBottom branch.
+// The two printed branches have different target filters and destinations. Each
+// branch binds its chosen Digimon, then Return moves only that Digimon to the printed
+// destination and performs the rules cleanup for its stack. Per Q1399, the cleanup
+// must not emit an effect-driven whenDigivolutionTrashed event.
 const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Main",
       actions: [
         {
-          kind: "Return",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              levelComparison: {
-                op: "lte",
-                value: 5,
-              },
-            },
-            count: 1,
-          },
-          to: "hand",
-          condition: {
-            kind: "not",
-            condition: {
-              kind: "opponentHas",
-              filter: { zone: "battleArea", controllerDefault: "opponent", kind: ["Digimon"] },
-              count: 3,
-            },
-          },
-        },
-        {
-          kind: "Return",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-            },
-            count: 1,
-          },
-          to: "deckBottom",
-          replaces: "previous",
+          kind: "ConditionalBranch",
           condition: {
             kind: "opponentHas",
             filter: {
@@ -57,6 +22,40 @@ const compiled: CompiledCard = {
             count: 3,
             raw: "if your opponent has 3 or more Digimon in play",
           },
+          ifTrue: [
+            {
+              kind: "SelectBind",
+              target: {
+                filter: { controller: "opponent", kind: ["Digimon"] },
+                count: 1,
+                bindAs: "raddleTarget",
+              },
+            },
+            {
+              kind: "Return",
+              target: { filter: {}, count: 1, fromSelectionRef: "raddleTarget" },
+              to: "deckBottom",
+            },
+          ],
+          ifFalse: [
+            {
+              kind: "SelectBind",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  levelComparison: { op: "lte", value: 5 },
+                },
+                count: 1,
+                bindAs: "raddleTarget",
+              },
+            },
+            {
+              kind: "Return",
+              target: { filter: {}, count: 1, fromSelectionRef: "raddleTarget" },
+              to: "hand",
+            },
+          ],
         },
       ],
     },

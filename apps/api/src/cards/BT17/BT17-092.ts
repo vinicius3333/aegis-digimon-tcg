@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -38,9 +37,22 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "AllTurns",
+      condition: {
+        kind: "youHave",
+        filter: {
+          controllerDefault: "mine",
+          nameOrTrait: [
+            {
+              tokens: ["Eosmon"],
+              match: "name",
+            },
+          ],
+        },
+        raw: "you have [Eosmon]",
+      },
       actions: [
         {
-          kind: "Aura",
+          kind: "DisableTimingEffect",
           target: {
             filter: {
               controller: "opponent",
@@ -48,23 +60,8 @@ export const compiled: CompiledCard = {
             },
             count: "all",
           },
-          effect: {
-            kind: "restriction",
-            restriction: "activateOnPlay",
-          },
-          while: {
-            kind: "youHave",
-            filter: {
-              controllerDefault: "mine",
-              nameOrTrait: [
-                {
-                  tokens: ["Eosmon"],
-                  match: "name",
-                },
-              ],
-            },
-            raw: "you have [Eosmon]",
-          },
+          timings: ["onPlay"],
+          duration: "permanent",
         },
       ],
     },

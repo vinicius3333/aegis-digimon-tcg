@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const playLevelThree: any = {
+const playLevelThree: Action = {
   kind: "PlayWithoutCost",
   target: {
     filter: {

@@ -13,7 +13,7 @@ describe("BT22-038 Monzaemon", () => {
       kind: "Replacement",
       event: "wouldDigivolve",
       sourceFilter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Ver.1"], match: "trait" }] },
-      into: { controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Monzaemon"], match: "name" }] },
+      into: { cardId: "BT22-038" },
     });
     expect(compiled.effects).toContainEqual(
       expect.objectContaining({ trigger: "Static", keywords: [{ keyword: "Armor Purge", raw: "＜Armor Purge＞" }] }),
@@ -114,5 +114,35 @@ describe("BT22-038 Monzaemon", () => {
     await settle();
 
     expect(s.perm("target").currentDP).toBe(6000);
+  });
+
+  it("does not reduce a digivolution into a different card whose name contains Monzaemon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          {
+            card: "EX9-050",
+            as: "numemon",
+            under: [
+              { card: "BT1-001", faceUp: false },
+              { card: "BT1-002", faceUp: false },
+            ],
+          },
+        ],
+        hand: [{ card: "BT15-040", as: "nearName" }],
+      },
+    });
+    s.state.memory = 5;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("numemon").permanentId,
+        instanceId: s.inst("nearName").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("numemon").topCard?.cardId === "BT15-040");
+
+    expect(s.state.memory).toBe(2);
   });
 });

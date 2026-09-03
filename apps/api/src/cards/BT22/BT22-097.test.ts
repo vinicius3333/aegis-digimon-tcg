@@ -80,4 +80,38 @@ describe("BT22-097 Music of the Heart", () => {
     expect(s.state.players[0]!.hand).toHaveLength(initialHand);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === musicId)).toBe(true);
   });
+
+  it("activates Delay from a public Appmon play and links a real Link-capable Appmon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT22-097", as: "music" },
+            { card: "BT22-050", as: "host" },
+          ],
+          hand: [
+            { card: "BT21-009", as: "trigger" },
+            { card: "BT21-009", as: "link" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    s.perm("music").enterFieldTurnCount = s.state.turnCount - 1;
+    s.perm("music").placedByEffect = true;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("trigger").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("trigger").instanceId),
+    );
+
+    await settle(() => s.perm("host").linked.some((card) => card.instanceId === s.inst("link").instanceId));
+
+    expect(s.perm("host").linked.map((card) => card.cardId)).toEqual(["BT21-009"]);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("music").instanceId)).toBe(true);
+  });
 });

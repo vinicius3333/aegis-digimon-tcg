@@ -85,7 +85,31 @@ describe("BT19-013 Shoutmon X5", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT19-013")).toBe(false);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT19-008")).toBe(true);
     expect(s.perm("tamer").stack).toHaveLength(0);
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT19-013", "BT19-009"]));
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT19-013", "BT19-009"]),
+    );
     expect(s.state.memory).toBe(0);
+  });
+
+  it("saves only this Digimon's Xros Heart sources when another stack also qualifies", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT19-009", as: "other", under: ["BT19-008"] },
+            { card: "BT19-013", as: "x5", under: ["BT19-012"] },
+            { card: "BT19-079", as: "tamer" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).verb.deletePermanent([s.perm("x5").permanentId]);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT19-012"));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT19-012")).toBe(true);
+    expect(s.perm("tamer").stack).toHaveLength(0);
+    expect(s.perm("other").stack.map((card) => card.cardId)).toEqual(["BT19-008"]);
   });
 });

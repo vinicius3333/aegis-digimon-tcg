@@ -35,7 +35,16 @@ describe("BT9-009 Guilmon (X Antibody)", () => {
         },
         {
           trigger: "YourTurn",
-          actions: [{ kind: "CostModifier", mode: "raiseCeiling", costType: "dpDeletion", amount: 1000 }],
+          actions: [
+            {
+              kind: "CostModifier",
+              mode: "raiseCeiling",
+              costType: "dpDeletion",
+              amount: 1000,
+              target: { filter: { controller: "mine" }, count: "all" },
+              duration: "permanent",
+            },
+          ],
           isInherited: true,
         },
       ],

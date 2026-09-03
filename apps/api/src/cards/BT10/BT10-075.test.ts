@@ -1,10 +1,21 @@
 import { describe, expect, it } from "vitest";
-import type { PlayerState } from "@aegis/shared";
+import { CardKind, getCardDefinition, type PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT10-075.js";
+import { compiled } from "./BT10-075.js";
 
 describe("BT10-075 Damemon", () => {
+  it("requires effect attribution for its inherited stack-trash trigger", () => {
+    expect(compiled.effects.find(({ isInherited }) => isInherited)?.actions[0]).toMatchObject({
+      kind: "SubTrigger",
+      event: "onDigivolutionCardsDiscardedBatch",
+      requireByEffect: true,
+    });
+    expect(compiled.effects.find(({ trigger }) => trigger === "OnDeletion")?.actions[0]).toMatchObject({
+      underFilter: { controller: "mine", kind: ["Tamer"], excludeToken: true },
+    });
+  });
+
   it("plays Yuu Amano from hand when none is in play", async () => {
     const s = setupEngine(
       {
@@ -98,6 +109,35 @@ describe("BT10-075 Damemon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === damemonId)).toBe(false);
   });
 
+  it("never uses a Tamer token as the Save host", async () => {
+    const tokenDefinition = getCardDefinition("TOKEN-Petrification-Token");
+    expect(tokenDefinition).toBeDefined();
+    const originalKinds = tokenDefinition!.kinds;
+    tokenDefinition!.kinds = [CardKind.Tamer];
+    try {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT10-075", as: "damemon" },
+              { card: "TOKEN-Petrification-Token", as: "tokenTamer" },
+            ],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      const damemonId = s.perm("damemon").topCard.instanceId;
+
+      await advance(s.engine).verb.deletePermanent([s.perm("damemon").permanentId]);
+      await settle(() => s.state.pendingDecision === undefined);
+
+      expect(s.perm("tokenTamer").stack).toHaveLength(0);
+      expect(s.state.players[0]!.trash.some((card) => card.instanceId === damemonId)).toBe(true);
+    } finally {
+      tokenDefinition!.kinds = originalKinds;
+    }
+  });
+
   it("gains owner memory when its inherited source is trashed on the opponent's turn", async () => {
     const s = setupEngine(
       {
@@ -113,5 +153,20 @@ describe("BT10-075 Damemon", () => {
     await settle(() => s.state.memory === -1);
 
     expect(s.state.memory).toBe(-1);
+  });
+
+  it("does not react to an unattributed stack discard event", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: [{ card: "BT10-075", as: "source" }] }] },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("onDigivolutionCardsDiscardedBatch", {
+      subjectPermanentId: s.perm("host").permanentId,
+      trashedDigivolutionInstanceIds: [s.inst("source").instanceId],
+    });
+    expect(s.state.memory).toBe(0);
   });
 });

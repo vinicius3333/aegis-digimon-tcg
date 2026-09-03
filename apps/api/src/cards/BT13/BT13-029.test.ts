@@ -3,6 +3,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-029.js";
+import "./BT13-030.js";
 
 describe("BT13-029 MachGaogamon", () => {
   it("locks the attack target for the turn and unsuspends on opponent-hand additions", () => {
@@ -94,5 +95,34 @@ describe("BT13-029 MachGaogamon", () => {
     s.perm("host").isSuspended = true;
     await advance(s.engine).fireSubTrigger("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: 1 });
     expect(s.perm("host").isSuspended).toBe(true);
+  });
+
+  it("naturally unsuspends when a played blue Tamer causes an effect return to the opponent's hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-015", as: "host", suspended: true, under: ["BT13-029"] },
+            { card: "BT13-030", as: "ulforce" },
+          ],
+          hand: [{ card: "BT13-097", as: "blueTamer" }],
+        },
+        1: { battleArea: [{ card: "BT1-015", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blueTamer").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("target").instanceId) &&
+        !s.perm("host").isSuspended,
+    );
+
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("target").instanceId);
   });
 });

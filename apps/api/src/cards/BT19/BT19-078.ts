@@ -1,12 +1,12 @@
-// @ts-nocheck
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const mother = {
+const mother: Filter = {
   controller: "mine",
   nameOrTrait: [{ tokens: ["Mother D-Reaper"], match: "name" }],
   excludeCardsNamed: ["ADR-01 Jeri"],
 };
-const compiled = {
+const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnPlay",
@@ -43,6 +43,7 @@ const compiled = {
         {
           kind: "SubTrigger",
           event: "whenOpponentAttacks",
+          sourceFilter: { controller: "opponent", kind: ["Digimon"] },
           actions: [
             {
               kind: "PlayWithoutCost",

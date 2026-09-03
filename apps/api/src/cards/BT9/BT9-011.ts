@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -15,6 +14,11 @@ export const compiled: CompiledCard = {
           mode: "raiseCeiling",
           costType: "dpDeletion",
           amount: 1000,
+          target: {
+            filter: { controller: "mine" },
+            count: "all",
+          },
+          duration: "permanent",
         },
       ],
       isInherited: true,

@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR — source placement must happen under this inherited host.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

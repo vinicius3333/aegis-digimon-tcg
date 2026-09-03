@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR — bottom-decking the target already trashes only that target's sources.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

@@ -32,7 +32,7 @@ describe("BT16-034", () => {
       kind: "Unsuspend",
       optional: true,
       abortOnDecline: true,
-      cost: { kind: "trash" },
+      cost: { kind: "trash", target: { filter: { zone: "security", position: "top" } } },
     });
   });
 

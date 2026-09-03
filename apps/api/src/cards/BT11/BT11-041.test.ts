@@ -6,7 +6,7 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT11-041.js";
 
 describe("BT11-041 Etemon", () => {
-  it("maps the catalog, alternate Sukamon evolution, and unrestricted other-Digimon prevention cost", () => {
+  it("maps the catalog, alternate Sukamon evolution, and this-stack trash cost", () => {
     expect(getCardDefinition("BT11-041")).toMatchObject({
       cardId: "BT11-041",
       nameEn: "Etemon",
@@ -21,6 +21,12 @@ describe("BT11-041 Etemon", () => {
       types: ["Puppet"],
     });
     expect(compiled.digivolutionRequirement).toEqual([{ level: 4, names: ["Sukamon"], cost: 3, isAlternate: true }]);
+    const cost = compiled.effects[0]!.actions[0]!;
+    if (cost.kind !== "ModifyDP") throw new Error("BT11-041 effect is not ModifyDP");
+    expect(cost.cost).toMatchObject({
+      kind: "trash",
+      target: { filter: { controller: "mine", hostFilter: { isSelfRef: true } } },
+    });
     expect(compiled.effects[2]).toMatchObject({
       trigger: "AllTurns",
       isInherited: true,
@@ -29,7 +35,12 @@ describe("BT11-041 Etemon", () => {
           kind: "Replacement",
           event: "wouldBeDeleted",
           sourceFilter: { isSelfRef: true },
-          actions: [{ kind: "Prevent", cost: { kind: "deleteOwn", target: { filter: { controller: "any", excludeSelf: true } } } }],
+          actions: [
+            {
+              kind: "Prevent",
+              cost: { kind: "deleteOwn", target: { filter: { controller: "any", excludeSelf: true } } },
+            },
+          ],
         },
       ],
     });
@@ -119,9 +130,7 @@ describe("BT11-041 Etemon", () => {
     expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(0);
 
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(s.perm("host").permanentId);
-    expect(s.state.players[costSeat]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(
-      costPermanentId,
-    );
+    expect(s.state.players[costSeat]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(costPermanentId);
   });
 
   it("Q2076: does not recursively reactivate a would-be-deleted prevention during its own resolution", async () => {

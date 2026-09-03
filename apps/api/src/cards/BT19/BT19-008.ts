@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT19-008 — do not regenerate.
 // YourTurn inherited GainKeyword Rush: added Xros Heart trait condition on target.
 import type { CompiledCard } from "@aegis/shared";

@@ -1,4 +1,4 @@
-import { CardKind, type CardDefinition, type Permanent, type Seat } from "@aegis/shared";
+import { CardKind, type CardDefinition, type Permanent, type Seat, type ZoneRef } from "@aegis/shared";
 import type { EffectContext, RemovalCause, ReplacementEventName, SubTriggerEventName } from "./EffectContext.js";
 
 /**
@@ -213,7 +213,7 @@ export interface ReplacementSubscriptionReduceCost extends ReplacementSubscripti
    */
   intoMatches?: (def: CardDefinition) => boolean;
   /** Optional target predicate when `sourcePermanentId` is only the lifecycle anchor. */
-  appliesTo?: (target: Permanent) => boolean;
+  appliesTo?: (target: Permanent, originZone?: ZoneRef) => boolean;
   /** For ＜Digisorption＞ redirect (BT3-056): the reduction's suspend cost targets the
    * OPPONENT's Digimon instead of the controller's. See `ReplacementInstallReduceCost`. */
   digisorptionRedirect?: boolean;
@@ -544,7 +544,7 @@ export class SubTriggerRegistry {
       // is an Option (BT25-100/101, KB Q6471/Q6476).
       const sourceKinds = sub.isLinkedSource === true ? [CardKind.Digimon] : [...(ctx.source?.definition?.kinds ?? [])];
       ctx.effectSourceKinds = sourceKinds;
-      ctx.fx?.enterEffectResolution?.(ctx.source.ownerSeat, sourceKinds);
+      ctx.fx?.enterEffectResolution?.(ctx.source.ownerSeat, sourceKinds, ctx.source.permanent?.()?.permanentId);
       try {
         await sub.run(ctx);
       } finally {
@@ -676,13 +676,14 @@ export class SubTriggerRegistry {
     target: Permanent,
     into: CardDefinition,
     turnBudget?: SubTriggerTurnLedger,
+    originZone?: ZoneRef,
   ): number {
     return this.replacements.reduce((sum, replacement) => {
       if (replacement.event !== event || replacement.mode !== "reduceCost") return sum;
       if (replacement.activate === undefined || replacement.controllerSeat !== seat) return sum;
       if (replacement.oncePerTurnKey !== undefined && turnBudget?.hasFired(replacement.oncePerTurnKey)) return sum;
       if (replacement.appliesTo !== undefined) {
-        if (!replacement.appliesTo(target)) return sum;
+        if (!replacement.appliesTo(target, originZone)) return sum;
       } else if (replacement.sourcePermanentId !== undefined && replacement.sourcePermanentId !== target.permanentId)
         return sum;
       if (replacement.intoMatches !== undefined && !replacement.intoMatches(into)) return sum;
@@ -700,6 +701,7 @@ export class SubTriggerRegistry {
     buildContext: (sourcePermanentId: string, sourceInstanceId?: string) => EffectContext | undefined,
     turnBudget?: SubTriggerTurnLedger,
     materials?: readonly Permanent[],
+    originZone?: ZoneRef,
   ): Promise<number> {
     let reduction = 0;
     const consumed = new Set<number>();
@@ -708,7 +710,7 @@ export class SubTriggerRegistry {
       if (replacement.activate === undefined || replacement.controllerSeat !== seat) continue;
       if (replacement.oncePerTurnKey !== undefined && turnBudget?.hasFired(replacement.oncePerTurnKey)) continue;
       if (replacement.appliesTo !== undefined) {
-        if (!replacement.appliesTo(target)) continue;
+        if (!replacement.appliesTo(target, originZone)) continue;
       } else if (replacement.sourcePermanentId !== undefined && replacement.sourcePermanentId !== target.permanentId)
         continue;
       if (replacement.intoMatches !== undefined && !replacement.intoMatches(into)) continue;

@@ -1,9 +1,20 @@
 import { describe, expect, it } from "vitest";
 import type { PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT1-056.js";
+import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
+import petermon from "./BT1-056.js";
 
 describe("BT1-056 Petermon", () => {
+  it("keeps the bracketed Tinkermon reference exact", () => {
+    expect(petermon.effects[0]).toMatchObject({
+      actions: [{ target: { filter: { nameOrTrait: [{ tokens: ["Tinkermon"], match: "nameExact" }] } } }],
+    });
+    expect(matchNameOrTrait({ nameEn: "Tinkermon" }, { tokens: ["Tinkermon"], match: "nameExact" })).toBe(true);
+    expect(matchNameOrTrait({ nameEn: "Tinkermon: X Antibody" }, { tokens: ["Tinkermon"], match: "nameExact" })).toBe(
+      false,
+    );
+  });
+
   it("plays Tinkermon from trash without paying its memory cost", async () => {
     const s = setupEngine(
       {
@@ -124,9 +135,7 @@ describe("BT1-056 Petermon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 1);
 
     expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("BT1-056");
-    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(
-      s.inst("opponentTinkermon").instanceId,
-    );
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("opponentTinkermon").instanceId);
   });
 
   it("does not fire its On Play effect when Petermon is digivolved", async () => {

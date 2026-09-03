@@ -29,7 +29,14 @@ describe("BT20-032 Bulkmon", () => {
     expect(compiled.effects.find((entry) => entry.isInherited)).toMatchObject({
       trigger: "AllTurns",
       frequency: "OncePerTurn",
-      actions: [{ kind: "SubTrigger", event: "whenDeletesInBattle", actions: [{ kind: "GainMemory", amount: 1 }] }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenDeletesInBattle",
+          sourceFilter: { isSelfRef: true },
+          actions: [{ kind: "GainMemory", amount: 1 }],
+        },
+      ],
     });
   });
 
@@ -72,6 +79,32 @@ describe("BT20-032 Bulkmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.memory === 6);
+    expect(s.state.players[0]!.battleArea).toContain(s.perm("host"));
+  });
+
+  it("does not react when another allied Digimon deletes in battle", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT20-034", as: "host", under: ["BT20-032"] },
+          { card: "BT20-010", as: "otherAttacker" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT20-010", dp: 1000, suspended: true, as: "opponent" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("otherAttacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("opponent").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.memory).toBe(5);
     expect(s.state.players[0]!.battleArea).toContain(s.perm("host"));
   });
 });

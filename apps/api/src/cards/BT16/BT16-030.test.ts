@@ -53,7 +53,7 @@ describe("BT16-030", () => {
           deck: ["BT1-009", "BT1-009"],
         },
       },
-      { autoSelectCards: true, autoAcceptOptional: true },
+      { autoSelectCards: true, autoAcceptOptional: true, autoChooseOption: true },
     );
     // 3 to play Salamon, then Gatomon's cost 3 reduced by 1 for the trash digivolve.
     s.state.memory = 5;
@@ -100,7 +100,7 @@ describe("BT16-030", () => {
           deck: ["BT1-009"],
         },
       },
-      { autoSelectCards: true, autoAcceptOptional: true },
+      { autoSelectCards: true, autoAcceptOptional: true, autoChooseOption: true },
     );
     s.state.memory = 3;
     await s.ready();

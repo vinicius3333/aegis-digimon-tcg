@@ -2,11 +2,27 @@ import { describe, expect, it } from "vitest";
 import type { CardDefinition } from "@aegis/shared";
 import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("BT19-101 ZeedMillenniummon", () => {
+  it("uses Overclock at end of a real turn after public play", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT19-101", as: "zeed" }], battleArea: [{ card: "BT19-070", as: "composite" }] },
+        1: { security: 2 },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 16;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("zeed").instanceId })).toEqual({ ok: true });
+    await advance(s.engine).runTurn(0);
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT19-070"));
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT19-070")).toBe(true);
+  });
+
   it("preserves Overclock, trash-to-top cost, conditional immunity, and alternate evolution", () => {
     const card = runtimeCompiledCard("BT19-101");
 

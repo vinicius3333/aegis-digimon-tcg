@@ -61,7 +61,7 @@ describe("BT20-091 [Your Turn] when Royal Knight played/digivolves, suspend to d
           kind: "Replacement",
           event: "wouldLeavePlay",
           mode: "instead",
-          sourceFilter: { nameOrTrait: [{ tokens: ["Royal Knight"], match: "trait" }] },
+          sourceFilter: { zone: "battleArea", nameOrTrait: [{ tokens: ["Royal Knight"], match: "trait" }] },
         },
       ],
     });

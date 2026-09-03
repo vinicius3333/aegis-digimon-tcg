@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, type CardDefinition, type CompiledCard, type Permanent, type Seat } from "@aegis/shared";
+import {
+  CardColor,
+  EffectTiming,
+  type CardDefinition,
+  type CompiledCard,
+  type Permanent,
+  type Seat,
+} from "@aegis/shared";
 import type { CardSource } from "./effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "./effects/EffectContext.js";
 import { irCardModule } from "./effects/interpreter.js";
@@ -27,10 +34,11 @@ function makeDefinition(over: Partial<CardDefinition> = {}): CardDefinition {
     set: "X",
     nameEn: "X",
     kinds: ["Digimon"] as never,
-    colors: [],
+    colors: ["Red"] as never,
+    level: 3,
     playCost: 0,
     dp: 3000,
-    evoCosts: [],
+    evoCosts: [{ color: CardColor.Red, level: 3, memoryCost: 0 }],
     maxCountInDeck: 4,
     ...over,
   };

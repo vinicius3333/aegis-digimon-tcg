@@ -8,7 +8,7 @@ describe("BT17-077 Imperialdramon: Paladin Mode", () => {
     for (const effect of [compiled.effects?.[1], compiled.effects?.[2]]) {
       expect(effect?.actions?.[0]).toMatchObject({
         kind: "TrashDigivolution",
-        amount: 99,
+        amount: "all",
         target: { count: "all", filter: { controller: "opponent", kind: ["Digimon"] } },
       });
     }

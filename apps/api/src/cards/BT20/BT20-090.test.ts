@@ -122,7 +122,7 @@ describe("BT20-090 Yuuki — Tamer effects", () => {
         deck: DECK_FILLER,
         hand: ["BT1-010"],
         // A security card so the forced attack resolves without ending the game abruptly.
-        security: Array.from({ length: 5 }, () => "BT1-010"),
+        security: Array.from({ length: 5 }, () => "BT1-001"),
       },
     });
     const tamer = h.s.perm("tamer");
@@ -134,5 +134,34 @@ describe("BT20-090 Yuuki — Tamer effects", () => {
 
     // The [End of Your Turn] effect resolved: Yuuki is now suspended.
     expect(tamer.isSuspended).toBe(true);
+    expect(h.s.perm("evilDragon").isSuspended).toBe(true);
+    expect(h.s.state.players[1]!.security).toHaveLength(4);
+  });
+
+  it("serializes cleanly and resolves independently for two Yuuki copies", async () => {
+    expect(JSON.parse(JSON.stringify(compiled))).toEqual(compiled);
+
+    const h = harness({
+      0: {
+        battleArea: [
+          { card: YUUKI, dp: 3000, as: "tamer1" },
+          { card: YUUKI, dp: 3000, as: "tamer2" },
+          { card: EVIL_DRAGON_DIGIMON, dp: 1000, as: "evilDragon1" },
+          { card: EVIL_DRAGON_DIGIMON, dp: 1000, as: "evilDragon2" },
+        ],
+        deck: DECK_FILLER,
+      },
+      1: { deck: DECK_FILLER, security: Array.from({ length: 5 }, () => "BT1-001") },
+    });
+    h.s.state.memory = 0;
+    h.s.state.turnSeat = 0;
+
+    await driveTurn(h, 0);
+
+    expect(h.s.perm("tamer1").isSuspended).toBe(true);
+    expect(h.s.perm("tamer2").isSuspended).toBe(true);
+    expect(h.s.perm("evilDragon1").isSuspended).toBe(true);
+    expect(h.s.perm("evilDragon2").isSuspended).toBe(true);
+    expect(h.s.state.players[1]!.security).toHaveLength(3);
   });
 });

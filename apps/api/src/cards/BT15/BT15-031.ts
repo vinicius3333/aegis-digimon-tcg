@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -58,6 +57,7 @@ const compiled: CompiledCard = {
             isSelf: true,
           },
           into: { colors: ["White"] },
+          duration: "forTheTurn",
         },
       ],
     },

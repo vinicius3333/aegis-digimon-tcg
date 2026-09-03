@@ -25,6 +25,7 @@ describe("BT17-038 Sakuyamon", () => {
         or: [{ nameOrTrait: [{ tokens: ["Plug-In"], match: "name" }] }, { colors: ["Yellow"], playCostLte: 5 }],
       },
       allowMultiColor: true,
+      payCost: false,
     });
   });
 

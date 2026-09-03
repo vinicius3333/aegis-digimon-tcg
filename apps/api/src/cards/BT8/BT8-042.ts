@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-authored override — do not regenerate.
 // [When Digivolving]: two effects, second gated on DNA digivolving condition.
 // 1) If you have 5 or fewer security cards: Recovery +1 (place top deck card on security).

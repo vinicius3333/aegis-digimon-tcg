@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -35,8 +34,8 @@ const compiled: CompiledCard = {
               },
               count: 1,
               source: "thisDigimon",
+              from: ["hand", "digivolutionCards"],
             },
-            from: ["hand", "digivolutionCards"],
             raw: "By trashing 1 card with [Numemon] in its name in your hand or this Digimon's digivolution cards",
           },
           optional: true,
@@ -71,6 +70,8 @@ const compiled: CompiledCard = {
                 ],
               },
               count: 1,
+              source: "thisDigimon",
+              from: ["hand", "digivolutionCards"],
             },
             raw: "By trashing 1 card with [Numemon] in its name in your hand or this Digimon's digivolution cards",
           },
@@ -127,6 +128,7 @@ const compiled: CompiledCard = {
           kind: "GainKeyword",
           target: {
             filter: {
+              isSelfRef: true,
               nameOrTrait: [
                 {
                   tokens: ["Monzaemon", "Numemon"],
@@ -135,7 +137,7 @@ const compiled: CompiledCard = {
               ],
             },
             count: 1,
-            host: "self",
+            isSelf: true,
           },
           keyword: { keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" },
           duration: "forTheTurn",

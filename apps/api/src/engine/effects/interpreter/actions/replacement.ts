@@ -9,8 +9,9 @@ import { scaleFactor } from "../scaling.js";
 import { definitionMatches } from "../matching/definition.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
 import { candidatePermanents } from "../targeting/permanents.js";
+import { canAttemptDnaDigivolve } from "./dna.js";
 import { getCardDefinition } from "@aegis/shared";
-import type { Action, Condition, Cost, Filter, Permanent } from "@aegis/shared";
+import type { Action, Condition, Cost, Filter, Permanent, ZoneRef } from "@aegis/shared";
 
 const REPLACEMENT_EVENT_MAP: Record<string, ReplacementEventName | undefined> = {
   wouldLeavePlay: "wouldLeavePlay",
@@ -439,14 +440,30 @@ export async function runReplacement(
         ? {
             controllerSeat: ownerSeat,
             ...(self === undefined ? { activationContext: ctx } : {}),
-            appliesTo: (target: Permanent) =>
+            appliesTo: (target: Permanent, originZone?: ZoneRef) =>
               target.controllerSeat === ownerSeat &&
               !target.inBreeding &&
               (target.permanentId.startsWith("pending-play-") && target.topCard !== undefined
-                ? definitionMatches(replacementSourceFilter ?? {}, ctx.game.definitionOf(target.topCard))
+                ? definitionMatches(replacementSourceFilter ?? {}, ctx.game.definitionOf(target.topCard)) &&
+                  (replacementSourceFilter?.zone === undefined ||
+                    (originZone !== undefined &&
+                      (Array.isArray(replacementSourceFilter.zone)
+                        ? replacementSourceFilter.zone.includes(originZone)
+                        : replacementSourceFilter.zone === originZone)))
                 : permanentMatchesFilter(ctx, target, replacementSourceFilter ?? {}, ctx.source)),
-            activate: async (runtimeCtx: EffectContext, target: Permanent) => {
+            activate: async (
+              runtimeCtx: EffectContext,
+              target: Permanent,
+              _into: import("@aegis/shared").CardDefinition,
+              evolvingInstanceId?: string,
+            ) => {
               runtimeCtx.trigger.subjectPermanentId = target.permanentId;
+              if (evolvingInstanceId !== undefined) {
+                runtimeCtx.reservedCostInstanceIds = new Set([
+                  ...(runtimeCtx.reservedCostInstanceIds ?? []),
+                  evolvingInstanceId,
+                ]);
+              }
               if (interactiveCosts.some((cost) => !canPayCost(runtimeCtx, cost))) return false;
               if (
                 interactiveCost?.kind === "suspend" &&
@@ -559,7 +576,23 @@ export async function runReplacement(
       return true;
     },
     apply: async (subCtx) => {
-      if (action.optional === true && !(await subCtx.ask.optional(subCtx, action.raw ?? "Use this effect?"))) {
+      if ((action as { delayArmedIntrinsic?: boolean }).delayArmedIntrinsic === true) {
+        const delaySource = subCtx.source.permanent();
+        if (delaySource === undefined || delaySource.enterFieldTurnCount === subCtx.game.state.turnCount) return;
+        const dnaDigivolveActions = (action.actions ?? []).filter(
+          (candidate): candidate is Extract<Action, { kind: "DnaDigivolve" }> => candidate.kind === "DnaDigivolve",
+        );
+        if (
+          dnaDigivolveActions.length > 0 &&
+          !dnaDigivolveActions.some((candidate) => canAttemptDnaDigivolve(subCtx, candidate))
+        )
+          return;
+        if (!(await subCtx.ask.optional(subCtx, action.raw ?? "Trash this card to activate its ＜Delay＞ effect?"))) {
+          return;
+        }
+        const trashed = await subCtx.fx.deletePermanent([delaySource.permanentId]);
+        if (trashed <= 0 && subCtx.source.permanent() !== undefined) return;
+      } else if (action.optional === true && !(await subCtx.ask.optional(subCtx, action.raw ?? "Use this effect?"))) {
         return;
       }
       for (const a of action.actions ?? []) {

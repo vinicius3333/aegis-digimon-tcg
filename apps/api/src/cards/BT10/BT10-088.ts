@@ -1,8 +1,9 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+// The zone-expander registry carries the card-specific "one Tamer" host scope used by the
+// DigiXros validator; this module remains the authoritative executable IR registration.
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "StartOfYourTurn",
@@ -14,6 +15,35 @@ const compiled: CompiledCard = {
             kind: "memoryAtMost",
             value: 2,
           },
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            hasDigiXrosRequirements: true,
+          },
+          actions: [
+            {
+              kind: "PlaceUnder",
+              target: { filter: { controller: "mine", zone: "underTamer" }, count: "all" },
+              underTamerHostScope: "single",
+              underFilter: { isTriggerSource: true },
+              asDigiXrosMaterial: true,
+              cost: {
+                kind: "suspend",
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                raw: "by suspending this Tamer",
+              },
+              optional: true,
+            },
+          ],
         },
       ],
     },

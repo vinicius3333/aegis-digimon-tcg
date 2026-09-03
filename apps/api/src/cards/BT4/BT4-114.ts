@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -18,7 +17,7 @@ const compiled: CompiledCard = {
               kind: ["Digimon"],
               or: [
                 {
-                  excludeNames: ["KendoGarurumon"],
+                  excludeNameOrTrait: [{ tokens: ["KendoGarurumon"], match: "nameExact" }],
                   nameOrTrait: [{ tokens: ["Garurumon"], match: "name" }],
                 },
                 {

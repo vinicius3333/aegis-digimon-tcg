@@ -1,7 +1,21 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT10-042 (Venusmon) — do not regenerate over this file.
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, RestrictAction } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+const restrictToSource = {
+  kind: "Restrict",
+  target: {
+    filter: {
+      controller: "opponent",
+      kind: ["Digimon"],
+      keywords: ["SecurityAttack"],
+    },
+    count: "all",
+  },
+  restriction: "attack",
+  specificTarget: "source",
+  duration: "permanent",
+} satisfies RestrictAction & { specificTarget: "source" };
 
 // Hand-fix: the [Opponent's Turn] static restrict must apply ONLY to opponent Digimon
 // that have ＜Security Attack＞ (Q1965: any Digimon affected by SA+ or SA-; Q1966: a
@@ -34,20 +48,7 @@ export const compiled: CompiledCard = {
     {
       trigger: "OpponentsTurn",
       actions: [
-        {
-          kind: "Restrict",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              keywords: ["SecurityAttack"],
-            },
-            count: "all",
-          },
-          restriction: "attack",
-          specificTarget: "source",
-          duration: "permanent",
-        },
+        restrictToSource,
         {
           kind: "DisableTimingEffect",
           target: {

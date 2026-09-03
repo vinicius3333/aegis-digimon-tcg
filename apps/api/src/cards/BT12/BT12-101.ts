@@ -1,17 +1,43 @@
-import { getCompiledCard } from "@aegis/shared";
-import { EffectTiming } from "@aegis/shared";
-import type { CardSource } from "../../engine/effects/CardSource.js";
+import type { CompiledCard, Filter, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-import { lateBt12Module } from "./_lateHandwritten.js";
 
-const compiled = structuredClone(getCompiledCard("BT12-101")!);
-const module = registerIrCard("BT12-101", compiled);
-const compiledEffectsForTiming = module.effectsForTiming.bind(module);
-const handwritten = lateBt12Module("BT12-101");
-
-module.effectsForTiming = (timing: EffectTiming, source: CardSource) => {
-  const effects = handwritten.effectsForTiming(timing, source);
-  return effects.length > 0 ? effects : compiledEffectsForTiming(timing, source);
+const opposingDigimon: Target = {
+  filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" },
+  count: 1,
+};
+const ownGreenDigimon: Filter = { controller: "mine", zone: "battleArea", kind: ["Digimon"], colors: ["Green"] };
+const freeBlue: Target = {
+  filter: {
+    controller: "mine",
+    zone: "hand",
+    kind: ["Digimon"],
+    colors: ["Blue"],
+    levelComparison: { op: "lte", value: 4 },
+    nameOrTrait: [{ tokens: ["Free"], match: "trait" }],
+  },
+  count: 1,
 };
 
-export default module;
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "Main",
+      actions: [
+        { kind: "TrashDigivolution", target: opposingDigimon, amount: 3, fromTop: true },
+        {
+          kind: "PlayWithoutCost",
+          target: freeBlue,
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+          condition: { kind: "youHave", filter: ownGreenDigimon },
+        },
+      ],
+    },
+    { trigger: "Security", actions: [{ kind: "ActivateMain" }], isSecurity: true },
+  ],
+  coverage: "full",
+  residual: [],
+};
+
+export default registerIrCard("BT12-101", compiled);

@@ -40,7 +40,7 @@ describe("BT17-084 Davis Motomiya & Ken Ichijoji", () => {
           kind: "Replacement",
           event: "wouldBeDeleted",
           mode: "instead",
-          leaveCause: "battle",
+          leaveCause: "byBattle",
           sourceFilter: { controller: "mine", kind: ["Digimon"], levelComparison: { op: "gte", value: 5 } },
           actions: [
             {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, type CardDefinition, type GameState, type Permanent, type Seat } from "@aegis/shared";
+import { CardColor, EffectTiming, type CardDefinition, type GameState, type Permanent, type Seat } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
@@ -31,9 +31,10 @@ function fakeDefinition(over: Partial<CardDefinition> = {}): CardDefinition {
     nameEn: "Defense Training",
     kinds: ["Option"] as never,
     colors: ["Black"] as never,
+    level: 3,
     playCost: 2,
     dp: 0,
-    evoCosts: [],
+    evoCosts: [{ color: CardColor.Black, level: 3, memoryCost: 3 }],
     maxCountInDeck: 4,
     ...over,
   };
@@ -95,7 +96,7 @@ function makeContext(opts: {
     state,
     player: (seat: Seat) => players[seat] as never,
     opponentOf: (s) => (s === 0 ? 1 : 0),
-    permanentById: () => undefined,
+    permanentById: (id) => players.flatMap((player) => player.battleArea).find((entry) => entry.permanentId === id),
     definitionOf: (card) => {
       const over = opts.definitionOverrides?.[card.cardId] ?? {};
       return fakeDefinition({ cardId: card.cardId, ...over });

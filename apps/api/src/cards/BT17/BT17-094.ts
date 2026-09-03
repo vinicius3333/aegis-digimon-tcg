@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -23,10 +22,7 @@ export const compiled: CompiledCard = {
             kind: "youHave",
             filter: {
               controllerDefault: "mine",
-              or: [
-                { kind: ["Tamer"] },
-                { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Hybrid"], match: "trait" }] },
-              ],
+              or: [{ kind: ["Tamer"] }, { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Hybrid"], match: "trait" }] }],
             },
             raw: "you have a Tamer or a Digimon with the [Hybrid] trait",
           },

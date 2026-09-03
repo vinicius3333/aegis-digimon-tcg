@@ -1,16 +1,15 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // KB Q1267: the hand-size branch is decided when the effect resolves; reaching
 // eight cards after a hand return does not re-enter the deck-bottom branch.
-const target = {
+const target: Target = {
   filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 5 } },
   count: 1,
   bindAs: "fullMoonTarget",
 };
 
-const mainActions = [
+const mainActions: Action[] = [
   { kind: "SelectBind", target },
   {
     kind: "Return",

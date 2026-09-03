@@ -9,7 +9,10 @@ import "./index.js";
 
 describe("BT17-023", () => {
   it("can digivolve onto a yellow Tamer as level 3 and has Draw 1", () => {
-    expect(compiled.effects?.[0]).toMatchObject({ trigger: "Static", actions: [{ kind: "Digivolve", asLevel: 3 }] });
+    expect(compiled.effects?.[0]).toMatchObject({
+      trigger: "Static",
+      actions: [{ kind: "Digivolve", asLevel: 3, payCost: true, target: { count: 1, filter: { kind: ["Tamer"] } } }],
+    });
     expect(compiled.effects?.[1]).toMatchObject({
       trigger: "WhenAttacking",
       keywords: [{ keyword: "Draw", amount: 1 }],

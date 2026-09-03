@@ -213,6 +213,53 @@ describe("BT1-109 Smashed Potatoes", () => {
     expect(s.state.memory).toBe(6);
   });
 
+  it("expires an unused reduction at turn end", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-075", as: "base" }],
+        hand: [
+          { card: "BT1-109", as: "option" },
+          { card: "BT1-080", as: "evolving" },
+        ],
+        deck: ["BT1-001", "BT1-002", "BT1-003"],
+      },
+      1: { deck: ["BT1-004"] },
+    });
+    const controllerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-109"));
+    expect(s.state.memory).toBe(8);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await controllerTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await advance(s.engine).runTurn(1);
+
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+    const nextControllerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT1-080");
+
+    expect(s.state.memory).toBe(8);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextControllerTurn;
+  });
+
   it("has no Security effect and is simply trashed after the check", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 5000 }] },

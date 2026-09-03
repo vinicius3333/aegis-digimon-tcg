@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -6,9 +5,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //
 // Audit fixes:
 //
-// 1. digivolutionRequirement.isAlternate: true was wrong. The printed text uses the primary
-//    form "Digivolve: 4 from [Magnamon]" — not a bracketed alternate form. Fix: remove
-//    isAlternate (defaults to false).
+// 1. The printed text uses the primary form "Digivolve: 4 from [Magnamon]" — not a bracketed
+//    alternate form. Keep the required typed field explicit as isAlternate: false.
 //
 // 2. [All Turns] Replacement effect: "you may place the top card of this Digimon on top of
 //    your security stack face down to prevent that deletion." KB Q1840 confirms you CANNOT
@@ -98,6 +96,7 @@ export const compiled: CompiledCard = {
     {
       names: ["Magnamon"],
       cost: 4,
+      isAlternate: false,
     },
   ],
 };

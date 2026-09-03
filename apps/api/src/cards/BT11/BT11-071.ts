@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const enterActions: any[] = [
+const enterActions: Action[] = [
   {
     kind: "PlaceUnder",
     target: {
@@ -27,7 +26,7 @@ const enterActions: any[] = [
     amount: 1,
     condition: {
       kind: "selfDigivolutionStackHasTrait",
-      filter: { nameOrTrait: [{ tokens: ["Tuwarmon"], match: "name" }] },
+      filter: { nameOrTrait: [{ tokens: ["Tuwarmon"], match: "nameExact" }] },
     },
   },
 ];

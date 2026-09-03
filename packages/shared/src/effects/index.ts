@@ -5,6 +5,7 @@ export {
   getCompiledCard,
   appFusionCostFor,
   digivolutionRequirementsFor,
+  tamerOntoDigivolveSpec,
   tamerOntoDigivolveLevel,
   ALTERNATE_DIGIVOLUTION_OVERRIDES,
   dnaDigivolutionRequirementsFor,
@@ -17,6 +18,7 @@ export {
   DIGIXROS_TRASH_NAME_ALLOWANCES,
   assemblyRequirementFor,
 } from "./data.js";
+export type { TamerOntoDigivolveSpec } from "./data.js";
 export { canAssignDistinctColors, filterToDistinctColors } from "./differentColors.js";
 export type * from "./ir/actions/action.js";
 export type * from "./ir/actions/base.js";

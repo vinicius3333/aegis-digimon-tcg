@@ -8,29 +8,21 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 
 describe("BT13-040 Magnamon", () => {
   it("keeps both bracketed Veemon references exact", () => {
-    const replacement = compiled.effects[1]!.actions[0] as unknown as {
-      actions: [
-        unknown,
-        {
-          target: {
-            filter: {
-              or: [
-                { nameOrTrait: [{ tokens: string[]; match: string }] },
-                { nameOrTrait: [{ tokens: string[]; match: string }] },
-              ];
-            };
-          };
-        },
-      ];
-    };
-    const branches = replacement.actions[1].target.filter.or;
-    const handReference = branches[0]!.nameOrTrait[0]!;
-    const stackReference = branches[1]!.nameOrTrait[0]!;
+    const replacement = compiled.effects[1]?.actions[0];
+    if (replacement?.kind !== "Replacement") throw new Error("BT13-040 must compile a Replacement action");
+    const play = replacement.actions?.[1];
+    if (play?.kind !== "PlayWithoutCost") throw new Error("BT13-040 replacement must play a Veemon");
+    const branches = play.target.filter.or;
+    const handReference = branches?.[0]?.nameOrTrait?.[0];
+    const stackReference = branches?.[1]?.nameOrTrait?.[0];
+    if (handReference === undefined || stackReference === undefined) {
+      throw new Error("BT13-040 must preserve both exact Veemon references");
+    }
 
     expect(handReference).toEqual({ tokens: ["Veemon"], match: "nameExact" });
     expect(stackReference).toEqual({ tokens: ["Veemon"], match: "nameExact" });
-    expect(matchNameOrTrait(definitionOf("BT12-021"), handReference as never)).toBe(true);
-    expect(matchNameOrTrait(definitionOf("BT12-022"), handReference as never)).toBe(false);
+    expect(matchNameOrTrait(definitionOf("BT12-021"), handReference)).toBe(true);
+    expect(matchNameOrTrait(definitionOf("BT12-022"), handReference)).toBe(false);
   });
 
   it("keeps Blocker and replaces leaving play with draw plus optional Veemon play", () => {

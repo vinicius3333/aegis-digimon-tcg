@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const blueTamer = { controllerDefault: "mine", kind: ["Tamer"], colors: ["Blue"] };
+const blueTamer = { controllerDefault: "mine", kind: ["Tamer"], colors: ["Blue"] } satisfies Filter;
 export const compiled: CompiledCard = {
   effects: [
     {

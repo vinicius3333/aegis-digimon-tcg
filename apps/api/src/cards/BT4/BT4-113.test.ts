@@ -1,10 +1,31 @@
 import { describe, expect, it } from "vitest";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT4-113.js";
 
 describe("BT4-113 AncientGreymon", () => {
+  it("encodes each printed Greymon exclusion as an exact name", () => {
+    const compiled = runtimeCompiledCard("BT4-113");
+    expect(compiled?.effects[0]?.actions[0]).toMatchObject({
+      scaling: {
+        filter: {
+          or: [
+            expect.objectContaining({
+              excludeNameOrTrait: [
+                { tokens: ["DoruGreymon"], match: "nameExact" },
+                { tokens: ["BurningGreymon"], match: "nameExact" },
+                { tokens: ["DexDoruGreymon"], match: "nameExact" },
+              ],
+            }),
+            expect.anything(),
+          ],
+        },
+      },
+    });
+  });
+
   it("gets Security Attack +1 for each qualifying Greymon or Hybrid source", async () => {
     const s = setupEngine({
       0: {

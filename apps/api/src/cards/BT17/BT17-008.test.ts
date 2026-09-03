@@ -21,7 +21,7 @@ describe("BT17-008", () => {
     expect(compiled.effects?.[1]).toMatchObject({
       trigger: "AllTurns",
       isInherited: true,
-      actions: [{ kind: "CostModifier", costType: "dpDeletion" }],
+      actions: [{ kind: "DeletionMaxDpModifier", scope: "self", duration: "permanent" }],
     });
   });
 

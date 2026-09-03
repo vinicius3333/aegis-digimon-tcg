@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-authored override for BT15-020 (runtime-effect fix).
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

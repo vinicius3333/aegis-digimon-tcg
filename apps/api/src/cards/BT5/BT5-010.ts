@@ -46,7 +46,13 @@ const compiled: CompiledCard = {
               {
                 kind: "selfHasNameContaining",
                 names: ["Omnimon", "Greymon"],
-                excludeNames: ["DoruGreymon", "BurningGreymon", "DexDoruGreymon"],
+              },
+              {
+                kind: "not",
+                condition: {
+                  kind: "selfHasName",
+                  names: ["DoruGreymon", "BurningGreymon", "DexDoruGreymon"],
+                },
               },
             ],
           },

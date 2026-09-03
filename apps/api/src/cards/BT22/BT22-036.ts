@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -55,7 +54,9 @@ export const compiled: CompiledCard = {
             raw: "by placing 1 [ShoeShoemon] from your trash as any of your [Shoemon]'s bottom digivolution card",
           },
           into: {
-            isSelfRef: true,
+            filter: { isSelfRef: true },
+            count: 1,
+            isSelf: true,
           },
           cost: 3,
           ignoreDigivolutionRequirements: true,
@@ -84,7 +85,7 @@ export const compiled: CompiledCard = {
               filter: {
                 controller: "mine",
                 excludeSelf: true,
-                kindOrToken: ["Digimon", "Token"],
+                kind: ["Digimon"],
                 nameOrTrait: [
                   {
                     tokens: ["Puppet"],
@@ -129,7 +130,7 @@ export const compiled: CompiledCard = {
               filter: {
                 controller: "mine",
                 excludeSelf: true,
-                kindOrToken: ["Digimon", "Token"],
+                kind: ["Digimon"],
                 nameOrTrait: [
                   {
                     tokens: ["Puppet"],

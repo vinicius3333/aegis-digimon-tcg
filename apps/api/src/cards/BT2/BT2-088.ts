@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -40,6 +39,7 @@ const compiled: CompiledCard = {
               controller: "mine",
               kind: ["Digimon"],
             },
+            count: "all",
           },
           into: {
             zone: "hand",
@@ -49,6 +49,7 @@ const compiled: CompiledCard = {
           },
           restriction: "suspendThisTamer",
           optional: true,
+          duration: "forTheTurn",
         },
       ],
     },

@@ -26,7 +26,16 @@ describe("BT9-011 Growlmon (X Antibody)", () => {
       effects: [
         {
           trigger: "YourTurn",
-          actions: [{ kind: "CostModifier", mode: "raiseCeiling", costType: "dpDeletion", amount: 1000 }],
+          actions: [
+            {
+              kind: "CostModifier",
+              mode: "raiseCeiling",
+              costType: "dpDeletion",
+              amount: 1000,
+              target: { filter: { controller: "mine" }, count: "all" },
+              duration: "permanent",
+            },
+          ],
           isInherited: true,
         },
       ],

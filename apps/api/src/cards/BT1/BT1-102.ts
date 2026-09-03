@@ -1,7 +1,6 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-const drawPerSecurity = {
+const drawPerSecurity: Action = {
   kind: "Draw",
   controller: "mine",
   amount: 1,

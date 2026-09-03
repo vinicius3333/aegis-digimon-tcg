@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -16,10 +15,6 @@ const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
-              levelComparison: {
-                op: "eq",
-                relativeTo: "placedSecurityCard",
-              },
               levelEq: "placedSecurityCardLevel",
             },
             count: "all",
@@ -60,10 +55,6 @@ const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
-              levelComparison: {
-                op: "eq",
-                relativeTo: "placedSecurityCard",
-              },
               levelEq: "placedSecurityCardLevel",
             },
             count: "all",

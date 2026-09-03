@@ -31,7 +31,7 @@ describe("BT21-079 Megidramon", () => {
               base: 3,
               raise: 2,
               per: 10,
-              filter: { zone: "trash", controller: "both" },
+              filter: { zone: "trash", controller: "any" },
               unit: "cards",
             }),
           }),

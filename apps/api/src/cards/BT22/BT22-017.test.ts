@@ -17,7 +17,7 @@ describe("BT22-017 Gabumon", () => {
     expect(inherited?.actions[0]).toMatchObject({
       kind: "DnaDigivolve",
       materials: [
-        { filter: { isSelfRef: true }, count: 1, isSelf: true, zone: "battleArea" },
+        { filter: { isSelfRef: true }, count: 1, zone: "battleArea" },
         { filter: { controller: "mine", kind: ["Digimon"], excludeSelf: true }, count: 1, zone: "battleArea" },
       ],
       into: { controllerDefault: "mine", kind: ["Digimon"], zone: "hand", hasDnaDigivolutionRequirement: true },

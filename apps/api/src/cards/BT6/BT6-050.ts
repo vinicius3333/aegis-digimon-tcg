@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR — do not regenerate over this file.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
@@ -19,16 +18,11 @@ const compiled: CompiledCard = {
         },
         {
           kind: "Digivolve",
-          onto: {
-            filter: {
-              controller: "mine",
-              kind: ["Tamer"],
-              colors: ["Green"],
-            },
-            count: 1,
-          },
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          onto: { kind: ["Tamer"], colors: ["Green"] },
+          payCost: true,
           asLevel: 3,
-          from: "hand",
+          from: ["hand"],
         },
       ],
       keywords: [
@@ -41,14 +35,6 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [
-    {
-      cost: 0,
-      isAlternate: true,
-      baseIsTamer: true,
-      baseColors: ["Green"],
-    },
-  ],
 };
 
 registerIrCard("BT6-050", compiled);

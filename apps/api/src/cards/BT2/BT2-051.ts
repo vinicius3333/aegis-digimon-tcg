@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT2-051 (RustTyrannomon) — do not regenerate over this file.
 // The generated GrantCanAttackUnsuspended dropped the "[Your Turn] When you have a
 // green Tamer in play" gate; it is restored as a structured youHave condition.
@@ -22,6 +21,7 @@ const compiled: CompiledCard = {
             count: 1,
             isSelf: true,
           },
+          duration: "permanent",
           condition: {
             kind: "youHave",
             filter: {

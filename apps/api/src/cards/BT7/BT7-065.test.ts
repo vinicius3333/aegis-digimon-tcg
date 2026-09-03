@@ -16,7 +16,10 @@ describe("BT7-065 Dorugoramon", () => {
           frequency: "OncePerTurn",
           actions: [
             { kind: "PlaceUnder", target: { from: ["hand"], count: 1 } },
-            { kind: "Delete", target: { count: 2, upTo: true, filter: { playCostLteScaling: { per: 1, unit: "digivolutionCards" } } } },
+            {
+              kind: "Delete",
+              target: { count: 2, upTo: true, filter: { playCostLteScaling: { per: 1, unit: "digivolutionCards" } } },
+            },
           ],
         },
       ],

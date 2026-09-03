@@ -61,10 +61,15 @@ describe("BT19-010 Shoutmon X4", () => {
     await settle(() => s.perm("tamer").stack.length === 3);
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT19-010")).toBe(false);
-    expect(s.perm("tamer").stack.map((card) => card.cardId).sort()).toEqual(
-      ["BT19-008", "BT19-012", "BT19-031"].sort(),
+    expect(
+      s
+        .perm("tamer")
+        .stack.map((card) => card.cardId)
+        .sort(),
+    ).toEqual(["BT19-008", "BT19-012", "BT19-031"].sort());
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT19-010", "BT19-009"]),
     );
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT19-010", "BT19-009"]));
   });
 
   it("also triggers before a hand return (Q3067) and may be declined", async () => {
@@ -84,6 +89,29 @@ describe("BT19-010 Shoutmon X4", () => {
 
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT19-010");
     expect(s.perm("tamer").stack).toHaveLength(0);
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT19-008", "BT19-012"]));
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT19-008", "BT19-012"]),
+    );
+  });
+
+  it("saves only this Digimon's Xros Heart sources when another stack also qualifies", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT19-009", as: "other", under: ["BT19-012"] },
+            { card: "BT19-010", as: "x4", under: ["BT19-008"] },
+            { card: "BT19-079", as: "tamer" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).verb.deletePermanent([s.perm("x4").permanentId]);
+    await settle(() => s.perm("tamer").stack.length === 1);
+
+    expect(s.perm("tamer").stack.map((card) => card.cardId)).toEqual(["BT19-008"]);
+    expect(s.perm("other").stack.map((card) => card.cardId)).toEqual(["BT19-012"]);
   });
 });

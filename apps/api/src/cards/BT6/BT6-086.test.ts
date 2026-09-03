@@ -73,4 +73,44 @@ describe("BT6-086 Eosmon", () => {
 
     expect(observe(s.engine).keywordAmount(s.perm("eosmon"), "SecurityAttack")).toBe(2);
   });
+
+  it("counts Tamers controlled by either player when placing Eosmon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT6-085", as: "base" },
+            { card: "BT6-087", as: "ownTamer" },
+          ],
+          hand: [{ card: "BT6-086", as: "evolving" }],
+          trash: [
+            { card: "BT6-085", as: "first" },
+            { card: "BT6-085", as: "second" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT6-088", as: "opponentTamer" },
+            { card: "BT6-075", as: "target" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    const targetId = s.perm("target").permanentId;
+    const placedInstanceIds = [s.inst("first").instanceId, s.inst("second").instanceId];
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").stack.length === 3 && s.state.players[1]!.battleArea.length === 1);
+
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual(expect.arrayContaining(placedInstanceIds));
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(false);
+  });
 });

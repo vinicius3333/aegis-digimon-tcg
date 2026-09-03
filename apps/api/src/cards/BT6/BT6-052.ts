@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR — the battle watcher must be anchored to Entmon.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

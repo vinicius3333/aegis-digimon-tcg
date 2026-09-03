@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming, type CardInstance } from "@aegis/shared";
 import { effectsOf } from "../../engine/effects/collect.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
 import { assertNoLoudGap, settle, setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT14-101.js";
@@ -10,7 +9,7 @@ import "../index.js";
 const WARGREYMON = "BT14-101";
 
 function handMainEffectKey(s: EngineSetup, instance: CardInstance): string | undefined {
-  const source = (s.engine as unknown as { cardSourceOf(i: CardInstance): CardSource }).cardSourceOf(instance);
+  const source = observe(s.engine).cardSource(instance);
   return effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith(`${WARGREYMON}/`))
     ?.effectKey;
 }

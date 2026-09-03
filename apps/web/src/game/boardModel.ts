@@ -6,7 +6,7 @@ import {
   getCardDefinition,
   digivolutionRequirementsFor,
   effectiveStaticNames,
-  tamerOntoDigivolveLevel,
+  tamerOntoDigivolveSpec,
   baseGrantedDigivolveFor,
   getCompiledCard,
   intrinsicDigivolutionCostReductionFor,
@@ -77,34 +77,39 @@ export function eventsAfter(events: readonly ServerEvent[], previous?: ServerEve
 
 /** Find one server-valid-looking DNA material assignment for a hand card on the current board. */
 export function findDnaMaterialCombination(cardId: string, permanents: readonly Permanent[]): string[] | undefined {
-  const requirement = getCompiledCard(cardId)?.dnaDigivolveRequirement?.[0];
-  if (!requirement || requirement.materials.length < 2) return undefined;
+  const requirements = getCompiledCard(cardId)?.dnaDigivolveRequirement;
+  if (!requirements) return undefined;
   const digimon = permanents.filter((permanent) => {
     const def = permanent.topCard ? getCardDefinition(permanent.topCard.cardId) : undefined;
     return def?.kinds.includes(CardKind.Digimon) === true;
   });
-  const matches = (permanent: Permanent, spec: (typeof requirement.materials)[number]) => {
-    const def = permanent.topCard ? getCardDefinition(permanent.topCard.cardId) : undefined;
-    if (!def) return false;
-    if (spec.level !== undefined && def.level !== spec.level) return false;
-    if (spec.color !== undefined && !def.colors.some((color) => color.toLowerCase() === spec.color!.toLowerCase()))
-      return false;
-    if (spec.names?.length && !spec.names.some((name) => def.nameEn.includes(name))) return false;
-    const traits = [...(def.forms ?? []), ...(def.attributes ?? []), ...(def.types ?? [])];
-    if (spec.traits?.length && !spec.traits.some((trait) => traits.includes(trait))) return false;
-    return true;
-  };
-  const assign = (slot: number, used: Set<string>, result: string[]): string[] | undefined => {
-    if (slot === requirement.materials.length) return result;
-    for (const permanent of digimon) {
-      if (used.has(permanent.permanentId) || !matches(permanent, requirement.materials[slot]!)) continue;
-      const nextUsed = new Set(used).add(permanent.permanentId);
-      const found = assign(slot + 1, nextUsed, [...result, permanent.permanentId]);
-      if (found) return found;
-    }
-    return undefined;
-  };
-  return assign(0, new Set(), []);
+  for (const requirement of requirements) {
+    if (requirement.materials.length < 2) continue;
+    const matches = (permanent: Permanent, spec: (typeof requirement.materials)[number]) => {
+      const def = permanent.topCard ? getCardDefinition(permanent.topCard.cardId) : undefined;
+      if (!def) return false;
+      if (spec.level !== undefined && def.level !== spec.level) return false;
+      if (spec.color !== undefined && !def.colors.some((color) => color.toLowerCase() === spec.color!.toLowerCase()))
+        return false;
+      if (spec.names?.length && !spec.names.some((name) => def.nameEn.includes(name))) return false;
+      const traits = [...(def.forms ?? []), ...(def.attributes ?? []), ...(def.types ?? [])];
+      if (spec.traits?.length && !spec.traits.some((trait) => traits.includes(trait))) return false;
+      return true;
+    };
+    const assign = (slot: number, used: Set<string>, result: string[]): string[] | undefined => {
+      if (slot === requirement.materials.length) return result;
+      for (const permanent of digimon) {
+        if (used.has(permanent.permanentId) || !matches(permanent, requirement.materials[slot]!)) continue;
+        const nextUsed = new Set(used).add(permanent.permanentId);
+        const found = assign(slot + 1, nextUsed, [...result, permanent.permanentId]);
+        if (found) return found;
+      }
+      return undefined;
+    };
+    const found = assign(0, new Set(), []);
+    if (found) return found;
+  }
+  return undefined;
 }
 
 export type HandCardEvolutionRoute =
@@ -546,7 +551,8 @@ function alternateDigivolveMatches(
   viewer: PlayerState | undefined,
 ): { req: DigivolutionRequirement; cost: number }[] {
   const requirements = digivolutionRequirementsFor(handCardId) ?? [];
-  const tamerOntoLevel = tamerOntoDigivolveLevel(handCardId);
+  const tamerOntoSpec = tamerOntoDigivolveSpec(handCardId);
+  const tamerOntoLevel = tamerOntoSpec?.asLevel;
   const matches: { req: DigivolutionRequirement; cost: number }[] = [];
 
   for (const req of requirements) {
@@ -557,10 +563,27 @@ function alternateDigivolveMatches(
 
   if (tamerOntoLevel !== undefined && baseDef.kinds.includes(CardKind.Tamer)) {
     // Generic "onto one of your <color> Tamers as if a level-N Digimon": legal onto a Tamer that
-    // shares a color with an EvoCost at the "as if" level; the cost is that EvoCost's memory cost.
+    // satisfies the printed Tamer-color filter and shares a color with an EvoCost at the "as if"
+    // level. A printed fixed cost takes precedence over the ordinary level-N EvoCost.
+    if (
+      tamerOntoSpec?.baseColors !== undefined &&
+      !tamerOntoSpec.baseColors.some((color) => baseDef.colors.includes(color as (typeof baseDef.colors)[number]))
+    ) {
+      return matches;
+    }
     const evo = hand.evoCosts.find((ev) => ev.level === tamerOntoLevel && baseDef.colors.includes(ev.color));
-    if (evo)
-      matches.push({ req: { cost: evo.memoryCost, isAlternate: true, baseIsTamer: true }, cost: evo.memoryCost });
+    if (evo) {
+      const cost = tamerOntoSpec?.costOverride ?? evo.memoryCost;
+      matches.push({
+        req: {
+          cost,
+          isAlternate: true,
+          baseIsTamer: true,
+          ...(tamerOntoSpec?.baseColors === undefined ? {} : { baseColors: tamerOntoSpec.baseColors }),
+        },
+        cost,
+      });
+    }
   }
 
   return matches;
@@ -577,6 +600,12 @@ function altRequirementMatches(
   if (!requirementHasGate(req)) return false;
   const baseLevel = baseDef.level;
   if (req.baseIsTamer && !baseDef.kinds.includes(CardKind.Tamer)) return false;
+  if (
+    req.baseColors &&
+    req.baseColors.length > 0 &&
+    !req.baseColors.some((color) => baseDef.colors.includes(color as (typeof baseDef.colors)[number]))
+  )
+    return false;
   if (req.level !== undefined && baseLevel !== req.level) return false;
   if (req.levelMin !== undefined && (baseLevel === undefined || baseLevel < req.levelMin)) return false;
   if (req.levelMax !== undefined && (baseLevel === undefined || baseLevel > req.levelMax)) return false;

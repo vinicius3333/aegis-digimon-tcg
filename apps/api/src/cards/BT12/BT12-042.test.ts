@@ -71,10 +71,37 @@ it("gains 1 memory when digivolving with a yellow or red Tamer in play", async (
   expect(s.state.memory).toBe(1);
 });
 
+it("resolves the memory gain through a public digivolution intent", async () => {
+  const s = setupEngine({
+    0: {
+      battleArea: [
+        { card: "BT12-038", as: "geo" },
+        { card: "BT12-092", as: "tamer" },
+      ],
+      hand: [{ card: "BT12-042", as: "rize" }],
+    },
+  });
+  s.state.memory = 3;
+  await s.ready();
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("geo").permanentId,
+      instanceId: s.inst("rize").instanceId,
+      useAlternateCost: true,
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.perm("geo").topCard?.cardId === "BT12-042" && s.state.memory === 1);
+  expect(s.state.memory).toBe(1);
+});
+
 it("does not gain memory without a yellow or red Tamer", async () => {
   const s = setupEngine({
     0: {
-      battleArea: [{ card: "BT12-038", as: "geo" }, { card: "BT26-092", as: "blackTamer" }],
+      battleArea: [
+        { card: "BT12-038", as: "geo" },
+        { card: "BT26-092", as: "blackTamer" },
+      ],
       hand: [{ card: "BT12-042", as: "rize" }],
     },
   });

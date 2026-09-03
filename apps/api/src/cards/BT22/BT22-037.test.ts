@@ -46,7 +46,7 @@ describe("BT22-037 Chirinmon", () => {
           security: ["BT1-028"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
     );
     s.state.memory = 10;
 
@@ -59,10 +59,43 @@ describe("BT22-037 Chirinmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT22-041");
 
+    expect(s.decisions.find(({ req }) => req.kind === "chooseOption")?.req.options?.choices).toEqual([
+      "Printed digivolution requirement (cost 4)",
+      "Alternate digivolution requirement (cost 3)",
+    ]);
     expect(s.state.memory).toBe(5); // 3 for Chirinmon, then 4 - 2 for BT22-041.
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT22-034", "BT22-037"]);
     expect(s.perm("base").topCard.cardId).toBe("BT22-041");
+  });
+
+  it("allows choosing the alternate destination requirement at cost 3 reduced by 2", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-034", as: "base" }],
+          hand: [
+            { card: "BT22-037", as: "chirinmon" },
+            { card: "BT22-041", as: "target" },
+          ],
+          security: ["BT1-028"],
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, preferOptionIndex: 1, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("chirinmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT22-041");
+
+    expect(s.state.memory).toBe(6); // 3 for Chirinmon, then alternate 3 - 2 for BT22-041.
+    expect(s.state.players[0]!.security).toHaveLength(0);
   });
 
   it("does not trash security when the optional hand selection is unavailable", async () => {
@@ -108,5 +141,24 @@ describe("BT22-037 Chirinmon", () => {
 
     expect(s.perm("victim").currentDP).toBe(6000);
     assertNoLoudGap(s);
+  });
+
+  it("applies the inherited attack reduction through a public attack intent", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT22-041", under: ["BT22-037"], as: "attacker" }] },
+      1: { battleArea: [{ card: "BT1-028", as: "victim", dp: 20000, suspended: true }], security: ["BT1-001"] },
+    });
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("victim").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("victim").currentDP === 16000);
+
+    expect(s.perm("victim").currentDP).toBe(16000);
   });
 });

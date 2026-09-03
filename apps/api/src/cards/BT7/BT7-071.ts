@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -14,16 +13,10 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "Digivolve",
-          onto: {
-            filter: {
-              controller: "mine",
-              kind: ["Tamer"],
-              colors: ["Purple"],
-            },
-            count: 1,
-          },
+          target: { filter: { controller: "mine", kind: ["Tamer"], colors: ["Purple"] }, count: 1 },
+          payCost: true,
           asLevel: 3,
-          from: "hand",
+          from: ["hand"],
         },
       ],
     },
@@ -32,7 +25,7 @@ const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      cost: 0,
+      cost: 2,
       isAlternate: true,
       baseIsTamer: true,
       baseColors: ["Purple"],

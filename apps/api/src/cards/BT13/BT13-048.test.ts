@@ -14,7 +14,7 @@ describe("BT13-048 Salamon", () => {
         {
           kind: "RevealAdd",
           revealCount: 3,
-          rest: "deckBottom",
+          rest: "deckBottomAnyOrder",
           add: [
             {
               count: 1,
@@ -76,7 +76,10 @@ describe("BT13-048 Salamon", () => {
   });
 
   it("gives an inherited Beast or Royal Knight host +2000 only on its controller's turn", async () => {
-    for (const [host, baseDP] of [["BT13-047", 1000], ["BT13-046", 13000]] as const) {
+    for (const [host, baseDP] of [
+      ["BT13-047", 1000],
+      ["BT13-046", 13000],
+    ] as const) {
       const s = setupEngine({ 0: { battleArea: [{ card: host, as: "host", under: ["BT13-048"] }] } });
       await s.ready();
       expect(s.perm("host").currentDP).toBe(baseDP + 2000);
@@ -87,7 +90,10 @@ describe("BT13-048 Salamon", () => {
   });
 
   it("does not boost a Sea Animal or unrelated host", async () => {
-    for (const [host, baseDP] of [["BT1-033", 4000], ["BT13-049", 1000]] as const) {
+    for (const [host, baseDP] of [
+      ["BT1-033", 4000],
+      ["BT13-049", 1000],
+    ] as const) {
       const s = setupEngine({ 0: { battleArea: [{ card: host, as: "host", under: ["BT13-048"] }] } });
       await s.ready();
       expect(s.perm("host").currentDP).toBe(baseDP);
@@ -99,11 +105,13 @@ describe("BT13-048 Salamon", () => {
       0: { battleArea: [{ card: "BT13-004", as: "base" }], hand: [{ card: "BT13-048", as: "salamon" }] },
     });
     s.state.memory = 1;
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("salamon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("salamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT13-048");
     expect(s.state.memory).toBe(1);
   });

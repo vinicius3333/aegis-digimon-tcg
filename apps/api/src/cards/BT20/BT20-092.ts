@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -28,6 +27,7 @@ export const compiled: CompiledCard = {
             kind: "place",
             target: {
               filter: {
+                zone: "hand",
                 controller: "mine",
                 kind: ["Digimon"],
                 levels: [3],
@@ -38,7 +38,8 @@ export const compiled: CompiledCard = {
             raw: "By placing 1 level 3 Digimon card from your hand under this Tamer",
             destination: "digivolutionStack",
             position: "bottom",
-            host: "self",
+            host: "target",
+            underFilter: { isSelfRef: true },
           },
           optional: true,
           abortOnDecline: true,

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -13,7 +12,7 @@ const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
-              levelMax: 4,
+              levelComparison: { op: "lte", value: 4 },
               nameOrTrait: [{ tokens: ["Bagra Army"], match: "trait" }],
             },
             count: 2,
@@ -21,10 +20,11 @@ const compiled: CompiledCard = {
           from: ["trash"],
           payCost: false,
           optional: true,
+          bindResultAs: "playedBagra",
         },
         {
           kind: "GainKeyword",
-          target: { filter: { controller: "mine", kind: ["Digimon"], lastPlayed: true }, count: "all" },
+          target: { filter: { boundRef: "playedBagra", controller: "mine", kind: ["Digimon"] }, count: "all" },
           keyword: { keyword: "Blocker" },
           duration: "untilOpponentTurnEnd",
           condition: { kind: "ifThisEffectActed" },
@@ -37,7 +37,6 @@ const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldTrashDigivolutionCard",
-          mode: "redirect",
           raw: "[Opponent's Turn] When an effect would trash one of your other Digimon's digivolution cards, you may trash this Digimon's digivolution cards instead.",
         },
       ],

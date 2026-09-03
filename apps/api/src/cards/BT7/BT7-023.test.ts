@@ -13,9 +13,10 @@ describe("BT7-023 Korikakumon", () => {
       ?.actions.find((action) => action.kind === "Digivolve");
     expect(staticDigivolve).toMatchObject({
       kind: "Digivolve",
-      onto: { filter: { controller: "mine", kind: ["Tamer"], colors: ["Blue"] }, count: 1 },
+      target: { filter: { controller: "mine", kind: ["Tamer"], colors: ["Blue"] }, count: 1 },
       asLevel: 3,
-      from: "hand",
+      from: ["hand"],
+      costOverride: 2,
     });
 
     const whenDigivolving = compiled?.effects.find((effect) => effect.trigger === "WhenDigivolving");
@@ -26,6 +27,29 @@ describe("BT7-023 Korikakumon", () => {
       duration: "untilOpponentTurnEnd",
       target: { count: 1 },
     });
+  });
+
+  it("digivolves onto a blue Tamer for the printed fixed cost of 2", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT7-086", as: "base" }], hand: [{ card: "BT7-023", as: "evolving" }] },
+        1: { battleArea: [{ card: "BT2-047", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 2;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "attack"));
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base").topCard.cardId).toBe("BT7-023");
   });
 
   it("prevents a source-less opposing Digimon from attacking or blocking", async () => {

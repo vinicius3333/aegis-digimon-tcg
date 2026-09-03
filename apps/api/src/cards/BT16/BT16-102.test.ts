@@ -1,5 +1,6 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-102.js";
 import "../index.js";
@@ -26,8 +27,15 @@ describe("BT16-102", () => {
     expect(compiled).toMatchObject({
       coverage: "full",
       residual: [],
-      digivolutionRequirement: [{ multicolor: true, names: ["Magnamon"], cost: 5, isAlternate: true }],
+      digivolutionRequirement: [{ names: ["Magnamon"], colorCount: 2, cost: 5, isAlternate: true }],
     });
+    expect(matchingAlternateDigivolutionRequirement("BT16-102", "BT21-036")).toMatchObject({
+      names: ["Magnamon"],
+      colorCount: 2,
+      cost: 5,
+      isAlternate: true,
+    });
+    expect(matchingAlternateDigivolutionRequirement("BT16-102", "BT16-102")).toBeUndefined();
   });
 
   it("models Blocker and Armor Purge", () => {
@@ -79,7 +87,7 @@ describe("BT16-102", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 6;
+    s.state.memory = 5;
     await s.ready();
 
     expect(
@@ -87,10 +95,12 @@ describe("BT16-102", () => {
         type: "digivolve",
         permanentId: s.perm("base").permanentId,
         instanceId: s.inst("magna").instanceId,
+        useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.cardId === "BT16-102");
 
+    expect(s.state.memory).toBe(0);
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT21-036"]);
     expect(s.perm("base").currentDP).toBe(15000);
     expect(s.perm("base").isSuspended).toBe(false);
@@ -114,7 +124,6 @@ describe("BT16-102", () => {
         type: "digivolve",
         permanentId: s.perm("base").permanentId,
         instanceId: s.inst("magna").instanceId,
-        useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.cardId === "BT16-102");

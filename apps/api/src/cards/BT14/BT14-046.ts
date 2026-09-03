@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -11,7 +10,7 @@ export const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldBePlayed",
-          sourceFilter: { controllerDefault: "mine", kind: ["Tamer"], colors: ["Green"] },
+          sourceFilter: { controllerDefault: "mine", kind: ["Tamer"], colors: ["Green"], zone: "hand" },
           mode: "reduceCost",
           amount: 3,
           cost: {

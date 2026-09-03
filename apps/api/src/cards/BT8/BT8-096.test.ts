@@ -14,7 +14,11 @@ describe("BT8-096 Top Gun", () => {
           trigger: "Main",
           actions: [
             { kind: "Delete", condition: { kind: "anyOf" }, target: { filter: { dp: { op: "lte", value: 7000 } } } },
-            { kind: "Delete", condition: { kind: "not", condition: { kind: "anyOf" } }, target: { filter: { dp: { op: "lte", value: 4000 } } } },
+            {
+              kind: "Delete",
+              condition: { kind: "not", condition: { kind: "anyOf" } },
+              target: { filter: { dp: { op: "lte", value: 4000 } } },
+            },
           ],
         },
         {
@@ -22,7 +26,11 @@ describe("BT8-096 Top Gun", () => {
           isSecurity: true,
           actions: [
             { kind: "Delete", condition: { kind: "anyOf" }, target: { filter: { dp: { op: "lte", value: 7000 } } } },
-            { kind: "Delete", condition: { kind: "not", condition: { kind: "anyOf" } }, target: { filter: { dp: { op: "lte", value: 4000 } } } },
+            {
+              kind: "Delete",
+              condition: { kind: "not", condition: { kind: "anyOf" } },
+              target: { filter: { dp: { op: "lte", value: 4000 } } },
+            },
           ],
         },
       ],
@@ -111,6 +119,30 @@ describe("BT8-096 Top Gun", () => {
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === exactId));
 
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === aboveId)).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("does not count a multicolor card under a Tamer toward the 7000 DP cap", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT8-090", under: ["BT11-094"] }, "BT8-013"],
+        hand: [{ card: "BT8-096", as: "option" }],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5_000 }] },
+    });
+    s.state.memory = 3;
+    const targetId = s.perm("target").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT8-096"));
+
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(true);
+    expect(s.decisions.filter(({ req }) => req.kind === "chooseTargets")).toHaveLength(0);
     assertNoLoudGap(s);
   });
 

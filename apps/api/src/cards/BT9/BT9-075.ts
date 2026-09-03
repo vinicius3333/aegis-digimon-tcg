@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED — preserve: Blocker/Retaliation uses a structured stack-or-origin gate.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -71,7 +70,7 @@ const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Gabumon - Bond of Friendship"],
-                match: "name",
+                match: "nameExact",
               },
             ],
           },

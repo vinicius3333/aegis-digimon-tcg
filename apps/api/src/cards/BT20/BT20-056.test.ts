@@ -49,6 +49,13 @@ describe("BT20-056 Alphamon — On Play Recovery +1", () => {
         },
       ],
     });
+    expect(
+      compiled.effects.find((effect) => effect.trigger === "AllTurns" && !effect.isInherited)?.actions[0],
+    ).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenSecurityRemoved",
+      sourceFilter: { controller: "any" },
+    });
   });
   it("does not use the breeding-area digivolution clause outside an attack", async () => {
     const s = setupEngine(
@@ -128,7 +135,7 @@ describe("BT20-056 Alphamon — On Play Recovery +1", () => {
         .ledgers.subTriggers.subscriptionsFor("whenSecurityRemoved")
         .some((entry) => entry.sourcePermanentId === alphamonPerm.permanentId),
     ).toBe(true);
-    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
+    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 1 });
     await settle(() => oppDigimon.currentDP !== initialDP, 600);
 
     // DP should have dropped by 8000 (10000 -> 2000).
@@ -177,8 +184,8 @@ describe("BT20-056 Alphamon — On Play Recovery +1", () => {
       { autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
     await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 1 });
+    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
     expect(s.perm("target").currentDP).toBe(12000);
   });
 

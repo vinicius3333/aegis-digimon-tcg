@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-authored override for BT17-065 (DexDorugamon).
 // runtime-effect fix: [Trash] replacement digivolves the would-be-deleted Dorugamon
 // into this card from trash before preventing deletion. [When Digivolving] keeps

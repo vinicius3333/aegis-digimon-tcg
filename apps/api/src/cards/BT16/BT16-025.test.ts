@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-025.js";
@@ -17,6 +18,7 @@ describe("BT16-025", () => {
     });
     expect(compiled.effects?.[1]?.actions?.[1]).toMatchObject({
       kind: "Restrict",
+      target: { filter: { digivolutionCardsAtMost: 1 } },
       restriction: "unsuspend",
       duration: "untilOpponentTurnEnd",
       condition: { kind: "isDnaDigivolving" },
@@ -54,7 +56,9 @@ describe("BT16-025", () => {
     expect(s.state.players[1]!.battleArea.every((permanent) => permanent.isSuspended)).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("noSources"), "unsuspend")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("oneSource"), "unsuspend")).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("twoSources"), "unsuspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("twoSources"), "unsuspend")).toBe(false);
+    await advance(s.engine).verb.unsuspend([s.perm("twoSources").permanentId]);
+    expect(s.perm("twoSources").isSuspended).toBe(false);
   });
 
   it("Q2622 naturally suspends by stack-count on a non-DNA digivolution without the DNA-only lock", async () => {

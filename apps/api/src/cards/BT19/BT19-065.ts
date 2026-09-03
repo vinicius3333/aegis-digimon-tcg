@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -104,7 +103,6 @@ const compiled: CompiledCard = {
     {
       materials: [
         {
-          kind: ["Digimon"],
           levelComparison: { op: "lte", value: 5 },
           nameOrTrait: [{ tokens: ["Cyborg", "Composite"], match: "trait" }],
           differentCardNumbers: true,

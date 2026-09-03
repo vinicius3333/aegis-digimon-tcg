@@ -113,7 +113,7 @@ describe("BT1-101 through BT1-110 IR coverage", () => {
     expect(irNode(flowerCannon.effects[1]?.actions[0])).toMatchObject({
       kind: "Suspend",
       target: {
-        filter: { controller: "opponent", kind: ["Digimon"], excludeKeywords: [{ keyword: "Blocker" }] },
+        filter: { controller: "opponent", kind: ["Digimon"], excludeKeywords: ["Blocker"] },
         count: "all",
       },
     });

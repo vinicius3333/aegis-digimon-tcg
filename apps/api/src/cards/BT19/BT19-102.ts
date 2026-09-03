@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -11,24 +10,31 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
-          kind: "Delete",
+          kind: "SelectBind",
           target: {
             filter: {
-              controller: "both",
+              controller: "any",
               kind: ["Digimon"],
               excludeSelf: true,
             },
             count: 1,
-            sameTarget: true,
+            bindAs: "chosenHost",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+        {
+          kind: "Delete",
+          target: {
+            fromSelectionRef: "chosenHost",
+            filter: { controller: "any", kind: ["Digimon"], excludeSelf: true },
+            count: 1,
           },
           cost: {
             kind: "playFromDigivolutionCards",
             hostTarget: {
-              filter: {
-                controller: "both",
-                kind: ["Digimon"],
-                excludeSelf: true,
-              },
+              fromSelectionRef: "chosenHost",
+              filter: {},
               count: 1,
             },
             target: {
@@ -41,7 +47,6 @@ const compiled: CompiledCard = {
               },
               count: 1,
             },
-            payCost: false,
             raw: "By playing 1 level 4 or lower Digimon card from the chosen Digimon’s digivolution cards without paying the cost",
           },
           optional: true,
@@ -53,24 +58,31 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "Delete",
+          kind: "SelectBind",
           target: {
             filter: {
-              controller: "both",
+              controller: "any",
               kind: ["Digimon"],
               excludeSelf: true,
             },
             count: 1,
-            sameTarget: true,
+            bindAs: "chosenHost",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+        {
+          kind: "Delete",
+          target: {
+            fromSelectionRef: "chosenHost",
+            filter: { controller: "any", kind: ["Digimon"], excludeSelf: true },
+            count: 1,
           },
           cost: {
             kind: "playFromDigivolutionCards",
             hostTarget: {
-              filter: {
-                controller: "both",
-                kind: ["Digimon"],
-                excludeSelf: true,
-              },
+              fromSelectionRef: "chosenHost",
+              filter: {},
               count: 1,
             },
             target: {
@@ -83,7 +95,6 @@ const compiled: CompiledCard = {
               },
               count: 1,
             },
-            payCost: false,
             raw: "By playing 1 level 4 or lower Digimon card from the chosen Digimon’s digivolution cards without paying the cost",
           },
           optional: true,

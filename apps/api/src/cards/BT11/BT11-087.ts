@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -39,7 +38,7 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "SubTrigger",
-          event: "whenOpponentMovedFromBreeding",
+          event: "whenMovedFromBreeding",
           sourceFilter: { controller: "opponent", kind: ["Digimon"] },
           actions: [
             {

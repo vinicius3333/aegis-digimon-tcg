@@ -35,8 +35,8 @@ export const compiled: CompiledCard = {
             controllerDefault: "mine",
             kind: ["Digimon"],
             colors: ["Red"],
-            nameOrTrait: [{ tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "trait" }],
-            excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }],
+            nameOrTrait: [{ tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "traitContains" }],
+            excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "traitContains" }],
             byEffect: true,
           },
           actions: [

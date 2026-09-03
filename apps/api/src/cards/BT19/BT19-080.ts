@@ -1,15 +1,15 @@
-// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled = {
+const compiled: CompiledCard = {
   effects: [
     {
       trigger: "StartOfYourTurn",
       actions: [
         {
           kind: "SetMemory",
-          amount: 3,
-          condition: { kind: "memory", op: "lte", value: 2, raw: "you have 2 or less memory" },
+          value: 3,
+          condition: { kind: "memoryAtMost", value: 2, raw: "you have 2 or less memory" },
         },
       ],
     },

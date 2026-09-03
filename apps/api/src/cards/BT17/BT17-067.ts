@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -12,7 +11,10 @@ export const compiled: CompiledCard = {
           kind: "Replacement",
           event: "wouldBeDeleted",
           sourceFilter: { zone: "trash", controller: "mine" },
-          target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["DoruGreymon"], match: "name" }] } },
+          target: {
+            filter: { controller: "mine", nameOrTrait: [{ tokens: ["DoruGreymon"], match: "name" }] },
+            count: 1,
+          },
           mode: "prevent",
           leaveCause: "any",
           digivolveFromTrash: true,
@@ -64,7 +66,7 @@ export const compiled: CompiledCard = {
           kind: "SelectBind",
           target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1, bindAs: "chosenDigimon", upTo: true },
         },
-        { kind: "Delete", target: { fromSelectionRef: "chosenDigimon" } },
+        { kind: "Delete", target: { filter: {}, count: 1, fromSelectionRef: "chosenDigimon" } },
         {
           kind: "Delete",
           target: {

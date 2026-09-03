@@ -1,6 +1,10 @@
 # BT17 Static Card Implementation Re-audit
 
-Status: static card-by-card pass in progress; execution gates deferred
+Status: superseded by the completed runtime audit in `BT17-AUDIT.md`
+
+This file and the range reports under `internal-docs/audits/BT17/` are retained
+as historical notes from the provisional static pass. The final scores,
+executed gates, and resolved limitations are recorded in `BT17-AUDIT.md`.
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 

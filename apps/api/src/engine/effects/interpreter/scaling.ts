@@ -69,6 +69,11 @@ export function countMatching(ctx: EffectContext, filter: Filter): number {
           // just the source's own stack (distinct from Scaling unit "digivolutionCards").
           for (const seat of seats) {
             for (const permanent of ctx.game.player(seat).battleArea) {
+              if (
+                filter.hostFilter !== undefined &&
+                !permanentMatchesFilter(ctx, permanent, filter.hostFilter, ctx.source)
+              )
+                continue;
               for (const card of permanent.stack) {
                 if (definitionMatches(filter, ctx.game.definitionOf(card))) n++;
               }

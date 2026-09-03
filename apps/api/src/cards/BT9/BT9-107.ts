@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-authored override — do not regenerate.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
@@ -41,6 +40,11 @@ export const compiled: CompiledCard = {
         {
           kind: "DeDigivolve",
           target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
             fromSelectionRef: "metalImpulseTarget",
           },
           amount: 1,

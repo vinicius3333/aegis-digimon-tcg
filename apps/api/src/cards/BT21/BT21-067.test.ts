@@ -19,7 +19,15 @@ describe("BT21-067 Garurumon", () => {
       expect.objectContaining({
         trigger: "Security",
         timing: "endOfBattle",
-        actions: [expect.objectContaining({ kind: "PlayWithoutCost", payCost: false })],
+        isSecurity: true,
+        actions: [
+          expect.objectContaining({
+            kind: "SubTrigger",
+            event: "whenSecurityBattleEnded",
+            once: true,
+            actions: [expect.objectContaining({ kind: "PlayWithoutCost", from: ["trash"], payCost: false })],
+          }),
+        ],
       }),
     );
     expect(
@@ -60,16 +68,26 @@ describe("BT21-067 Garurumon", () => {
   });
 
   it("plays itself from security at end of battle without paying cost", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "BT21-067", as: "garurumon" }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-032", as: "attacker", dp: 2000 }] },
+      1: { security: [{ card: "BT21-067", as: "garurumon" }] },
+    });
     s.state.memory = 0;
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("garurumon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() =>
-      s.state.players[0]!.battleArea.some((card) => card.topCard.instanceId === s.inst("garurumon").instanceId),
+      s.state.players[1]!.battleArea.some((card) => card.topCard.instanceId === s.inst("garurumon").instanceId),
     );
 
     expect(s.state.memory).toBe(0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
   });
 
   it("does not return a non-ADVENTURE Digimon from trash", async () => {

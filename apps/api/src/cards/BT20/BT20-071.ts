@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const raidAndBoost = [
+const raidAndBoost: Action[] = [
   {
     kind: "Trash",
     target: { filter: { controller: "mine", zone: "hand" }, count: 1 },
@@ -17,7 +16,7 @@ const raidAndBoost = [
   },
   {
     kind: "GainKeyword",
-    target: { fromSelectionRef: "soloogarmonTarget" },
+    target: { filter: {}, count: 1, fromSelectionRef: "soloogarmonTarget" },
     keyword: { keyword: "Raid", raw: "＜Raid＞" },
     duration: "forTheTurn",
   },

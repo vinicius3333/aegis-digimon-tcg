@@ -98,7 +98,7 @@ export function looseCardsInZone(ctx: EffectContext, seat: Seat, zone: ZoneRef):
       // Cards stacked beneath the controller's Tamer permanents only (not under Digimon).
       // `underTamers`/`underTamer` are zone aliases for `underMyTamers` (BT19-026/BT19-081).
       for (const permanent of p.battleArea) {
-        if (permanent.topCard === undefined) continue;
+        if (permanent.controllerSeat !== p.seat || permanent.topCard === undefined) continue;
         const topDef = ctx.game.definitionOf(permanent.topCard);
         if (!topDef.kinds.includes("Tamer" as never)) continue;
         for (const c of permanent.stack) {
@@ -198,6 +198,16 @@ export function zoneList(zone: ZoneRef | ZoneRef[] | undefined): ZoneRef[] {
 }
 
 export function candidateLooseInstances(ctx: EffectContext, target: Target, zones: ZoneRef[]): LooseCandidate[] {
+  const candidates = candidateLooseInstancesIncludingReserved(ctx, target, zones);
+  const reserved = ctx.reservedCostInstanceIds;
+  return reserved === undefined ? candidates : candidates.filter(({ instanceId }) => !reserved.has(instanceId));
+}
+
+function candidateLooseInstancesIncludingReserved(
+  ctx: EffectContext,
+  target: Target,
+  zones: ZoneRef[],
+): LooseCandidate[] {
   // For a loose card in hand/trash/security, `this card` is the source instance.  In a
   // hosted-card zone, though, "this Digimon's digivolution cards" means every stack card
   // whose HOST is the source permanent (EX6-073), not the source's top-card instance.
@@ -619,7 +629,7 @@ export async function pickLoose(
     }
     return chosen;
   }
-  if (target.count === "all" && cap === undefined && !requireDifferentColors)
+  if (target.count === "all" && cap === undefined && !target.upTo && !requireDifferentColors)
     return candidates.map((c) => c.instanceId);
   if (candidates.length <= want && !target.upTo && !requireDifferentColors && target.forceSelection !== true)
     return candidates.slice(0, want).map((c) => c.instanceId);

@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR — "add up to 2" is an optional 0-2 selection.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

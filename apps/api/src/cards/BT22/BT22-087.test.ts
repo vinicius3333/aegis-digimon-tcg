@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT22-087.js";
 
 describe("BT22-087 Torajiro Asuka", () => {
@@ -57,10 +58,38 @@ describe("BT22-087 Torajiro Asuka", () => {
       1: { battleArea: ["BT1-009"] },
     });
     const before = s.state.memory;
-    await (
-      s.engine as unknown as { fireTiming(t: EffectTiming, trigger: Record<string, never>): Promise<void> }
-    ).fireTiming(EffectTiming.OnStartMainPhase, {});
+    await advance(s.engine).fireGlobal(EffectTiming.OnStartMainPhase);
     await settle(() => s.state.memory !== before);
     expect(s.state.memory).toBe(before + 1);
+  });
+
+  it("suspends from a public link and applies the temporary DP reduction", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT22-087", as: "torajiro" },
+            { card: "BT21-009", as: "host" },
+          ],
+          hand: [{ card: "BT22-050", as: "link" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("torajiro").isSuspended && s.perm("host").linked.length === 1, 400);
+
+    expect(s.perm("torajiro").isSuspended).toBe(true);
+    expect(s.perm("opponent").currentDP).toBe(1000);
   });
 });

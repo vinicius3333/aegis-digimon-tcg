@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -107,12 +106,16 @@ export const compiled: CompiledCard = {
         {
           kind: "Suspend",
           target: {
+            filter: {},
+            count: 1,
             fromSelectionRef: "suspendedTarget",
           },
         },
         {
           kind: "Restrict",
           target: {
+            filter: {},
+            count: 1,
             fromSelectionRef: "suspendedTarget",
           },
           restriction: "unsuspend",

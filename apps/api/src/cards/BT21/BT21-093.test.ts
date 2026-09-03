@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { EffectTiming, type PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-093.js";
 import "../index.js";
 
@@ -60,16 +61,27 @@ describe("BT21-093 Raging Serpentine", () => {
     });
     expect(main?.actions[1]).toEqual({ kind: "PlaceInBattleAreaSelf" });
 
-    const allTurns = compiled.effects.filter((entry) => entry.trigger === "AllTurns");
-    expect(allTurns).toHaveLength(2);
-    expect(allTurns[0]?.actions[0]).toMatchObject({
+    const watcher = compiled.effects.find((entry) => entry.trigger === "AllTurns");
+    expect(watcher?.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenSecurityRemoved",
+      sourceFilter: { controller: "opponent" },
       fireCondition: { kind: "triggerRemovedSecuritySeat", seat: "opponent" },
     });
-    expect(allTurns[1]?.keywords).toEqual([{ keyword: "Delay", raw: "＜Delay＞" }]);
-    expect(allTurns[1]?.actions[0]).toMatchObject({
+    const delay = compiled.effects.find(
+      (entry) => entry.trigger === "Main" && entry.keywords?.some((keyword) => keyword.keyword === "Delay"),
+    );
+    expect(delay?.keywords).toEqual([{ keyword: "Delay", raw: "＜Delay＞" }]);
+    expect(delay?.actions[0]).toMatchObject({
       kind: "Digivolve",
+      requiresDelayArmed: true,
+      target: {
+        filter: {
+          controller: "mine",
+          kind: ["Digimon"],
+          nameOrTrait: [{ tokens: ["Reptile", "Dragonkin"], match: "trait" }],
+        },
+      },
       payCost: false,
       from: ["hand"],
       optional: true,
@@ -79,6 +91,55 @@ describe("BT21-093 Raging Serpentine", () => {
     expect(compiled.effects).toContainEqual(expect.objectContaining({ trigger: "Security", isSecurity: true }));
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
+  });
+
+  it("arms and publicly activates Delay for a Reptile or Dragonkin host only", async () => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-014", as: "ineligible" },
+            { card: "BT21-017", as: "eligible" },
+            { card: "BT21-093", as: "option" },
+          ],
+          hand: [{ card: "BT21-025", as: "destination" }],
+        },
+        1: { security: [{ card: "BT1-009", as: "security" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.perm("option").placedByEffect = true;
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("eligible").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+    expect(observe(s.engine).hasKeyword(s.perm("option"), "Delay")).toBe(true);
+
+    const activatable = observe(s.engine).activatableEffects(s.perm("option")) as Array<{
+      effectKey: string;
+      description?: string;
+    }>;
+    const delay = activatable.find((effect) => String(effect.description).includes("Delay"));
+    expect(delay).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("option").instanceId,
+        effectKey: delay!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("eligible").topCard.instanceId === s.inst("destination").instanceId);
+
+    expect(s.perm("eligible").topCard.instanceId).toBe(s.inst("destination").instanceId);
+    expect(s.perm("ineligible").topCard.cardId).toBe("BT21-014");
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
   });
 
   it.each([

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -40,97 +39,110 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
-          kind: "Digivolve",
-          target: {
-            filter: {
-              controllerDefault: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["Agumon"],
-                  match: "name",
-                },
-              ],
-            },
-            count: 1,
-          },
-          into: {
-            controllerDefault: "mine",
-            nameOrTrait: [
+          // Q2466: the two trash placements are paid first; only the evolution
+          // that follows is optional. A direct optional Digivolve would prompt
+          // before paying the placement and force the evolution after payment.
+          kind: "CostGatedBlock",
+          cost: {
+            kind: "compound",
+            costs: [
               {
-                tokens: ["WarGreymon"],
-                match: "name",
+                kind: "place",
+                target: {
+                  filter: {
+                    zone: "trash",
+                    controller: "mine",
+                    nameOrTrait: [
+                      {
+                        tokens: ["Greymon"],
+                        match: "name",
+                      },
+                    ],
+                  },
+                  count: 1,
+                  from: ["trash"],
+                },
+                raw: "By placing 1 [Greymon] and 1 [MetalGreymon] from your trash as 1 of your [Agumon]'s bottom digivolution cards",
+                underFilter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [
+                    {
+                      tokens: ["Agumon"],
+                      match: "name",
+                    },
+                  ],
+                },
+                destination: "digivolutionStack",
+                position: "bottom",
+                host: "target",
+                bindHostAs: "bt14090Agumon",
+              },
+              {
+                kind: "place",
+                target: {
+                  filter: {
+                    zone: "trash",
+                    controller: "mine",
+                    nameOrTrait: [
+                      {
+                        tokens: ["MetalGreymon"],
+                        match: "name",
+                      },
+                    ],
+                  },
+                  count: 1,
+                  from: ["trash"],
+                },
+                underFilter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [
+                    {
+                      tokens: ["Agumon"],
+                      match: "name",
+                    },
+                  ],
+                },
+                destination: "digivolutionStack",
+                position: "bottom",
+                host: { filter: { boundRef: "bt14090Agumon" }, count: 1 },
               },
             ],
           },
-          payCost: false,
-          from: ["hand"],
-          ignoreRequirements: true,
-          optional: true,
-          cost: {
-            kind: "place",
-            target: {
-              filter: {
-                zone: "trash",
-                controller: "mine",
-                nameOrTrait: [
-                  {
-                    tokens: ["Greymon"],
-                    match: "name",
-                  },
-                ],
-              },
-              count: 1,
-              from: ["trash"],
-            },
-            raw: "By placing 1 [Greymon] and 1 [MetalGreymon] from your trash as 1 of your [Agumon]'s bottom digivolution cards",
-            underFilter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["Agumon"],
-                  match: "name",
-                },
-              ],
-            },
-            destination: "digivolutionStack",
-            position: "bottom",
-            host: "target",
-          },
-          additionalCosts: [
+          actions: [
             {
-              kind: "place",
+              kind: "Digivolve",
               target: {
                 filter: {
-                  zone: "trash",
-                  controller: "mine",
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
                   nameOrTrait: [
                     {
-                      tokens: ["MetalGreymon"],
+                      tokens: ["Agumon"],
                       match: "name",
                     },
                   ],
                 },
                 count: 1,
-                from: ["trash"],
+                fromSelectionRef: "bt14090Agumon",
               },
-              raw: "By placing 1 [Greymon] and 1 [MetalGreymon] from your trash as 1 of your [Agumon]'s bottom digivolution cards",
-              underFilter: {
-                controller: "mine",
-                kind: ["Digimon"],
+              into: {
+                controllerDefault: "mine",
                 nameOrTrait: [
                   {
-                    tokens: ["Agumon"],
+                    tokens: ["WarGreymon"],
                     match: "name",
                   },
                 ],
               },
-              destination: "digivolutionStack",
-              position: "bottom",
-              host: "target",
+              payCost: false,
+              from: ["hand"],
+              ignoreRequirements: true,
+              optional: true,
             },
           ],
+          optional: true,
           abortOnDecline: true,
         },
       ],

@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const play = {
+const play: Extract<Action, { kind: "PlayWithoutCost" }> = {
   kind: "PlayWithoutCost",
   target: { filter: { controller: "mine", kind: ["Tamer"], playCostLte: 3 }, count: 1 },
   from: ["hand"],

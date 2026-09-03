@@ -46,6 +46,8 @@ import {
 export interface DigiXrosPlanInput {
   materialInstanceIds: string[];
   expanderPermanentIds?: string[];
+  /** When an expander scopes materials to one Tamer, the selected host Tamer. */
+  underTamerHostPermanentId?: string;
 }
 
 export interface DigiXrosIntent {
@@ -78,6 +80,8 @@ interface ResolvedMaterial {
   definition: CardDefinition;
   /** When source === "field": the battle-area permanent that is relocated whole. */
   fieldPermanentId?: string;
+  /** When source === "underTamer": the Tamer permanent hosting the material. */
+  hostPermanentId?: string;
 }
 
 export type DigiXrosCheck =
@@ -174,6 +178,7 @@ export function validateDigiXros(
 
   const materialIds = intent.digiXros.materialInstanceIds;
   if (materialIds.length === 0) return { ok: false, reason: "no-materials" };
+  if (new Set(materialIds).size !== materialIds.length) return { ok: false, reason: "invalid-material" };
 
   // Resolve the chosen expander Tamers and aggregate the unlocked per-zone maxima. Each Tamer
   // is a separately paid effect, so multiple copies add their quotas (EX10-064 Q5178/Q5179).
@@ -183,6 +188,8 @@ export function validateDigiXros(
   // AllowDigiXrosMaterialsFromTrash (CAP-C-14, BT21-030): the played card's own IR declares that
   // trash is a valid material source, so trash is unrestricted regardless of expander Tamers.
   let underTamerMax = allowsExtraDigiXrosMaterials(instance.cardId) ? 1 : 0;
+  let singleUnderTamerHost = false;
+  let unrestrictedUnderTamerHost = false;
   const intrinsicTrashNames = digiXrosTrashNameAllowanceFor(instance.cardId);
   const intrinsicTrashAllowed =
     intrinsicTrashNames !== undefined &&
@@ -196,9 +203,12 @@ export function validateDigiXros(
   let trashMax = allowsDigiXrosMaterialsFromTrash(instance.cardId) || intrinsicTrashAllowed ? Infinity : 0;
   if (allowsExtraDigiXrosMaterials(instance.cardId)) trashMax = 1;
   const expanderPermanentIds = intent.digiXros.expanderPermanentIds ?? [];
+  if (new Set(expanderPermanentIds).size !== expanderPermanentIds.length) {
+    return { ok: false, reason: "invalid-expander" };
+  }
   for (const permanentId of expanderPermanentIds) {
     const perm = player.battleArea.find((p) => p.permanentId === permanentId);
-    if (perm === undefined || perm.topCard === undefined || perm.isSuspended) {
+    if (perm === undefined || perm.controllerSeat !== seat || perm.topCard === undefined || perm.isSuspended) {
       return { ok: false, reason: "invalid-expander" };
     }
     const expander = digiXrosZoneExpanderFor(perm.topCard.cardId);
@@ -206,8 +216,24 @@ export function validateDigiXros(
       return { ok: false, reason: "invalid-expander" };
     }
     underTamerMax += expander.underTamerMax;
+    singleUnderTamerHost ||= expander.underTamerHostScope === "single";
+    unrestrictedUnderTamerHost ||= expander.underTamerHostScope === "any" || expander.underTamerHostScope === undefined;
     trashMax += expander.trashMax;
   }
+
+  const selectedUnderTamerHost = intent.digiXros.underTamerHostPermanentId;
+  if (selectedUnderTamerHost !== undefined) {
+    const host = player.battleArea.find((permanent) => permanent.permanentId === selectedUnderTamerHost);
+    if (
+      host?.controllerSeat !== seat ||
+      host.topCard === undefined ||
+      !definitionOf(host.topCard.cardId).kinds.includes(CardKind.Tamer)
+    ) {
+      return { ok: false, reason: "invalid-expander" };
+    }
+  }
+  const requiresSingleUnderTamerHost = singleUnderTamerHost && !unrestrictedUnderTamerHost;
+  let resolvedUnderTamerHost = selectedUnderTamerHost;
 
   // Resolve each chosen material to its source zone, gated by the unlocked maxima.
   const materials: ResolvedMaterial[] = [];
@@ -224,6 +250,11 @@ export function validateDigiXros(
     if (resolved.source === "underTamer") {
       underTamerUsed += 1;
       if (underTamerUsed > underTamerMax) return { ok: false, reason: "invalid-material" };
+      if (requiresSingleUnderTamerHost) {
+        if (resolved.hostPermanentId === undefined) return { ok: false, reason: "invalid-material" };
+        resolvedUnderTamerHost ??= resolved.hostPermanentId;
+        if (resolvedUnderTamerHost !== resolved.hostPermanentId) return { ok: false, reason: "invalid-material" };
+      }
     }
     materials.push(resolved);
   }
@@ -358,6 +389,7 @@ function resolveMaterial(player: PlayerState, instanceId: string): ResolvedMater
   }
   // Battle-area Digimon top card (the whole permanent becomes a digivolution stack).
   for (const perm of player.battleArea) {
+    if (perm.controllerSeat !== player.seat) continue;
     if (perm.topCard?.instanceId === instanceId) {
       const def = definitionOf(perm.topCard.cardId);
       if (perm.inBreeding) return undefined;
@@ -370,12 +402,21 @@ function resolveMaterial(player: PlayerState, instanceId: string): ResolvedMater
   }
   // A card under one of the player's Tamers.
   for (const perm of player.battleArea) {
-    if (perm.topCard === undefined || !definitionOf(perm.topCard.cardId).kinds.includes(CardKind.Tamer)) {
+    if (
+      perm.controllerSeat !== player.seat ||
+      perm.topCard === undefined ||
+      !definitionOf(perm.topCard.cardId).kinds.includes(CardKind.Tamer)
+    ) {
       continue;
     }
     const under = perm.stack.find((c) => c.instanceId === instanceId);
     if (under !== undefined) {
-      return { instanceId, source: "underTamer", definition: definitionOf(under.cardId) };
+      return {
+        instanceId,
+        source: "underTamer",
+        definition: definitionOf(under.cardId),
+        hostPermanentId: perm.permanentId,
+      };
     }
   }
   return undefined;

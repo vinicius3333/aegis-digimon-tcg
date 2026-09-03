@@ -21,10 +21,9 @@ describe("BT13-101 Miki Kurosaki & Megumi Shirakawa", () => {
   });
 
   it("requires a two-color black/yellow Digimon and suspending this Tamer before draw and memory", () => {
-    const watcher = compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions?.[0] as {
-      sourceFilter?: unknown;
-      actions?: unknown[];
-    };
+    const watcher = compiled.effects.find((entry) => entry.trigger === "AllTurns")?.actions[0];
+    expect(watcher?.kind).toBe("SubTrigger");
+    if (watcher?.kind !== "SubTrigger") throw new Error("BT13-101 AllTurns watcher must be a SubTrigger");
     expect(watcher).toMatchObject({
       kind: "SubTrigger",
       event: "whenPlayed",
@@ -35,14 +34,14 @@ describe("BT13-101 Miki Kurosaki & Megumi Shirakawa", () => {
         colorsAll: ["Yellow", "Black"],
       },
     });
-    expect(watcher.actions?.[0]).toMatchObject({
+    expect(watcher.actions[0]).toMatchObject({
       kind: "Draw",
       controller: "mine",
       amount: 1,
       cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, optional: true },
       abortOnDecline: true,
     });
-    expect(watcher.actions?.[1]).toMatchObject({
+    expect(watcher.actions[1]).toMatchObject({
       kind: "GainMemory",
       amount: 1,
       condition: { kind: "ifThisEffectActed", raw: "you did" },

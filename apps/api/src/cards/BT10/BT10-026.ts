@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT10-026 — do not regenerate.
 // Restores Armor Purge and the printed DigiXros recipe. PlaceUnder accepts only hand or
 // under-Tamer Blue Flare cards and inserts them at the bottom. The attack/block clause is one

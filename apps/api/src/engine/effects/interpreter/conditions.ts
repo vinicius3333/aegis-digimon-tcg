@@ -305,25 +305,50 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     }
     case "zoneCount": {
       // Generic resource-count gate: "if you/your opponent have N or more/fewer cards
-      // in your/their hand|trash|security|deck". Sizes the seat's zone and compares.
+      // in your/their hand|trash|security|deck". Sizes the seat's zone and compares. The
+      // digivolution-card branch also keeps the shared `zone` field total after
+      // `playedFromZone` gained that source-zone value for BT7-018.
       const seat = cond.seat === "opponent" ? opp : mine;
       const player = ctx.game.player(seat);
       const zone = cond.zone ?? "hand";
-      const size =
-        zone === "battleArea"
-          ? player.battleArea.filter(
-              (permanent) =>
-                permanent.topCard !== undefined &&
-                (cond.filter === undefined || definitionMatches(cond.filter, ctx.game.definitionOf(permanent.topCard))),
-            ).length
-          : zone === "security"
-            ? securityCountForCondition(ctx, seat)
-            : player[zone].length;
+      let size: number;
+      switch (zone) {
+        case "battleArea":
+          size = player.battleArea.filter(
+            (permanent) =>
+              permanent.topCard !== undefined &&
+              (cond.filter === undefined || definitionMatches(cond.filter, ctx.game.definitionOf(permanent.topCard))),
+          ).length;
+          break;
+        case "security":
+          size = securityCountForCondition(ctx, seat);
+          break;
+        case "digivolutionCards":
+          size = Array.from(player.battleArea).reduce((total, permanent) => total + permanent.stack.length, 0);
+          break;
+        case "hand":
+        case "trash":
+        case "deck":
+          size = player[zone].length;
+          break;
+        default:
+          return false;
+      }
       const value = cond.value ?? 0;
-      if (cond.op === "eq") return size === value;
-      if (cond.op === "lt") return size < value;
-      if (cond.op === "gt") return size > value;
-      return cond.op === "lte" ? size <= value : size >= value;
+      switch (cond.op ?? "gte") {
+        case "eq":
+          return size === value;
+        case "lt":
+          return size < value;
+        case "gt":
+          return size > value;
+        case "lte":
+          return size <= value;
+        case "gte":
+          return size >= value;
+        default:
+          return false;
+      }
     }
     case "combinedTrashCount": {
       const size = ctx.game.player(mine).trash.length + ctx.game.player(opp).trash.length;
@@ -874,6 +899,13 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const definition = cardId !== undefined ? getCardDefinition(cardId) : undefined;
       return definition !== undefined && (definition.level ?? -1) >= (cond.value ?? 0);
     }
+    case "triggerDeletedMatchesFilter": {
+      if (cond.filter === undefined) return false;
+      const cardIds =
+        ctx.trigger.deletedPermanentSnapshots?.map((snapshot) => snapshot.topCardId) ??
+        (ctx.trigger.deletedTopCardId === undefined ? [] : [ctx.trigger.deletedTopCardId]);
+      return cardIds.some((cardId) => definitionMatches(cond.filter!, ctx.game.definitionOf({ cardId } as never)));
+    }
     case "triggerDeletedStackMatchesFilter": {
       const filter = cond.filter;
       if (filter === undefined) return false;
@@ -884,6 +916,8 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
         return card !== undefined && definitionMatches(filter, ctx.game.definitionOf(card));
       });
     }
+    case "triggerDeleterIsSelf":
+      return ctx.source.permanent()?.permanentId === ctx.trigger.deletingPermanentId;
     case "triggerAttackerIsSelf":
       return ctx.source.permanent()?.permanentId === ctx.trigger.attackerPermanentId;
     case "triggerAttackerMatchesFilter": {
@@ -922,6 +956,35 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       );
     case "triggerDeletedIsOpponent":
       return ctx.trigger.deletedControllerSeat === ctx.game.opponentOf(ctx.source.ownerSeat);
+    case "triggerDeletedIsYourOther": {
+      const self = ctx.source.permanent();
+      const snapshots = ctx.trigger.deletedPermanentSnapshots;
+      if (self === undefined) return false;
+      if (snapshots !== undefined) {
+        return (
+          !snapshots.some(({ permanentId }) => permanentId === self.permanentId) &&
+          snapshots.some(({ permanentId, controllerSeat, topCardId }) => {
+            const definition = getCardDefinition(topCardId);
+            return (
+              permanentId !== self.permanentId &&
+              controllerSeat === ctx.source.ownerSeat &&
+              definition !== undefined &&
+              isDigimon(definition)
+            );
+          })
+        );
+      }
+      const deleted = ctx.trigger.deletedPermanentId;
+      const definition =
+        ctx.trigger.deletedTopCardId === undefined ? undefined : getCardDefinition(ctx.trigger.deletedTopCardId);
+      return (
+        deleted !== undefined &&
+        deleted !== self.permanentId &&
+        ctx.trigger.deletedControllerSeat === ctx.source.ownerSeat &&
+        definition !== undefined &&
+        isDigimon(definition)
+      );
+    }
     case "triggerDeletedByDpZero":
       return ctx.trigger.deletedByDpZero === true;
     case "triggerIsFirstDeletedPermanent": {

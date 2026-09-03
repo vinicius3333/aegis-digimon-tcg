@@ -146,9 +146,9 @@ export interface SecurityManipulationAction extends ActionBase {
    */
   detachPermanentTop?: boolean;
   /**
-   * For addBottom/addTop: take the card directly beneath the source's top card and add it to
-   * security, face-up when `faceUp` is also set (BT20-055). The source is resolved via
-   * `source.filter`.
+   * For addBottom/addTop/placeAsSecurity: take the card directly beneath the source's top card
+   * and add it to security, face-up when `faceUp` is also set (BT20-084, BT24-093). The source
+   * is resolved via `source.filter`.
    */
   fromDigivolutionTop?: boolean;
   /**

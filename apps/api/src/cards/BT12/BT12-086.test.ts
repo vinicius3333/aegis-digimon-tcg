@@ -7,8 +7,8 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT12-086.js";
 
-describe("BT12-086 handwritten module", () => {
-  it("registers its printed OnPlay effect without declarative effect record", () => {
+describe("BT12-086", () => {
+  it("registers its printed OnPlay effect from compiled IR", () => {
     const module = getEffectModule("BT12-086");
     expect(module?.cardId).toBe("BT12-086");
     const source = {
@@ -28,16 +28,17 @@ it("adds up to two differently colored Save Digimon from the reveal", async () =
     {
       0: {
         hand: [{ card: "BT12-086", as: "clock" }],
-        deck: ["BT12-008", "BT12-058", "BT1-009"],
+        deck: ["BT12-008", "BT12-035", "BT1-009"],
       },
     },
     { autoSelectCards: true, autoOrderCards: true },
   );
+  await s.ready();
   s.state.memory = 10;
   expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("clock").instanceId })).toEqual({ ok: true });
-  await settle(() => s.state.players[0]!.hand.length >= 2);
+  await settle(() => s.state.players[0]!.deck.length === 0);
   expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(
-    expect.arrayContaining(["BT12-008", "BT12-058"]),
+    expect.arrayContaining(["BT12-008", "BT12-035"]),
   );
 });
 
@@ -46,15 +47,36 @@ it("does not add two same-colored Save Digimon", async () => {
     {
       0: {
         hand: [{ card: "BT12-086", as: "clock" }],
-        deck: ["BT12-058", "BT12-060", "BT1-009"],
+        deck: ["BT12-008", "BT12-011", "BT1-009"],
       },
     },
     { autoSelectCards: true, autoOrderCards: true },
   );
+  await s.ready();
   s.state.memory = 10;
   expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("clock").instanceId })).toEqual({ ok: true });
-  await settle(() => s.state.players[0]!.hand.length >= 2);
-  expect(s.state.players[0]!.hand.filter(({ cardId }) => ["BT12-058", "BT12-060"].includes(cardId))).toHaveLength(1);
+  await settle(() => s.state.players[0]!.deck.length === 0);
+  expect(s.state.players[0]!.hand.filter(({ cardId }) => ["BT12-008", "BT12-011"].includes(cardId))).toHaveLength(1);
+});
+
+it("takes only Save Digimon and leaves a non-Save reveal on the deck bottom", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        hand: [{ card: "BT12-086", as: "clock" }],
+        deck: ["BT12-008", "BT1-009", "BT12-035"],
+      },
+    },
+    { autoSelectCards: true, autoOrderCards: true },
+  );
+  await s.ready();
+  s.state.memory = 10;
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("clock").instanceId })).toEqual({ ok: true });
+  await settle(() => s.state.players[0]!.deck.length === 0);
+  expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(
+    expect.arrayContaining(["BT12-008", "BT12-035"]),
+  );
+  expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).not.toContain("BT1-009");
 });
 
 it("grants Jamming to a Save-text host", async () => {

@@ -523,6 +523,23 @@ async function runWouldBePlayedCostActions(ctx: EffectContext, actions: readonly
 }
 
 /**
+ * A leading SelectBind is the payment gate for the action-body reducers that use it (BT12-112
+ * and BT21-030). If its mandatory battle-area target is absent, the reducer is not payable and
+ * must not open a "you may" prompt. This mirrors the activation gate in effect.ts; the reducer
+ * path runs outside canActivateEffect because it is consumed by the pay-time replacement seam.
+ */
+function hasPayableLeadingSelectBind(ctx: EffectContext, actions: readonly Action[]): boolean {
+  const leading = actions[0];
+  if (leading?.kind !== "SelectBind" || leading.target.bindAs === undefined || leading.target.upTo === true) {
+    return true;
+  }
+  if (ctx.selections?.get(leading.target.bindAs) !== undefined || ctx.boundPlayed?.has(leading.target.bindAs)) {
+    return true;
+  }
+  return candidatePermanents(ctx, leading.target).length > 0;
+}
+
+/**
  * Apply one self-targeted `wouldBePlayed` cost reducer at pay-time (called from
  * `GameEngine.fireBeforePayCost`). A `cost`/`costActions` reducer is a "you may" choice — decline,
  * or an unpayable cost, earns nothing; a `condition`/`scaling` reducer has no payment at all and
@@ -644,6 +661,7 @@ export async function applyWouldBePlayedSelfReducer(
     return;
   }
   if (reducer.costActions !== undefined) {
+    if (!hasPayableLeadingSelectBind(ctx, reducer.costActions)) return;
     if (!(await ctx.ask.optional(ctx, reducer.raw))) return;
     if (await runWouldBePlayedCostActions(ctx, reducer.costActions)) {
       ctx.playCostDelta = (ctx.playCostDelta ?? 0) + Math.max(0, reducer.amount);

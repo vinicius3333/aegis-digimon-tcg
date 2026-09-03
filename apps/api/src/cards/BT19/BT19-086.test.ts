@@ -1,8 +1,32 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { matchNameOrTrait, runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
 describe("BT19-086 Ryo Akiyama", () => {
+  it("places a Device and draws during a real turn after public play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT19-086", as: "tamer" },
+            { card: "BT19-098", as: "device" },
+          ],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tamer").instanceId })).toEqual({ ok: true });
+    s.state.memory = 2;
+    await advance(s.engine).runTurn(0);
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT19-098"));
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT19-098")).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-009");
+  });
+
   it("preserves Device placement and draw, compound suspend/trash cost, optional Cyberdramon play, and Security play", () => {
     const card = runtimeCompiledCard("BT19-086");
 
@@ -19,7 +43,7 @@ describe("BT19-086 Ryo Akiyama", () => {
               kind: "place",
               target: {
                 filter: {
-                  zone: "battleArea",
+                  zone: "hand",
                   controller: "mine",
                   kind: ["Option"],
                   nameOrTrait: [{ tokens: ["Device"], match: "trait" }],

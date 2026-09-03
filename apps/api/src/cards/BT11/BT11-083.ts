@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const angel = [
+const angel: NonNullable<Filter["nameOrTrait"]> = [
   { tokens: ["Angel", "Archangel"], match: "trait" },
   { tokens: ["Fallen Angel"], match: "trait" },
 ];

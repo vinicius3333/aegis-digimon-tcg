@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT2-049 (Puppetmon) — do not regenerate over this file.
 // The generated [On Play] second clause ("During your opponent's next unsuspend
 // phase, none of your opponent's Digimon can unsuspend") was miscompiled as an

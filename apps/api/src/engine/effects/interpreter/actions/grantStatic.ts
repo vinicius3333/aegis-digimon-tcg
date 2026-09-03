@@ -328,8 +328,9 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
       if (
         typeof action.grant === "object" &&
         action.grant !== null &&
-        (action.grant as { keyword?: string }).keyword === "EndOfAttack" &&
-        (action.grant as { targetFilter?: { keyword?: string } }).targetFilter?.keyword === "OnDeletion"
+        "targetFilter" in action.grant &&
+        action.grant.keyword === "EndOfAttack" &&
+        action.grant.targetFilter.keyword === "OnDeletion"
       ) {
         const grantDuration = toDuration(action.duration ?? "forTheTurn");
         for (const id of ids) ctx.fx.projectOnDeletionAtEndOfAttack?.(id, grantDuration);
@@ -517,10 +518,11 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
         return false;
       }
       // "cantLeaveExceptByOwnerOrDeletion" (BT16-051): "can't leave the battle area other than
-      // by deletion" — unscoped bounce protection, the already enforced `beReturned` restriction.
+      // by deletion" — one unscoped restriction consumed by every non-deletion whole-permanent
+      // movement seam (Q2642: hand/deck, security, and placement under another permanent).
       if (action.grant === "cantLeaveExceptByOwnerOrDeletion") {
         const grantDuration = toDuration(action.duration ?? "untilOpponentTurnEnd");
-        for (const id of ids) ctx.fx.restrict(id, "beReturned", grantDuration);
+        for (const id of ids) ctx.fx.restrict(id, "leaveBattleAreaExceptByDeletion", grantDuration);
         return false;
       }
       // "canBeAttackedWhileUnsuspended" (BT21-096) — the compiler's alternate label for the SAME

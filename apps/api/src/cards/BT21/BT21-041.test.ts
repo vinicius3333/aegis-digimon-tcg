@@ -1,6 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-041.js";
@@ -34,21 +32,29 @@ describe("BT21-041 compiled implementation", () => {
     ]);
   });
 
-  it("plays Calendamon from Security without paying its cost", async () => {
-    const s = setupEngine(
-      { 0: { security: [{ card: "BT21-041", as: "calendamon", faceUp: true }] } },
-      { autoSelectCards: true },
-    );
-    s.state.memory = 0;
-    await s.ready();
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("calendamon"));
-    await settle(() =>
-      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("calendamon").instanceId),
-    );
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("calendamon").instanceId)).toBe(
-      true,
-    );
-    expect(s.state.memory).toBe(0);
+  it("defers the free Security play through the battle-ended event", () => {
+    expect(compiled.effects.find((effect) => effect.trigger === "Security")?.actions[0]).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenSecurityBattleEnded",
+      once: true,
+      actions: [{ kind: "PlayWithoutCost", from: ["trash"], payCost: false }],
+    });
+  });
+
+  it("marks the Security play at the printed end-of-battle timing", () => {
+    expect(compiled.effects.find((effect) => effect.trigger === "Security")).toMatchObject({
+      trigger: "Security",
+      timing: "endOfBattle",
+      isSecurity: true,
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenSecurityBattleEnded",
+          once: true,
+          actions: [{ kind: "PlayWithoutCost", from: ["trash"], payCost: false }],
+        },
+      ],
+    });
   });
 
   it("plays from Security after the battle finishes in a real security check", async () => {

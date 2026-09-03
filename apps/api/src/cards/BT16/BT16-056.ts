@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const placeVaccineTopInSecurity = {
+const placeVaccineTopInSecurity: Action = {
   kind: "SecurityManipulation",
   op: "placeAsSecurity",
   controller: "opponent",
@@ -17,7 +16,7 @@ const placeVaccineTopInSecurity = {
   toTop: true,
   detachPermanentTop: true,
   optional: true,
-} as const;
+};
 
 export const compiled: CompiledCard = {
   effects: [

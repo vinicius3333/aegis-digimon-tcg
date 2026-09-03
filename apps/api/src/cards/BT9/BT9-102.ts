@@ -1,9 +1,8 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Cost } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Hand-corrected IR for BT9-102 (Attack of the Heavy Mobile Digimon!).
-const handCost = {
+const handCost: Cost = {
   kind: "trash",
   target: {
     filter: {
@@ -15,7 +14,7 @@ const handCost = {
   },
   raw: "by trashing 1 card with [Cyborg] or [Machine] in its traits in your hand",
 };
-const securityHandCost = {
+const securityHandCost: Cost = {
   kind: "trash",
   target: {
     filter: {
@@ -26,6 +25,7 @@ const securityHandCost = {
     },
     count: 1,
   },
+  bindResultAs: "trashedSecurityCard",
   raw: "by trashing 1 Digimon card with [Cyborg] or [Machine] in its traits in your hand",
 };
 export const compiled: CompiledCard = {
@@ -58,7 +58,14 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "Delete",
-          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              relativeTo: { attr: "playCost", op: "lte", selectionRef: "trashedSecurityCard" },
+            },
+            count: 1,
+          },
           cost: securityHandCost,
           optional: true,
         },

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -99,7 +98,7 @@ const compiled: CompiledCard = {
       traits: ["Insectoid"],
       cost: 2,
       isAlternate: true,
-      playCostLte: 13,
+      basePlayCostMax: 13,
     },
   ],
 };

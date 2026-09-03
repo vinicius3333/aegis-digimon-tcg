@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -28,7 +27,15 @@ export const compiled: CompiledCard = {
               kind: "Replacement",
               event: "wouldDigivolve",
               sourceFilter: { isSelfRef: true },
-              actions: [{ kind: "Replacement", event: "wouldDigivolve", mode: "reduceCost", amount: 2, raw: "reduce the digivolution cost by 2" }],
+              actions: [
+                {
+                  kind: "Replacement",
+                  event: "wouldDigivolve",
+                  mode: "reduceCost",
+                  amount: 2,
+                  raw: "reduce the digivolution cost by 2",
+                },
+              ],
             },
             {
               kind: "Digivolve",

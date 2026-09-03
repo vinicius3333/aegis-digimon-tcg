@@ -27,8 +27,8 @@ const CARD_IDS = [
 describe("BT2-081 through BT2-090 IR coverage", () => {
   it("registers every range card through complete compiled IR", () => {
     for (const cardId of CARD_IDS) {
-      expect(hasRegisteredCompiledCard(cardId), "direct compiled registration for " + cardId).toBe(true);
-      expect(runtimeCompiledCard(cardId), "runtime IR for " + cardId).toMatchObject({
+      expect(hasRegisteredCompiledCard(cardId)).toBe(true);
+      expect(runtimeCompiledCard(cardId)).toMatchObject({
         coverage: "full",
         residual: [],
       });
@@ -231,7 +231,10 @@ describe("BT2-081 through BT2-090 IR coverage", () => {
               kind: "CostModifier",
               costType: "digivolve",
               amount: 1,
-              target: { filter: { zone: "battleArea", controller: "mine", kind: ["Digimon"] } },
+              target: {
+                filter: { zone: "battleArea", controller: "mine", kind: ["Digimon"] },
+                count: "all",
+              },
               into: {
                 zone: "hand",
                 controller: "mine",
@@ -240,6 +243,7 @@ describe("BT2-081 through BT2-090 IR coverage", () => {
               },
               restriction: "suspendThisTamer",
               optional: true,
+              duration: "forTheTurn",
             }),
           ],
         }),

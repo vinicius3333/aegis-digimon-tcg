@@ -3,11 +3,11 @@ import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
-import "./BT12-092.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT12-092.js";
 
-describe("BT12-092 handwritten module", () => {
-  it("registers its printed OnStartMainPhase effect without declarative effect record", () => {
+describe("BT12-092 compiled IR module", () => {
+  it("registers each printed timing through one declarative effect record", () => {
     const module = getEffectModule("BT12-092");
     expect(module?.cardId).toBe("BT12-092");
     const source = {
@@ -20,7 +20,15 @@ describe("BT12-092 handwritten module", () => {
     } as unknown as CardSource;
     expect(module!.effectsForTiming(EffectTiming.OnStartMainPhase, source).length).toBeGreaterThan(0);
     expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
-    expect(module!.effectsForTiming(EffectTiming.OnTappedAnyone, source).length).toBeGreaterThan(0);
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    expect(compiled.effects).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          trigger: "YourTurn",
+          actions: [expect.objectContaining({ kind: "SubTrigger", event: "whenSuspended" })],
+        }),
+      ]),
+    );
   });
 
   it("pays 1 memory and becomes a 3000 DP Digimon when Agumon or Greymon is present", async () => {
@@ -40,5 +48,36 @@ describe("BT12-092 handwritten module", () => {
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("marcus"));
     expect(s.state.memory).toBe(4);
     expect(s.perm("marcus").currentDP).toBe(3000);
+  });
+
+  it("digivolves a Digimon into a yellow Greymon for free when Marcus becomes suspended", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT12-092", as: "marcus" },
+            { card: "BT12-038", as: "host" },
+          ],
+          hand: [{ card: "BT12-042", as: "rize" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.suspend([s.perm("marcus").permanentId]);
+    await settle(() => s.perm("host").topCard.cardId === "BT12-042");
+
+    expect(s.perm("marcus").isSuspended).toBe(true);
+    expect(s.perm("host").topCard.cardId).toBe("BT12-042");
+  });
+
+  it("plays Marcus from security without paying its memory cost", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "BT12-092", as: "marcus", faceUp: true }] } });
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("marcus"));
+
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT12-092")).toBe(true);
   });
 });

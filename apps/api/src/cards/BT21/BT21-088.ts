@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -21,7 +20,7 @@ export const compiled: CompiledCard = {
                 zone: "hand",
                 controller: "mine",
                 kind: ["Digimon"],
-                keywords: ["Save"],
+                nameOrTrait: [{ tokens: ["Save"], match: "text" }],
               },
               orFilters: [
                 {
@@ -64,7 +63,7 @@ export const compiled: CompiledCard = {
           into: {
             controllerDefault: "mine",
             kind: ["Digimon"],
-            keywords: ["Save"],
+            nameOrTrait: [{ tokens: ["Save"], match: "text" }],
             orFilters: [{ nameOrTrait: [{ tokens: ["Hero"], match: "trait" }] }],
           },
           actions: [

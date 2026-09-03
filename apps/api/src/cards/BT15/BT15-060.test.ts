@@ -35,6 +35,7 @@ describe("BT15-060", () => {
     expect(compiled.effects?.[2]?.actions[0]).toMatchObject({
       kind: "Digivolve",
       from: ["hand"],
+      payCost: true,
       reduceCost: 2,
       optional: true,
       condition: { kind: "isYourTurn" },
@@ -74,7 +75,10 @@ describe("BT15-060", () => {
       {
         0: {
           battleArea: [{ card: "BT15-055", as: "base" }],
-          hand: [{ card: "BT15-060", as: "omekamon" }, { card: "BT2-057", as: "greymon" }],
+          hand: [
+            { card: "BT15-060", as: "omekamon" },
+            { card: "BT2-057", as: "greymon" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

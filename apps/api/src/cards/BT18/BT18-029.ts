@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -24,12 +23,6 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           to: "hand",
-        },
-        {
-          kind: "CostModifier",
-          mode: "raiseCeiling",
-          costType: "level",
-          amount: 1,
           scaling: {
             per: 1,
             filter: {
@@ -38,6 +31,7 @@ export const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             unit: "cards",
+            levelCeilingAdd: 1,
           },
         },
       ],
@@ -59,12 +53,6 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           to: "hand",
-        },
-        {
-          kind: "CostModifier",
-          mode: "raiseCeiling",
-          costType: "level",
-          amount: 1,
           scaling: {
             per: 1,
             filter: {
@@ -73,6 +61,7 @@ export const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             unit: "cards",
+            levelCeilingAdd: 1,
           },
         },
       ],

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -27,6 +26,7 @@ export const compiled: CompiledCard = {
                 },
               ],
             },
+            count: 1,
           },
           mode: "prevent",
           leaveCause: "any",

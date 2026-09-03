@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./BT3-032.js";
 
 describe("BT3-032 Armadillomon", () => {
   it("plays as a 4000 DP vanilla Digimon without effect activation", async () => {

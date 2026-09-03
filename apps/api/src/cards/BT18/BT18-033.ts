@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -42,6 +41,7 @@ export const compiled: CompiledCard = {
               },
               count: 1,
             },
+            to: "deckBottom",
             raw: "by returning 1 Digimon card with the [Three Great Angels] trait from your trash to the bottom of the deck",
           },
           optional: true,

@@ -8,15 +8,131 @@ import { scaleFactor } from "../scaling.js";
 import { LooseCandidate, candidateLooseInstances, pickLoose, zoneList } from "../targeting/loose.js";
 import { candidatePermanents, effectiveTargetCount, resolvePermanentTargets } from "../targeting/permanents.js";
 import { EffectDuration } from "@aegis/shared";
-import type { Action, Target, ZoneRef } from "@aegis/shared";
+import type { Action, Filter, Target, ZoneRef } from "@aegis/shared";
+
+type MixedSourceCandidate = { instanceId: string; cardId: string; permanentId?: string };
+
+function mixedSourceMatches(ctx: EffectContext, filter: Filter, card: { cardId: string }): boolean {
+  const definition = ctx.game.definitionOf(card as never);
+  if (filter.kind !== undefined && !definition.kinds.some((kind) => filter.kind!.includes(kind))) return false;
+  return filter.nameOrTrait === undefined || filter.nameOrTrait.some((ref) => matchNameOrTrait(definition, ref));
+}
+
+function collectMixedSourceCandidates(
+  ctx: EffectContext,
+  action: Extract<Action, { kind: "PlaceUnder" }>,
+  destinationId: string,
+): MixedSourceCandidate[] {
+  const sources = action.mixedSources!;
+  const candidates: MixedSourceCandidate[] = [];
+  const owner = ctx.game.player(ctx.source.ownerSeat);
+  if (sources.battleAreaPermanents || sources.linkedCards) {
+    for (const permanent of owner.battleArea) {
+      if (permanent.inBreeding || permanent.topCard === undefined) continue;
+      if (
+        permanent.permanentId !== destinationId &&
+        sources.battleAreaPermanents &&
+        mixedSourceMatches(ctx, action.target.filter, permanent.topCard)
+      ) {
+        candidates.push({
+          instanceId: permanent.topCard.instanceId,
+          cardId: permanent.topCard.cardId,
+          permanentId: permanent.permanentId,
+        });
+      }
+      if (sources.linkedCards) {
+        for (const linked of permanent.linked) {
+          if (mixedSourceMatches(ctx, action.target.filter, linked))
+            candidates.push({ instanceId: linked.instanceId, cardId: linked.cardId });
+        }
+      }
+    }
+  }
+  if (sources.hand) {
+    for (const card of owner.hand) {
+      if (mixedSourceMatches(ctx, action.target.filter, card))
+        candidates.push({ instanceId: card.instanceId, cardId: card.cardId });
+    }
+  }
+  if (sources.trash) {
+    for (const card of owner.trash) {
+      if (mixedSourceMatches(ctx, action.target.filter, card))
+        candidates.push({ instanceId: card.instanceId, cardId: card.cardId });
+    }
+  }
+  return candidates;
+}
+
+function requiredMixedNamesAvailable(
+  ctx: EffectContext,
+  action: Extract<Action, { kind: "PlaceUnder" }>,
+  candidates: readonly MixedSourceCandidate[],
+): boolean {
+  const requiredNames = action.target.requiredNamesExact ?? [];
+  if (requiredNames.length === 0) return true;
+  if (action.target.count !== requiredNames.length) return false;
+  return requiredNames.every((name) =>
+    candidates.some((candidate) => ctx.game.definitionOf({ cardId: candidate.cardId } as never).nameEn === name),
+  );
+}
+
+async function selectMixedSourceCandidates(
+  ctx: EffectContext,
+  action: Extract<Action, { kind: "PlaceUnder" }>,
+  candidates: readonly MixedSourceCandidate[],
+): Promise<MixedSourceCandidate[] | undefined> {
+  const requiredNames = action.target.requiredNamesExact ?? [];
+  const count = action.target.count === "all" ? candidates.length : Number(action.target.count ?? 1);
+  if (requiredNames.length > 0) {
+    if (count !== requiredNames.length) return undefined;
+    const selected: MixedSourceCandidate[] = [];
+    const used = new Set<string>();
+    for (const name of requiredNames) {
+      const matching = candidates.filter(
+        (candidate) =>
+          !used.has(candidate.instanceId) &&
+          ctx.game.definitionOf({ cardId: candidate.cardId } as never).nameEn === name,
+      );
+      if (matching.length === 0) return undefined;
+      const pickedId =
+        matching.length === 1
+          ? matching[0]!.instanceId
+          : (
+              await ctx.ask.selectCards(ctx, {
+                candidates: matching.map((candidate) => candidate.instanceId),
+                min: 1,
+                max: 1,
+                visible: candidates.map((candidate) => candidate.instanceId),
+                visibleCards: candidates.map(({ instanceId, cardId }) => ({ instanceId, cardId })),
+              })
+            )[0];
+      const picked = matching.find((candidate) => candidate.instanceId === pickedId);
+      if (picked === undefined) return undefined;
+      used.add(picked.instanceId);
+      selected.push(picked);
+    }
+    return selected;
+  }
+  if (candidates.length < count) return undefined;
+  const selected =
+    candidates.length === count
+      ? [...candidates]
+      : (
+          await ctx.ask.selectCards(ctx, {
+            candidates: candidates.map((candidate) => candidate.instanceId),
+            min: count,
+            max: count,
+          })
+        )
+          .map((id) => candidates.find((candidate) => candidate.instanceId === id))
+          .filter((candidate): candidate is MixedSourceCandidate => candidate !== undefined);
+  return selected.length === count ? selected : undefined;
+}
 
 function rememberPlacedUnder(ctx: EffectContext, instanceIds: string[]): void {
   ctx.lastPlacedUnderInstanceIds = instanceIds;
   if (instanceIds.length > 0) {
-    ctx.placedUnderInstanceIdsThisEffect = [
-      ...(ctx.placedUnderInstanceIdsThisEffect ?? []),
-      ...instanceIds,
-    ];
+    ctx.placedUnderInstanceIdsThisEffect = [...(ctx.placedUnderInstanceIdsThisEffect ?? []), ...instanceIds];
   }
 }
 
@@ -41,63 +157,25 @@ export async function runPlaceUnder(
         : (await ctx.ask.chooseTargets(ctx, { candidates: destinationIds, min: 1, max: 1 }))[0];
     if (destinationId === undefined) return;
     if (action.bindHostAs !== undefined) ctx.selections?.set(action.bindHostAs, destinationId);
-    const filter = action.target.filter;
-    const candidates: { instanceId: string; permanentId?: string }[] = [];
-    const matches = (card: { cardId: string }) => {
-      const definition = ctx.game.definitionOf(card as never);
-      if (filter.kind !== undefined && !definition.kinds.some((kind) => filter.kind!.includes(kind))) return false;
-      if (filter.nameOrTrait !== undefined && !filter.nameOrTrait.some((ref) => matchNameOrTrait(definition, ref)))
-        return false;
-      return true;
-    };
-    const owner = ctx.game.player(ctx.source.ownerSeat);
-    if (action.mixedSources.battleAreaPermanents || action.mixedSources.linkedCards) {
-      for (const permanent of owner.battleArea) {
-        if (permanent.inBreeding || permanent.topCard === undefined) continue;
-        // The destination Digimon itself cannot become one of its own digivolution
-        // cards, but its linked cards remain valid mixed-source materials (BT26-102
-        // Q7183). Do not skip the entire permanent when it is the chosen host.
-        if (
-          permanent.permanentId !== destinationId &&
-          action.mixedSources.battleAreaPermanents &&
-          matches(permanent.topCard)
-        )
-          candidates.push({ instanceId: permanent.topCard.instanceId, permanentId: permanent.permanentId });
-        if (action.mixedSources.linkedCards) {
-          for (const linked of permanent.linked)
-            if (matches(linked)) candidates.push({ instanceId: linked.instanceId });
-        }
-      }
-    }
-    if (action.mixedSources.hand) {
-      for (const card of owner.hand) if (matches(card)) candidates.push({ instanceId: card.instanceId });
-    }
-    if (action.mixedSources.trash)
-      for (const card of owner.trash) if (matches(card)) candidates.push({ instanceId: card.instanceId });
+    const candidates = collectMixedSourceCandidates(ctx, action, destinationId);
     const count = action.target.count === "all" ? candidates.length : Number(action.target.count ?? 1);
-    if (candidates.length < count) return;
-    const selected =
-      candidates.length === count
-        ? candidates
-        : ((
-            await ctx.ask.selectCards(ctx, {
-              candidates: candidates.map((candidate) => candidate.instanceId),
-              min: count,
-              max: count,
-            })
-          )
-            .map((id) => candidates.find((candidate) => candidate.instanceId === id))
-            .filter(Boolean) as typeof candidates);
-    if (selected.length !== count) return;
+    const selected = await selectMixedSourceCandidates(ctx, action, candidates);
+    if (selected === undefined) return;
     const orderedIds = ctx.ask.orderCards
       ? await ctx.ask.orderCards(ctx, {
           candidates: selected.map((candidate) => candidate.instanceId),
           destination: "stackBottom",
         })
       : selected.map((candidate) => candidate.instanceId);
+    if (
+      orderedIds.length !== selected.length ||
+      new Set(orderedIds).size !== selected.length ||
+      orderedIds.some((id) => !selected.some((candidate) => candidate.instanceId === id))
+    )
+      return;
     const ordered = orderedIds
       .map((id) => selected.find((candidate) => candidate.instanceId === id))
-      .filter(Boolean) as typeof selected;
+      .filter((candidate): candidate is MixedSourceCandidate => candidate !== undefined);
     for (const candidate of [...ordered].reverse()) {
       if (candidate.permanentId !== undefined) {
         if (
@@ -331,6 +409,18 @@ export async function runPlaceUnder(
           : ["hand", "trash", "deck"];
   const candidates = candidateLooseInstances(ctx, levelCeilingTarget, zones);
   if (candidates.length === 0) return;
+  let scopedCandidates = candidates;
+  const underTamerZones = new Set<ZoneRef>(["underMyTamers", "underTamers", "underTamer"]);
+  if (action.underTamerHostScope === "single" && zones.length > 0 && zones.every((zone) => underTamerZones.has(zone))) {
+    const hostIds = [...new Set(candidates.map((candidate) => candidate.hostPermanentId))].filter(
+      (hostId): hostId is string => hostId !== undefined,
+    );
+    const selectedHostIds =
+      hostIds.length <= 1 ? hostIds : await ctx.ask.chooseTargets(ctx, { candidates: hostIds, min: 1, max: 1 });
+    const selectedHostId = selectedHostIds[0];
+    if (selectedHostId === undefined) return;
+    scopedCandidates = candidates.filter((candidate) => candidate.hostPermanentId === selectedHostId);
+  }
   // Destination host (priority): explicit `destination` selector (BT19-038: place a card
   // from hand/trash under a chosen Tamer) > `underFilter` > the source permanent itself.
   let hostId: string | undefined;
@@ -379,23 +469,23 @@ export async function runPlaceUnder(
   // EX10-025 require 2 when 2 exist but still permit the single available card (Q5078-Q5079).
   const placementTarget =
     typeof action.count === "number"
-      ? { ...levelCeilingTarget, count: Math.min(action.count, candidates.length) }
+      ? { ...levelCeilingTarget, count: Math.min(action.count, scopedCandidates.length) }
       : action.count === "all"
-        ? { ...levelCeilingTarget, count: candidates.length }
+        ? { ...levelCeilingTarget, count: scopedCandidates.length }
         : levelCeilingTarget;
   let chosen = await pickLoose(
     ctx,
     placementTarget,
-    candidates,
+    scopedCandidates,
     undefined,
     ctx.ask,
-    candidates.map((candidate) => candidate.instanceId),
+    scopedCandidates.map((candidate) => candidate.instanceId),
   );
   if (action.order === "any" && chosen.length > 1 && ctx.ask.orderCards !== undefined) {
     chosen = await ctx.ask.orderCards(ctx, {
       candidates: chosen,
       visibleCards: chosen
-        .map((instanceId) => candidates.find((candidate) => candidate.instanceId === instanceId))
+        .map((instanceId) => scopedCandidates.find((candidate) => candidate.instanceId === instanceId))
         .filter((candidate): candidate is LooseCandidate => candidate !== undefined)
         .map(({ instanceId, cardId }) => ({ instanceId, cardId })),
       destination: "stackBottom",
@@ -467,32 +557,11 @@ export function canAttemptPlaceUnder(ctx: EffectContext, action: Extract<Action,
       (permanent) => permanent.permanentId,
     );
     if (destinationIds.length === 0) return false;
-    const matches = (card: { cardId: string }): boolean => {
-      const definition = ctx.game.definitionOf(card as never);
-      const filter = action.target.filter;
-      if (filter.kind !== undefined && !definition.kinds.some((kind) => filter.kind!.includes(kind))) return false;
-      return (
-        filter.nameOrTrait === undefined ||
-        filter.nameOrTrait.some((reference) => matchNameOrTrait(definition, reference))
-      );
-    };
-    const owner = ctx.game.player(ctx.source.ownerSeat);
     return destinationIds.some((destinationId) => {
-      let available = 0;
-      for (const permanent of owner.battleArea) {
-        if (permanent.inBreeding || permanent.topCard === undefined) continue;
-        if (
-          permanent.permanentId !== destinationId &&
-          action.mixedSources!.battleAreaPermanents &&
-          matches(permanent.topCard)
-        )
-          available += 1;
-        if (action.mixedSources!.linkedCards) available += permanent.linked.filter(matches).length;
-      }
-      if (action.mixedSources!.hand) available += owner.hand.filter(matches).length;
-      if (action.mixedSources!.trash) available += owner.trash.filter(matches).length;
-      const required = action.target.count === "all" ? available : Number(action.target.count ?? 1);
-      return required > 0 && available >= required;
+      const candidates = collectMixedSourceCandidates(ctx, action, destinationId);
+      if (!requiredMixedNamesAvailable(ctx, action, candidates)) return false;
+      const required = action.target.count === "all" ? candidates.length : Number(action.target.count ?? 1);
+      return required > 0 && candidates.length >= required;
     });
   }
   if (action.fromDeckTop === true) {

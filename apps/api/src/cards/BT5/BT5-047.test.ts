@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT5-047.js";
@@ -18,7 +19,7 @@ describe("BT5-047 Palmon", () => {
       { autoSelectCards: true },
     );
     const palmonId = s.perm("palmon").topCard!.instanceId;
-    await (s.engine as any).primitives.deletePermanent([s.perm("palmon").permanentId], "byEffect");
+    await advance(s.engine).verb.deletePermanent([s.perm("palmon").permanentId], "byEffect");
     await settle(() => s.perm("green").stack.some((card) => card.instanceId === palmonId));
     expect(s.perm("green").stack[0]?.instanceId).toBe(palmonId);
   });
@@ -36,7 +37,7 @@ describe("BT5-047 Palmon", () => {
       { autoSelectCards: true },
     );
     const palmonId = s.perm("palmon").topCard!.instanceId;
-    await (s.engine as any).primitives.deletePermanent([s.perm("palmon").permanentId], "byEffect");
+    await advance(s.engine).verb.deletePermanent([s.perm("palmon").permanentId], "byEffect");
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === palmonId));
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === palmonId)).toBe(true);
   });
@@ -65,7 +66,7 @@ describe("BT5-047 Palmon", () => {
     await settle(() => observe(s.engine).effectiveNames(s.perm("palmon")).includes("sukamon"));
 
     expect(observe(s.engine).effectiveNames(s.perm("palmon"))).toEqual(["sukamon"]);
-    await (s.engine as any).primitives.deletePermanent([s.perm("palmon").permanentId], "byEffect");
+    await advance(s.engine).verb.deletePermanent([s.perm("palmon").permanentId], "byEffect");
     await settle(() => s.perm("green").stack.some((card) => card.instanceId === palmonId));
 
     expect(s.perm("green").stack.map((card) => card.instanceId)).toEqual([palmonId, existingId]);
@@ -91,7 +92,7 @@ describe("BT5-047 Palmon", () => {
     const sourceId = s.perm("source").topCard!.instanceId;
     const otherId = s.inst("other").instanceId;
 
-    await (s.engine as any).primitives.deletePermanent([s.perm("source").permanentId], "byEffect");
+    await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect");
     await settle(() => s.perm("green").stack.some((card) => card.instanceId === otherId));
 
     expect(s.perm("green").stack[0]!.instanceId).toBe(otherId);

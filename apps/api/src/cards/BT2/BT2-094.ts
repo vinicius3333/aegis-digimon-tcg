@@ -1,6 +1,11 @@
 import { getCompiledCard, type CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-export const compiled = getCompiledCard("BT2-094") as CompiledCard;
+const catalogCompiled = getCompiledCard("BT2-094");
+if (catalogCompiled === undefined) {
+  throw new Error("Missing compiled IR for BT2-094");
+}
+
+export const compiled: CompiledCard = catalogCompiled;
 
 registerIrCard("BT2-094", compiled);

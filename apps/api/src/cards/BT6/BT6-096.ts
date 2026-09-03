@@ -1,9 +1,9 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
+// Return performs the printed rules cleanup for attached digivolution cards. It must
+// not be modeled as TrashDigivolution because Q1399 says that cleanup does not trigger
+// effects watching for a digivolution card trashed by an effect.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -37,7 +37,7 @@ const compiled: CompiledCard = {
           },
           actions: [
             {
-              kind: "Return",
+              kind: "SelectBind",
               target: {
                 filter: {
                   controller: "opponent",
@@ -45,7 +45,12 @@ const compiled: CompiledCard = {
                   levelComparison: { op: "eq", value: 3 },
                 },
                 count: 1,
+                bindAs: "forbiddenTridentTarget",
               },
+            },
+            {
+              kind: "Return",
+              target: { filter: {}, count: 1, fromSelectionRef: "forbiddenTridentTarget" },
               to: "hand",
             },
           ],

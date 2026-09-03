@@ -15,10 +15,12 @@ import {
   irCardModule,
   registerIrCard,
   UnsupportedEffectError,
+  applyWouldBePlayedSelfReducer,
   candidateLooseInstances,
   evaluateCondition,
   matchNameOrTrait,
   payCost,
+  wouldBePlayedSelfReducersFor,
 } from "./interpreter.js";
 import { canPayCost } from "./interpreter/costs.js";
 import { getEffectModule, registerCard, unregisterCard } from "./registry.js";
@@ -29,6 +31,7 @@ import "../../cards/EX10/EX10-061.js";
 import "../../cards/EX10/EX10-072.js";
 import "../../cards/EX11/EX11-061.js";
 import "../../cards/EX3/EX3-069.js";
+import "../../cards/BT12/BT12-112.js";
 
 describe("matchNameOrTrait text matching", () => {
   it.each([
@@ -147,6 +150,39 @@ describe("registerIrCard", () => {
     expect(recorder.calls).toContainEqual({ verb: "draw", args: [0, 2] });
     unregisterCard(cardId);
   });
+
+  it("preserves a copied effect key for nested action identities", async () => {
+    const source = makeSource({ cardId: "TEST-COPIED-MAIN-IDENTITY" });
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({ source, recorder });
+    const module = irCardModule(source.cardId, {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenAttacking",
+              raw: "When this Digimon attacks, draw 1",
+              actions: [{ kind: "Draw", controller: "mine", amount: 1 }],
+            },
+          ],
+        },
+      ],
+    });
+    const effect = module.effectsForTiming(EffectTiming.OnUseOption, source)[0]!;
+    const copiedEffectKey = `${effect.effectKey}/conferral/GRANTER#1`;
+    ctx.activeEffectKey = copiedEffectKey;
+
+    await effect.resolve(ctx);
+
+    const installed = recorder.calls.find((call) => call.verb === "subscribeSubTrigger")?.args[0] as {
+      dedupeKey?: string;
+    };
+    expect(installed.dedupeKey).toBe(`${source.instanceId}/${copiedEffectKey}/0`);
+  });
 });
 
 describe("new typed RAW-elimination conditions", () => {
@@ -240,6 +276,14 @@ describe("new typed RAW-elimination conditions", () => {
         value: 1,
       }),
     ).toBe(true);
+  });
+
+  it("rejects malformed zoneCount zones and operators without throwing", () => {
+    const { ctx } = conditionContext();
+    expect(evaluateCondition(ctx, { kind: "zoneCount", zone: "discard" as never, op: "gte", value: 0 })).toBe(false);
+    expect(evaluateCondition(ctx, { kind: "zoneCount", zone: "hand", op: "approximately" as never, value: 0 })).toBe(
+      false,
+    );
   });
 
   it("checks named attack procedures and the empty breeding slot", () => {
@@ -484,6 +528,66 @@ describe("Return result bindings", () => {
 
     expect(recorder.calls.some((call) => call.verb === "returnToDeck")).toBe(true);
     expect(recorder.calls.some((call) => call.verb === "resolveCardEffect")).toBe(false);
+  });
+
+  it.each([
+    ["no loose candidates", false],
+    ["an empty up-to selection", true],
+  ] as const)("clears a stale if-you-did receipt after %s", async (_label, withCandidate) => {
+    const source = makeSource({ cardId: "X-RETURN-EMPTY-RECEIPT" });
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({
+      source,
+      recorder,
+      definitionOf: (cardId) =>
+        makeFakeDefinition({
+          cardId,
+          kinds: [CardKind.Digimon],
+          types: cardId === "BAGRA" ? ["Bagra Army"] : [],
+        }),
+      selectCardsAnswer: withCandidate ? () => [] : undefined,
+    });
+    if (withCandidate) {
+      ctx.game.player(0).trash.push({ instanceId: "bagra", cardId: "BAGRA", ownerSeat: 0, faceUp: true } as never);
+    }
+    // Simulate a successful preceding action. A zero-card Return must overwrite this receipt
+    // before an immediately following `ifThisEffectActed` condition is evaluated.
+    ctx.lastEffectActed = true;
+    const module = irCardModule("X-RETURN-EMPTY-RECEIPT", {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "Return",
+              target: {
+                filter: {
+                  zone: "trash",
+                  controller: "mine",
+                  nameOrTrait: [{ tokens: ["Bagra Army"], match: "trait" }],
+                },
+                count: 2,
+                upTo: true,
+              },
+              to: "hand",
+            },
+            {
+              kind: "Draw",
+              amount: 1,
+              controller: "mine",
+              condition: { kind: "ifThisEffectActed" },
+            },
+          ],
+        },
+      ],
+    });
+
+    await module.effectsForTiming(EffectTiming.OnPlay, source)[0]!.resolve(ctx);
+
+    expect(ctx.lastEffectActed).toBe(false);
+    expect(recorder.calls.some((call) => call.verb === "draw")).toBe(false);
   });
 
   it("does not satisfy an if-you-did branch when the selected permanent was not moved", async () => {
@@ -945,6 +1049,30 @@ function makeSource(over: Partial<CardSource> = {}): CardSource {
     ...over,
   };
 }
+
+describe("wouldBePlayed self-reducer payment feasibility", () => {
+  it("does not offer BT12-112's Shoutmon payment without a battle-area Shoutmon", async () => {
+    const [reducer] = wouldBePlayedSelfReducersFor("BT12-112");
+    expect(reducer).toBeDefined();
+    const recorder: Recorder = { calls: [] };
+    let optionalPrompts = 0;
+    const ctx = makeContext({
+      source: makeSource({ cardId: "BT12-112" }),
+      recorder,
+      onOptional: () => {
+        optionalPrompts += 1;
+      },
+    });
+
+    await applyWouldBePlayedSelfReducer(ctx, reducer!);
+
+    expect(optionalPrompts).toBe(0);
+    expect(ctx.playCostDelta).toBeUndefined();
+    expect(ctx.selections?.has("bt12112Shoutmon")).toBe(false);
+    expect(ctx.pendingSelfReducerRelocations).toBeUndefined();
+    expect(recorder.calls.some((call) => call.verb === "trashDigivolutionCards")).toBe(false);
+  });
+});
 
 describe("attack cost feasibility", () => {
   it("offers only the copy that can legally attack, including a same-turn Rush Digimon", () => {
@@ -3611,6 +3739,46 @@ describe("v3 IR actions (round-3 fixes) dispatch to real primitives", () => {
     expect(added[0]!.args[1]).toEqual(["H1"]); // the chosen hand instance
   });
 
+  it("placeAsSecurity fromDigivolutionTop adds the selected permanent's top stack card", async () => {
+    const stackTop = { instanceId: "EVO#1", cardId: "EVO-CARD", ownerSeat: 0, faceUp: true } as never;
+    const permanent = makeFakePermanent({
+      permanentId: "STACKED#1",
+      controllerSeat: 0 as Seat,
+      topCard: { instanceId: "TOP#1", cardId: "TOP-CARD", ownerSeat: 0, faceUp: true } as never,
+      stack: [stackTop] as never,
+    });
+    const source = makeSource({ cardId: "Z-SEC-STACK", permanent: () => permanent });
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({ source, recorder, ownBattleArea: [permanent] });
+    const module = irCardModule("Z-SEC-STACK", {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "SecurityManipulation",
+              op: "placeAsSecurity",
+              controller: "mine",
+              source: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              fromDigivolutionTop: true,
+              toTop: true,
+            },
+          ],
+        },
+      ],
+    });
+
+    for (const e of module.effectsForTiming(EffectTiming.OnPlay, source)) await e.resolve(ctx);
+
+    const added = recorder.calls.filter((c) => c.verb === "addSecurity");
+    expect(added).toHaveLength(1);
+    expect(added[0]!.args[0]).toBe(0);
+    expect(added[0]!.args[1]).toEqual(["EVO#1"]);
+    expect(added[0]!.args[1]).not.toContain("TOP#1");
+  });
+
   it("a routed place-as-cost (destination:security, top, face down) adds the chosen hand card to security", async () => {
     const handCard = { instanceId: "H9", cardId: "H9", ownerSeat: 0, faceUp: true } as never;
     const source = makeSource({ cardId: "Z-PC-SEC" });
@@ -3820,6 +3988,66 @@ describe("v3 IR actions (round-3 fixes) dispatch to real primitives", () => {
       verb: "placeUnder",
       args: ["HOST#UNMOVED", ["UNMOVED"], { belowTop: false, faceUp: true }],
     });
+  });
+
+  it("does not bind a multi-source permanent payment when its atomic move fails", async () => {
+    const host = makeFakePermanent({
+      permanentId: "HOST#ATOMIC",
+      controllerSeat: 0 as Seat,
+      topCard: { instanceId: "HOST-ATOMIC", cardId: "HOST", ownerSeat: 0, faceUp: true } as never,
+    });
+    const sourceA = makeFakePermanent({
+      permanentId: "SOURCE-A",
+      controllerSeat: 0 as Seat,
+      topCard: { instanceId: "SOURCE-A-CARD", cardId: "SOURCE", ownerSeat: 0, faceUp: true } as never,
+    });
+    const sourceB = makeFakePermanent({
+      permanentId: "SOURCE-B",
+      controllerSeat: 0 as Seat,
+      topCard: { instanceId: "SOURCE-B-CARD", cardId: "SOURCE", ownerSeat: 0, faceUp: true } as never,
+    });
+    const source = makeSource({ cardId: "ATOMIC-COST", permanent: () => host });
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({
+      source,
+      recorder,
+      ownBattleArea: [host, sourceA, sourceB],
+      definitionOf: (id) =>
+        makeFakeDefinition({
+          cardId: id,
+          nameEn: id === "SOURCE" ? "Source" : "Host",
+          kinds: ["Digimon"] as never,
+        }),
+    });
+    ctx.fx.relocatePermanentsByEffect = async () => [];
+    ctx.selections = new Map([
+      ["sourceBinding", "previous-source"],
+      ["hostBinding", "previous-host"],
+    ]);
+    const paid = await payCost(ctx, {
+      kind: "place",
+      destination: "digivolutionStack",
+      targetIsPermanent: true,
+      host: "self",
+      bindHostAs: "hostBinding",
+      target: {
+        filter: {
+          controller: "mine",
+          kind: ["Digimon"],
+          nameOrTrait: [{ tokens: ["Source"], match: "name" }],
+        },
+        count: 2,
+        bindAs: "sourceBinding",
+      },
+      raw: "by placing 2 source permanents under this Digimon",
+    });
+
+    expect(paid).toBe(false);
+    expect(ctx.selections?.get("sourceBinding")).toBe("previous-source");
+    expect(ctx.selections?.get("hostBinding")).toBe("previous-host");
+    expect(ctx.game.state.players[0]!.battleArea).toEqual([host, sourceA, sourceB]);
+    expect(host.stack).toHaveLength(0);
+    expect(recorder.calls.filter(({ verb }) => verb === "relocatePermanent")).toHaveLength(0);
   });
 
   it("plays the selected level-limited card from the selected Digimon's stack", async () => {
@@ -4069,9 +4297,11 @@ describe("round-3 regression: dropped semantics now captured in the IR", () => {
 
   it("P4: BT13-074 grants Jamming to YOUR Digimon (controller not inverted)", () => {
     const all = requireCard("BT13-074");
-    const jam = allActions(all).find((a) => a.kind === "GainKeyword" && a.keyword.keyword === "Jamming");
+    const jam = allActions(all).find(
+      (a) => a.kind === "Aura" && a.effect.kind === "keyword" && a.effect.keyword.keyword === "Jamming",
+    );
     expect(jam).toBeTruthy();
-    expect((jam as { target: { filter: { controller: string } } }).target.filter.controller).toBe("mine");
+    expect((jam as { target: { filter: { controllerDefault: string } } }).target.filter.controllerDefault).toBe("mine");
   });
 
   it("P4: BT20-034 restriction targets opponent Digimon only (not Tamers)", () => {
@@ -4154,8 +4384,8 @@ describe("round-3 regression: dropped semantics now captured in the IR", () => {
   });
 
   it("P2: BT13-074 emits both ＜Jamming＞ and ＜Reboot＞ grants", () => {
-    const grants = allActions(requireCard("BT13-074")).filter((a) => a.kind === "GainKeyword");
-    const kws = grants.map((g) => (g as { keyword: { keyword: string } }).keyword.keyword);
+    const grants = allActions(requireCard("BT13-074")).filter((a) => a.kind === "Aura" && a.effect.kind === "keyword");
+    const kws = grants.map((g) => (g as { effect: { keyword: { keyword: string } } }).effect.keyword.keyword);
     expect(kws).toEqual(expect.arrayContaining(["Jamming", "Reboot"]));
   });
 });

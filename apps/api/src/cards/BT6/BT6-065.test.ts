@@ -19,7 +19,6 @@ describe("BT6-065 Gundramon", () => {
       { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 0;
-    const _targetInstanceId = s.perm("target").topCard!.instanceId;
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("gundramon"));

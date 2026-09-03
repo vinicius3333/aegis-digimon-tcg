@@ -11,7 +11,7 @@ function handMainEffectKey(s: EngineSetup, instance: CardInstance): string {
   const effect = effectsOf(EffectTiming.OnDeclaration, source).find(({ effectKey }) =>
     effectKey.startsWith("BT17-014/"),
   );
-  if (effect === undefined) throw new Error("BT17-014 surfaces no [Hand][Main] effect");
+  if (effect?.effectKey === undefined) throw new Error("BT17-014 surfaces no [Hand][Main] effect");
   return effect.effectKey;
 }
 

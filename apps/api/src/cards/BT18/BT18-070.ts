@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -36,7 +35,10 @@ export const compiled: CompiledCard = {
             destination: "digivolutionStack",
             position: "bottom",
           },
-          into: { isSelfRef: true },
+          into: {
+            filter: { isSelfRef: true },
+            count: 1,
+          },
           cost: 3,
           ignoreDigivolutionRequirements: true,
           raw: "By placing 1 [Beetlemon] and 1 [MetalKabuterimon] from your trash under 1 of your black or yellow Tamers, that Tamer digivolves into this card for digivolution cost of 3, ignoring its digivolution requirements.",

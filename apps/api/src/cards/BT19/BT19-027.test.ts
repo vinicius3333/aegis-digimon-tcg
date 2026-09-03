@@ -7,9 +7,14 @@ import "../index.js";
 
 describe("BT19-027 Ryugumon", () => {
   it("is Aquatic and has Decode without leaking either property", async () => {
-    const s = setupEngine({ 0: { battleArea: [
-      { card: "BT19-027", as: "ryugu" }, { card: "BT19-015", as: "peer" },
-    ] } });
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT19-027", as: "ryugu" },
+          { card: "BT19-015", as: "peer" },
+        ],
+      },
+    });
     await s.ready();
     expect(observe(s.engine).hasEffectiveTrait(s.perm("ryugu"), "Aquatic")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("ryugu"), "Decode")).toBe(true);
@@ -18,24 +23,105 @@ describe("BT19-027 Ryugumon", () => {
   });
 
   it("When Digivolving may freely play one blue level-4-or-lower source", async () => {
-    const s = setupEngine({ 0: { battleArea: [
-      { card: "BT19-027", as: "ryugu", under: ["BT19-019", "BT19-025"] },
-    ] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT19-027", as: "ryugu", under: ["BT19-019", "BT19-025"] }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("ryugu"));
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT19-019"));
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT19-025")).toBe(false);
     expect(s.perm("ryugu").stack.map((card) => card.cardId)).toEqual(["BT19-025"]);
   });
 
+  it("naturally evolves from level 5 and resolves its source play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT19-025", as: "base", under: ["BT19-019"] }],
+          hand: [{ card: "BT19-027", as: "ryugu" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("ryugu").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT19-027"));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT19-019")).toBe(true);
+  });
+
+  it("naturally resolves its end-of-turn return through a real turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT19-020", as: "cost" },
+            { card: "BT19-027", as: "ryugu" },
+          ],
+          deck: [],
+        },
+        1: {
+          battleArea: [
+            { card: "BT19-023", as: "level5" },
+            { card: "BT19-020", as: "level4" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT19-020"]);
+    expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT19-020"]);
+  });
+
+  it("When Digivolving plays only from this Digimon's stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT19-015", as: "other", under: ["BT19-021"] },
+            { card: "BT19-027", as: "ryugu", under: ["BT19-019"] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("ryugu"));
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT19-019"));
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT19-019")).toBe(true);
+    expect(s.perm("other").stack.map((card) => card.cardId)).toEqual(["BT19-021"]);
+  });
+
   it("returns a chosen Digimon as cost and bottoms only an opponent up to its level once per turn", async () => {
-    const s = setupEngine({
-      0: { battleArea: [
-        { card: "BT19-020", as: "cost" }, { card: "BT19-027", as: "ryugu" },
-      ] },
-      1: { battleArea: [
-        { card: "BT19-023", as: "level5" }, { card: "BT19-020", as: "level4" },
-      ] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT19-020", as: "cost" },
+            { card: "BT19-027", as: "ryugu" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT19-023", as: "level5" },
+            { card: "BT19-020", as: "level4" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     await advance(s.engine).fireForPermanent(EffectTiming.OnEndTurn, s.perm("ryugu"));
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT19-020"]);
@@ -47,10 +133,13 @@ describe("BT19-027 Ryugumon", () => {
   });
 
   it("can return itself, Decode a blue level 5, then bottom an opposing level 6 (Q3083)", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT19-027", as: "ryugu", under: ["BT19-025"] }] },
-      1: { battleArea: [{ card: "BT19-028", as: "level6" }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT19-027", as: "ryugu", under: ["BT19-025"] }] },
+        1: { battleArea: [{ card: "BT19-028", as: "level6" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     await advance(s.engine).fireForPermanent(EffectTiming.OnEndTurn, s.perm("ryugu"));
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT19-025"));

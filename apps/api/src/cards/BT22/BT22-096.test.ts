@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-096.js";
 
@@ -53,5 +54,32 @@ describe("BT22-096 Unique Emblem: Poseidia Lagoon", () => {
 
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === sangomonId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === lagoonId)).toBe(true);
+  });
+
+  it("activates Delay from a public Yao suspension and evolves a legal Aquatic/LIBERATOR stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT22-096", as: "lagoon" },
+            { card: "BT22-086", as: "yao" },
+            { card: "BT24-029", as: "base" },
+          ],
+          hand: [{ card: "BT22-027", as: "evolution" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    s.perm("lagoon").enterFieldTurnCount = s.state.turnCount - 1;
+    s.perm("lagoon").placedByEffect = true;
+
+    await advance(s.engine).verb.suspend([s.perm("yao").permanentId]);
+    await settle(() => s.perm("base").topCard?.instanceId === s.inst("evolution").instanceId);
+
+    expect(s.perm("base").topCard?.cardId).toBe("BT22-027");
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("lagoon").instanceId)).toBe(true);
   });
 });

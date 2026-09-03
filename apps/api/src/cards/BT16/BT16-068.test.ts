@@ -21,7 +21,14 @@ describe("BT16-068", () => {
       trigger: "YourTurn",
       isInherited: true,
       frequency: "OncePerTurn",
-      actions: [{ kind: "SubTrigger", event: "whenPlayed", actions: [{ kind: "Draw", amount: 1 }] }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: { controller: "mine", kind: ["Digimon"], byEffect: true },
+          actions: [{ kind: "Draw", amount: 1 }],
+        },
+      ],
     });
   });
 
@@ -67,5 +74,27 @@ describe("BT16-068", () => {
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-036")).toBe(true);
+  });
+
+  it("does not draw for a normal play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "host", under: ["BT16-068"] }],
+          hand: [{ card: "BT1-009", as: "normalPlay" }],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("normalPlay").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 2);
+
+    expect(s.state.players[0]!.deck).toHaveLength(1);
   });
 });

@@ -8,6 +8,10 @@ if (onDeletion !== undefined) {
   // effect keyword metadata lets the generic synthesized Save timing race the
   // action-bearing On Deletion effect, which can select this card from trash first.
   onDeletion.keywords = [];
+  onDeletion.actions = onDeletion.actions.filter(
+    (action) =>
+      !(action.kind === "PlaceUnder" && action.target.isSelf === true && action.target.filter.isSelfRef === true),
+  );
   onDeletion.actions.unshift({
     kind: "PlaceUnder",
     target: { filter: { isSelfRef: true }, count: 1, isSelf: true },

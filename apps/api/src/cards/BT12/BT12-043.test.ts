@@ -53,6 +53,37 @@ it("scales the digivolution DP reduction for each yellow or red Tamer", async ()
   expect(observe(s.engine).securityDp(1)).toBe(-6000);
 });
 
+it("resolves the scaled reduction through a public digivolution intent", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "BT12-042", as: "rize" },
+          { card: "BT12-092", as: "yellowTamer" },
+          { card: "BT12-092", as: "redTamer" },
+        ],
+        hand: [{ card: "BT12-043", as: "shine" }],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "target", dp: 10000 }], security: ["BT1-009"] },
+    },
+    { autoSelectCards: true },
+  );
+  s.state.memory = 3;
+  await s.ready();
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("rize").permanentId,
+      instanceId: s.inst("shine").instanceId,
+      useAlternateCost: true,
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.perm("rize").topCard?.cardId === "BT12-043" && s.perm("target").currentDP === 4000);
+  expect(s.perm("target").currentDP).toBe(4000);
+  expect(observe(s.engine).securityDp(1)).toBe(-6000);
+  expect(s.state.memory).toBe(0);
+});
+
 it("chooses one opposing Digimon for the complete per-Tamer reduction", async () => {
   const preferred: string[] = [];
   const s = setupEngine(

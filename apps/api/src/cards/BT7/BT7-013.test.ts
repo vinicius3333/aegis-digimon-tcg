@@ -49,7 +49,9 @@ describe("BT7-013 MetalGreymon", () => {
     );
     s.state.memory = 7;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() =>
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("takuya").instanceId),
     );

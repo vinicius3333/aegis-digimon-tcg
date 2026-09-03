@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const actions = [
+const actions: Action[] = [
   {
     kind: "ModifyDP",
     target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
@@ -11,7 +10,12 @@ const actions = [
     cost: {
       kind: "trash",
       target: {
-        filter: { zone: ["hand", "digivolutionCards"], nameOrTrait: [{ tokens: ["Sukamon"], match: "name" }] },
+        filter: {
+          zone: ["hand", "digivolutionCards"],
+          controller: "mine",
+          nameOrTrait: [{ tokens: ["Sukamon"], match: "name" }],
+          hostFilter: { isSelfRef: true },
+        },
         count: 1,
       },
       raw: "By trashing 1 card with [Sukamon] in its name in your hand or in this Digimon's digivolution cards",

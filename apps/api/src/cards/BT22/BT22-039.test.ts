@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT22-039.js";
 import "./index.js";
 
@@ -53,14 +54,18 @@ describe("BT22-039 Ouranosmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT22-039", as: "ouranosmon", under: ["BT22-016", "BT21-009"] }],
-          hand: [{ card: "BT22-009", as: "effecmon" }],
+          battleArea: [{ card: "BT22-035", as: "ouranosmon", linked: [{ card: "BT22-075", as: "fakemon" }] }],
+          hand: [
+            { card: "BT22-039", as: "fusion" },
+            { card: "BT22-009", as: "effecmon" },
+          ],
         },
         1: { security: ["BT1-001"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
+    await advance(s.engine).verb.appFuseInto(s.perm("ouranosmon").permanentId, s.inst("fusion").instanceId);
 
     expect(
       s.engine.applyIntent(0, {
@@ -71,16 +76,16 @@ describe("BT22-039 Ouranosmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-009"));
     await settle(() =>
-      s.state.players[0]!.battleArea.some((permanent) => permanent.linked.some((card) => card.cardId === "BT21-009")),
+      s.state.players[0]!.battleArea.some((permanent) => permanent.linked.some((card) => card.cardId === "BT22-035")),
     );
     await settle();
 
-    expect(s.perm("ouranosmon").stack.some((card) => card.cardId === "BT22-016")).toBe(true);
+    expect(s.perm("ouranosmon").stack.some((card) => card.cardId === "BT22-035")).toBe(true);
     expect(
-      s.state.players[0]!.battleArea.some((permanent) => permanent.linked.some((card) => card.cardId === "BT22-016")),
+      s.state.players[0]!.battleArea.some((permanent) => permanent.linked.some((card) => card.cardId === "BT22-035")),
     ).toBe(false);
     expect(
-      s.state.players[0]!.battleArea.some((permanent) => permanent.linked.some((card) => card.cardId === "BT21-009")),
+      s.state.players[0]!.battleArea.some((permanent) => permanent.linked.some((card) => card.cardId === "BT22-075")),
     ).toBe(true);
   });
 
@@ -106,8 +111,6 @@ describe("BT22-039 Ouranosmon", () => {
     await settle();
 
     expect(s.perm("ouranosmon").linked).toHaveLength(0);
-    expect(s.perm("other").stack.some((card) => card.instanceId === s.inst("foreignCandidate").instanceId)).toBe(
-      true,
-    );
+    expect(s.perm("other").stack.some((card) => card.instanceId === s.inst("foreignCandidate").instanceId)).toBe(true);
   });
 });

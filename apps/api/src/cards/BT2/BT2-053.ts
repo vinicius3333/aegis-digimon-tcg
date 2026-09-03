@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -19,7 +18,6 @@ const compiled: CompiledCard = {
             excludeSelf: true,
             kind: ["Digimon"],
             isSameName: true,
-            sameNameAs: "sourceTopCard",
           },
           oncePerTiming: true,
           raw: "when you play another Digimon with the same name as this Digimon (the name of the Digimon this has digivolved into)",

@@ -1,12 +1,11 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Condition, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const yellow = {
+const yellow: Condition = {
   kind: "youHave",
   filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Digimon", "Tamer"], colors: ["Yellow"] },
 };
-const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
+const self: Target = { filter: { isSelfRef: true }, count: 1, isSelf: true };
 export const compiled: CompiledCard = {
   effects: [
     {

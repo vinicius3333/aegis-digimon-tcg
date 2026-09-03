@@ -44,11 +44,13 @@ describe("BT14-075", () => {
       { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("source").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.length === 6 && s.perm("source").currentDP === 8000);
     expect(s.state.players[0]!.trash.slice(-3).map((card) => card.cardId)).toEqual(["BT1-004", "BT1-005", "BT1-006"]);
     expect(s.perm("source").currentDP).toBe(8000);
@@ -61,5 +63,36 @@ describe("BT14-075", () => {
     await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect");
     await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT1-002"));
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-002")).toBe(true);
+  });
+
+  it("naturally trashes an opponent hand card when it is deleted in battle", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT14-075", as: "devimon", dp: 1000, suspended: true }] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "attacker", dp: 5000 }],
+          hand: [{ card: "BT1-002", as: "victim" }],
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("devimon").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.length === 0 &&
+        s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("victim").instanceId),
+    );
+
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("devimon").instanceId);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("victim").instanceId);
   });
 });

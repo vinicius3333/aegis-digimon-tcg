@@ -33,7 +33,14 @@ describe("BT22-081 Eater Eve", () => {
           event: "wouldLeavePlay",
           sourceFilter: { isSelfRef: true },
           optional: true,
-          actions: [{ kind: "PlayWithoutCost", from: ["digivolutionCards"], optional: true }],
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              from: ["digivolutionCards"],
+              optional: true,
+              target: { filter: { zone: "digivolutionCards", hostFilter: { isSelfRef: true } } },
+            },
+          ],
         },
       ],
     });
@@ -56,5 +63,43 @@ describe("BT22-081 Eater Eve", () => {
     });
     const eve = s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === eveId)!;
     expect(eve.stack.some((card) => card.cardId === "BT22-083")).toBe(true);
+  });
+
+  it("plays only Yuuko under the Eater Eve that leaves through a public battle", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT22-081", as: "decoy", under: [{ card: "BT22-083", as: "decoyYuuko" }] },
+            {
+              card: "BT22-081",
+              as: "eve",
+              dp: 1000,
+              suspended: true,
+              under: [{ card: "BT22-083", as: "eveYuuko" }],
+            },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const eveYuukoId = s.inst("eveYuuko").instanceId;
+    const decoyYuukoId = s.inst("decoyYuuko").instanceId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("eve").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === eveYuukoId));
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === eveYuukoId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === decoyYuukoId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT22-081")).toBe(true);
   });
 });

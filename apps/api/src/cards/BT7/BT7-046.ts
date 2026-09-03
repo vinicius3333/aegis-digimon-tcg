@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT7-046 (Beetlemon) — do not regenerate over this file.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
@@ -31,7 +30,7 @@ const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["J.P. Shibayama"],
-                    match: "name",
+                    match: "nameExact",
                   },
                 ],
               },

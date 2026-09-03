@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -15,8 +14,8 @@ export const compiled: CompiledCard = {
               filter: {
                 controllerDefault: "mine",
                 nameOrTrait: [
-                  { tokens: ["Snatchmon", "Destromon", "Galacticmon"], match: "name" },
-                  { tokens: ["Fusionize"], match: "name" },
+                  { tokens: ["Snatchmon", "Destromon", "Galacticmon"], match: "nameExact" },
+                  { tokens: ["Fusionize"], match: "nameExact" },
                 ],
               },
               count: 1,
@@ -24,9 +23,10 @@ export const compiled: CompiledCard = {
               upTo: true,
             },
             {
-              filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }] },
+              filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Vemmon"], match: "nameExact" }] },
               count: 1,
               to: "placeUnder",
+              underFilter: { isSelfRef: true },
             },
           ],
           rest: "deckBottom",
@@ -47,7 +47,7 @@ export const compiled: CompiledCard = {
           sourceFilter: { isSelfRef: true },
           into: {
             controllerDefault: "mine",
-            nameOrTrait: [{ tokens: ["Destromon", "Galacticmon"], match: "name" }],
+            nameOrTrait: [{ tokens: ["Destromon", "Galacticmon"], match: "nameExact" }],
           },
           actions: [{ kind: "Replacement", event: "wouldDigivolve", mode: "reduceCost", amount: 1 }],
         },

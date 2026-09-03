@@ -1541,6 +1541,53 @@ describe("primitives: placeUnder / link", () => {
     expect(h.s.perm("dest").stack.map(({ cardId }) => cardId)).toContain(DIGIMON);
   });
 
+  it("preflights every multi-source move before touching the destination", async () => {
+    const h = harness({
+      turnSeat: 0,
+      board: { 0: { battleArea: [battleDigimon("dest", 5000), battleDigimon("sourceA", 3000)] } },
+    });
+    const destination = h.s.perm("dest");
+    const source = h.s.perm("sourceA");
+    const originalStack = destination.stack.slice();
+    const originalBattleArea = h.state.players[0]!.battleArea.slice();
+    const moved = await h.fx.relocatePermanentsByEffect?.(destination.permanentId, [source.permanentId, "missing"]);
+
+    // Source A was movable, but stale source B makes the entire payment a no-op.
+    expect(moved).toEqual([]);
+    expect(h.state.players[0]!.battleArea).toEqual(originalBattleArea);
+    expect(destination.stack).toEqual(originalStack);
+    expect(h.state.players[0]!.trash).toHaveLength(0);
+    expect(h.events).toHaveLength(0);
+  });
+
+  it("keeps a multi-source move atomic when one source cannot leave except by deletion", async () => {
+    const h = harness({
+      turnSeat: 0,
+      board: {
+        0: {
+          battleArea: [battleDigimon("dest", 5000), battleDigimon("sourceA", 3000), battleDigimon("sourceB", 3000)],
+        },
+      },
+    });
+    const destination = h.s.perm("dest");
+    const sourceA = h.s.perm("sourceA");
+    const sourceB = h.s.perm("sourceB");
+    const originalStack = destination.stack.slice();
+    const originalBattleArea = h.state.players[0]!.battleArea.slice();
+    h.continuous.addRestriction(sourceB.permanentId, "leaveBattleAreaExceptByDeletion", EffectDuration.Permanent);
+
+    const moved = await h.fx.relocatePermanentsByEffect?.(destination.permanentId, [
+      sourceA.permanentId,
+      sourceB.permanentId,
+    ]);
+
+    expect(moved).toEqual([]);
+    expect(h.state.players[0]!.battleArea).toEqual(originalBattleArea);
+    expect(destination.stack).toEqual(originalStack);
+    expect(h.state.players[0]!.trash).toHaveLength(0);
+    expect(h.events).toHaveLength(0);
+  });
+
   // WR-01 (iteration 3): bounce (returnToHand/returnToDeck/addSecurity, all via
   // collectForReturn) is the sixth leave seam. A bounced permanent's top card going back
   // to hand is a TRUE leave-the-battle-area — the permanentId is spliced out and a re-play
@@ -2582,6 +2629,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     redirectDigivolutionTrashHosts: true,
     relocatePermanent: true,
     relocatePermanentByEffect: true,
+    relocatePermanentsByEffect: true,
     resolveCardEffect: true,
     restoreDpReductions: true,
     restrict: true,
@@ -2765,6 +2813,7 @@ describe("primitives: resolveCardEffect / useOptionFromHand (BT26 gap fix)", () 
             ]
           : [],
     };
+    const previousModule = unregisterCard(OPTION);
     registerCard(module);
     try {
       const ctx = { source: { ownerSeat: 0, instanceId, cardId: OPTION }, fx: h.fx } as unknown as EffectContext;
@@ -2775,6 +2824,7 @@ describe("primitives: resolveCardEffect / useOptionFromHand (BT26 gap fix)", () 
       expect(h.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === instanceId)).toBe(true);
     } finally {
       unregisterCard(OPTION);
+      if (previousModule !== undefined) registerCard(previousModule);
     }
   });
 

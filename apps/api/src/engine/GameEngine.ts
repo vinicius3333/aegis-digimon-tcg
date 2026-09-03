@@ -335,7 +335,7 @@ interface PooledRuleDeletion {
  * single sweep, and stays one across the pass; `deletedByDpZeroInstanceIds` carries the
  * per-card truth an effect needs.
  */
-function mergeRuleDeletions(pool: readonly PooledRuleDeletion[]): PooledRuleDeletion {
+export function mergeRuleDeletions(pool: readonly PooledRuleDeletion[]): PooledRuleDeletion {
   const merged = pool.reduce<TriggerInfo>((into, { trigger }) => {
     const union = (
       key:
@@ -356,10 +356,15 @@ function mergeRuleDeletions(pool: readonly PooledRuleDeletion[]): PooledRuleDele
         ...into.deletedLinkHostInstanceByLinkedInstanceId,
       },
       deletedByDpZero: into.deletedByDpZero === true || trigger.deletedByDpZero === true,
+      deletedPermanentIds: [...(into.deletedPermanentIds ?? []), ...(trigger.deletedPermanentIds ?? [])],
       deletedEffectiveColorsByInstanceId: {
         ...trigger.deletedEffectiveColorsByInstanceId,
         ...into.deletedEffectiveColorsByInstanceId,
       },
+      deletedPermanentSnapshots: [
+        ...(into.deletedPermanentSnapshots ?? []),
+        ...(trigger.deletedPermanentSnapshots ?? []),
+      ],
     };
   }, {});
   return {
@@ -678,7 +683,7 @@ export class GameEngine {
     this.memory = new MemoryGauge(this.state, this.hooks.emit, (seat, opts) => {
       const kinds = opts.isTamerEffect ? [CardKind.Tamer] : [CardKind.Digimon];
       return this.continuous.canGainMemoryFromEffect(seat, {
-        definition: { kinds } as CardDefinition,
+        definition: { kinds },
       });
     });
     this.access = new GameStateAccess(this.state, this.memory, this.hooks.emit);
@@ -717,6 +722,11 @@ export class GameEngine {
               blockerPermanentId: trigger.blockerPermanentId,
               ...(trigger.target?.kind === "permanent" ? { targetPermanentId: trigger.target.permanentId } : {}),
               deletedPermanentId: trigger.deletedPermanentId,
+              deletedPermanentIds: trigger.deletedPermanentIds,
+              deletedPermanentSnapshots: trigger.deletedPermanentSnapshots,
+              deletingPermanentId: trigger.deletingPermanentId,
+              removalCause: trigger.removalCause,
+              deletedControllerSeat: trigger.deletedControllerSeat,
               deletedTopCardId: trigger.deletedTopCardId,
               deletedEffectiveColorsByInstanceId: trigger.deletedEffectiveColorsByInstanceId,
               deletedInstanceIds: trigger.deletedInstanceIds,
@@ -737,6 +747,11 @@ export class GameEngine {
           blockerPermanentId: trigger.blockerPermanentId,
           ...(trigger.target?.kind === "permanent" ? { targetPermanentId: trigger.target.permanentId } : {}),
           deletedPermanentId: trigger.deletedPermanentId,
+          deletedPermanentIds: trigger.deletedPermanentIds,
+          deletedPermanentSnapshots: trigger.deletedPermanentSnapshots,
+          deletingPermanentId: trigger.deletingPermanentId,
+          removalCause: trigger.removalCause,
+          deletedControllerSeat: trigger.deletedControllerSeat,
           deletedTopCardId: trigger.deletedTopCardId,
           deletedEffectiveColorsByInstanceId: trigger.deletedEffectiveColorsByInstanceId,
           deletedInstanceIds: trigger.deletedInstanceIds,
@@ -885,9 +900,25 @@ export class GameEngine {
       resolveDeletionReactions: (trigger, candidates) => this.resolveDeletionReactions(trigger, candidates),
       fireSubTrigger: (event, payload) => this.fireSubTrigger(event, payload),
       recomputeContinuousEffects: () => this.recomputeContinuousEffects(),
-      finalizeEffectPlayCost: async (instanceId, baseCost, useAsOption) => {
+      finalizeEffectPlayCost: async (instanceId, baseCost, useAsOption, originZone, projectOnly) => {
         const instance = this.findLooseInstance(instanceId);
-        return instance === undefined ? baseCost : this.fireBeforePayCost(instance, baseCost, useAsOption);
+        return instance === undefined
+          ? baseCost
+          : this.fireBeforePayCost(instance, baseCost, useAsOption, originZone, projectOnly);
+      },
+      finalizeEffectDigivolveCost: async (target, evolvingInstanceId, into, baseCost) => {
+        const deps = this.digivolveDeps();
+        const adjusted = deps.adjustedDigivolveCost?.(this.state, target, baseCost, into, { consumeOnce: true });
+        const passiveCost = adjusted ?? baseCost;
+        const interactiveReduction =
+          (await deps.activateInteractiveDigivolveReduction?.(
+            this.state,
+            target.controllerSeat,
+            target,
+            into,
+            evolvingInstanceId,
+          )) ?? 0;
+        return Math.max(0, passiveCost - interactiveReduction);
       },
       effectiveLooseUseCost: (instanceId, controllerSeat) => this.projectLooseUseCost(instanceId, controllerSeat),
       fireWhenLinking: async (instanceIds, targetPermanentId) => {
@@ -2997,34 +3028,24 @@ export class GameEngine {
     for (const perm of turnPlayer.battleArea) {
       const entries: { instanceId: string; effectKey: string; description: string }[] = [];
       const candidates = [perm.topCard, ...perm.stack, ...perm.linked].filter(Boolean);
-      for (const instance of candidates) {
-        const source = this.cardSourceOf(instance);
-        for (const effect of effectsOf(ACTIVATE_TIMING, source)) {
-          const ctx = this.buildEffectContext(source, {});
-          if (canTrigger(effect, ctx, this.tracker) && canActivate(effect, ctx, this.tracker)) {
-            entries.push({
-              instanceId: instance.instanceId,
-              effectKey: effect.effectKey,
-              description: effect.description,
-            });
-          }
-        }
+      for (const { source, effect } of this.activatableEffectsFor(candidates)) {
+        entries.push({
+          instanceId: source.instanceId,
+          effectKey: effect.effectKey,
+          description: effect.description,
+        });
       }
       perm.activatableEffectsJson = entries.length ? JSON.stringify(entries) : "";
     }
 
     for (const instance of turnPlayer.hand) {
-      const source = this.cardSourceOf(instance);
       const entries: { instanceId: string; effectKey: string; description: string }[] = [];
-      for (const effect of effectsOf(ACTIVATE_TIMING, source)) {
-        const ctx = this.buildEffectContext(source, {});
-        if (canTrigger(effect, ctx, this.tracker) && canActivate(effect, ctx, this.tracker)) {
-          entries.push({
-            instanceId: instance.instanceId,
-            effectKey: effect.effectKey,
-            description: effect.description,
-          });
-        }
+      for (const { source, effect } of this.activatableEffectsFor([instance])) {
+        entries.push({
+          instanceId: source.instanceId,
+          effectKey: effect.effectKey,
+          description: effect.description,
+        });
       }
       instance.activatableEffectsJson = entries.length ? JSON.stringify(entries) : "";
     }
@@ -3034,20 +3055,42 @@ export class GameEngine {
     // `canTrigger` keeps ordinary Main effects out because only effects registered with
     // `isFromTrash` accept a source whose current zone is trash.
     for (const instance of turnPlayer.trash) {
-      const source = this.cardSourceOf(instance);
       const entries: { instanceId: string; effectKey: string; description: string }[] = [];
-      for (const effect of effectsOf(ACTIVATE_TIMING, source)) {
-        const ctx = this.buildEffectContext(source, {});
-        if (canTrigger(effect, ctx, this.tracker) && canActivate(effect, ctx, this.tracker)) {
-          entries.push({
-            instanceId: instance.instanceId,
-            effectKey: effect.effectKey,
-            description: effect.description,
-          });
-        }
+      for (const { source, effect } of this.activatableEffectsFor([instance])) {
+        entries.push({
+          instanceId: source.instanceId,
+          effectKey: effect.effectKey,
+          description: effect.description,
+        });
       }
       instance.activatableEffectsJson = entries.length ? JSON.stringify(entries) : "";
     }
+  }
+
+  /**
+   * Collect currently usable [Main] effects for these physical cards, including
+   * own effects conferred from a buried digivolution card onto its host.
+   */
+  private activatableEffectsFor(instances: readonly CardInstance[]): CollectedEffect[] {
+    return gatherTriggeredEffects(this.effectEnvironment({}), ACTIVATE_TIMING, instances).filter((collected) =>
+      canActivate(collected.effect, this.activationContext(collected), this.tracker),
+    );
+  }
+
+  /** Build a direct-activation context while retaining stack-conferral provenance. */
+  private activationContext(collected: CollectedEffect): EffectContext {
+    return {
+      ...this.buildEffectContext(collected.source, {}),
+      activeTiming: collected.effect.irTrigger ?? EffectTiming[ACTIVATE_TIMING],
+      activeEffectText: collected.effect.description,
+      activeEffectKey: collected.effect.effectKey,
+      ...(collected.conferredToPermanentId === undefined
+        ? {}
+        : { conferredToPermanentId: collected.conferredToPermanentId }),
+      ...(collected.conferralGranterInstanceId === undefined
+        ? {}
+        : { conferralGranterInstanceId: collected.conferralGranterInstanceId }),
+    };
   }
 
   /**
@@ -3459,11 +3502,13 @@ export class GameEngine {
       await this.fireSubTrigger("whenOneOfYoursDigivolves", {
         subjectPermanentId,
         enteredByEffect: ownerSeat,
+        ...(opts?.isDnaDigivolve === true ? { isDnaDigivolve: true } : {}),
         ...(opts?.digivolvedFromZone !== undefined ? { digivolvedFromZone: opts.digivolvedFromZone } : {}),
       });
       await this.fireSubTrigger("whenAnyDigivolves", {
         subjectPermanentId,
         enteredByEffect: ownerSeat,
+        ...(opts?.isDnaDigivolve === true ? { isDnaDigivolve: true } : {}),
         ...(opts?.digivolvedFromZone !== undefined ? { digivolvedFromZone: opts.digivolvedFromZone } : {}),
       });
     }
@@ -3569,7 +3614,13 @@ export class GameEngine {
    * the played card's own effects, so it is run directly against a focused context (mirroring the
    * `recomputeContinuousEffects` per-instance `resolve` loop), keeping the value observable.
    */
-  private async fireBeforePayCost(instance: CardInstance, baseCost: number, useAsOption = false): Promise<number> {
+  private async fireBeforePayCost(
+    instance: CardInstance,
+    baseCost: number,
+    useAsOption = false,
+    originZone?: ZoneRef,
+    projectOnly = false,
+  ): Promise<number> {
     const source = this.cardSourceOf(instance);
     if (this.continuous.blocksCostReduction(source.ownerSeat, "play")) return baseCost;
     const effects = effectsOf(EffectTiming.BeforePayCost, source).filter((effect) => effect.costWindow !== "digivolve");
@@ -3605,11 +3656,6 @@ export class GameEngine {
     // when `selections` is unset). The ReducePlayCost action writes the earned delta onto THIS
     // context's `playCostDelta`; a clone would strand the write and the reduction would be lost.
     const ctx: EffectContext = { ...this.buildEffectContext(source, {}), selections: new Map() };
-    for (const effect of effects) {
-      if (!canTrigger(effect, ctx, this.tracker)) continue;
-      if (!canActivate(effect, ctx, this.tracker)) continue;
-      await effect.resolve(ctx);
-    }
     const playTarget = new Permanent();
     playTarget.permanentId = `pending-play-${instance.instanceId}`;
     playTarget.controllerSeat = source.ownerSeat;
@@ -3617,6 +3663,29 @@ export class GameEngine {
     playTarget.inBreeding = false;
     playTarget.baseDP = source.definition.dp ?? 0;
     playTarget.currentDP = playTarget.baseDP;
+    if (projectOnly) {
+      const selfReduction = selfReducers.reduce(
+        (total, reducer) => total + potentialWouldBePlayedSelfReduction(ctx, reducer),
+        0,
+      );
+      const interactiveReduction = this.subTriggers.potentialInteractiveReductionFor(
+        "wouldBePlayed",
+        source.ownerSeat,
+        playTarget,
+        source.definition,
+        {
+          hasFired: (key) => this.tracker.count(key, "replacement") > 0,
+          markFired: (key) => this.tracker.register(key, "replacement"),
+        },
+        originZone,
+      );
+      return Math.max(0, baseCost - selfReduction - interactiveReduction);
+    }
+    for (const effect of effects) {
+      if (!canTrigger(effect, ctx, this.tracker)) continue;
+      if (!canActivate(effect, ctx, this.tracker)) continue;
+      await effect.resolve(ctx);
+    }
     // Generic battle-area pay-time watchers. Unlike the card being played, their
     // EffectContext source is the physical resident carrying the effect; the imminent
     // card identity is carried in TriggerInfo. This lets independent copies resolve and
@@ -3693,6 +3762,8 @@ export class GameEngine {
         hasFired: (key) => this.tracker.count(key, "replacement") > 0,
         markFired: (key) => this.tracker.register(key, "replacement"),
       },
+      undefined,
+      originZone,
     );
     if (interactiveReduction > 0) ctx.playCostDelta = (ctx.playCostDelta ?? 0) + interactiveReduction;
     for (const reducer of selfReducers) await applyWouldBePlayedSelfReducer(ctx, reducer);
@@ -4793,7 +4864,7 @@ export class GameEngine {
       // window (where a ReducePlayCost action runs its optional server-side payment) and return the
       // finalized cost. Runs in the async apply path BEFORE memory is paid (EX9-043 / BT25-076).
       finalizePlayCost: async (_state, _seat, instance, _definition, baseCost, mode) =>
-        this.fireBeforePayCost(instance, baseCost, mode === "option"),
+        this.fireBeforePayCost(instance, baseCost, mode === "option", "hand"),
       // Synchronous fast-path gate: only cards with a BeforePayCost effect take the async
       // finalization path. Every other card keeps same-microtask placement (no timing change).
       hasBeforePayCost: (instance) =>
@@ -5737,20 +5808,21 @@ export class GameEngine {
     return {
       findInstance: (instanceId) => this.findInstance(instanceId),
       cardSourceOf: (instance) => this.cardSourceOf(instance),
+      activationEffectsFor: (instance) => this.activatableEffectsFor([instance]),
       // A directly-activated [Main] ability has no incoming trigger payload (it is
       // not reacting to another event), so the TriggerInfo is empty. It still carries
       // the named effect's provenance because every nested decision must render this
       // exact [Main]/Delay clause rather than guessing from the card's first text box.
-      makeContext: (source, effect) => {
-        const ctx = this.buildEffectContext(source, {});
-        // The PRINTED window this clause is tagged with ("[Main]"), which is its IR trigger;
-        // the internal activation timing name is the fallback for hand-written effects.
-        ctx.activeTiming = effect.irTrigger ?? EffectTiming[ACTIVATE_TIMING];
-        ctx.activeEffectText = effect.description;
-        return ctx;
-      },
+      makeContext: (source, effect, conferredToPermanentId, conferralGranterInstanceId) =>
+        this.activationContext({
+          source,
+          effect,
+          ...(conferredToPermanentId === undefined ? {} : { conferredToPermanentId }),
+          ...(conferralGranterInstanceId === undefined ? {} : { conferralGranterInstanceId }),
+        }),
       tracker: this.tracker,
-      enterEffectResolution: (seat, sourceKinds) => this.primitives.enterEffectResolution?.(seat, sourceKinds),
+      enterEffectResolution: (seat, sourceKinds, sourcePermanentId) =>
+        this.primitives.enterEffectResolution?.(seat, sourceKinds, sourcePermanentId),
       leaveEffectResolution: () => this.primitives.leaveEffectResolution?.(),
     };
   }
@@ -5891,7 +5963,7 @@ export class GameEngine {
       adjustedPlayCost: (_state, seat, definition, base) =>
         this.modifiers.playCostFor({ def: definition, controllerSeat: seat }, base),
       finalizePlayCost: async (_state, _seat, instance, _definition, baseCost) =>
-        this.fireBeforePayCost(instance, baseCost, false),
+        this.fireBeforePayCost(instance, baseCost, false, "hand"),
       digiXrosNamesOf: (instanceId) => {
         const located = this.findInstance(instanceId);
         if (located === undefined) return [];

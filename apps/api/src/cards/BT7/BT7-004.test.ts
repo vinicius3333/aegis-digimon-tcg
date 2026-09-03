@@ -32,16 +32,19 @@ describe("BT7-004 Koromon", () => {
   });
 
   it("does not reveal when an unrelated allied Digimon attacks", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT1-066", under: ["BT7-004"], as: "host" },
-          { card: "BT1-066", as: "otherAttacker" },
-        ],
-        deck: [{ card: "BT1-011", as: "top" }, "BT1-012"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-066", under: ["BT7-004"], as: "host" },
+            { card: "BT1-066", as: "otherAttacker" },
+          ],
+          deck: [{ card: "BT1-011", as: "top" }, "BT1-012"],
+        },
+        1: { security: ["BT1-101"] },
       },
-      1: { security: ["BT1-101"] },
-    }, { autoChooseOption: true, preferOptionIndex: 1 });
+      { autoChooseOption: true, preferOptionIndex: 1 },
+    );
 
     expect(
       s.engine.applyIntent(0, {

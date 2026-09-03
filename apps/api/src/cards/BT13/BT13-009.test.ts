@@ -5,18 +5,23 @@ import { compiled } from "./BT13-009.js";
 
 describe("BT13-009 Huckmon", () => {
   it("keeps the BaoHuckmon destination exact while Sistermon remains a name family", () => {
-    const digivolve = compiled.effects[0]!.actions[0] as unknown as {
-      sourceFilter: { nameOrTrait: [{ tokens: string[]; match: string }] };
-      actions: [{ into: { nameOrTrait: [{ tokens: string[]; match: string }] } }];
-    };
-    const sourceReference = digivolve.sourceFilter.nameOrTrait[0]!;
-    const destinationReference = digivolve.actions[0].into.nameOrTrait[0]!;
+    const subTrigger = compiled.effects[0]?.actions[0];
+    expect(subTrigger?.kind).toBe("SubTrigger");
+    if (subTrigger?.kind !== "SubTrigger") throw new Error("Expected SubTrigger action");
+    const digivolve = subTrigger.actions?.[0];
+    expect(digivolve?.kind).toBe("Digivolve");
+    if (digivolve?.kind !== "Digivolve") throw new Error("Expected Digivolve action");
+    const sourceReference = subTrigger.sourceFilter?.nameOrTrait?.[0];
+    const destinationReference = digivolve.into?.nameOrTrait?.[0];
+    if (sourceReference === undefined || destinationReference === undefined) {
+      throw new Error("Expected Sistermon and BaoHuckmon name references");
+    }
 
     expect(sourceReference).toEqual({ tokens: ["Sistermon"], match: "name" });
     expect(destinationReference).toEqual({ tokens: ["BaoHuckmon"], match: "nameExact" });
-    expect(matchNameOrTrait({ nameEn: "Sistermon Ciel" }, sourceReference as never)).toBe(true);
-    expect(matchNameOrTrait({ nameEn: "BaoHuckmon" }, destinationReference as never)).toBe(true);
-    expect(matchNameOrTrait({ nameEn: "BaoHuckmon: Werewolf Mode" }, destinationReference as never)).toBe(false);
+    expect(matchNameOrTrait({ nameEn: "Sistermon Ciel" }, sourceReference)).toBe(true);
+    expect(matchNameOrTrait({ nameEn: "BaoHuckmon" }, destinationReference)).toBe(true);
+    expect(matchNameOrTrait({ nameEn: "BaoHuckmon: Werewolf Mode" }, destinationReference)).toBe(false);
   });
 
   it("may digivolve into BaoHuckmon from hand for free when its controller plays a Sistermon", async () => {

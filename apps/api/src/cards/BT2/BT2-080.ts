@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR — the printed effect plays up to 2 cards and suppresses their On Play effects.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
@@ -38,7 +37,6 @@ const compiled: CompiledCard = {
           },
           from: ["trash"],
           payCost: false,
-          totalPlayCost: null,
           optional: true,
           suppressOnPlayEffects: true,
         },

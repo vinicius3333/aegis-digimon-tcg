@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -30,7 +29,7 @@ const compiled: CompiledCard = {
             count: 1,
           },
           gainedTrigger: "onDeletionOf",
-          gainedActions: [{ kind: "SecurityManipulation", op: "trashTop", amount: 1 }],
+          gainedActions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "mine", amount: 1 }],
           condition: {
             kind: "youHave",
             filter: {

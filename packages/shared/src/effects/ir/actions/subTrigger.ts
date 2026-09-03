@@ -28,8 +28,10 @@ export type SubTriggerEvent =
   | "whenDeletesInBattle"
   | "whenOneOfYoursDigivolves"
   | "whenAnyDigivolves" // `sourceFilter` narrows the controller
+  | "whenHatch"
   | "onDeletionOf"
   | "whenSecurityRemoved"
+  | "whenEffectRemovesFromSecurity"
   | "whenCardTrashedFromSecurity"
   | "whenEffectTrashesFromSecurity"
   | "whenAddSecurity"
@@ -57,21 +59,24 @@ export type SubTriggerEvent =
   | "opponentAddsSecurityToHand"
   | "whenCardPlacedInDigivolution"
   | "whenMovedFromBreeding"
+  | "whenOpponentMovedFromBreeding"
   | "whenBattleWon"
+  | "whenSecurityBattleEnded" // delayed Security bodies resolve after the checked card reaches trash
   | "whenHandCardTrashed"
   | "whenHandTrashed" // once per trash ACTION, not per card (KB Q6400/Q6401)
   | "whenTrashedFromSecurity"
   | "whenTrashedFromHand"
   | "whenEffectAddsToHand"
+  | "whenDigimonReturnsToHand"
   | "whenEffectAddsToOpponentHand" // any effect-driven hand addition, unlike the draw-only whenOpponentDraws
+  | "whenCardReturnsFromTrashToHand"
   | "whenDigimonWouldLeave" // the ＜Delay＞ watcher (BT19-099); aliases whenLeavesPlay at runtime
   | "wouldBeReturned" // BT20-074; CAP-C-11
   | "whenTrashedByEffect" // while in the battle area (BT19-093; CAP-E8)
   | "whenTrashedFromDeck" // BT19-097; CAP-H-01
   | "whenCheckedFaceUpSecurity" // BT20-055; CAP-H-03
   | "raw"
-| "whenSecurityBattleEnded"
-| "whenFaceUpCardsAddedToOpponentSecurity";
+  | "whenFaceUpCardsAddedToOpponentSecurity";
 
 export interface SubTriggerAction extends ActionBase {
   kind: "SubTrigger";

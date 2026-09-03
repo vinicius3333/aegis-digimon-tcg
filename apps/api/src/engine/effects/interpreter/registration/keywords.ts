@@ -2,7 +2,9 @@
 
 import { registerDigisorption, registerDigisorptionRedirector } from "../../../cards/digisorptionDigivolve.js";
 import { registerTamerOntoDigivolve } from "../../../cards/tamerOntoDigivolve.js";
-import type { Action, CardDefinition, CardEffect, CompiledCard } from "@aegis/shared";
+import type { Action, CardDefinition, CardEffect, CompiledCard, DigivolutionRequirement } from "@aegis/shared";
+
+type TamerBaseColor = NonNullable<DigivolutionRequirement["baseColors"]>[number];
 
 /**
  * Build a generic EffectModule from a compiled IR record. Each CardEffect is
@@ -271,24 +273,37 @@ export function synthesizedOverclockTrait(
 
 /**
  * Detect the "digivolve from hand onto a <color> Tamer as if it is a level N Digimon"
- * mechanic in a card's compiled IR and record its `asLevel` in the side registry. The
- * mechanic compiles to a Static `Digivolve` action carrying `onto` (a Tamer filter) and
- * `asLevel`; the legality path derives the correctly-gated alternate requirement from this
- * (see {@link registerTamerOntoDigivolve}). The `onto` value carries a nested `filter` at
- * runtime (`{ filter, count }`); read it defensively since the IR is `@ts-nocheck`-generated.
+ * mechanic in a card's compiled IR and record it in the side registry. Current typed IR
+ * carries the Tamer filter in a `Digivolve` action's `target.filter`; legacy records may use
+ * `TamerOntoDigivolve` with `onto`. A printed fixed cost that differs from the level-N evo
+ * cost is carried by `costOverride`.
  */
 export function registerTamerOntoFromEffects(cardId: string, effects: readonly CardEffect[]): void {
   for (const effect of effects) {
     if (effect.trigger !== "Static") continue;
     for (const action of effect.actions ?? []) {
-      if (action.kind !== "Digivolve" || typeof action.asLevel !== "number") continue;
+      if ((action.kind !== "TamerOntoDigivolve" && action.kind !== "Digivolve") || typeof action.asLevel !== "number") {
+        continue;
+      }
+      const targetFilter = action.kind === "Digivolve" ? action.target?.filter : undefined;
       const onto = action.onto as
-        | { filter?: { kind?: unknown; colors?: readonly string[] }; kind?: unknown; colors?: readonly string[] }
+        | {
+            filter?: { kind?: unknown; colors?: readonly TamerBaseColor[] };
+            kind?: unknown;
+            colors?: readonly TamerBaseColor[];
+          }
         | undefined;
       const ontoFilter = onto?.filter ?? onto;
-      const ontoKind = ontoFilter?.kind;
-      if (Array.isArray(ontoKind) && ontoKind.includes("Tamer")) {
-        registerTamerOntoDigivolve(cardId, action.asLevel, ontoFilter?.colors);
+      const tamerFilter =
+        Array.isArray(targetFilter?.kind) && targetFilter.kind.includes("Tamer") ? targetFilter : ontoFilter;
+      const tamerKind = tamerFilter?.kind;
+      if (Array.isArray(tamerKind) && tamerKind.includes("Tamer")) {
+        registerTamerOntoDigivolve(
+          cardId,
+          action.asLevel,
+          tamerFilter?.colors,
+          action.kind === "Digivolve" ? action.costOverride : undefined,
+        );
         return;
       }
     }

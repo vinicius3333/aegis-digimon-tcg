@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -39,6 +38,7 @@ export const compiled: CompiledCard = {
               count: "all",
               distinctLevels: true,
             },
+            to: "deckTop",
             trackCount: "returnedDistinctLevels",
             raw: "by returning 1 of each Digimon card with different levels from your opponent's trash to the top of the deck",
           },
@@ -84,6 +84,7 @@ export const compiled: CompiledCard = {
               count: "all",
               distinctLevels: true,
             },
+            to: "deckTop",
             trackCount: "returnedDistinctLevels",
             raw: "by returning 1 of each Digimon card with different levels from your opponent's trash to the top of the deck",
           },
@@ -136,6 +137,7 @@ export const compiled: CompiledCard = {
               count: 2,
               distinctNames: true,
             },
+            to: "deckBottom",
             raw: "By returning 1 [Kimeramon] and 1 [Machinedramon] from your trash to the bottom of the deck",
           },
           optional: true,

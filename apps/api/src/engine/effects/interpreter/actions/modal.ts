@@ -6,8 +6,10 @@ import { canPayCost } from "../costs.js";
 import { describeAction } from "../describe.js";
 import { runAction } from "../dispatch.js";
 import { scaleFactor } from "../scaling.js";
+import { DEFAULT_PLAY_ZONES, candidateLooseInstances } from "../targeting/loose.js";
 import { canAttemptDigivolve } from "./digivolve.js";
 import { canAttemptDnaDigivolve } from "./dna.js";
+import { applyPlayCostCeiling } from "./play.js";
 import type { Action } from "@aegis/shared";
 
 /** "Activate N of the effects below" — ask the controller which option(s), run them. */
@@ -98,5 +100,18 @@ function canAttemptModalAction(ctx: EffectContext, action: Action): boolean {
   if (action.cost !== undefined && typeof action.cost !== "number" && !canPayCost(ctx, action.cost)) return false;
   if (action.kind === "Digivolve") return canAttemptDigivolve(ctx, action);
   if (action.kind === "DnaDigivolve") return canAttemptDnaDigivolve(ctx, action);
+  if (
+    action.kind === "PlayWithoutCost" &&
+    action.target !== undefined &&
+    action.target.isSelf !== true &&
+    action.target.filter.isSelfRef !== true &&
+    action.fromOwnDigivolutionStack !== true
+  ) {
+    const zones = action.from && action.from.length > 0 ? action.from : DEFAULT_PLAY_ZONES;
+    const target = applyPlayCostCeiling(ctx, action, action.target);
+    return candidateLooseInstances(ctx, target, zones).some(
+      (candidate) => !ctx.fx.isPlayProhibited?.(ctx.source.ownerSeat, candidate.cardId, "play"),
+    );
+  }
   return action.kind !== "RawUnparsed";
 }

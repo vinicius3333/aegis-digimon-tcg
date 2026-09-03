@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT22-061.js";
 
 describe("BT22-061 Vademon", () => {
@@ -62,18 +63,26 @@ describe("BT22-061 Vademon", () => {
             {
               card: "BT22-049",
               as: "vegiemon",
-              under: [
-                { card: "BT1-001", faceUp: false },
-                { card: "BT1-002", faceUp: false },
-              ],
             },
           ],
-          hand: [{ card: "BT22-061", as: "vademon" }],
+          hand: [
+            { card: "BT22-049", as: "faceDownOne" },
+            { card: "BT22-049", as: "faceDownTwo" },
+            { card: "BT22-061", as: "vademon" },
+          ],
         },
         1: { battleArea: [{ card: "BT22-071", as: "target", under: ["BT1-009"] }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    await s.ready();
+    await advance(s.engine).verb.placeUnder(s.perm("vegiemon").permanentId, [
+      s.inst("faceDownOne").instanceId,
+      s.inst("faceDownTwo").instanceId,
+    ]);
+    for (const alias of ["faceDownOne", "faceDownTwo"]) {
+      s.perm("vegiemon").stack.find((card) => card.instanceId === s.inst(alias).instanceId)!.faceUp = false;
+    }
     const targetTopId = s.perm("target").topCard!.instanceId;
     s.state.memory = 1;
 
@@ -89,6 +98,6 @@ describe("BT22-061 Vademon", () => {
     expect(s.state.memory).toBe(0);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === targetTopId)).toBe(true);
     expect(s.state.players[1]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
-    expect(s.state.players[0]!.trash.filter((card) => card.cardId.startsWith("BT1-00"))).toHaveLength(1);
+    expect(s.state.players[0]!.trash.filter((card) => card.cardId === "BT22-049")).toHaveLength(1);
   });
 });

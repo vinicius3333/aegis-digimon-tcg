@@ -102,4 +102,38 @@ describe("BT14-079", () => {
     expect(s.perm("host").isSuspended).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-002")).toBe(true);
   });
+
+  it("naturally uses the level-4 trash ceiling when Eiji is in the digivolution cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-074", as: "host", under: ["BT14-087"] }],
+          hand: [{ card: "BT14-079", as: "soloogarmon" }],
+          trash: [{ card: "BT14-072", as: "level4DarkAnimal" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("soloogarmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("host").topCard?.cardId === "BT14-079" &&
+        s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-072"),
+    );
+
+    expect(s.perm("host").topCard?.cardId).toBe("BT14-079");
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-072")).toBe(true);
+    expect(
+      s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("level4DarkAnimal").instanceId),
+    ).toBe(false);
+  });
 });

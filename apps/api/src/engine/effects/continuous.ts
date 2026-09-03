@@ -767,7 +767,7 @@ export class ContinuousEffectLedger {
    * Mirrors ICannotAddMemoryEffect: blocked when a policy applies and the effect
    * is not a Tamer effect.
    */
-  canGainMemoryFromEffect(seat: Seat, effectSource: { definition: CardDefinition } | undefined): boolean {
+  canGainMemoryFromEffect(seat: Seat, effectSource: { definition: { kinds: readonly string[] } } | undefined): boolean {
     const blocked = this.memoryGainPolicies.some((p) => p.seat === seat);
     if (!blocked) return true;
     if (effectSource === undefined) return false;

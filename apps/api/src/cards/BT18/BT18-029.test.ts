@@ -10,20 +10,17 @@ describe("BT18-029 AncientMermaimon", () => {
     expect(compiled.effects[0]).toMatchObject({
       trigger: "OnPlay",
       actions: [
-        { kind: "Return", target: { filter: { controller: "opponent", levelComparison: { op: "lte", value: 4 } } } },
         {
-          kind: "CostModifier",
-          mode: "raiseCeiling",
-          costType: "level",
-          amount: 1,
-          scaling: { unit: "cards", filter: { excludeSelf: true, kind: ["Digimon"] } },
+          kind: "Return",
+          target: { filter: { controller: "opponent", levelComparison: { op: "lte", value: 4 } } },
+          scaling: { unit: "cards", filter: { excludeSelf: true, kind: ["Digimon"] }, levelCeilingAdd: 1 },
         },
       ],
     });
     const s = setupEngine(
       {
         0: { hand: [{ card: "BT18-029", as: "ancient" }], battleArea: [{ card: "BT1-030", as: "other" }] },
-        1: { battleArea: [{ card: "BT1-019", as: "target" }] },
+        1: { battleArea: [{ card: "BT1-060", as: "target" }] },
       },
       { autoSelectCards: true },
     );
@@ -34,6 +31,25 @@ describe("BT18-029 AncientMermaimon", () => {
     });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId));
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(false);
+  });
+
+  it("does not raise the return level ceiling without another Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT18-029", as: "ancient" }] },
+        1: { battleArea: [{ card: "BT1-060", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    const targetId = s.perm("target").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ancient").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId));
+
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(true);
   });
 
   it.each([

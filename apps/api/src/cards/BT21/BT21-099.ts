@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
@@ -12,13 +11,14 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
-              keywords: ["Save"],
+              nameOrTrait: [{ tokens: ["Save"], match: "text" }],
             },
             count: 1,
           },
           underFilter: {
             controller: "mine",
             kind: ["Tamer"],
+            excludeToken: true,
           },
           from: ["hand", "trash"],
           position: "bottom",
@@ -36,9 +36,10 @@ export const compiled: CompiledCard = {
           into: {
             controllerDefault: "mine",
             kind: ["Digimon"],
-            keywords: ["Save"],
+            nameOrTrait: [{ tokens: ["Save"], match: "text" }],
           },
           from: ["trash"],
+          payCost: false,
           optional: true,
         },
       ],
@@ -52,7 +53,7 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               playCostLte: 5,
-              keywords: ["Save"],
+              nameOrTrait: [{ tokens: ["Save"], match: "text" }],
             },
             count: 1,
           },

@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Scaling } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const handScaling = { per: 4, filter: { zone: "hand", controller: "opponent" }, unit: "cards" };
+const handScaling = { per: 4, filter: { zone: "hand", controller: "opponent" }, unit: "cards" } satisfies Scaling;
 export const compiled: CompiledCard = {
   effects: [
     {

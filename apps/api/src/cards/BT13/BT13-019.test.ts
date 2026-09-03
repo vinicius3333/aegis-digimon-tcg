@@ -21,6 +21,7 @@ describe("BT13-019 Gankoomon", () => {
         target: {
           filter: {
             controller: "mine",
+            kind: ["Digimon"],
             excludeNameOrTrait: [{ tokens: ["Omnimon", "Gankoomon"], match: "nameExact" }],
           },
         },
@@ -84,13 +85,13 @@ describe("BT13-019 Gankoomon", () => {
       0: { battleArea: [{ card: "BT13-019", as: "gankoomon" }], trash: [{ card: "BT10-085", as: "ciel" }] },
     });
     const resolving = fireOnPlay(s);
-    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    await settle(() => s.state.pendingDecision?.kind === "optional");
     const pending = s.state.pendingDecision!;
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: pending.decisionId,
-        response: { kind: "selectCards", instanceIds: [] },
+        response: { kind: "optional", accept: false },
       }),
     ).toEqual({ ok: true });
     await resolving;

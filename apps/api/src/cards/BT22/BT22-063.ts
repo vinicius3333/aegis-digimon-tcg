@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -116,7 +115,7 @@ export const compiled: CompiledCard = {
                   },
                   {
                     kind: "stackHasSameLevelCards",
-                    minCount: 2,
+                    count: 2,
                     raw: "this Digimon's stack has 2 or more same-level cards",
                   },
                 ],

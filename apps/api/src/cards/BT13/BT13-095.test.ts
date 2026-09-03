@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-095.js";
 
@@ -21,10 +20,9 @@ describe("BT13-095 Marcus Damon", () => {
   });
 
   it("keeps the DP loss and conditional memory gain inside the suspension watcher", () => {
-    const watcher = compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions?.[0] as {
-      actions?: unknown[];
-    };
+    const watcher = compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions?.[0];
     expect(watcher).toMatchObject({ kind: "SubTrigger", event: "whenSuspended", sourceFilter: { isSelfRef: true } });
+    if (watcher?.kind !== "SubTrigger") throw new Error("Expected SubTrigger action");
     expect(watcher.actions).toHaveLength(2);
     expect(watcher.actions?.[0]).toMatchObject({
       kind: "ModifyDP",
@@ -59,7 +57,9 @@ describe("BT13-095 Marcus Damon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("marcus").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("marcus").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("marcus").isSuspended);
     expect(s.perm("target").currentDP).toBe(2000);
     expect(s.state.memory).toBe(6);
@@ -76,7 +76,9 @@ describe("BT13-095 Marcus Damon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("marcus").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("marcus").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.memory === 6);
     expect(s.perm("marcus").isSuspended).toBe(true);
     expect(s.state.memory).toBe(6);
@@ -93,7 +95,9 @@ describe("BT13-095 Marcus Damon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("marcus").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("marcus").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("marcus").isSuspended);
     expect(s.state.memory).toBe(5);
   });

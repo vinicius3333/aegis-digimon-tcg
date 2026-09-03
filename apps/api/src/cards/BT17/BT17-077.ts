@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -30,7 +29,7 @@ export const compiled: CompiledCard = {
             },
             count: "all",
           },
-          amount: 99,
+          amount: "all",
         },
         {
           kind: "Modal",
@@ -97,7 +96,7 @@ export const compiled: CompiledCard = {
             },
             count: "all",
           },
-          amount: 99,
+          amount: "all",
         },
         {
           kind: "Modal",
@@ -193,7 +192,6 @@ export const compiled: CompiledCard = {
       isAlternate: true,
     },
   ],
-  ruleText: ["Trait: Has [Free] type."],
 };
 
 registerIrCard("BT17-077", compiled);

@@ -31,6 +31,7 @@ describe("BT22-090 Rie Kishibe", () => {
       },
       reduceCost: 3,
       payCost: true,
+      useAlternateCost: true,
       cost: {
         kind: "deleteOwn",
         target: {
@@ -101,5 +102,30 @@ describe("BT22-090 Rie Kishibe", () => {
 
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-083")).toBe(false);
+  });
+
+  it("does not offer a LordKnightmon print without the Rie alternate route", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT22-090", as: "rie" },
+            { card: "BT22-010", as: "sacrifice" },
+          ],
+          hand: ["BT5-045", "BT22-067"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    await (
+      s.engine as unknown as { fireTiming(timing: EffectTiming, trigger: Record<string, never>): Promise<void> }
+    ).fireTiming(EffectTiming.OnEndTurn, {});
+    await settle(() => s.perm("rie").topCard?.cardId === "BT22-067", 300);
+
+    expect(s.perm("rie").topCard?.cardId).toBe("BT22-067");
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT5-045")).toBe(true);
   });
 });

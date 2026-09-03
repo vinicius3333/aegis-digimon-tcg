@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT22-047.js";
 import "./index.js";
@@ -41,13 +42,18 @@ describe("BT22-047 Kuwagamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT22-043", as: "base", under: ["BT22-043"] }],
-          hand: [{ card: "BT22-047", as: "kuwagamon" }],
+          battleArea: [{ card: "BT22-043", as: "base" }],
+          hand: [
+            { card: "BT22-043", as: "sameLevel" },
+            { card: "BT22-047", as: "kuwagamon" },
+          ],
         },
         1: { battleArea: [{ card: "BT1-009", as: "target" }] },
       },
       { autoSelectCards: true },
     );
+    await s.ready();
+    await advance(s.engine).verb.placeUnder(s.perm("base").permanentId, [s.inst("sameLevel").instanceId]);
     s.state.memory = 2;
 
     expect(

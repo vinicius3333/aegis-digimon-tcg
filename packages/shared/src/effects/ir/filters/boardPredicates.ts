@@ -96,6 +96,8 @@ export interface BoardPredicates {
   digivolutionStackKind?: string[];
   /** The STACK contains no card of any requested kind (BT20-003). */
   digivolutionStackKindExclude?: string[];
+  /** Every listed keyword must occur in inherited text on at least one card under the top card. */
+  stackKeywords?: string[];
   /**
    * Name/trait refs matched against cards UNDER the top card. `nameOrTrait` matches the TOP
    * card instead — BT9-095/097 need the [X Antibody] Option in the stack, not the name on top.

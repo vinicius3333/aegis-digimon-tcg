@@ -12,13 +12,24 @@ describe("BT7-070 Wendigomon", () => {
       effects: [
         {
           trigger: "WhenDigivolving",
-          actions: [{ kind: "RevealAdd", revealCount: 5, add: [], trashFilter: { kind: ["Tamer"] }, rest: "deckBottom", optional: true }],
+          actions: [
+            {
+              kind: "RevealAdd",
+              revealCount: 5,
+              add: [],
+              trashFilter: { kind: ["Tamer"] },
+              rest: "deckBottom",
+              optional: true,
+            },
+          ],
         },
         {
           trigger: "YourTurn",
           isInherited: true,
           frequency: "OncePerTurn",
-          actions: [{ kind: "SubTrigger", event: "whenPlayed", actions: [{ kind: "Draw", controller: "mine", amount: 1 }] }],
+          actions: [
+            { kind: "SubTrigger", event: "whenPlayed", actions: [{ kind: "Draw", controller: "mine", amount: 1 }] },
+          ],
         },
       ],
     });

@@ -1104,30 +1104,69 @@ export function digivolutionRequirementsFor(cardId: string): DigivolutionRequire
   );
 }
 
+export interface TamerOntoDigivolveSpec {
+  asLevel: number;
+  baseColors?: DigivolutionRequirement["baseColors"];
+  costOverride?: number;
+}
+
 /**
- * The "as if level N" level for a card that may digivolve from hand onto one of your <color>
+ * The executable details for a card that may digivolve from hand onto one of your <color>
  * Tamers as if the Tamer is a level-N Digimon (Frontier hybrids: BT4-025, BT17-012, ...), or
- * undefined when the card has no such path. Derived from the compiled IR — the mechanic compiles
- * to a `Static` `Digivolve` action carrying `onto` (a Tamer filter) and `asLevel`. Kept in
+ * undefined when the card has no such path. Derived from compiled IR: current modules put the
+ * Tamer filter in a `Digivolve` action's `target.filter`; legacy records may carry it in a
+ * `TamerOntoDigivolve` action's `onto`. Kept in
  * @aegis/shared so the SERVER (digivolve legality/cost) and the CLIENT (target highlighting +
- * cost labels) derive it identically. For such cards the compiled `digivolutionRequirement` is a
+ * cost labels) can share the level, allowed Tamer colors, and any printed fixed cost. For such
+ * cards the compiled `digivolutionRequirement` is a
  * STALE gateless/`baseIsTamer`-only entry to be ignored in favor of this derived path (plus any
  * SPECIFIC named requirement the card also prints, e.g. `[Takuya Kanbara]: Cost 2`).
  */
-export function tamerOntoDigivolveLevel(cardId: string): number | undefined {
+export function tamerOntoDigivolveSpec(cardId: string): TamerOntoDigivolveSpec | undefined {
   const compiled = compiledEffects[cardId];
   if (!compiled) return undefined;
   for (const effect of compiled.effects ?? []) {
     if (effect.trigger !== "Static") continue;
     for (const action of effect.actions ?? []) {
-      const act = action as { kind?: unknown; asLevel?: unknown; onto?: unknown };
-      if (act.kind !== "Digivolve" || typeof act.asLevel !== "number") continue;
-      const onto = act.onto as { filter?: { kind?: unknown }; kind?: unknown } | undefined;
-      const ontoKind = onto?.filter ? onto.filter.kind : onto?.kind;
-      if (Array.isArray(ontoKind) && ontoKind.includes("Tamer")) return act.asLevel;
+      const act = action as {
+        kind?: unknown;
+        asLevel?: unknown;
+        costOverride?: unknown;
+        target?: { filter?: unknown };
+        onto?: unknown;
+      };
+      if ((act.kind !== "TamerOntoDigivolve" && act.kind !== "Digivolve") || typeof act.asLevel !== "number") {
+        continue;
+      }
+      const targetFilter = act.target?.filter as
+        | { kind?: unknown; colors?: DigivolutionRequirement["baseColors"] }
+        | undefined;
+      const onto = act.onto as
+        | {
+            filter?: { kind?: unknown; colors?: DigivolutionRequirement["baseColors"] };
+            kind?: unknown;
+            colors?: DigivolutionRequirement["baseColors"];
+          }
+        | undefined;
+      const ontoFilter = onto?.filter ?? onto;
+      const tamerFilter =
+        Array.isArray(targetFilter?.kind) && targetFilter.kind.includes("Tamer") ? targetFilter : ontoFilter;
+      if (!Array.isArray(tamerFilter?.kind) || !tamerFilter.kind.includes("Tamer")) continue;
+      return {
+        asLevel: act.asLevel,
+        ...(Array.isArray(tamerFilter.colors) && tamerFilter.colors.length > 0
+          ? { baseColors: [...tamerFilter.colors] }
+          : {}),
+        ...(typeof act.costOverride === "number" ? { costOverride: act.costOverride } : {}),
+      };
     }
   }
   return undefined;
+}
+
+/** The "as if level N" part of {@link tamerOntoDigivolveSpec}. */
+export function tamerOntoDigivolveLevel(cardId: string): number | undefined {
+  return tamerOntoDigivolveSpec(cardId)?.asLevel;
 }
 
 /**

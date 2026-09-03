@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-authored override — do not regenerate.
 // [When Digivolving] gated on DNA digivolving:
 //   Delete 1 opponent Lv6+ AND all opponent Lv5 or lower Digimon.

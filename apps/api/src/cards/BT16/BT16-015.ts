@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -42,20 +41,26 @@ const compiled: CompiledCard = {
           },
           duration: "forTheTurn",
           condition: {
-            kind: "selfDigivolutionStackHasTrait",
-            filter: {
-              nameOrTrait: [
-                {
-                  tokens: ["Phoenixmon"],
-                  match: "name",
+            kind: "allOf",
+            conditions: [
+              { kind: "isYourTurn", raw: "[Your Turn]" },
+              {
+                kind: "selfDigivolutionStackHasTrait",
+                filter: {
+                  nameOrTrait: [
+                    {
+                      tokens: ["Phoenixmon"],
+                      match: "nameExact",
+                    },
+                    {
+                      tokens: ["X Antibody"],
+                      match: "trait",
+                    },
+                  ],
                 },
-                {
-                  tokens: ["X Antibody"],
-                  match: "trait",
-                },
-              ],
-            },
-            raw: "[Phoenixmon] or [X Antibody] is in this Digimon's digivolution cards",
+                raw: "[Phoenixmon] or [X Antibody] is in this Digimon's digivolution cards",
+              },
+            ],
           },
         },
       ],
@@ -85,7 +90,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Phoenixmon"],
-                  match: "name",
+                  match: "nameExact",
                 },
                 {
                   tokens: ["X Antibody"],
@@ -154,7 +159,7 @@ const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Phoenixmon"],
+      namesExact: ["Phoenixmon"],
       cost: 2,
       isAlternate: true,
     },

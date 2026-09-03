@@ -1,18 +1,59 @@
-import { getCompiledCard } from "@aegis/shared";
-import { EffectTiming } from "@aegis/shared";
-import type { CardSource } from "../../engine/effects/CardSource.js";
+import type { CompiledCard, Filter, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-import { lateBt12Module } from "./_lateHandwritten.js";
 
-const compiled = structuredClone(getCompiledCard("BT12-102")!);
-
-const module = registerIrCard("BT12-102", compiled);
-const compiledEffectsForTiming = module.effectsForTiming.bind(module);
-const handwritten = lateBt12Module("BT12-102");
-
-module.effectsForTiming = (timing: EffectTiming, source: CardSource) => {
-  const effects = handwritten.effectsForTiming(timing, source);
-  return effects.length > 0 ? effects : compiledEffectsForTiming(timing, source);
+const movedBlue: Target = {
+  filter: { controller: "mine", kind: ["Digimon"], colors: ["Blue"] },
+  count: 1,
+  bindAs: "bt12_102_moved",
+};
+const anotherBlue: Filter = {
+  controller: "mine",
+  kind: ["Digimon"],
+  colors: ["Blue"],
+  excludeSelectionRef: "bt12_102_moved",
 };
 
-export default module;
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "BeforePayCost",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: { isSelfRef: true },
+          mode: "reduceCost",
+          amount: 3,
+          cost: {
+            kind: "place",
+            target: movedBlue,
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "target",
+            underFilter: anotherBlue,
+            targetIsPermanent: true,
+            shedOwnCards: true,
+            raw: "by placing 1 of your blue Digimon under another blue Digimon",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
+    },
+    {
+      trigger: "Main",
+      actions: [
+        {
+          kind: "Return",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          to: "deckBottom",
+        },
+      ],
+    },
+    { trigger: "Security", actions: [{ kind: "ActivateMain" }], isSecurity: true },
+  ],
+  coverage: "full",
+  residual: [],
+};
+
+export default registerIrCard("BT12-102", compiled);

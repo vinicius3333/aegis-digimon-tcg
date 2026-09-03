@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, getCardDefinition, type PlayerState } from "@aegis/shared";
+import { getCardDefinition, type PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine as setup, settle, assertNoLoudGap } from "../../engine/testkit/harness.js";
 import "../BT3/BT3-014.js";
@@ -23,33 +23,74 @@ import { compiled } from "./BT9-074.js";
 describe("BT9-074 [On Deletion] gain 2 memory credits its OWNER, not the attacking turn player", () => {
   it("matches catalog and Q1868 security and inherited IR", () => {
     expect(getCardDefinition("BT9-074")).toMatchObject({
-      cardId: "BT9-074", nameEn: "Meicoomon", colors: ["Purple", "Yellow"], kinds: ["Digimon"], level: 4,
-      playCost: 5, dp: 4000,
-      evoCosts: [{ color: "Purple", level: 3, memoryCost: 3 }, { color: "Yellow", level: 3, memoryCost: 3 }],
-      forms: ["Champion"], attributes: ["Unknown"], types: ["Unknown"],
+      cardId: "BT9-074",
+      nameEn: "Meicoomon",
+      colors: ["Purple", "Yellow"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 5,
+      dp: 4000,
+      evoCosts: [
+        { color: "Purple", level: 3, memoryCost: 3 },
+        { color: "Yellow", level: 3, memoryCost: 3 },
+      ],
+      forms: ["Champion"],
+      attributes: ["Unknown"],
+      types: ["Unknown"],
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], effects: [
-        { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] },
-        { trigger: "OnDeletion", isInherited: true, actions: [{ kind: "GainMemory", amount: 2, condition: { kind: "selfColorCount", op: "gte", value: 2 } }] },
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "Security",
+          timing: "endOfBattle",
+          isSecurity: true,
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenSecurityBattleEnded",
+              once: true,
+              actions: [{ kind: "PlayWithoutCost", from: ["trash"], payCost: false }],
+            },
+          ],
+        },
+        {
+          trigger: "OnDeletion",
+          isInherited: true,
+          actions: [{ kind: "GainMemory", amount: 2, condition: { kind: "selfColorCount", op: "gte", value: 2 } }],
+        },
       ],
     });
   });
 
-  it("plays itself after its security battle without paying its play cost", async () => {
+  it("battles as a Security Digimon before playing itself at end of battle for no cost", async () => {
     const s = setup(
       {
-        0: { security: [{ card: "BT9-074", as: "securityMeicoomon", faceUp: true }] },
+        0: { battleArea: [{ card: "BT14-031", as: "attacker", dp: 500 }] },
+        1: { security: [{ card: "BT9-074", as: "securityMeicoomon" }] },
       },
       { autoOrderTriggers: true },
     );
     const instanceId = s.inst("securityMeicoomon").instanceId;
     s.state.memory = 0;
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityMeicoomon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === instanceId));
 
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT14-031")).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.memory).toBe(0);
+    const checked = s.events.findIndex((event) => event.kind === "securityChecked");
+    const played = s.events.findIndex((event) => event.kind === "cardPlayed" && event.cardId === "BT9-074");
+    expect(s.events[checked]).toMatchObject({ kind: "securityChecked", resolution: "battle" });
+    expect(played).toBeGreaterThan(checked);
     assertNoLoudGap(s);
   });
 

@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR — returning a Digimon already trashes its digivolution cards.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

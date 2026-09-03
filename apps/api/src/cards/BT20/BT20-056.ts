@@ -1,16 +1,15 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Q4389: this breeding-area digivolution does not activate the digivolved
 // card's [When Digivolving] effect.
-const recoveryAndBreedingDigivolve = {
+const recoveryAndBreedingDigivolve: Pick<CompiledCard["effects"][number], "actions"> = {
   actions: [
     { kind: "Recover", amount: 1 },
     {
       kind: "Digivolve",
       target: {
-        filter: { zone: "breedingArea", controller: "mine", kind: ["Digimon"] },
+        filter: { zone: "breeding", controller: "mine", kind: ["Digimon"] },
         count: 1,
         targetBreeding: true,
       },
@@ -41,6 +40,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenSecurityRemoved",
+          sourceFilter: { controller: "any" },
           actions: [
             {
               kind: "ModifyDP",

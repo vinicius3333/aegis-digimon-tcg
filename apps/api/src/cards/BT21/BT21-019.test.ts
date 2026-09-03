@@ -37,7 +37,7 @@ describe("BT21-019 BetelGammamon", () => {
       expect.objectContaining({
         trigger: "YourTurn",
         isInherited: true,
-        actions: [expect.objectContaining({ kind: "ModifyDP", amount: 2000, duration: "turn" })],
+        actions: [expect.objectContaining({ kind: "ModifyDP", amount: 2000, duration: "permanent" })],
       }),
     ]);
   });

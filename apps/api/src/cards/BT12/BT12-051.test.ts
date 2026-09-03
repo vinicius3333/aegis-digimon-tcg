@@ -27,6 +27,28 @@ describe("BT12-051 Yasyamon", () => {
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-091")).toBe(true);
   });
 
+  it("resolves On Play from a public play-card intent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT12-051", as: "yasha" },
+            { card: "BT12-091", as: "airu" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("yasha").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-091"));
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT12-051", "BT12-091"]);
+    expect(s.state.memory).toBe(0);
+  });
+
   it("plays the errata-corrected Ryoma Mogami during When Digivolving", async () => {
     const s = setupEngine(
       {

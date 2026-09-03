@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -51,7 +50,6 @@ const compiled: CompiledCard = {
             },
             raw: "you have a Tamer with [Sora Takenouchi] in its name",
           },
-          optional: true,
         },
       ],
     },

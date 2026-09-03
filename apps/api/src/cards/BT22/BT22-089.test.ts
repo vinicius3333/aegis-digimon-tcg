@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT22-089.js";
 
 describe("BT22-089 Mirei Mikagura", () => {
@@ -88,5 +90,25 @@ describe("BT22-089 Mirei Mikagura", () => {
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === costId)).toBe(true);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-001", "BT1-002"]));
+  });
+
+  it("returns itself and plays a qualifying Tamer through the production main-phase window", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-089", as: "mirei" }],
+          hand: [{ card: "BT22-091", as: "arata" }],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireGlobal(EffectTiming.OnStartMainPhase);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-091"));
+
+    expect(s.state.players[0]!.deck.some((card) => card.cardId === "BT22-089")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-091")).toBe(true);
   });
 });

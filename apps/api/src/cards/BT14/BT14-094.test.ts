@@ -7,7 +7,8 @@ import "../index.js";
 describe("BT14-094", () => {
   it("offers -6000 DP or deleting an Angemon to place an opposing Digimon as security", () => {
     expect(compiled.effects?.[0]).toMatchObject({ trigger: "Main", actions: [{ kind: "Modal", choose: 1 }] });
-    const modal = compiled.effects?.[0]?.actions[0] as any;
+    const modal = compiled.effects?.[0]?.actions[0];
+    if (modal?.kind !== "Modal") throw new Error("BT14-094 must compile a Modal action");
     expect(modal).toMatchObject({
       options: [[{ kind: "ModifyDP", amount: -6000 }], [{ kind: "SecurityManipulation", op: "placeAsSecurity" }]],
     });
@@ -32,7 +33,9 @@ describe("BT14-094", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("target").currentDP === 4000);
     expect(s.perm("target").currentDP).toBe(4000);
   });
@@ -53,7 +56,9 @@ describe("BT14-094", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.security.some((card) => card.cardId === "BT14-058"));
 
     expect(s.state.players[1]!.security.some((card) => card.cardId === "BT14-058")).toBe(true);

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT6-054.js";
@@ -20,7 +21,7 @@ describe("BT6-054 AncientTroymon", () => {
       { autoSelectCards: true },
     );
     s.state.turnSeat = 1;
-    s.state.phase = "Main" as never;
+    s.state.phase = Phase.Main;
     await s.ready();
 
     expect(

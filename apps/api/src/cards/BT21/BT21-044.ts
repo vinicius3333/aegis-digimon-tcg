@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR for BT21-044 (RizeGreymon) — do not regenerate over this file.
 //
 // runtime-effect fix: the generated OnPlay/WhenDigivolving bundle granted only <Rush> and

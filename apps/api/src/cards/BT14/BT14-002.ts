@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-authored override (errata 2023-12-15): "...no Digimon with MORE digivolution
 // cards..." -> "...AS MANY OR MORE digivolution cards AS this Digimon..." (>=, encoded
 // as `gte`). Inherited [Your Turn] <Jamming> self-grant gated on the corrected guard.

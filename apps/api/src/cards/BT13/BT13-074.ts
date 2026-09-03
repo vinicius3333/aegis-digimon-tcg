@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const mamemonOrRoyalKnight = {
+const mamemonOrRoyalKnight: Filter = {
   controllerDefault: "mine",
   kind: ["Digimon"],
   nameOrTrait: [

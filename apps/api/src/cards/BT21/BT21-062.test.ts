@@ -11,14 +11,12 @@ import "../index.js";
 //   "Delete 1 of your opponent's Digimon."
 //
 // FAILS-WHEN-REVERTED: with BT21-062 on the field, firing OnStartMainPhase on seat 0's
-// turn deletes one of seat 1's Digimon. Without the hand-written module the IR's
-// StartOfYourMainPhase Delete action runs via the interpreter — but the [When Digivolving]
-// Ragnarok Cannon clause remains RawUnparsed (inert). Our test exercises the delete to
-// prove the hand-written module runs the OnStartMainPhase correctly.
+// turn deletes one of seat 1's Digimon. The IR's StartOfYourMainPhase Delete action and
+// the [When Digivolving] Option-use clause both run through the interpreter.
 //
 // The [When Digivolving] Ragnarok Cannon clause (placing 4 Vemmon-in-text from trash
-// to digivolution stack, then playing Ragnarok Cannon from hand/trash free) is also
-// tested to verify it's no longer a stub.
+// to digivolution stack, then using Ragnarok Cannon from hand/trash free) is also
+// tested to verify the Option-use path is executable.
 
 const GALACTICMON = "BT21-062";
 const PLAIN_DIGIMON = "BT1-009"; // Monodramon — playCost 2, opponent target for delete
@@ -38,7 +36,18 @@ describe("BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon", () => 
     expect(module.effectsForTiming(EffectTiming.OnStartMainPhase, {} as never)).toHaveLength(1);
     expect(module.effectsForTiming(EffectTiming.OnEnterFieldAnyone, {} as never)).toHaveLength(0);
     expect(module.cardId).toBe(GALACTICMON);
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Snatchmon"], cost: 9, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Snatchmon"], cost: 9, isAlternate: true }]);
+    expect(compiled.effects?.[0]?.actions[0]).toMatchObject({
+      kind: "UseOptionWithoutCost",
+      filter: {
+        controller: "mine",
+        kind: ["Option"],
+        playCostLte: 99,
+        nameOrTrait: [{ tokens: ["Ragnarok Cannon"], match: "nameExact" }],
+      },
+      from: ["hand", "trash"],
+      payCost: false,
+    });
     expect(compiled.coverage).toBe("full");
   });
 

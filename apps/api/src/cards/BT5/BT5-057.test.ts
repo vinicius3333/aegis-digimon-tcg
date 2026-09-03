@@ -1,8 +1,8 @@
-import { EffectTiming, type CardInstance } from "@aegis/shared";
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import type { CardSource } from "../../engine/effects/CardSource.js";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { advance } from "../../engine/testkit/advance.js";
+import { internalsOf } from "../../engine/testkit/internals.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT5-046.js";
@@ -37,9 +37,7 @@ describe("BT5-057 Rosemon", () => {
       },
       { autoSelectCards: true },
     );
-    const source = (s.engine as unknown as { cardSourceOf(instance: CardInstance): CardSource }).cardSourceOf(
-      s.perm("rose").topCard!,
-    );
+    const source = internalsOf(s.engine).cardSourceOf(s.perm("rose").topCard!);
     const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
       effect.effectKey.startsWith("BT5-057/"),
     )!.effectKey;

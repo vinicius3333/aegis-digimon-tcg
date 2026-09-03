@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -32,7 +31,7 @@ export const compiled: CompiledCard = {
           target: {
             filter: {
               kind: ["Digimon"],
-              controller: "both",
+              controller: "any",
             },
             count: "all",
           },
@@ -68,7 +67,7 @@ export const compiled: CompiledCard = {
             per: 10,
             filter: {
               zone: "trash",
-              controller: "both",
+              controller: "any",
             },
             unit: "cards",
             raw: "For every 10 total cards in both players' trashes, add 2 to this effect's play cost maximum",

@@ -10,7 +10,7 @@ describe("BT20-019 Jesmon (X Antibody)", () => {
     const whenDigivolving = compiled.effects.find((entry) => entry.trigger === "WhenDigivolving");
     expect(whenDigivolving?.actions[0]).toMatchObject({
       kind: "GrantStatic",
-      grant: { immuneToOpponentEffects: true },
+      grant: "immuneToOpponentEffects",
       duration: "forTheTurn",
       condition: { kind: "selfDigivolutionStackHasTrait" },
     });

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -18,6 +17,7 @@ const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
+              unsuspended: true,
             },
             count: 1,
             bindAs: "digimonTarget",
@@ -29,6 +29,7 @@ const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Tamer"],
+              unsuspended: true,
             },
             count: 1,
             bindAs: "tamerTarget",
@@ -36,13 +37,13 @@ const compiled: CompiledCard = {
         },
         {
           kind: "Restrict",
-          target: { fromSelectionRef: "digimonTarget" },
+          target: { fromSelectionRef: "digimonTarget", filter: {}, count: 1 },
           restriction: "unsuspend",
           duration: "untilOpponentTurnEnd",
         },
         {
           kind: "Restrict",
-          target: { fromSelectionRef: "tamerTarget" },
+          target: { fromSelectionRef: "tamerTarget", filter: {}, count: 1 },
           restriction: "unsuspend",
           duration: "untilOpponentTurnEnd",
         },

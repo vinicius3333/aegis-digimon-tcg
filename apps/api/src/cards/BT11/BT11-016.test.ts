@@ -155,7 +155,7 @@ describe("BT11-016 Phoenixmon", () => {
     expect(subscriptions[0]?.oncePerTurnKey).toContain("BT11-016");
     expect(compiled.effects[0]?.actions[0]).toMatchObject({
       sourceFilter: { controller: "opponent" },
-      actions: [{ kind: "ReactivateEffect", fromTrigger: "On Deletion", count: 1, optional: true }],
+      actions: [{ kind: "ReactivateEffect", fromTrigger: "OnDeletion", count: 1, optional: true }],
     });
   });
 });

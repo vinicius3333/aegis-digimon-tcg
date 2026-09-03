@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -59,6 +58,8 @@ const compiled: CompiledCard = {
           kind: "Unsuspend",
           target: {
             fromSelectionRef: "chosen",
+            filter: {},
+            count: 1,
           },
           condition: {
             kind: "opponentHasNone",

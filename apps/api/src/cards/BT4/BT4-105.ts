@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-authored override for BT4-105 (Tactical Retreat!).
 // runtime-effect fix:
 // - Main: SecurityManipulation placeAsSecurity source is a Digimon (not self), placed face down

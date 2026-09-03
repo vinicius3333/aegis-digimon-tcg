@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -15,7 +14,7 @@ export const compiled: CompiledCard = {
           addedDigivolutionCardFilter: { colors: ["Purple"] },
           actions: [
             { kind: "Draw", controller: "mine", amount: 1 },
-            { kind: "GainMemory", controller: "mine", amount: 1 },
+            { kind: "GainMemory", amount: 1 },
           ],
           raw: "When a purple card is placed under this Tamer, draw 1 and gain 1 memory.",
         },
@@ -31,7 +30,7 @@ export const compiled: CompiledCard = {
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],
-            levelMin: 4,
+            levelComparison: { op: "gte", value: 4 },
             nameOrTrait: [{ tokens: ["Bagra Army"], match: "trait" }],
           },
           mode: "reduceCost",

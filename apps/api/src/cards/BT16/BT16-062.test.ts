@@ -19,7 +19,12 @@ describe("BT16-062", () => {
     expect(compiled.effects?.[2]).toMatchObject({
       trigger: "AllTurns",
       actions: [
-        { kind: "GrantStatic", grant: { copyEffectsFromDigivolution: expect.anything() }, duration: "permanent" },
+        {
+          kind: "GrantStatic",
+          grant: "effects",
+          filter: { nameOrTrait: [{ tokens: ["Gammamon"], match: "name" }] },
+          duration: "permanent",
+        },
       ],
     });
     expect(compiled.effects?.[3]).toMatchObject({ trigger: "AllTurns", isInherited: true });

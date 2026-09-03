@@ -1,8 +1,9 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const playFromStack = {
+type CardAction = CompiledCard["effects"][number]["actions"][number];
+
+const playFromStack: CardAction = {
   kind: "PlayWithoutCost",
   target: {
     filter: {
@@ -20,7 +21,7 @@ const playFromStack = {
   raw: "Play up to 2 Digimon cards from one of your Digimon's digivolution cards without paying their memory costs.",
 };
 
-const selectStackHost = {
+const selectStackHost: CardAction = {
   kind: "SelectBind",
   target: {
     filter: {

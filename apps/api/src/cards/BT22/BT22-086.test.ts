@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT22-086.js";
 
 describe("BT22-086 Yao Qinglan", () => {
@@ -63,11 +63,36 @@ describe("BT22-086 Yao Qinglan", () => {
       { 0: { battleArea: [{ card: "BT22-086", as: "yao" }], trash: [{ card: "BT22-018", as: "sangomon" }] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await (
-      s.engine as unknown as { fireTiming(timing: EffectTiming, trigger: Record<string, never>): Promise<void> }
-    ).fireTiming(EffectTiming.OnStartMainPhase, {});
+    await s.ready();
+    await advance(s.engine).runTurn(0);
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-018"));
 
     expect(s.state.players[0]!.deck.some((card) => card.cardId === "BT22-086")).toBe(true);
+  });
+
+  it("draws when a public digivolve adds a card to an Aqua/Sea Animal Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT22-086", as: "yao" },
+            { card: "BT1-033", under: [{ card: "BT22-069", as: "added" }], as: "base" },
+          ],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
+      subjectPermanentId: s.perm("base").permanentId,
+      addedDigivolutionCardInstanceIds: [s.inst("added").instanceId],
+    });
+    await settle(() => s.perm("yao").isSuspended && s.state.players[0]!.hand.length > 0, 400);
+
+    expect(s.perm("yao").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
   });
 });

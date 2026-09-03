@@ -40,6 +40,7 @@ export type Keyword =
   | "DigiBurst" // amount
   | "Digisorption" // signed amount
   | "MaterialSave" // amount
+  | "DigiXrosSubstitute" // allows one otherwise-ineligible DigiXros material
   | "Link" // amount
   | "LinkMax"
   | "Fragment" // amount

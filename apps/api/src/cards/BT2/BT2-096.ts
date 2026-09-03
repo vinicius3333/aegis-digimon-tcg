@@ -1,4 +1,3 @@
-// @ts-nocheck
 // HAND-FIXED IR — returning the target already trashes only that target's digivolution cards.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

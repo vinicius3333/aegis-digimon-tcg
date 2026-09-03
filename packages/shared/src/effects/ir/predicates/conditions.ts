@@ -95,7 +95,9 @@ export interface Condition {
     | "triggerDigivolvedSameLevel" // BT9-092
     | "triggerSubjectStackHasSameLevel" // BT22-093: any source shares the current top's level
     | "triggerDeletedLevelAtLeast"
+    | "triggerDeletedMatchesFilter" // at least one deleted permanent's top card matches `filter`
     | "triggerDeletedStackMatchesFilter"
+    | "triggerDeleterIsSelf" // the source permanent caused the current battle/effect deletion (BT16-061)
     | "triggerAttackerIsSelf"
     | "triggerAttackerMatchesFilter"
     | "triggerDefenderIsSelf"
@@ -106,6 +108,7 @@ export interface Condition {
     | "triggeredByEffect" // whenSuspended was produced by an effect, not attack/block rules (EX11-062)
     | "triggerRemovalCause"
     | "triggerDeletedIsOpponent"
+    | "triggerDeletedIsYourOther"
     | "triggerDeletedByDpZero"
     | "triggerIsFirstDeletedPermanent"
     | "noTamerInDigivolution"
@@ -169,7 +172,7 @@ export interface Condition {
   controller?: "mine" | "self" | "opponent";
   // For `zoneCount`: which player's zone, which zone, and the comparison.
   seat?: "mine" | "opponent" | "any";
-  zone?: "hand" | "trash" | "security" | "deck" | "battleArea";
+  zone?: "hand" | "trash" | "security" | "deck" | "battleArea" | "digivolutionCards";
   op?: "gte" | "lte" | "lt" | "gt" | "eq";
   /** For `boardCountCompare`: left operand, default opponent. */
   left?: "mine" | "opponent";

@@ -6,7 +6,7 @@ import "./BT3-109.js";
 
 describe("BT3-091 Lilithmon", () => {
   it("returns up to two purple Options with ten cards in trash", async () => {
-    const trash: any[] = [{ card: "BT2-108", as: "one" }, { card: "BT2-109", as: "two" }, ...Array(8).fill("BT1-010")];
+    const trash = [{ card: "BT2-108", as: "one" }, { card: "BT2-109", as: "two" }, ...Array(8).fill("BT1-010")];
     const s = setupEngine(
       {
         0: {

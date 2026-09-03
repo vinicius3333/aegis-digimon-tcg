@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -9,12 +8,16 @@ const qualifying = {
     { match: "text" as const, tokens: ["Pulsemon"] },
     { match: "trait" as const, tokens: ["SoC", "SEEKERS"] },
   ],
-  hasTamerCards: false,
 };
 const mindLink = {
   kind: "MindLink" as const,
   target: { filter: qualifying, count: 1 },
   optional: true,
+};
+
+const inheritedHost = {
+  isSelfRef: true,
+  nameOrTrait: qualifying.nameOrTrait,
 };
 
 export const compiled: CompiledCard = {
@@ -34,8 +37,18 @@ export const compiled: CompiledCard = {
     {
       trigger: "AllTurns",
       actions: [
-        { kind: "SubTrigger", event: "whenPlayed", actions: [mindLink] },
-        { kind: "SubTrigger", event: "whenOneOfYoursDigivolves", actions: [mindLink] },
+        {
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: { controller: "mine", kind: ["Digimon"] },
+          actions: [mindLink],
+        },
+        {
+          kind: "SubTrigger",
+          event: "whenOneOfYoursDigivolves",
+          sourceFilter: { controller: "mine", kind: ["Digimon"] },
+          actions: [mindLink],
+        },
       ],
     },
     {
@@ -44,19 +57,19 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "GainKeyword",
-          target: { filter: { isSelfRef: true, ...qualifying }, count: 1, isSelf: true },
+          target: { filter: inheritedHost, count: 1, isSelf: true },
           keyword: { keyword: "Alliance", raw: "＜Alliance＞" },
           duration: "permanent",
         },
         {
           kind: "GainKeyword",
-          target: { filter: { isSelfRef: true, ...qualifying }, count: 1, isSelf: true },
+          target: { filter: inheritedHost, count: 1, isSelf: true },
           keyword: { keyword: "Piercing", raw: "＜Piercing＞" },
           duration: "permanent",
         },
         {
           kind: "GainKeyword",
-          target: { filter: { isSelfRef: true, ...qualifying }, count: 1, isSelf: true },
+          target: { filter: inheritedHost, count: 1, isSelf: true },
           keyword: { keyword: "Barrier", raw: "＜Barrier＞" },
           duration: "permanent",
         },
@@ -78,7 +91,7 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlayWithoutCost",
-          target: { filter: { nameOrTrait: [{ tokens: ["Eiji Nagasumi"], match: "name" }] }, count: 1 },
+          target: { filter: { nameOrTrait: [{ tokens: ["Eiji Nagasumi"], match: "nameExact" }] }, count: 1 },
           fromOwnDigivolutionStack: true,
           payCost: false,
           optional: true,

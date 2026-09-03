@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -136,8 +135,8 @@ const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      multicolor: true,
       names: ["Magnamon"],
+      colorCount: 2,
       cost: 5,
       isAlternate: true,
     },

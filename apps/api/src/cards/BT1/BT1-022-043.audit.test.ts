@@ -21,7 +21,7 @@ describe("BT1 combat and evolution IR coverage", () => {
       { trigger: "Static", keywords: [{ keyword: "Piercing" }] },
       { trigger: "WhenBlocked", isInherited: true },
     ]);
-    expect(irNode(skullGreymon.effects[0]?.actions[0])?.target.filter.keywords).toContainEqual({ keyword: "Blocker" });
+    expect(irNode(skullGreymon.effects[0]?.actions[0])?.target.filter.keywords).toContain("Blocker");
     expect(breakdramon.effects[0]?.keywords).toContainEqual({ keyword: "Piercing", raw: "＜Piercing＞" });
     expect(dolphmon.effects[0]?.actions[0]).toMatchObject({
       amount: 1000,

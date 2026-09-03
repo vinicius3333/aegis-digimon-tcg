@@ -19,7 +19,7 @@ describe("BT6-028 Pukumon", () => {
       },
       { autoSelectCards: true },
     );
-    const source = (s.engine as any).cardSourceOf(s.perm("pukumon").topCard!);
+    const source = observe(s.engine).cardSource(s.perm("pukumon"));
     const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
       effect.effectKey.startsWith("BT6-028/"),
     )!.effectKey;

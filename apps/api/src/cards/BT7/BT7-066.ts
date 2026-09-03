@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Hand-authored override — do not regenerate
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";

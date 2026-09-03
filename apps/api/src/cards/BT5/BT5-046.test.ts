@@ -1,6 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { effectsOf } from "../../engine/effects/collect.js";
+import { internalsOf } from "../../engine/testkit/internals.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT5-004.js";
 import "./BT5-046.js";
@@ -11,7 +12,7 @@ describe("BT5-046 Terriermon Assistant", () => {
       { 0: { battleArea: [{ card: "BT5-046", as: "terrier", under: ["BT5-004"] }], deck: ["BT5-047"] } },
       { autoSelectCards: true },
     );
-    const source = (s.engine as any).cardSourceOf(s.perm("terrier").topCard!);
+    const source = internalsOf(s.engine).cardSourceOf(s.perm("terrier").topCard!);
     const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
       effect.effectKey.startsWith("BT5-046/"),
     )!.effectKey;
@@ -38,7 +39,7 @@ describe("BT5-046 Terriermon Assistant", () => {
       { autoSelectCards: true },
     );
     const revealedNonMatch = s.state.players[0]!.deck[0]!;
-    const source = (s.engine as any).cardSourceOf(s.perm("terrier").topCard!);
+    const source = internalsOf(s.engine).cardSourceOf(s.perm("terrier").topCard!);
     const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
       effect.effectKey.startsWith("BT5-046/"),
     )!.effectKey;
@@ -63,7 +64,7 @@ describe("BT5-046 Terriermon Assistant", () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT5-046", as: "terrier" }], deck: ["BT5-047"] },
     });
-    (s.engine as any).syncActivatableEffects();
+    internalsOf(s.engine).syncActivatableEffects();
     expect(s.perm("terrier").activatableEffectsJson).toBe("");
   });
 });

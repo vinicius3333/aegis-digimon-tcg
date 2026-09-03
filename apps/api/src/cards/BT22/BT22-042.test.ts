@@ -132,4 +132,27 @@ describe("BT22-042 Nyabootmon", () => {
     await settle();
     expect(s.state.players[0]!.hand.filter((card) => card.cardId === "BT22-032")).toHaveLength(1);
   });
+
+  it("reactivates through its public Overclock deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT22-042", as: "nyabootmon" },
+            { card: "BT22-032", as: "fodder" },
+          ],
+          hand: [{ card: "BT22-032", as: "replacement" }],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+    await settle(() => mainPhase.isOpen);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT22-032")).toBe(true);
+  });
 });

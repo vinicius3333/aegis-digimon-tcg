@@ -282,6 +282,20 @@ describe("findDnaMaterialCombination", () => {
     ]);
   });
 
+  it("tries every printed DNA requirement until BT18-041 finds a legal color pair", () => {
+    const permanent = (permanentId: string, cardId: string) =>
+      ({
+        permanentId,
+        topCard: { instanceId: `${permanentId}-top`, cardId },
+        stack: [],
+        linked: [],
+      }) as unknown as Permanent;
+
+    expect(
+      findDnaMaterialCombination("BT18-041", [permanent("blue", "BT1-040"), permanent("black", "BT10-064")]),
+    ).toEqual(["blue", "black"]);
+  });
+
   it("preserves both legal choices when Ordinemon is dropped onto a dual-color material", () => {
     const permanent = (permanentId: string) =>
       ({
@@ -540,10 +554,22 @@ describe("Tamer-onto digivolution cost paths (BT17-012 family)", () => {
     expect(opts.some((o) => o.cost === 3)).toBe(true);
   });
 
-  it("Family-B (BT4-011) onto a red Tamer uses the derived cost, never the stale cost 0", () => {
-    const opts = getDigivolveCostOptions("BT4-011", permOf("BT7-085"));
-    expect(opts.length).toBeGreaterThan(0);
+  it.each([
+    ["BT4-011", "BT7-085", 2],
+    ["BT4-013", "BT7-085", 3],
+    ["BT4-025", "BT4-093", 2],
+  ] as const)("Family-B %s onto %s uses derived cost %i", (cardId, tamerId, expectedCost) => {
+    const opts = getDigivolveCostOptions(cardId, permOf(tamerId));
+    expect(opts).toContainEqual(expect.objectContaining({ type: "alternate", cost: expectedCost }));
     expect(opts.every((o) => o.cost !== 0)).toBe(true);
+  });
+
+  it("uses BT7's canonical target filter for Tamer color and fixed cost", () => {
+    const greenTamer = getDigivolveCostOptions("BT7-047", permOf("BT7-089"));
+    expect(greenTamer).toContainEqual(expect.objectContaining({ type: "alternate", cost: 2 }));
+
+    const redTamer = getDigivolveCostOptions("BT7-047", permOf("BT7-085"));
+    expect(redTamer.some((option) => option.type === "alternate")).toBe(false);
   });
 });
 

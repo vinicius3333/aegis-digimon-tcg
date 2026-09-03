@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -14,7 +13,10 @@ export const compiled: CompiledCard = {
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           condition: {
             kind: "youHave",
-            filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Takato Matsuki"], match: "name" }] },
+            filter: {
+              controllerDefault: "mine",
+              nameOrTrait: [{ tokens: ["Takato Matsuki"], match: "nameExact" }],
+            },
             raw: "you have [Takato Matsuki]",
           },
         },
@@ -33,8 +35,8 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "SubTrigger",
-          event: "whenEffectDeletes",
-          sourceFilter: { kind: ["Digimon"] },
+          event: "onDeletionOf",
+          sourceFilter: { kind: ["Digimon"], deleteCause: "byEffect" },
           actions: [
             {
               kind: "GainKeyword",
@@ -70,6 +72,11 @@ export const compiled: CompiledCard = {
           optional: true,
         },
       ],
+    },
+    {
+      trigger: "Security",
+      actions: [{ kind: "GainMemory", amount: 1 }, { kind: "PlaceInBattleAreaSelf" }],
+      isSecurity: true,
     },
   ],
   coverage: "full",

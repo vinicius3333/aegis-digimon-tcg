@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -7,53 +6,79 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // If there are 10 or more cards in your trash, you may play 1 Digimon card with [Lucemon]
 // in its name without paying its memory cost instead.
 // KB Q1676 confirms the alternative play is optional and requires 10+ cards in trash.
-// The second action is "instead" of the first — conditional on 10+ trash cards.
+// The Modal makes the ordinary play and the optional replacement mutually exclusive.
 const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Main",
       actions: [
         {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              colors: ["Purple"],
-              levels: [5],
+          kind: "Modal",
+          choose: 1,
+          labels: ["Play a purple level 5 Digimon", "Play a Digimon with Lucemon in its name instead"],
+          options: [
+            [
+              {
+                kind: "PlayWithoutCost",
+                target: {
+                  filter: {
+                    controller: "mine",
+                    kind: ["Digimon"],
+                    colors: ["Purple"],
+                    levels: [5],
+                  },
+                  count: 1,
+                },
+                from: ["trash"],
+                payCost: false,
+              },
+            ],
+            [
+              {
+                kind: "PlayWithoutCost",
+                target: {
+                  filter: {
+                    controller: "mine",
+                    kind: ["Digimon"],
+                    nameOrTrait: [
+                      {
+                        tokens: ["Lucemon"],
+                        match: "name",
+                      },
+                    ],
+                  },
+                  count: 1,
+                },
+                from: ["trash"],
+                payCost: false,
+              },
+            ],
+          ],
+          optionConditions: [
+            {
+              kind: "selfHasMinTrash",
+              count: 1,
+              filter: { kind: ["Digimon"], colors: ["Purple"], levels: [5] },
             },
-            count: 1,
-          },
-          from: ["trash"],
-          payCost: false,
-        },
-        {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [
+            {
+              kind: "allOf",
+              conditions: [
                 {
-                  tokens: ["Lucemon"],
-                  match: "name",
+                  kind: "zoneCount",
+                  seat: "mine",
+                  zone: "trash",
+                  op: "gte",
+                  value: 10,
+                  raw: "there are 10 or more cards in your trash",
+                },
+                {
+                  kind: "selfHasMinTrash",
+                  count: 1,
+                  filter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Lucemon"], match: "name" }] },
                 },
               ],
             },
-            count: 1,
-          },
-          from: ["trash"],
-          payCost: false,
-          condition: {
-            kind: "zoneCount",
-            seat: "mine",
-            zone: "trash",
-            op: "gte",
-            value: 10,
-            raw: "there are 10 or more cards in your trash",
-          },
-          instead: true,
-          optional: true,
+          ],
         },
       ],
     },

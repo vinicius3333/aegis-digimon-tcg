@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -29,6 +28,7 @@ export const compiled: CompiledCard = {
             ],
           },
           from: ["trash"],
+          payCost: true,
           optional: true,
           condition: {
             kind: "youHave",

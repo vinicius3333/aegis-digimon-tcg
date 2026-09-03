@@ -33,7 +33,7 @@ describe("BT16-074", () => {
       kind: "Unsuspend",
       optional: true,
       abortOnDecline: true,
-      cost: { kind: "trash" },
+      cost: { kind: "trash", target: { filter: { zone: "security", position: "top" } } },
     });
   });
 
@@ -69,5 +69,35 @@ describe("BT16-074", () => {
     expect(s.perm("source").topCard?.cardId).toBe("BT16-074");
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-043")).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(3);
+  });
+
+  it("naturally trashes exactly the top security card to unsuspend its Pulsemon-text host", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT16-055", as: "host", under: ["BT16-074"] }],
+          security: [
+            { card: "BT1-001", as: "topSecurity" },
+            { card: "BT1-002", as: "bottomSecurity" },
+          ],
+        },
+        1: { security: ["BT1-003"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.perm("host").isSuspended && s.state.players[0]!.security.length === 1);
+
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("topSecurity").instanceId)).toBe(true);
+    expect(s.state.players[0]!.security[0]?.instanceId).toBe(s.inst("bottomSecurity").instanceId);
   });
 });

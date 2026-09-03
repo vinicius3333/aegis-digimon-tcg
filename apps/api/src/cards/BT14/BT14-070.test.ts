@@ -8,7 +8,14 @@ describe("BT14-070", () => {
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
       trigger: "YourTurn",
       frequency: "OncePerTurn",
-      actions: [{ kind: "SubTrigger", event: "whenTrashedFromHand", actions: [{ kind: "GainMemory", amount: 1 }] }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenTrashedFromHand",
+          fireCondition: { kind: "triggerByYourEffect" },
+          actions: [{ kind: "GainMemory", amount: 1 }],
+        },
+      ],
     }));
   it("gains memory when an effect trashes a card from hand", async () => {
     const s = setupEngine(

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -113,9 +112,9 @@ export const compiled: CompiledCard = {
               filter: {
                 controller: "mine",
                 zone: "security",
+                position: "top",
               },
               count: 1,
-              fromTop: true,
             },
             raw: "By trashing your top security card",
           },
