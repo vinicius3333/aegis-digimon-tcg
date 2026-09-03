@@ -21,7 +21,13 @@ describe("EX1-027 Leomon", () => {
   it("does not recover when its owner has more than 3 security cards", async () => {
     const s = setupEngine({
       0: {
-        security: [{ card: "EX1-027", as: "leomon", faceUp: true }, "BT1-001", "BT1-001", "BT1-001"],
+        security: [
+          { card: "EX1-027", as: "leomon", faceUp: true },
+          "BT1-001",
+          "BT1-001",
+          "BT1-001",
+          "BT1-001",
+        ],
         deck: [{ card: "BT1-009", as: "deckTop" }],
       },
     });
@@ -29,7 +35,7 @@ describe("EX1-027 Leomon", () => {
 
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("leomon"));
 
-    expect(s.state.players[0]!.security).toHaveLength(4);
+    expect(s.state.players[0]!.security).toHaveLength(5);
     expect(s.state.players[0]!.deck.some((card) => card.instanceId === deckTopId)).toBe(true);
   });
 
