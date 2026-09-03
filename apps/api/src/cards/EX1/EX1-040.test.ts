@@ -11,7 +11,7 @@ describe("EX1-040 MegaKabuterimon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 5;
+    s.state.memory = 2;
     await s.ready();
     expect(
       s.engine.applyIntent(0, {
@@ -21,8 +21,9 @@ describe("EX1-040 MegaKabuterimon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("mega").topCard.cardId === "BT1-083");
+    await settle(() => s.state.players[1]!.security.length === 1);
     expect(s.perm("mega").topCard.instanceId).toBe(s.inst("evo").instanceId);
-    expect(s.state.memory).toBe(1);
+    expect(s.state.memory).toBe(-2);
   });
 
   it("can choose the Ancient Insect branch while attacking", async () => {
