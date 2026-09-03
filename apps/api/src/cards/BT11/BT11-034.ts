@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Condition, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const xrosHeart = {
+const xrosHeart: { filter: Filter; from: "trash"[] } = {
   filter: {
     zone: "trash",
     controller: "mine",
@@ -34,7 +33,7 @@ const hasDorulumon = {
     },
   ],
   raw: "you have a Digimon with [Dorulumon] in its name or with [Dorulumon] in its digivolution cards",
-};
+} satisfies Condition;
 export const compiled: CompiledCard = {
   effects: [
     {

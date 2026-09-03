@@ -679,12 +679,17 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         const self = ctx.source.permanent();
         const candidates =
           self?.stack.filter((card) => definitionMatches(returnTarget.filter, ctx.game.definitionOf(card))) ?? [];
-        if (candidates.length === 0) return false;
+        if (candidates.length === 0) {
+          ctx.lastEffectActed = false;
+          return false;
+        }
         if (
           action.optional === true &&
           !(await ctx.ask.optional(ctx, "Return a level 6 digivolution card to your hand?"))
-        )
+        ) {
+          ctx.lastEffectActed = false;
           return false;
+        }
         const picked =
           candidates.length === 1
             ? [candidates[0]!.instanceId]
@@ -694,7 +699,10 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
                 max: 1,
                 visibleCards: candidates.map((card) => ({ instanceId: card.instanceId, cardId: card.cardId })),
               });
-        if (picked.length === 0) return false;
+        if (picked.length === 0) {
+          ctx.lastEffectActed = false;
+          return false;
+        }
         const pickedCard = candidates.find((card) => card.instanceId === picked[0]);
         const moved =
           action.to === "hand"
@@ -731,9 +739,15 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       }
       if (returnTarget.totalPlayCostBudget !== undefined) {
         const ids = topInstanceIds(ctx, await resolveTotalPlayCostBudgetTargets(ctx, returnTarget));
-        if (ids.length === 0) return false;
-        if (action.to === "hand") await ctx.fx.returnToHand(ids);
-        else await ctx.fx.returnToDeck(ids, { toTop: action.to === "deckTop" });
+        if (ids.length === 0) {
+          ctx.lastEffectActed = false;
+          return false;
+        }
+        const moved =
+          action.to === "hand"
+            ? await ctx.fx.returnToHand(ids)
+            : await ctx.fx.returnToDeck(ids, { toTop: action.to === "deckTop" });
+        ctx.lastEffectActed = moved.length > 0;
         return false;
       }
       let returnPermanentIds: string[] | undefined;
@@ -758,6 +772,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
             : undefined;
         const chosen = await pickLoose(ctx, returnTarget, candidates, undefined, ctx.ask, visibleZoneIds);
         if (chosen.length === 0) {
+          ctx.lastEffectActed = false;
           if (action.trackCount !== undefined) {
             if (ctx.namedCounts === undefined) ctx.namedCounts = new Map();
             ctx.namedCounts.set(action.trackCount, 0);
@@ -805,6 +820,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       }
       let ids = topInstanceIds(ctx, returnPermanentIds ?? (await resolvePermanentTargets(ctx, returnTarget)));
       if (ids.length === 0) {
+        ctx.lastEffectActed = false;
         if (action.trackCount !== undefined) {
           if (ctx.namedCounts === undefined) ctx.namedCounts = new Map();
           ctx.namedCounts.set(action.trackCount, 0);

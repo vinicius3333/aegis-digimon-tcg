@@ -19,6 +19,7 @@ describe("BT11-064 Greymon (X Antibody)", () => {
       { trigger: "YourTurn", actions: [{ kind: "Replacement", event: "wouldDigivolve", scaling: { unit: "colors" } }] },
       { trigger: "AllTurns", isInherited: true, actions: [{ kind: "Replacement", event: "wouldLeavePlay" }] },
     ]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Greymon"], cost: 0, isAlternate: true }]);
   });
 
   it("reduces evolution into a dual-color Greymon-named card by 2", async () => {

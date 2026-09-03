@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -34,6 +33,7 @@ export const compiled: CompiledCard = {
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           keyword: { keyword: "Piercing", raw: "＜Piercing＞" },
           duration: "forTheTurn",
+          condition: { kind: "ifThisEffectActed", raw: "if you returned a level 6 Digimon" },
         },
       ],
     },
@@ -57,13 +57,14 @@ export const compiled: CompiledCard = {
             kind: "youHave",
             filter: { kind: ["Tamer"] },
           },
-          optional: false,
+          optional: true,
         },
       ],
     },
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [{ names: ["Justimon"], cost: 1, isAlternate: true }],
 };
 
 registerIrCard("BT11-073", compiled);

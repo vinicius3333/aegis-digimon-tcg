@@ -1,8 +1,7 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard, Cost, SubTriggerAction } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const enter: any[] = [
+const enter: Action[] = [
   {
     kind: "Trash",
     target: { filter: { zone: "hand", controller: "opponent" }, count: 1 },
@@ -16,11 +15,11 @@ const enter: any[] = [
     condition: { kind: "opponentHas", filter: { zone: "battleArea", kind: ["Digimon"] }, countMin: 2 },
   },
 ];
-const stackCost = {
+const stackCost: Cost = {
   kind: "trash",
   target: { filter: { zone: "digivolutionCards", hostFilter: { isSelfRef: true } }, count: 1 },
 };
-const watch = (event: string) => ({
+const watch = (event: SubTriggerAction["event"]): Action => ({
   kind: "SubTrigger",
   event,
   sourceFilter: { controller: "opponent", kind: ["Digimon"] },

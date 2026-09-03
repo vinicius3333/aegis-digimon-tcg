@@ -1,9 +1,8 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Condition, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const grant = {
-  target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+  target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } satisfies Target,
   grant: { dp: 3000, color: "white", originalName: "Sukamon" },
   duration: "untilOpponentTurnEnd",
   condition: {
@@ -14,6 +13,11 @@ const grant = {
     ],
     raw: "your opponent has 16 or more cards in their trash or you have 3 or more [Sukamon] in your trash",
   },
+} satisfies {
+  target: Target;
+  grant: { dp: number; color: string; originalName: string };
+  duration: "untilOpponentTurnEnd";
+  condition: Condition;
 };
 export const compiled: CompiledCard = {
   effects: [

@@ -25,7 +25,10 @@ describe("BT11-061 Vemmon", () => {
             kind: "RevealAdd",
             revealCount: 3,
             rest: "deckBottom",
-            add: [{ upTo: true, to: "hand" }, { to: "placeUnder" }],
+            add: [
+              { upTo: true, to: "hand" },
+              { to: "placeUnder", underFilter: { isSelfRef: true } },
+            ],
           },
         ],
       },
