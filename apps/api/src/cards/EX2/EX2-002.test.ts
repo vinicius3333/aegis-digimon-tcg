@@ -14,4 +14,11 @@ describe("EX2-002 Xiaomon", () => {
     await s.ready();
     expect(s.perm("host").currentDP).toBe(1000);
   });
+
+  it("keeps the level-4 bonus during the opponent's turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX2-015", as: "host", under: ["EX2-002"] }] } });
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(7000);
+  });
 });

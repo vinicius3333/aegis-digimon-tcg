@@ -52,4 +52,14 @@ describe("EX2-017 Leomon", () => {
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await turnLoop;
   });
+
+  it("does not gain Blocker during the opponent's turn without a Tamer", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX2-017", as: "leomon" }] },
+      1: { deck: ["BT1-001"] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("leomon"), "Blocker")).toBe(false);
+  });
 });

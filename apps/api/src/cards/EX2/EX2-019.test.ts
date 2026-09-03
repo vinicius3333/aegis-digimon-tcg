@@ -11,7 +11,14 @@ describe("EX2-019 Renamon", () => {
       {
         0: {
           hand: [{ card: "EX2-019", as: "renamon" }],
-          deck: [{ card: "EX2-021", as: "kyubimon" }, { card: "EX2-060", as: "rika" }, "BT1-001", "BT1-002"],
+          deck: [
+            { card: "EX2-021", as: "kyubimon" },
+            { card: "EX2-060", as: "rika" },
+            "EX2-014",
+            "EX2-015",
+            "EX2-031",
+            "EX2-032",
+          ],
         },
       },
       { autoSelectCards: true, autoOrderTriggers: true },
@@ -20,10 +27,15 @@ describe("EX2-019 Renamon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("renamon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.hand.length === 2);
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.deck.map((card) => card.cardId).join(",") === "EX2-031,EX2-032,EX2-014,EX2-015",
+    );
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("kyubimon").instanceId, s.inst("rika").instanceId]),
     );
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["EX2-031", "EX2-032", "EX2-014", "EX2-015"]);
   });
 
   it("gains memory only for a cost-2 Option, then only once per turn", async () => {
