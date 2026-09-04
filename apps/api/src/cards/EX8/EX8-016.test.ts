@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
+import { digivolutionRequirementsFor } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -54,7 +54,7 @@ describe("EX8-016", () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX8-016", as: "dinomon" }] },
+        0: { hand: [{ card: "EX8-016", as: "dinomon" }] },
         1: {
           battleArea: [
             { card: "BT1-009", as: "low", suspended: true },
@@ -67,7 +67,11 @@ describe("EX8-016", () => {
     preferInstanceIds.push(s.perm("high").permanentId);
     const lowInstanceId = s.perm("low").topCard.instanceId;
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("dinomon"));
+    await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dinomon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === lowInstanceId));
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
@@ -77,14 +81,30 @@ describe("EX8-016", () => {
   it("performs the mandatory deletion after declining the optional suspension", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX8-016", as: "dinomon" }] },
+        0: {
+          battleArea: [{ card: "EX8-014", as: "dinomon" }],
+          hand: [{ card: "EX8-016", as: "evolved" }],
+          deck: ["BT1-045"],
+        },
         1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true }] },
       },
       { autoDeclineOptional: true },
     );
     const targetId = s.perm("target").topCard.instanceId;
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("dinomon"));
+    await s.ready();
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("dinomon").permanentId,
+        instanceId: s.inst("evolved").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === targetId));
+    expect(s.perm("dinomon").topCard.cardId).toBe("EX8-016");
+    expect(s.state.memory).toBe(0);
 
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === targetId)).toBe(true);
   });
