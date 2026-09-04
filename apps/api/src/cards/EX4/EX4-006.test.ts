@@ -30,6 +30,11 @@ describe("EX4-006 Guilmon", () => {
       duration: "forTheTurn",
       condition: { kind: "combinedTrashCount", op: "gte", value: 20 },
     });
+    expect(compiled.digivolutionRequirement).toContainEqual({
+      namesExact: ["Gigimon"],
+      cost: 0,
+      isAlternate: true,
+    });
   });
 
   it.each([
