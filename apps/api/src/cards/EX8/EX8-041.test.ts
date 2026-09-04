@@ -23,8 +23,18 @@ describe("EX8-041", () => {
   it("suspends an opposing Tamer and prevents its unsuspension in a live On Play resolution", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "EX8-041", as: "dark" }] },
-        1: { battleArea: [{ card: "BT1-087", as: "tamer" }] },
+        0: {
+          hand: [{ card: "EX8-041", as: "dark" }],
+          battleArea: [{ card: "BT1-087", as: "ownTamer" }],
+          deck: ["BT1-045", "BT1-046"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-087", as: "tamer" },
+            { card: "BT1-009", as: "digimon" },
+          ],
+          deck: ["BT1-045", "BT1-046"],
+        },
       },
       { autoSelectCards: true },
     );
@@ -36,6 +46,18 @@ describe("EX8-041", () => {
     );
     expect(s.state.players[1]!.battleArea[0]!.isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("tamer"), "unsuspend")).toBe(true);
+    expect(s.perm("ownTamer").isSuspended).toBe(false);
+    expect(s.perm("digimon").isSuspended).toBe(false);
+    await advance(s.engine).verb.unsuspend([s.perm("tamer").permanentId]);
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    await advance(s.engine).runTurn(0);
+    expect(observe(s.engine).isRestricted(s.perm("tamer"), "unsuspend")).toBe(true);
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await advance(s.engine).runTurn(1);
+    expect(observe(s.engine).isRestricted(s.perm("tamer"), "unsuspend")).toBe(false);
+    await advance(s.engine).verb.unsuspend([s.perm("tamer").permanentId]);
+    expect(s.perm("tamer").isSuspended).toBe(false);
   });
   it("can suspend one Tamer and restrict a different Tamer when digivolving", async () => {
     const s = setupEngine(
@@ -82,7 +104,7 @@ describe("EX8-041", () => {
   it("uses the Reptile evolution route and resolves the entry effect", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX8-038", as: "base" }], hand: [{ card: "EX8-041", as: "dark" }] },
+        0: { battleArea: [{ card: "BT1-010", as: "base" }], hand: [{ card: "EX8-041", as: "dark" }] },
         1: { battleArea: [{ card: "BT1-087", as: "tamer" }] },
       },
       { autoSelectCards: true },
@@ -98,10 +120,28 @@ describe("EX8-041", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("tamer").isSuspended && observe(s.engine).isRestricted(s.perm("tamer"), "unsuspend"));
     expect(s.state.memory).toBe(0);
+    expect(s.perm("base").topCard.cardId).toBe("EX8-041");
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("tamer"), "unsuspend")).toBe(true);
+  });
+
+  it("rejects an off-color non-Reptile rookie", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "base" }], hand: [{ card: "EX8-041", as: "dark" }] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("dark").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 
   it("grants inherited Retaliation to its host", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "AD1-001", as: "host", under: ["EX8-041"] }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT11-053", as: "host", under: ["EX8-041"] }] } });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Retaliation")).toBe(true);
   });
@@ -109,7 +149,7 @@ describe("EX8-041", () => {
   it("uses inherited Retaliation when the evolution host loses a battle", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "AD1-001", as: "host", dp: 1000, under: ["EX8-041"] }] },
+        0: { battleArea: [{ card: "BT11-053", as: "host", dp: 1000, under: ["EX8-041"] }] },
         1: { battleArea: [{ card: "AD1-001", as: "target", dp: 3000, suspended: true }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
