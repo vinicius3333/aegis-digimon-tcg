@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX8-015.js";
+import "./index.js";
 
 describe("EX8-015", () => {
   it("gains DP, blocks return, and conditionally deletes up to 10000 DP when digivolving", () =>
@@ -109,7 +110,7 @@ describe("EX8-015", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("meramon").topCard.instanceId === s.inst("xWarGrowlmon").instanceId);
 
-    expect(s.perm("meramon").currentDP).toBe(11000);
+    expect(s.perm("meramon").currentDP).toBe(13000); // 8000 + 3000 effect + 2000 inherited Meramon.
     expect(observe(s.engine).isRestricted(s.perm("meramon"), "beReturned")).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
