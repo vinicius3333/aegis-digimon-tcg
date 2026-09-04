@@ -1,4 +1,7 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-050.js";
 
 describe("EX6-050 Feresmon", () => {
@@ -23,4 +26,11 @@ describe("EX6-050 Feresmon", () => {
         },
       ],
     }));
+  it("publicly gains 1 memory on digivolving while the opponent has five cards or fewer", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX6-050", as: "feres" }] } }, { autoAcceptOptional: true });
+    await s.ready();
+    s.state.memory = 0;
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("feres"));
+    expect(s.state.memory).toBe(1);
+  });
 });

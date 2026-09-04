@@ -1,4 +1,7 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-048.js";
 
 describe("EX6-048 Witchmon", () => {
@@ -22,4 +25,16 @@ describe("EX6-048 Witchmon", () => {
         },
       ],
     }));
+  it("publicly pays a hand card to grant the opposing Digimon its end-of-attack deletion", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX6-048", as: "witch" }], hand: [{ card: "BT1-010", as: "cost" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("witch"));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(false);
+  });
 });
