@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
+import { digivolutionRequirementsFor } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
@@ -60,7 +60,7 @@ describe("EX8-054", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("xAntibody"));
+    await advance(s.engine).runTurn(0);
     await settle(() => s.state.players[1]!.security.length === 0);
     expect(s.perm("opponent").isSuspended).toBe(false);
   });
