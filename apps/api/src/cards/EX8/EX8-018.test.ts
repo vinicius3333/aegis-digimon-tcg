@@ -22,33 +22,38 @@ describe("EX8-018", () => {
       frequency: "OncePerTurn",
       actions: [{ kind: "Draw", amount: 1, condition: { kind: "zoneCount", value: 7 } }],
     }));
-  it("selects the printed DS and Sea Beast/Plesiosaur matches from the live reveal", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          hand: [{ card: "EX8-018", as: "gomamon" }],
-          deck: [
-            { card: "EX8-020", as: "ds" },
-            { card: "BT1-041", as: "seaBeast" },
-            { card: "AD1-001", as: "decoy" },
-            { card: "BT1-045", as: "anchor" },
-          ],
+  it.each(["BT1-041", "EX8-027"])(
+    "selects DS and the Sea Beast/Plesiosaur candidate %s from the live reveal",
+    async (candidate) => {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [{ card: "EX8-018", as: "gomamon" }],
+            deck: [
+              { card: "EX8-020", as: "ds" },
+              { card: candidate, as: "traitCandidate" },
+              { card: "AD1-001", as: "decoy" },
+              { card: "BT1-045", as: "anchor" },
+            ],
+          },
         },
-      },
-      { autoSelectCards: true },
-    );
-    s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gomamon").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(
-      () =>
-        s.state.players[0]!.hand.some((card) => card.cardId === "EX8-020") &&
-        s.state.players[0]!.hand.some((card) => card.cardId === "BT1-041"),
-    );
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["EX8-020", "BT1-041"]));
-    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-045", "AD1-001"]);
-  });
+        { autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gomamon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(
+        () =>
+          s.state.players[0]!.hand.some((card) => card.cardId === "EX8-020") &&
+          s.state.players[0]!.hand.some((card) => card.cardId === candidate),
+      );
+      expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(
+        expect.arrayContaining(["EX8-020", candidate]),
+      );
+      expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-045", "AD1-001"]);
+    },
+  );
 
   it("returns all three cards to the bottom when neither printed trait matches", async () => {
     const s = setupEngine(
