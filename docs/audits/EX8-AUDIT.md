@@ -45,14 +45,20 @@ EX10 (74), EX11 (74), and EX12 (77); these sets have not begun in this run.
 | EX8-021 | 5/5 | `03fc94a4c`: alternate evolution explicitly asserts the new top and original Syakomon source; live Jamming security survival and top-card memory limit retained |
 | EX8-022 | 8/8 | `838a3f219`, `04b7c19ba`: legal source stacks, actual Ice Clad count-over-DP battle, opposing attack with no security checks under inherited -1, expiry, and alternate-route rejection |
 | EX8-023 | 9/9 | `d1cde8569`: explicit Q3883 security check with a legal Ice Clad winning stack; real On Play paths, legal opposing stacks, frozen battle reactions and post-removal passive refresh. Shared review Ready |
+| EX8-024 | 9/9 | `f5a4e98a8`: actual attacks and restriction attempts, inherited cost refusal/limit, legal stacks and duration checks |
+| EX8-025 | 10/10 tests; fixture review OPEN | `5ccbac868`, `54716e6ae`: redirect runtime added, but the initial Red Marsmon over Blue Whamon stack requires a color-compatible replacement or actual effect-placement proof before acceptance |
+| EX8-026 | 8/8 | `73e75d431`: actual Counter/Blast Digivolve added to live threshold, Blitz restriction and DS removal proofs |
+| EX8-027 | 8/8 | `458148279`, `12e4ff3b7`: legal foreign-source fixture, optional playback refusal, public DNA timing and Q3896 trigger ordering |
+| EX8-028 | 10/10 | `d97d82b55`: real Ice Clad/Barrier combat, attack activation and added boundary/refusal evidence |
+| EX8-029 | 8/8 | `dff9b4685`: actual return budget up to 14, low-memory On Play suppression, DS immunity, legal source stacks and DNA playback |
 | EX8-030 | 8/8 | `e4df18446`: actual Digimon memory denial and controller control, real Tamer gain, off-color NSo egg evolution/negative, and Q3914 real dual-kind Marcus attack. Combat now uses effective kinds consistently; scoped review Ready |
-| EX8-031 | 5/5 | `78b370e78`, `9e250cf64`: recovery now matches Plug-In names, including trait-less EX2-066; real Renamon evolution with draw/source assertions, actual cost-1/cost-2 Option uses, second-use limit, and expiry. Adjusted-use-cost mechanism: 2 selected tests passed |
-| EX8-032 | 2/2 | `2fbcd5bd2`: legal yellow level-5 host, two real attacks distinguish the inherited once-per-turn reduction, and turn-boundary expiry |
+| EX8-031 | 5/5; KB follow-up OPEN | `78b370e78`, `9e250cf64`: recovery now matches Plug-In names, including trait-less EX2-066; real Renamon evolution with draw/source assertions, actual cost-1/cost-2 Option uses, second-use limit, and expiry. Adjusted-use-cost mechanism: 2 selected tests passed; Q5512–Q5515 card-level integration coverage is under follow-up |
+| EX8-032 | 3/3 | `2fbcd5bd2`, `938c60529`: legal yellow level-5 host, two-attack inherited limit and expiry; off-color NSo evolution explicitly proves cost, source retention and draw, with a non-NSo rejection |
 | EX8-033 | 4/4 | `0b79911cc`: legal purple level-6 inherited Recovery host, actual NSo evolution recovery, and On Deletion DP expiry |
-| EX8-034 | 6/6 | `7ab89f04a`, `e1b648c47`: real NSo evolution and inherited attack; opposing combat explicitly preserves defender security under -1. The reported contradiction was a fixture error: security had been seeded on the attacker, while the asserted defender already had zero |
-| EX8-035 | 6/6 | `daaacda44`: real opposing digivolution suppresses BT16-020's draw at the memory gate; actual Security battle grants both debuffs and returns the card to its owner's hand |
-| EX8-036 | 6/6 | `667bc497e`: actual hand/trash evolution-play routes, play-cost-6 rejection, optional refusal, and On Deletion deck recovery |
-| EX8-037 | 7/7 | `e361926b3`: real Option use, second-attack once-per-turn gate, refusal/no-cost proof, independent X Antibody stack token branch and alternate evolution rejection |
+| EX8-034 | 7/7 | `eeeb07233`, `6da0481ef`: deletion Security Attack debuff expiry, two actual inherited attacks with explicit security result and DP expiry, and a resolved optional refusal with no pending decision and preserved host/hand. The earlier security-fixture correction remains sound |
+| EX8-035 | 6/6; review OPEN | `daaacda44`: real opposing digivolution suppresses BT16-020's draw at the memory gate; actual Security battle grants both debuffs and returns the card to its owner's hand. Pending: Security debuff expiry and Q3917–Q3920 runtime interactions |
+| EX8-036 | 6/6; review OPEN | `667bc497e`: actual hand/trash evolution-play routes, play-cost-6 rejection, and On Deletion deck recovery. The alleged refusal leaves an optional decision pending and must be replaced with a resolved decline |
+| EX8-037 | 7/7; review OPEN | `e361926b3`: real Option use, second-attack once-per-turn gate, no-cost proof, independent X Antibody stack token branch and alternate evolution rejection. Pending: resolved decline, Q4738 evolution during Option resolution, and neither-source token-condition negative |
 | EX8-038 | 8/8 | `cf93ab20a`, `f7cd5c5a5`: unequal-DP battle proves inherited Retaliation on a legal green host; named off-color Koromon evolution, nonmatching egg rejection, both suspension controllers, and refusal |
 | EX8-039 | 6/6 | `862783bb9`, `55af3b526`: disjoint Insectoid/NSp selection, unrevealed anchors in positive and all-nonmatching reveals, off-color NSp egg evolution and rejection, legal green inherited host with turn gate |
 | EX8-040 | 7/7 | `4380b4788`: real off-color NSp evolution proves cost, draw and allied suspension; opposing On Play target, refusal, non-NSp rejection and legal inherited host turn gate |
@@ -61,11 +67,39 @@ EX10 (74), EX11 (74), and EX12 (77); these sets have not begun in this run.
 | EX8-043 | 11/11 | `d8f396f00`, `cf8ddcaf5`, `c1abb8927`, `d9dccb781`: two-battle limit on legal inherited host, Q3929, real opposing de-digivolution/return attempts, controller return, protection expiry, Dinosaur alternate and already-suspended continuation after optional refusal |
 | EX8-044 | 11/11 | `c0a72231d`, `f194ebf92`, `cb4584415`: real Counter evolution, memory counts only opposing new suspensions, refusal, actual Piercing battle, same-turn limit, opponent-turn expiry, and off-color NSp evolution/negative |
 | EX8-045 | 9/9 | `8e0b6d573`, `d1cde8569`: Q3931/Q3932/Q6043, real play/evolution, source-color boundaries and actual checks; Q3883 now passes simultaneously with Fortitude-loss retention |
-| EX8-047 | 7/7 | `8a2ded6aa`: fourth unrevealed anchor and exact remaining deck prove bottom routing |
+| EX8-047 | 7 passed / 2 failed; OPEN | `8a2ded6aa` proves reveal bottom routing. Coordinator's uncommitted public Frigimon On Play reproducer loses the discarded-source inherited deletion from both legal Mineral and Rock hosts; the nonmatching Dinosaur control passes. No module fix or closure claimed |
 | EX8-052 | 9/9 | `9eaf58c0b`: independent X Antibody source and trash Device route, no-source negative, actual two-attack inherited security-trash limit |
 | EX8-054 | 6/6 | `5353d6cce`: two actual attacks prove the inherited Justimon activation limit; legal alternate Justimon evolution and X Antibody-base rejection |
 | EX8-055 | 7/7 | `6f7a45879`: actual attack trashes three sources, performs two security checks and proves expiry; explicit optional refusal for Q3940 |
 | EX8-059 | 10/10 | `c461132bd`: separate On Play/evolution refusals and no-hand cost failure, alongside successful grants and actual inherited attack |
+| EX8-060 | 14/14 | `6519bc573`: legal DNA pair, public optional intents, an additional Digimon before the bound attack, and Q3944 real orderTriggers sequences for the simultaneous group |
+
+### Intermediate gates — collection not yet closed
+
+- Fresh inventory: 74 contiguous catalog IDs, 74 direct modules and 74 focused
+  files; every module registers its own IR, with no legacy registration or
+  RawUnparsed node.
+- `22a91b359`: 74 effects records synchronized against the immutable audit base;
+  59 semantic changes, zero semantic or byte changes outside EX8. A direct
+  compiled-runtime parity check confirmed 74/74 without repeating the builds.
+- The synchronization command passed shared/API builds. Shared data was copied
+  again after synchronization so dist contains the updated effects artifact.
+- API and web typechecks passed. The subsequent web production build passed;
+  Vite reported non-failing mixed-import and chunk-size warnings.
+- Exact collection tests, final scoped style checks, remaining card reviews and
+  delivery/push are still pending. These intermediate gates are not completion.
+
+### Open runtime regression — EX8-047 discarded inherited source
+
+Replacing direct primitive calls with a real EX8-022 On Play exposed a missing
+inherited deletion. Frigimon trashes EX8-047 from a legal EX8-048 Mineral host
+or a BT4-070 Rock host over BT2-057, but the opposing cost-4 Digimon remains.
+The source is explicitly present in trash, the host stack is empty, Frigimon's
+memory gain completes, and no decision remains pending. The same discard from
+a nonmatching BT2-057 host correctly causes no deletion. The focused nine-test
+file produced seven passes and two failures; inherited context construction
+after source movement is under investigation. The failing public scenarios
+remain on disk and must pass before this card or the collection can close.
 
 ### Resolved shared regression — Piercing acquisition at deletion
 
