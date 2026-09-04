@@ -10,6 +10,20 @@ export const compiled: CompiledCard = getCompiledCard("EX5-063")!;
 // simultaneous batch (KB Q6037) and credits this card's controller rather than the turn player
 // (KB Q6038). Digivolution-stack cards are not permanents and so never fire it.
 compiled.effects = compiled.effects.filter((effect) => effect.trigger !== "AllTurns");
+for (const effect of compiled.effects) {
+  if (effect.trigger !== "OnPlay" && effect.trigger !== "WhenDigivolving") continue;
+  const highest = effect.actions.find((action) => action.kind === "Delete");
+  if (highest?.kind === "Delete" && highest.condition?.kind === "opponentHas") {
+    highest.condition = {
+      kind: "boardCountCompare",
+      left: "opponent",
+      op: "gte",
+      right: "mine",
+      filter: { kind: ["Digimon", "Tamer"] },
+      raw: "your opponent has as many or more total Digimon and Tamers as you",
+    };
+  }
+}
 compiled.effects.push({
   trigger: "AllTurns",
   actions: [
