@@ -106,4 +106,26 @@ describe("EX8-041", () => {
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Retaliation")).toBe(true);
   });
+
+  it("uses inherited Retaliation when the evolution host loses a battle", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "AD1-001", as: "host", dp: 1000, under: ["EX8-041"] }] },
+        1: { battleArea: [{ card: "AD1-001", as: "target", dp: 3000, suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
 });
