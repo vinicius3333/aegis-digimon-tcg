@@ -36,8 +36,8 @@ export const compiled: CompiledCard = {
             kind: "selfDigivolutionStackHasTrait",
             filter: {
               nameOrTrait: [
-                { tokens: ["MetalGarurumon"], match: "name" },
-                { tokens: ["X Antibody"], match: "trait" },
+                { tokens: ["MetalGarurumon"], match: "nameExact" },
+                { tokens: ["X Antibody"], match: "nameExact" },
               ],
             },
             raw: "[MetalGarurumon] or [X Antibody] is in this Digimon's digivolution cards",

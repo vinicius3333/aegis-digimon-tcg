@@ -15,7 +15,6 @@ export const compiled: CompiledCard = {
           count: 1,
           to: "hand",
           optional: true,
-          trackCount: "leomonAdded",
         },
         {
           kind: "SecurityManipulation",
@@ -23,7 +22,7 @@ export const compiled: CompiledCard = {
           controller: "mine",
           source: "deck",
           amount: 1,
-          condition: { kind: "namedCountAtLeast", countSource: "leomonAdded", count: 1 },
+          condition: { kind: "ifThisEffectActed" },
         },
         { kind: "SecurityManipulation", op: "shuffle", controller: "mine" },
       ],
