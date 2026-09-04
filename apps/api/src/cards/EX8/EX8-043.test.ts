@@ -80,7 +80,7 @@ describe("EX8-043", () => {
   });
   it("trashes the opponent's top security when its host deletes in battle", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-081", as: "attacker", dp: 10000, under: ["EX8-043"] }] },
+      0: { battleArea: [{ card: "AD1-001", as: "attacker", dp: 10000, under: ["EX8-043"] }] },
       1: {
         battleArea: [{ card: "BT1-016", as: "defender", dp: 1000, suspended: true }],
         security: [{ card: "BT1-010", as: "top" }],
@@ -97,6 +97,49 @@ describe("EX8-043", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.players[1]!.security.length === 0);
 
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("top").instanceId)).toBe(true);
+  });
+
+  it("trashes security only once across two real battles in one turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "AD1-001", as: "attacker", dp: 10000, under: ["EX8-043"] }] },
+      1: {
+        battleArea: [
+          { card: "BT1-016", as: "first", dp: 1000, suspended: true },
+          { card: "BT1-016", as: "second", dp: 1000, suspended: true },
+        ],
+        security: [
+          { card: "BT1-010", as: "firstSecurity" },
+          { card: "BT1-010", as: "secondSecurity" },
+        ],
+      },
+    });
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("first").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.every((p) => p.topCard?.cardId !== "BT1-016"));
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("firstSecurity").instanceId)).toBe(true);
+
+    await advance(s.engine).verb.unsuspend([s.perm("attacker").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("second").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.every((p) => p.topCard?.cardId !== "BT1-016"));
+
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("secondSecurity").instanceId)).toBe(
+      false,
+    );
   });
 
   it("de-digivolves and protects itself when already suspended at entry resolution", async () => {
@@ -117,7 +160,7 @@ describe("EX8-043", () => {
 
   it("does not trash security when both battlers are deleted (Q3929)", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-081", as: "attacker", dp: 3000, under: ["EX8-043"] }] },
+      0: { battleArea: [{ card: "AD1-001", as: "attacker", dp: 3000, under: ["EX8-043"] }] },
       1: {
         battleArea: [{ card: "BT1-016", as: "defender", dp: 3000, suspended: true }],
         security: [{ card: "BT1-010", as: "top" }],
@@ -132,5 +175,29 @@ describe("EX8-043", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.players[1]!.battleArea.length === 0);
     expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("keeps suspension protections through its turn and expires them at the opponent turn end", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX8-043", as: "metal", suspended: true }], deck: ["BT1-001"] },
+        1: { battleArea: [{ card: "AD1-001", as: "target", under: ["BT1-009"] }], deck: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("metal"));
+    expect(observe(s.engine).isRestricted(s.perm("metal"), "beReturned")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("metal"), "cantBeDeDigivolved")).toBe(true);
+
+    await advance(s.engine).runTurn(0);
+    expect(observe(s.engine).isRestricted(s.perm("metal"), "beReturned")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("metal"), "cantBeDeDigivolved")).toBe(true);
+
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    await advance(s.engine).runTurn(1);
+    expect(observe(s.engine).isRestricted(s.perm("metal"), "beReturned")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("metal"), "cantBeDeDigivolved")).toBe(false);
   });
 });
