@@ -32,7 +32,7 @@ describe("EX8-055", () => {
       { 0: { battleArea: [{ card: "EX8-055", as: "pyramid" }], trash: ["EX8-053", "EX8-005"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("pyramid"));
+    await advance(s.engine).runTurn(0);
 
     expect(s.perm("pyramid").stack.some((card) => card.cardId === "EX8-053")).toBe(true);
     expect(s.perm("pyramid").stack.some((card) => card.cardId === "EX8-005")).toBe(true);
