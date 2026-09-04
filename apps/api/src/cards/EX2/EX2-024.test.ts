@@ -40,6 +40,46 @@ describe("EX2-024 Sakuyamon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("plugin").instanceId)).toBe(true);
   });
 
+  it("returns one Plug-In per Tamer while unsuspending only one Digimon", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX2-023", as: "base", suspended: true },
+            { card: "EX2-019", as: "ally", suspended: true },
+            "EX2-060",
+            "EX2-061",
+          ],
+          hand: [{ card: "EX2-024", as: "evolution" }],
+          trash: [
+            { card: "EX2-066", as: "pluginA" },
+            { card: "EX2-066", as: "pluginB" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("ally").topCard.instanceId);
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.hand.filter((card) => card.cardId === "EX2-066").length === 2,
+    );
+    expect([s.perm("ally").isSuspended, s.perm("base").isSuspended].filter(Boolean)).toHaveLength(1);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("pluginA").instanceId, s.inst("pluginB").instanceId]),
+    );
+  });
+
   it("triggers its Option effect after a cost-2 use and not a cheaper use", async () => {
     const s = setupEngine(
       {

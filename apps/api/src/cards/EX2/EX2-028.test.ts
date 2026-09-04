@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./EX2-028.js";
@@ -24,10 +25,15 @@ describe("EX2-028 Parasitemon", () => {
       0: { battleArea: [{ card: "EX2-029", as: "host", under: ["EX2-028"] }] },
       1: { deck: ["BT1-001"] },
     });
-    opponentTurn.state.turnSeat = 1;
     await opponentTurn.ready();
+    const turnLoop = opponentTurn.engine.startTurnLoop();
+    await advance(opponentTurn.engine).waitForMainPhase(0);
+    advance(opponentTurn.engine).endMainPhaseIfOpen(0);
+    await advance(opponentTurn.engine).waitForMainPhase(1);
     expect(opponentTurn.perm("host").currentDP).toBe(13000);
     expect(observe(opponentTurn.engine).keywordAmount(opponentTurn.perm("host"), "SecurityAttack")).toBe(1);
+    expect(opponentTurn.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await turnLoop;
   });
 
   it("places itself under another Digimon at end of attack, never under itself", async () => {

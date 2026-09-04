@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./EX2-036.js";
@@ -41,12 +42,17 @@ describe("EX2-036 GroundLocomon", () => {
       0: { battleArea: [{ card: "EX2-036", as: "groundLocomon" }], trash: ["EX2-031", "EX2-034"] },
       1: { deck: ["BT1-001"] },
     });
-    opponentTurn.state.turnSeat = 1;
     await opponentTurn.ready();
+    const turnLoop = opponentTurn.engine.startTurnLoop();
+    await advance(opponentTurn.engine).waitForMainPhase(0);
+    advance(opponentTurn.engine).endMainPhaseIfOpen(0);
+    await advance(opponentTurn.engine).waitForMainPhase(1);
     expect(opponentTurn.perm("groundLocomon").currentDP).toBe(13000);
     expect(observe(opponentTurn.engine).isRestricted(opponentTurn.perm("groundLocomon"), "cantAttackDigimon")).toBe(
       false,
     );
+    expect(opponentTurn.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await turnLoop;
 
     const ownTurn = setupEngine({
       0: { battleArea: [{ card: "EX2-036", as: "groundLocomon" }], trash: ["EX2-031", "EX2-034"] },
