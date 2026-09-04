@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX7-054.js";
 
@@ -62,5 +62,27 @@ describe("EX7-054", () => {
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-010")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("other"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("other"), "Retaliation")).toBe(true);
+  });
+
+  it("does not end an attack when the deletion cost has no legal Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX7-042", as: "host", under: ["EX7-054"] }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 0);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 });
