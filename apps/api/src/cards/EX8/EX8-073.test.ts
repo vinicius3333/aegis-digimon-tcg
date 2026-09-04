@@ -90,6 +90,11 @@ describe("EX8-073", () => {
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("source"));
     expect(s.perm("source").currentDP).toBe(16000);
     expect(s.perm("target").currentDP).toBe(8000);
+    s.state.memory = 0;
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("source").currentDP).toBe(12000);
+    expect(s.perm("target").currentDP).toBe(12000);
   });
 
   it("mandatorily deletes the exact 10000-DP boundary without taking the fallback", async () => {
@@ -189,7 +194,7 @@ describe("EX8-073", () => {
   it("offers the controller Q3975 ordering for its simultaneous When Digivolving effects", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX8-073", as: "source", under: ["BT2-020"] }] },
+        0: { battleArea: [{ card: "EX8-073", as: "source", under: ["BT10-080"] }] },
         1: { battleArea: [{ card: "AD1-001", as: "target", dp: 14000 }] },
       },
       { autoOrderTriggers: false, autoSelectCards: true },
