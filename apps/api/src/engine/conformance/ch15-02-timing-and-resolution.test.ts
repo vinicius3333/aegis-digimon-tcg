@@ -160,7 +160,7 @@ describe("§15-4-3 Simultaneous Triggering (comprehensive-0164)", () => {
       makeContext: (c) => ({ source: c.source, trigger: {}, game: {}, fx: {}, ask: {} }) as never,
       ruleProcess: async () => {},
       isGameOver: () => false,
-      chooseOrder: async (_seat, active) => 0, // resolve the frontmost of whichever group is offered
+      chooseOrder: async () => 0, // resolve the frontmost of whichever group is offered
       askOptional: async () => true,
     };
     await resolveTiming(EffectTiming.OnPlay, env);
@@ -419,15 +419,15 @@ describe("§15-7 Optional Processing Conditions (comprehensive-0169/0170)", () =
     await settle(() => s.decisions.some((d) => d.req.kind === "optional"), 5000);
 
     const optionalDecision = s.decisions.find((d) => d.req.kind === "optional");
-    expect(optionalDecision).toBeDefined();
-    if (optionalDecision !== undefined) {
-      const acceptResult = s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: optionalDecision.req.decisionId,
-        response: { kind: "optional", accept: true },
-      });
-      expect(acceptResult).toEqual({ ok: true });
+    if (optionalDecision === undefined) {
+      throw new Error("Expected the inherited OnDeletion effect to request an optional decision");
     }
+    const acceptResult = s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: optionalDecision.req.decisionId,
+      response: { kind: "optional", accept: true },
+    });
+    expect(acceptResult).toEqual({ ok: true });
   });
 });
 

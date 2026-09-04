@@ -110,9 +110,9 @@ Previously corrected EX2-037, EX2-043, EX2-046, EX2-049, and EX2-055 behavior wa
 - Effects projection: `pnpm effects:sync:set -- --set EX2` synchronized 74 records; `pnpm effects:check:set -- --set EX2` passed.
 - Focused serial: 74 files, 310 tests, all passing; no focused result was inferred from a grouped run.
 - Full collection: `pnpm --filter @aegis/api exec vitest run src/cards/EX2 --reporter=dot` passed twice consecutively with 85 files, 328 tests, and no skips (11.20 s and 13.41 s).
-- Shared mechanism/conformance/lifecycle suites: 55 files and 1,609 tests passed before the final concurrency regression; the final post-change run includes that regression and is recorded in the closeout commit.
+- Shared mechanism/conformance/lifecycle suites: 56 files, 1,610 tests, and no skips passed after the final concurrency regression was added.
 - Typecheck/build: root typecheck and shared/API/web builds passed.
-- Quality: scoped Oxlint and Oxfmt checks passed for every branch-modified file; `git diff --check` passed. The repository-wide formatter still reports unrelated pre-existing debt outside this branch.
+- Quality: scoped Oxlint and Oxfmt checks passed for every branch-modified source, test, and documentation file; the generated effects projection was validated through its canonical sync/check commands. `git diff --check` passed. The repository-wide formatter still reports unrelated pre-existing debt outside this branch.
 
 ## Remaining queue
 

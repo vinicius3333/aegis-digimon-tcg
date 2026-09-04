@@ -16,7 +16,6 @@ import "./EX2-060.js";
 // body — no suspend call and no useOptionFromHand call are produced.
 
 const PLUG_IN_ID = "ST9-016"; // A Plug-In Option card
-const _OTHER_ID = "BT1-OTHER";
 
 interface Recorder {
   calls: { verb: string; args: unknown[] }[];
@@ -217,7 +216,7 @@ describe("EX2-060 Rika Nonaka", () => {
 
   it("filters the used card to Plug-In Options", () => {
     const effect = registeredCompiledCards.get("EX2-060")?.effects.find((entry) => entry.trigger === "YourTurn");
-    const actions = (effect?.actions[0] as { actions?: unknown[] }).actions ?? [];
+    const actions = (effect?.actions[0] as { actions?: unknown[] } | undefined)?.actions ?? [];
     expect(actions[0]).toMatchObject({
       kind: "UseOptionWithoutCost",
       filter: { nameOrTrait: [{ tokens: ["Plug-In"], match: "name" }] },
@@ -226,8 +225,9 @@ describe("EX2-060 Rika Nonaka", () => {
 
   it("matches all four printed attacker names", () => {
     const effect = registeredCompiledCards.get("EX2-060")?.effects.find((entry) => entry.trigger === "YourTurn");
-    const sourceFilter = (effect?.actions[0] as { sourceFilter?: { nameOrTrait?: { tokens?: string[] }[] } })
-      .sourceFilter;
+    const sourceFilter = (
+      effect?.actions[0] as { sourceFilter?: { nameOrTrait?: { tokens?: string[] }[] } } | undefined
+    )?.sourceFilter;
     expect(sourceFilter?.nameOrTrait?.[0]?.tokens).toEqual(["Renamon", "Kyubimon", "Taomon", "Sakuyamon"]);
   });
 
