@@ -82,7 +82,7 @@ describe("EX6-024 Sagomon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX6-024", as: "sago" }] },
-        1: { battleArea: [{ card: "EX6-031", as: "opponent" }] },
+        1: { battleArea: [{ card: "EX6-031", as: "opponent" }], deck: ["BT1-001"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
