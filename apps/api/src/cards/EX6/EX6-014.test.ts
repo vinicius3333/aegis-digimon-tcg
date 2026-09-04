@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-014.js";
 
 describe("EX6-014 Huankunmon", () => {
@@ -30,5 +33,16 @@ describe("EX6-014 Huankunmon", () => {
         },
       ],
     });
+  });
+
+  it("publicly plays a blue level-3 card from its blue stack host", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX6-014", as: "huan", under: [{ card: "BT1-027", as: "source" }] }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("huan"));
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("source").instanceId));
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("source").instanceId)).toBe(true);
   });
 });
