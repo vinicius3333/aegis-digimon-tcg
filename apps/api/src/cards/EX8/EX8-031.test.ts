@@ -49,8 +49,8 @@ describe("EX8-031", () => {
   it("applies the inherited DP loss only after a qualifying Option use", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-009", as: "host", under: ["EX8-031"] }] },
-        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+        0: { battleArea: [{ card: "BT1-051", as: "host", under: ["EX8-031"] }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }], deck: ["BT1-045"] },
       },
       { autoSelectCards: true },
     );
@@ -60,5 +60,10 @@ describe("EX8-031", () => {
     expect(s.perm("target").currentDP).toBe(3000);
     await advance(s.engine).fireSubTrigger("whenOptionUsed", { usedOptionCost: 2, subjectPermanentId: "qualifying" });
     expect(s.perm("target").currentDP).toBe(1000);
+
+    s.state.memory = 0;
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("target").currentDP).toBe(3000);
   });
 });
