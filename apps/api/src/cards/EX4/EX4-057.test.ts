@@ -88,8 +88,8 @@ describe("EX4-057 Antylamon", () => {
       },
     );
     await settle(() => {
-      const combat = (s.engine as unknown as { combat: { hasOpenBlockWindow: boolean } }).combat;
-      return s.perm("fodder").isSuspended && combat.hasOpenBlockWindow;
+      const activeCombat = (s.engine as unknown as { combat: { hasOpenBlockWindow: boolean } }).combat;
+      return s.perm("fodder").isSuspended && activeCombat.hasOpenBlockWindow;
     });
     expect(s.perm("fodder").isSuspended).toBe(true);
     expect(s.perm("attacker").currentDP).toBe(10000);

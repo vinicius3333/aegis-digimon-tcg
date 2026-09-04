@@ -168,7 +168,7 @@ describe("ModifierLedger pierce and evo-cost", () => {
 
     ledger.addEvoCostAdjustment(() => true, -6, false, {
       once: true,
-      onConsume: ({ target }) => consumed.push(target.permanentId),
+      onConsume: ({ target: consumedTarget }) => consumed.push(consumedTarget.permanentId),
     });
 
     expect(ledger.evoCostFor(target)).toEqual({ delta: -6 });
@@ -183,7 +183,7 @@ describe("ModifierLedger pierce and evo-cost", () => {
     const ledger = new ModifierLedger();
     const target = new Permanent();
     target.permanentId = "x";
-    ledger.addEvoCostAdjustment(({ target }) => target.permanentId === "other", -1, false);
+    ledger.addEvoCostAdjustment(({ target: candidate }) => candidate.permanentId === "other", -1, false);
     expect(ledger.evoCostFor(target)).toBeUndefined();
   });
 

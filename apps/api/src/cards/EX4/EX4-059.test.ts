@@ -103,8 +103,8 @@ describe("EX4-059 Cherubimon", () => {
       ok: true,
     });
     await settle(() => {
-      const combat = (s.engine as unknown as { combat: { hasOpenBlockWindow: boolean } }).combat;
-      return s.perm("ally").isSuspended && combat.hasOpenBlockWindow;
+      const activeCombat = (s.engine as unknown as { combat: { hasOpenBlockWindow: boolean } }).combat;
+      return s.perm("ally").isSuspended && activeCombat.hasOpenBlockWindow;
     });
     expect(s.perm("ally").isSuspended).toBe(true);
     expect(s.perm("attacker").currentDP).toBe(14000);

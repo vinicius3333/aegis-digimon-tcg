@@ -130,8 +130,7 @@ describe("EX4-045 MetalGreymon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "attackDeclared"));
     const attack = s.events.find((event) => event.kind === "attackDeclared");
-    expect(attack?.kind).toBe("attackDeclared");
-    if (attack?.kind === "attackDeclared") expect(attack.target.kind).toBe("player");
+    expect(attack).toMatchObject({ kind: "attackDeclared", target: { kind: "player" } });
     expect(s.perm("host").isSuspended).toBe(false);
   });
   ex4CardBehaviorTests("EX4-045");

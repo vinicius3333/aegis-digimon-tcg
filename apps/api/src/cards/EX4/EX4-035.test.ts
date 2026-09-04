@@ -65,8 +65,8 @@ describe("EX4-035 Alliance attack", () => {
       },
     );
     await settle(() => {
-      const combat = (s.engine as unknown as { combat: { hasOpenBlockWindow: boolean } }).combat;
-      return s.perm("fodder").isSuspended && combat.hasOpenBlockWindow;
+      const activeCombat = (s.engine as unknown as { combat: { hasOpenBlockWindow: boolean } }).combat;
+      return s.perm("fodder").isSuspended && activeCombat.hasOpenBlockWindow;
     });
 
     expect(s.perm("fodder").isSuspended).toBe(true);

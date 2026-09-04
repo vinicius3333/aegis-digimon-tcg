@@ -237,8 +237,8 @@ function clearsAt(
       // A genuinely-permanent grant is never cleared by any boundary sweep (WR-03 / ENG-02).
       return false;
     default: {
-      const _exhaustive: never = duration;
-      void _exhaustive;
+      const exhaustive: never = duration;
+      void exhaustive;
       return false;
     }
   }

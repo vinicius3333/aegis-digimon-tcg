@@ -143,8 +143,7 @@ describe("EX4-047 DarkKnightmon", () => {
     const redirected = valid.events.find(
       (event) => event.kind === "attackDeclared" && event.target.kind === "permanent",
     );
-    expect(redirected?.kind).toBe("attackDeclared");
-    if (redirected?.kind === "attackDeclared") expect(redirected.target.kind).toBe("permanent");
+    expect(redirected).toMatchObject({ kind: "attackDeclared", target: { kind: "permanent" } });
 
     const invalid = setupEngine(
       {
@@ -164,8 +163,7 @@ describe("EX4-047 DarkKnightmon", () => {
     ).toEqual({ ok: true });
     await settle(() => invalid.events.some((event) => event.kind === "attackDeclared"));
     const notRedirected = invalid.events.find((event) => event.kind === "attackDeclared");
-    expect(notRedirected?.kind).toBe("attackDeclared");
-    if (notRedirected?.kind === "attackDeclared") expect(notRedirected.target.kind).toBe("player");
+    expect(notRedirected).toMatchObject({ kind: "attackDeclared", target: { kind: "player" } });
   });
   ex4CardBehaviorTests("EX4-047");
 });
