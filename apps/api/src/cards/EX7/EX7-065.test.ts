@@ -64,6 +64,7 @@ describe("EX7-065 Yuuki", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
     expect(
       s.engine.applyIntent(0, {
@@ -78,6 +79,7 @@ describe("EX7-065 Yuuki", () => {
     expect(s.perm("yuuki").isSuspended).toBe(true);
     expect(s.perm("base").topCard?.instanceId).toBe(s.inst("nidhogg").instanceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("nidhogg").instanceId);
+    expect(s.state.memory).toBe(7);
   });
 
   it("does not offer the trash digivolution when the hand exceeds four cards", async () => {

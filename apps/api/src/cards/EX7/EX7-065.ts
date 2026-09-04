@@ -47,6 +47,7 @@ export const compiled: CompiledCard = {
             ],
           },
           from: ["trash"],
+          payCost: true,
           optional: true,
           condition: {
             kind: "zoneCount",
