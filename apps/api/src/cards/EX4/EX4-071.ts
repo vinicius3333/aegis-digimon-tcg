@@ -52,6 +52,7 @@ export const compiled: CompiledCard = {
                 location: "trash",
                 controller: "mine",
               },
+              from: ["trash"],
               payCost: false,
             },
           ],
