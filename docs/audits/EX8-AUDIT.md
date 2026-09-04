@@ -23,6 +23,8 @@ catalog/KB/runtime/test verification. Current closure status: in progress.
 | EX8-001 | 5/5 | `bfb8ad059`: name-only positive uses Cyborg MetalTyrannomon, independently of the Dinosaur branch |
 | EX8-002 | 4/4 | Existing public attack/stack proof reconfirmed; exact-zero memory and same-turn limit, no code change |
 | EX8-003 | 4/4 | `67ad09bb3`: public attacks prove the condition and same-turn limit; turn-end processing restores the target's DP |
+| EX8-004 | 5/5 | Fresh trace and runtime: friendly distinct NSp play, NSp host, optional attack refusal, nonmatching negatives, and same-turn limit |
+| EX8-005 | 5/5 | Fresh trace and runtime: separate Mineral/Rock hosts, nonmatching host, and wrong discarded source; no code change |
 
 EX8-038's added Retaliation case initially used equal-DP combat, which would
 delete both Digimon without Retaliation. `cf93ab20a` corrects it to an unequal-DP
