@@ -104,7 +104,7 @@ describe("EX6-030 Dominimon", () => {
     expect(s.state.players[0]!.security).toHaveLength(1);
   });
 
-  it("publicly protects multiple Angel deletions with separate security payments", async () => {
+  it("publicly protects simultaneous Angel deletions with one security payment", async () => {
     const s = setupEngine(
       {
         0: {
