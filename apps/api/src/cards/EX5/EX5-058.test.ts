@@ -65,11 +65,8 @@ describe("EX5-058 Octomon", () => {
     });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "TOKEN-Fujitsumon-Token"));
     const token = s.state.players[0]!.battleArea.find((p) => p.topCard.cardId === "TOKEN-Fujitsumon-Token");
-    expect(
-      token,
-      JSON.stringify(s.state.players[0]!.battleArea.map((p) => ({ id: p.topCard.cardId, name: p.topCard.nameEn }))),
-    ).toBeDefined();
-    expect(token!.isSuspended).toBe(true);
+    if (token === undefined) throw new Error("EX5-058 own Fujitsumon token was not created");
+    expect(token.isSuspended).toBe(true);
   });
 
   it("plays a suspended Fujitsumon token to the opponent when there are three or fewer Digimon", async () => {
@@ -85,11 +82,8 @@ describe("EX5-058 Octomon", () => {
     await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "TOKEN-Fujitsumon-Token"));
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "TOKEN-Fujitsumon-Token")).toBe(false);
     const token = s.state.players[1]!.battleArea.find((p) => p.topCard.cardId === "TOKEN-Fujitsumon-Token");
-    expect(
-      token,
-      JSON.stringify(s.state.players[1]!.battleArea.map((p) => ({ id: p.topCard.cardId, name: p.topCard.nameEn }))),
-    ).toBeDefined();
-    expect(token!.isSuspended).toBe(true);
+    if (token === undefined) throw new Error("EX5-058 opponent Fujitsumon token was not created");
+    expect(token.isSuspended).toBe(true);
   });
 
   it("keeps Fujitsumon suspended when an unsuspend attempt is made", async () => {

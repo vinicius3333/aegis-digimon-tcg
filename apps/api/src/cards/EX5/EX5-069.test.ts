@@ -101,11 +101,11 @@ describe("EX5-069 Biting Crush", () => {
       const delay = observe(s.engine)
         .activatableEffects(s.perm("option"))
         .find((entry) => /Delay/i.test(entry.description ?? ""));
-      expect(delay).toBeDefined();
+      if (delay?.instanceId === undefined) throw new Error("EX5-069 Delay effect is unavailable");
       expect(
         s.engine.applyIntent(0, {
           type: "activateEffect",
-          sourceInstanceId: delay!.instanceId,
+          sourceInstanceId: delay.instanceId,
           effectKey: delay!.effectKey,
         }),
       ).toEqual({ ok: true });

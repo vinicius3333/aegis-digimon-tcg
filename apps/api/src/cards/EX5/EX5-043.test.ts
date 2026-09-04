@@ -42,7 +42,10 @@ describe("EX5-043 Leopardmon (X Antibody)", () => {
         }),
       );
     }
-    expect((watcher?.actions[0] as { actions?: unknown[] }).actions).toContainEqual(
+    if (watcher === undefined) throw new Error("EX5-043 play watcher is missing");
+    const watcherAction = watcher.actions[0];
+    if (watcherAction?.kind !== "SubTrigger") throw new Error("EX5-043 play watcher action is missing");
+    expect(watcherAction.actions).toContainEqual(
       expect.objectContaining({ kind: "Return", dpCeilingScaling: expect.objectContaining({ amount: 3000 }) }),
     );
   });

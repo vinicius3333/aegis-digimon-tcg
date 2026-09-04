@@ -187,7 +187,9 @@ describe("EX5-073 GraceNovamon", () => {
     await settle(() => s.state.players[0]!.trash.length >= 2);
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === graceId)).toBe(true);
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-010", "BT1-011"]));
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT1-010", "BT1-011"]),
+    );
   });
 
   it("still deletes an eligible opponent when attacking without DNA digivolving, per Q3687/Q3688", async () => {

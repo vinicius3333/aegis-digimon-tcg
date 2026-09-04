@@ -92,7 +92,7 @@ describe("EX5-016 Lunamon", () => {
     s.state.memory = 0;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.Main, s.perm("host"));
+    await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("host"));
     await settle(() => false, 30);
 
     expect(s.state.memory).toBe(0);

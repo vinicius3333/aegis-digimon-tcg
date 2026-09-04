@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
 import { type PlayerState } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -52,7 +51,10 @@ describe("EX5-074 [When Attacking] trashes opponent security equal to owner's [F
   it("does not trash security when no own [Four Sovereigns] Digimon are present", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: FANGLONGMON, as: "fanglongmon", dp: 15000 }] },
-      1: { battleArea: [{ card: OPP_DIGIMON, as: "opponent", dp: 10000, suspended: true }], security: [VANILLA, VANILLA] },
+      1: {
+        battleArea: [{ card: OPP_DIGIMON, as: "opponent", dp: 10000, suspended: true }],
+        security: [VANILLA, VANILLA],
+      },
     });
     const p1 = s.state.players[1] as PlayerState;
     await s.ready();
@@ -137,7 +139,9 @@ describe("EX5-074 [On Play] returns Deva/FourSovereigns from trash to deck, -400
     s.state.memory = 7;
     await s.ready();
     expect(observe(s.engine).hasRestriction(s.perm("fanglongmon"), "beAffected", "Digimon")).toBe(true);
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("attacker").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("attacker").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX5-032"));
 
     expect(s.perm("fanglongmon").currentDP).toBe(15000);

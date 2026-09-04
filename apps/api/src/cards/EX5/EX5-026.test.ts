@@ -125,7 +125,7 @@ describe("EX5-026 MetalGarurumon (X Antibody)", () => {
         grantCustomEffect: (...args: unknown[]) => grants.push(args),
         subscribeSubTrigger: (install: unknown) => (installs.push(install), 1),
       },
-    } as any;
+    } as unknown as EffectContext;
     if (action?.kind !== "GrantAuraToOpponents") throw new Error("missing EX5-026 timed aura");
     await runStaticAction(ctx, action);
     expect(grants).toHaveLength(1);
@@ -155,6 +155,6 @@ describe("EX5-026 MetalGarurumon (X Antibody)", () => {
     expect(watcher.matches(entrantContext("own-entrant"))).toBe(false);
     // `expiresOnTurnEndOf` is swept by SubTriggerRegistry at the opponent's turn end;
     // retaining it here makes the cleanup boundary part of the card's focused contract.
-    expect(watcher.expiresOnTurnEndOf).toBe((ctx as any).game.opponentOf((ctx as any).source.ownerSeat));
+    expect(watcher.expiresOnTurnEndOf).toBe(ctx.game.opponentOf(ctx.source.ownerSeat));
   });
 });

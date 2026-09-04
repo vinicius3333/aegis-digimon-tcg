@@ -4,7 +4,6 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./EX5-036.js";
-import { compiled } from "./EX5-036.js";
 
 describe("EX5-036 Aquilamon", () => {
   it("has Fortitude and gains 1000 DP while suspended", () => {

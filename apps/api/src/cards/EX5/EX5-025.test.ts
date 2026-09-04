@@ -103,7 +103,7 @@ describe("EX5-025 Dianamon", () => {
       ["first", "second"].filter((name) => observe(s.engine).isRestricted(s.perm(name).permanentId, "beSuspended")),
     ).toHaveLength(1);
 
-    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("dianamon"));
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("dianamon"));
     await settle();
     expect(s.perm("first").stack.length + s.perm("second").stack.length).toBe(1);
   });

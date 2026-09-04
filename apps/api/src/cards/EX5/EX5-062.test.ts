@@ -76,11 +76,11 @@ describe("EX5-062 deletes a Lv.5- opp Digimon when an effect plays your Digimon"
     const effect = observe(s.engine)
       .activatableEffects(s.perm("anubis"))
       .find((entry) => /trash/i.test(entry.description ?? ""));
-    expect(effect).toBeDefined();
+    if (effect?.instanceId === undefined) throw new Error("EX5-062 Main trash effect is unavailable");
     expect(
       s.engine.applyIntent(0, {
         type: "activateEffect",
-        sourceInstanceId: effect!.instanceId,
+        sourceInstanceId: effect.instanceId,
         effectKey: effect!.effectKey,
       }),
     ).toEqual({ ok: true });
