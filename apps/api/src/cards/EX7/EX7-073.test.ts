@@ -118,38 +118,34 @@ describe("EX7-073", () => {
     expect(s.state.memory).toBe(9);
   });
 
-  for (const refuse of [false, true]) {
-    it(
-      refuse
-        ? "does not delete or trash security when the cost is refused before battle"
-        : "cannot pay with one matching source and one nonmatching source",
-      async () => {
-        const sources = refuse ? ["EX7-071", "EX7-066"] : ["EX7-071", "BT1-009"];
-        const s = setupEngine(
-          {
-            0: { battleArea: [{ card: "EX7-073", as: "attacker", under: sources }] },
-            1: {
-              battleArea: [{ card: "BT10-022", as: "defender", dp: 15000, suspended: true }],
-              security: ["BT1-010"],
-            },
-          },
-          { autoAcceptOptional: !refuse, autoDeclineOptional: refuse, autoSelectCards: true },
-        );
-        await s.ready();
-        expect(
-          s.engine.applyIntent(0, {
-            type: "attack",
-            attackerPermanentId: s.perm("attacker").permanentId,
-            target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
-          }),
-        ).toEqual({ ok: true });
-        await settle(() => s.state.players[0]!.battleArea.length === 0);
-        expect(s.state.players[1]!.battleArea).toHaveLength(1);
-        expect(s.state.players[1]!.security).toHaveLength(1);
-        expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
-          expect.arrayContaining(["EX7-073", ...sources]),
-        );
+  it.each([
+    { refuse: false, label: "cannot pay with one matching source and one nonmatching source" },
+    { refuse: true, label: "does not delete or trash security when the cost is refused before battle" },
+  ])("$label", async ({ refuse }) => {
+    const sources = refuse ? ["EX7-071", "EX7-066"] : ["EX7-071", "BT1-009"];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX7-073", as: "attacker", under: sources }] },
+        1: {
+          battleArea: [{ card: "BT10-022", as: "defender", dp: 15000, suspended: true }],
+          security: ["BT1-010"],
+        },
       },
+      { autoAcceptOptional: !refuse, autoDeclineOptional: refuse, autoSelectCards: true },
     );
-  }
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["EX7-073", ...sources]),
+    );
+  });
 });
