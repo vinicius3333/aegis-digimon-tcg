@@ -1,4 +1,6 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX6-022.js";
@@ -41,5 +43,16 @@ describe("EX6-022 Angewomon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ange").instanceId })).toEqual({ ok: true });
     await settle(() => observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack") === -2);
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-2);
+  });
+
+  it("publicly plays Mirei from hand when the controller has none", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX6-022", as: "ange" }], hand: [{ card: "BT11-094", as: "mirei" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("ange"));
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("mirei").instanceId));
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("mirei").instanceId)).toBe(true);
   });
 });

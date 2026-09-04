@@ -27,4 +27,13 @@ describe("EX6-019 Angemon", () => {
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
   });
+
+  it("does not draw from the inherited effect on a non-Angel host", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["EX6-019"] }], deck: [{ card: "BT1-001", as: "drawn" }] },
+    });
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(false);
+  });
 });
