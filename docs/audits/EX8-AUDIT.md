@@ -27,6 +27,7 @@ catalog/KB/runtime/test verification. Current closure status: in progress.
 | EX8-005 | 5/5 | Fresh trace and runtime: separate Mineral/Rock hosts, nonmatching host, and wrong discarded source; no code change |
 | EX8-006 | 7/7 | Fresh trace and runtime: NSo host, exact level-3 target, paid hand trash, refusal, insufficient cost, and same-turn limit; no code change |
 | EX8-007 | 8/8 | `dbf920416`, `b9f1db293`: independent name/Reptile/Dinosaur searches, true nonmatches, unrevealed anchor proving bottom order, inherited turn gate, and evolution legality |
+| EX8-008 | 5/5 | Fresh trace and runtime: memory after actual deletion, inherited DP on/off by turn, off-color NSo evolution and nonmatching rejection; no code change |
 
 EX8-038's added Retaliation case initially used equal-DP combat, which would
 delete both Digimon without Retaliation. `cf93ab20a` corrects it to an unequal-DP
