@@ -1,7 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX7-044.js";
 
 describe("EX7-044", () => {
@@ -39,5 +39,36 @@ describe("EX7-044", () => {
     expect(s.perm("giga").stack.some((card) => card.cardId === "EX7-066")).toBe(true);
     expect(s.perm("competitor").topCard.cardId).toBe("BT1-010");
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT10-058")).toBe(false);
+  });
+
+  it("returns a reveal with no qualifying Option to the chosen deck destination", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX7-044", as: "giga" }], deck: ["BT1-009", "BT1-010", "BT1-014", "BT1-038"] },
+        1: { battleArea: [{ card: "BT10-058", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("giga"));
+    await settle(() => s.state.players[0]!.deck.length === 4);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-010", "BT1-014", "BT1-038"]);
+    expect(s.perm("giga").stack).toHaveLength(0);
+    expect(s.perm("target").topCard?.cardId).toBe("BT10-058");
+  });
+
+  it("does not delete when the revealed Option cannot be placed under a battle-area host", async () => {
+    const s = setupEngine(
+      {
+        0: { breeding: { card: "EX7-044", as: "giga" }, deck: ["EX7-066", "BT1-009", "BT1-014", "BT1-038"] },
+        1: { battleArea: [{ card: "BT10-058", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("giga"));
+    await settle(() => s.state.players[0]!.deck.length === 4);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-014", "BT1-038", "EX7-066"]);
+    expect(s.perm("target").topCard?.cardId).toBe("BT10-058");
   });
 });
