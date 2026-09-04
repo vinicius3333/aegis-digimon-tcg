@@ -14,10 +14,21 @@ describe("EX8-013", () => {
     }));
   it("exposes inherited Security Attack +1 on live state", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: [{ card: "EX8-013", as: "skull" }] }] },
+      0: { battleArea: [{ card: "BT1-080", as: "host", under: [{ card: "EX8-013", as: "skull" }] }] },
+      1: { security: ["BT1-045", "BT1-046"] },
     });
     await s.ready();
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.trash).toHaveLength(2);
   });
 
   it("publishes and uses the off-color level-4 NSo route for exactly 3", async () => {
