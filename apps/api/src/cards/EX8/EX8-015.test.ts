@@ -24,10 +24,21 @@ describe("EX8-015", () => {
     }));
   it("exposes inherited Security Attack +1 on a live host", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-080", as: "host", under: [{ card: "EX8-015", as: "warGrowlmon" }] }] },
+      0: { battleArea: [{ card: "ST1-10", as: "host", under: [{ card: "EX8-015", as: "warGrowlmon" }] }] },
+      1: { security: ["BT1-045", "BT1-046"] },
     });
     await s.ready();
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-045", "BT1-046"]);
   });
 
   it("uses the WarGrowlmon route for 1, gains 3000 DP, blocks returns, and deletes at 10000", async () => {
@@ -74,6 +85,7 @@ describe("EX8-015", () => {
     s.state.memory = 0;
     s.state.turnSeat = 1;
     await advance(s.engine).runTurn(1);
+    expect(s.perm("warGrowlmon").currentDP).toBe(8000);
     await advance(s.engine).verb.returnToHand([s.perm("warGrowlmon").topCard.instanceId]);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
