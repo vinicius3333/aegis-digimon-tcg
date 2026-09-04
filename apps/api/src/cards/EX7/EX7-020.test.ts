@@ -50,4 +50,24 @@ describe("EX7-020 Paledramon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("pale"), "Jamming")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("pale"), "Blocker")).toBe(false);
   });
+
+  it("trashes the top evolution card once when its host attacks", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "host", under: ["EX7-020"] }] },
+        1: { security: ["BT1-045"], battleArea: [{ card: "BT1-009", as: "target", under: ["BT1-010"] }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").stack.length === 0);
+    expect(s.perm("target").stack).toHaveLength(0);
+  });
 });
