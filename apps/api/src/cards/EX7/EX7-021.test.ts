@@ -52,7 +52,7 @@ describe("EX7-021 CrysPaledramon", () => {
     });
     s.state.turnSeat = 0;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.YourTurn, s.perm("host"));
+    await advance(s.engine).recompute();
     expect(observe(s.engine).hasEffectiveTrait(s.perm("host"), "Ice-Snow")).toBe(true);
     expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(true);
     expect(s.perm("host").securityAttack).toBe(2);

@@ -3,6 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./EX7-016.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("EX7-016 Bulucomon", () => {
@@ -48,7 +49,10 @@ describe("EX7-016 Bulucomon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT1-009", as: "host", under: ["EX7-016"] }] },
-        1: { battleArea: [{ card: "BT1-009", as: "target", under: ["EX7-017", "EX7-018"] }] },
+        1: {
+          security: ["BT1-001", "BT1-001"],
+          battleArea: [{ card: "BT1-009", as: "target", under: ["EX7-017", "EX7-018"] }],
+        },
       },
       { autoSelectCards: true },
     );
@@ -65,7 +69,8 @@ describe("EX7-016 Bulucomon", () => {
     expect(s.perm("target").stack).toHaveLength(1);
     expect(s.perm("target").stack[0]!.cardId).toBe("EX7-017");
 
-    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("host"));
+    await settle(() => !observe(s.engine).isAttacking());
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
     await settle(() => false, 20);
     expect(s.perm("target").stack).toHaveLength(1);
   });

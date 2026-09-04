@@ -68,7 +68,7 @@ describe("EX7-010 Deputymon", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("deputy"));
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("deputy"));
     await settle(() => false, 20);
 
     expect(s.state.players[0]!.battleArea).toHaveLength(1);

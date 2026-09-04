@@ -32,7 +32,10 @@ describe("EX7-017 SnowAgumon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT1-009", as: "host", under: ["EX7-017"] }] },
-        1: { battleArea: [{ card: "BT1-009", as: "target", under: ["EX7-018"] }] },
+        1: {
+          security: ["BT1-001", "BT1-001"],
+          battleArea: [{ card: "BT1-009", as: "target", under: ["EX7-018", "EX7-018"] }],
+        },
       },
       { autoSelectCards: true },
     );
@@ -45,10 +48,11 @@ describe("EX7-017 SnowAgumon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("target").stack.length === 0);
-    expect(s.perm("target").stack).toHaveLength(0);
+    await settle(() => s.perm("target").stack.length === 1);
+    expect(s.perm("target").stack).toHaveLength(1);
 
-    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("host"));
-    expect(s.perm("target").stack).toHaveLength(0);
+    await settle(() => !observe(s.engine).isAttacking());
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    expect(s.perm("target").stack).toHaveLength(1);
   });
 });
