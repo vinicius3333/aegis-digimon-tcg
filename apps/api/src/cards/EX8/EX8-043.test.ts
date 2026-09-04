@@ -61,6 +61,23 @@ describe("EX8-043", () => {
 
     expect(s.state.players[1]!.battleArea[0]?.isSuspended).toBe(true);
   });
+
+  it("does not de-digivolve or protect itself when the optional suspension is declined", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX8-043", as: "metal" }] },
+        1: { battleArea: [{ card: "AD1-001", as: "opponent", under: ["BT1-009"] }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("metal").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "EX8-043"));
+    expect(s.perm("opponent").topCard?.cardId).toBe("AD1-001");
+    expect(observe(s.engine).isRestricted(s.perm("metal"), "beReturned")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("metal"), "cantBeDeDigivolved")).toBe(false);
+  });
   it("trashes the opponent's top security when its host deletes in battle", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-081", as: "attacker", dp: 10000, under: ["EX8-043"] }] },
