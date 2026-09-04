@@ -38,7 +38,7 @@ describe("EX6-069 Rise of the Seven Great Demon Lords", () => {
       },
     });
     expect(text).toContain("PlaceInBattleAreaSelf");
-    const gateReference = { tokens: ["Gate of Deadly Sins"], match: "nameExact" } as const;
+    const gateReference = { tokens: ["Gate of Deadly Sins"], match: "nameExact" as const };
     expect(matchNameOrTrait({ nameEn: "Gate of Deadly Sins" }, gateReference)).toBe(true);
     expect(matchNameOrTrait({ nameEn: "Gate of Deadly Sins: Awakened" }, gateReference)).toBe(false);
   });

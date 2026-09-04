@@ -43,7 +43,7 @@ describe("EX6-074 Mirei Mikagura", () => {
         },
       ],
     });
-    const digivolveReference = { tokens: ["Angewomon", "LadyDevimon"], match: "nameExact" } as const;
+    const digivolveReference = { tokens: ["Angewomon", "LadyDevimon"], match: "nameExact" as const };
     expect(matchNameOrTrait({ nameEn: "Angewomon" }, digivolveReference)).toBe(true);
     expect(matchNameOrTrait({ nameEn: "Angewomon (X Antibody)" }, digivolveReference)).toBe(false);
   });

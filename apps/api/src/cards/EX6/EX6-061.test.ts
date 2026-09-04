@@ -34,7 +34,7 @@ describe("EX6-061 Leviamon", () => {
         },
       ],
     });
-    const gateReference = { tokens: ["Gate of Deadly Sins"], match: "nameExact" } as const;
+    const gateReference = { tokens: ["Gate of Deadly Sins"], match: "nameExact" as const };
     expect(matchNameOrTrait({ nameEn: "Gate of Deadly Sins" }, gateReference)).toBe(true);
     expect(matchNameOrTrait({ nameEn: "Gate of Deadly Sins: Awakened" }, gateReference)).toBe(false);
   });
