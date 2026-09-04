@@ -36,6 +36,16 @@ describe("EX7-039", () => {
 
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT2-011")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
     expect(s.decisions.filter((decision) => decision.req.kind === "optional")).toHaveLength(1);
+  });
+
+  it("does not draw or gain memory without a qualifying hand card", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX7-039", as: "jazamon" }], deck: ["BT1-001"] } });
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("jazamon"));
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
   });
 });
