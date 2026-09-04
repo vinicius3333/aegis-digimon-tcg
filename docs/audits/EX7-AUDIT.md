@@ -8,6 +8,23 @@ Exact collection at `edd2e897b`: 74 files / 370 tests passed in 10.51 seconds.
 This table records passing behavioral and structural tests, not by itself a
 collection-wide 10/10 claim. Final independent rereview is still pending.
 
+Current gates:
+
+- Catalog/registration inventory: 74 contiguous IDs, 74 modules, 74 test files;
+  exclusively one `registerIrCard` registration per card.
+- Exact collection: 74/74 files and 370/370 tests passed.
+- Affected mechanisms: 3/3 files and 21/21 tests passed (Option use, exact-name
+  matching, and digivolution candidate legality).
+- Effects: 74 synchronized records, 55 semantic changes against immutable base
+  `6d8363382b063a43a2a00effd1a242fb1363a3e9`, zero changes outside EX7.
+  Latest projection is `edd2e897b`, including the provenance/Tamer-count fixes.
+- Full shared/API/web typecheck passed, followed by another API typecheck
+  after the final card and test corrections.
+- Shared/API/web production builds passed. Final scoped lint/format and
+  `git diff --check` passed after `be4f205f3`.
+- Independent rereview, final approval, push, and coordinator notification
+  remain pending. The entries below retain earlier evidence as history.
+
 | Card | Name | Passing tests |
 | --- | --- | --- |
 | EX7-001 | DemiMeramon | 3/3 |
@@ -85,7 +102,10 @@ collection-wide 10/10 claim. Final independent rereview is still pending.
 | EX7-073 | BeelStarmon (X Antibody) | 4/4 |
 | EX7-074 | Vortex Resonance | 10/10 |
 
-## Current verification — 2026-09-04
+## Historical verification checkpoints — 2026-09-04
+
+These checkpoint entries describe intermediate states, including failures and
+then-pending work. They are superseded by the current inventory and gates above.
 
 Runtime verification has resumed on `audit-ex7-card-by-card-20260904` from
 `6d8363382b063a43a2a00effd1a242fb1363a3e9`. The table below is the historical
