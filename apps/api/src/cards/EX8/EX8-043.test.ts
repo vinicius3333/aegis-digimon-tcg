@@ -209,6 +209,51 @@ describe("EX8-043", () => {
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX8-043")).toBe(true);
   });
 
+  it("evolves from an off-color Dinosaur and continues after declining suspension when already suspended", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "AD1-001", as: "base", suspended: true }],
+          hand: [{ card: "EX8-043", as: "metal" }],
+          deck: ["BT1-045"],
+        },
+        1: { battleArea: [{ card: "AD1-001", as: "target", under: ["BT1-009"] }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("metal").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").topCard.cardId === "BT1-009");
+    expect(s.perm("base").topCard.cardId).toBe("EX8-043");
+    expect(s.perm("base").stack.map((card) => card.cardId)).toContain("AD1-001");
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-045"]);
+    expect(s.perm("target").topCard.cardId).toBe("BT1-009");
+    expect(s.perm("target").isSuspended).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("base"), "beReturned")).toBe(true);
+
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "BT1-037", as: "base" }], hand: [{ card: "EX8-043", as: "metal" }] },
+    });
+    await invalid.ready();
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("base").permanentId,
+        instanceId: invalid.inst("metal").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
+
   it("does not trash security when both battlers are deleted (Q3929)", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-080", as: "attacker", dp: 3000, under: ["EX8-043"] }] },
