@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-020.js";
 
 describe("EX6-020 Gatomon", () => {
@@ -20,4 +21,21 @@ describe("EX6-020 Gatomon", () => {
       frequency: "OncePerTurn",
       actions: [{ kind: "ModifyDP", amount: -2000, duration: "forTheTurn" }],
     }));
+
+  it("adds one Angel-family card and exact Mirei Mikagura from the revealed top three", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX6-020", as: "gato" }],
+          deck: ["EX6-019", "EX6-074", "BT1-001"],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gato").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "EX6-074"));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["EX6-019", "EX6-074"]));
+  });
 });

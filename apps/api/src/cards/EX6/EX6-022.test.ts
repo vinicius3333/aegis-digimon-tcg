@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX6-022.js";
 
 describe("EX6-022 Angewomon", () => {
@@ -27,5 +29,17 @@ describe("EX6-022 Angewomon", () => {
         },
       ],
     });
+  });
+
+  it("reduces one opposing Digimon's Security Attack by 2 when Mirei is present", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT11-094", as: "mirei" }], hand: [{ card: "EX6-022", as: "ange" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+    }, { autoSelectCards: true, autoAcceptOptional: true });
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ange").instanceId })).toEqual({ ok: true });
+    await settle(() => observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack") === -2);
+    expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-2);
   });
 });

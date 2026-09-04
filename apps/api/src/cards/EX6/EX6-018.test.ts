@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-018.js";
 
 describe("EX6-018 Lucemon", () => {
@@ -31,5 +34,26 @@ describe("EX6-018 Lucemon", () => {
       actions: [{ kind: "Digivolve", optional: true, from: ["trash"] }],
     });
     expect(action).not.toHaveProperty("into");
+  });
+
+  it("places a level-6 Digimon into security and evolves into exact Chaos Mode from trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX6-018", as: "lucemon" },
+            { card: "EX6-029", as: "levelSix" },
+          ],
+          trash: [{ card: "EX6-054", as: "chaosMode" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const levelSixId = s.inst("levelSix").instanceId;
+    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("lucemon"));
+    await settle(() => s.perm("lucemon").topCard.cardId === "EX6-054");
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === levelSixId)).toBe(true);
+    expect(s.perm("lucemon").topCard.cardId).toBe("EX6-054");
   });
 });
