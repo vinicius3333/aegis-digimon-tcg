@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-007.js";
 
 describe("EX6-007 Zubamon", () => {
@@ -41,5 +43,46 @@ describe("EX6-007 Zubamon", () => {
       amount: 2000,
       duration: "permanent",
     });
+  });
+
+  it("pays 1 memory, places Zubamon under a level-3 Digimon, and grants +4000 DP", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "host" }],
+          hand: [{ card: "EX6-007", as: "zubamon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const [effect] = JSON.parse(s.inst("zubamon").activatableEffectsJson || "[]") as Array<{ effectKey: string }>;
+    expect(effect).toBeDefined();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("zubamon").instanceId,
+        effectKey: effect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").stack.some((card) => card.instanceId === s.inst("zubamon").instanceId));
+
+    expect(s.state.memory).toBe(4);
+    expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("zubamon").instanceId)).toBe(true);
+    expect(s.perm("host").currentDP).toBe(9000);
+  });
+
+  it("does not offer the hand effect without a level-3 or Legend-Arms host", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX6-001", as: "ineligible" }],
+        hand: [{ card: "EX6-007", as: "zubamon" }],
+      },
+    });
+    await s.ready();
+
+    expect(JSON.parse(s.inst("zubamon").activatableEffectsJson || "[]")).toHaveLength(0);
   });
 });

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-011.js";
 
 describe("EX6-011 RagnaLoardmon", () => {
@@ -37,5 +38,21 @@ describe("EX6-011 RagnaLoardmon", () => {
         },
       ]);
     }
+  });
+
+  it("trashes the opponent's top security card when played", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX6-011", as: "ragna" }] },
+        1: { security: ["BT1-009", "BT1-010"] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ragna").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("ragna").instanceId));
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.trash).toHaveLength(1);
   });
 });
