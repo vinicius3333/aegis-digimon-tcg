@@ -8,8 +8,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   [End of Attack] Trash digivolution cards from the top of 1 of your opponent's Digimon
 //                   until you reach a level 3 card or trash the last card. Then <De-Digivolve 1>
 //                   targeting 1 of your opponent's Digimon.
-//   Inherited [Your Turn][Once Per Turn] When an effect suspends 1 of your opponent's Digimon
-//             (another Digimon, not this one), this Digimon gains <Piercing> for the turn.
+//   Inherited [Your Turn][Once Per Turn] When an effect suspends another Digimon
+//             (not this one), this Digimon gains <Piercing> for the turn.
 //
 // KB Q3482: <De-Digivolve 1> targets 1 of your opponent's Digimon.
 // KB Q3483: Gaining <Piercing> after the battle doesn't help with security checks.
