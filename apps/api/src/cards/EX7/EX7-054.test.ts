@@ -1,4 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX7-054.js";
 
 describe("EX7-054", () => {
@@ -24,5 +28,33 @@ describe("EX7-054", () => {
         },
       ],
     });
+  });
+
+  it("publicly grants Blocker and then Retaliation to the same Digimon after paying the hand cost", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX7-054", as: "black" }], hand: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("black"));
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("black"), "Blocker")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("black"), "Retaliation")).toBe(true);
+  });
+
+  it("publicly repeats the paid keyword grants from its deletion timing", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX7-054", as: "black" }, { card: "BT1-009", as: "other" }], hand: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("black").permanentId], "byBattle")).toBe(1);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-010")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("other"), "Blocker")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("other"), "Retaliation")).toBe(true);
   });
 });
