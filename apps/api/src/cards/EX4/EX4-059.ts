@@ -55,20 +55,9 @@ export const compiled: CompiledCard = {
         : effect,
     ),
     {
-      trigger: "WhenAttacking",
-      actions: [
-        {
-          kind: "AddDPFromSuspendedCost",
-          cost: {
-            kind: "suspend",
-            target: { filter: { controller: "mine", kind: ["Digimon"], excludeSelf: true }, count: 1 },
-          },
-          dpSource: { kind: "suspendedTarget" },
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          duration: "forThisAttack",
-          alsoGainKeywords: [{ keyword: "Piercing" }],
-        },
-      ],
+      trigger: "Static",
+      actions: [],
+      keywords: [{ keyword: "Alliance", raw: "＜Alliance＞" }],
     },
   ],
   coverage: "full",
