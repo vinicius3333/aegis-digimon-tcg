@@ -1,4 +1,7 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-040.js";
 
 describe("EX6-040 TiaLudomon", () => {
@@ -24,5 +27,19 @@ describe("EX6-040 TiaLudomon", () => {
       kind: "ModifyDP",
       amount: 2000,
     });
+  });
+
+  it("publicly pays 1 and places TiaLudomon under an eligible level 4 host", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX6-008", as: "host" }], hand: [{ card: "EX6-040", as: "tia" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.OnDeclaration, s.inst("tia"));
+    await settle(() => s.perm("host").stack.some((card) => card.instanceId === s.inst("tia").instanceId));
+    expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("tia").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("host").currentDP).toBe(6000);
   });
 });

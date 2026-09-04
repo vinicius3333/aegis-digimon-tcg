@@ -1,4 +1,7 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-045.js";
 
 describe("EX6-045 Tsukaimon", () => {
@@ -19,4 +22,18 @@ describe("EX6-045 Tsukaimon", () => {
         },
       ],
     }));
+
+  it("publicly deletes an opposing level 3 Digimon when Tsukaimon is deleted", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX6-045", as: "tsukai", under: ["BT1-009"] }] },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("tsukai").permanentId], "byEffect");
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
 });
