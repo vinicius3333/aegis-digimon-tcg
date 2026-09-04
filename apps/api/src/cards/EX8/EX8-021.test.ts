@@ -21,7 +21,7 @@ describe("EX8-021", () => {
   });
   it("exposes inherited Jamming on a live host", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: [{ card: "EX8-021", as: "seadramon" }] }] },
+      0: { battleArea: [{ card: "BT1-038", as: "host", under: [{ card: "EX8-021", as: "seadramon" }] }] },
     });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Jamming")).toBe(true);
@@ -52,7 +52,7 @@ describe("EX8-021", () => {
 
   it("does not inherit the memory effect but inherited Jamming survives security battle", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", dp: 1000, as: "host", under: ["EX8-021"] }] },
+      0: { battleArea: [{ card: "BT1-038", dp: 1000, as: "host", under: ["EX8-021"] }] },
       1: { security: ["EX8-015"] },
     });
     await s.ready();
