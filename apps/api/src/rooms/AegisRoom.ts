@@ -8,6 +8,7 @@ import {
   EVENT_CHANNEL,
   DECISION_CHANNEL,
 } from "@aegis/shared";
+import { isDevScenarioId, type DevScenarioId } from "../engine/devScenario.js";
 import { GameEngine, type SeatJoinOptions } from "../engine/GameEngine.js";
 import type { VisibilityPort } from "../engine/state/index.js";
 import { BotPlayer, type BotOptions } from "../bot/BotPlayer.js";
@@ -17,6 +18,9 @@ import type { AccountStore, DeckSnapshot } from "../accounts/AccountStore.js";
 import { seriesStore } from "../tournaments/runtime.js";
 import type { SeriesStore } from "../tournaments/series/index.js";
 import { createLocalRoomCodeDirectory, type RoomCodeDirectory } from "../cluster/roomCodes.js";
+
+/** Hand-laid boards must never be reachable by a real player. */
+const DEV_SCENARIOS_ENABLED = process.env.NODE_ENV !== "production";
 
 const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O/1/I
 
@@ -115,6 +119,7 @@ export class AegisRoom extends Room<GameState> {
     undefined,
   ];
   private isBotRoom = false;
+  private devScenario: DevScenarioId | undefined;
   private readonly BOT_SEAT = 1 as Seat;
   private isPrivate = false;
   private isRankedRoom = false;
@@ -263,12 +268,14 @@ export class AegisRoom extends Room<GameState> {
     botRoom?: boolean;
     rankedRoom?: boolean;
     tournamentRoom?: boolean;
+    devScenario?: unknown;
   }): void {
     this.setState(new GameState());
     this.isBotRoom = options.botRoom === true;
     if (this.isBotRoom) {
       this.maxClients = 1;
       this.autoDispose = true;
+      if (DEV_SCENARIOS_ENABLED && isDevScenarioId(options.devScenario)) this.devScenario = options.devScenario;
     }
     this.isRankedRoom = options.rankedRoom === true;
     this.isTournamentRoom = options.tournamentRoom === true;
@@ -610,6 +617,15 @@ export class AegisRoom extends Room<GameState> {
     this.armReadyTimeoutIfSeated();
   }
 
+  /** A hand-laid board instead of the pre-game procedure; bot rooms outside production only. */
+  private startDevScenarioNow(scenario: DevScenarioId): void {
+    if (this.matchStartRequested) return;
+    this.matchStartRequested = true;
+    this.readyTimeout?.clear();
+    this.readyTimeout = undefined;
+    this.engine.startDevScenario(scenario);
+  }
+
   /** Idempotent: only the first caller (ready-gate or timeout) actually starts the match. */
   private startMatchNow(): void {
     if (this.matchStartRequested) return;
@@ -730,7 +746,8 @@ export class AegisRoom extends Room<GameState> {
     // The bot never sends its own `ready` intent (it isn't a Colyseus client, so it
     // has no seatByClient entry for applyIntent to route through) — starting the
     // match directly here is the bot seat's stand-in for readiness.
-    this.startMatchNow();
+    if (this.devScenario !== undefined) this.startDevScenarioNow(this.devScenario);
+    else this.startMatchNow();
     return true;
   }
 

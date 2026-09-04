@@ -21,6 +21,7 @@ import { BugReportDialog } from "./bugs/BugReportDialog";
 import { PlayerMenu } from "./account/PlayerMenu";
 import type { DigimonWorldAvatarId } from "./account/avatars";
 import { pathForRoute, routeFromPathname, type AppRoute } from "./routes";
+import { isBattleLabPath } from "./dev/BattleLab";
 
 const Home = lazy(() => import("./screens/Home").then((m) => ({ default: m.Home })));
 const Login = lazy(() => import("./screens/Login").then((m) => ({ default: m.Login })));
@@ -30,6 +31,7 @@ const DeckBuilder = lazy(() => import("./screens/DeckBuilder").then((m) => ({ de
 const GameScreen = lazy(() => import("./game/GameScreen").then((m) => ({ default: m.GameScreen })));
 const CardEffectsDemo = lazy(() => import("./dev/CardEffectsDemo").then((m) => ({ default: m.CardEffectsDemo })));
 const BoardShowcase = lazy(() => import("./dev/BoardShowcase").then((m) => ({ default: m.BoardShowcase })));
+const BattleLab = lazy(() => import("./dev/BattleLab").then((m) => ({ default: m.BattleLab })));
 
 export function isBoardShowcasePath(pathname: string): boolean {
   return /^\/dev\/board\/?$/i.test(pathname);
@@ -75,6 +77,8 @@ export function App() {
           <CardEffectsDemo cardId={labCardId} />
         ) : isBoardShowcasePath(pathname) ? (
           <BoardShowcase />
+        ) : isBattleLabPath(pathname) ? (
+          <BattleLab />
         ) : (
           <AppShell />
         )}

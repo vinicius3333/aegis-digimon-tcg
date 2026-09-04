@@ -1,0 +1,20 @@
+.aegis-battle-lab-reset {
+  position: fixed;
+  top: 96px;
+  left: 160px;
+  z-index: 10000;
+  padding: 8px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  background: rgba(20, 20, 30, 0.85);
+  color: #fff;
+  font:
+    600 13px/1 system-ui,
+    sans-serif;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+.aegis-battle-lab-reset:hover {
+  background: rgba(60, 60, 90, 0.95);
+}
