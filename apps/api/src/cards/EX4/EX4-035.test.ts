@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX4-035.js";
 
 describe("EX4-035 BlackGargomon", () => {
@@ -56,7 +57,9 @@ describe("EX4-035 inherited attack cost", () => {
     await settle(() => s.perm("fodder").isSuspended);
 
     expect(s.perm("fodder").isSuspended).toBe(true);
-    expect(s.perm("attacker").currentDP).toBeGreaterThan(dpBefore);
+    // The same effect-driven suspension also fires the inherited once-per-turn +2000 bonus.
+    expect(s.perm("attacker").currentDP).toBe(dpBefore + s.perm("fodder").currentDP + 2000);
+    expect(observe(s.engine).keywordAmount(s.perm("attacker"), "SecurityAttack")).toBe(1);
   });
 
   it("suspends nothing and adds no DP when the cost is declined", async () => {
@@ -70,5 +73,50 @@ describe("EX4-035 inherited attack cost", () => {
     expect(s.decisions.some((d) => d.req.kind === "optional")).toBe(true);
     expect(s.perm("fodder").isSuspended).toBe(false);
     expect(s.perm("attacker").currentDP).toBe(dpBefore);
+  });
+
+  it("digivolves from the exact Lopmon alternate name for two memory", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX4-034", as: "lopmon" }],
+        hand: [{ card: "EX4-035", as: "blackGargomon" }],
+      },
+    });
+    s.state.memory = 2;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("lopmon").permanentId,
+        instanceId: s.inst("blackGargomon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("lopmon").topCard.cardId === "EX4-035");
+    expect(s.perm("lopmon").topCard.cardId).toBe("EX4-035");
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("limits the inherited suspension bonus to once per turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-010", as: "host", under: ["EX4-035"] },
+            { card: "BT1-064", as: "first" },
+            { card: "BT1-064", as: "second" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    const baseDP = s.perm("host").currentDP;
+
+    await advance(s.engine).verb.suspend([s.perm("first").permanentId], 0);
+    await settle(() => s.perm("host").currentDP === baseDP + 2000);
+    await advance(s.engine).verb.suspend([s.perm("second").permanentId], 0);
+
+    expect(s.perm("host").currentDP).toBe(baseDP + 2000);
   });
 });

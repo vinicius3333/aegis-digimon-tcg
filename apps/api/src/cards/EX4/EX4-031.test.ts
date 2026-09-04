@@ -64,4 +64,26 @@ describe("EX4-031 Cherubimon", () => {
 
     expect(s.perm("target").currentDP).toBe(4_000);
   });
+
+  it("digivolves from a level-5 two-color Digimon with green for the alternate cost", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT17-049", as: "antylamon" }],
+        hand: [{ card: "EX4-031", as: "cherubimon" }],
+      },
+    });
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("antylamon").permanentId,
+        instanceId: s.inst("cherubimon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("antylamon").topCard.cardId === "EX4-031");
+    expect(s.perm("antylamon").topCard.cardId).toBe("EX4-031");
+    expect(s.state.memory).toBe(0);
+  });
 });

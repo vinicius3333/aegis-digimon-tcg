@@ -36,7 +36,12 @@ describe("EX4-034 Lopmon", () => {
       {
         0: {
           hand: [{ card: "EX4-034", as: "lopmon" }],
-          deck: [{ card: "BT10-055", as: "multicolor" }, { card: "EX2-059", as: "shuChong" }, "BT1-090", "ST1-16"],
+          deck: [
+            { card: "BT10-055", as: "multicolor" },
+            { card: "EX2-059", as: "shuChong" },
+            { card: "EX4-007", as: "wrongColor" },
+            { card: "EX2-061", as: "wrongTamer" },
+          ],
         },
       },
       { autoSelectCards: true, autoOrderCards: true },
@@ -51,6 +56,9 @@ describe("EX4-034 Lopmon", () => {
 
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual(
       expect.arrayContaining([multicolorId, shuChongId]),
+    );
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toEqual(
+      expect.arrayContaining([s.inst("wrongColor").instanceId, s.inst("wrongTamer").instanceId]),
     );
   });
 
