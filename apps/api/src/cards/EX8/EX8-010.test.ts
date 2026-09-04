@@ -68,9 +68,9 @@ describe("EX8-010", () => {
     expect(s.perm("host").currentDP).toBe(3000);
   });
 
-  it("digivolves from an off-color level-3 NSo card for 2 and rejects a non-NSo card", async () => {
+  it("digivolves from an off-color level-3 NSo card for 2 and rejects an off-color non-NSo card", async () => {
     const eligible = setupEngine({
-      0: { battleArea: [{ card: "EX8-009", as: "nsoBase" }], hand: [{ card: "EX8-010", as: "meramon" }] },
+      0: { battleArea: [{ card: "EX8-030", as: "nsoBase" }], hand: [{ card: "EX8-010", as: "meramon" }] },
     });
     eligible.state.memory = 3;
     await eligible.ready();
