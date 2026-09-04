@@ -96,11 +96,11 @@ The following rows were re-audited after the final behavioral fixes. Evidence is
 
 The committed catalog was recalculated as 74 contiguous cards (`EX4-001` through `EX4-074`). Every runtime module has `coverage: "full"`, zero residuals, and exclusive `registerIrCard` registration. The final ledger is 74/74 cards at 10/10.
 
-| Gate                    | Final evidence                                                                                                                                                                                |
-| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Card inventory          | 74 colocated card files and 534 card-specific tests passed inside the final serial collection run.                                                                                            |
-| Exact EX4 collection    | 78/78 files and 544/544 tests passed with file parallelism disabled and one fork.                                                                                                             |
-| Affected mechanisms     | 8/8 EX4 files and 60/60 tests passed; the two exact engine regressions for post-rule-process On Play and player-wide DP duration also passed, with 45 unrelated tests skipped by name filter. |
-| Effects synchronization | 74/74 EX4 records synchronized; 64 semantic changes against `origin/main`, with zero semantic or byte changes outside EX4.                                                                    |
-| Static gates            | Full workspace typecheck passed; shared, API, and web production builds passed.                                                                                                               |
-| Style gates             | Repository lint exited successfully; the `origin/main...HEAD` file scope has zero warnings; changed source/document format and `git diff --check` passed.                                     |
+| Gate                    | Final evidence                                                                                                                                                                        |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Card inventory          | 74 colocated card files and 543 card-specific tests passed inside the final serial collection run.                                                                                    |
+| Exact EX4 collection    | 78/78 files and 553/553 tests passed with file parallelism disabled and one fork.                                                                                                     |
+| Affected mechanisms     | 8/8 EX4 files and 60/60 tests passed; the exact-name matcher passed 4/4 tests; two exact engine regressions for On Play post-rule processing and player-wide DP duration also passed. |
+| Effects synchronization | 74/74 EX4 records synchronized; 65 semantic changes against `origin/main`, with zero semantic or byte changes outside EX4.                                                            |
+| Static gates            | Full workspace typecheck passed; shared, API, and web production builds passed.                                                                                                       |
+| Style gates             | Repository lint exited successfully; the `origin/main...HEAD` file scope has zero warnings; changed source/document format and `git diff --check` passed.                             |
