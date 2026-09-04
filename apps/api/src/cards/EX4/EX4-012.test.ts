@@ -132,9 +132,9 @@ describe("EX4-012 VictoryGreymon", () => {
     await advance(s.engine).verb.deletePermanent([s.perm("first").permanentId], "byEffect");
     await settle(() => s.state.players[1]!.battleArea.length === 2);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-009")).toBe(true);
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("survivor").permanentId)).toBe(
-      true,
-    );
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("survivor").permanentId),
+    ).toBe(true);
 
     await advance(s.engine).verb.deletePermanent([s.perm("second").permanentId], "byEffect");
 

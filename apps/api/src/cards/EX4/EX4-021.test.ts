@@ -114,11 +114,9 @@ describe("EX4-021 GreyKnightsmon", () => {
     await s.ready();
     expect(observe(s.engine).isRestricted(newcomer, "attack")).toBe(true);
 
-    await advance(s.engine).verb.digivolveFromInstance(
-      s.perm("changing").permanentId,
-      s.inst("levelFive").instanceId,
-      { costOverride: 0 },
-    );
+    await advance(s.engine).verb.digivolveFromInstance(s.perm("changing").permanentId, s.inst("levelFive").instanceId, {
+      costOverride: 0,
+    });
 
     expect(s.perm("changing").topCard.cardId).toBe("EX4-019");
     expect(observe(s.engine).isRestricted(s.perm("changing"), "attack")).toBe(false);
@@ -209,9 +207,7 @@ describe("EX4-021 GreyKnightsmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: EX4_021, as: "greyKnights", under: [BLUE_METALGREYMON, DARKKNIGHTMON] },
-          ],
+          battleArea: [{ card: EX4_021, as: "greyKnights", under: [BLUE_METALGREYMON, DARKKNIGHTMON] }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

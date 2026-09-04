@@ -163,10 +163,7 @@ describe("EX4-013 MedievalGallantmon", () => {
   });
 
   it("Q3450 leaves the card in trash when the security-played Digimon is deleted before end of turn", async () => {
-    const s = setupEngine(
-      { 0: { security: [{ card: "EX4-013", as: "medieval" }] } },
-      { autoSelectCards: true },
-    );
+    const s = setupEngine({ 0: { security: [{ card: "EX4-013", as: "medieval" }] } }, { autoSelectCards: true });
     const medievalId = s.inst("medieval").instanceId;
     await s.ready();
 
