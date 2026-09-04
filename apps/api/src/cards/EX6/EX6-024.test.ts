@@ -148,13 +148,21 @@ describe("EX6-024 Sagomon", () => {
             { card: "BT1-009", as: "ally" },
           ],
         },
+        1: { security: ["BT1-001"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     await s.ready();
     preferred.push(s.inst("ally").instanceId);
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("sago"));
-    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("sago"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("sago").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
     expect(observe(s.engine).keywordAmount(s.perm("ally"), "SecurityAttack")).toBe(-1);
   });
 
