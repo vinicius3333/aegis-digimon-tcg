@@ -14,7 +14,7 @@ describe("EX8-013", () => {
     }));
   it("exposes inherited Security Attack +1 on live state", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-080", as: "host", under: [{ card: "EX8-013", as: "skull" }] }] },
+      0: { battleArea: [{ card: "ST1-10", as: "host", under: [{ card: "EX8-013", as: "skull" }] }] },
       1: { security: ["BT1-045", "BT1-046"] },
     });
     await s.ready();
