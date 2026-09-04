@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./EX7-074.js";
 
@@ -46,6 +48,84 @@ describe("EX7-074", () => {
     await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vortex").instanceId })).toEqual({
+      ok: false,
+      reason: "color-requirement-unmet",
+    });
+  });
+
+  it("reveals exactly three, adds one LIBERATOR, bottoms the rest, and digivolves for zero", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX7-074", as: "vortex" }],
+          battleArea: [{ card: "EX7-031", as: "host" }],
+          deck: ["EX7-032", "BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vortex").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("host").topCard?.cardId === "EX7-032");
+    expect(s.perm("host").topCard?.cardId).toBe("EX7-032");
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-010"]);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-009");
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("EX7-074");
+  });
+
+  it("can decline the optional digivolution after resolving the reveal", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX7-074", as: "vortex" }],
+          battleArea: [{ card: "EX7-031", as: "host" }],
+          deck: ["EX7-032", "BT1-009", "BT1-010"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vortex").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "EX7-032"));
+    expect(s.perm("host").topCard?.cardId).toBe("EX7-031");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("EX7-032");
+  });
+
+  it("plays an eligible LIBERATOR from Security and returns itself to hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "EX7-074", as: "vortex" }],
+          hand: ["BT20-085", "BT20-075", "BT1-009"],
+          trash: ["EX7-036"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.Security, s.inst("vortex"));
+
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT20-085")).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("EX7-074");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT20-075", "BT1-009"]),
+    );
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("EX7-036");
+  });
+
+  it("rejects use without a matching color or LIBERATOR trait", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "EX7-074", as: "vortex" }], battleArea: ["BT1-009"] } });
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vortex").instanceId })).toMatchObject({
       ok: false,
       reason: "color-requirement-unmet",
     });
