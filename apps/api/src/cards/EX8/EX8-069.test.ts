@@ -61,6 +61,22 @@ describe("EX8-069", () => {
 
     expect(observe(s.engine).hasKeyword(s.perm("nsp"), "Alliance")).toBe(true);
   });
+  it("does not waive the color requirement while security contains a face-up card", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-030", as: "blue" }],
+        hand: [{ card: "EX8-069", as: "option" }],
+        security: [{ card: "BT1-002", as: "faceUp", faceUp: true }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toMatchObject({
+      ok: false,
+    });
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
+  });
   it("does not grant Alliance to a non-NSp peer and performs ordered face-up Main placement", async () => {
     const s = setupEngine({
       0: {
