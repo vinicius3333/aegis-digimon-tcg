@@ -51,15 +51,44 @@ describe("EX8-024", () => {
   });
   it("restricts one opposing Digimon from suspending while you have memory", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX8-024", as: "source" }] },
-      1: { battleArea: [{ card: "EX8-021", as: "opponent" }] },
+      0: { battleArea: [{ card: "EX8-024", as: "source" }], deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"] },
+      1: {
+        battleArea: [{ card: "EX8-021", as: "opponent" }],
+        security: 1,
+        deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+      },
     });
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 1;
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("source"), {
-      subjectPermanentId: s.perm("source").permanentId,
-    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => observe(s.engine).isRestricted(s.perm("opponent"), "suspend"));
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "suspend")).toBe(true);
+
+    await settle(() => !observe(s.engine).isAttacking());
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const secondTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("opponent").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: false, reason: "illegal-target" });
+
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await secondTurn;
+    expect(observe(s.engine).isRestricted(s.perm("opponent"), "suspend")).toBe(false);
   });
 
   it("does not consume the attack effect at 0 memory, then applies it at 1 (Q3891)", async () => {
@@ -119,6 +148,37 @@ describe("EX8-024", () => {
     expect(s.perm("host").isSuspended).toBe(false);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.perm("host").stack[0]!.instanceId).toBe(otherId);
+  });
+
+  it("keeps the inherited effect optional when its placement cost is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT8-030", as: "host", under: ["EX8-024"] },
+            { card: "EX8-017", as: "other" },
+          ],
+        },
+        1: { security: 1 },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(s.perm("host").stack).toHaveLength(1);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("other").instanceId),
+    ).toBe(true);
   });
 
   it("uses the level-4 DS route for 3 and unsuspends an ally when digivolving", async () => {
