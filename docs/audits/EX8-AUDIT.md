@@ -39,6 +39,9 @@ EX10 (74), EX11 (74), and EX12 (77); these sets have not begun in this run.
 | EX8-015 | 6/6 | `f5ed535e0`, `56421c1db`, `392adc0ef`: legal red inherited host and two checks, return/DP expiry, conditional deletion boundary and source branches. Explicit collection import ensures Meramon's inherited +2000 participates, giving 13000 DP |
 | EX8-016 | 10/10 | `498d52235`, `4a12cb403`, `382e33622`: Q3877 distinct suspension/deletion, Q3878/3879/3880 targeting, actual two checks, Fortitude replay zones/no-source negative, independent named/Dinosaur evolution, real play and evolution continuation after optional refusal |
 | EX8-017 | 7/7 | `17b62628e`, `72440199b`: legal blue level-4 host survives stronger security through Jamming, granted Blocker intercepts an actual attack, and grant expires after the opponent turn |
+| EX8-018 | 8/8 | `15626b460`, `194b0b6b0`: independent DS selection, separate Sea Beast/Plesiosaur runtime cases, unrevealed bottom-order anchor, and second attack restored to seven cards to distinguish the once-per-turn limit |
+| EX8-019 | 8/8 | `99191672d`, `804406528`: legal blue inherited host, actual reduced-security attack and expiry, and non-Ice-Snow evolution cost control |
+| EX8-023 | 8 passed / 1 failed; OPEN | Explicit security assertion exposes Q3883 regression after `f52180366`: simultaneous acquisition of Piercing at battle deletion is missed; prior settle-only assertion did not establish a security check |
 | EX8-038 | 8/8 | `cf93ab20a`, `f7cd5c5a5`: unequal-DP battle proves inherited Retaliation on a legal green host; named off-color Koromon evolution, nonmatching egg rejection, both suspension controllers, and refusal |
 | EX8-039 | 6/6 | `862783bb9`, `55af3b526`: disjoint Insectoid/NSp selection, unrevealed anchors in positive and all-nonmatching reveals, off-color NSp egg evolution and rejection, legal green inherited host with turn gate |
 | EX8-040 | 7/7 | `4380b4788`: real off-color NSp evolution proves cost, draw and allied suspension; opposing On Play target, refusal, non-NSp rejection and legal inherited host turn gate |
@@ -46,6 +49,22 @@ EX10 (74), EX11 (74), and EX12 (77); these sets have not begun in this run.
 | EX8-042 | 7/7 | `44be03152`: Fortitude replay identity/zones and no-source negative, suspended aura boundary, legal inherited host with two-battle limit and Q3927, off-color NSp evolution cost/draw and nonmatching rejection |
 | EX8-043 | 11/11 | `d8f396f00`, `cf8ddcaf5`, `c1abb8927`, `d9dccb781`: two-battle limit on legal inherited host, Q3929, real opposing de-digivolution/return attempts, controller return, protection expiry, Dinosaur alternate and already-suspended continuation after optional refusal |
 | EX8-044 | 11/11 | `c0a72231d`, `f194ebf92`, `cb4584415`: real Counter evolution, memory counts only opposing new suspensions, refusal, actual Piercing battle, same-turn limit, opponent-turn expiry, and off-color NSp evolution/negative |
+| EX8-045 | 9/9 focused; shared review OPEN | `f52180366`, `8e0b6d573`: Q3931/Q3932/Q6043, real play/evolution, source-color boundaries and actual checks. Engine closure remains open because EX8-023 Q3883 contradicts the current pre-deletion snapshot |
+
+### Open shared regression — Piercing acquisition at deletion
+
+The independent review initially reported Ready for `f52180366` and
+`8e0b6d573`. Coordinator cross-card review superseded that verdict with a
+reproducer: adding `expect(security).toHaveLength(0)` to EX8-023's existing
+Q3883 battle leaves one security card instead. The focused command with
+`--no-file-parallelism --pool=forks --maxWorkers=1` produced 8 passes and
+1 failure on 2026-09-04. `settle()` alone had hidden this failure.
+
+The local KB explicitly permits gaining Piercing simultaneously with the
+defender's battle deletion. The current snapshot precedes actual removal,
+whereas Q3931 requires retaining an already-triggered check across later
+Fortitude reactions. Both rulings must pass together before engine review
+or collection closure can be accepted. No completion gate is claimed here.
 
 EX8-043/044 coordinator verification: 2 files / 22 tests passed (1.37 s),
 with one worker and file parallelism disabled; scoped lint/format/diff clean.
