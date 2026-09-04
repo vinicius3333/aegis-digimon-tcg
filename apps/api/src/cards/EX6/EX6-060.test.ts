@@ -1,4 +1,7 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-060.js";
 
 describe("EX6-060 Belphemon: Rage Mode", () => {
@@ -16,4 +19,11 @@ describe("EX6-060 Belphemon: Rage Mode", () => {
         { kind: "PlaceUnder", target: { from: ["trash"] }, position: "bottom", underFilter: { zone: "breeding" } },
       ],
     }));
+  it("publicly trashes available hand cards on play", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX6-060", as: "belphe" }], hand: ["BT1-009", "BT1-010"], deck: ["BT1-011"] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("belphe"));
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.trash.length).toBeGreaterThanOrEqual(2);
+  });
 });

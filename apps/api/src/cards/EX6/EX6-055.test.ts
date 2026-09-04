@@ -1,7 +1,9 @@
 import { EffectTiming } from "@aegis/shared";
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX6-055.js";
 
 describe("EX6-055 DanDevimon", () => {
@@ -29,5 +31,28 @@ describe("EX6-055 DanDevimon", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("dan"));
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("publicly trashes one opponent hand card when no qualifying Digimon can be deleted", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX6-055", as: "host" }] }, 1: { hand: [{ card: "BT1-010", as: "opponentCard" }], battleArea: [{ card: "EX6-043", as: "ineligible" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("host"));
+    await settle(() => s.state.players[1]!.hand.length === 0);
+    expect(s.state.players[1]!.hand).toHaveLength(0);
+  });
+
+  it("publicly grants Rush only at the five-card hand boundary", async () => {
+    const active = setupEngine({ 0: { battleArea: [{ card: "EX6-055", as: "host" }] }, 1: { hand: Array.from({ length: 5 }, () => "BT1-010") } });
+    active.state.turnSeat = 0;
+    await active.ready();
+    expect(observe(active.engine).hasKeyword(active.perm("host"), "Rush")).toBe(true);
+    const inactive = setupEngine({ 0: { battleArea: [{ card: "EX6-055", as: "host" }] }, 1: { hand: Array.from({ length: 6 }, () => "BT1-010") } });
+    inactive.state.turnSeat = 0;
+    await inactive.ready();
+    expect(observe(inactive.engine).hasKeyword(inactive.perm("host"), "Rush")).toBe(false);
   });
 });
