@@ -60,7 +60,7 @@ describe("EX8-070", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX8-047", as: "mineral", under: ["EX8-048"] }],
+          battleArea: [{ card: "EX8-048", as: "mineral", under: ["EX8-047"] }],
           hand: [{ card: "EX8-070", as: "option" }],
         },
       },
@@ -92,7 +92,7 @@ describe("EX8-070", () => {
   it("may decline without trashing a source or granting any benefit", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "EX8-047", as: "mineral", under: ["EX8-048"] }],
+        battleArea: [{ card: "EX8-048", as: "mineral", under: ["EX8-047"] }],
         hand: [{ card: "EX8-070", as: "option" }],
       },
     });
@@ -119,7 +119,7 @@ describe("EX8-070", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX8-047", as: "mineral", under: ["EX8-048"] }],
+          battleArea: [{ card: "EX8-048", as: "mineral", under: ["EX8-047"] }],
           hand: [{ card: "EX8-070", as: "option" }],
         },
       },
@@ -137,7 +137,7 @@ describe("EX8-070", () => {
     await driver.verb.returnToHand([s.perm("mineral").topCard.instanceId]);
     driver.verb.leaveEffectResolution();
 
-    expect(s.perm("mineral").topCard.cardId).toBe("EX8-047");
+    expect(s.perm("mineral").topCard.cardId).toBe("EX8-048");
     expect(
       s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("mineral").permanentId),
     ).toBe(true);
