@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX7-059.js";
 import "../index.js";
 
@@ -84,6 +84,50 @@ describe("EX7-059", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
+
+  it("Blast Digivolves from hand onto a level 5 Digimon with Three Musketeers in its text", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX7-044", as: "base" }],
+          hand: [{ card: "EX7-059", as: "beel" }],
+          trash: [{ card: "EX7-066", as: "option" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 3000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("counter window did not open");
+    const eligible = opened.eligibleCounters.find((entry) => entry.instanceId === s.inst("beel").instanceId);
+    expect(eligible).toBeDefined();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondCounter",
+        sourceInstanceId: eligible!.instanceId,
+        effectKey: eligible!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "EX7-059");
+
+    expect(s.perm("base").topCard?.cardId).toBe("EX7-059");
+    expect(s.perm("base").stack.some((card) => card.cardId === "EX7-044")).toBe(true);
+    expect(s.state.memory).toBe(0);
+  });
+
   it("has Blast Digivolve and returns an Option from trash before using a Three Musketeers Option without cost", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Counter")?.keywords?.[0]).toMatchObject({
       keyword: "BlastDigivolve",
