@@ -36,7 +36,10 @@ describe("EX6-003 Cupimon", () => {
       {
         0: {
           battleArea: [{ card: "EX6-007", as: "host", under: ["EX6-003"] }],
-          hand: [{ card: "BT1-053", as: "angel" }],
+          hand: [
+            { card: "BT1-053", as: "angel" },
+            { card: "BT1-053", as: "secondAngel" },
+          ],
           security: [{ card: "BT1-009", as: "securityTop" }],
         },
       },
@@ -53,5 +56,27 @@ describe("EX6-003 Cupimon", () => {
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("securityTop").instanceId);
     expect(s.state.players[0]!.security).toHaveLength(1);
     expect(s.state.players[0]!.security[0]).toMatchObject({ instanceId: s.inst("angel").instanceId, faceUp: false });
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("angel").instanceId);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("secondAngel").instanceId);
+  });
+
+  it("does not place a non-Angel card when the optional exchange has no legal hand target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-007", as: "host", under: ["EX6-003"] }],
+          hand: [{ card: "BT1-009", as: "nonAngel" }],
+          security: [{ card: "BT1-010", as: "securityTop" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("securityTop").instanceId);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("nonAngel").instanceId);
+    expect(s.state.players[0]!.security).toHaveLength(0);
   });
 });

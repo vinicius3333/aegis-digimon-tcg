@@ -28,14 +28,17 @@ describe("EX6-004 Kokomon", () => {
   });
 
   it("gains +2000 DP once when one of its controller's effects suspends a Digimon", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "EX6-007", as: "host", under: ["EX6-004"] },
-          { card: "BT1-009", as: "subject" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX6-007", as: "host", under: ["EX6-004"] },
+            { card: "BT1-009", as: "subject" },
+          ],
+        },
       },
-    });
+      { autoSelectCards: true },
+    );
     await s.ready();
     const before = s.perm("host").currentDP;
 
@@ -70,15 +73,18 @@ describe("EX6-004 Kokomon", () => {
   });
 
   it("checks the suspended Digimon's controller, not the effect controller", async () => {
-    const oursSuspendedByOpponent = setupEngine({
-      0: {
-        battleArea: [
-          { card: "EX6-007", as: "host", under: ["EX6-004"] },
-          { card: "BT1-009", as: "ours" },
-        ],
+    const oursSuspendedByOpponent = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX6-007", as: "host", under: ["EX6-004"] },
+            { card: "BT1-009", as: "ours" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
       },
-      1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
-    });
+      { autoSelectCards: true },
+    );
     await oursSuspendedByOpponent.ready();
     const boostedHost = oursSuspendedByOpponent.perm("host").currentDP;
 
@@ -86,10 +92,13 @@ describe("EX6-004 Kokomon", () => {
 
     expect(oursSuspendedByOpponent.perm("host").currentDP).toBe(boostedHost + 2000);
 
-    const theirsSuspendedByUs = setupEngine({
-      0: { battleArea: [{ card: "EX6-007", as: "host", under: ["EX6-004"] }] },
-      1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
-    });
+    const theirsSuspendedByUs = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX6-007", as: "host", under: ["EX6-004"] }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoSelectCards: true },
+    );
     await theirsSuspendedByUs.ready();
     const unboostedHost = theirsSuspendedByUs.perm("host").currentDP;
 
