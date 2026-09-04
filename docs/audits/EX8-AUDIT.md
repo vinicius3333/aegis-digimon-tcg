@@ -16,6 +16,17 @@ with one fork; only affected mechanisms and the exact collection run at gates.
 No card score from the historical sections below is adopted without fresh
 catalog/KB/runtime/test verification. Current closure status: in progress.
 
+### Current focused checkpoints
+
+| Card | Fresh focused result | Evidence |
+| --- | --- | --- |
+| EX8-001 | 5/5 | `bfb8ad059`: name-only positive uses Cyborg MetalTyrannomon, independently of the Dinosaur branch |
+| EX8-002 | 4/4 | Existing public attack/stack proof reconfirmed; exact-zero memory and same-turn limit, no code change |
+
+EX8-038 follow-up is not yet accepted: the added Retaliation case initially used
+equal-DP combat, which would delete both Digimon without Retaliation. The worker
+is replacing it with an unequal-DP loss before reporting this clause verified.
+
 ## Historical evidence inherited at the audit base
 
 This ledger records fresh card-by-card verification in ascending ID order. Historical audit commits and earlier batch output are only leads; each 10/10 closure below is based on a new complete `verify-card-implementation` trace and an isolated focused test process before the card's atomic commit.
