@@ -228866,7 +228866,8 @@
                 "controller": "mine",
                 "kind": ["Digimon"],
                 "levelComparison": { "op": "lte", "value": 4 },
-                "colors": ["Blue"]
+                "colors": ["Blue"],
+                "hostFilter": { "isSelfRef": true }
               },
               "count": 1,
               "source": "digivolutionCards"
@@ -228881,7 +228882,8 @@
                 "controller": "mine",
                 "kind": ["Digimon"],
                 "levelComparison": { "op": "lte", "value": 4 },
-                "colors": ["Green"]
+                "colors": ["Green"],
+                "hostFilter": { "isSelfRef": true }
               },
               "count": 1,
               "source": "digivolutionCards"
@@ -229028,14 +229030,18 @@
       {
         "trigger": "WhenDigivolving",
         "actions": [
-          { "kind": "Suspend", "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 } },
+          {
+            "kind": "SelectBind",
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "count": 1,
+              "bindAs": "dinobeemonTarget"
+            }
+          },
+          { "kind": "Suspend", "target": { "filter": {}, "count": 1, "fromSelectionRef": "dinobeemonTarget" } },
           {
             "kind": "Restrict",
-            "target": {
-              "filter": { "controllerDefault": "opponent", "kind": ["Digimon"] },
-              "count": 1,
-              "sameTarget": true
-            },
+            "target": { "filter": {}, "count": 1, "fromSelectionRef": "dinobeemonTarget" },
             "restriction": "unsuspend",
             "duration": "untilOpponentTurnEnd",
             "condition": { "kind": "isDnaDigivolving", "raw": "When DNA digivolving" }

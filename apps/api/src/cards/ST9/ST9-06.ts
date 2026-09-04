@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -13,6 +12,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   (non-optional) sequential PlayWithoutCost actions so the player chooses once
 //   (to act or not) and then both slots resolve.
 //
+// hostFilter.isSelfRef restricts both slots to THIS permanent's own digivolution stack,
+// not any of the controller's Digimon (see BT9-111).
 // The effect-level optional flag provides the single accept/decline decision. Once accepted,
 // both non-optional actions resolve in sequence and therefore play every eligible slot.
 const compiled: CompiledCard = {
@@ -32,6 +33,9 @@ const compiled: CompiledCard = {
                 value: 4,
               },
               colors: ["Blue"],
+              hostFilter: {
+                isSelfRef: true,
+              },
             },
             count: 1,
             source: "digivolutionCards",
@@ -50,6 +54,9 @@ const compiled: CompiledCard = {
                 value: 4,
               },
               colors: ["Green"],
+              hostFilter: {
+                isSelfRef: true,
+              },
             },
             count: 1,
             source: "digivolutionCards",

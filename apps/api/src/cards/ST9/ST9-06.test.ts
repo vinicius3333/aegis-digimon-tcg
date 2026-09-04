@@ -28,6 +28,37 @@ describe("ST9-06 Imperialdramon: Dragon Mode", () => {
     );
   });
 
+  it("ignores eligible sources under another friendly Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST9-05", as: "base", under: ["ST9-09"] },
+            { card: "ST9-05", as: "bystander", under: ["ST9-04"] },
+          ],
+          hand: [{ card: "ST9-06", as: "dragon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoOrderTriggers: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    const bystanderStack = s.perm("bystander").stack.map((card) => card.instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("dragon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 3);
+    expect(s.perm("bystander").stack.map((card) => card.instanceId)).toEqual(bystanderStack);
+    const playedInstanceIds = s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId);
+    for (const instanceId of bystanderStack) expect(playedInstanceIds).not.toContain(instanceId);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(
+      expect.arrayContaining(["ST9-06", "ST9-09"]),
+    );
+  });
+
   it("plays neither eligible source when its optional effect is declined", async () => {
     const s = setupEngine(
       {
