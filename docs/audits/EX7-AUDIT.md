@@ -2,9 +2,9 @@
 
 This ledger records a fresh card-by-card audit in ascending card-ID order using the committed catalog, the local rules knowledge base, each direct compiled-IR module, its shared primitives, peer implementations, and the existing colocated tests.
 
-## Current validation checkpoint
+## Final validation
 
-At `ef63d3f7f`, the exact EX7 collection passed 74 files / 397 tests in 9.97
+After `fd50ecd45`, the exact EX7 collection passed 74 files / 398 tests in 11.10
 seconds with one fork and no file parallelism. The catalog was recalculated:
 74 contiguous IDs, 74 modules, 74 colocated tests, only IR registration, and
 no RawUnparsed nodes. Scoped EX7 lint/format and diff checks passed.
@@ -13,9 +13,11 @@ Full shared/API/web typecheck and the web production build passed after the
 latest effects projection. Shared/API production builds also passed.
 The lower independent rereview approved EX7-041/056/063/073 with zero Critical,
 Important, or Minor findings and confirmed the final Armor Purge cost proofs
-for EX7-052/054. Upper review approved its corrections; the final explicit
-once-per-turn evidence assessment for EX7-061 remains pending. This is not yet
-a collection completion notification.
+for EX7-052/054. Upper review also reports zero Critical, Important, or Minor
+findings and Ready, including EX7-061's explicit second-use rejection at
+`fd50ecd45` (13/13 focused). All 74 cards are assessed runtime 10/10; no
+unresolved implementation or evidence finding remains. Branch push and Orca
+completion notification follow this ledger commit.
 
 ## Review follow-up history
 
@@ -57,26 +59,29 @@ Latest follow-up gates (not collection approval):
 
 ## Passing test inventory at latest collection checkpoint
 
-Exact collection at `ef63d3f7f`: 74 files / 397 tests passed in 9.97 seconds.
-This table records passing behavioral and structural tests, not by itself a
-collection-wide 10/10 claim. Final independent rereview is still pending.
+Exact final collection after `fd50ecd45`: 74 files / 398 tests passed in 11.10 seconds.
+Counts below are executable test counts, not audit scores. The runtime 10/10
+assessment additionally incorporates catalog/KB tracing and independent review.
 
 Current gates:
 
 - Catalog/registration inventory: 74 contiguous IDs, 74 modules, 74 test files;
   exclusively one `registerIrCard` registration per card.
-- Exact collection: 74/74 files and 397/397 tests passed.
-- Affected mechanisms: 3/3 files and 21/21 tests passed (Option use, exact-name
-  matching, and digivolution candidate legality).
+- Exact collection: 74/74 files and 398/398 tests passed. The immediately prior
+  checkpoint passed 397/397 before the final once-per-turn test was added.
+- Affected mechanisms: 6 files and 25 selected tests passed: 21 Option-use,
+  exact-name, and digivolution-legality tests, plus 4 prevention, cost-abort,
+  and distinct-name regressions. No broad-suite claim is made for skipped tests.
 - Effects: 74 synchronized records, 55 semantic changes against immutable base
   `6d8363382b063a43a2a00effd1a242fb1363a3e9`, zero changes outside EX7.
-  Latest projection is `edd2e897b`, including the provenance/Tamer-count fixes.
-- Full shared/API/web typecheck passed, followed by another API typecheck
-  after the final card and test corrections.
-- Shared/API/web production builds passed. Final scoped lint/format and
-  `git diff --check` passed after `be4f205f3`.
-- Independent rereview, final approval, push, and coordinator notification
-  remain pending. The entries below retain earlier evidence as history.
+  Latest projection is `0f2f55335`, including all final module corrections.
+  An independent read-only comparison confirms 74 built runtime records match
+  the projection and that all out-of-set bytes still match the immutable base.
+- Full shared/API/web typecheck and shared/API/web production builds passed
+  after the module corrections and effects projection.
+- Final scoped lint/format and `git diff --check` passed.
+- Independent rereview: Ready; 0 Critical / 0 Important / 0 Minor. Atomic
+  commits are complete. Push and coordinator notification are delivery steps.
 
 | Card | Name | Passing tests |
 | --- | --- | --- |
@@ -140,7 +145,7 @@ Current gates:
 | EX7-058 | LadyDevimon (X Antibody) | 4/4 |
 | EX7-059 | BeelStarmon | 8/8 |
 | EX7-060 | Nidhoggmon | 5/5 |
-| EX7-061 | Lilithmon (X Antibody) | 12/12 |
+| EX7-061 | Lilithmon (X Antibody) | 13/13 |
 | EX7-062 | HeavyMetaldramon | 5/5 |
 | EX7-063 | Arisa Kinosaki | 8/8 |
 | EX7-064 | Shoto Kazama | 8/8 |
