@@ -55,10 +55,14 @@ describe("EX8-044", () => {
     expect(s.perm("alreadySuspended").isSuspended).toBe(true);
     expect(s.perm("freshOpponent").isSuspended).toBe(true);
   });
-  it("suspends an opposing Digimon and gains memory when digivolving", async () => {
+  it("evolves from off-color NSp, suspends an opposing Digimon and gains memory", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX8-042", as: "host" }], hand: [{ card: "EX8-044", as: "hercules" }] },
+        0: {
+          battleArea: [{ card: "EX7-022", as: "host" }],
+          hand: [{ card: "EX8-044", as: "hercules" }],
+          deck: ["BT1-045"],
+        },
         1: { battleArea: [{ card: "EX8-043", as: "opponent" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -70,11 +74,30 @@ describe("EX8-044", () => {
         type: "digivolve",
         permanentId: s.perm("host").permanentId,
         instanceId: s.inst("hercules").instanceId,
+        useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("opponent").isSuspended);
     expect(s.perm("opponent").isSuspended).toBe(true);
     expect(s.state.memory).toBe(8); // 10 - 3 digivolution cost + 1 suspended opponent.
+    expect(s.perm("host").topCard.cardId).toBe("EX8-044");
+    expect(s.perm("host").stack.map((card) => card.cardId)).toContain("EX7-022");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-045"]);
+  });
+
+  it("rejects an off-color level-5 Digimon without NSp", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-020", as: "host" }], hand: [{ card: "EX8-044", as: "hercules" }] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("hercules").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 
   it("does not suspend or gain memory when the optional On Play effect is declined", async () => {
