@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX7-049.js";
+import "../index.js";
 describe("EX7-049 Bryweludramon", () => {
   it("De-Digivolves four on play and attack, stopping at level 3", () => {
     for (const trigger of ["OnPlay", "WhenAttacking"])
@@ -74,5 +75,33 @@ describe("EX7-049 Bryweludramon", () => {
     await s.ready();
     expect(await advance(s.engine).verb.deletePermanent([s.perm("bry").permanentId], "byEffect")).toBe(1);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT2-011")).toBe(true);
+  });
+
+  it("lets an immune level-4 Digimon digivolve despite the restriction", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX7-049", as: "bry" }] },
+        1: {
+          battleArea: [{ card: "BT15-047", as: "immune", suspended: true }],
+          hand: [{ card: "BT15-049", as: "evolution" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("immune"), "beAffected", "Digimon")).toBe(true);
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("bry"));
+
+    s.state.turnSeat = 1;
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("immune").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("immune").topCard?.cardId === "BT15-049");
+    expect(s.perm("immune").topCard?.cardId).toBe("BT15-049");
   });
 });
