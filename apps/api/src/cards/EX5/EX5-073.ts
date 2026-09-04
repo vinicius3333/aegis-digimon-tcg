@@ -29,6 +29,7 @@ export const compiled: CompiledCard = {
             count: "any",
           },
           amount: 8,
+          scope: "acrossDigimon",
           condition: {
             kind: "isDnaDigivolving",
             raw: "DNA digivolving",
