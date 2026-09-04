@@ -32,6 +32,34 @@ describe("EX8-035", () => {
     expect(observe(s.engine).timingEffectDisabled(s.perm("opponent"), "whenDigivolving")).toBe(false);
   });
 
+  it("suppresses a real opposing When Digivolving draw while its owner has memory", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX8-035", as: "marine" }] },
+      1: {
+        battleArea: [{ card: "BT1-027", as: "base" }],
+        hand: [{ card: "BT16-020", as: "evolver" }],
+        deck: ["BT1-028", "BT1-010", "BT1-011"],
+      },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = -5;
+    await s.ready();
+    const deckBefore = s.state.players[1]!.deck.length;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolver").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT16-020");
+    await settle(() => s.state.players[1]!.deck.length <= deckBefore - 1);
+
+    expect(s.perm("base").topCard.cardId).toBe("BT16-020");
+    expect(s.state.players[1]!.deck.length).toBe(deckBefore - 1);
+  });
+
   it("uses the source owner's memory side when the opponent is the turn player (Q3915)", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "EX8-035", as: "marine" }] },
@@ -44,22 +72,34 @@ describe("EX8-035", () => {
     expect(observe(s.engine).timingEffectDisabled(s.perm("opponent"), "whenDigivolving")).toBe(true);
   });
 
-  it("resolves its end-of-battle Security effect on two opponents and enters hand", async () => {
-    const s = setupEngine({
-      0: { security: [{ card: "EX8-035", as: "marine" }] },
-      1: {
-        battleArea: [
-          { card: "AD1-001", as: "one" },
-          { card: "EX8-040", as: "two" },
-        ],
+  it("resolves its end-of-battle Security effect after a real security battle", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-009", as: "attacker", dp: 10000 },
+            { card: "EX8-040", as: "two" },
+          ],
+        },
+        1: {
+          security: [{ card: "EX8-035", as: "marine" }],
+        },
       },
-    });
+      { autoSelectCards: true },
+    );
     const instanceId = s.inst("marine").instanceId;
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("marine"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === instanceId));
 
-    expect(observe(s.engine).keywordAmount(s.perm("one"), "SecurityAttack")).toBe(-1);
+    expect(observe(s.engine).keywordAmount(s.perm("attacker"), "SecurityAttack")).toBe(-1);
     expect(observe(s.engine).keywordAmount(s.perm("two"), "SecurityAttack")).toBe(-1);
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === instanceId)).toBe(true);
+    expect(s.state.players[1]!.hand.some((card) => card.instanceId === instanceId)).toBe(true);
   });
 });
