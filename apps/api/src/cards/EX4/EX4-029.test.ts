@@ -6,17 +6,10 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX4-029.js";
 
 describe("EX4-029 Antylamon", () => {
-  it("adds the suspended Digimon's DP and Security Attack plus one for the attack", () => {
-    expect(compiled.effects?.find((entry) => entry.trigger === "WhenAttacking")).toMatchObject({
-      isInherited: true,
-      actions: [
-        {
-          kind: "AddDPFromSuspendedCost",
-          dpSource: { kind: "suspendedTarget" },
-          duration: "forThisAttack",
-          alsoGainKeywords: [{ keyword: "SecurityAttack", amount: 1 }],
-        },
-      ],
+  it("provides Alliance as a printed keyword", () => {
+    expect(compiled.effects?.find((entry) => entry.trigger === "Static")).toMatchObject({
+      actions: [],
+      keywords: [{ keyword: "Alliance" }],
     });
   });
   it("places the top deck card into security at three or fewer security", () => {
@@ -51,22 +44,42 @@ describe("EX4-029 Antylamon", () => {
     expect(s.state.players[0]!.security).toHaveLength(4);
   });
 
-  it("adds another suspended Digimon's DP and Security Attack on a real attack", async () => {
+  it("adds another Digimon's DP and Security Attack through a real Alliance attack", async () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT1-029", as: "host", under: ["EX4-029"] },
-          { card: "BT1-064", as: "suspendedAlly", dp: 3000 },
+          { card: "EX4-029", as: "attacker", dp: 12000 },
+          { card: "BT1-064", as: "ally", dp: 3000 },
+        ],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-021", as: "target", dp: 15000, suspended: true },
+          { card: "ST18-07", as: "blocker", dp: 7000 },
         ],
       },
     });
     await s.ready();
-    const baseDP = s.perm("host").currentDP;
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), {
-      attackerPermanentId: s.perm("host").permanentId,
+    const baseDP = s.perm("attacker").currentDP;
+    expect(s.perm("attacker").keywords).toContain("Alliance");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    const combat = (s.engine as unknown as { combat: { hasOpenAllianceDecision: boolean } }).combat;
+    await settle(() => combat.hasOpenAllianceDecision);
+    expect(s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: s.perm("ally").permanentId })).toEqual({
+      ok: true,
     });
-    expect(s.perm("host").currentDP).toBe(baseDP + 3000);
-    expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);
+    await settle(() => {
+      const combat = (s.engine as unknown as { combat: { hasOpenBlockWindow: boolean } }).combat;
+      return s.perm("ally").isSuspended && combat.hasOpenBlockWindow;
+    });
+    expect(s.perm("attacker").currentDP).toBe(baseDP + s.perm("ally").currentDP);
+    expect(observe(s.engine).keywordAmount(s.perm("attacker"), "SecurityAttack")).toBe(1);
   });
 
   it("digivolves from a level-4 two-color Digimon with green for the alternate cost", async () => {
@@ -89,18 +102,6 @@ describe("EX4-029 Antylamon", () => {
     await settle(() => s.perm("mikemon").topCard.cardId === "EX4-029");
     expect(s.perm("mikemon").topCard.cardId).toBe("EX4-029");
     expect(s.state.memory).toBe(0);
-  });
-
-  it("does not add DP when no other Digimon is suspended", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-029", as: "host", under: ["EX4-029"] }] } });
-    await s.ready();
-    const baseDP = s.perm("host").currentDP;
-
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), {
-      attackerPermanentId: s.perm("host").permanentId,
-    });
-    expect(s.perm("host").currentDP).toBe(baseDP);
-    expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(0);
   });
 
   it("applies the inherited End of Attack DP loss only when another ally is suspended", async () => {
