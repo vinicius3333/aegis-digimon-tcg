@@ -79,4 +79,28 @@ describe("EX6-030 Dominimon", () => {
     await s.ready();
     expect(observe(s.engine).hasEffectiveTrait(s.perm("dom"), "Angel")).toBe(true);
   });
+
+  it("does not replace a battle deletion with the security payment", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX6-030", as: "dom" },
+            { card: "EX6-019", as: "angel" },
+          ],
+          security: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("angel").permanentId], "byBattle");
+    await settle(() =>
+      s.state.players[0]!.battleArea.every((perm) => perm.topCard?.instanceId !== s.inst("angel").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("angel").instanceId)).toBe(
+      false,
+    );
+    expect(s.state.players[0]!.security).toHaveLength(1);
+  });
 });

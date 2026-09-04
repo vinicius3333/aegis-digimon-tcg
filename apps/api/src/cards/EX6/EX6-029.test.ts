@@ -98,6 +98,7 @@ describe("EX6-029 Mastemon", () => {
       true,
     );
     expect(s.state.players[0]!.security).toHaveLength(3);
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("other").instanceId)).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(4);
   });
 
@@ -132,6 +133,7 @@ describe("EX6-029 Mastemon", () => {
     );
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("angel").instanceId)).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(3);
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("other").instanceId)).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(4);
   });
 });

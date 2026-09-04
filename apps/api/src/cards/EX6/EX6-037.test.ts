@@ -110,4 +110,53 @@ describe("EX6-037 Spadamon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[1]!.battleArea[0]!.topCard?.instanceId).toBe(s.inst("second").instanceId);
   });
+
+  it("rejects the hand effect when no eligible host is present", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "EX6-037", as: "spada" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const [effect] = JSON.parse(s.inst("spada").activatableEffectsJson || "[]") as Array<{ effectKey: string }>;
+    expect(effect).toBeUndefined();
+  });
+
+  it("publicly places itself under a Legend-Arms host without requiring a level-3 host", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX6-010", as: "host" }], hand: [{ card: "EX6-037", as: "spada" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const [effect] = JSON.parse(s.inst("spada").activatableEffectsJson || "[]") as Array<{ effectKey: string }>;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("spada").instanceId,
+        effectKey: effect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").stack.some((card) => card.instanceId === s.inst("spada").instanceId));
+    expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("spada").instanceId)).toBe(true);
+  });
+
+  it("leaves the hand card and memory unchanged when the optional activation is declined", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT1-009", as: "host" }], hand: [{ card: "EX6-037", as: "spada" }] } },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const [effect] = JSON.parse(s.inst("spada").activatableEffectsJson || "[]") as Array<{ effectKey: string }>;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("spada").instanceId,
+        effectKey: effect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("spada").instanceId)).toBe(true);
+  });
 });
