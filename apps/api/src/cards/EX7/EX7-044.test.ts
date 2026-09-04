@@ -1,7 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX7-044.js";
 
 describe("EX7-044", () => {
@@ -32,13 +32,12 @@ describe("EX7-044", () => {
         },
         1: { battleArea: [{ card: "BT10-058", as: "target" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("giga"));
-    await settle(() => s.perm("giga").stack.some((card) => card.cardId === "EX7-066"));
     expect(s.perm("giga").stack.some((card) => card.cardId === "EX7-066")).toBe(true);
-    expect(s.perm("competitor").stack).toHaveLength(0);
+    expect(s.perm("competitor").topCard.cardId).toBe("BT1-010");
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT10-058")).toBe(false);
   });
 });

@@ -1,4 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX7-047.js";
 
 describe("EX7-047", () => {
@@ -18,4 +22,24 @@ describe("EX7-047", () => {
     expect(compiled.digivolutionRequirement).toContainEqual(
       expect.objectContaining({ level: 5, traits: ["NSp"], cost: 3, isAlternate: true }),
     ));
+
+  it("publicly plays eligible NSp Digimon from the top four up to the total cost 7 boundary", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX7-047", as: "eldra" }],
+          deck: ["EX7-038", "EX7-041", "EX7-045", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("eldra"));
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX7-041"));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX7-038")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX7-041")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX7-045")).toBe(false);
+    expect(s.state.players[0]!.deck.at(-2)?.cardId).toBe("EX7-045");
+    expect(observe(s.engine).hasKeyword(s.perm("eldra"), "Blocker")).toBe(true);
+  });
 });
