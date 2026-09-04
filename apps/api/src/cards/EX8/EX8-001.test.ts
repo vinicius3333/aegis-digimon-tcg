@@ -38,7 +38,7 @@ describe("EX8-001", () => {
 
   it("deletes an opposing Digimon when the inherited host has Tyrannomon in its name", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-016", as: "host", under: ["EX8-001"] }] },
+      0: { battleArea: [{ card: "BT1-024", as: "host", under: ["EX8-001"] }] },
       1: { battleArea: [{ card: "BT1-011", as: "target" }] },
     });
     const target = s.perm("target");
