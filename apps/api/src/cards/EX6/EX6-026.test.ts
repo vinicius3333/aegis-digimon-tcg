@@ -52,6 +52,18 @@ describe("EX6-026 Cho-Hakkaimon", () => {
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
   });
 
+  it("publicly applies Security Attack -1 to a friendly Digimon when selected", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX6-026", as: "cho" }, { card: "BT1-009", as: "ally" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    preferred.push(s.perm("ally").topCard!.instanceId);
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("cho"));
+    expect(observe(s.engine).keywordAmount(s.perm("ally"), "SecurityAttack")).toBe(-1);
+  });
+
   it("does not grant the DigiXros DP or Blocker tail without DigiXros", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "EX6-026", as: "cho" }] } },

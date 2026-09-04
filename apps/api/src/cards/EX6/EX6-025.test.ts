@@ -43,6 +43,18 @@ describe("EX6-025 Sanzomon", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("sanzo"));
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
   });
+
+  it("publicly applies Security Attack -1 to a friendly Digimon when selected", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX6-025", as: "sanzo" }, { card: "BT1-009", as: "ally" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    preferred.push(s.perm("ally").topCard!.instanceId);
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("sanzo"));
+    expect(observe(s.engine).keywordAmount(s.perm("ally"), "SecurityAttack")).toBe(-1);
+  });
   it("publicly reveals and adds all four named cards during DigiXros", async () => {
     const s = setupEngine(
       {
@@ -88,6 +100,7 @@ describe("EX6-025 Sanzomon", () => {
     );
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["EX6-023", "EX6-024", "EX6-026", "EX6-031"]);
   });
+
 
   it("publicly returns its yellow evolution card when leaving play", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX6-025", as: "sanzo", under: ["EX6-019"] }] } });

@@ -103,4 +103,33 @@ describe("EX6-030 Dominimon", () => {
     );
     expect(s.state.players[0]!.security).toHaveLength(1);
   });
+
+  it("publicly protects multiple Angel deletions with separate security payments", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX6-030", as: "dom" },
+            { card: "EX6-019", as: "angelOne" },
+            { card: "EX6-019", as: "angelTwo" },
+          ],
+          security: ["BT1-001", "BT1-002"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent(
+      [s.perm("angelOne").permanentId, s.perm("angelTwo").permanentId],
+      "byEffect",
+    );
+    await settle(() => s.state.players[0]!.security.length === 1);
+    expect(
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("angelOne").instanceId),
+    ).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("angelTwo").instanceId),
+    ).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+  });
 });

@@ -40,6 +40,26 @@ describe("EX6-031 Shakamon", () => {
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
   });
 
+  it("publicly inverts each own negative Security Attack value during your turn", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX6-031", as: "shaka" }] }, 1: { security: ["BT1-001", "BT1-002"] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("shaka"));
+    expect(observe(s.engine).keywordAmount(s.perm("shaka"), "SecurityAttack")).toBe(-1);
+    await advance(s.engine).fire(EffectTiming.YourTurn, s.perm("shaka"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("shaka").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
   it("publicly plays exact named cards from its stack after deletion", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "EX6-031", as: "shaka", under: ["EX6-025", "EX6-023"] }] } },

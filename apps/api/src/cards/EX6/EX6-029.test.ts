@@ -136,4 +136,46 @@ describe("EX6-029 Mastemon", () => {
     expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("other").instanceId)).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(4);
   });
+
+  it("does not trash an opponent already at the four-card DNA security boundary", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX6-022", as: "ange" },
+            { card: "EX6-053", as: "lady" },
+            { card: "BT1-060", as: "other" },
+          ],
+          hand: [{ card: "EX6-029", as: "mast" }],
+        },
+        1: { security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("ange").permanentId, s.perm("lady").permanentId],
+        instanceId: s.inst("mast").instanceId,
+        useBlastDigivolve: true,
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-029"));
+    expect(s.state.players[1]!.security).toHaveLength(4);
+  });
+
+  it("does not run the security tail when played without DNA Digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX6-029", as: "mast" }] },
+        1: { security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("mast"));
+    expect(s.state.players[1]!.security).toHaveLength(6);
+  });
 });
