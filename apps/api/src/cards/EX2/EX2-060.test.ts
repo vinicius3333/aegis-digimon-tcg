@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming, type CardInstance, type Seat } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
@@ -285,5 +286,50 @@ describe("EX2-060 Rika Nonaka", () => {
     ).toEqual({ ok: true });
     await settle();
     expect(s.state.players[0]!.hand.some((c) => c.cardId === "P-095")).toBe(true);
+  });
+
+  it("sets memory at Start of Your Turn only when memory is 2 or less", async () => {
+    const eligible = setupEngine({
+      0: { battleArea: [{ card: "EX2-060", as: "rika" }], deck: ["BT1-001"], security: ["BT1-002"] },
+    });
+    eligible.state.memory = 2;
+    await eligible.ready();
+    const eligibleTurn = eligible.engine.runOneTurn();
+    await advance(eligible.engine).waitForMainPhase(0);
+    expect(eligible.state.memory).toBe(3);
+    advance(eligible.engine).endMainPhaseIfOpen(0);
+    await eligibleTurn;
+
+    const boundary = setupEngine({
+      0: { battleArea: [{ card: "EX2-060", as: "rika" }], deck: ["BT1-001"], security: ["BT1-002"] },
+    });
+    boundary.state.memory = 3;
+    await boundary.ready();
+    const boundaryTurn = boundary.engine.runOneTurn();
+    await advance(boundary.engine).waitForMainPhase(0);
+    expect(boundary.state.memory).toBe(3);
+    advance(boundary.engine).endMainPhaseIfOpen(0);
+    await boundaryTurn;
+  });
+
+  it("plays EX2-060 from Security without paying its cost", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX2-050", as: "attacker" }], security: ["BT1-001"] },
+      1: { security: [{ card: "EX2-060", as: "securityRika" }] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("securityRika").instanceId),
+    );
+    expect(
+      s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("securityRika").instanceId),
+    ).toBe(true);
   });
 });
