@@ -18,7 +18,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Arisa Kinosaki"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -43,14 +43,8 @@ export const compiled: CompiledCard = {
       trigger: "YourTurn",
       actions: [
         {
-          kind: "ModifyDP",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-            },
-            count: "all",
-          },
+          kind: "ModifySecurityDP",
+          controller: "opponent",
           amount: -3000,
           duration: "permanent",
         },
