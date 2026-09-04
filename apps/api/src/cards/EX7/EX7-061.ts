@@ -16,7 +16,7 @@ export const compiled: CompiledCard = {
           condition: {
             kind: "selfHasInDigivolutionCards",
             nameOrTrait: [
-              { tokens: ["Lilithmon"], match: "name" },
+              { tokens: ["Lilithmon"], match: "nameExact" },
               { tokens: ["X Antibody"], match: "trait" },
             ],
           },

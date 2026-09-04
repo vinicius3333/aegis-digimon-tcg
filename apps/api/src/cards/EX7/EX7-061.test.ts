@@ -23,7 +23,7 @@ describe("EX7-061 Lilithmon (X Antibody)", () => {
           condition: {
             kind: "selfHasInDigivolutionCards",
             nameOrTrait: [
-              { tokens: ["Lilithmon"], match: "name" },
+              { tokens: ["Lilithmon"], match: "nameExact" },
               { tokens: ["X Antibody"], match: "trait" },
             ],
           },
@@ -57,10 +57,17 @@ describe("EX7-061 Lilithmon (X Antibody)", () => {
     }));
 
   it("does not prevent a battle deletion, even with a qualifying stack and an available cost Digimon", async () => {
-    const s = setupEngine({ 0: { battleArea: [
-      { card: "EX7-061", as: "lilith", under: ["BT3-091"] },
-      { card: "BT1-009", as: "cost" },
-    ] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX7-061", as: "lilith", under: ["BT3-091"] },
+            { card: "BT1-009", as: "cost" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     expect(await advance(s.engine).verb.deletePermanent([s.perm("lilith").permanentId], "byBattle")).toBe(1);
     expect(s.state.players[0]!.battleArea).toContain(s.perm("cost"));
@@ -68,9 +75,17 @@ describe("EX7-061 Lilithmon (X Antibody)", () => {
   });
 
   it("does not offer prevention or delete its cost Digimon without Lilithmon or X Antibody below it", async () => {
-    const s = setupEngine({ 0: { battleArea: [
-      { card: "EX7-061", as: "lilith" }, { card: "BT1-009", as: "cost" },
-    ] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX7-061", as: "lilith" },
+            { card: "BT1-009", as: "cost" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     expect(await advance(s.engine).verb.deletePermanent([s.perm("lilith").permanentId], "byEffect")).toBe(1);
     expect(s.state.players[0]!.battleArea).toContain(s.perm("cost"));
@@ -78,20 +93,28 @@ describe("EX7-061 Lilithmon (X Antibody)", () => {
   });
 
   it("responds to an opponent Digimon deletion by playing a purple level 4 on its controller's turn", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "EX7-061", as: "lilith" }], trash: [{ card: "BT11-078", as: "target" }] },
-      1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX7-061", as: "lilith" }], trash: [{ card: "BT11-078", as: "target" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId], "byEffect");
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("target").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("target").instanceId)).toBe(
+      true,
+    );
   });
 
   it("responds to an opponent Digimon deletion by trashing the opponent's security on their turn", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "EX7-061", as: "lilith" }] },
-      1: { battleArea: [{ card: "BT1-009", as: "victim" }], security: [{ card: "BT1-001", as: "security" }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX7-061", as: "lilith" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }], security: [{ card: "BT1-001", as: "security" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.turnSeat = 1;
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId], "byEffect");

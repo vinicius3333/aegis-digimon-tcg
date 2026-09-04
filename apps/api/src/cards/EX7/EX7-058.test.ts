@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { Phase } from "@aegis/shared";
+import { EffectTiming, Phase } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./EX7-058.js";
@@ -44,6 +45,22 @@ describe('A3 EX7-058 — granted "[End of Attack] Delete this Digimon." (malform
       expect.objectContaining({ kind: "PlayToken", tokens: ["Volée & Zerdrücken"] }),
       expect.objectContaining({ kind: "PlayToken", tokens: ["Volée & Zerdrücken"] }),
     ]);
+  });
+
+  it("accepts an exact LadyDevimon card for the token branch", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX7-058", as: "lady", under: ["EX6-053"] }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("lady"));
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "TOKEN-Volée-&-Zerdrücken"),
+    ).toBe(true);
   });
 
   it("POSITIVE: the granted recipient's own attack (which suspends it) completes without throwing", async () => {
