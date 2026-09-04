@@ -90,7 +90,7 @@ describe("EX6-032 Lopmon", () => {
   it("expires the inherited attack reduction at the end of the turn", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-060", as: "host", under: ["EX6-032"] }] },
-      1: { battleArea: [{ card: "EX6-031", as: "opponent" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 15000 }] },
     });
     await s.ready();
     const before = s.perm("opponent").currentDP;
