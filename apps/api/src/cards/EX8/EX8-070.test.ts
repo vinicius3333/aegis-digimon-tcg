@@ -81,6 +81,13 @@ describe("EX8-070", () => {
     expect(observe(s.engine).hasKeyword(s.perm("mineral"), "Reboot")).toBe(true);
     expect(s.perm("mineral").currentDP).toBe(baseDP + 3000);
     expect(observe(s.engine).hasRestriction(s.perm("mineral"), "beReturned")).toBe(true);
+
+    s.state.memory = 0;
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("mineral").currentDP).toBe(baseDP);
+    expect(observe(s.engine).hasKeyword(s.perm("mineral"), "Collision")).toBe(false);
+    expect(observe(s.engine).hasRestriction(s.perm("mineral"), "beReturned")).toBe(false);
   });
   it("may decline without trashing a source or granting any benefit", async () => {
     const s = setupEngine({
