@@ -61,6 +61,7 @@ describe("EX6-011 RagnaLoardmon", () => {
   });
 
   it("publicly performs Blast DNA Digivolve and resolves the DNA-only de-digivolve/delete tail", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -78,10 +79,11 @@ describe("EX6-011 RagnaLoardmon", () => {
           security: ["BT1-001", "BT1-002"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     s.state.memory = 0;
     await s.ready();
+    preferred.push(s.perm("stacked").topCard!.instanceId);
     expect(
       s.engine.applyIntent(0, {
         type: "dnaDigivolve",
