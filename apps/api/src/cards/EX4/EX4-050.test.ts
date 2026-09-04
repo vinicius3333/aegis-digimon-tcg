@@ -35,7 +35,7 @@ describe("EX4-050 ShadowSeraphimon", () => {
         security: ["BT1-001", "BT1-002"],
         deck: ["BT1-003"],
       },
-      1: { battleArea: [{ card: "AD1-025", as: "target", dp: 15000 }] },
+      1: { battleArea: [{ card: "BT1-019", as: "target", dp: 15000 }] },
     });
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect");
