@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX7-054.js";
+import "../index.js";
 
 describe("EX7-054", () => {
   it("can give one of your Digimon Blocker by trashing a card, then gives that same target Retaliation", () =>
@@ -64,10 +65,16 @@ describe("EX7-054", () => {
     expect(observe(s.engine).hasKeyword(s.perm("other"), "Retaliation")).toBe(true);
   });
 
-  it("does not end an attack when the deletion cost has no legal Digimon", async () => {
+  it("does not end an attack when Armor Purge prevents the deletion cost", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX7-042", as: "host", under: ["EX7-054"] }], security: ["BT1-001"] },
+        0: {
+          battleArea: [
+            { card: "EX7-042", as: "host", under: ["EX7-054"] },
+            { card: "BT8-039", as: "cost", under: ["BT8-046"] },
+          ],
+          security: ["BT1-001"],
+        },
         1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -83,6 +90,8 @@ describe("EX7-054", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 0);
     expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT8-046")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT8-039")).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 });
