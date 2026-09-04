@@ -77,6 +77,87 @@ describe("EX4-030 Kuzuhamon", () => {
     expect(observe(s.engine).grantedNames(s.perm("kuzuhamon"))).toContain("sakuyamon");
   });
 
+  it("uses the exact cost-five Option boundary without paying memory", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX4-028", as: "base" }],
+          hand: [
+            { card: "EX4-030", as: "kuzuhamon" },
+            { card: "BT1-106", as: "option" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const optionId = s.inst("option").instanceId;
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("kuzuhamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === optionId));
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(optionId);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("does not use a cost-six Option during digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX4-028", as: "base" }],
+          hand: [
+            { card: "EX4-030", as: "kuzuhamon" },
+            { card: "BT1-107", as: "option" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const optionId = s.inst("option").instanceId;
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("kuzuhamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX4-030");
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(optionId);
+  });
+
+  it("plays an exact Taomon name from the stack after the Option watcher fires", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX4-028", as: "host", under: ["BT10-039"] }],
+          hand: [
+            { card: "EX4-030", as: "kuzuhamon" },
+            { card: "BT1-102", as: "option" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("kuzuhamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard.cardId === "BT10-039"));
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard.cardId === "BT10-039")).toBe(true);
+  });
+
   it("plays an eligible digivolution card from a stack after a real cost-two Option", async () => {
     const s = setupEngine(
       {

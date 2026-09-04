@@ -66,9 +66,10 @@ describe("EX4-026 Youkomon", () => {
           battleArea: [
             { card: "BT1-029", as: "host", under: ["EX4-026"] },
             { card: "BT1-045", as: "yellow" },
+            { card: "BT1-064", as: "green" },
           ],
           hand: [
-            { card: "BT1-102", as: "option1" },
+            { card: "BT1-108", as: "option1" },
             { card: "BT1-102", as: "option2" },
           ],
         },
@@ -81,11 +82,12 @@ describe("EX4-026 Youkomon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option1").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.perm("target").currentDP === 4000);
+    await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("option1").instanceId));
+    expect(s.perm("target").currentDP).toBe(6000);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option2").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.memory === 6);
+    await settle(() => s.state.memory === 7);
     expect(s.perm("target").currentDP).toBe(4000);
   });
 

@@ -88,6 +88,28 @@ describe("EX4-028 Doumon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
+  it("digivolves from the exact Kyubimon alternate requirement for three memory", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT19-034", as: "kyubimon" }],
+        hand: [{ card: "EX4-028", as: "doumon" }],
+      },
+    });
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("kyubimon").permanentId,
+        instanceId: s.inst("doumon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("kyubimon").topCard.cardId === "EX4-028");
+    expect(s.perm("kyubimon").topCard.cardId).toBe("EX4-028");
+    expect(s.state.memory).toBe(0);
+  });
+
   it("requires an Option cost of at least two and activates only once", async () => {
     const s = setupEngine(
       {
@@ -95,9 +117,10 @@ describe("EX4-028 Doumon", () => {
           battleArea: [
             { card: "BT1-029", as: "host", under: ["EX4-028"] },
             { card: "BT1-045", as: "yellow" },
+            { card: "BT1-064", as: "green" },
           ],
           hand: [
-            { card: "BT1-102", as: "option1" },
+            { card: "BT1-108", as: "option1" },
             { card: "BT1-102", as: "option2" },
           ],
         },
@@ -110,11 +133,12 @@ describe("EX4-028 Doumon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option1").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.perm("target").currentDP === 4000);
+    await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("option1").instanceId));
+    expect(s.perm("target").currentDP).toBe(6000);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option2").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.memory === 6);
+    await settle(() => s.state.memory === 7);
     expect(s.perm("target").currentDP).toBe(4000);
   });
 });
