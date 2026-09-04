@@ -54,12 +54,13 @@ describe("EX4 two-color evolution seams", () => {
   it("keeps effect-driven evolution filters exact and makes EX4-037 Green+Black conjunctive", () => {
     const visit = (action: unknown): Record<string, unknown>[] => {
       const typed = action as {
-        into?: { filter?: Record<string, unknown> };
+        into?: Record<string, unknown> & { filter?: Record<string, unknown> };
         target?: { filter?: Record<string, unknown> };
         actions?: unknown[];
       };
+      const intoFilter = typed.into === undefined ? undefined : (typed.into.filter ?? typed.into);
       return [
-        ...(typed.into?.filter === undefined ? [] : [typed.into.filter]),
+        ...(intoFilter === undefined ? [] : [intoFilter]),
         ...(typed.target?.filter === undefined ? [] : [typed.target.filter]),
         ...(typed.actions ?? []).flatMap(visit),
       ];
