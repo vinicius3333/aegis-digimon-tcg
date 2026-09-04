@@ -62,6 +62,84 @@ describe("EX8-074", () => {
     expect(observe(s.engine).hasKeyword(s.perm("medieval"), "Vortex")).toBe(true);
   });
 
+  it("plays for 4 less by suspending two Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX8-047", as: "first" },
+            { card: "EX8-048", as: "second" },
+          ],
+          hand: [{ card: "EX8-074", as: "medieval" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("medieval").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX8-074"));
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("first").isSuspended).toBe(true);
+    expect(s.perm("second").isSuspended).toBe(true);
+  });
+
+  it("leaves the card unplayed when the reduced cost remains unaffordable", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX8-047", as: "only" }],
+        hand: [{ card: "EX8-074", as: "medieval" }],
+      },
+    });
+    s.state.memory = -10;
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("medieval").instanceId })).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("medieval").instanceId)).toBe(true);
+    expect(s.perm("only").isSuspended).toBe(false);
+  });
+
+  it("reactivates its When Digivolving effect only once when Digimon are played", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-074", as: "medieval" }],
+          hand: [
+            { card: "EX8-047", as: "first-play" },
+            { card: "EX8-048", as: "second-play" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "first-target", dp: 8000 },
+            { card: "BT1-011", as: "second-target", dp: 8000 },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("first-play").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("second-play").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
   it("raises the deletion ceiling before choosing a target for each other suspended Digimon", async () => {
     const s = setupEngine(
       {
