@@ -32,9 +32,12 @@ EX10 (74), EX11 (74), and EX12 (77); these sets have not begun in this run.
 | EX8-008 | 5/5 | Fresh trace and runtime: memory after actual deletion, inherited DP on/off by turn, off-color NSo evolution and nonmatching rejection; no code change |
 | EX8-009 | 8/8 | `09c8cee36`, `4929578fb`, `b2fc129df`: reveal anchors prove bottom order; separate legal battle-area evolution explicitly asserts the bonus draw and both searched cards in hand. Q3874 simultaneous deletion, turn gate, and same-turn limit retained |
 | EX8-010 | 6/6 | `6e31c209c`: alternate evolution now uses off-color NSo EX8-030; off-color non-NSo rejection, On Play/On Deletion DP boundary, and inherited turn gate reconfirmed |
+| EX8-011 | 8/8 | `d27c6d9f1`, `0152bd58a`: duration expiry and legal inherited host; real Security battle exposed premature self-play, fixed with the existing security-battle-ended SubTrigger. Focused plus EX10-014 peer regression: 2 files / 15 tests passed |
 | EX8-038 | 8/8 | `cf93ab20a`, `f7cd5c5a5`: unequal-DP battle proves inherited Retaliation on a legal green host; named off-color Koromon evolution, nonmatching egg rejection, both suspension controllers, and refusal |
 | EX8-039 | 6/6 | `862783bb9`, `55af3b526`: disjoint Insectoid/NSp selection, unrevealed anchors in positive and all-nonmatching reveals, off-color NSp egg evolution and rejection, legal green inherited host with turn gate |
 | EX8-040 | 7/7 | `4380b4788`: real off-color NSp evolution proves cost, draw and allied suspension; opposing On Play target, refusal, non-NSp rejection and legal inherited host turn gate |
+| EX8-041 | 8/8 | `c21c0fd81`: actual unsuspend blocked then allowed after opponent turn end, nonmatching controller/kind controls, separate Tamer selections per Q3926, off-color Reptile evolution and legal Retaliation host |
+| EX8-042 | 7/7 | `44be03152`: Fortitude replay identity/zones and no-source negative, suspended aura boundary, legal inherited host with two-battle limit and Q3927, off-color NSp evolution cost/draw and nonmatching rejection |
 
 EX8-038's added Retaliation case initially used equal-DP combat, which would
 delete both Digimon without Retaliation. `cf93ab20a` corrects it to an unequal-DP
