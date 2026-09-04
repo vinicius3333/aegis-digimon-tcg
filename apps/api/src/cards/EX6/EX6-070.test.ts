@@ -3,6 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./EX6-070.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("EX6-070 Phantom Pain", () => {
@@ -86,5 +87,18 @@ describe("EX6-070 Phantom Pain", () => {
     await effect!.resolve(ctx);
     expect(deleted).toEqual([["phantom-pain"]]);
     expect(players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual(["visible-unsuspended-opponent"]);
+  });
+
+  it("publicly plays Phantom Pain into the battle area through Main", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX6-056", as: "purple" }], hand: [{ card: "EX6-070", as: "option" }] }, 1: { battleArea: [{ card: "BT1-009", as: "victim" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-070"));
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-070")).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 });

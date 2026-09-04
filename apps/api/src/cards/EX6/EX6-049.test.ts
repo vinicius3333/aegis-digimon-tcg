@@ -23,4 +23,12 @@ describe("EX6-049 Devimon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
+  it("publicly takes the seven-card branch instead of deleting at the high boundary", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX6-049", as: "devimon" }] }, 1: { hand: Array.from({ length: 7 }, () => "BT1-010"), battleArea: [{ card: "BT1-009", as: "victim" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("devimon"));
+    await settle(() => s.state.players[1]!.hand.length === 6);
+    expect(s.state.players[1]!.hand).toHaveLength(6);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
 });

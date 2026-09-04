@@ -30,4 +30,11 @@ describe("EX6-046 DemiDevimon", () => {
     await settle(() => s.state.players[1]!.hand.length === 6);
     expect(s.state.players[1]!.hand).toHaveLength(6);
   });
+  it("does not take either hand-size branch at the six-card boundary", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX6-046", as: "demi" }] }, 1: { hand: Array.from({ length: 6 }, () => "BT1-010") } });
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("demi").permanentId], "byEffect");
+    await settle(() => false, 30);
+    expect(s.state.players[1]!.hand).toHaveLength(6);
+  });
 });

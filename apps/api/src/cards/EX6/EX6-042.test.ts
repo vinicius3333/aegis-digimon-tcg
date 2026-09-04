@@ -64,4 +64,9 @@ describe("EX6-042 RaijiLudomon", () => {
     expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("raiji").instanceId)).toBe(true);
     expect(s.state.memory).toBe(3);
   });
+  it("does not expose the hand Main effect without a level 5 or Legend-Arms host", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-053", as: "ineligible" }], hand: [{ card: "EX6-042", as: "raiji" }] } });
+    await s.ready();
+    expect(JSON.parse(s.inst("raiji").activatableEffectsJson || "[]")).toHaveLength(0);
+  });
 });
