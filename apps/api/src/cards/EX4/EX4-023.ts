@@ -25,7 +25,7 @@ export const compiled: CompiledCard = {
               cost: {
                 kind: "reveal",
                 target: {
-                  filter: { zone: "hand", controller: "mine", level: "same" },
+                  filter: { zone: "hand", controller: "mine", levelEqTriggerSource: true },
                   count: 1,
                   from: ["hand"],
                 },

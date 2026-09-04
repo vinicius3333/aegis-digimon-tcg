@@ -311,8 +311,16 @@ export async function runSecurityManipulation(
             ),
           );
           const chosen = [...new Set(candidates.map((candidate) => candidate.instanceId))];
-          if (chosen.length > 0)
+          if (chosen.length > 0) {
             await ctx.fx.addSecurity(seat, chosen, { toTop: await placementToTop(), faceUp: action.faceUp });
+            // A reveal cost conceptually exposes the card for the effect's processing. If a
+            // continuous prohibition prevents the follow-up security placement, that revealed
+            // card is trashed by the rules instead of returning to hidden hand (EX4-023 Q3464).
+            const notAdded = chosen.filter(
+              (instanceId) => !ctx.game.player(seat).security.some((card) => card.instanceId === instanceId),
+            );
+            if (notAdded.length > 0) await ctx.fx.trash(notAdded, { byEffectSeat: ctx.source.ownerSeat });
+          }
           return;
         }
         if (action.source === undefined || typeof action.source === "string") {

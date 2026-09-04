@@ -203,6 +203,18 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
   return reserved === undefined ? candidates : candidates.filter(({ instanceId }) => !reserved.has(instanceId));
 }
 
+/** Printed level of the permanent/card that produced the enclosing watcher event. */
+function triggerSourceLevel(ctx: EffectContext): number | undefined {
+  if (ctx.trigger.playedLevel !== undefined) return ctx.trigger.playedLevel;
+  if (ctx.trigger.deletedTopCardId !== undefined) {
+    return ctx.game.definitionOf({ cardId: ctx.trigger.deletedTopCardId } as never).level;
+  }
+  const subjectPermanentId =
+    ctx.trigger.subjectPermanentId ?? ctx.trigger.suspendedPermanentId ?? ctx.trigger.deletedPermanentId;
+  const subject = subjectPermanentId === undefined ? undefined : ctx.game.permanentById(subjectPermanentId);
+  return subject?.topCard === undefined ? undefined : ctx.game.definitionOf(subject.topCard).level;
+}
+
 function candidateLooseInstancesIncludingReserved(
   ctx: EffectContext,
   target: Target,
@@ -328,6 +340,18 @@ function candidateLooseInstancesIncludingReserved(
           if (filter.effectiveUseCostLte !== undefined) {
             const effectiveCost = ctx.fx.effectiveLooseUseCost?.(cand.instanceId, seat);
             if (effectiveCost === undefined || effectiveCost > filter.effectiveUseCostLte) return false;
+          }
+          // Context predicates are not definition predicates. Apply same-level watcher bounds
+          // before delegating to definitionMatches so hand/trash costs discriminate against the
+          // played or deleted event subject (EX4-023/EX4-052). A level-less subject or candidate
+          // cannot satisfy "the same level" (EX4-023 Q3465).
+          if (filter.levelEqTriggerSource === true) {
+            const bound = triggerSourceLevel(ctx);
+            if (bound === undefined || def.level === undefined || def.level !== bound) return false;
+          }
+          if (filter.levelLteTriggerSource === true) {
+            const bound = triggerSourceLevel(ctx);
+            if (bound === undefined || def.level === undefined || def.level > bound) return false;
           }
           // `isSelfRef` belongs to the individual union branch, not the primary filter.
           // EX11-027 can link either this resolving card OR a Maquinamon from hand; applying

@@ -27,7 +27,7 @@ export const compiled: CompiledCard = {
               filter: {
                 controller: "mine",
                 zone: "hand",
-                levelMatchesTriggerSource: true,
+                levelEqTriggerSource: true,
               },
               count: 1,
             },
