@@ -55,7 +55,14 @@ describe("EX6-026 Cho-Hakkaimon", () => {
   it("publicly applies Security Attack -1 to a friendly Digimon when selected", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX6-026", as: "cho" }, { card: "BT1-009", as: "ally" }] } },
+      {
+        0: {
+          battleArea: [
+            { card: "EX6-026", as: "cho" },
+            { card: "BT1-009", as: "ally" },
+          ],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     await s.ready();
@@ -156,5 +163,25 @@ describe("EX6-026 Cho-Hakkaimon", () => {
     preferred.push(s.perm("opponent").topCard!.instanceId);
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
+  });
+
+  it("shares one optional use between the On Play and When Attacking windows", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX6-026", as: "cho" },
+            { card: "BT1-009", as: "ally" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    preferred.push(s.inst("ally").instanceId);
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("cho"));
+    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("cho"));
+    expect(observe(s.engine).keywordAmount(s.perm("ally"), "SecurityAttack")).toBe(-1);
   });
 });

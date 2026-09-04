@@ -161,4 +161,24 @@ describe("EX6-025 Sanzomon", () => {
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
   });
+
+  it("shares one optional use between the On Play and When Attacking windows", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX6-025", as: "sanzo" },
+            { card: "BT1-009", as: "ally" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    preferred.push(s.inst("ally").instanceId);
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("sanzo"));
+    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("sanzo"));
+    expect(observe(s.engine).keywordAmount(s.perm("ally"), "SecurityAttack")).toBe(-1);
+  });
 });
