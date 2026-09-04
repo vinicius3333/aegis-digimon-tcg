@@ -63,6 +63,38 @@ describe("EX8-038", () => {
     expect(s.perm("opponent").isSuspended).toBe(false);
   });
 
+  it("digivolves for 0 from a named Koromon regardless of its color and rejects another egg", async () => {
+    const eligible = setupEngine({
+      0: { breeding: { card: "BT11-005", as: "koromon" }, hand: [{ card: "EX8-038", as: "agumon" }] },
+    });
+    eligible.state.memory = 0;
+    await eligible.ready();
+    expect(
+      eligible.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: eligible.perm("koromon").permanentId,
+        instanceId: eligible.inst("agumon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => eligible.perm("koromon").topCard?.cardId === "EX8-038");
+    expect(eligible.perm("koromon").topCard?.cardId).toBe("EX8-038");
+    expect(eligible.state.memory).toBe(0);
+
+    const ineligible = setupEngine({
+      0: { breeding: { card: "BT1-001", as: "otherEgg" }, hand: [{ card: "EX8-038", as: "agumon" }] },
+    });
+    await ineligible.ready();
+    expect(
+      ineligible.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: ineligible.perm("otherEgg").permanentId,
+        instanceId: ineligible.inst("agumon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
+
   it("leaves the board unchanged when the optional On Play suspension is declined", async () => {
     const s = setupEngine(
       {
@@ -81,7 +113,7 @@ describe("EX8-038", () => {
   });
 
   it("grants Retaliation to the live evolution host", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "AD1-001", as: "host", under: ["EX8-038"] }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-071", as: "host", under: ["EX8-038"] }] } });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Retaliation")).toBe(true);
   });
@@ -89,7 +121,7 @@ describe("EX8-038", () => {
   it("uses inherited Retaliation when the evolution host is deleted in battle", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "AD1-001", as: "host", dp: 1000, under: ["EX8-038"] }] },
+        0: { battleArea: [{ card: "BT1-071", as: "host", dp: 1000, under: ["EX8-038"] }] },
         1: { battleArea: [{ card: "AD1-001", as: "target", dp: 3000, suspended: true }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
