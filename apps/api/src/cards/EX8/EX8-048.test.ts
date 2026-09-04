@@ -32,17 +32,57 @@ describe("EX8-048", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX8-048", as: "source" }],
-          hand: [{ card: "EX8-067", as: "close" }],
+          battleArea: [{ card: "EX8-047", as: "base" }],
+          hand: [
+            { card: "EX8-048", as: "source" },
+            { card: "EX8-067", as: "close" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const player = s.state.players[0] as PlayerState;
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => player.battleArea.some((permanent) => permanent.topCard?.cardId === "EX8-067"));
     expect(player.battleArea.some((permanent) => permanent.topCard?.cardId === "EX8-067")).toBe(true);
     expect(player.hand.some((card) => card.instanceId === s.inst("close").instanceId)).toBe(false);
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("keeps Close in hand when the optional When Digivolving play is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-047", as: "base" }],
+          hand: [
+            { card: "EX8-048", as: "source" },
+            { card: "EX8-067", as: "close" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "EX8-048");
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX8-067")).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("close").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(1);
   });
 
   it("does not play Close when its controller has two Tamers", async () => {
