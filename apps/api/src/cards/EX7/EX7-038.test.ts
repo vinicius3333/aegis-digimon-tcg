@@ -45,7 +45,7 @@ describe("EX7-038", () => {
     expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId })).toEqual({
       ok: true,
     });
-    await settle(() => s.events.some((event) => event.kind === "battleEnded"));
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
     expect(s.perm("blocker").isSuspended).toBe(true);
   });
 });

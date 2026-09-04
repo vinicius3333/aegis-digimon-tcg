@@ -23,8 +23,8 @@ describe("EX7-042", () => {
         value: 1,
       },
     });
-    expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions[0]?.target?.filter).toMatchObject({
-      nameOrTrait: [{ tokens: ["Hina Kurihara"], match: "nameExact" }],
+    expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions[0]).toMatchObject({
+      target: { filter: { nameOrTrait: [{ tokens: ["Hina Kurihara"], match: "nameExact" }] } },
     });
     expect(compiled.effects?.find((entry) => entry.isInherited)?.actions[0]).toMatchObject({
       kind: "ModifyDP",

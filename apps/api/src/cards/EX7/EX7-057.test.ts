@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, Zone } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -49,7 +49,7 @@ describe("EX7-057", () => {
     });
     await s.ready();
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);
-    s.give(0, "hand", "BT1-009");
+    s.give(0, Zone.Hand, "BT1-009");
     await advance(s.engine).recompute();
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(0);
   });
