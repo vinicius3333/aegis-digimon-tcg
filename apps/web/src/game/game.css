@@ -350,6 +350,21 @@
   flex-direction: row-reverse;
   gap: var(--ds-space-3);
 }
+/* The confirmation dialog can carry three actions with long labels; they share
+   the row's width equally and wrap their text instead of squeezing each other.
+   With an alternate action in the row, cancel drops to its own line below. */
+.action-confirmation .game-actions-row {
+  flex-wrap: wrap;
+}
+.action-confirmation .game-actions-row > button {
+  flex: 1 1 0;
+  min-width: 0;
+  white-space: normal;
+  line-height: 1.2;
+}
+.action-confirmation .game-actions-row > .aegis-button--secondary ~ .aegis-button--ghost {
+  flex-basis: 100%;
+}
 .mulligan-actions {
   display: flex;
   flex-direction: row-reverse;
@@ -2248,9 +2263,11 @@
 }
 
 /* --- Security-effect branch ----------------------------------------------
-   A revealed card that resolves an effect leaves the centre and holds on the half of
-   the screen the side panels do not occupy, so its effect notice (mirrored to the same
-   half by `noticeAnchor`) reads next to the card that raised it. */
+   A revealed card that resolves an effect leaves the centre and docks against the RIGHT
+   edge. The opponent's side panels and the notices a security card raises both live on the
+   left, so the card holds opposite them: the dock, the clause that explains it and the
+   cards its effect turned up are three things to read at once, and stacking them on one
+   edge buried the dock under the panels. */
 
 .battle-security-branch {
   /* How far above the board's middle the card holds. A short viewport cannot spend
@@ -2261,7 +2278,7 @@
   position: absolute;
   top: 50%;
   z-index: calc(var(--ds-z-dialog) - 5);
-  left: max(var(--ds-space-4), env(safe-area-inset-left, 0px));
+  right: max(var(--ds-space-4), env(safe-area-inset-right, 0px));
   pointer-events: none;
 }
 
@@ -2304,7 +2321,7 @@
 
 @keyframes battle-security-branch-in {
   0% {
-    translate: -2.5rem calc(-50% - var(--security-branch-lift));
+    translate: 2.5rem calc(-50% - var(--security-branch-lift));
     opacity: 0;
     scale: 0.72;
   }
@@ -2330,7 +2347,7 @@
 
 @keyframes battle-security-branch {
   0% {
-    translate: -2.5rem calc(-50% - var(--security-branch-lift));
+    translate: 2.5rem calc(-50% - var(--security-branch-lift));
     opacity: 0;
     scale: 0.72;
   }

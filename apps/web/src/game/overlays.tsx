@@ -1903,7 +1903,7 @@ export function ActionConfirmationOverlay({
       <div
         className="game-modal__panel action-confirmation"
         style={{
-          width: 440,
+          width: 480,
           maxWidth: "calc(100% - 32px)",
           padding: 22,
           borderRadius: 20,
@@ -1926,7 +1926,7 @@ export function ActionConfirmationOverlay({
             >
               {title}
             </div>
-            <div style={{ marginTop: 7, color: "var(--ds-fg)", lineHeight: 1.45 }}>{detail}</div>
+            <div style={{ marginTop: 7, color: "var(--ds-fg)", fontSize: 15, lineHeight: 1.45 }}>{detail}</div>
           </div>
         </div>
         <div className="game-actions-row">
