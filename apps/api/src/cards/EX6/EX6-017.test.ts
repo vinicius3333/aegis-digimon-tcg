@@ -64,4 +64,17 @@ describe("EX6-017 Luxmon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(1);
     expect(s.state.players[0]!.deck[0]!.cardId).toBe("BT1-009");
   });
+
+  it("adds the only matching reveal bucket and bottoms both unmatched cards", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "EX6-017", as: "lux" }], deck: [{ card: "EX6-019", as: "angel" }, "BT1-009", "BT1-010"] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lux").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("angel").instanceId));
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX6-019")).toBe(true);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-010"]);
+  });
 });
