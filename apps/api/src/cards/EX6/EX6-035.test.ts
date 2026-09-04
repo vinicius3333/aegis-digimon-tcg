@@ -55,6 +55,32 @@ describe("EX6-035 Cherubimon", () => {
     expect(s.perm("opponent").currentDP).toBe(before - 4000);
   });
 
+  it("scales the reduction to zero or two other allied Digimon", async () => {
+    const none = setupEngine({
+      0: { battleArea: [{ card: "EX6-035", as: "cherub" }] },
+      1: { battleArea: [{ card: "EX6-031", as: "opponent" }] },
+    });
+    await none.ready();
+    const unchanged = none.perm("opponent").currentDP;
+    await advance(none.engine).fire(EffectTiming.OnPlay, none.perm("cherub"));
+    expect(none.perm("opponent").currentDP).toBe(unchanged);
+
+    const two = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX6-035", as: "cherub" },
+          { card: "BT1-009", as: "allyA" },
+          { card: "BT1-009", as: "allyB" },
+        ],
+      },
+      1: { battleArea: [{ card: "EX6-031", as: "opponent" }] },
+    });
+    await two.ready();
+    const before = two.perm("opponent").currentDP;
+    await advance(two.engine).fire(EffectTiming.OnPlay, two.perm("cherub"));
+    expect(two.perm("opponent").currentDP).toBe(before - 8000);
+  });
+
   it("publicly applies the same scaled reduction when digivolving", async () => {
     const s = setupEngine({
       0: {
