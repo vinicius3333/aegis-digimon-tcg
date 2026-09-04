@@ -33,6 +33,7 @@ describe("EX8-009", () => {
             { card: "AD1-003", as: "growlmon" },
             { card: "BT10-016", as: "xantibody" },
             { card: "AD1-001", as: "decoy" },
+            { card: "BT1-045", as: "anchor" },
           ],
         },
       },
@@ -50,7 +51,7 @@ describe("EX8-009", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(
       expect.arrayContaining(["AD1-003", "BT10-016"]),
     );
-    expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("AD1-001");
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-045", "AD1-001"]);
   });
 
   it("matches X Antibody by trait rather than requiring the words in the card name", async () => {
@@ -62,6 +63,7 @@ describe("EX8-009", () => {
             { card: "AD1-003", as: "growlmon" },
             { card: "BT10-080", as: "traitOnlyXAntibody" },
             { card: "AD1-001", as: "decoy" },
+            { card: "BT1-045", as: "anchor" },
           ],
         },
       },
@@ -79,7 +81,7 @@ describe("EX8-009", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(
       expect.arrayContaining(["AD1-003", "BT10-080"]),
     );
-    expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("AD1-001");
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-045", "AD1-001"]);
   });
 
   it("gains memory for only the first opposing deletion during its controller's turn", async () => {
