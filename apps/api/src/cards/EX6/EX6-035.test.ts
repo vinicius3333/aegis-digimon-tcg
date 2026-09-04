@@ -31,4 +31,12 @@ describe("EX6-035 Cherubimon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("rookie").instanceId));
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("rookie").instanceId)).toBe(true);
   });
+
+  it("publicly reduces an opposing Digimon by 4000 for one other allied Digimon", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX6-035", as: "cherub" }, { card: "BT1-009", as: "ally" }] }, 1: { battleArea: [{ card: "EX6-031", as: "opponent" }] } });
+    await s.ready();
+    const before = s.perm("opponent").currentDP;
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("cherub"));
+    expect(s.perm("opponent").currentDP).toBe(before - 4000);
+  });
 });
