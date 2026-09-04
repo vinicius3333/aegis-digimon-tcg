@@ -66,4 +66,26 @@ describe("EX6-034 Antylamon", () => {
       true,
     );
   });
+
+  it("publicly replays the returned Digimon itself when it is a level-3 Beast", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-060", as: "antyHost", under: ["EX6-034"], suspended: true },
+            { card: "BT1-031", as: "returned", suspended: true },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.EndOfAttack, s.perm("antyHost"));
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT1-031"));
+    expect(
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("returned").instanceId),
+    ).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("returned").instanceId)).toBe(false);
+  });
 });

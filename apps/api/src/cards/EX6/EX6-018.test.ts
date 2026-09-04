@@ -122,4 +122,40 @@ describe("EX6-018 Lucemon", () => {
     expect(s.state.players[0]!.security.some((card) => card.instanceId === levelSixId)).toBe(true);
     expect(s.perm("lucemon").topCard.cardId).toBe("EX6-018");
   });
+
+  it("keeps the paid security cost when the optional Chaos Mode evolution is declined", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX6-018", as: "lucemon" },
+          { card: "EX6-029", as: "levelSix" },
+        ],
+        trash: [{ card: "EX6-054", as: "chaosMode" }],
+      },
+    });
+    await s.ready();
+    const firing = advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("lucemon"));
+    await settle(() => s.decisions.filter(({ req }) => req.kind === "optional").length >= 1);
+    const activation = s.decisions.find(({ req }) => req.kind === "optional")!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: activation.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.filter(({ req }) => req.kind === "optional").length >= 2);
+    const evolution = s.decisions.filter(({ req }) => req.kind === "optional").at(-1)!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: evolution.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await firing;
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("levelSix").instanceId)).toBe(true);
+    expect(s.perm("lucemon").topCard.cardId).toBe("EX6-018");
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("chaosMode").instanceId)).toBe(true);
+  });
 });

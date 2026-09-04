@@ -55,6 +55,34 @@ describe("EX6-035 Cherubimon", () => {
     expect(s.perm("opponent").currentDP).toBe(before - 4000);
   });
 
+  it("still resolves the Then reduction when the optional hand play is declined", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX6-035", as: "cherub" },
+          { card: "BT1-009", as: "ally" },
+        ],
+        hand: [{ card: "EX6-016", as: "rookie" }],
+      },
+      1: { battleArea: [{ card: "EX6-031", as: "opponent" }] },
+    });
+    await s.ready();
+    const before = s.perm("opponent").currentDP;
+    const firing = advance(s.engine).fire(EffectTiming.OnPlay, s.perm("cherub"));
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
+    const decision = s.decisions.find(({ req }) => req.kind === "optional")!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await firing;
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("rookie").instanceId)).toBe(true);
+    expect(s.perm("opponent").currentDP).toBe(before - 4000);
+  });
+
   it("scales the reduction to zero or two other allied Digimon", async () => {
     const none = setupEngine({
       0: { battleArea: [{ card: "EX6-035", as: "cherub" }] },

@@ -34,6 +34,24 @@ describe("EX6-032 Lopmon", () => {
     expect(s.perm("opponent").isSuspended).toBe(true);
   });
 
+  it("does not suspend a friendly Digimon when an opposing target is unavailable", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX6-032", as: "lopmon" },
+            { card: "BT1-009", as: "ally" },
+          ],
+        },
+        1: {},
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("lopmon"));
+    expect(s.perm("ally").isSuspended).toBe(false);
+  });
+
   it("publicly reduces an opposing Digimon by 2000 from its inherited attack effect", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-060", as: "host", under: ["EX6-032"] }] },
@@ -65,5 +83,18 @@ describe("EX6-032 Lopmon", () => {
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
     expect(s.perm("first").currentDP).toBe(13000);
     expect(s.perm("second").currentDP).toBe(15000);
+  });
+
+  it("expires the inherited attack reduction at the end of the turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-060", as: "host", under: ["EX6-032"] }] },
+      1: { battleArea: [{ card: "EX6-031", as: "opponent" }] },
+    });
+    await s.ready();
+    const before = s.perm("opponent").currentDP;
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    expect(s.perm("opponent").currentDP).toBe(before - 2000);
+    await advance(s.engine).runTurn(0);
+    expect(s.perm("opponent").currentDP).toBe(before);
   });
 });

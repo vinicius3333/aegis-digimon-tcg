@@ -97,4 +97,27 @@ describe("EX6-031 Shakamon", () => {
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("attacker").instanceId),
     ).toBe(false);
   });
+
+  it("also treats a negative Security Attack value as an eligible security placement target", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX6-031", as: "shaka" },
+            { card: "EX6-031", as: "negative" },
+          ],
+          security: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("negative"));
+    expect(observe(s.engine).keywordAmount(s.perm("negative"), "SecurityAttack")).toBe(-1);
+    preferred.push(s.perm("negative").topCard!.instanceId);
+    await advance(s.engine).fire(EffectTiming.EndOfOpponentsTurn, s.perm("shaka"));
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("negative").instanceId)).toBe(true);
+  });
 });
