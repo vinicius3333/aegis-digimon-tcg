@@ -11,6 +11,7 @@ describe("EX6-070 Phantom Pain", () => {
     const runtime = runtimeCompiledCard("EX6-070");
     const text = JSON.stringify(runtime);
     expect(runtime).toMatchObject({ coverage: "full", residual: [] });
+    expect(runtime?.effects).toHaveLength(4);
     expect(text).toContain("PlaceInBattleAreaSelf");
     expect(runtime?.effects?.find((entry) => entry.trigger === "EndOfOpponentsTurn")?.actions[0]).toMatchObject({
       kind: "GainKeyword",
