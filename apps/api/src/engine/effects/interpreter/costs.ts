@@ -684,6 +684,12 @@ export async function payCost(
             return self !== undefined && !self.isSuspended ? [self.permanentId] : [];
           })();
       if (ids.length === 0) return false;
+      // Effect targeting may return the available subset, but a fixed-count cost
+      // must be paid in full before changing any state (EX8-074/Q3986).
+      const requiredCount = cost.target?.count;
+      if (cost.target?.upTo !== true && typeof requiredCount === "number" && ids.length !== requiredCount) {
+        return false;
+      }
       const suspendedIds = await ctx.fx.suspend(ids, {
         byEffectSeat: ctx.source.ownerSeat,
         byEffectCardId: ctx.source.cardId,
