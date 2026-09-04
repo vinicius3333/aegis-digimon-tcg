@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
@@ -84,8 +83,8 @@ describe("EX8-045", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "EX8-045", as: "callismon", under: ["EX8-032", "EX8-030"] },
-          { card: "EX8-029", as: "unrelated" },
+          { card: "EX8-045", as: "callismon", under: ["BT11-053", "BT8-039", "BT1-045"] },
+          { card: "BT1-009", as: "unrelated" },
         ],
       },
       1: { battleArea: [{ card: "AD1-001", as: "target" }] },
@@ -94,25 +93,30 @@ describe("EX8-045", () => {
     expect(observe(s.engine).hasPierce(s.perm("callismon"))).toBe(true);
     await settle(() => observe(s.engine).hasPierce(s.perm("callismon")));
 
-    expect(s.perm("callismon").currentDP).toBe(13000);
+    expect(s.perm("callismon").currentDP).toBe(14000); // two distinct source colors, not top-card/other-Digimon colors.
     expect(observe(s.engine).hasPierce(s.perm("callismon"))).toBe(true);
     expect(observe(s.engine).keywordAmount(s.perm("callismon"), "SecurityAttack")).toBe(1);
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
+    expect(s.perm("callismon").currentDP).toBe(12000);
+    expect(observe(s.engine).hasPierce(s.perm("callismon"))).toBe(false);
+    expect(observe(s.engine).keywordAmount(s.perm("callismon"), "SecurityAttack")).toBe(0);
   });
   it("loses both conditional keywords when an opposing Digimon reaches the source DP", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX8-045", as: "callismon", under: ["EX8-032", "EX8-033"] }] },
+      0: { battleArea: [{ card: "EX8-045", as: "callismon", under: ["BT11-053", "BT8-039", "BT1-045"] }] },
       1: { battleArea: [{ card: "AD1-001", as: "target", dp: 14000 }] },
     });
     await s.ready();
     await settle(() => !observe(s.engine).hasPierce(s.perm("callismon")));
-
+    expect(s.perm("callismon").currentDP).toBe(14000);
     expect(observe(s.engine).hasPierce(s.perm("callismon"))).toBe(false);
     expect(observe(s.engine).keywordAmount(s.perm("callismon"), "SecurityAttack")).toBe(0);
   });
 
   it("uses Security Attack +1 on a player attack while its conditional keywords are active", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX8-045", as: "callismon", under: ["EX8-032", "EX8-030"] }] },
+      0: { battleArea: [{ card: "EX8-045", as: "callismon", under: ["BT11-053", "BT8-039", "BT1-045"] }] },
       1: {
         battleArea: [{ card: "AD1-001", as: "target", dp: 5000, suspended: true }],
         security: ["BT1-001", "BT1-001", "BT1-001"],
@@ -131,24 +135,69 @@ describe("EX8-045", () => {
     expect(s.state.players[1]!.security).toHaveLength(1); // two checks from base +1 Security Attack.
   });
 
-  it("suspends one opponent and may bottom-deck a different suspended Tamer", async () => {
+  it("evolves, suspends one opponent and bottoms a different suspended Tamer", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX8-045", as: "callismon" }] },
+        0: {
+          battleArea: [{ card: "BT11-053", as: "callismon" }],
+          hand: [{ card: "EX8-045", as: "evolved" }],
+          deck: ["BT1-045"],
+        },
         1: {
           battleArea: [
             { card: "AD1-001", as: "digimon" },
             { card: "BT1-087", as: "tamer", suspended: true },
+            { card: "BT1-087", as: "unsuspendedTamer" },
           ],
+          deck: ["BT1-046"],
         },
       },
       { autoSelectCards: true, preferInstanceIds },
     );
     preferInstanceIds.push(s.perm("digimon").permanentId);
     const tamerId = s.inst("tamer").instanceId;
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("callismon"));
+    await s.ready();
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("callismon").permanentId,
+        instanceId: s.inst("evolved").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.deck.at(-1)?.instanceId === tamerId);
+    expect(s.perm("callismon").topCard.cardId).toBe("EX8-045");
+    expect(s.state.memory).toBe(0);
     expect(s.perm("digimon").isSuspended).toBe(true);
-    expect(s.state.players[1]!.deck.at(-1)?.instanceId).toBe(tamerId);
+    expect(s.perm("unsuspendedTamer").isSuspended).toBe(false);
+    expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT1-046", "BT1-087"]);
+    expect(s.state.players[1]!.deck[1]!.instanceId).toBe(tamerId);
+  });
+
+  it("can suspend and bottom the same opposing Tamer on evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-053", as: "base" }],
+          hand: [{ card: "EX8-045", as: "callismon" }],
+          deck: ["BT1-045"],
+        },
+        1: { battleArea: [{ card: "BT1-087", as: "tamer" }], deck: ["BT1-046"] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("callismon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT1-046", "BT1-087"]);
   });
 });
