@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-028.js";
+import "../BT1/BT1-060.js";
 
 describe("EX6-028 Seraphimon", () => {
   it("has Blast Digivolve and Recovery +1 on play and digivolving", () => {
@@ -107,6 +108,7 @@ describe("EX6-028 Seraphimon", () => {
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("opponentRecovery"));
     expect(s.state.players[1]!.battleArea).toHaveLength(3);
+    expect(s.state.players[1]!.security).toHaveLength(1);
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("sera"));
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("sera"));
     expect(s.state.players[1]!.battleArea).toHaveLength(2);

@@ -84,6 +84,8 @@ describe("EX6-011 RagnaLoardmon", () => {
     s.state.memory = 0;
     await s.ready();
     preferred.push(s.perm("stacked").topCard!.instanceId);
+    preferred.push(s.inst("victim").instanceId);
+    const stackedPermanentId = s.perm("stacked").permanentId;
     expect(
       s.engine.applyIntent(0, {
         type: "dnaDigivolve",
@@ -100,8 +102,12 @@ describe("EX6-011 RagnaLoardmon", () => {
     );
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea[0]!.permanentId).toBe(stackedPermanentId);
     expect(s.state.players[1]!.battleArea[0]!.topCard?.cardId).toBe("BT1-009");
     expect(s.state.players[1]!.battleArea[0]!.stack).toHaveLength(0);
+    expect(
+      s.state.players[1]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("victim").instanceId),
+    ).toBe(false);
   });
 
   it("keeps its protection active after play even when the opponent has zero security", async () => {
