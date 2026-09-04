@@ -47,6 +47,11 @@ describe("EX8-034", () => {
     );
     expect(observe(s.engine).keywordAmount(s.perm("one"), "SecurityAttack")).toBe(-1);
     expect(observe(s.engine).keywordAmount(s.perm("two"), "SecurityAttack")).toBe(-1);
+    s.state.memory = 0;
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    expect(observe(s.engine).keywordAmount(s.perm("one"), "SecurityAttack")).toBe(0);
+    expect(observe(s.engine).keywordAmount(s.perm("two"), "SecurityAttack")).toBe(0);
   });
 
   it("Security Attack -1 suppresses an actual opposing security check", async () => {
@@ -128,7 +133,7 @@ describe("EX8-034", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "ST3-10", as: "host", under: ["EX8-034"] }] },
-        1: { battleArea: [{ card: "EX8-029", as: "target" }] },
+        1: { battleArea: [{ card: "EX8-029", as: "target" }], security: ["BT1-001", "BT1-002"] },
       },
       { autoSelectCards: true },
     );
@@ -142,5 +147,43 @@ describe("EX8-034", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("target").currentDP === before - 4000);
     expect(s.perm("target").currentDP).toBe(before - 4000);
+    await settle(() => !observe(s.engine).isAttacking());
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.perm("target").currentDP).toBe(before - 4000);
+  });
+
+  it("can decline the optional NSo play without consuming the card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-032", as: "base" }],
+          hand: [
+            { card: "EX8-034", as: "mammoth" },
+            { card: "EX8-008", as: "candidate" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("mammoth").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX8-034");
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("candidate").instanceId)).toBe(true);
   });
 });
