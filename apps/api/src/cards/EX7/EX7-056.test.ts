@@ -24,7 +24,7 @@ describe("EX7-056", () => {
       raw: "＜Retaliation＞",
     }));
 
-  it("publicly trashes a hand card on deletion and deletes opposing level 3 and level 4 Digimon", async () => {
+  it("trashes a hand card after real battle deletion and deletes opposing level 3 and level 4 Digimon", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX7-056", as: "oro" }], hand: ["BT1-001"] },
@@ -32,6 +32,7 @@ describe("EX7-056", () => {
           battleArea: [
             { card: "BT1-009", as: "level3" },
             { card: "BT1-014", as: "level4" },
+            { card: "BT10-022", as: "defender", suspended: true },
           ],
         },
       },
@@ -39,9 +40,18 @@ describe("EX7-056", () => {
     );
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("oro"), "Blocker")).toBe(true);
-    await advance(s.engine).fire(EffectTiming.OnDestroyedAnyone, s.perm("oro"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("oro").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[0]!.battleArea.length === 0);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX7-056")).toBe(true);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT10-022"]);
   });
 
   it("respects an opposing Tortomon's effect-deletion protection", async () => {
