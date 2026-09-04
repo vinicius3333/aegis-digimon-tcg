@@ -31,6 +31,7 @@ describe("EX8-018", () => {
             { card: "EX8-020", as: "ds" },
             { card: "EX8-027", as: "plesiosaur" },
             { card: "AD1-001", as: "decoy" },
+            { card: "BT1-045", as: "anchor" },
           ],
         },
       },
@@ -46,12 +47,12 @@ describe("EX8-018", () => {
         s.state.players[0]!.hand.some((card) => card.cardId === "EX8-027"),
     );
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["EX8-020", "EX8-027"]));
-    expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("AD1-001");
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-045", "AD1-001"]);
   });
   it("draws exactly once across two attacks at the inclusive seven-card boundary", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-009", as: "host", under: [{ card: "EX8-018", as: "gomamon" }] }],
+        battleArea: [{ card: "BT1-037", as: "host", under: [{ card: "EX8-018", as: "gomamon" }] }],
         hand: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006", "BT1-007"],
         deck: ["AD1-001", "AD1-002"],
       },
@@ -81,7 +82,7 @@ describe("EX8-018", () => {
   it("does not draw when the host attacks with eight cards in hand", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-009", as: "host", under: ["EX8-018"] }],
+        battleArea: [{ card: "BT1-037", as: "host", under: ["EX8-018"] }],
         hand: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006", "BT1-007", "BT1-008"],
         deck: ["AD1-001"],
       },
