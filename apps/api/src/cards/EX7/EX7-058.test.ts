@@ -68,13 +68,15 @@ describe('A3 EX7-058 — granted "[End of Attack] Delete this Digimon." (malform
       {
         0: {
           hand: [{ card: "EX7-058", as: "ladyDevimon" }],
-          security: ["BT1-001", "BT1-001", "BT1-001"],
+          security: [],
+          battleArea: [{ card: "BT1-010", as: "victim", dp: 1000, suspended: true }],
         },
         1: { battleArea: [{ card: "BT1-009", dp: 3000, as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const attacker = s.perm("attacker");
+    const attackerInstanceId = attacker.topCard!.instanceId;
     const ladyDevimon = s.inst("ladyDevimon");
     const engine = s.engine as unknown as {
       applyIntent: typeof s.engine.applyIntent;
@@ -103,12 +105,13 @@ describe('A3 EX7-058 — granted "[End of Attack] Delete this Digimon." (malform
     const attackRes = engine.applyIntent(1, {
       type: "attack",
       attackerPermanentId: attacker.permanentId,
-      target: { kind: "player" },
+      target: { kind: "permanent", permanentId: s.perm("victim").permanentId },
     });
     expect(attackRes).toEqual({ ok: true });
 
-    await settle(() => attacker.isSuspended, 1000);
-    expect(attacker.isSuspended).toBe(true);
+    await settle(() => s.state.players[1]!.battleArea.length === 0, 1000);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(attackerInstanceId);
   });
 
   it("NEGATIVE: a Digimon that never received the grant also attacks (and suspends) without incident", async () => {
@@ -116,7 +119,7 @@ describe('A3 EX7-058 — granted "[End of Attack] Delete this Digimon." (malform
       {
         0: {
           hand: [{ card: "EX7-058", as: "ladyDevimon" }],
-          security: ["BT1-001", "BT1-001", "BT1-001"],
+          security: [],
         },
         1: { battleArea: [{ card: "BT1-009", dp: 3000, as: "bystander" }] },
       },
