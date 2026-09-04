@@ -32,12 +32,14 @@ EX10 (74), EX11 (74), and EX12 (77); these sets have not begun in this run.
 | EX8-008 | 5/5 | Fresh trace and runtime: memory after actual deletion, inherited DP on/off by turn, off-color NSo evolution and nonmatching rejection; no code change |
 | EX8-009 | 7/7 reported; proof gap open | `09c8cee36`: On Play reveal anchors now prove bottom order; the breeding evolution test does not assert searched cards and cannot establish When Digivolving resolution. Separate battle-area proof requested before closure |
 | EX8-010 | 6/6 | `6e31c209c`: alternate evolution now uses off-color NSo EX8-030; off-color non-NSo rejection, On Play/On Deletion DP boundary, and inherited turn gate reconfirmed |
+| EX8-038 | 8/8 | `cf93ab20a`, `f7cd5c5a5`: unequal-DP battle proves inherited Retaliation on a legal green host; named off-color Koromon evolution, nonmatching egg rejection, both suspension controllers, and refusal |
+| EX8-039 | 6/6 | `862783bb9`, `55af3b526`: disjoint Insectoid/NSp selection, unrevealed anchors in positive and all-nonmatching reveals, off-color NSp egg evolution and rejection, legal green inherited host with turn gate |
 
 EX8-038's added Retaliation case initially used equal-DP combat, which would
 delete both Digimon without Retaliation. `cf93ab20a` corrects it to an unequal-DP
-loss. Coordinator rerun passed 7/7 (488 ms); Q3924 controller selection and
-optional refusal are covered. Closure still requires the printed Koromon
-alternate-evolution proof and a legal inherited evolution-stack fixture.
+loss. The subsequent evolution/stack correction is in `f7cd5c5a5`.
+Coordinator verification of EX8-038/039 together passed 2 files / 14 tests
+(488 ms) with `--no-file-parallelism --pool=forks --maxWorkers=1`.
 
 ## Historical evidence inherited at the audit base
 
