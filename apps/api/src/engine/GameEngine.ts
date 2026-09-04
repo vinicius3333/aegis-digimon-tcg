@@ -3766,6 +3766,14 @@ export class GameEngine {
       originZone,
     );
     if (interactiveReduction > 0) ctx.playCostDelta = (ctx.playCostDelta ?? 0) + interactiveReduction;
+    const passiveReduction = this.continuous.blocksCostReduction(source.ownerSeat, "play")
+      ? 0
+      : this.subTriggers.costReductionFor("wouldBePlayed", playTarget, source.definition, {
+          consume: true,
+          hasFired: (key) => this.tracker.count(key, "replacement") > 0,
+          markFired: (key) => this.tracker.register(key, "replacement"),
+        });
+    if (passiveReduction > 0) ctx.playCostDelta = (ctx.playCostDelta ?? 0) + passiveReduction;
     for (const reducer of selfReducers) await applyWouldBePlayedSelfReducer(ctx, reducer);
     // A self-reducer's cost body may have selected a permanent (BT12-112's chosen [Shoutmon]) to
     // relocate under the played card's own permanent — which does not exist yet at this point. Stash

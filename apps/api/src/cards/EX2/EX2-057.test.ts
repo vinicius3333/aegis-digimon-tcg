@@ -46,4 +46,77 @@ describe("EX2-057 Kenta Kitagawa", () => {
     expect(s.perm("first").stack).toHaveLength(1);
     expect(s.perm("second").stack).toHaveLength(2);
   });
+
+  it("reduces only a MarineAngemon played from hand by 1", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX2-057", as: "kenta" }], hand: [{ card: "EX2-018", as: "marine" }] },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("marine").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("marine").instanceId),
+    );
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("accumulates one passive reduction per matching Kenta watcher", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX2-057", as: "firstKenta" },
+          { card: "EX2-057", as: "secondKenta" },
+        ],
+        hand: [{ card: "EX2-018", as: "marine" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("marine").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("marine").instanceId),
+    );
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("does not reduce another blue Digimon and can decline the suspension cost", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX2-057", as: "kenta" }], hand: [{ card: "EX2-014", as: "blue" }] },
+        1: { battleArea: [{ card: "EX2-021", as: "target", under: ["EX2-003", "EX2-004"] }] },
+      },
+      { autoDeclineOptional: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blue").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("blue").instanceId));
+    expect(s.state.memory).toBe(6);
+    expect(s.perm("kenta").isSuspended).toBe(false);
+    expect(s.perm("target").stack).toHaveLength(2);
+  });
+
+  it("plays from Security without paying its cost", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX2-050", as: "attacker" }], security: ["BT1-001"] },
+      1: { security: [{ card: "EX2-057", as: "securityKenta" }] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("securityKenta").instanceId),
+    );
+    expect(
+      s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("securityKenta").instanceId),
+    ).toBe(true);
+  });
 });
