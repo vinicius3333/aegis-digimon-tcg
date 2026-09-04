@@ -1524,6 +1524,7 @@ export async function payCost(
       if (!cost.target) return false;
       const permanentIds = await resolvePermanentTargets(ctx, cost.target);
       if (permanentIds.length === 0) return false;
+      const deletedTopInstanceIds = topInstanceIds(ctx, permanentIds);
       // Capture the deleted Digimon's level BEFORE removal so a
       // subsequent target filter's `levelComparison.relativeTo:"lastDeleted"` can bound on it
       // (BT8-107: "delete 1 of your Digimon to delete 1 of your opponent's with level <= it").
@@ -1539,7 +1540,10 @@ export async function payCost(
       if (maxDP !== undefined) ctx.lastDeletedDP = maxDP;
       if (cost.bindResultAs !== undefined) {
         ctx.boundPlayed ??= new Map();
-        ctx.boundPlayed.set(cost.bindResultAs, new Set(permanentIds));
+        // Bind the physical cards paid by the cost, consistently with every loose-card
+        // payment. The permanents cease to exist after deletion, while downstream
+        // `bindingContains` conditions inspect those cards in their destination zone.
+        ctx.boundPlayed.set(cost.bindResultAs, new Set(deletedTopInstanceIds));
       }
       const deleted = await ctx.fx.deletePermanent(permanentIds, "byEffect", { mechanic: cost.mechanic });
       // A cost is paid only when every declared permanent actually leaves play. A
