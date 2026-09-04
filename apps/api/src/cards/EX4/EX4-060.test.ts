@@ -200,6 +200,28 @@ describe("EX4-060 Omnimon Alter-S", () => {
     );
   });
 
+  it("DNA digivolves from blue and red level-six Digimon for zero memory", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-044", as: "blue" },
+          { card: "BT1-025", as: "red" },
+        ],
+        hand: [{ card: "EX4-060", as: "alterS" }],
+      },
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("blue").permanentId, s.perm("red").permanentId],
+        instanceId: s.inst("alterS").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX4-060"));
+    expect(s.state.players[0]!.battleArea.filter((perm) => perm.topCard?.cardId === "EX4-060")).toHaveLength(1);
+    expect(s.state.memory).toBe(0);
+  });
+
   it("uses the public opponent attack path to replace leaving play with Blitz, Cres, and face-down security", async () => {
     const s = setupEngine(
       {
