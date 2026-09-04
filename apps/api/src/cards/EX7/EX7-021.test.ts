@@ -57,4 +57,16 @@ describe("EX7-021 CrysPaledramon", () => {
     expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(true);
     expect(s.perm("host").securityAttack).toBe(2);
   });
+
+  it("withholds the inherited bonuses while an opposing stack remains", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX7-020", as: "host", under: ["EX7-021"] }] },
+      1: { battleArea: [{ card: "BT1-009", as: "opponent", under: ["BT1-010"] }] },
+    });
+    s.state.turnSeat = 0;
+    await s.ready();
+    await advance(s.engine).recompute();
+    expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(false);
+    expect(s.perm("host").securityAttack).toBe(1);
+  });
 });
