@@ -47,4 +47,25 @@ describe("EX7-050", () => {
     expect(s.perm("host").currentDP).toBe(4000);
     expect(observe(s.engine).effectiveNames(s.perm("host"))).toContain("jazardmon");
   });
+
+  it("does not reduce a Dark Dragon digivolution from the breeding area", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "EX7-050", as: "imp" },
+        hand: [{ card: "BT11-079", as: "evolving" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("imp").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("imp").topCard?.cardId === "BT11-079");
+    expect(s.perm("imp").topCard?.cardId).toBe("BT11-079");
+    expect(s.state.memory).toBe(1);
+  });
 });
