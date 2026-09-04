@@ -191962,7 +191962,7 @@
                 "kind": "Prevent",
                 "cost": {
                   "kind": "deleteOwn",
-                  "target": { "filter": { "controller": "mine", "excludeSelf": true, "kind": ["Digimon"] }, "count": 1 }
+                  "target": { "filter": { "excludeSelf": true, "kind": ["Digimon"] }, "count": 1 }
                 },
                 "optional": true,
                 "abortOnDecline": true
@@ -192307,17 +192307,15 @@
               "filter": { "controller": "opponent", "kind": ["Digimon"], "dp": { "op": "lte", "value": 9000 } },
               "count": 1
             },
-            "dpCapModifier": {
-              "scaling": {
-                "per": 3000,
-                "filter": {
-                  "controller": "mine",
-                  "kind": ["Digimon"],
-                  "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "trait" }],
-                  "uniqueNames": true
-                },
-                "unit": "cards"
-              }
+            "dpCeilingScaling": {
+              "per": 1,
+              "filter": {
+                "controller": "mine",
+                "kind": ["Digimon"],
+                "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "trait" }]
+              },
+              "unit": "distinctNames",
+              "amount": 3000
             }
           },
           {
@@ -192694,11 +192692,8 @@
         "trigger": "WhenDigivolving",
         "actions": [
           {
-            "kind": "Delete",
-            "target": {
-              "filter": { "controller": "opponent", "kind": ["Digimon"], "superlative": "highestLevel" },
-              "count": 1
-            },
+            "kind": "SelectBind",
+            "target": { "filter": { "isSelfRef": true }, "isSelf": true, "bindAs": "paidBeelstarmonHost", "count": 1 },
             "cost": {
               "kind": "trash",
               "target": {
@@ -192715,24 +192710,21 @@
             "abortOnDecline": true
           },
           {
-            "kind": "SecurityManipulation",
-            "op": "trash",
-            "controller": "opponent",
-            "amount": 1,
-            "toTop": true,
-            "condition": { "kind": "ifThisEffectActed", "raw": "this effect trashed the cost" }
-          }
+            "kind": "Delete",
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"], "superlative": "highestLevel" },
+              "count": 1
+            }
+          },
+          { "kind": "SecurityManipulation", "op": "trash", "controller": "opponent", "amount": 1, "toTop": true }
         ]
       },
       {
         "trigger": "WhenAttacking",
         "actions": [
           {
-            "kind": "Delete",
-            "target": {
-              "filter": { "controller": "opponent", "kind": ["Digimon"], "superlative": "highestLevel" },
-              "count": 1
-            },
+            "kind": "SelectBind",
+            "target": { "filter": { "isSelfRef": true }, "isSelf": true, "bindAs": "paidBeelstarmonHost", "count": 1 },
             "cost": {
               "kind": "trash",
               "target": {
@@ -192749,13 +192741,13 @@
             "abortOnDecline": true
           },
           {
-            "kind": "SecurityManipulation",
-            "op": "trash",
-            "controller": "opponent",
-            "amount": 1,
-            "toTop": true,
-            "condition": { "kind": "ifThisEffectActed", "raw": "this effect trashed the cost" }
-          }
+            "kind": "Delete",
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"], "superlative": "highestLevel" },
+              "count": 1
+            }
+          },
+          { "kind": "SecurityManipulation", "op": "trash", "controller": "opponent", "amount": 1, "toTop": true }
         ]
       }
     ],
