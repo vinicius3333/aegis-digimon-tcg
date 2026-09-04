@@ -24,7 +24,7 @@ describe("EX8-015", () => {
     }));
   it("exposes inherited Security Attack +1 on a live host", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: [{ card: "EX8-015", as: "warGrowlmon" }] }] },
+      0: { battleArea: [{ card: "BT1-080", as: "host", under: [{ card: "EX8-015", as: "warGrowlmon" }] }] },
     });
     await s.ready();
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);
@@ -42,6 +42,7 @@ describe("EX8-015", () => {
         hand: [{ card: "EX8-015", as: "xWarGrowlmon" }],
       },
       1: {
+        deck: ["BT1-045"],
         battleArea: [
           { card: "BT1-024", as: "boundary" },
           { card: "AD1-004", as: "above" },
@@ -69,6 +70,12 @@ describe("EX8-015", () => {
 
     await advance(s.engine).verb.returnToHand([s.perm("warGrowlmon").topCard.instanceId]);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
+
+    s.state.memory = 0;
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    await advance(s.engine).verb.returnToHand([s.perm("warGrowlmon").topCard.instanceId]);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
 
   it("does not delete without a WarGrowlmon- or X Antibody-name source", async () => {
@@ -90,8 +97,7 @@ describe("EX8-015", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("meramon").topCard.instanceId === s.inst("xWarGrowlmon").instanceId);
 
-    // EX8-010 remains in the stack and contributes its inherited +2000 DP.
-    expect(s.perm("meramon").currentDP).toBe(13000);
+    expect(s.perm("meramon").currentDP).toBe(11000);
     expect(observe(s.engine).isRestricted(s.perm("meramon"), "beReturned")).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
