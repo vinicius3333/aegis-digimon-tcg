@@ -174060,19 +174060,38 @@
         "trigger": "OnPlay",
         "actions": [
           {
+            "kind": "SelectBind",
+            "target": {
+              "filter": { "controller": "mine", "kind": ["Digimon"], "colors": ["Blue"] },
+              "count": 1,
+              "bindAs": "jammingTarget"
+            }
+          },
+          {
             "kind": "GainKeyword",
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon"], "colors": ["Blue"] }, "count": 1 },
+            "target": { "fromSelectionRef": "jammingTarget", "filter": {}, "count": 1 },
             "keyword": { "keyword": "Jamming", "raw": "＜Jamming＞" },
             "duration": "forTheTurn"
           },
           {
             "kind": "PlaceUnder",
-            "target": { "filter": { "isSelfRef": true }, "count": 1 },
-            "underFilter": {
-              "controllerDefault": "mine",
-              "kind": ["Digimon"],
-              "colors": ["Blue"],
-              "levelComparison": { "op": "lte", "value": 5 }
+            "target": {
+              "filter": {
+                "zone": "hand",
+                "controllerDefault": "mine",
+                "kind": ["Digimon"],
+                "colors": ["Blue"],
+                "levelComparison": { "op": "lte", "value": 5 }
+              },
+              "count": 1
+            },
+            "underSelectionRef": "jammingTarget",
+            "position": "bottom",
+            "optional": true,
+            "condition": {
+              "kind": "playedFromZone",
+              "zone": "digivolutionCards",
+              "raw": "when played from digivolution cards"
             }
           }
         ]
