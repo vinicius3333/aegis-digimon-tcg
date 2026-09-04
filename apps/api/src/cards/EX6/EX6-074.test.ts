@@ -1,7 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-074.js";
-import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { matchNameOrTrait, runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -26,6 +26,9 @@ describe("EX6-074 Mirei Mikagura", () => {
           reduceCost: 1,
           optional: true,
           target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+          into: {
+            nameOrTrait: [{ tokens: ["Angewomon", "LadyDevimon"], match: "nameExact" }],
+          },
         },
       ],
     });
@@ -40,6 +43,9 @@ describe("EX6-074 Mirei Mikagura", () => {
         },
       ],
     });
+    const digivolveReference = { tokens: ["Angewomon", "LadyDevimon"], match: "nameExact" } as const;
+    expect(matchNameOrTrait({ nameEn: "Angewomon" }, digivolveReference)).toBe(true);
+    expect(matchNameOrTrait({ nameEn: "Angewomon (X Antibody)" }, digivolveReference)).toBe(false);
   });
   it("plays itself without cost from security", () =>
     expect(runtimeCompiledCard("EX6-074")?.effects?.find((entry) => entry.isSecurity)?.actions[0]).toMatchObject({

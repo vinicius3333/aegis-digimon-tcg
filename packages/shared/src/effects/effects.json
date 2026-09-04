@@ -188525,7 +188525,7 @@
                 "underFilter": {
                   "controller": "mine",
                   "zone": "breeding",
-                  "nameOrTrait": [{ "tokens": ["Gate of Deadly Sins"], "match": "name" }]
+                  "nameOrTrait": [{ "tokens": ["Gate of Deadly Sins"], "match": "nameExact" }]
                 },
                 "position": "bottom"
               }
@@ -189022,7 +189022,7 @@
             },
             "underFilter": {
               "controllerDefault": "mine",
-              "nameOrTrait": [{ "tokens": ["Gate of Deadly Sins"], "match": "name" }],
+              "nameOrTrait": [{ "tokens": ["Gate of Deadly Sins"], "match": "nameExact" }],
               "zone": "breeding"
             },
             "from": ["hand", "trash"],
@@ -189056,7 +189056,7 @@
                     "hostFilter": {
                       "controller": "mine",
                       "zone": "breeding",
-                      "nameOrTrait": [{ "tokens": ["Gate of Deadly Sins"], "match": "name" }]
+                      "nameOrTrait": [{ "tokens": ["Gate of Deadly Sins"], "match": "nameExact" }]
                     }
                   },
                   "count": 1
@@ -189367,7 +189367,7 @@
                 "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
                 "into": {
                   "controllerDefault": "mine",
-                  "nameOrTrait": [{ "tokens": ["Angewomon", "LadyDevimon"], "match": "name" }]
+                  "nameOrTrait": [{ "tokens": ["Angewomon", "LadyDevimon"], "match": "nameExact" }]
                 },
                 "from": ["trash"],
                 "reduceCost": 1,

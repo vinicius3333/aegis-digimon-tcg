@@ -18,7 +18,7 @@ export const compiled: CompiledCard = {
           },
           underFilter: {
             controllerDefault: "mine",
-            nameOrTrait: [{ tokens: ["Gate of Deadly Sins"], match: "name" }],
+            nameOrTrait: [{ tokens: ["Gate of Deadly Sins"], match: "nameExact" }],
             zone: "breeding",
           },
           from: ["hand", "trash"],
@@ -52,7 +52,7 @@ export const compiled: CompiledCard = {
                   hostFilter: {
                     controller: "mine",
                     zone: "breeding",
-                    nameOrTrait: [{ tokens: ["Gate of Deadly Sins"], match: "name" }],
+                    nameOrTrait: [{ tokens: ["Gate of Deadly Sins"], match: "nameExact" }],
                   },
                 },
                 count: 1,

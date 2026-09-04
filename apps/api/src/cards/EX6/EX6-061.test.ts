@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-061.js";
@@ -22,9 +23,20 @@ describe("EX6-061 Leviamon", () => {
       event: "wouldLeavePlay",
       leaveCause: "otherThanBattle",
       actions: [
-        { kind: "PlaceUnder", target: { from: ["trash"] }, underFilter: { zone: "breeding" }, position: "bottom" },
+        {
+          kind: "PlaceUnder",
+          target: { from: ["trash"] },
+          underFilter: {
+            zone: "breeding",
+            nameOrTrait: [{ tokens: ["Gate of Deadly Sins"], match: "nameExact" }],
+          },
+          position: "bottom",
+        },
       ],
     });
+    const gateReference = { tokens: ["Gate of Deadly Sins"], match: "nameExact" } as const;
+    expect(matchNameOrTrait({ nameEn: "Gate of Deadly Sins" }, gateReference)).toBe(true);
+    expect(matchNameOrTrait({ nameEn: "Gate of Deadly Sins: Awakened" }, gateReference)).toBe(false);
   });
   it("publicly reacts to an opposing Digimon play by trashing its optional cost card", async () => {
     const s = setupEngine(

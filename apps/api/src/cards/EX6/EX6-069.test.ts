@@ -1,5 +1,6 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-069.js";
@@ -17,15 +18,29 @@ describe("EX6-069 Rise of the Seven Great Demon Lords", () => {
         {
           kind: "PlayWithoutCost",
           source: "breeding",
-          target: { filter: { zone: "digivolutionCards", hostFilter: { zone: "breeding" } } },
+          target: {
+            filter: {
+              zone: "digivolutionCards",
+              hostFilter: {
+                zone: "breeding",
+                nameOrTrait: [{ tokens: ["Gate of Deadly Sins"], match: "nameExact" }],
+              },
+            },
+          },
         },
       ],
     });
     expect(compiled.effects?.find((entry) => entry.trigger === "Main")?.actions[0]).toMatchObject({
       kind: "PlaceUnder",
       position: "bottom",
+      underFilter: {
+        nameOrTrait: [{ tokens: ["Gate of Deadly Sins"], match: "nameExact" }],
+      },
     });
     expect(text).toContain("PlaceInBattleAreaSelf");
+    const gateReference = { tokens: ["Gate of Deadly Sins"], match: "nameExact" } as const;
+    expect(matchNameOrTrait({ nameEn: "Gate of Deadly Sins" }, gateReference)).toBe(true);
+    expect(matchNameOrTrait({ nameEn: "Gate of Deadly Sins: Awakened" }, gateReference)).toBe(false);
   });
   it("publicly places a Seven Great Demon Lords card under the breeding Gate", async () => {
     const s = setupEngine(
