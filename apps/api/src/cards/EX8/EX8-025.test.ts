@@ -90,7 +90,7 @@ describe("EX8-025", () => {
                 { card: "EX8-021", as: "second" },
               ],
             },
-            { card: "BT1-009", as: "otherHost", under: [{ card: "EX8-017", as: "foreign" }] },
+            { card: "BT1-038", as: "otherHost", under: [{ card: "EX8-017", as: "foreign" }] },
           ],
         },
         1: { security: 2 },
@@ -122,7 +122,7 @@ describe("EX8-025", () => {
   });
 
   it("applies the inherited attack-target-change restriction only on its controller's turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "host", under: ["EX8-025"] }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-038", as: "host", under: ["EX8-025"] }] } });
     await s.ready();
     expect(observe(s.engine).isRestricted(s.perm("host"), "attackTargetChange")).toBe(true);
     s.state.turnSeat = 1;
