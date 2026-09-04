@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { PlayerState } from "@aegis/shared";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../LM/LM-029.js";
 import "./index.js";
 import { compiled } from "./EX8-037.js";
 
@@ -73,7 +74,7 @@ describe("EX8-037", () => {
         0: { battleArea: [{ card: "EX8-037", as: "sakuyamon" }], hand: [{ card: "LM-029", as: "option" }] },
         1: { security: ["BT1-001"] },
       },
-      { autoAcceptOptional: false, autoSelectCards: true },
+      { autoSelectCards: true },
     );
     s.state.memory = 10;
     expect(
@@ -84,9 +85,52 @@ describe("EX8-037", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("sakuyamon").isSuspended);
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
 
+    expect(s.state.pendingDecision).toBeUndefined();
     expect(s.perm("sakuyamon").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
+  });
+
+  it("still unsuspends when the used Option digivolves this card (Q4738)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-037", as: "sakuyamon" }],
+          hand: [
+            { card: "LM-029", as: "option" },
+            { card: "BT13-020", as: "evolver" },
+          ],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("sakuyamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("sakuyamon").topCard.cardId === "BT13-020");
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("sakuyamon").topCard.cardId).toBe("BT13-020");
+    expect(s.perm("sakuyamon").isSuspended).toBe(false);
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "LM-029")).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("uses the alternate Sakuyamon route and plays the printed 9000 DP Rush token", async () => {
