@@ -1,3 +1,4 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -75,5 +76,86 @@ describe("EX5-033 Mitamamon", () => {
     // the level-3 Digimon newly joins it (KB Q3597-Q3599).
     expect(observe(s.engine).keywordAmount(s.perm("qualifying"), "SecurityAttack")).toBe(-2);
     expect(observe(s.engine).keywordAmount(s.perm("belowTotalSecurity"), "SecurityAttack")).toBe(-2);
+  });
+
+  it("trashes security to play a yellow level-four Digimon with Rush on public digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-058", as: "base" }],
+          hand: [
+            { card: "EX5-033", as: "mitamamon" },
+            { card: "BT1-045", as: "played" },
+          ],
+          security: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("mitamamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT1-045"));
+
+    const played = s.state.players[0]!.battleArea.find((perm) => perm.topCard?.cardId === "BT1-045");
+    expect(played).toBeDefined();
+    expect(observe(s.engine).hasKeyword(played!, "Rush")).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+  });
+
+  it("shares the digivolving and attacking play effect once per turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-058", as: "base" }],
+          hand: [
+            { card: "EX5-033", as: "mitamamon" },
+            { card: "BT1-045", as: "first" },
+            { card: "BT1-047", as: "second" },
+          ],
+          security: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("mitamamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT1-045"));
+    const securityAfterDigivolve = s.state.players[0]!.security.length;
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("base"));
+    await settle();
+
+    expect(s.state.players[0]!.security.length).toBe(securityAfterDigivolve);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-047");
+  });
+
+  it("grants Barrier to every own yellow Digimon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX5-033", as: "mitamamon" },
+          { card: "BT1-045", as: "yellow" },
+          { card: "BT1-009", as: "red" },
+        ],
+      },
+    });
+    await s.ready();
+    await s.engine.recomputeContinuousEffects();
+
+    expect(observe(s.engine).hasKeyword(s.perm("yellow"), "Barrier")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("red"), "Barrier")).toBe(false);
   });
 });
