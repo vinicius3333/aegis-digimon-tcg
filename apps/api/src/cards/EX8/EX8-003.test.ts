@@ -63,6 +63,9 @@ describe("EX8-003", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
     expect(target.currentDP).toBe(before - 2000);
+    s.state.memory = 0;
+    await advance(s.engine).runTurn(0);
+    expect(target.currentDP).toBe(before);
   });
 
   it("does not reduce DP when the inherited host is the controller's only Digimon", async () => {
