@@ -16,6 +16,11 @@ describe("EX4-059 Cherubimon", () => {
     expect(
       runtimeCompiledCard("EX4-059")?.effects?.find((entry) => entry.trigger === "Static")?.keywords,
     ).toMatchObject([{ keyword: "Alliance" }]);
+    expect(
+      runtimeCompiledCard("EX4-059")?.effects?.filter(
+        (entry) => entry.trigger === "Static" && entry.keywords?.some((keyword) => keyword.keyword === "Alliance"),
+      ),
+    ).toHaveLength(1);
   });
 
   it("grants optional On Deletion replay to itself and one eligible ally", () => {

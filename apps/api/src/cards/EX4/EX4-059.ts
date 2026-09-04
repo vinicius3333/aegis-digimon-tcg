@@ -7,7 +7,10 @@ const cardId = "EX4-059";
 export const compiled: CompiledCard = {
   ...compiledEffects[cardId]!,
   effects: [
-    ...compiledEffects[cardId]!.effects.map((effect): CardEffect =>
+    ...compiledEffects[cardId]!.effects.filter(
+      (effect) =>
+        effect.trigger !== "Static" || effect.keywords?.some((keyword) => keyword.keyword === "Alliance") !== true,
+    ).map((effect): CardEffect =>
       effect.trigger === "WhenDigivolving"
         ? {
             ...effect,
