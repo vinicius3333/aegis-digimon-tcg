@@ -64,6 +64,34 @@ describe("EX8-023", () => {
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "cannotActivateWhenDigivolving")).toBe(true);
   });
 
+  it("trashes sources and applies both restrictions when digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-022", as: "frigimon" }],
+          hand: [{ card: "EX8-023", as: "polar" }],
+        },
+        1: { battleArea: [{ card: "BT1-024", as: "opponent", under: ["BT1-009", "BT1-010"] }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("frigimon").permanentId,
+        instanceId: s.inst("polar").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("opponent"), "suspend"));
+
+    expect(s.perm("opponent").stack).toHaveLength(0);
+    expect(observe(s.engine).isRestricted(s.perm("opponent"), "suspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("opponent"), "cannotActivateWhenDigivolving")).toBe(true);
+  });
+
   it("can trash the two cards from different opposing Digimon", async () => {
     const s = setupEngine(
       {
@@ -94,6 +122,7 @@ describe("EX8-023", () => {
         1: {
           battleArea: [{ card: "EX8-019", as: "penguinmon" }],
           hand: [{ card: "EX8-022", as: "frigimon" }],
+          deck: ["BT1-045"],
         },
       },
       { autoSelectCards: true },
@@ -118,6 +147,12 @@ describe("EX8-023", () => {
     expect(observe(s.engine).isRestricted(s.perm("penguinmon"), "suspend")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("penguinmon"), "cannotActivateWhenDigivolving")).toBe(true);
     expect(s.perm("victim").stack).toHaveLength(2);
+
+    s.state.memory = 0;
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    expect(observe(s.engine).isRestricted(s.perm("penguinmon"), "suspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("penguinmon"), "cannotActivateWhenDigivolving")).toBe(false);
   });
 
   it("gains Piercing as the last opposing stack is deleted in battle and checks security (Q3883)", async () => {
