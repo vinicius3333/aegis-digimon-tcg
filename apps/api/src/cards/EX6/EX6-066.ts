@@ -27,6 +27,7 @@ export const compiled: CompiledCard = {
             count: "all",
           },
           to: "hand",
+          allowCostWithoutTarget: true,
           cost: {
             kind: "place",
             target: {
