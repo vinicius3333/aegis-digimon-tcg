@@ -21,6 +21,19 @@ final review, and push remain pending. No collection-wide 10/10 claim is made.
 
 ### Evidence follow-up
 
+- EX7-002 passed 4/4 focused tests, now including two completed legal attacks
+  by the same inherited source with exactly one draw (`9937a6b94`).
+- Upper-range follow-up passed EX7-043 (5), 044 (5), 047 (5), 048 (4), 051
+  (4), 056 (4), 059 (8), and 060 (5). EX7-059 now exercises the public Blast
+  Digivolve window; the previous missing clauses are implemented in focused
+  runtime tests and await independent final review.
+- EX7-065 also omitted evolution payment; `1a532294b` explicitly enables
+  payment and proves memory 10 -> 7. Its focused result is 6/6.
+- EX7-074 likewise omitted payment, making its four-memory reduction an
+  unlimited waiver. A cost-six evolution first reproduced memory 7 instead of
+  5 after Option use. Explicit payment with the existing reduction passes all
+  10 focused tests, including the remaining two-memory payment and stack
+  transition. Effects synchronization must include this correction as well.
 - EX7-005 passed 4/4 focused tests after adding own-stack, Option-trait,
   once-per-turn, and opponent-turn boundaries (`1aee1c4ba`).
 - EX7-006 incorrectly waived the trash digivolution cost. The catalog and
