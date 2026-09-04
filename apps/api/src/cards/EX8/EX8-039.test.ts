@@ -27,8 +27,8 @@ describe("EX8-039", () => {
         0: {
           hand: [{ card: "EX8-039", as: "tentomon" }],
           deck: [
-            { card: "EX8-040", as: "insectoid" },
-            { card: "EX8-039", as: "nsp" },
+            { card: "ST4-03", as: "insectoid" },
+            { card: "EX7-015", as: "nsp" },
             { card: "AD1-001", as: "rest" },
           ],
         },
