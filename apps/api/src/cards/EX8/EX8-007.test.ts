@@ -63,6 +63,7 @@ describe("EX8-007", () => {
             { card: "BT1-045", as: "mammal" },
             { card: "BT1-046", as: "holyBeast" },
             { card: "BT1-047", as: "fairy" },
+            { card: "BT1-048", as: "anchor" },
           ],
         },
       },
@@ -72,9 +73,9 @@ describe("EX8-007", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("agumon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.deck.length === 3);
+    await settle(() => s.state.players[0]!.deck.length === 4);
     expect(s.state.players[0]!.hand).toHaveLength(0);
-    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-045", "BT1-046", "BT1-047"]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-048", "BT1-045", "BT1-046", "BT1-047"]);
   });
 
   it("applies its inherited +2000 DP during its controller's turn", async () => {
