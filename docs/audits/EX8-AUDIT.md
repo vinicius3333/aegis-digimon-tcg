@@ -44,8 +44,8 @@ EX10 (74), EX11 (74), and EX12 (77); these sets have not begun in this run.
 | EX8-020 | 5/5 | `56936a7a5`: discarding back to seven before the second real attack distinguishes the once-per-turn limit from the hand-size gate |
 | EX8-021 | 5/5 | `03fc94a4c`: alternate evolution explicitly asserts the new top and original Syakomon source; live Jamming security survival and top-card memory limit retained |
 | EX8-022 | 8/8 | `838a3f219`, `04b7c19ba`: legal source stacks, actual Ice Clad count-over-DP battle, opposing attack with no security checks under inherited -1, expiry, and alternate-route rejection |
-| EX8-023 | 8 passed / 1 failed; OPEN | Explicit security assertion exposes Q3883 regression after `f52180366`: simultaneous acquisition of Piercing at battle deletion is missed; prior settle-only assertion did not establish a security check |
-| EX8-034 | 5/5 retained tests; OPEN | `7ab89f04a`: real NSo evolution and inherited attack added, but a removed combat assertion reportedly contradicted Security Attack -1. Restoring and diagnosing that reproducer is required before closure |
+| EX8-023 | 9/9 working-tree tests; shared review OPEN | Explicit Q3883 assertion reproduced the pre-removal snapshot defect; frozen win/deletion callbacks and a post-removal passive refresh now pass. Shared change remains under independent review |
+| EX8-034 | 6/6 | `7ab89f04a`, `e1b648c47`: real NSo evolution and inherited attack; opposing combat explicitly preserves defender security under -1. The reported contradiction was a fixture error: security had been seeded on the attacker, while the asserted defender already had zero |
 | EX8-038 | 8/8 | `cf93ab20a`, `f7cd5c5a5`: unequal-DP battle proves inherited Retaliation on a legal green host; named off-color Koromon evolution, nonmatching egg rejection, both suspension controllers, and refusal |
 | EX8-039 | 6/6 | `862783bb9`, `55af3b526`: disjoint Insectoid/NSp selection, unrevealed anchors in positive and all-nonmatching reveals, off-color NSp egg evolution and rejection, legal green inherited host with turn gate |
 | EX8-040 | 7/7 | `4380b4788`: real off-color NSp evolution proves cost, draw and allied suspension; opposing On Play target, refusal, non-NSp rejection and legal inherited host turn gate |
@@ -79,6 +79,13 @@ pass together (18/18), but was removed pending event-order review: a late
 reaction must not retroactively grant Piercing for the completed battle.
 Both actual On Play source-trash paths in EX8-023 now use public play intents
 and passed a targeted two-test run; the Q3883 failure remains open.
+
+Working-tree structural correction now passes EX8-023/045 and controller tests
+together (3 files / 47 tests), including late win/deletion-reaction negative
+controls. Affected battle/Piercing/Fortitude tests pass (3 files / 22 selected,
+126 skipped); API typecheck and scoped format/lint/diff checks pass. Independent
+review of frozen watchers and the pre-removal token path is still pending, so
+these results do not close the shared change or the collection.
 
 EX8-043/044 coordinator verification: 2 files / 22 tests passed (1.37 s),
 with one worker and file parallelism disabled; scoped lint/format/diff clean.
