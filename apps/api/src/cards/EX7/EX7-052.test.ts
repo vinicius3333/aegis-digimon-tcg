@@ -73,4 +73,26 @@ describe("EX7-052", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX7-038")).toBe(false);
     expect(s.state.players[0]!.security).toHaveLength(1);
   });
+
+  it("does not end an attack when the deletion cost has no legal Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX7-042", as: "host", under: ["EX7-052"] }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 0);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
 });
