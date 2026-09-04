@@ -73,6 +73,35 @@ describe("EX6-031 Shakamon", () => {
     );
   });
 
+  it.each(["EX6-025", "EX6-023", "EX6-024", "EX6-026"])(
+    "accepts %s as a DigiXros material and applies the two-memory reduction",
+    async (material) => {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [
+              { card: "EX6-031", as: "shaka" },
+              { card: material, as: "material" },
+            ],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 20;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "playCard",
+          instanceId: s.inst("shaka").instanceId,
+          digiXros: { materialInstanceIds: [s.inst("material").instanceId] },
+        } as never),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-031"));
+      expect(s.perm("shaka").stack.some((card) => card.instanceId === s.inst("material").instanceId)).toBe(true);
+      expect(s.state.memory).toBe(7);
+    },
+  );
+
   it("publicly places a Security Attack Digimon into security at the end of the opponent's turn", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
