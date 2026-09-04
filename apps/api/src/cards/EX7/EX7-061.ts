@@ -24,11 +24,11 @@ export const compiled: CompiledCard = {
             {
               kind: "Prevent",
               cost: {
-                kind: "deleteOwn",
-                target: {
-                  filter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] },
-                  count: 1,
-                },
+              kind: "deleteOwn",
+              target: {
+                filter: { excludeSelf: true, kind: ["Digimon"] },
+                count: 1,
+              },
               },
               optional: true,
               abortOnDecline: true,

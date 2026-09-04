@@ -96,6 +96,23 @@ describe("EX7-061 Lilithmon (X Antibody)", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(costInstanceId);
   });
 
+  it("can pay the prevention cost by deleting an opponent's other Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX7-061", as: "lilith", under: ["BT3-091"] }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponentCost" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const opponentCostInstanceId = s.inst("opponentCost").instanceId;
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("lilith").permanentId], "byEffect")).toBe(0);
+    expect(s.state.players[0]!.battleArea).toContain(s.perm("lilith"));
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(opponentCostInstanceId);
+  });
+
   it("does not offer prevention or delete its cost Digimon without Lilithmon or X Antibody below it", async () => {
     const s = setupEngine(
       {
