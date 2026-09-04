@@ -61,7 +61,6 @@ describe("EX6-011 RagnaLoardmon", () => {
   });
 
   it("publicly performs Blast DNA Digivolve and resolves the DNA-only de-digivolve/delete tail", async () => {
-    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -79,13 +78,12 @@ describe("EX6-011 RagnaLoardmon", () => {
           security: ["BT1-001", "BT1-002"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: true },
     );
     s.state.memory = 0;
     await s.ready();
-    preferred.push(s.perm("stacked").topCard!.instanceId);
-    preferred.push(s.inst("victim").instanceId);
     const stackedPermanentId = s.perm("stacked").permanentId;
+    const victimPermanentId = s.perm("victim").permanentId;
     expect(
       s.engine.applyIntent(0, {
         type: "dnaDigivolve",
@@ -93,6 +91,15 @@ describe("EX6-011 RagnaLoardmon", () => {
         instanceId: s.inst("ragna").instanceId,
         useBlastDigivolve: true,
       } as never),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const deletion = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: deletion.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [victimPermanentId] },
+      }),
     ).toEqual({ ok: true });
     await settle(() =>
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("ragna").instanceId),
