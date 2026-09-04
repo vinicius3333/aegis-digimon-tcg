@@ -37,7 +37,7 @@ describe("EX8-027", () => {
         0: {
           battleArea: [
             { card: "EX8-025", as: "whamon", under: [{ card: "EX8-020", as: "own" }] },
-            { card: "BT1-038", as: "other", under: [{ card: "EX8-017", as: "foreign" }] },
+            { card: "BT8-030", as: "other", under: [{ card: "EX8-025", as: "foreign" }] },
           ],
           hand: [{ card: "EX8-027", as: "plesiomon" }],
         },
@@ -59,6 +59,32 @@ describe("EX8-027", () => {
 
     expect(s.perm("other").stack.some((card) => card.instanceId === s.inst("foreign").instanceId)).toBe(true);
     expect(s.state.memory).toBe(0);
+  });
+
+  it("keeps the optional source playback declined during digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-025", as: "whamon", under: [{ card: "EX8-020", as: "own" }] }],
+          hand: [{ card: "EX8-027", as: "plesiomon" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("whamon").permanentId,
+        instanceId: s.inst("plesiomon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("whamon").topCard.cardId === "EX8-027");
+
+    expect(s.perm("whamon").stack).toHaveLength(2);
+    expect(s.perm("whamon").topCard.cardId).toBe("EX8-027");
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
   });
 
   it("triggers from Plesiomon's own play, DNA digivolves into DS, and attacks (Q3894)", async () => {
