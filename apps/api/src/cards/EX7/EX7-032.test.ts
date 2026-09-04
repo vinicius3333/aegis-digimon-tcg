@@ -39,4 +39,23 @@ describe("EX7-032", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX7-064")).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX7-064")).toBe(false);
   });
+
+  it("does not play Shoto when two Tamers are already in play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: ["EX7-064"],
+          battleArea: [
+            { card: "EX7-032", as: "galemon" },
+            { card: "EX7-064", as: "first" },
+            { card: "BT1-085", as: "second" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("galemon"));
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX7-064")).toBe(true);
+  });
 });
