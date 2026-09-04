@@ -184082,7 +184082,6 @@
           }
         ]
       },
-      { "trigger": "BeforePayCost", "actions": [] },
       {
         "trigger": "Static",
         "actions": [
@@ -184101,7 +184100,6 @@
           }
         ]
       },
-      { "trigger": "Static", "actions": [] },
       {
         "trigger": "Main",
         "actions": [
