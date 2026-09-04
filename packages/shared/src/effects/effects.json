@@ -188808,38 +188808,26 @@
           {
             "kind": "SubTrigger",
             "event": "whenDigimonWouldLeave",
+            "delayArmedIntrinsic": true,
             "leaveCause": "otherThanYourEffect",
             "sourceFilter": { "controller": "mine", "kind": ["Digimon"] },
             "actions": [
               {
-                "kind": "GainKeyword",
-                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                "keyword": { "keyword": "Delay" },
-                "duration": "permanent"
+                "kind": "PlayWithoutCost",
+                "target": {
+                  "filter": {
+                    "controller": "mine",
+                    "zone": "digivolutionCards",
+                    "hostFilter": { "sourceRef": "triggerSubject" },
+                    "nameOrTrait": [{ "tokens": ["Legend-Arms"], "match": "trait" }]
+                  },
+                  "count": 1
+                },
+                "from": ["digivolutionCards"],
+                "payCost": false,
+                "optional": true
               }
             ]
-          }
-        ]
-      },
-      {
-        "trigger": "Main",
-        "keywords": [{ "keyword": "Delay" }],
-        "actions": [
-          {
-            "kind": "PlayWithoutCost",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "digivolutionCards",
-                "hostFilter": { "sourceRef": "triggerSubject" },
-                "nameOrTrait": [{ "tokens": ["Legend-Arms"], "match": "trait" }]
-              },
-              "count": 1
-            },
-            "from": ["digivolutionCards"],
-            "payCost": false,
-            "optional": true,
-            "requiresDelayArmed": true
           }
         ]
       },
