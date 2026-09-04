@@ -252,6 +252,27 @@
   --ds-brand-nav-muted: #aebbd0;
   --ds-brand-subtitle: #9eabc0;
 
+  /* Compatibility aliases resolve at :root, so dark mode must restate them. */
+  --ds-background: var(--ds-bg);
+  --ds-foreground: var(--ds-fg);
+  --ds-foreground-secondary: var(--ds-fg-secondary);
+  --ds-foreground-muted: var(--ds-fg-muted);
+  --ds-foreground-disabled: var(--ds-fg-disabled);
+  --ds-primary: var(--ds-accent);
+  --ds-primary-hover: var(--ds-accent-hover);
+  --ds-primary-light: var(--ds-accent-surface);
+  --ds-accent-on: var(--ds-on-accent);
+  --ds-primary-foreground: var(--ds-on-accent);
+  --ds-focus-ring-color: var(--ds-focus-color);
+  --ds-danger-light: var(--ds-danger-surface);
+  --ds-danger-foreground: var(--ds-on-danger);
+  --ds-success-light: var(--ds-success-surface);
+  --ds-success-foreground: var(--ds-on-success);
+  --ds-warning-light: var(--ds-warning-surface);
+  --ds-warning-foreground: var(--ds-on-warning);
+  --ds-info-light: var(--ds-info-surface);
+  --ds-info-foreground: var(--ds-on-info);
+
   /* Dark compatibility shadows use the same semantic values. */
   --ds-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
   --ds-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);

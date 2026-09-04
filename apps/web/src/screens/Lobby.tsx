@@ -428,10 +428,10 @@ export function Lobby({
                         padding: "9px 10px",
                         borderRadius: 10,
                         border: "1px solid var(--ds-border-strong)",
-                        background: "var(--ds-background)",
+                        background: "var(--ds-surface-raised)",
                         color: "var(--ds-fg)",
                         fontSize: 13,
-                        fontFamily: "var(--ds-font-sans)",
+                        fontFamily: "var(--ds-font-body)",
                         outline: "none",
                         cursor: "pointer",
                       }}
