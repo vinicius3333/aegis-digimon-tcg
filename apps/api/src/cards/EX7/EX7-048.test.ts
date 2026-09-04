@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX7-048.js";
+import "../index.js";
 
 describe("EX7-048", () => {
   it("reveals 6 and may use a Three Musketeers Option without paying its cost", () => {
@@ -47,5 +49,25 @@ describe("EX7-048", () => {
     expect(await advance(s.engine).verb.deletePermanent([s.perm("gundra").permanentId], "byEffect")).toBe(0);
     expect(s.state.players[0]!.battleArea).toContain(s.perm("gundra"));
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX7-066")).toBe(true);
+  });
+
+  it("reveals and uses a Three Musketeers Option on play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX7-048", as: "gundra" }],
+          deck: ["EX7-066", "BT1-009", "BT1-010", "BT1-014", "BT1-038", "BT1-040"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 9000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("gundra"));
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.perm("gundra").stack.some((card) => card.cardId === "EX7-066")).toBe(true);
   });
 });
