@@ -82,7 +82,7 @@ describe("EX6-024 Sagomon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX6-024", as: "sago" }] },
-        1: { battleArea: [{ card: "EX6-031", as: "opponent" }] },
+        1: { battleArea: [{ card: "EX6-031", as: "opponent" }], deck: ["BT1-001"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -156,6 +156,36 @@ describe("EX6-024 Sagomon", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("sago"));
     await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("sago"));
     expect(observe(s.engine).keywordAmount(s.perm("ally"), "SecurityAttack")).toBe(-1);
+  });
+
+  it("expires the DigiXros suspend restriction after the opponent's turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX6-024", as: "sago" },
+            { card: "EX6-025", as: "material" },
+          ],
+        },
+        1: { battleArea: [{ card: "EX6-031", as: "opponent" }], deck: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("sago").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("material").instanceId] },
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-024"));
+    expect(observe(s.engine).isRestricted(s.perm("opponent"), "suspend")).toBe(true);
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    await s.engine.runOneTurn();
+    expect(observe(s.engine).isRestricted(s.perm("opponent"), "suspend")).toBe(false);
   });
 
   it("publicly returns its yellow evolution card when leaving play", async () => {
