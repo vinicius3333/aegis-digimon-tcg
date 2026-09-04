@@ -1,4 +1,8 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX6-026.js";
 
 describe("EX6-026 Cho-Hakkaimon", () => {
@@ -34,4 +38,15 @@ describe("EX6-026 Cho-Hakkaimon", () => {
         },
       ],
     }));
+  it("publicly applies Security Attack -1 to an opposing Digimon on play", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX6-026", as: "cho" }] }, 1: { battleArea: [{ card: "BT1-009", as: "opponent" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    preferred.push(s.perm("opponent").topCard!.instanceId);
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("cho"));
+    expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
+  });
 });
