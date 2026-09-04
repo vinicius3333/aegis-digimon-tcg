@@ -15,6 +15,8 @@ effects synchronization, and collection delivery. Tests are focused by card
 with one fork; only affected mechanisms and the exact collection run at gates.
 No card score from the historical sections below is adopted without fresh
 catalog/KB/runtime/test verification. Current closure status: in progress.
+The current catalog's remaining sequential queue after EX8 is EX9 (74 cards),
+EX10 (74), EX11 (74), and EX12 (77); these sets have not begun in this run.
 
 ### Current focused checkpoints
 
@@ -33,7 +35,9 @@ catalog/KB/runtime/test verification. Current closure status: in progress.
 
 EX8-038's added Retaliation case initially used equal-DP combat, which would
 delete both Digimon without Retaliation. `cf93ab20a` corrects it to an unequal-DP
-loss; the fresh focused result will be recorded from the worker's report.
+loss. Coordinator rerun passed 7/7 (488 ms); Q3924 controller selection and
+optional refusal are covered. Closure still requires the printed Koromon
+alternate-evolution proof and a legal inherited evolution-stack fixture.
 
 ## Historical evidence inherited at the audit base
 
