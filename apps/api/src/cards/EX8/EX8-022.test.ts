@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
+import { digivolutionRequirementsFor } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -36,17 +36,28 @@ describe("EX8-022", () => {
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("frigimon"), "IceClad")).toBe(true);
   });
-  it("reduces an opposing Digimon's Security Attack when the host attacks", async () => {
+  it("reduces an opposing Digimon's Security Attack during a real host attack", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: [{ card: "EX8-022", as: "frigimon" }] }] },
-      1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      0: { battleArea: [{ card: "BT1-038", as: "host", under: [{ card: "EX8-022", as: "frigimon" }] }] },
+      1: { battleArea: [{ card: "BT1-009", as: "opponent" }], security: ["BT1-045"], deck: ["BT1-046"] },
     });
     await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), {
-      subjectPermanentId: s.perm("host").permanentId,
-    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack") === -1);
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
+    await settle(() => !observe(s.engine).isAttacking());
+
+    s.state.memory = 0;
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(0);
   });
 
   it("trashes exactly the bottom two on play and gains no memory while a source remains", async () => {
