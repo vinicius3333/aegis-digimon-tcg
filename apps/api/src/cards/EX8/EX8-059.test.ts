@@ -77,6 +77,74 @@ describe("EX8-059", () => {
       expect.arrayContaining(["AD1-001", "BT1-011"]),
     );
   });
+
+  it.each([
+    ["On Play", "play"],
+    ["When Digivolving", "digivolve"],
+  ] as const)("does not grant the optional deletion cost when declined at %s", async (_timing, route) => {
+    const s = setupEngine(
+      {
+        0: {
+          ...(route === "play" ? {} : { battleArea: [{ card: "EX8-008", as: "base" }] }),
+          hand: [
+            { card: "EX8-059", as: "devimon" },
+            { card: "BT1-010", as: "grantCost" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "AD1-001", as: "grantee" }],
+          hand: [{ card: "BT1-011", as: "opponentDiscard" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = route === "play" ? 5 : 2;
+    await s.ready();
+
+    const result =
+      route === "play"
+        ? s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("devimon").instanceId })
+        : s.engine.applyIntent(0, {
+            type: "digivolve",
+            permanentId: s.perm("base").permanentId,
+            instanceId: s.inst("devimon").instanceId,
+            useAlternateCost: true,
+          });
+    expect(result).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("devimon").instanceId,
+      ),
+    );
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("grantCost").instanceId)).toBe(true);
+
+    await advance(s.engine).verb.deletePermanent([s.perm("grantee").permanentId], "byEffect");
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("grantee").instanceId));
+    expect(s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("opponentDiscard").instanceId)).toBe(
+      true,
+    );
+  });
+
+  it("does not create the deletion effect when its controller has no hand card for the cost", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX8-059", as: "devimon" }] },
+        1: { battleArea: [{ card: "AD1-001", as: "grantee" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("devimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX8-059"));
+
+    await advance(s.engine).verb.deletePermanent([s.perm("grantee").permanentId], "byEffect");
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("grantee").instanceId));
+    expect(s.state.players[1]!.trash).toHaveLength(1);
+  });
+
   it("resolves the inherited draw-and-trash during a real attack", async () => {
     const s = setupEngine(
       {
