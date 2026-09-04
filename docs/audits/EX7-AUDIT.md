@@ -19,6 +19,29 @@ ceiling when no limit is declared, while retaining explicit ceilings.
 final affected-mechanism checks, effects synchronization, typechecking, builds,
 final review, and push remain pending. No collection-wide 10/10 claim is made.
 
+### Evidence follow-up
+
+- The current Option-use mechanism suite passed 11/11 tests after restoration
+  of the worktree dependencies.
+- EX7-059 now has 7/7 focused tests, including both recovery timings, optional
+  refusal, own-stack payment, rejection of another stack, and once-per-turn
+  use (`2c271deff`). Blast evolution still requires mapped runtime evidence.
+- EX7-013 now has 6/6 focused tests. Its end-turn sequence pays from its own
+  stack and checks two security cards; a different stack cannot pay the cost
+  (`8726ee36c`).
+- Invalid timing enum members found by typechecking were corrected in
+  EX7-010/016/017/021. Focused counts are respectively 6/4/3/4. The inherited
+  once-per-turn checks in 016/017 now retain an active match and a legal target
+  for the repeated activation (`6beedaa20`).
+- Upper-range review found missing behavioral coverage in EX7-043/044/047/048,
+  EX7-051/056/060, and the Blast evolution path of EX7-059. These findings must
+  be resolved before assigning collection-wide runtime 10/10.
+- EX7-073 and EX7-074 focused results are 4/4 and 9/9 (`66cfb9d96`).
+
+All branch comparisons and final effects scope checks must use the immutable
+base `6d8363382b063a43a2a00effd1a242fb1363a3e9`: the shared `origin/main` ref
+advanced during this audit and is no longer the branch's starting point.
+
 ## Historical baseline
 
 The earlier audit stopped test execution before its fixes were revalidated.
