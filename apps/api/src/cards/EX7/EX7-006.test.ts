@@ -5,7 +5,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import "../index.js";
 
-describe("EX7-006 Dracomon", () => {
+describe("EX7-006 Yaamon", () => {
   it("inherits once-per-turn free Dark Dragon/Evil Dragon evolution from trash when your hand has four or fewer cards", () =>
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "WhenAttacking",
@@ -37,5 +37,21 @@ describe("EX7-006 Dracomon", () => {
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
     await settle(() => s.perm("host").topCard?.cardId === "BT11-079");
     expect(s.perm("host").topCard?.cardId).toBe("BT11-079");
+  });
+
+  it("does not activate when the hand exceeds four cards", async () => {
+    const s = setupEngine({
+      0: {
+        hand: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        trash: ["BT11-079"],
+        battleArea: [{ card: "BT11-075", dp: 5000, as: "host", under: ["EX7-006"] }],
+      },
+    });
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    await settle(() => false, 20);
+
+    expect(s.perm("host").topCard?.cardId).toBe("BT11-075");
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT11-079")).toBe(true);
   });
 });

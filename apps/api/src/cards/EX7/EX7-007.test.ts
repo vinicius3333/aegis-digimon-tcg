@@ -5,7 +5,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import "../index.js";
 
-describe("EX7-007 Hina Kurihara", () => {
+describe("EX7-007 Vorvomon", () => {
   it("reveals three for Dragon traits and Hina", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
       kind: "RevealAdd",
