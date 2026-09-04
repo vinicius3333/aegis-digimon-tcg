@@ -137,7 +137,7 @@ describe("EX8-012", () => {
 
   it("gains 1 memory when an opposing Digimon is deleted during its turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "AD1-001", as: "host", under: [{ card: "EX8-012", as: "growlmon" }] }] },
+      0: { battleArea: [{ card: "BT1-024", as: "host", under: [{ card: "EX8-012", as: "growlmon" }] }] },
       1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
     });
     await s.ready();
@@ -150,7 +150,7 @@ describe("EX8-012", () => {
 
   it("does not gain memory when one of its own Digimon is deleted", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "AD1-001", as: "host", under: [{ card: "EX8-012", as: "growlmon" }] }] },
+      0: { battleArea: [{ card: "BT1-024", as: "host", under: [{ card: "EX8-012", as: "growlmon" }] }] },
       1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
     });
     await s.ready();
@@ -163,7 +163,7 @@ describe("EX8-012", () => {
 
   it("gains memory only once and not on the opponent's turn or simultaneous host deletion (Q3875)", async () => {
     const oncePerTurn = setupEngine({
-      0: { battleArea: [{ card: "AD1-001", as: "host", under: ["EX8-012"] }] },
+      0: { battleArea: [{ card: "BT1-024", as: "host", under: ["EX8-012"] }] },
       1: {
         battleArea: [
           { card: "BT1-009", as: "first" },
@@ -177,7 +177,7 @@ describe("EX8-012", () => {
     expect(oncePerTurn.state.memory).toBe(1);
 
     const opponentTurn = setupEngine({
-      0: { battleArea: [{ card: "AD1-001", as: "host", under: ["EX8-012"] }] },
+      0: { battleArea: [{ card: "BT1-024", as: "host", under: ["EX8-012"] }] },
       1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
     });
     opponentTurn.state.turnSeat = 1;
@@ -186,7 +186,7 @@ describe("EX8-012", () => {
     expect(opponentTurn.state.memory).toBe(0);
 
     const simultaneous = setupEngine({
-      0: { battleArea: [{ card: "AD1-001", as: "host", under: ["EX8-012"] }] },
+      0: { battleArea: [{ card: "BT1-024", as: "host", under: ["EX8-012"] }] },
       1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
     });
     await simultaneous.ready();
