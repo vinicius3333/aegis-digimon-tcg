@@ -15,7 +15,7 @@ describe("EX7-074", () => {
   it("reveals 3 for a LIBERATOR card and may digivolve from hand with cost reduced by 4", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "Main")?.actions).toMatchObject([
       { kind: "RevealAdd", revealCount: 3 },
-      { kind: "Digivolve", from: ["hand"], reduceCost: 4, optional: true },
+      { kind: "Digivolve", from: ["hand"], reduceCost: 4, payCost: true, optional: true },
     ]));
   it("plays a low-cost LIBERATOR card from security and adds itself to hand", () =>
     expect(compiled.effects?.find((entry) => entry.isSecurity)?.actions).toMatchObject([
@@ -96,6 +96,30 @@ describe("EX7-074", () => {
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "EX7-032"));
     expect(s.perm("host").topCard?.cardId).toBe("EX7-031");
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("EX7-032");
+  });
+
+  it("pays the remaining two memory for a cost-six evolution after the four-memory reduction", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX7-074", as: "vortex" }, "BT1-084"],
+          battleArea: [{ card: "BT8-017", as: "host" }, "EX7-064"],
+          deck: ["BT1-028", "BT1-028", "BT1-028"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vortex").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("host").topCard?.cardId === "BT1-084");
+    expect(s.perm("host").topCard?.cardId).toBe("BT1-084");
+    // Option 3 + (printed evolution 6 - reduction 4) = 5 memory paid.
+    expect(s.state.memory).toBe(5);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT8-017"]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("EX7-074");
   });
 
   it("plays an eligible LIBERATOR from Security and returns itself to hand", async () => {
