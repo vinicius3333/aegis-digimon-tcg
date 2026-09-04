@@ -133,6 +133,32 @@ describe("EX8-037", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
+  it("does not play a token when neither qualifying source is in the stack", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-059", as: "base" }],
+        hand: [{ card: "EX8-037", as: "sakuyamonX" }],
+      },
+    });
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("sakuyamonX").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX8-037");
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("base").topCard.cardId).toBe("EX8-037");
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "TOKEN-Uka-no-Mitama")).toBe(
+      false,
+    );
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("uses the alternate Sakuyamon route and plays the printed 9000 DP Rush token", async () => {
     const s = setupEngine({
       0: {
