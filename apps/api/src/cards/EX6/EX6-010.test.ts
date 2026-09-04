@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { CardKind, type CardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { ContinuousEffectLedger } from "../../engine/effects/continuous.js";
 import { compiled } from "./EX6-010.js";
 
@@ -129,5 +130,24 @@ describe("EX6-010 [Hand] [Main] pay 3, place as bottom digivolution card, delete
       effectKey: "EX6-010/main-place-and-delete",
     });
     expect(res.ok).toBe(false);
+  });
+
+  it("publicly suppresses a checked Security effect while its RagnaLoardmon host attacks", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: RAGNALOARDMON, as: "host", under: [DURANDAMON] }] },
+      1: { battleArea: [{ card: FILLER, as: "opponent" }], security: ["BT1-110"] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.perm("opponent").isSuspended).toBe(false);
+    expect(observe(s.engine).suppressesSecurityEffect(s.perm("host"), "BT1-110")).toBe(true);
   });
 });

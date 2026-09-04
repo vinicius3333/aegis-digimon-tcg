@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
+import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-018.js";
@@ -58,12 +59,49 @@ describe("EX6-018 Lucemon", () => {
   });
 
   it("publicly reveals three cards and adds Angel and Seven Great Demon Lords matches", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "EX6-018", as: "lucemon" }], deck: ["EX6-019", "EX6-054", "BT1-001"] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      { 0: { hand: [{ card: "EX6-018", as: "lucemon" }], deck: ["EX6-019", "EX6-054", "BT1-001"] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lucemon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lucemon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "EX6-019"));
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("EX6-019");
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(expect.arrayContaining(["EX6-054", "BT1-001"]));
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["EX6-054", "BT1-001"]),
+    );
+  });
+
+  it("publicly reduces its play cost to zero when no level 5 or lower Digimon is present", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "EX6-018", as: "lucemon" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lucemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("lucemon").instanceId),
+    );
+    expect(
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("lucemon").instanceId),
+    ).toBe(true);
+  });
+
+  it("publicly resolves the main-phase reveal independently of On Play", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX6-018", as: "lucemon" }], deck: ["EX6-019", "EX6-054", "BT1-001"] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("lucemon"));
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "EX6-019"));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("EX6-019");
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("EX6-054");
   });
 });

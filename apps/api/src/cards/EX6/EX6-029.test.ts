@@ -57,7 +57,81 @@ describe("EX6-029 Mastemon", () => {
     );
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("mast"));
-    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("angel").instanceId));
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("angel").instanceId)).toBe(true);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("angel").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("angel").instanceId)).toBe(
+      true,
+    );
+  });
+
+  it("publicly performs Blast DNA Digivolve and places another Digimon in security while trimming the opponent to four", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX6-022", as: "ange" },
+            { card: "EX6-053", as: "lady" },
+            { card: "BT1-060", as: "other" },
+          ],
+          hand: [{ card: "EX6-029", as: "mast" }],
+          security: ["BT1-001", "BT1-002"],
+        },
+        1: { security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("ange").permanentId, s.perm("lady").permanentId],
+        instanceId: s.inst("mast").instanceId,
+        useBlastDigivolve: true,
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("mast").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("mast").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.security).toHaveLength(3);
+    expect(s.state.players[1]!.security).toHaveLength(4);
+  });
+
+  it("continues the mandatory DNA security tail when the optional Angel play is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX6-022", as: "ange" },
+            { card: "EX6-053", as: "lady" },
+            { card: "BT1-060", as: "other" },
+          ],
+          hand: [{ card: "EX6-029", as: "mast" }],
+          trash: [{ card: "EX6-019", as: "angel" }],
+          security: ["BT1-001", "BT1-002"],
+        },
+        1: { security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006"] },
+      },
+      { autoAcceptOptional: false, autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("ange").permanentId, s.perm("lady").permanentId],
+        instanceId: s.inst("mast").instanceId,
+        useBlastDigivolve: true,
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("mast").instanceId),
+    );
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("angel").instanceId)).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(3);
+    expect(s.state.players[1]!.security).toHaveLength(4);
   });
 });

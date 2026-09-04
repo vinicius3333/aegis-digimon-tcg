@@ -38,21 +38,113 @@ describe("EX6-024 Sagomon", () => {
   it("publicly applies Security Attack -1 to an opposing Digimon on play", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX6-024", as: "sago" }] }, 1: { battleArea: [{ card: "BT1-009", as: "opponent" }] } },
+      {
+        0: { battleArea: [{ card: "EX6-024", as: "sago" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     await s.ready();
     preferred.push(s.perm("opponent").topCard!.instanceId);
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("sago"));
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("sago"));
+    expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
   });
   it("publicly restricts an opposing Digimon from suspending on DigiXros", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "EX6-024", as: "sago" }, { card: "EX6-025", as: "material" }] }, 1: { battleArea: [{ card: "EX6-031", as: "opponent" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX6-024", as: "sago" },
+            { card: "EX6-025", as: "material" },
+          ],
+        },
+        1: { battleArea: [{ card: "EX6-031", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 5;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sago").instanceId, digiXros: { materialInstanceIds: [s.inst("material").instanceId] } } as never)).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("sago").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("material").instanceId] },
+      } as never),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-024"));
     const opponent = s.perm("opponent");
     expect(observe(s.engine).isRestricted(opponent, "suspend")).toBe(true);
+  });
+
+  it("does not restrict an opposing Digimon without DigiXros", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX6-024", as: "sago" }] },
+        1: { battleArea: [{ card: "EX6-031", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("sago"));
+    expect(observe(s.engine).isRestricted(s.perm("opponent"), "suspend")).toBe(false);
+  });
+
+  it("publicly grants Security Attack -1 to your other Digimon when selected", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX6-024", as: "sago" },
+            { card: "BT1-009", as: "ally" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    preferred.push(s.inst("ally").instanceId);
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("sago"));
+    expect(observe(s.engine).keywordAmount(s.perm("ally"), "SecurityAttack")).toBe(-1);
+  });
+
+  it("publicly returns its yellow evolution card when leaving play", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX6-024", as: "sago", under: ["EX6-019"] }] } });
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("sago").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("sago").instanceId));
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX6-019")).toBe(true);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+  });
+
+  it("publicly returns its source after a real DigiXros host leaves play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX6-024", as: "sago" },
+            { card: "EX6-025", as: "material" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("sago").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("material").instanceId] },
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("sago").instanceId),
+    );
+    await advance(s.engine).verb.deletePermanent([s.state.players[0]!.battleArea[0]!.permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("material").instanceId));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("material").instanceId)).toBe(true);
   });
 });

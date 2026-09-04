@@ -28,11 +28,42 @@ describe("EX6-034 Antylamon", () => {
       ],
     }));
   it("publicly plays a level-3 yellow Digimon from hand when digivolving", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX6-034", as: "anty" }], hand: [{ card: "EX6-016", as: "rookie" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX6-034", as: "anty" }], hand: [{ card: "EX6-016", as: "rookie" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("anty"));
-    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("rookie").instanceId));
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("rookie").instanceId)).toBe(true);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("rookie").instanceId),
+    );
+    expect(
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("rookie").instanceId),
+    ).toBe(true);
   });
 
+  it("publicly returns another suspended Digimon to play a Beast from its inherited end-of-attack effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-060", as: "antyHost", under: ["EX6-034"], suspended: true },
+            { card: "BT1-009", as: "returned", suspended: true },
+          ],
+          hand: [{ card: "BT1-031", as: "beast" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.EndOfAttack, s.perm("antyHost"));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("beast").instanceId),
+    );
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("returned").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("beast").instanceId)).toBe(
+      true,
+    );
+  });
 });

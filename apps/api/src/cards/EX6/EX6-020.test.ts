@@ -42,10 +42,24 @@ describe("EX6-020 Gatomon", () => {
   });
 
   it("reduces an opposing Digimon by 2000 through its inherited attack effect", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-060", as: "host", under: ["EX6-020"] }] }, 1: { battleArea: [{ card: "EX6-031", as: "opponent" }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-060", as: "host", under: ["EX6-020"] }] },
+      1: { battleArea: [{ card: "EX6-031", as: "opponent" }] },
+    });
     await s.ready();
     const before = s.perm("opponent").currentDP;
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
     expect(s.perm("opponent").currentDP).toBe(before - 2000);
+  });
+
+  it("publicly resolves the same Angel and exact Mirei buckets when digivolving", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX6-020", as: "gato" }], deck: ["EX6-019", "EX6-074", "BT1-001"] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("gato"));
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "EX6-074"));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["EX6-019", "EX6-074"]));
   });
 });
