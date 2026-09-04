@@ -21,6 +21,18 @@ final review, and push remain pending. No collection-wide 10/10 claim is made.
 
 ### Evidence follow-up
 
+- EX7-005 passed 4/4 focused tests after adding own-stack, Option-trait,
+  once-per-turn, and opponent-turn boundaries (`1aee1c4ba`).
+- EX7-006 incorrectly waived the trash digivolution cost. The catalog and
+  comprehensive rule 8-1-3-2 require payment; a runtime assertion first failed
+  with memory 5 instead of 3. Setting the card's `payCost` to `true` passed 6/6
+  focused tests, including payment, stack continuity, once-per-turn reuse,
+  refusal, and invalid trait/color boundaries. No shared engine change was
+  needed. The official EX7 card list confirms the catalog wording:
+  https://world.digimoncard.com/cards/?category=522024&search=true
+- The intermediate effects synchronization passed for all 74 records with
+  54 semantic changes and zero changes outside EX7. It must be repeated after
+  the subsequent EX7-032 exact-name and EX7-006 payment corrections.
 - The current Option-use mechanism suite passed 11/11 tests after restoration
   of the worktree dependencies.
 - EX7-059 now has 7/7 focused tests, including both recovery timings, optional
