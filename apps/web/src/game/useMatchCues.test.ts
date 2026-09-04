@@ -92,6 +92,39 @@ const RETURN_TO_DECK: ServerEvent = {
 };
 const YOUR_PLAY: ServerEvent = { kind: "cardPlayed", seat: 0, cardId: "BT1-011", permanentId: "perm-8" };
 
+/* BT10-087 Taiki Kudo on the opponent's security stack: its [Security] clause plays it for
+   free, and the [On Play] that follows reveals the top four cards of their deck. */
+const OPP_EFFECT_REVEAL: ServerEvent = {
+  kind: "securityRevealed",
+  seat: 1,
+  revealedCardId: "BT10-087",
+  attackerPermanentId: "perm-1",
+  hasSecurityEffect: true,
+};
+const OPP_SECURITY_NOTICE: ServerEvent = {
+  kind: "effectTriggered",
+  seat: 1,
+  sourceCardId: "BT10-087",
+  effectKey: "security",
+  description: "Play this card without paying its cost.",
+  timing: "Security",
+};
+const OPP_TAIKI_PLAY: ServerEvent = { kind: "cardPlayed", seat: 1, cardId: "BT10-087", permanentId: "perm-taiki" };
+const OPP_ON_PLAY: ServerEvent = {
+  kind: "effectTriggered",
+  seat: 1,
+  sourceCardId: "BT10-087",
+  effectKey: "onPlay",
+  description: "Reveal the top 4 cards of your deck.",
+  timing: "On Play",
+};
+const TAIKI_REVEALS: readonly ServerEvent[] = ["BT1-001", "BT1-002", "BT1-003", "BT1-004"].map((cardId) => ({
+  kind: "cardRevealed",
+  seat: 1,
+  cardId,
+  sourceCardId: "BT10-087",
+}));
+
 /** Nothing is laid out in jsdom, so a draw flight measures zero and never launches. */
 const anchors: MatchCueAnchors = {
   board: { current: null },
@@ -462,6 +495,291 @@ describe("match cues", () => {
     await advance(1);
     expect(result.current.notices).toHaveLength(1);
     expect(result.current.securityBranch?.state).toBe("docked");
+  });
+
+  // BT10-087 Taiki Kudo: a [Security] "play this card" whose [On Play] then reveals four
+  // cards. What the play caused belongs after the dock and after the card reaches the
+  // field, so neither its notice nor its revealed-cards panel may appear before them.
+  it("holds an [On Play] notice and its revealed-cards panel until the card has docked and entered the field", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    const opened = [ATTACK, OPP_EFFECT_REVEAL, OPP_SECURITY_NOTICE] as const;
+    rerender([...opened]);
+    await advance(DOCKED_AT_MS - 1);
+    expect(result.current.notices).toEqual([]);
+    expect(result.current.sidePanels).toEqual([]);
+
+    // Step 2: the card is parked at the side and its [Security] clause reads out beside it.
+    await advance(1);
+    expect(result.current.securityBranch?.state).toBe("docked");
+    expect(result.current.notices).toHaveLength(1);
+    expect(result.current.sidePanels).toEqual([]);
+
+    // Step 3/4 arrive together: the card is played and its [On Play] reveals four cards.
+    rerender([...opened, OPP_TAIKI_PLAY, OPP_ON_PLAY, ...TAIKI_REVEALS]);
+    await advance(0);
+    // The card is still on its way to the field, so nothing the play caused is on screen.
+    expect(result.current.notices).toHaveLength(1);
+    expect(result.current.sidePanels).toEqual([]);
+    expect(result.current.zoneShowcase?.cardId).toBe("BT10-087");
+
+    await advance(SHOWCASE_TOTAL_MS);
+    expect(result.current.zoneShowcase).toBeNull();
+    expect(result.current.notices).toHaveLength(2);
+    const panel = result.current.sidePanels.at(-1);
+    expect(panel?.titleKey).toBe("panel.revealedCards");
+    expect(panel?.cards).toHaveLength(4);
+  });
+
+  /* The live order: the server resolves the whole [Security] play in one tick, so the
+     reveal, the free play and the four [On Play] reveals all reach the client in a SINGLE
+     batch, and `securityChecked` only arrives seconds later when the bot answers its
+     decisions. Everything the played card did still has to wait for the card to arrive. */
+  it("plays the card-enter cue before the [On Play] presentation when the whole check arrives in one batch", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([ATTACK, OPP_EFFECT_REVEAL, OPP_SECURITY_NOTICE, OPP_TAIKI_PLAY, OPP_ON_PLAY, ...TAIKI_REVEALS]);
+
+    // Step 2: docked, with only the [Security] clause beside it.
+    await advance(DOCKED_AT_MS);
+    expect(result.current.securityBranch?.state).toBe("docked");
+    expect(result.current.notices).toHaveLength(1);
+    expect(result.current.sidePanels).toEqual([]);
+    // Step 3: the played card is on its way to the field and held off the board until then.
+    expect(result.current.zoneShowcase?.cardId).toBe("BT10-087");
+    expect(result.current.pendingPermanentIds.has("perm-taiki")).toBe(true);
+    // Nothing the play caused may be on screen while it is still arriving.
+    expect(result.current.sidePanels).toEqual([]);
+
+    // Step 4: the card has landed, so what it did reads out.
+    await advance(SHOWCASE_TOTAL_MS);
+    expect(result.current.zoneShowcase).toBeNull();
+    expect(result.current.pendingPermanentIds.has("perm-taiki")).toBe(false);
+    expect(result.current.notices).toHaveLength(2);
+    expect(result.current.sidePanels.at(-1)?.titleKey).toBe("panel.revealedCards");
+    expect(result.current.sidePanels.at(-1)?.cards).toHaveLength(4);
+    // The dock stays up until the check closes.
+    expect(result.current.securityBranch?.state).toBe("docked");
+  });
+
+  /* The exact payloads a live dev-scenario check delivers, captured off the wire. The
+     shapes differ from a hand play: `cardPlayed` carries no `from` and no instance id, and
+     the movement is a separate `cardsMoved` from security to the battle area. */
+  const LIVE_ATTACK: ServerEvent = {
+    kind: "attackDeclared",
+    seat: 0,
+    attackerPermanentId: "dev-perm-0",
+    attackerCardId: "ST1-07",
+    target: { kind: "player" },
+  };
+  const LIVE_REVEAL: ServerEvent = {
+    kind: "securityRevealed",
+    seat: 1,
+    revealedCardId: "BT10-087",
+    attackerPermanentId: "dev-perm-0",
+    hasSecurityEffect: true,
+    isDigimon: false,
+  };
+  const LIVE_PLAY: ServerEvent = { kind: "cardPlayed", seat: 1, cardId: "BT10-087", permanentId: "perm-1" };
+  const LIVE_MOVE: ServerEvent = {
+    kind: "cardsMoved",
+    instanceIds: ["dev-security-1"],
+    from: "security",
+    to: "battleArea",
+  };
+  const LIVE_ON_PLAY: ServerEvent = {
+    kind: "effectTriggered",
+    seat: 1,
+    sourceCardId: "BT10-087",
+    effectKey: "BT10-087/ir-6-0",
+    description: "[OnPlay] Reveal top 4 and add",
+    timing: "OnPlay",
+    duringSecurityCheck: true,
+  };
+  const LIVE_REVEALS: readonly ServerEvent[] = ["BT19-051", "BT10-087", "BT19-038", "BT19-051"].map((cardId) => ({
+    kind: "cardRevealed",
+    seat: 1,
+    cardId,
+  }));
+
+  /** The board the live client holds at that moment: the played card is already a permanent. */
+  const LIVE_BOARD = {
+    players: [
+      { battleArea: [], trash: [], hand: [], securityCount: 5 },
+      {
+        battleArea: [{ permanentId: "perm-1", topCard: { instanceId: "dev-security-1", cardId: "BT10-087" } }],
+        trash: [],
+        hand: [],
+        securityCount: 5,
+      },
+    ],
+  } as unknown as GameState;
+
+  /** The whole check, asserted the same way whichever shape the server batches it into. */
+  async function expectLiveCheckOrder(
+    result: { current: ReturnType<typeof useMatchCues> },
+    rerenderBatches: () => Promise<void>,
+  ) {
+    await rerenderBatches();
+
+    // Mid-clash: nothing the check caused is on screen, and the played card is held back.
+    expect(result.current.sidePanels).toEqual([]);
+    expect(result.current.pendingPermanentIds.has("perm-1")).toBe(true);
+
+    // Step 2: the card docks. This stream carries no [Security]-timing notice of its own,
+    // so the dock stands alone; what the card went on to do is still held.
+    await advance(DOCKED_AT_MS);
+    expect(result.current.securityBranch?.state).toBe("docked");
+    expect(result.current.sidePanels).toEqual([]);
+    expect(result.current.notices).toEqual([]);
+
+    // Step 3: the card is seen arriving, exactly as a hand play would.
+    expect(result.current.zoneShowcase?.cardId).toBe("BT10-087");
+    expect(result.current.pendingPermanentIds.has("perm-1")).toBe(true);
+    // The showcase holds the card up, so the "played card" panel must not repeat it.
+    expect(result.current.sidePanels.some((panel) => panel.titleKey === "panel.playedCard")).toBe(false);
+
+    // Step 4: it has landed, so the [On Play] result reads out.
+    await advance(SHOWCASE_TOTAL_MS);
+    expect(result.current.zoneShowcase).toBeNull();
+    expect(result.current.pendingPermanentIds.has("perm-1")).toBe(false);
+    expect(result.current.notices).toHaveLength(1);
+    expect(result.current.notices[0]?.body.variant).toBe("effect");
+    expect(result.current.sidePanels.some((panel) => panel.titleKey === "panel.playedCard")).toBe(false);
+    const panel = result.current.sidePanels.at(-1);
+    expect(panel?.titleKey).toBe("panel.revealedCards");
+    expect(panel?.cards).toHaveLength(4);
+    expect(result.current.securityBranch?.state).toBe("docked");
+  }
+
+  it("orders a live [Security] play that arrives as one batch", async () => {
+    const { result, rerender } = renderCuesOverBoard(LIVE_BOARD);
+    await advance(0);
+
+    await expectLiveCheckOrder(result, async () => {
+      rerender([LIVE_ATTACK]);
+      await advance(20);
+      rerender([LIVE_ATTACK, LIVE_REVEAL, LIVE_PLAY, LIVE_MOVE, LIVE_ON_PLAY, ...LIVE_REVEALS]);
+      await advance(20);
+    });
+
+    // The dock outlives the whole presentation: it closes only on `securityChecked`.
+    expect(result.current.securityBranch?.state).toBe("docked");
+  });
+
+  it("orders the same live [Security] play when the server splits it across batches", async () => {
+    const { result, rerender } = renderCuesOverBoard(LIVE_BOARD);
+    await advance(0);
+
+    await expectLiveCheckOrder(result, async () => {
+      const batches: ServerEvent[][] = [
+        [LIVE_ATTACK],
+        [LIVE_REVEAL],
+        [LIVE_PLAY],
+        [LIVE_MOVE, LIVE_ON_PLAY, ...LIVE_REVEALS],
+      ];
+      const seen: ServerEvent[] = [];
+      for (const batch of batches) {
+        seen.push(...batch);
+        rerender([...seen]);
+        await advance(25);
+      }
+    });
+
+    // The dock outlives the whole presentation: it closes only on `securityChecked`.
+    expect(result.current.securityBranch?.state).toBe("docked");
+  });
+
+  /* A hidden tab (an automated screenshot run is one) puts the queue in `drain`: the
+     centre-stage showcase is dropped outright, and the "played card" panel that normally
+     stands in for it would name the very card the dock is holding up. */
+  it("never repeats the docked card as a played-card panel when the showcase is dropped", async () => {
+    const hidden = vi.spyOn(document, "hidden", "get").mockReturnValue(true);
+    try {
+      const { result, rerender } = renderCuesOverBoard(LIVE_BOARD);
+      await advance(0);
+
+      rerender([LIVE_ATTACK, LIVE_REVEAL, LIVE_PLAY, LIVE_MOVE, LIVE_ON_PLAY, ...LIVE_REVEALS]);
+      await advance(DOCKED_AT_MS + SHOWCASE_TOTAL_MS);
+
+      expect(result.current.zoneShowcase).toBeNull();
+      expect(result.current.sidePanels.some((panel) => panel.titleKey === "panel.playedCard")).toBe(false);
+      // What the [On Play] turned up still reads out, on the clock it is raised at.
+      expect(result.current.sidePanels.at(-1)?.titleKey).toBe("panel.revealedCards");
+    } finally {
+      hidden.mockRestore();
+    }
+  });
+
+  /* The batches a live match actually delivers for the same check: the server flushes on
+     its own tick, so the reveal, the free play and the [On Play] resolution each arrive
+     alone, 25-40 ms apart, while the clash is still on its first frame. The close only
+     lands seconds later, after the bot has answered. */
+  const TAIKI_PLAY_MOVE: ServerEvent = {
+    kind: "cardsMoved",
+    instanceIds: ["sec-taiki"],
+    cardIds: ["BT10-087"],
+    seat: 1,
+    from: "security",
+    to: "battleArea",
+  };
+
+  it("keeps the order across the separate batches a live check arrives in", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    const batches: ServerEvent[][] = [
+      [ATTACK],
+      [OPP_EFFECT_REVEAL],
+      [OPP_TAIKI_PLAY],
+      [TAIKI_PLAY_MOVE, OPP_ON_PLAY, ...TAIKI_REVEALS],
+    ];
+    const seen: ServerEvent[] = [];
+    for (const batch of batches) {
+      seen.push(...batch);
+      rerender([...seen]);
+      await advance(30);
+    }
+
+    // Still mid-clash: nothing the check caused has reached the screen.
+    expect(result.current.notices).toEqual([]);
+    expect(result.current.sidePanels).toEqual([]);
+    // The played Tamer is held off the field until its arrival cue runs.
+    expect(result.current.pendingPermanentIds.has("perm-taiki")).toBe(true);
+
+    // Step 2: the card docks on the right.
+    await advance(DOCKED_AT_MS);
+    expect(result.current.securityBranch?.state).toBe("docked");
+    expect(result.current.sidePanels).toEqual([]);
+    // Step 3: the card is seen arriving, and the [On Play] result is still not on screen.
+    expect(result.current.zoneShowcase?.cardId).toBe("BT10-087");
+    expect(result.current.notices.some((notice) => notice.body.variant === "effect")).toBe(false);
+
+    // Step 4: it has landed, so what it did reads out.
+    await advance(SHOWCASE_TOTAL_MS);
+    expect(result.current.zoneShowcase).toBeNull();
+    expect(result.current.pendingPermanentIds.has("perm-taiki")).toBe(false);
+    expect(result.current.notices).toHaveLength(1);
+    expect(result.current.sidePanels.at(-1)?.titleKey).toBe("panel.revealedCards");
+    expect(result.current.sidePanels.at(-1)?.cards).toHaveLength(4);
+    expect(result.current.securityBranch?.state).toBe("docked");
+  });
+
+  // The permanent is rendered from state the instant its patch lands, so a card whose
+  // arrival cue is still queued behind a check has to be held off the board until it plays.
+  it("holds a card played by a [Security] effect off the field until its arrival cue runs", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([ATTACK, OPP_EFFECT_REVEAL, OPP_SECURITY_NOTICE, OPP_TAIKI_PLAY]);
+    await advance(0);
+    expect(result.current.pendingPermanentIds.has("perm-taiki")).toBe(true);
+    expect(result.current.zoneShowcase).toBeNull();
+
+    await advance(DOCKED_AT_MS + SHOWCASE_TOTAL_MS);
+    expect(result.current.pendingPermanentIds.has("perm-taiki")).toBe(false);
   });
 
   // A Digimon that also resolved a [Security] effect still has a battle to show, and the
