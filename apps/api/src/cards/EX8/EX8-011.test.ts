@@ -59,10 +59,17 @@ describe("EX8-011", () => {
   });
 
   it("gains +3000 DP at the start of its controller's main phase through the public timing seam", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX8-011", as: "tyrannomon" }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX8-011", as: "tyrannomon" }], deck: ["BT1-046"] },
+      1: { deck: ["BT1-045"] },
+    });
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tyrannomon"));
     expect(s.perm("tyrannomon").currentDP).toBe(8000);
+    s.state.memory = 0;
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("tyrannomon").currentDP).toBe(5000);
   });
 
   it("gains +3000 DP when digivolving through the off-color Reptile route", async () => {
