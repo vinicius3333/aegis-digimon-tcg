@@ -82,8 +82,17 @@ describe("EX8-029", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX8-026", as: "metal", under: [{ card: "EX8-020", as: "own" }] }],
-          breeding: { card: "BT1-009", as: "other", under: [{ card: "EX8-017", as: "foreign" }] },
+          battleArea: [
+            {
+              card: "EX8-026",
+              as: "metal",
+              under: [
+                { card: "EX8-020", as: "own" },
+                { card: "EX8-024", as: "middle" },
+              ],
+            },
+          ],
+          breeding: { card: "BT1-037", as: "other", under: [{ card: "EX8-017", as: "foreign" }] },
           hand: [
             { card: "EX8-027", as: "plesiomon" },
             { card: "EX8-029", as: "aegis" },
