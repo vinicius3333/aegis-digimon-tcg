@@ -6,6 +6,46 @@ import "./index.js";
 import { compiled } from "./EX8-032.js";
 
 describe("EX8-032", () => {
+  it("uses the off-color NSo level-3 route for two and rejects a non-NSo base", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX8-008", as: "base" }],
+        hand: [{ card: "EX8-032", as: "apemon" }],
+        deck: ["BT1-028", "BT1-037"],
+      },
+    });
+    await s.ready();
+    s.state.memory = 2;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("apemon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-028"));
+    expect(s.perm("base").topCard.cardId).toBe("EX8-032");
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["EX8-008"]);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-028"]);
+    expect(s.state.memory).toBe(0);
+
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "base" }], hand: [{ card: "EX8-032", as: "apemon" }] },
+    });
+    await invalid.ready();
+    invalid.state.memory = 2;
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("base").permanentId,
+        instanceId: invalid.inst("apemon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(invalid.perm("base").topCard.cardId).toBe("BT1-009");
+  });
+
   it("inherits a once-per-turn -2000 DP effect against an opposing Digimon when attacking", () =>
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
       trigger: "WhenAttacking",
