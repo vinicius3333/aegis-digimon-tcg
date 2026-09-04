@@ -2,7 +2,23 @@
 
 This ledger records a fresh card-by-card audit in ascending card-ID order using the committed catalog, the local rules knowledge base, each direct compiled-IR module, its shared primitives, peer implementations, and the existing colocated tests.
 
-## Current passing test inventory
+## Latest review follow-up
+
+The 370-test collection below is a passing checkpoint, not the final inventory.
+Independent rereview cleared EX7-001..037 but identified additional behavioral
+evidence gaps in the upper range. Those findings are being resolved before
+collection approval; no collection-wide 10/10 claim is made yet.
+
+- EX7-041: 5/5 focused tests passed; `f0549a34d` proves Q3851 rule deletion
+  through public DP-reduction plays and inherited Reboot across a real turn.
+- EX7-056: 7/7 focused tests passed; `9056d4cf3` replaces the artificial positive
+  On Deletion trigger with an actual battle loss and checks resulting zones.
+- EX7-063: 8/8 focused tests passed; `4c73d4e04` proves a non-Puppet Token
+  deletion activates Arisa, pays suspension, and plays the replacement for free.
+- Follow-up evidence for EX7-044/046/048/049/050/052/054 and
+  EX7-058/061/064/066/072 is being completed and independently checked.
+
+## Passing test inventory at collection checkpoint
 
 Exact collection at `edd2e897b`: 74 files / 370 tests passed in 10.51 seconds.
 This table records passing behavioral and structural tests, not by itself a
