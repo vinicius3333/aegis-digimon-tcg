@@ -55,6 +55,42 @@ describe("EX8-044", () => {
     expect(s.perm("alreadySuspended").isSuspended).toBe(true);
     expect(s.perm("freshOpponent").isSuspended).toBe(true);
   });
+  it("suspends an opposing Digimon and gains memory when digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX8-042", as: "host" }], hand: [{ card: "EX8-044", as: "hercules" }] },
+        1: { battleArea: [{ card: "EX8-043", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("hercules").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("opponent").isSuspended);
+    expect(s.perm("opponent").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(8); // 10 - 3 digivolution cost + 1 suspended opponent.
+  });
+
+  it("does not suspend or gain memory when the optional On Play effect is declined", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "EX8-044", as: "hercules" }] }, 1: { battleArea: [{ card: "EX8-043", as: "opponent" }] } },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hercules").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "EX8-044"));
+    expect(s.perm("opponent").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(4);
+  });
   it("grants Piercing and +3000 DP when it becomes suspended", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
@@ -75,5 +111,27 @@ describe("EX8-044", () => {
     expect(s.perm("ally").currentDP).toBe(8000);
     expect(observe(s.engine).hasPierce(s.perm("hercules"))).toBe(false);
     expect(s.perm("hercules").currentDP).toBe(11000);
+  });
+
+  it("does not repeat the inherited suspension grant in the same turn", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX8-044", as: "hercules" },
+            { card: "AD1-001", as: "ally" },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("ally").permanentId);
+    await s.ready();
+    await advance(s.engine).verb.suspend([s.perm("hercules").permanentId]);
+    await settle(() => observe(s.engine).hasPierce(s.perm("ally")));
+    await advance(s.engine).verb.unsuspend([s.perm("hercules").permanentId]);
+    await advance(s.engine).verb.suspend([s.perm("hercules").permanentId]);
+    expect(s.perm("ally").currentDP).toBe(8000);
   });
 });
