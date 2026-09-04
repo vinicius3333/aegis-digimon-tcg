@@ -22,6 +22,14 @@ describe("EX6-070 Phantom Pain", () => {
         { kind: "Delete", optional: true, requiresDelayArmed: true, target: { filter: { unsuspended: true } } },
       ],
     });
+    expect(
+      runtime?.effects?.filter(
+        (entry) =>
+          entry.trigger === "Main" &&
+          entry.keywords?.some((keyword) => keyword.keyword === "Delay") &&
+          entry.actions?.some((action) => action.kind === "Delete" && action.requiresDelayArmed === true),
+      ),
+    ).toHaveLength(1);
     expect(runtime?.effects?.filter((entry) => entry.trigger === "Main").at(-1)?.actions[0]?.cost).toBeUndefined();
     expect(runtime).toEqual(compiled);
   });
@@ -91,12 +99,17 @@ describe("EX6-070 Phantom Pain", () => {
 
   it("publicly plays Phantom Pain into the battle area through Main", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX6-056", as: "purple" }], hand: [{ card: "EX6-070", as: "option" }] }, 1: { battleArea: [{ card: "BT1-009", as: "victim" }] } },
+      {
+        0: { battleArea: [{ card: "EX6-056", as: "purple" }], hand: [{ card: "EX6-070", as: "option" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-070"));
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-070")).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
