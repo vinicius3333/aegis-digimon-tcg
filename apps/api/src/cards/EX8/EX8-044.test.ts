@@ -101,6 +101,7 @@ describe("EX8-044", () => {
             { card: "AD1-001", as: "ally" },
           ],
         },
+        1: { battleArea: [{ card: "AD1-001", as: "target", dp: 1000, suspended: true }], security: ["AD1-001"] },
       },
       { autoSelectCards: true, preferInstanceIds },
     );
@@ -111,6 +112,17 @@ describe("EX8-044", () => {
     expect(s.perm("ally").currentDP).toBe(8000);
     expect(observe(s.engine).hasPierce(s.perm("hercules"))).toBe(false);
     expect(s.perm("hercules").currentDP).toBe(11000);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ally").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.players[1]!.security.length === 0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
   });
 
   it("does not repeat the All Turns suspension grant in the same turn", async () => {
@@ -184,5 +196,60 @@ describe("EX8-044", () => {
     expect(s.perm("attacker").isSuspended).toBe(true);
     expect(s.perm("other").isSuspended).toBe(true);
     expect(s.state.memory).toBe(-1); // seat 1 gains one memory for suspending seat 0's other Digimon.
+  });
+
+  it("suspends an own Digimon without counting it for opposing-Digimon memory", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX8-044", as: "hercules" }],
+          battleArea: [{ card: "AD1-001", as: "ownAlly" }],
+        },
+        1: { battleArea: [{ card: "EX8-043", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hercules").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("ownAlly").isSuspended && s.perm("opponent").isSuspended);
+
+    expect(s.perm("ownAlly").isSuspended).toBe(true);
+    expect(s.perm("opponent").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(5); // 10 - 6 play cost + 1 for only the opposing suspension.
+  });
+
+  it("keeps its suspension buff through its turn and expires it at the opponent turn end", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX8-044", as: "hercules" },
+            { card: "AD1-001", as: "ally" },
+          ],
+          deck: ["BT1-001"],
+        },
+        1: { deck: ["BT1-001"] },
+      },
+      { autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("ally").permanentId);
+    await s.ready();
+    await advance(s.engine).verb.suspend([s.perm("hercules").permanentId]);
+    expect(observe(s.engine).hasPierce(s.perm("ally"))).toBe(true);
+    expect(s.perm("ally").currentDP).toBe(8000);
+
+    await advance(s.engine).runTurn(0);
+    expect(observe(s.engine).hasPierce(s.perm("ally"))).toBe(true);
+    expect(s.perm("ally").currentDP).toBe(8000);
+
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    await advance(s.engine).runTurn(1);
+    expect(observe(s.engine).hasPierce(s.perm("ally"))).toBe(false);
+    expect(s.perm("ally").currentDP).toBe(5000);
   });
 });
