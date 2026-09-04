@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-074.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("EX6-074 Mirei Mikagura", () => {
@@ -43,4 +45,12 @@ describe("EX6-074 Mirei Mikagura", () => {
       kind: "PlayWithoutCost",
       payCost: false,
     }));
+  it("publicly suspends Mirei and gains memory when a Holy Beast is played", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX6-074", as: "mirei" }], hand: [{ card: "BT1-046", as: "holy" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    await s.ready();
+    s.state.memory = 0;
+    await advance(s.engine).verb.playInstances([s.inst("holy").instanceId], 0, { payCost: false });
+    expect(s.perm("mirei").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(1);
+  });
 });
