@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { CardKind, CardColor, EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
@@ -271,6 +273,34 @@ describe("EX7-072 [Main] grants a delayed self-delete choice to every opponent D
     expect(subs.every((s) => s.once === true)).toBe(true);
     expect(subs.every((s) => s.expiresOnTurnEndOf === 1)).toBe(true);
     expect(subs.map((s) => s.sourcePermanentId).sort()).toEqual(["OPP-1", "OPP-2"]);
+  });
+
+  it("publicly deletes each watched opponent Digimon at the end of that opponent's turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX7-072", as: "option" }],
+          battleArea: [{ card: "EX7-061", as: "purpleSource" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-010", as: "second" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
+    expect(observe(s.engine).subscriptions("endOfOpponentTurn")).toHaveLength(2);
+
+    s.state.turnSeat = 1;
+    await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
   it("the granted watcher's run() asks the OPPONENT (not this card's owner) to choose and delete 1 of their Digimon", async () => {
