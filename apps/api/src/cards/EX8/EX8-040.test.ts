@@ -41,6 +41,18 @@ describe("EX8-040", () => {
     );
     expect(s.state.players[1]!.battleArea[0]!.isSuspended).toBe(true);
   });
+
+  it("does not suspend a Digimon when the optional On Play effect is declined", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "EX8-040", as: "kab" }] }, 1: { battleArea: [{ card: "AD1-001", as: "target" }] } },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kab").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "EX8-040"));
+    expect(s.perm("target").isSuspended).toBe(false);
+  });
   it("suspends an allied Digimon when digivolving", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
