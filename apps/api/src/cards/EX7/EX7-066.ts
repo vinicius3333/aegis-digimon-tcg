@@ -9,6 +9,7 @@ export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "AllTurns",
+      isInherited: true,
       actions: [
         {
           kind: "SubTrigger",
