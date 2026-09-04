@@ -38,6 +38,11 @@ EX10 (74), EX11 (74), and EX12 (77); these sets have not begun in this run.
 | EX8-040 | 7/7 | `4380b4788`: real off-color NSp evolution proves cost, draw and allied suspension; opposing On Play target, refusal, non-NSp rejection and legal inherited host turn gate |
 | EX8-041 | 8/8 | `c21c0fd81`: actual unsuspend blocked then allowed after opponent turn end, nonmatching controller/kind controls, separate Tamer selections per Q3926, off-color Reptile evolution and legal Retaliation host |
 | EX8-042 | 7/7 | `44be03152`: Fortitude replay identity/zones and no-source negative, suspended aura boundary, legal inherited host with two-battle limit and Q3927, off-color NSp evolution cost/draw and nonmatching rejection |
+| EX8-043 | 11/11 | `d8f396f00`, `cf8ddcaf5`, `c1abb8927`, `d9dccb781`: two-battle limit on legal inherited host, Q3929, real opposing de-digivolution/return attempts, controller return, protection expiry, Dinosaur alternate and already-suspended continuation after optional refusal |
+| EX8-044 | 11/11 | `c0a72231d`, `f194ebf92`, `cb4584415`: real Counter evolution, memory counts only opposing new suspensions, refusal, actual Piercing battle, same-turn limit, opponent-turn expiry, and off-color NSp evolution/negative |
+
+EX8-043/044 coordinator verification: 2 files / 22 tests passed (1.37 s),
+with one worker and file parallelism disabled; scoped lint/format/diff clean.
 
 EX8-038's added Retaliation case initially used equal-DP combat, which would
 delete both Digimon without Retaliation. `cf93ab20a` corrects it to an unequal-DP
