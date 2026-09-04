@@ -30,7 +30,7 @@ EX10 (74), EX11 (74), and EX12 (77); these sets have not begun in this run.
 | EX8-006 | 7/7 | Fresh trace and runtime: NSo host, exact level-3 target, paid hand trash, refusal, insufficient cost, and same-turn limit; no code change |
 | EX8-007 | 8/8 | `dbf920416`, `b9f1db293`: independent name/Reptile/Dinosaur searches, true nonmatches, unrevealed anchor proving bottom order, inherited turn gate, and evolution legality |
 | EX8-008 | 5/5 | Fresh trace and runtime: memory after actual deletion, inherited DP on/off by turn, off-color NSo evolution and nonmatching rejection; no code change |
-| EX8-009 | 7/7 reported; proof gap open | `09c8cee36`: On Play reveal anchors now prove bottom order; the breeding evolution test does not assert searched cards and cannot establish When Digivolving resolution. Separate battle-area proof requested before closure |
+| EX8-009 | 8/8 | `09c8cee36`, `4929578fb`, `b2fc129df`: reveal anchors prove bottom order; separate legal battle-area evolution explicitly asserts the bonus draw and both searched cards in hand. Q3874 simultaneous deletion, turn gate, and same-turn limit retained |
 | EX8-010 | 6/6 | `6e31c209c`: alternate evolution now uses off-color NSo EX8-030; off-color non-NSo rejection, On Play/On Deletion DP boundary, and inherited turn gate reconfirmed |
 | EX8-038 | 8/8 | `cf93ab20a`, `f7cd5c5a5`: unequal-DP battle proves inherited Retaliation on a legal green host; named off-color Koromon evolution, nonmatching egg rejection, both suspension controllers, and refusal |
 | EX8-039 | 6/6 | `862783bb9`, `55af3b526`: disjoint Insectoid/NSp selection, unrevealed anchors in positive and all-nonmatching reveals, off-color NSp egg evolution and rejection, legal green inherited host with turn gate |
