@@ -48,14 +48,53 @@ describe("EX7-035", () => {
     expect(s.perm("target").isSuspended).toBe(true);
   });
 
+  it("suspends and locks the selected target when digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX7-033", as: "base" }], hand: [{ card: "EX7-035", as: "triceramon" }] },
+        1: { battleArea: [{ card: "BT1-011", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("triceramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.perm("base").topCard?.cardId === "EX7-035" && observe(s.engine).isRestricted(s.perm("target"), "unsuspend"),
+    );
+
+    expect(s.perm("base").topCard?.cardId).toBe("EX7-035");
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(true);
+  });
+
   it("trashes one opposing security card after its inherited battle deletion trigger", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX7-030", as: "host", under: ["EX7-035"] }] },
-      1: { security: ["BT1-045", "BT1-046"] },
+      0: { battleArea: [{ card: "BT1-009", as: "host", dp: 7000, under: ["EX7-035"] }] },
+      1: {
+        battleArea: [{ card: "BT1-010", as: "target", dp: 3000, suspended: true }],
+        security: ["BT1-045", "BT1-046"],
+      },
     });
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", { attackerPermanentId: s.perm("host").permanentId });
-    await settle(() => s.state.players[1]!.security.length === 1);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.players[1]!.security.length === 1);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 });
