@@ -1,7 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX6-026.js";
 
@@ -48,5 +48,20 @@ describe("EX6-026 Cho-Hakkaimon", () => {
     preferred.push(s.perm("opponent").topCard!.instanceId);
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("cho"));
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
+  });
+
+  it("publicly executes the DigiXros self DP and Blocker tail", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "EX6-026", as: "cho" }, { card: "EX6-025", as: "material" }] }, 1: { battleArea: [{ card: "EX6-031", as: "opponent" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cho").instanceId, digiXros: { materialInstanceIds: [s.inst("material").instanceId] } } as never)).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-026"));
+    const host = s.state.players[0]!.battleArea.find((perm) => perm.topCard?.cardId === "EX6-026");
+    expect(host?.stack.some((card) => card.instanceId === s.inst("material").instanceId)).toBe(true);
+    expect(host?.currentDP).toBe(10000);
+    expect(host && observe(s.engine).hasKeyword(host, "Blocker")).toBe(true);
   });
 });

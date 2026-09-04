@@ -1,7 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX6-023.js";
 
@@ -45,5 +45,18 @@ describe("EX6-023 Gokuumon", () => {
     preferred.push(s.perm("opponent").topCard!.instanceId);
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("goku"));
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
+  });
+
+  it("publicly executes the DigiXros-only delete tail with one listed material", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "EX6-023", as: "goku" }, { card: "EX6-025", as: "material" }] }, 1: { battleArea: [{ card: "BT1-009", as: "opponent" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("goku").instanceId, digiXros: { materialInstanceIds: [s.inst("material").instanceId] } } as never)).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.perm("goku").stack.some((card) => card.instanceId === s.inst("material").instanceId)).toBe(true);
   });
 });
