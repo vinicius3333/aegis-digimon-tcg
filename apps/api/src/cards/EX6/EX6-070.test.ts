@@ -16,21 +16,52 @@ describe("EX6-070 Phantom Pain", () => {
       kind: "GainKeyword",
       keyword: { keyword: "Delay" },
     });
-    expect(runtime?.effects?.filter((entry) => entry.trigger === "Main").at(-1)).toMatchObject({
+    const delayedDeleteEntries = runtime?.effects?.filter(
+      (entry) =>
+        entry.trigger === "Main" &&
+        entry.keywords?.length === 1 &&
+        entry.keywords[0]?.keyword === "Delay" &&
+        entry.actions?.length === 1 &&
+        entry.actions[0]?.kind === "Delete" &&
+        entry.actions[0]?.requiresDelayArmed === true &&
+        entry.actions[0]?.optional === true &&
+        entry.actions[0]?.target?.count === 1 &&
+        entry.actions[0]?.target?.filter?.controller === "opponent" &&
+        entry.actions[0]?.target?.filter?.kind?.length === 1 &&
+        entry.actions[0]?.target?.filter?.kind[0] === "Digimon" &&
+        entry.actions[0]?.target?.filter?.unsuspended === true,
+    );
+    expect(delayedDeleteEntries).toHaveLength(1);
+    expect(delayedDeleteEntries[0]).toMatchObject({
       keywords: [{ keyword: "Delay" }],
       actions: [
-        { kind: "Delete", optional: true, requiresDelayArmed: true, target: { filter: { unsuspended: true } } },
+        {
+          kind: "Delete",
+          optional: true,
+          requiresDelayArmed: true,
+          target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"], unsuspended: true } },
+        },
       ],
     });
-    expect(
-      runtime?.effects?.filter(
-        (entry) =>
-          entry.trigger === "Main" &&
-          entry.keywords?.some((keyword) => keyword.keyword === "Delay") &&
-          entry.actions?.some((action) => action.kind === "Delete" && action.requiresDelayArmed === true),
-      ),
-    ).toHaveLength(1);
-    expect(runtime?.effects?.filter((entry) => entry.trigger === "Main").at(-1)?.actions[0]?.cost).toBeUndefined();
+    const ordinaryMainEntries = runtime?.effects?.filter(
+      (entry) => entry.trigger === "Main" && !entry.keywords?.some((keyword) => keyword.keyword === "Delay"),
+    );
+    expect(ordinaryMainEntries).toHaveLength(1);
+    expect(ordinaryMainEntries[0]).toMatchObject({
+      actions: [{ kind: "GrantAuraToOpponents" }, { kind: "PlaceInBattleAreaSelf" }],
+    });
+    const securityDeleteEntries = runtime?.effects?.filter(
+      (entry) =>
+        entry.trigger === "Security" &&
+        entry.actions?.length === 1 &&
+        entry.actions[0]?.kind === "Delete" &&
+        entry.actions[0]?.target?.count === 1 &&
+        entry.actions[0]?.target?.filter?.controller === "opponent" &&
+        entry.actions[0]?.target?.filter?.kind?.length === 1 &&
+        entry.actions[0]?.target?.filter?.kind[0] === "Digimon" &&
+        entry.actions[0]?.target?.filter?.unsuspended === true,
+    );
+    expect(securityDeleteEntries).toHaveLength(1);
     expect(runtime).toEqual(compiled);
   });
 
