@@ -188,6 +188,9 @@ describe("EX8-009", () => {
     );
     expect(s.state.memory).toBe(0);
     expect(s.perm("guilmonBase").topCard.cardId).toBe("EX8-009");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT1-046", "AD1-003", "BT10-080"]),
+    );
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-045", "AD1-001"]);
   });
 });
