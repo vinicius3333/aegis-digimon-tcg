@@ -77,6 +77,38 @@ describe("EX8-069", () => {
     });
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
   });
+  it("uses the granted Alliance in a real attack", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX7-015", as: "attacker", dp: 7000 },
+          { card: "BT1-010", as: "ally", dp: 3000 },
+        ],
+        security: [{ card: "EX8-069", as: "source", faceUp: true }],
+      },
+      1: { security: ["BT1-001"] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "alliancePrompt"));
+    expect(s.events.some((event) => event.kind === "alliancePrompt")).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: s.perm("ally").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.find((permanent) => permanent.permanentId === s.perm("ally").permanentId)!
+          .isSuspended,
+    );
+
+    expect(s.perm("ally").isSuspended).toBe(true);
+  });
   it("does not grant Alliance to a non-NSp peer and performs ordered face-up Main placement", async () => {
     const s = setupEngine({
       0: {
