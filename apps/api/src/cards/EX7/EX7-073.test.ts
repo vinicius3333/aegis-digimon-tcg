@@ -64,6 +64,9 @@ describe("EX7-073", () => {
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT1-009"]);
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.perm("host").topCard?.cardId).toBe("EX7-073");
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["EX7-071", "EX7-066"]),
+    );
   });
 
   it("publicly resolves the attacking branch with two Three Musketeers sources", async () => {
@@ -87,4 +90,66 @@ describe("EX7-073", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
+
+  it("uses a matching Option for free after a legal one-memory evolution, leaving a nonmatching Option in hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX7-059", as: "host" }],
+          hand: [{ card: "EX7-073", as: "evolution" }, "EX7-066", "EX7-068"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && !s.state.pendingDecision);
+    expect(s.perm("host").topCard?.cardId).toBe("EX7-073");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["EX7-068"]);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-009");
+    expect(s.state.memory).toBe(9);
+  });
+
+  for (const refuse of [false, true]) {
+    it(
+      refuse
+        ? "does not delete or trash security when the cost is refused before battle"
+        : "cannot pay with one matching source and one nonmatching source",
+      async () => {
+        const sources = refuse ? ["EX7-071", "EX7-066"] : ["EX7-071", "BT1-009"];
+        const s = setupEngine(
+          {
+            0: { battleArea: [{ card: "EX7-073", as: "attacker", under: sources }] },
+            1: {
+              battleArea: [{ card: "BT10-022", as: "defender", dp: 15000, suspended: true }],
+              security: ["BT1-010"],
+            },
+          },
+          { autoAcceptOptional: !refuse, autoDeclineOptional: refuse, autoSelectCards: true },
+        );
+        await s.ready();
+        expect(
+          s.engine.applyIntent(0, {
+            type: "attack",
+            attackerPermanentId: s.perm("attacker").permanentId,
+            target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+          }),
+        ).toEqual({ ok: true });
+        await settle(() => s.state.players[0]!.battleArea.length === 0);
+        expect(s.state.players[1]!.battleArea).toHaveLength(1);
+        expect(s.state.players[1]!.security).toHaveLength(1);
+        expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+          expect.arrayContaining(["EX7-073", ...sources]),
+        );
+      },
+    );
+  }
 });
