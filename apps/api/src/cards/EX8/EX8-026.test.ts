@@ -46,7 +46,7 @@ describe("EX8-026", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX8-026", as: "metal" }] },
-        1: { battleArea: [{ card: "AD1-004", as: "target", under: [{ card: "BT1-009", as: "base" }] }] },
+        1: { battleArea: [{ card: "AD1-004", as: "target", under: [{ card: "BT1-024", as: "base" }] }] },
       },
       { autoSelectCards: true },
     );
@@ -112,7 +112,7 @@ describe("EX8-026", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX8-024", as: "megaSeadramon" }], hand: [{ card: "EX8-026", as: "metal" }] },
-        1: { battleArea: [{ card: "AD1-004", as: "target", under: ["BT1-009"] }] },
+        1: { battleArea: [{ card: "AD1-004", as: "target", under: ["BT1-024"] }] },
       },
       { autoSelectCards: true },
     );
