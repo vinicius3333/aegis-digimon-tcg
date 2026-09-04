@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./EX6-070.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -146,5 +147,58 @@ describe("EX6-070 Phantom Pain", () => {
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-070"));
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-070")).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  it("arms Delay at the opponent's end and deletes an unsuspended opponent Digimon", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-057", as: "lilithmon" }],
+          hand: [{ card: "EX6-070", as: "option" }],
+        },
+        1: {
+          deck: ["BT1-001"],
+          battleArea: [
+            { card: "BT1-009", as: "auraTarget" },
+            { card: "BT1-009", as: "delayTarget" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-070"));
+    preferred.push(s.inst("delayTarget").instanceId);
+    const option = s.perm("option");
+    option.enterFieldTurnCount = s.state.turnCount - 1;
+    s.state.turnSeat = 1;
+    await advance(s.engine).fire(EffectTiming.EndOfOpponentsTurn, option);
+    s.state.turnSeat = 0;
+    await advance(s.engine).recompute();
+    const delay = JSON.parse(option.activatableEffectsJson || "[]").find((entry: { effectKey: string }) =>
+      entry.effectKey.includes("EX6-070"),
+    ) as { effectKey: string } | undefined;
+    expect(delay).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: option.topCard!.instanceId,
+        effectKey: delay!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+
+    expect(
+      s.state.players[1]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("auraTarget").instanceId),
+    ).toBe(true);
+    expect(
+      s.state.players[1]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("delayTarget").instanceId),
+    ).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
   });
 });
