@@ -78,6 +78,28 @@ describe("EX7-066 Chaos Triangular", () => {
     ).toBe(true);
   });
 
+  it("does not raise the cap twice for two copies of the same Three Musketeers name", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX7-066", as: "chaos" }],
+          battleArea: [
+            { card: "EX7-048", as: "firstGundramon" },
+            { card: "EX7-048", as: "secondGundramon" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 15000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("chaos").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.stack.some((c) => c.cardId === "EX7-066")));
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea[0]!.topCard?.instanceId).toBe(s.inst("victim").instanceId);
+  });
+
   it("rejects the red Option when no Three Musketeers Digimon supplies the color waiver", async () => {
     const s = setupEngine(
       {
