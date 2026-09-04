@@ -62,4 +62,10 @@ describe("EX7-008 ToyAgumon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).not.toContain("EX7-069");
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["EX7-069"]);
   });
+
+  it("applies the inherited +2000 DP during its controller's turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "host", under: ["EX7-008"] }] } });
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(5000);
+  });
 });
