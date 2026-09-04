@@ -42,4 +42,18 @@ describe("EX7-056", () => {
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
+
+  it("exposes Blocker and inherited Retaliation through an evolution stack", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX7-056", as: "blocker" },
+          { card: "BT1-009", as: "host", under: ["EX7-056"] },
+        ],
+      },
+    });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("blocker"), "Blocker")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Retaliation")).toBe(true);
+  });
 });
