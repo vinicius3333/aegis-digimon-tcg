@@ -1,5 +1,23 @@
 # EX8 Card Implementation Revalidation
 
+## Active revalidation — 2026-09-04
+
+This audit runs on `audit-ex8-card-by-card-20260904` from immutable base
+`53616a8e464dacbcb4e73dd31deb043ae59f88e0`, independently of the completed EX7
+branch. The committed catalog contains 74 contiguous IDs (EX8-001..074),
+74 card modules, and 74 colocated test files. `index.ts` is an additional
+registration index, not a 75th card. Every card module uses IR registration;
+the inventory found no legacy registration or RawUnparsed node.
+
+Two Luna/high workers own ascending ranges 001..037 and 038..074, respectively.
+The coordinator owns cross-card review, shared engine decisions, this ledger,
+effects synchronization, and collection delivery. Tests are focused by card
+with one fork; only affected mechanisms and the exact collection run at gates.
+No card score from the historical sections below is adopted without fresh
+catalog/KB/runtime/test verification. Current closure status: in progress.
+
+## Historical evidence inherited at the audit base
+
 This ledger records fresh card-by-card verification in ascending ID order. Historical audit commits and earlier batch output are only leads; each 10/10 closure below is based on a new complete `verify-card-implementation` trace and an isolated focused test process before the card's atomic commit.
 
 ## EX8-001 — Koromon — 10/10
