@@ -110,7 +110,7 @@ describe("EX6-035 Cherubimon", () => {
     expect(two.perm("opponent").currentDP).toBe(before - 8000);
   });
 
-  it("resolves the played Digimon before the Then reduction and defers zero-DP deletion", async () => {
+  it("finishes Then before the played Digimon On Play and defers zero-DP deletion", async () => {
     const s = setupEngine(
       {
         0: {
@@ -125,6 +125,7 @@ describe("EX6-035 Cherubimon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
+    const targetTopId = s.perm("target").topCard.instanceId;
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("cherub"));
     await settle(() =>
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("child").instanceId),
@@ -135,6 +136,20 @@ describe("EX6-035 Cherubimon", () => {
     expect(
       s.state.players[1]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("target").instanceId),
     ).toBe(false);
+
+    const parentResolved = s.events.findIndex(
+      (event) => event.kind === "effectResolved" && event.sourceCardId === "EX6-035" && event.timing === "OnPlay",
+    );
+    const targetDeleted = s.events.findIndex(
+      (event) => event.kind === "cardsMoved" && event.instanceIds.includes(targetTopId),
+    );
+    const childOnPlayResolved = s.events.findIndex(
+      (event) => event.kind === "effectResolved" && event.sourceCardId === "BT1-055" && event.timing === "OnPlay",
+    );
+    expect(parentResolved).toBeGreaterThanOrEqual(0);
+    // Q5726/Q5727: the parent's Then and zero-DP sweep complete before the played card's On Play.
+    expect(targetDeleted).toBeGreaterThan(parentResolved);
+    expect(childOnPlayResolved).toBeGreaterThan(targetDeleted);
   });
 
   it("publicly applies the same scaled reduction when digivolving", async () => {
