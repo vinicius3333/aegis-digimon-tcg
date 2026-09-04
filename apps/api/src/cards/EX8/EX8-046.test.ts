@@ -98,4 +98,39 @@ describe("EX8-046", () => {
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(true);
   });
+
+  it("intercepts a real attack with inherited Blocker on a legal black host", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX8-048", as: "host", under: ["EX8-046"] }],
+        security: ["BT1-001"],
+      },
+      1: { battleArea: [{ card: "BT1-010", as: "attacker" }] },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(true);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).blockingSeat() === 0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "declareBlock",
+        blockerPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
 });
