@@ -43,14 +43,14 @@ describe("EX8-016", () => {
         0: { battleArea: [{ card: "EX8-016", as: "dinomon" }] },
         1: {
           battleArea: [
-            { card: "BT1-009", as: "low" },
-            { card: "EX8-015", as: "high", suspended: true },
+            { card: "BT1-009", as: "low", suspended: true },
+            { card: "EX8-015", as: "high" },
           ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
     );
-    preferInstanceIds.push(s.perm("low").permanentId);
+    preferInstanceIds.push(s.perm("high").permanentId);
     const lowInstanceId = s.perm("low").topCard.instanceId;
 
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("dinomon"));
