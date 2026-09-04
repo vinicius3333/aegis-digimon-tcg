@@ -178,7 +178,7 @@ describe("EX6-025 Sanzomon", () => {
     await s.ready();
     preferred.push(s.inst("ally").instanceId);
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("sanzo"));
-    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("sanzo"));
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("sanzo"));
     expect(observe(s.engine).keywordAmount(s.perm("ally"), "SecurityAttack")).toBe(-1);
   });
 });

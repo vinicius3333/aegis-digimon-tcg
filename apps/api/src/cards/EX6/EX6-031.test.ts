@@ -48,7 +48,6 @@ describe("EX6-031 Shakamon", () => {
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("shaka"));
     expect(observe(s.engine).keywordAmount(s.perm("shaka"), "SecurityAttack")).toBe(-1);
-    await advance(s.engine).fire(EffectTiming.YourTurn, s.perm("shaka"));
     expect(
       s.engine.applyIntent(0, {
         type: "attack",

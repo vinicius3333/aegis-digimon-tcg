@@ -46,7 +46,7 @@ describe("EX6-043 Diaboromon", () => {
   it("publicly reacts to an opponent Digimon play with its non-inherited token effect", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX6-043", as: "diaboromon" }] }, 1: { hand: [{ card: "BT1-009", as: "played" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
     await s.ready();
-    await advance(s.engine).verb.playInstances([s.inst("played").instanceId], 1, { payCost: false });
+    await advance(s.engine).verb.playInstances([s.inst("played").instanceId]);
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "TOKEN-Diaboromon"));
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "TOKEN-Diaboromon")).toBe(true);
   });

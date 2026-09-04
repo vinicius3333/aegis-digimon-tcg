@@ -35,7 +35,7 @@ describe("EX6-013 Xiquemon", () => {
     );
     await s.ready();
     s.state.memory = 0;
-    await advance(s.engine).verb.playInstances([s.inst("xique").instanceId], 0, { payCost: false });
+    await advance(s.engine).verb.playInstances([s.inst("xique").instanceId]);
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);

@@ -181,7 +181,7 @@ describe("EX6-026 Cho-Hakkaimon", () => {
     await s.ready();
     preferred.push(s.inst("ally").instanceId);
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("cho"));
-    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("cho"));
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("cho"));
     expect(observe(s.engine).keywordAmount(s.perm("ally"), "SecurityAttack")).toBe(-1);
   });
 });
