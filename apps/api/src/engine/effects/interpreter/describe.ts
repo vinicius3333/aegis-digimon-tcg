@@ -1,16 +1,34 @@
 // Human-readable summaries of an action or effect, for decisions and logs.
 
-import type { Action, CardEffect } from "@aegis/shared";
+import type { Action, CardEffect, Cost } from "@aegis/shared";
 
 /**
- * Turn an IR action kind into a readable phrase ("GainMemory" -> "Gain memory").
+ * Turn an IR identifier into a readable phrase ("GainMemory" -> "Gain memory").
  * This is the last resort for {@link describeAction}: every prompt it produces is
  * shown to a player, so a bare internal identifier must never reach the client.
  */
-function humanizeActionKind(kind: string): string {
-  const words = kind.replace(/([a-z0-9])([A-Z])/g, "$1 $2").split(" ");
-  const [first, ...rest] = words;
-  return [first, ...rest.map((word) => (word.length > 2 ? word.toLowerCase() : word))].join(" ");
+export function humanizeIdentifier(identifier: string): string {
+  const words = identifier.replace(/([a-z0-9])([A-Z])/g, "$1 $2").split(" ");
+  const [first = "", ...rest] = words;
+  const head = first.charAt(0).toUpperCase() + first.slice(1);
+  return [head, ...rest.map((word) => (word.length > 2 ? word.toLowerCase() : word))].join(" ");
+}
+
+/**
+ * The IR's `raw` fields normally carry the card's printed clause, but some compiled
+ * cards store an internal identifier there instead (a Replacement whose `raw` is its
+ * event name, "wouldBeDeleted"). Prompts must never show one, so this returns the text
+ * only when it reads as printed card text, and `undefined` when it is an identifier.
+ */
+export function printedClause(raw: string | undefined): string | undefined {
+  const text = raw?.trim();
+  if (text === undefined || text === "") return undefined;
+  return /^[a-z][A-Za-z0-9]*$/.test(text) ? undefined : text;
+}
+
+/** Short human description of an activation cost for an optional prompt / log. */
+export function describeCost(cost: Cost): string {
+  return printedClause(cost.raw) ?? humanizeIdentifier(cost.kind);
 }
 
 /** Short human description of an action for an optional prompt / log. */
@@ -57,7 +75,7 @@ export function describeAction(action: Action): string {
     case "DeDigivolve":
       return "De-Digivolve";
     default:
-      return humanizeActionKind(action.kind);
+      return humanizeIdentifier(action.kind);
   }
 }
 

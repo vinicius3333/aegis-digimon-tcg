@@ -147,6 +147,20 @@ describe("BT17-097 Return to the Primogenitor", () => {
     });
     await settle(() => s.perm("freeTarget").topCard?.cardId === "BT12-030");
 
+    // The prevention prompt is player-facing: it must ask a plain-language question and carry
+    // the card's printed clause as provenance, never the internal replacement event name
+    // (this card's compiled Replacement stores "wouldBeDeleted" in its `raw`).
+    const preventPrompt = s.decisions.find(
+      (decision) => decision.req.kind === "optional" && decision.req.promptText === "Prevent leaving the battle area?",
+    );
+    expect(preventPrompt).toBeDefined();
+    expect(preventPrompt!.req.sourceCardId).toBe("BT17-097");
+    expect(preventPrompt!.req.options?.effectText).toContain("prevent that deletion");
+    for (const decision of s.decisions) {
+      expect(decision.req.promptText ?? "").not.toMatch(/would[A-Z]/);
+      expect(decision.req.options?.effectText ?? "").not.toMatch(/would[A-Z]/);
+    }
+
     expect(s.perm("freeTarget").topCard?.cardId).toBe("BT12-030");
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("imperialdramon").instanceId)).toBe(

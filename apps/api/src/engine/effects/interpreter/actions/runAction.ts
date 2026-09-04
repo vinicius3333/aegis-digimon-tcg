@@ -3,7 +3,7 @@
 import type { EffectContext } from "../../EffectContext.js";
 import { evaluateCondition } from "../conditions.js";
 import { canPayCost, payCost, payOneCostOption } from "../costs.js";
-import { describeAction } from "../describe.js";
+import { describeAction, describeCost } from "../describe.js";
 import { type ActionScope, installActionRunner } from "../dispatch.js";
 import { unsupported } from "../errors.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
@@ -475,7 +475,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     if (
       action.optional &&
       !forceOptionalCostProcessing &&
-      !(await ctx.ask.optional(ctx, `Pay cost: ${action.cost.raw ?? action.cost.kind}?`))
+      !(await ctx.ask.optional(ctx, `Pay cost: ${describeCost(action.cost)}?`))
     ) {
       return action.abortOnDecline === true;
     }
@@ -730,8 +730,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   ) {
     if (payableActionCost.optional) {
       const willPay =
-        forceOptionalCostProcessing ||
-        (await ctx.ask.optional(ctx, `Pay cost: ${payableActionCost.raw ?? payableActionCost.kind}?`));
+        forceOptionalCostProcessing || (await ctx.ask.optional(ctx, `Pay cost: ${describeCost(payableActionCost)}?`));
       if (willPay) {
         const paid = await payCost(ctx, payableActionCost, costPayment);
         if (!paid) return action.abortOnDecline === true;

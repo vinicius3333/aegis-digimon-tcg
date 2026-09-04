@@ -8,6 +8,7 @@ import { countMatching, scaleFactor } from "../scaling.js";
 import { toDuration } from "../duration.js";
 import { evaluateCondition } from "../conditions.js";
 import { payCost } from "../costs.js";
+import { describeCost } from "../describe.js";
 import { candidateLooseInstances, pickLoose } from "../targeting/loose.js";
 import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
 import { unsupported } from "../errors.js";
@@ -152,7 +153,7 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
         return false;
       }
       if (payment.kind === "payCost") {
-        if (!(await ctx.ask.optional(ctx, `Pay cost: ${payment.cost.raw ?? payment.cost.kind}?`))) return false;
+        if (!(await ctx.ask.optional(ctx, `Pay cost: ${describeCost(payment.cost)}?`))) return false;
         if (!(await payCost(ctx, payment.cost))) return false;
         const delta = action.amount.kind === "fixed" ? action.amount.value : 0;
         ctx.playCostDelta = (ctx.playCostDelta ?? 0) + Math.max(0, delta);

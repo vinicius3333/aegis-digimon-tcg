@@ -5,6 +5,7 @@ import { evaluateCondition } from "../conditions.js";
 import { canPayCost, payCost, payOneCostOption } from "../costs.js";
 import { runAction } from "../dispatch.js";
 import { unsupported } from "../errors.js";
+import { printedClause } from "../describe.js";
 import { scaleFactor } from "../scaling.js";
 import { definitionMatches } from "../matching/definition.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
@@ -124,7 +125,11 @@ export async function runReplacement(
       ...(ctx.activeTiming !== undefined ? { activationTiming: ctx.activeTiming } : {}),
       ...(ctx.activeEffectText !== undefined ? { activationEffectText: ctx.activeEffectText } : {}),
       mode: "redirect",
-      description: action.raw ?? ctx.activeEffectText ?? nestedCostModifier?.raw ?? "",
+      description:
+        printedClause(action.raw) ??
+        printedClause(ctx.activeEffectText) ??
+        printedClause(nestedCostModifier?.raw) ??
+        "",
       appliesTo: (subCtx, originalHostId) => {
         const original = subCtx.game.permanentById(originalHostId);
         return (
@@ -134,8 +139,15 @@ export async function runReplacement(
           subCtx.game.state.turnSeat !== ctx.source.ownerSeat
         );
       },
-      redirectTo: async (subCtx) =>
-        (await subCtx.ask.optional(subCtx, action.raw ?? ctx.activeEffectText ?? event)) ? self.permanentId : undefined,
+      redirectTo: async (subCtx) => {
+        // The printed clause rides the decision's `effectText` provenance; the question itself
+        // stays plain language so no internal event name can reach the player.
+        const clause = printedClause(action.raw) ?? printedClause(ctx.activeEffectText);
+        const askCtx = clause === undefined ? subCtx : { ...subCtx, activeEffectText: clause };
+        return (await askCtx.ask.optional(askCtx, "Trash a digivolution card from this Digimon instead?"))
+          ? self.permanentId
+          : undefined;
+      },
     });
     return;
   }
@@ -285,15 +297,20 @@ export async function runReplacement(
         if (action.optional !== false) {
           // The printed clause is what makes the prompt answerable ("...by returning 4 [Vemmon]
           // from its digivolution cards"). A Prevent compiled without its own `raw` still has
-          // the cost's, so fall back through both before asking a bare question — never
-          // interpolate an absent one and ask "(undefined)".
-          const preventReason = action.raw ?? preventCost?.raw ?? subCtx.activeEffectText;
-          const yes = await subCtx.ask.optional(
-            subCtx,
-            preventReason === undefined
-              ? "Prevent leaving the battle area?"
-              : `Prevent leaving the battle area? (${preventReason})`,
-          );
+          // the cost's, so fall back through both. `printedClause` drops a `raw` that holds an
+          // internal identifier instead of printed text (some cards store the replacement's
+          // event name there), so no identifier can reach the player; the source card's own
+          // printed effect text is the last resort, so the question is always answerable.
+          const preventReason =
+            printedClause(action.raw) ??
+            printedClause(preventCost?.raw) ??
+            printedClause(subCtx.activeEffectText) ??
+            printedClause(subCtx.source.definition.effectText);
+          // The clause travels as the decision's `effectText` provenance (the channel the
+          // client already renders beside the source card), never interpolated into the
+          // question itself.
+          const askCtx = preventReason === undefined ? subCtx : { ...subCtx, activeEffectText: preventReason };
+          const yes = await askCtx.ask.optional(askCtx, "Prevent leaving the battle area?");
           if (!yes) return false;
         }
         if (action.digivolveFromTrash === true) {
