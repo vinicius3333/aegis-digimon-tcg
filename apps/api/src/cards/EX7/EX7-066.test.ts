@@ -24,6 +24,15 @@ describe("EX7-066 Chaos Triangular", () => {
       { kind: "PlaceUnder", position: "bottom" },
     ]));
 
+  it("counts distinct Three Musketeers names for the Main deletion cap", () =>
+    expect(compiled.effects?.find((entry) => entry.trigger === "Main")?.actions[0]).toMatchObject({
+      dpCeilingScaling: {
+        per: 1,
+        unit: "distinctNames",
+        filter: { nameOrTrait: [{ tokens: ["Three Musketeers"], match: "trait" }] },
+      },
+    }));
+
   it("uses the Main effect through the Three Musketeers color waiver, then places itself under that Digimon", async () => {
     const s = setupEngine(
       {
@@ -41,6 +50,32 @@ describe("EX7-066 Chaos Triangular", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("victim").instanceId);
     expect(s.perm("musketeer").stack.map((card) => card.instanceId)).toContain(s.inst("chaos").instanceId);
+  });
+
+  it("raises the Main deletion cap for each distinct Three Musketeers name", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX7-066", as: "chaos" }],
+          battleArea: [
+            { card: "EX7-048", as: "gundramon" },
+            { card: "EX7-059", as: "beelstarmon" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 15000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("chaos").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) =>
+        permanent.stack.some((card) => card.instanceId === s.inst("chaos").instanceId),
+      ),
+    ).toBe(true);
   });
 
   it("rejects the red Option when no Three Musketeers Digimon supplies the color waiver", async () => {
@@ -79,5 +114,16 @@ describe("EX7-066 Chaos Triangular", () => {
     await advance(s.engine).fireForInstance(EffectTiming.Security, s.inst("chaos"));
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("victim").instanceId);
+  });
+
+  it("does not delete a Digimon above the Security DP limit", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "EX7-066", as: "chaos" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 12001 }] },
+    });
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.Security, s.inst("chaos"));
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea[0]!.topCard?.instanceId).toBe(s.inst("victim").instanceId);
   });
 });
