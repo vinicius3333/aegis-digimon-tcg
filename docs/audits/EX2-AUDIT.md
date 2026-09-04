@@ -111,8 +111,10 @@ Previously corrected EX2-037, EX2-043, EX2-046, EX2-049, and EX2-055 behavior wa
 - Focused serial: 74 files, 310 tests, all passing; no focused result was inferred from a grouped run.
 - Full collection: `pnpm --filter @aegis/api exec vitest run src/cards/EX2 --reporter=dot` passed twice consecutively with 85 files, 328 tests, and no skips (11.20 s and 13.41 s).
 - Shared mechanism/conformance/lifecycle suites: 56 files, 1,610 tests, and no skips passed after the final concurrency regression was added.
+- Post-review focused scheduler/combat/security gate: 5 files and 58 tests passed after the stale fixed-tick combat fixture was changed to await the closing `securityChecked` event.
 - Typecheck/build: root typecheck and shared/API/web builds passed.
 - Quality: scoped Oxlint and Oxfmt checks passed for every branch-modified source, test, and documentation file; the generated effects projection was validated through its canonical sync/check commands. `git diff --check` passed. The repository-wide formatter still reports unrelated pre-existing debt outside this branch.
+- Independent review: the scheduler-related test synchronization finding was corrected and its focused gate passed; no Critical or remaining Important finding blocks EX2. The final delta review reported no findings and marked the branch ready.
 
 ## Remaining queue
 

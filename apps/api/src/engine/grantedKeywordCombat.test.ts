@@ -210,8 +210,11 @@ describe("A3 GainKeyword granted-to-other — a mid-game-granted keyword changes
     ).toEqual({ ok: true });
 
     // The source's strike is the base 1 (no grant on it) => exactly one card removed.
-    await settle(() => p1.security.length < securityBefore);
-    await settle(() => p1.security.length < securityBefore - 1, 50);
+    // Wait for the closing event instead of a short fixed microtask budget: the production
+    // security pipeline brackets the reveal and removal with continuous recomputations.
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"), 5000);
+    await settle(() => false, 5000);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
     expect(p1.security.length).toBe(securityBefore - 1);
     assertNoLoudGap(s);
   });
