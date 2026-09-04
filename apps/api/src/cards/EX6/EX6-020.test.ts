@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-020.js";
 
@@ -37,5 +39,13 @@ describe("EX6-020 Gatomon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gato").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "EX6-074"));
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["EX6-019", "EX6-074"]));
+  });
+
+  it("reduces an opposing Digimon by 2000 through its inherited attack effect", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-060", as: "host", under: ["EX6-020"] }] }, 1: { battleArea: [{ card: "EX6-031", as: "opponent" }] } });
+    await s.ready();
+    const before = s.perm("opponent").currentDP;
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    expect(s.perm("opponent").currentDP).toBe(before - 2000);
   });
 });
