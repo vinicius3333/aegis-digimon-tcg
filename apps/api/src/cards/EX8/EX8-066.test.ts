@@ -70,7 +70,7 @@ describe("EX8-066", () => {
           hand: [{ card: "EX8-022", as: "iceEvolution" }],
         },
         1: {
-          battleArea: [{ card: "AD1-001", as: "opponent", under: ["BT1-010", "BT1-011", "BT1-012", "BT1-013"] }],
+          battleArea: [{ card: "EX8-064", as: "opponent", under: ["EX8-057", "BT10-009", "EX8-060", "EX8-062"] }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
