@@ -1335,6 +1335,13 @@ export class CombatController {
     const cardPreventedIds = (await this.hooks.consultLeavePrevention?.(postScapegoatDeletedIds)) ?? new Set<string>();
     const postCardPreventionDeletedIds = postScapegoatDeletedIds.filter((id) => !cardPreventedIds.has(id));
 
+    // Piercing triggers at the successful battle deletion, before the resulting win/
+    // deletion reactions resolve (EX8-045 Q3931). Preserve that eligibility: a later
+    // Fortitude replay can remove a conditional grant without cancelling its check,
+    // while gaining Piercing during a deletion reaction is too late for this battle.
+    // The successful-deletion and surviving-attacker checks remain below.
+    const piercingTriggered = allowPiercing && this.hooks.hasPierce?.(attacker.permanentId) === true;
+
     // The win and successful-deletion effects trigger simultaneously (Q7021). Resolve the turn
     // player's win before the deletion window; a non-turn-player winner waits until that window
     // has resolved, preserving turn-player priority across the two trigger families.
@@ -1541,7 +1548,7 @@ export class CombatController {
       // pre-end-of-attack check, Comprehensive Rules §16-7); reuses the validated
       // runSecurityCheck hand-off rather than building a new security path. The pierce
       // grant is server-only state (ModifierLedger.hasPierce), never client-supplied.
-      if (allowPiercing && this.hooks.hasPierce?.(attacker.permanentId) === true) {
+      if (piercingTriggered) {
         // "piercing": this attack was successful against a DIGIMON, so an empty security
         // stack must not end the game (Comprehensive Rules 11-5-1-2 / 16-7).
         await this.hooks.checkSecurity(

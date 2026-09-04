@@ -4,9 +4,64 @@ import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "./index.js";
+import "../BT20/BT20-035.js";
+import "../BT5/BT5-112.js";
 import { compiled } from "./EX8-045.js";
 
 describe("EX8-045", () => {
+  it("keeps the activated Piercing check when Fortitude restores an equal-DP opponent (Q3931)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX8-045", as: "callismon" }] },
+        1: {
+          battleArea: [{ card: "BT20-035", as: "fortitude", dp: 1000, suspended: true, under: ["BT11-053"] }],
+          security: ["BT1-001", "BT1-002"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    await s.ready();
+    const oldId = s.perm("fortitude").permanentId;
+    const cardId = s.inst("fortitude").instanceId;
+    expect(observe(s.engine).hasPierce(s.perm("callismon"))).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("callismon").permanentId,
+        target: { kind: "permanent", permanentId: oldId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    const replay = s.state.players[1]!.battleArea.find((p) => p.topCard.instanceId === cardId);
+    expect(replay).toBeDefined();
+    expect(replay!.permanentId).not.toBe(oldId);
+    expect(replay!.currentDP).toBe(12000);
+    expect(observe(s.engine).hasPierce(s.perm("callismon"))).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("loses the second check when the first Security effect plays a higher-DP Digimon (Q3932/Q6043)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX8-045", as: "callismon" }] },
+        1: { security: ["BT5-112", "BT1-001"] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    await s.ready();
+    expect(observe(s.engine).keywordAmount(s.perm("callismon"), "SecurityAttack")).toBe(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("callismon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT5-112")).toBe(true);
+    expect(observe(s.engine).keywordAmount(s.perm("callismon"), "SecurityAttack")).toBe(0);
+    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-001"]);
+  });
   it("suspends an opposing Digimon or Tamer and returns an opposing suspended Tamer to the bottom of the deck when digivolving", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions).toMatchObject([
       { kind: "Suspend", target: { count: 1 } },
