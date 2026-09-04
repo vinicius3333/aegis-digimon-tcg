@@ -29,7 +29,7 @@ describe("EX8-018", () => {
           hand: [{ card: "EX8-018", as: "gomamon" }],
           deck: [
             { card: "EX8-020", as: "ds" },
-            { card: "EX8-027", as: "plesiosaur" },
+            { card: "BT1-041", as: "seaBeast" },
             { card: "AD1-001", as: "decoy" },
             { card: "BT1-045", as: "anchor" },
           ],
@@ -44,11 +44,32 @@ describe("EX8-018", () => {
     await settle(
       () =>
         s.state.players[0]!.hand.some((card) => card.cardId === "EX8-020") &&
-        s.state.players[0]!.hand.some((card) => card.cardId === "EX8-027"),
+        s.state.players[0]!.hand.some((card) => card.cardId === "BT1-041"),
     );
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["EX8-020", "EX8-027"]));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["EX8-020", "BT1-041"]));
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-045", "AD1-001"]);
   });
+
+  it("returns all three cards to the bottom when neither printed trait matches", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX8-018", as: "gomamon" }],
+          deck: ["AD1-001", "BT1-045", "BT1-046", "BT1-047"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gomamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.deck.length === 4);
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-047", "AD1-001", "BT1-045", "BT1-046"]);
+  });
+
   it("draws exactly once across two attacks at the inclusive seven-card boundary", async () => {
     const s = setupEngine({
       0: {
@@ -68,6 +89,8 @@ describe("EX8-018", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.length === 8);
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    await advance(s.engine).verb.trash([s.state.players[0]!.hand[0]!.instanceId], 0);
+    expect(s.state.players[0]!.hand).toHaveLength(7);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -76,7 +99,7 @@ describe("EX8-018", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
-    expect(s.state.players[0]!.hand).toHaveLength(8);
+    expect(s.state.players[0]!.hand).toHaveLength(7);
   });
 
   it("does not draw when the host attacks with eight cards in hand", async () => {
