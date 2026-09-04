@@ -18,7 +18,10 @@ describe("EX7-053", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "EX7-053", as: "scatter" }, { card: "BT1-009", as: "discard" }],
+          hand: [
+            { card: "EX7-053", as: "scatter" },
+            { card: "BT1-009", as: "discard" },
+          ],
           trash: [{ card: "BT11-079", as: "returnable" }],
           deck: ["BT1-001"],
         },
@@ -27,7 +30,9 @@ describe("EX7-053", () => {
     );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("scatter").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("scatter").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("returnable").instanceId));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("returnable").instanceId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("discard").instanceId)).toBe(true);

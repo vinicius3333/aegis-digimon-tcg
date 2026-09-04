@@ -343,10 +343,7 @@ describe("use-option-without-cost engine path", () => {
     const useAction = ir.effects[0]?.actions[0];
     if (useAction?.kind !== "UseOptionWithoutCost") throw new Error("UseOption action missing");
     useAction.filter = { ...useAction.filter, playCostLte: 5 };
-    const effects = irCardModule("X-USER", ir).effectsForTiming(
-      EffectTiming.OnPlay,
-      ctx.source,
-    );
+    const effects = irCardModule("X-USER", ir).effectsForTiming(EffectTiming.OnPlay, ctx.source);
     await effects[0]!.resolve(ctx);
 
     expect(rec.calls).not.toContain("useOptionFromHand");

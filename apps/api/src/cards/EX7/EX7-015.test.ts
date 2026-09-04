@@ -20,7 +20,9 @@ describe("EX7-015 Otamamon", () => {
     s.state.memory = 4;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("target").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("target").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT2-112"));
     expect(s.state.memory).toBe(-9);
   });
@@ -41,7 +43,9 @@ describe("EX7-015 Otamamon", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("alliance").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("alliance").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "ST13-04"));
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "ST13-04")).toBe(true);
     expect(s.state.memory).toBe(6);

@@ -29,7 +29,12 @@ describe("EX7-057", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX7-057", as: "loud" }], hand: ["BT1-009", "BT1-010"] },
-        1: { battleArea: [{ card: "BT1-009", as: "ceiling", dp: 7000 }, { card: "BT1-010", as: "over", dp: 8000 }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "ceiling", dp: 7000 },
+            { card: "BT1-010", as: "over", dp: 8000 },
+          ],
+        },
       },
       { autoSelectCards: true },
     );

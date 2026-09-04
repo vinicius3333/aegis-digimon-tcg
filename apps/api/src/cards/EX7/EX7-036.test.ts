@@ -58,16 +58,21 @@ describe("EX7-036", () => {
       }),
     ).toEqual({ ok: true });
     await firing;
-    await settle(() => s.perm("ally").isSuspended && !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId));
+    await settle(
+      () => s.perm("ally").isSuspended && !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId),
+    );
     expect(s.perm("ally").isSuspended).toBe(true);
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(false);
   });
 
   it("does not bottom-deck an opponent when it suspends an opponent instead", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "EX7-036", as: "source" }] },
-      1: { battleArea: [{ card: "EX7-011", as: "target", suspended: true }] },
-    }, { autoSelectCards: false });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX7-036", as: "source" }] },
+        1: { battleArea: [{ card: "EX7-011", as: "target", suspended: true }] },
+      },
+      { autoSelectCards: false },
+    );
     await s.ready();
     const firing = advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");

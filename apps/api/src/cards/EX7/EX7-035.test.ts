@@ -33,7 +33,10 @@ describe("EX7-035", () => {
 
   it("suspends an opposing Digimon and restricts that same target from unsuspending", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX7-035", as: "source" }] }, 1: { battleArea: [{ card: "EX7-011", as: "target" }] } },
+      {
+        0: { battleArea: [{ card: "EX7-035", as: "source" }] },
+        1: { battleArea: [{ card: "EX7-011", as: "target" }] },
+      },
       { autoSelectCards: true },
     );
     await s.ready();

@@ -45,16 +45,26 @@ describe("EX7-030", () => {
   });
 
   it("plays a Familiar token when digivolving", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX7-030", as: "cendrillmon" }] } }, { autoAcceptOptional: true });
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX7-030", as: "cendrillmon" }] } },
+      { autoAcceptOptional: true },
+    );
     await s.ready();
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("cendrillmon"));
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId.includes("Familiar")));
-    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId.includes("Familiar"))).toHaveLength(1);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId.includes("Familiar")),
+    );
+    expect(
+      s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId.includes("Familiar")),
+    ).toHaveLength(1);
   });
 
   it("reduces one opposing Digimon by 6000 when attacking", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX7-030", as: "source" }] }, 1: { battleArea: [{ card: "EX7-011", as: "target", dp: 7000 }] } },
+      {
+        0: { battleArea: [{ card: "EX7-030", as: "source" }] },
+        1: { battleArea: [{ card: "EX7-011", as: "target", dp: 7000 }] },
+      },
       { autoSelectCards: true },
     );
     await s.ready();

@@ -27,15 +27,18 @@ describe("EX7-037 SaberLeomon", () => {
   });
 
   it("scales the shared once-per-turn reduction by the number of own Digimon", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "EX7-037", as: "source" },
-          { card: "EX7-031", as: "ally" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX7-037", as: "source" },
+            { card: "EX7-031", as: "ally" },
+          ],
+        },
+        1: { battleArea: [{ card: "EX7-011", as: "target", dp: 15000 }] },
       },
-      1: { battleArea: [{ card: "EX7-011", as: "target", dp: 15000 }] },
-    }, { autoSelectCards: true });
+      { autoSelectCards: true },
+    );
     await s.ready();
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
     await settle(() => s.perm("target").currentDP === 1000);

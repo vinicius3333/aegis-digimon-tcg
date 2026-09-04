@@ -50,7 +50,10 @@ describe("EX7-042", () => {
       {
         0: {
           battleArea: [{ card: "BT1-009", as: "base" }],
-          hand: [{ card: "EX7-042", as: "jazard" }, { card: "EX3-065", as: "hina" }],
+          hand: [
+            { card: "EX7-042", as: "jazard" },
+            { card: "EX3-065", as: "hina" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

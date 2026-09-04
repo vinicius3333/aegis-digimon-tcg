@@ -47,7 +47,13 @@ describe("EX7-054", () => {
   it("publicly repeats the paid keyword grants from its deletion timing", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX7-054", as: "black" }, { card: "BT1-009", as: "other" }], hand: ["BT1-010"] },
+        0: {
+          battleArea: [
+            { card: "EX7-054", as: "black" },
+            { card: "BT1-009", as: "other" },
+          ],
+          hand: ["BT1-010"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

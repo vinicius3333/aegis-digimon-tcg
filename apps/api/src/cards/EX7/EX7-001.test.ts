@@ -18,7 +18,6 @@ describe("EX7-001 DemiMeramon", () => {
     await one.ready();
 
     expect(one.perm("host").currentDP).toBe(5000);
-
   });
 
   it("does not grant the inherited boost when the opponent has two Digimon", async () => {

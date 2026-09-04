@@ -58,7 +58,10 @@ describe("EX7-034", () => {
       }),
     ).toEqual({ ok: true });
     await firing;
-    await settle(() => s.perm("ally").isSuspended && observe(s.engine).isRestrictedByEffect(s.perm("source"), "beAffected", "Digimon"));
+    await settle(
+      () =>
+        s.perm("ally").isSuspended && observe(s.engine).isRestrictedByEffect(s.perm("source"), "beAffected", "Digimon"),
+    );
     expect(s.perm("ally").isSuspended).toBe(true);
     expect(observe(s.engine).isRestrictedByEffect(s.perm("source"), "beAffected", "Digimon")).toBe(true);
   });
@@ -76,7 +79,11 @@ describe("EX7-034", () => {
         target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !s.perm("host").isSuspended && !s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("target").permanentId));
+    await settle(
+      () =>
+        !s.perm("host").isSuspended &&
+        !s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("target").permanentId),
+    );
     expect(s.perm("host").isSuspended).toBe(false);
   });
 });
