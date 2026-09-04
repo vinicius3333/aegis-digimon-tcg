@@ -44,8 +44,15 @@ EX10 (74), EX11 (74), and EX12 (77); these sets have not begun in this run.
 | EX8-020 | 5/5 | `56936a7a5`: discarding back to seven before the second real attack distinguishes the once-per-turn limit from the hand-size gate |
 | EX8-021 | 5/5 | `03fc94a4c`: alternate evolution explicitly asserts the new top and original Syakomon source; live Jamming security survival and top-card memory limit retained |
 | EX8-022 | 8/8 | `838a3f219`, `04b7c19ba`: legal source stacks, actual Ice Clad count-over-DP battle, opposing attack with no security checks under inherited -1, expiry, and alternate-route rejection |
-| EX8-023 | 9/9 working-tree tests; shared review OPEN | Explicit Q3883 assertion reproduced the pre-removal snapshot defect; frozen win/deletion callbacks and a post-removal passive refresh now pass. Shared change remains under independent review |
+| EX8-023 | 9/9 | `d1cde8569`: explicit Q3883 security check with a legal Ice Clad winning stack; real On Play paths, legal opposing stacks, frozen battle reactions and post-removal passive refresh. Shared review Ready |
+| EX8-030 | 8/8 | `e4df18446`: actual Digimon memory denial and controller control, real Tamer gain, off-color NSo egg evolution/negative, and Q3914 real dual-kind Marcus attack. Combat now uses effective kinds consistently; scoped review Ready |
+| EX8-031 | 5/5 | `78b370e78`, `9e250cf64`: recovery now matches Plug-In names, including trait-less EX2-066; real Renamon evolution with draw/source assertions, actual cost-1/cost-2 Option uses, second-use limit, and expiry. Adjusted-use-cost mechanism: 2 selected tests passed |
+| EX8-032 | 2/2 | `2fbcd5bd2`: legal yellow level-5 host, two real attacks distinguish the inherited once-per-turn reduction, and turn-boundary expiry |
+| EX8-033 | 4/4 | `0b79911cc`: legal purple level-6 inherited Recovery host, actual NSo evolution recovery, and On Deletion DP expiry |
 | EX8-034 | 6/6 | `7ab89f04a`, `e1b648c47`: real NSo evolution and inherited attack; opposing combat explicitly preserves defender security under -1. The reported contradiction was a fixture error: security had been seeded on the attacker, while the asserted defender already had zero |
+| EX8-035 | 6/6 | `daaacda44`: real opposing digivolution suppresses BT16-020's draw at the memory gate; actual Security battle grants both debuffs and returns the card to its owner's hand |
+| EX8-036 | 6/6 | `667bc497e`: actual hand/trash evolution-play routes, play-cost-6 rejection, optional refusal, and On Deletion deck recovery |
+| EX8-037 | 7/7 | `e361926b3`: real Option use, second-attack once-per-turn gate, refusal/no-cost proof, independent X Antibody stack token branch and alternate evolution rejection |
 | EX8-038 | 8/8 | `cf93ab20a`, `f7cd5c5a5`: unequal-DP battle proves inherited Retaliation on a legal green host; named off-color Koromon evolution, nonmatching egg rejection, both suspension controllers, and refusal |
 | EX8-039 | 6/6 | `862783bb9`, `55af3b526`: disjoint Insectoid/NSp selection, unrevealed anchors in positive and all-nonmatching reveals, off-color NSp egg evolution and rejection, legal green inherited host with turn gate |
 | EX8-040 | 7/7 | `4380b4788`: real off-color NSp evolution proves cost, draw and allied suspension; opposing On Play target, refusal, non-NSp rejection and legal inherited host turn gate |
@@ -53,9 +60,14 @@ EX10 (74), EX11 (74), and EX12 (77); these sets have not begun in this run.
 | EX8-042 | 7/7 | `44be03152`: Fortitude replay identity/zones and no-source negative, suspended aura boundary, legal inherited host with two-battle limit and Q3927, off-color NSp evolution cost/draw and nonmatching rejection |
 | EX8-043 | 11/11 | `d8f396f00`, `cf8ddcaf5`, `c1abb8927`, `d9dccb781`: two-battle limit on legal inherited host, Q3929, real opposing de-digivolution/return attempts, controller return, protection expiry, Dinosaur alternate and already-suspended continuation after optional refusal |
 | EX8-044 | 11/11 | `c0a72231d`, `f194ebf92`, `cb4584415`: real Counter evolution, memory counts only opposing new suspensions, refusal, actual Piercing battle, same-turn limit, opponent-turn expiry, and off-color NSp evolution/negative |
-| EX8-045 | 9/9 focused; shared review OPEN | `f52180366`, `8e0b6d573`: Q3931/Q3932/Q6043, real play/evolution, source-color boundaries and actual checks. Engine closure remains open because EX8-023 Q3883 contradicts the current pre-deletion snapshot |
+| EX8-045 | 9/9 | `8e0b6d573`, `d1cde8569`: Q3931/Q3932/Q6043, real play/evolution, source-color boundaries and actual checks; Q3883 now passes simultaneously with Fortitude-loss retention |
+| EX8-047 | 7/7 | `8a2ded6aa`: fourth unrevealed anchor and exact remaining deck prove bottom routing |
+| EX8-052 | 9/9 | `9eaf58c0b`: independent X Antibody source and trash Device route, no-source negative, actual two-attack inherited security-trash limit |
+| EX8-054 | 6/6 | `5353d6cce`: two actual attacks prove the inherited Justimon activation limit; legal alternate Justimon evolution and X Antibody-base rejection |
+| EX8-055 | 7/7 | `6f7a45879`: actual attack trashes three sources, performs two security checks and proves expiry; explicit optional refusal for Q3940 |
+| EX8-059 | 10/10 | `c461132bd`: separate On Play/evolution refusals and no-hand cost failure, alongside successful grants and actual inherited attack |
 
-### Open shared regression — Piercing acquisition at deletion
+### Resolved shared regression — Piercing acquisition at deletion
 
 The independent review initially reported Ready for `f52180366` and
 `8e0b6d573`. Coordinator cross-card review superseded that verdict with a
@@ -65,7 +77,7 @@ Q3883 battle leaves one security card instead. The focused command with
 1 failure on 2026-09-04. `settle()` alone had hidden this failure.
 
 The local KB explicitly permits gaining Piercing simultaneously with the
-defender's battle deletion. The current snapshot precedes actual removal,
+defender's battle deletion. The original snapshot preceded actual removal,
 whereas Q3931 requires retaining an already-triggered check across later
 Fortitude reactions. Both rulings must pass together before engine review
 or collection closure can be accepted. No completion gate is claimed here.
@@ -78,14 +90,30 @@ A temporary post-removal continuous-refresh probe made EX8-023 and EX8-045
 pass together (18/18), but was removed pending event-order review: a late
 reaction must not retroactively grant Piercing for the completed battle.
 Both actual On Play source-trash paths in EX8-023 now use public play intents
-and passed a targeted two-test run; the Q3883 failure remains open.
+and passed a targeted two-test run.
 
-Working-tree structural correction now passes EX8-023/045 and controller tests
-together (3 files / 47 tests), including late win/deletion-reaction negative
-controls. Affected battle/Piercing/Fortitude tests pass (3 files / 22 selected,
-126 skipped); API typecheck and scoped format/lint/diff checks pass. Independent
-review of frozen watchers and the pre-removal token path is still pending, so
-these results do not close the shared change or the collection.
+`d1cde8569` resolves the normal and Token paths. It captures event eligibility
+while sources are live, removes the losers, refreshes passive effects, and fixes
+Piercing eligibility before activating the captured reactions. Tokens retain
+transient candidates through deferred timing and rule pools, removing the old
+pre-removal extra timing call. Final joint verification passed 4 files / 50 tests,
+including real frozen-watcher and Token deletion proofs. Affected checks passed
+3 files / 22 selected tests, 2 files / 17 selected tests, and a rule-pool file /
+2 selected tests. API typecheck and scoped style/diff checks passed. Independent
+review returned Ready with no Critical/Important findings. The production engine
+provides the Token-aware hook; minimal mock compositions without it do not prove
+Token card effects. This closes the scoped correction, not the collection.
+
+### Resolved shared regression — effective Digimon kinds
+
+The Q3914 runtime case gained memory correctly but Marcus's attack ended before
+security because combat's intermediate validity checks omitted the existing
+continuous kind reader. `e4df18446` passes that reader consistently for validity,
+battle participants and keyword candidate lists. EX8-030/controller verification
+passed 2 files / 38 tests; Marcus/legality passed 2 files / 37 tests. Independent
+review returned Ready with no Critical/Important findings. The first typecheck
+attempt was interrupted by the concurrently edited EX8-060 test's invalid
+`DecisionRequest.payloadJson` reference; the post-correction rerun passed.
 
 EX8-043/044 coordinator verification: 2 files / 22 tests passed (1.37 s),
 with one worker and file parallelism disabled; scoped lint/format/diff clean.

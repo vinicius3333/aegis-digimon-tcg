@@ -31,7 +31,9 @@ a reaction can evolve into a host with continuously granted Piercing.
 
 EX8-023, EX8-045 and controller tests pass together: 3 files / 47 tests.
 Affected battle/Piercing/Fortitude selection passes: 3 files / 22 tests.
-Typecheck and independent frozen-watcher validation remain required.
-The pre-removal token timing and Material Save paths require explicit review;
-the passing normal-Digimon tests do not establish those paths as correct.
+Final implementation `d1cde8569` passed four files / 50 tests, including a real
+frozen watcher and a Token's single post-removal reaction. Token candidates now
+survive deferred timing and rule pools without a pre-removal activation.
+API typecheck passed. Independent review returned Ready with no
+Critical/Important findings; Material Save source movement was reviewed.
 This design does not declare EX8 collection completion.
