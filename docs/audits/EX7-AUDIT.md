@@ -2,6 +2,89 @@
 
 This ledger records a fresh card-by-card audit in ascending card-ID order using the committed catalog, the local rules knowledge base, each direct compiled-IR module, its shared primitives, peer implementations, and the existing colocated tests.
 
+## Current passing test inventory
+
+Exact collection at `edd2e897b`: 74 files / 370 tests passed in 10.51 seconds.
+This table records passing behavioral and structural tests, not by itself a
+collection-wide 10/10 claim. Final independent rereview is still pending.
+
+| Card | Name | Passing tests |
+| --- | --- | --- |
+| EX7-001 | DemiMeramon | 3/3 |
+| EX7-002 | Hiyarimon | 4/4 |
+| EX7-003 | Kyaromon | 3/3 |
+| EX7-004 | Fluffymon | 3/3 |
+| EX7-005 | Kapurimon | 6/6 |
+| EX7-006 | Yaamon | 6/6 |
+| EX7-007 | Vorvomon | 4/4 |
+| EX7-008 | ToyAgumon | 5/5 |
+| EX7-009 | Lavorvomon | 5/5 |
+| EX7-010 | Deputymon | 6/6 |
+| EX7-011 | Megadramon | 6/6 |
+| EX7-012 | Lavogaritamon | 5/5 |
+| EX7-013 | MagnaKidmon | 6/6 |
+| EX7-014 | Volcanicdramon | 5/5 |
+| EX7-015 | Otamamon | 3/3 |
+| EX7-016 | Bulucomon | 4/4 |
+| EX7-017 | SnowAgumon | 3/3 |
+| EX7-018 | Gekomon | 5/5 |
+| EX7-019 | Sorcermon | 5/5 |
+| EX7-020 | Paledramon | 5/5 |
+| EX7-021 | CrysPaledramon | 5/5 |
+| EX7-022 | ShogunGekomon | 4/4 |
+| EX7-023 | Hexeblaumon | 4/4 |
+| EX7-024 | Shoemon | 4/4 |
+| EX7-025 | ShoeShoemon | 5/5 |
+| EX7-026 | Starmon | 5/5 |
+| EX7-027 | Chaperomon | 5/5 |
+| EX7-028 | Piximon | 5/5 |
+| EX7-029 | SaberLeomon | 6/6 |
+| EX7-030 | Cendrillmon | 6/6 |
+| EX7-031 | Pteromon | 6/6 |
+| EX7-032 | Galemon | 4/4 |
+| EX7-033 | Monochromon | 4/4 |
+| EX7-034 | GrandGalemon | 5/5 |
+| EX7-035 | Triceramon | 5/5 |
+| EX7-036 | Zephagamon | 5/5 |
+| EX7-037 | Tlalocmon | 3/3 |
+| EX7-038 | Gotsumon | 4/4 |
+| EX7-039 | Jazamon | 4/4 |
+| EX7-040 | ToyAgumon | 4/4 |
+| EX7-041 | Tortomon | 3/3 |
+| EX7-042 | Jazardmon | 4/4 |
+| EX7-043 | Tankmon | 5/5 |
+| EX7-044 | Gigadramon | 5/5 |
+| EX7-045 | Jagamon | 3/3 |
+| EX7-046 | Jazarichmon | 4/4 |
+| EX7-047 | Eldradimon | 5/5 |
+| EX7-048 | Gundramon | 4/4 |
+| EX7-049 | Metallicdramon | 4/4 |
+| EX7-050 | Impmon | 4/4 |
+| EX7-051 | Sparrowmon | 4/4 |
+| EX7-052 | Tsukaimon | 4/4 |
+| EX7-053 | Eyesmon: Scatter Mode | 3/3 |
+| EX7-054 | BlackGatomon | 4/4 |
+| EX7-055 | Punkmon | 6/6 |
+| EX7-056 | Orochimon | 7/7 |
+| EX7-057 | Loudmon | 4/4 |
+| EX7-058 | LadyDevimon (X Antibody) | 4/4 |
+| EX7-059 | BeelStarmon | 8/8 |
+| EX7-060 | Nidhoggmon | 5/5 |
+| EX7-061 | Lilithmon (X Antibody) | 7/7 |
+| EX7-062 | HeavyMetaldramon | 5/5 |
+| EX7-063 | Arisa Kinosaki | 7/7 |
+| EX7-064 | Shoto Kazama | 6/6 |
+| EX7-065 | Yuuki | 6/6 |
+| EX7-066 | Chaos Triangular | 6/6 |
+| EX7-067 | Summon Frost | 5/5 |
+| EX7-068 | Wonder Stomp | 5/5 |
+| EX7-069 | Wind Slicer | 6/6 |
+| EX7-070 | Der Blitz | 6/6 |
+| EX7-071 | Hurricane Screw Shot | 7/7 |
+| EX7-072 | Seventh Fascination | 15/15 |
+| EX7-073 | BeelStarmon (X Antibody) | 4/4 |
+| EX7-074 | Vortex Resonance | 10/10 |
+
 ## Current verification — 2026-09-04
 
 Runtime verification has resumed on `audit-ex7-card-by-card-20260904` from
