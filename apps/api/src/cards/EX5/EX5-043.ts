@@ -19,7 +19,12 @@ for (const effect of compiled.effects ?? []) {
       amount: 3,
       condition: {
         kind: "selfDigivolutionStackHasTrait",
-        filter: { nameOrTrait: [{ tokens: ["Leopardmon"], match: "name" }, { tokens: ["X Antibody"], match: "trait" }] },
+        filter: {
+          nameOrTrait: [
+            { tokens: ["Leopardmon"], match: "name" },
+            { tokens: ["X Antibody"], match: "nameExact" },
+          ],
+        },
         raw: "a card with [Leopardmon] in its name or [X Antibody] is in this Digimon's digivolution cards",
       },
     };

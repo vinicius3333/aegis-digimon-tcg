@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX5-050.js";
 
 describe("EX5-050 Sinduramon", () => {
@@ -36,5 +38,49 @@ describe("EX5-050 Sinduramon", () => {
         },
       ],
     });
+  });
+
+  it("draws a Deva and plays it into the empty breeding area without firing its On Play", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX5-050", as: "sindu" }], deck: [{ card: "EX5-051", as: "deva" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sindu").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === "EX5-051");
+    expect(s.state.players[0]!.breeding?.topCard?.cardId).toBe("EX5-051");
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX5-051")).toBe(false);
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "EX5-051")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("sindu"), "Decoy")).toBe(true);
+  });
+
+  it("does not play a drawn Deva whose name is already represented in the battle area", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX5-050", as: "sindu" }], deck: [{ card: "EX5-050", as: "same" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sindu").instanceId })).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]!.breeding).toBeUndefined();
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("EX5-050");
+  });
+
+  it("inherits Blocker only for a Four Sovereigns or God Beast host", async () => {
+    const matching = setupEngine({ 0: { battleArea: [{ card: "EX5-053", as: "host", under: ["EX5-050"] }] } });
+    matching.state.turnSeat = 1;
+    await matching.ready();
+    expect(observe(matching.engine).hasKeyword(matching.perm("host"), "Blocker")).toBe(true);
+
+    const nonMatching = setupEngine({ 0: { battleArea: [{ card: "EX5-049", as: "host", under: ["EX5-050"] }] } });
+    nonMatching.state.turnSeat = 1;
+    await nonMatching.ready();
+    expect(observe(nonMatching.engine).hasKeyword(nonMatching.perm("host"), "Blocker")).toBe(false);
   });
 });

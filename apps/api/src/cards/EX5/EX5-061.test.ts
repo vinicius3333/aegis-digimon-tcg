@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./EX5-061.js";
 
 describe("EX5-061 Cerberusmon (X Antibody)", () => {
@@ -24,7 +26,7 @@ describe("EX5-061 Cerberusmon (X Antibody)", () => {
           filter: {
             nameOrTrait: [
               { match: "name", tokens: ["Cerberusmon"] },
-              { match: "trait", tokens: ["X Antibody"] },
+              { match: "nameExact", tokens: ["X Antibody"] },
             ],
           },
         },
@@ -45,5 +47,95 @@ describe("EX5-061 Cerberusmon (X Antibody)", () => {
         },
       ],
     });
+  });
+
+  it("plays a purple level 3 from trash through the public On Play intent", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "EX5-061", as: "source" }], trash: [{ card: "BT10-073", as: "candidate" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT10-073"));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT10-073")).toBe(true);
+    expect(s.state.players[0]!.trash.some((c) => c.cardId === "BT10-073")).toBe(false);
+  });
+
+  it("may decline the On Play revival when no effect is chosen", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "EX5-061", as: "source" }], trash: [{ card: "BT10-073", as: "candidate" }] } },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.state.players[0]!.trash.some((c) => c.cardId === "BT10-073")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT10-073")).toBe(false);
+  });
+
+  it("reactivates On Play only for an exact X Antibody stack card", async () => {
+    const resolve = async (stackCard: string) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT14-072", as: "base", under: [stackCard] }],
+            hand: [
+              { card: "EX5-061", as: "evolving" },
+              { card: "BT1-010", as: "discard" },
+            ],
+            trash: [{ card: "BT10-073", as: "candidate" }],
+            deck: ["BT1-010"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 3;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("evolving").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle();
+      return s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT10-073");
+    };
+
+    expect(await resolve("BT9-109")).toBe(true);
+    expect(await resolve("BT13-063")).toBe(false);
+  });
+
+  it("unsuspends once after deleting another Digimon through a public attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT14-072", as: "attacker", under: ["EX5-061"] },
+            { card: "BT1-009", as: "sacrifice" },
+          ],
+        },
+        1: { security: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const sacrificeId = s.perm("sacrifice").permanentId;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.perm("attacker").isSuspended);
+    expect(s.perm("attacker").isSuspended).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === sacrificeId)).toBe(false);
   });
 });

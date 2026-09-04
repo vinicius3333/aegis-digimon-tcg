@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-043.js";
 import "./EX5-043.js";
 
@@ -33,7 +34,7 @@ describe("EX5-043 Leopardmon (X Antibody)", () => {
               filter: {
                 nameOrTrait: [
                   { tokens: ["Leopardmon"], match: "name" },
-                  { tokens: ["X Antibody"], match: "trait" },
+                  { tokens: ["X Antibody"], match: "nameExact" },
                 ],
               },
             }),
@@ -44,5 +45,39 @@ describe("EX5-043 Leopardmon (X Antibody)", () => {
     expect((watcher?.actions[0] as { actions?: unknown[] }).actions).toContainEqual(
       expect.objectContaining({ kind: "Return", dpCeilingScaling: expect.objectContaining({ amount: 3000 }) }),
     );
+  });
+
+  it("returns an opposing 5000 DP Digimon when your Digimon is played", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX5-043", as: "source" }], hand: [{ card: "BT1-009", as: "played" }] },
+        1: { battleArea: [{ card: "BT1-021", dp: 5000, as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("target").permanentId));
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT1-021")).toBe(false);
+  });
+
+  it("leaves an opposing 6000 DP Digimon when no other own Digimon raises the ceiling", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX5-043", as: "source" }], hand: [{ card: "BT1-009", as: "played" }] },
+        1: { battleArea: [{ card: "BT1-021", dp: 9000, as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("target").permanentId)).toBe(true);
   });
 });
