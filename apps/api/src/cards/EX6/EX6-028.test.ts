@@ -95,7 +95,7 @@ describe("EX6-028 Seraphimon", () => {
         },
         1: {
           battleArea: [
-            { card: "BT1-063", as: "opponentRecovery" },
+            { card: "BT1-060", as: "opponentRecovery" },
             { card: "BT1-009", as: "targetA" },
             { card: "BT1-009", as: "targetB" },
           ],
