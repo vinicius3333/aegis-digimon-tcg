@@ -92,7 +92,9 @@ describe("EX7-061 Lilithmon (X Antibody)", () => {
 
     expect(await advance(s.engine).verb.deletePermanent([s.perm("lilith").permanentId], "byEffect")).toBe(0);
     expect(s.state.players[0]!.battleArea).toContain(s.perm("lilith"));
-    expect(s.state.players[0]!.battleArea.every((permanent) => permanent.topCard?.instanceId !== costInstanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.every((permanent) => permanent.topCard?.instanceId !== costInstanceId)).toBe(
+      true,
+    );
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(costInstanceId);
   });
 
@@ -111,6 +113,30 @@ describe("EX7-061 Lilithmon (X Antibody)", () => {
     expect(s.state.players[0]!.battleArea).toContain(s.perm("lilith"));
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(opponentCostInstanceId);
+  });
+
+  it.each([
+    { decline: false, label: "when no other Digimon exists" },
+    { decline: true, label: "when the optional prevention cost is declined" },
+  ])("leaves play without prevention $label", async ({ decline }) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX7-061", as: "lilith", under: ["BT3-091"] },
+            ...(decline ? [{ card: "BT1-009", as: "cost" }] : []),
+          ],
+        },
+      },
+      decline
+        ? { autoDeclineOptional: true, autoSelectCards: true }
+        : { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("lilith").permanentId], "byEffect")).toBe(1);
+    expect(s.state.players[0]!.battleArea).toHaveLength(decline ? 1 : 0);
+    if (decline) expect(s.perm("cost").topCard?.cardId).toBe("BT1-009");
   });
 
   it("does not offer prevention or delete its cost Digimon without Lilithmon or X Antibody below it", async () => {
