@@ -34,8 +34,11 @@ describe("EX8-034", () => {
           { card: "AD1-001", as: "one" },
           { card: "EX8-040", as: "two" },
         ],
+        security: 1,
       },
     });
+    s.state.turnSeat = 1;
+    await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("mammoth").permanentId]);
     await settle(
       () =>
@@ -68,10 +71,37 @@ describe("EX8-034", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === tooExpensiveInstanceId)).toBe(true);
   });
 
+  it("plays the eligible NSo card through a real digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-032", as: "base" }],
+          hand: [
+            { card: "EX8-034", as: "mammoth" },
+            { card: "EX8-008", as: "allowed" },
+            { card: "EX8-010", as: "tooExpensive" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("mammoth").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX8-008"));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX8-008")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tooExpensive").instanceId)).toBe(true);
+  });
+
   it("applies the inherited -4000 DP on a real attack", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "AD1-001", as: "host", under: ["EX8-034"] }] },
+        0: { battleArea: [{ card: "ST3-10", as: "host", under: ["EX8-034"] }] },
         1: { battleArea: [{ card: "EX8-029", as: "target" }] },
       },
       { autoSelectCards: true },
