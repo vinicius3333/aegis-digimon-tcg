@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX7-004.js";
 import { setupEngine, settle, assertNoLoudGap } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
-describe("EX7-004 Wormmon", () => {
+describe("EX7-004 Fluffymon", () => {
   it("inherits once-per-turn memory when an effect deletes in battle", () =>
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "YourTurn",
@@ -50,7 +51,7 @@ describe("EX7-004 Wormmon", () => {
     expect(s.state.memory).toBe(4);
 
     // Once Per Turn is tracked per inherited source, so the second host may gain memory once too.
-    await settle(() => !(s.engine as any).combat.isAttacking);
+    await settle(() => !observe(s.engine).isAttacking());
     s.perm("secondDefender").isSuspended = true;
     expect(
       s.engine.applyIntent(0, {

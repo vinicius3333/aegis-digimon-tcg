@@ -48,9 +48,9 @@ function optionDef(): CardDefinition {
   };
 }
 
-let _seq = 0;
+let instanceSequence = 0;
 function inst(cardId: string, seat: Seat = 0) {
-  return { instanceId: `inst-${++_seq}`, cardId, ownerSeat: seat, faceUp: true };
+  return { instanceId: `inst-${++instanceSequence}`, cardId, ownerSeat: seat, faceUp: true };
 }
 
 function makeSource(): CardSource {
