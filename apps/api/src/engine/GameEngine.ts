@@ -132,6 +132,7 @@ import type {
 import { TurnStateMachine, type TurnFlowHooks, type DurationBoundary as TurnBoundary } from "./TurnStateMachine.js";
 import { log, logError } from "../logger.js";
 import { runSetup, finalizeSecurity, mulliganRedraw, type Rng, type Decklist } from "./setup.js";
+import { layDevScenario, type DevScenarioId } from "./devScenario.js";
 import { validateDecklist } from "./deckValidation.js";
 import { MulliganCoordinator } from "./mulligan.js";
 import {
@@ -939,8 +940,8 @@ export class GameEngine {
           }),
         );
       },
-      dnaDigivolveMemoryGain: (materialPermanentIds, into) =>
-        this.subTriggers.dnaMemoryGainFor(materialPermanentIds, into),
+      dnaDigivolveMemoryGains: (materialPermanentIds, into) =>
+        this.subTriggers.dnaMemoryGainsFor(materialPermanentIds, into),
       fireDiscardedFromSecurity: async (instanceIds) => {
         for (const instanceId of instanceIds) {
           await this.fireTimingForInstance(EffectTiming.OnDiscardSecurity, instanceId);
@@ -5227,6 +5228,20 @@ export class GameEngine {
 
     finalizeSecurity(this.state);
 
+    void this.startTurnLoop();
+  }
+
+  /**
+   * Development-only alternative to {@link startMatch}: skip the pre-game procedure, lay a
+   * hand-built board for the named scenario, and start the real turn loop on it. The room only
+   * exposes this outside production.
+   */
+  startDevScenario(scenario: DevScenarioId): void {
+    const decks = this.collectStagedDecks();
+    if (decks === undefined) return;
+    this.matchSetupStarted = true;
+    layDevScenario(scenario, this.state, decks);
+    this.hooks.emit({ kind: "matchStarted", firstSeat: this.state.turnSeat });
     void this.startTurnLoop();
   }
 

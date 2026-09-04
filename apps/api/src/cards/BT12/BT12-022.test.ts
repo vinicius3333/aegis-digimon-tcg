@@ -27,6 +27,7 @@ describe("BT12-022 ExVeemon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea[0]?.topCard.cardId === "BT12-028");
     expect(s.state.memory).toBe(1);
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT12-022")).toBe(true);
   });
 
   it.each([

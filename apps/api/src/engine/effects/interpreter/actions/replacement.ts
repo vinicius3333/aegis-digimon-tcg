@@ -106,6 +106,7 @@ export async function runReplacement(
       event,
       sourcePermanentId: self.permanentId,
       activationIdentity,
+      ...(ctx.activeTiming !== undefined ? { activationTiming: ctx.activeTiming } : {}),
       mode: "gainMemoryOnDna",
       amount: action.amount ?? 0,
       description: action.raw ?? ctx.activeEffectText ?? "Gain memory on DNA digivolution",

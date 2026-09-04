@@ -61,7 +61,7 @@ import {
 } from "../combat/keywords.js";
 import { ModifierLedger, type EvoCostMatch } from "./modifiers.js";
 import { ContinuousEffectLedger, effectiveNames } from "./continuous.js";
-import { SubTriggerRegistry, type SubTriggerRootZone } from "./subtriggers.js";
+import { SubTriggerRegistry, type DnaMemoryGain, type SubTriggerRootZone } from "./subtriggers.js";
 import type { EffectContext, Primitives, Restriction, SubTriggerInstall } from "./EffectContext.js";
 import { resolvePermanentBattle } from "../combat/resolve.js";
 import { canAttackerDeclare, canAttackTarget } from "../combat/legality.js";
@@ -180,7 +180,7 @@ export interface PrimitivesEngine {
   /** Resolve the trashed card's own deck-trash trigger without requiring a field watcher. */
   resolveSelfWhenTrashedFromDeck?: (instanceId: string, byEffectCardId?: string) => Promise<void>;
   /** Memory rewards printed on materials that successfully participate in a DNA digivolution. */
-  dnaDigivolveMemoryGain?: (materialPermanentIds: readonly string[], into: CardDefinition) => number;
+  dnaDigivolveMemoryGains?: (materialPermanentIds: readonly string[], into: CardDefinition) => DnaMemoryGain[];
   /**
    * Fire EffectTiming.OnDiscardSecurity for each given instance — cards an EFFECT just moved from a
    * security stack to trash (the `trash` / `trashFromSecurity` verbs). The card now sits in trash (a
@@ -1343,7 +1343,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const definition = requireCardDefinition(peek.cardId);
     if (!definition.kinds.includes(CardKind.Digimon)) return undefined;
     const seat = materials[0]!.controllerSeat;
-    const dnaMemoryGain = engine.dnaDigivolveMemoryGain?.(materialPermanentIds, definition) ?? 0;
+    // Each reward is resolved to its material's top card BEFORE the materials are consumed, so the
+    // announcement can name the card that printed the clause once the stack no longer exists.
+    const dnaMemoryGains = (engine.dnaDigivolveMemoryGains?.(materialPermanentIds, definition) ?? []).map((gain) => ({
+      ...gain,
+      cardId: access.permanentById(gain.sourcePermanentId)?.topCard?.cardId,
+    }));
+    const dnaMemoryGain = dnaMemoryGains.reduce((sum, gain) => sum + gain.amount, 0);
     if (opts?.payCost) {
       // A printed DNA requirement is authoritative: every material slot must match it. Only cards
       // whose historical compiled data has no structured DNA requirement may use the legacy
@@ -1458,6 +1464,19 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     await engine.recomputeContinuousEffects?.();
     if (dnaMemoryGain > 0) {
       engine.memory.addMemoryForSeat(seat, dnaMemoryGain, "gainMemory", { isTamerEffect: false });
+      for (const gain of dnaMemoryGains) {
+        if (gain.cardId === undefined) continue;
+        engine.emit({
+          kind: "effectTriggered",
+          seat,
+          sourceCardId: gain.cardId,
+          effectKey: gain.activationIdentity ?? `dnaMemoryGain/${gain.sourcePermanentId}`,
+          description: gain.description,
+          // The clause is only live on its controller's turn, so the printed timing is the label
+          // even for the compiled data that omits it.
+          timing: gain.timing ?? "YourTurn",
+        });
+      }
     }
     // A DNA digivolution is announced as a play because that is how the engine models it — one
     // card arriving on a new permanent — so the mechanic rides on `cardPlayed` rather than

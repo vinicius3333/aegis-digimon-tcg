@@ -241,6 +241,17 @@ export interface ReplacementSubscriptionDnaMemory extends ReplacementSubscriptio
   mode: "gainMemoryOnDna";
   amount: number;
   intoMatches?: (def: CardDefinition) => boolean;
+  /** Printed timing of the installing clause, replayed as the label on its announcement. */
+  activationTiming?: string;
+}
+
+/** One matched DNA memory reward, kept separate so each can be announced on its own material. */
+export interface DnaMemoryGain {
+  sourcePermanentId: string;
+  amount: number;
+  description: string;
+  activationIdentity?: string;
+  timing?: string;
 }
 
 /**
@@ -647,15 +658,28 @@ export class SubTriggerRegistry {
     }, 0);
   }
 
+  /** Memory rewards from material-anchored effects for a completed DNA digivolution, one per effect. */
+  dnaMemoryGainsFor(materialPermanentIds: readonly string[], into: CardDefinition): DnaMemoryGain[] {
+    const materials = new Set(materialPermanentIds);
+    const gains: DnaMemoryGain[] = [];
+    for (const replacement of this.replacements) {
+      if (replacement.event !== "wouldDigivolve" || replacement.mode !== "gainMemoryOnDna") continue;
+      if (replacement.sourcePermanentId === undefined || !materials.has(replacement.sourcePermanentId)) continue;
+      if (replacement.intoMatches !== undefined && !replacement.intoMatches(into)) continue;
+      gains.push({
+        sourcePermanentId: replacement.sourcePermanentId,
+        amount: replacement.amount,
+        description: replacement.description,
+        ...(replacement.activationIdentity === undefined ? {} : { activationIdentity: replacement.activationIdentity }),
+        ...(replacement.activationTiming === undefined ? {} : { timing: replacement.activationTiming }),
+      });
+    }
+    return gains;
+  }
+
   /** Sum memory rewards from material-anchored effects for a completed DNA digivolution. */
   dnaMemoryGainFor(materialPermanentIds: readonly string[], into: CardDefinition): number {
-    const materials = new Set(materialPermanentIds);
-    return this.replacements.reduce((sum, replacement) => {
-      if (replacement.event !== "wouldDigivolve" || replacement.mode !== "gainMemoryOnDna") return sum;
-      if (replacement.sourcePermanentId === undefined || !materials.has(replacement.sourcePermanentId)) return sum;
-      if (replacement.intoMatches !== undefined && !replacement.intoMatches(into)) return sum;
-      return sum + replacement.amount;
-    }, 0);
+    return this.dnaMemoryGainsFor(materialPermanentIds, into).reduce((sum, gain) => sum + gain.amount, 0);
   }
 
   /** Potential reduction used only by the affordability gate before an interactive cost is paid. */
