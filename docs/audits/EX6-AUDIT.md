@@ -27,8 +27,9 @@ establish behavioral proof.
   builds passed. Changed TypeScript scope is lint- and format-clean, the ledger
   is format-clean, and `git diff --check` is clean.
 - Key late closeout commits include `44a73a004`, `7d9152951`, `f652b5864`,
-  `39468e7a4`, and `ac27b48ef`. Independent final rereview and branch push
-  remain pending; this ledger does not claim a pushed branch yet.
+  `39468e7a4`, and `ac27b48ef`. Both independent final rereviews report zero
+  Critical, Important, or Minor findings and `Ready: yes`. Branch push remains
+  pending; this ledger does not claim a pushed branch yet.
 
 Focused declaration inventory (recounted from `^\s*(it|test)\(`):
 
