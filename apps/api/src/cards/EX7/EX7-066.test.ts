@@ -62,7 +62,7 @@ describe("EX7-066 Chaos Triangular", () => {
 
   it("adds 3000 DP when an effect trashes this Option from a digivolution stack", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX7-048", as: "host", under: [{ card: "EX7-066", as: "chaos" }] }] },
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: [{ card: "EX7-066", as: "chaos" }] }] },
     });
     const before = s.perm("host").currentDP;
     await advance(s.engine).verb.trashDigivolutionCards(s.perm("host").permanentId, [s.inst("chaos").instanceId], 0);
