@@ -95,7 +95,9 @@ describe("EX7-030", () => {
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard.cardId === "TOKEN-Familiar-Token")).toBe(false);
     expect(
       s.events.some(
-        (event) => event.kind === "attackDeclared" && (event as { attackerPermanentId?: string }).attackerPermanentId === sourceId,
+        (event) =>
+          event.kind === "attackDeclared" &&
+          (event as { attackerPermanentId?: string }).attackerPermanentId === sourceId,
       ),
     ).toBe(true);
     expect(s.perm("cendrillmon").isSuspended).toBe(false);

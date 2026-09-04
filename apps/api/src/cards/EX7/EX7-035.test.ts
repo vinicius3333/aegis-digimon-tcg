@@ -67,7 +67,8 @@ describe("EX7-035", () => {
       }),
     ).toEqual({ ok: true });
     await settle(
-      () => s.perm("base").topCard?.cardId === "EX7-035" && observe(s.engine).isRestricted(s.perm("target"), "unsuspend"),
+      () =>
+        s.perm("base").topCard?.cardId === "EX7-035" && observe(s.engine).isRestricted(s.perm("target"), "unsuspend"),
     );
 
     expect(s.perm("base").topCard?.cardId).toBe("EX7-035");
