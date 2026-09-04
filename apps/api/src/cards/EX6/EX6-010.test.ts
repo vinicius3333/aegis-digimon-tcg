@@ -1,9 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { CardKind, type CardDefinition } from "@aegis/shared";
+import { CardKind, EffectTiming, type CardDefinition } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { ContinuousEffectLedger } from "../../engine/effects/continuous.js";
 import { compiled } from "./EX6-010.js";
+import "../AD1/AD1-018.js";
 
 // A3 for EX6-010 (Durandamon) — Red Lv.6 Digimon (Legend-Arms).
 //
@@ -130,6 +132,86 @@ describe("EX6-010 [Hand] [Main] pay 3, place as bottom digivolution card, delete
       effectKey: "EX6-010/main-place-and-delete",
     });
     expect(res.ok).toBe(false);
+  });
+
+  it("places itself under a Legend-Arms host even when that host is below level 6", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-009", as: "host" }],
+          hand: [{ card: "EX6-010", as: "durandamon" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", dp: 3000, as: "victim" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.engine.recomputeContinuousEffects();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("durandamon").instanceId,
+        effectKey: "EX6-010/main-place-and-delete",
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").stack.some((card) => card.instanceId === s.inst("durandamon").instanceId));
+    expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("durandamon").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(7);
+  });
+
+  it("does not attack a suspended Digimon from When Digivolving", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX6-010", as: "dur", suspended: true }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("dur"));
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
+  });
+
+  it("rejects a public attack intent from a Digimon played this turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX6-010", as: "dur", enteredThisTurn: true }] } });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("dur").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toMatchObject({ ok: false });
+  });
+
+  it("does not activate a checked Security effect when its RagnaLoardmon host loses the battle", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT3-019", as: "ragna", dp: 1000, under: ["EX6-010"] },
+            { card: "BT1-009", as: "ally" },
+          ],
+        },
+        1: { security: [{ card: "AD1-018", as: "securityCard" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ragna").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.every((perm) => perm.topCard?.instanceId !== s.inst("ragna").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("ragna").instanceId)).toBe(
+      false,
+    );
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("ally").instanceId)).toBe(
+      true,
+    );
   });
 
   it("publicly suppresses a checked Security effect while its RagnaLoardmon host attacks", async () => {
