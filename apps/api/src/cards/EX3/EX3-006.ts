@@ -18,9 +18,9 @@ const compiled: CompiledCard = {
             kind: "selfTopHasText",
             filter: {
               nameOrTrait: [
-                { tokens: ["Dragon"], match: "trait" },
-                { tokens: ["saur"], match: "trait" },
-                { tokens: ["Ceratopsian"], match: "trait" },
+                { tokens: ["Dragon"], match: "traitContains" },
+                { tokens: ["saur"], match: "traitContains" },
+                { tokens: ["Ceratopsian"], match: "traitContains" },
                 { tokens: ["Dragonkin"], match: "trait" },
               ],
             },
