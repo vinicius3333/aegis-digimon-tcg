@@ -89,6 +89,81 @@ describe("EX5-037 [On Play] draws 1 then plays Deva to breeding slot", () => {
     expect(p0.hand.some((c) => c.instanceId === s.inst("deva").instanceId)).toBe(true);
   });
 
+  it("does not play a Deva whose name is already in the battle area or trash", async () => {
+    for (const zone of ["battleArea", "trash"] as const) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: zone === "battleArea" ? [{ card: DEVA, as: "existing" }] : [],
+            trash: zone === "trash" ? [{ card: DEVA, as: "discarded" }] : [],
+            hand: [
+              { card: VAJRAMON, as: "vajramon" },
+              { card: DEVA, as: "duplicate" },
+            ],
+            deck: [FILLER],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      const p0 = s.state.players[0] as PlayerState;
+      s.state.memory = 7;
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vajramon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => p0.deck.length === 0);
+
+      expect(p0.breeding?.topCard?.cardId).not.toBe(DEVA);
+      expect(p0.hand.some((card) => card.instanceId === s.inst("duplicate").instanceId)).toBe(true);
+    }
+  });
+
+  it("does not treat a digivolution card name as a battle-area name collision", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-010", as: "host", under: [DEVA] }],
+          hand: [
+            { card: VAJRAMON, as: "vajramon" },
+            { card: DEVA, as: "deva" },
+          ],
+          deck: [FILLER],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const p0 = s.state.players[0] as PlayerState;
+    s.state.memory = 7;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vajramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => p0.breeding?.topCard?.cardId === DEVA);
+    expect(p0.breeding?.topCard?.cardId).toBe(DEVA);
+  });
+
+  it("gains one memory when a cost-one Option is actually used during your turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: VAJRAMON, as: "vajramon" },
+          { card: "BT1-027", as: "blueSource" },
+        ],
+        hand: [{ card: "BT1-097", as: "option" }],
+        deck: [FILLER],
+      },
+    });
+    s.state.memory = 1;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
+
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
+  });
+
   it("registers the once-per-turn Option trigger and inherited Piercing effect", () => {
     const source = {
       instanceId: "source",
@@ -131,11 +206,9 @@ describe("EX5-037 [On Play] draws 1 then plays Deva to breeding slot", () => {
 
     // The inherited source remains under the same host, but a later non-qualifying top
     // card must make the continuous `selfHasTrait` aura lapse rather than leaving a grant.
-    await advance(s.engine).verb.digivolveFromInstance(
-      s.perm("sovereign").permanentId,
-      s.inst("plainTop").instanceId,
-      { ignoreRequirements: true },
-    );
+    await advance(s.engine).verb.digivolveFromInstance(s.perm("sovereign").permanentId, s.inst("plainTop").instanceId, {
+      ignoreRequirements: true,
+    });
     expect(s.perm("sovereign").stack.some((card) => card.cardId === VAJRAMON)).toBe(true);
     expect(observe(s.engine).hasPierce(s.perm("sovereign"))).toBe(false);
   });
