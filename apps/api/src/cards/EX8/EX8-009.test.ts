@@ -128,16 +128,14 @@ describe("EX8-009", () => {
     expect(simultaneous.state.memory).toBe(0);
   });
 
-  it("uses the Gigimon alternate for 0 and finds a trait-only X Antibody when digivolving", async () => {
+  it("uses the Gigimon alternate for 0", async () => {
     const s = setupEngine(
       {
         0: {
           breeding: { card: "BT12-001", as: "gigimon" },
           hand: [{ card: "EX8-009", as: "guilmon" }],
-          deck: ["BT1-009", "AD1-003", "BT10-080", "AD1-001"],
         },
       },
-      { autoSelectCards: true },
     );
     s.state.memory = 0;
     await s.ready();
@@ -150,12 +148,46 @@ describe("EX8-009", () => {
       }),
     ).toEqual({ ok: true });
     await settle(
+      () => s.perm("gigimon").topCard.instanceId === s.inst("guilmon").instanceId,
+    );
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("gigimon").topCard.cardId).toBe("EX8-009");
+  });
+
+  it("finds both When Digivolving matches from a battle-area Guilmon base", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT2-009", as: "guilmonBase" }],
+          hand: [{ card: "EX8-009", as: "guilmon" }],
+          deck: [
+            { card: "BT1-046", as: "digivolveDraw" },
+            { card: "AD1-003", as: "growlmon" },
+            { card: "BT10-080", as: "traitOnlyXAntibody" },
+            { card: "AD1-001", as: "decoy" },
+            { card: "BT1-045", as: "anchor" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("guilmonBase").permanentId,
+        instanceId: s.inst("guilmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
       () =>
         s.state.players[0]!.hand.some((card) => card.cardId === "AD1-003") &&
         s.state.players[0]!.hand.some((card) => card.cardId === "BT10-080"),
     );
     expect(s.state.memory).toBe(0);
-    expect(s.perm("gigimon").topCard.cardId).toBe("EX8-009");
-    expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("AD1-001");
+    expect(s.perm("guilmonBase").topCard.cardId).toBe("EX8-009");
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-045", "AD1-001"]);
   });
 });
