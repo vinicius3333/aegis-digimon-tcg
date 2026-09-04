@@ -469,7 +469,8 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     action.costType === "digivolve" &&
     action.mode === "reduce" &&
     action.duration === "nextDigivolveThisTurn" &&
-    action.cost?.kind === "trash";
+    action.cost?.kind === "trash" &&
+    action.cost.target === undefined;
   let costModifierPaidCount: number | undefined;
   if (action.kind === "CostModifier" && action.cost !== undefined && !interactiveDigivolveReduction) {
     if (
