@@ -182299,7 +182299,8 @@
             }
           }
         ],
-        "frequency": "OncePerTurn"
+        "frequency": "OncePerTurn",
+        "sharedUseKey": "ir-shared-0"
       },
       {
         "trigger": "Main",
@@ -182326,7 +182327,8 @@
             }
           }
         ],
-        "frequency": "OncePerTurn"
+        "frequency": "OncePerTurn",
+        "sharedUseKey": "ir-shared-0"
       },
       {
         "trigger": "YourTurn",
@@ -183394,7 +183396,8 @@
             "reduceCostByScaling": { "per": 1, "unit": "namedCount", "countSource": "anubismonTrashed" }
           }
         ],
-        "frequency": "OncePerTurn"
+        "frequency": "OncePerTurn",
+        "sharedUseKey": "ir-shared-0"
       },
       {
         "trigger": "Main",
@@ -183415,7 +183418,8 @@
             "reduceCostByScaling": { "per": 1, "unit": "namedCount", "countSource": "anubismonTrashed" }
           }
         ],
-        "frequency": "OncePerTurn"
+        "frequency": "OncePerTurn",
+        "sharedUseKey": "ir-shared-0"
       },
       {
         "trigger": "YourTurn",
@@ -184062,17 +184066,7 @@
         "actions": [
           {
             "kind": "ReducePlayCost",
-            "payment": {
-              "kind": "automatic",
-              "condition": {
-                "kind": "youHave",
-                "filter": {
-                  "controllerDefault": "mine",
-                  "kind": ["Digimon"],
-                  "nameOrTrait": [{ "tokens": ["Deva", "Four Sovereigns"], "match": "trait" }]
-                }
-              }
-            },
+            "payment": { "kind": "automatic", "condition": { "kind": "true" } },
             "amount": { "kind": "fixed", "value": 1 },
             "scaling": {
               "per": 1,
@@ -184088,6 +184082,7 @@
           }
         ]
       },
+      { "trigger": "BeforePayCost", "actions": [] },
       {
         "trigger": "Static",
         "actions": [
