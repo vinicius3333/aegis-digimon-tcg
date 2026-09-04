@@ -151,4 +151,46 @@ describe("EX8-027", () => {
     ).toBe(true);
     expect(s.state.memory).toBe(0);
   });
+
+  it("offers an order decision when two Plesiomon watchers trigger together (Q3896)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX8-027", as: "first" },
+            { card: "EX8-027", as: "second" },
+            { card: "EX8-020", as: "base" },
+          ],
+          hand: [
+            { card: "EX8-024", as: "evolver" },
+            { card: "EX8-029", as: "aegis" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+    );
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolver").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+
+    const request = s.decisions.findLast(({ req }) => req.kind === "orderTriggers")?.req;
+    expect(request?.options?.triggerCardIds).toEqual(["EX8-027", "EX8-027"]);
+    const firstKey = request?.options?.triggerKeys?.[0];
+    expect(firstKey).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: request!.decisionId,
+        response: { kind: "orderTriggers", order: [firstKey!] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+  });
 });
