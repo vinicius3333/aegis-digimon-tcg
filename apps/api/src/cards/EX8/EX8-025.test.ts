@@ -168,4 +168,38 @@ describe("EX8-025", () => {
     await advance(s.engine).recompute();
     expect(observe(s.engine).isRestricted(s.perm("host"), "attackTargetChange")).toBe(false);
   });
+
+  it("blocks a real Raid redirect from a Whamon-inherited attacker", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-017", as: "marsmon", under: ["EX8-025"] }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "unsuspendedTarget", dp: 1000 }],
+          security: 1,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(observe(s.engine).isRestricted(s.perm("marsmon"), "attackTargetChange")).toBe(true);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("marsmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    // Raid tried to switch the player attack to the unsuspended Digimon, but Whamon's
+    // inherited restriction rejects that target change. The player therefore loses its
+    // security card while the otherwise vulnerable Raid target remains in play.
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(
+      s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("unsuspendedTarget").instanceId),
+    ).toBe(true);
+  });
 });
