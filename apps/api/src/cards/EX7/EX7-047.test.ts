@@ -42,4 +42,31 @@ describe("EX7-047", () => {
     expect(s.state.players[0]!.deck.at(-2)?.cardId).toBe("EX7-045");
     expect(observe(s.engine).hasKeyword(s.perm("eldra"), "Blocker")).toBe(true);
   });
+
+  it("DNA digivolves two legal NSp materials at end of turn", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX7-047", as: "eldra" },
+            { card: "BT1-040", as: "blueMaterial" },
+            { card: "BT10-064", as: "blackMaterial" },
+          ],
+          hand: [{ card: "BT18-041", as: "dna" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("blueMaterial").permanentId, s.perm("blackMaterial").permanentId);
+    s.state.memory = 5;
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("eldra"));
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT18-041"));
+
+    const result = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT18-041");
+    expect(result).toBeDefined();
+    expect(result!.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-040", "BT10-064"]));
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+  });
 });
