@@ -64,14 +64,15 @@ describe("EX7-064 Shoto Kazama", () => {
   });
 
   it("allows a Vortex attack after Shoto's end-of-turn unsuspend (Q3868)", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "EX7-064", as: "shoto" },
-          { card: "EX7-034", as: "vortex", under: ["EX7-035"], suspended: true },
-        ],
-      },
-      1: { battleArea: [{ card: "BT1-009", as: "target", dp: 1000, suspended: true }] },
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX7-064", as: "shoto" },
+            { card: "EX7-034", as: "vortex", under: ["EX7-035"], suspended: true },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 1000, suspended: true }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
