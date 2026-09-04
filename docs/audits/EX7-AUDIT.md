@@ -15,6 +15,12 @@ collection approval; no collection-wide 10/10 claim is made yet.
   On Deletion trigger with an actual battle loss and checks resulting zones.
 - EX7-063: 8/8 focused tests passed; `4c73d4e04` proves a non-Puppet Token
   deletion activates Arisa, pays suspension, and plays the replacement for free.
+- EX7-073: 9/9 focused tests passed at `ac257c230`. A public-evolution regression
+  first proved that two paid sources did not produce security trash when Tortomon
+  resisted deletion. A separate cost gate now precedes the independent deletion
+  and security results in both timings. Protected and absent targets, payment,
+  refusal, insufficient matching sources, and free Option use are covered.
+  Effects projection and final collection counts must be refreshed after this fix.
 - Follow-up evidence for EX7-044/046/048/049/050/052/054 and
   EX7-058/061/064/066/072 is being completed and independently checked.
 
