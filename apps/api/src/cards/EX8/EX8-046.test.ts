@@ -65,6 +65,34 @@ describe("EX8-046", () => {
     expect(player.hand.filter((card) => card.cardId === "AD1-001")).toHaveLength(0);
   });
 
+  it("does not trash the optional cost or draw when the deletion effect is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX8-046", as: "source" },
+            { card: "EX8-047", as: "cost" },
+          ],
+          deck: ["AD1-001", "AD1-001"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const player = s.state.players[0] as PlayerState;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => player.battleArea.some((permanent) => permanent.topCard?.cardId === "EX8-046"));
+    const source = player.battleArea.find((permanent) => permanent.topCard?.cardId === "EX8-046")!;
+    await advance(s.engine).verb.deletePermanent([source.permanentId]);
+    await settle(() => player.trash.some((card) => card.cardId === "EX8-046"));
+
+    expect(player.hand.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
+    expect(player.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(false);
+    expect(player.deck).toHaveLength(2);
+  });
+
   it("grants Blocker to the live evolution host", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "AD1-001", as: "host", under: ["EX8-046"] }] } });
     await s.ready();
