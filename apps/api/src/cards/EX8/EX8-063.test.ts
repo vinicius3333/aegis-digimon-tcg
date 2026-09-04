@@ -81,14 +81,15 @@ describe("EX8-063", () => {
       1: { hand: [{ card: "BT1-010", as: "opponentCard" }] },
     });
     const firstResolution = advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
-    await settle(() => s.state.pendingDecision?.kind === "optional");
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
     const opponentDecline = s.state.pendingDecision!;
     const opponentSeat = s.decisions.at(-1)!.seat;
+    expect(opponentDecline.kind).toBe("selectCards");
     expect(
       s.engine.applyIntent(opponentSeat, {
         type: "respondDecision",
         decisionId: opponentDecline.decisionId,
-        response: { kind: "optional", accept: false },
+        response: { kind: "selectCards", instanceIds: [] },
       }),
     ).toEqual({ ok: true });
     await settle(
