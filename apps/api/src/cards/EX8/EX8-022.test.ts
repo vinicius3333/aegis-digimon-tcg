@@ -38,8 +38,15 @@ describe("EX8-022", () => {
   });
   it("reduces an opposing Digimon's Security Attack during a real host attack", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-038", as: "host", under: [{ card: "EX8-022", as: "frigimon" }] }] },
-      1: { battleArea: [{ card: "BT1-009", as: "opponent" }], security: ["BT1-045"], deck: ["BT1-046"] },
+      0: {
+        battleArea: [{ card: "BT1-038", as: "host", under: [{ card: "EX8-022", as: "frigimon" }] }],
+        security: ["BT1-045"],
+      },
+      1: {
+        battleArea: [{ card: "BT1-009", as: "opponent" }],
+        security: ["BT1-045", "BT1-046"],
+        deck: ["BT1-046", "BT1-045"],
+      },
     });
     await s.ready();
 
@@ -54,10 +61,43 @@ describe("EX8-022", () => {
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
     await settle(() => !observe(s.engine).isAttacking());
 
-    s.state.memory = 0;
     s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("opponent").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.security).toHaveLength(1);
+
+    s.state.memory = 0;
     await advance(s.engine).runTurn(1);
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(0);
+  });
+
+  it("uses Ice Clad source count to win a lower-DP battle", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX8-022", as: "frigimon", dp: 1000, under: ["BT1-001", "BT1-009"] }],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 15000, suspended: true }] },
+    });
+    await s.ready();
+
+    const opponentId = s.perm("opponent").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("frigimon").permanentId,
+        target: { kind: "permanent", permanentId: opponentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === opponentId));
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
   it("trashes exactly the bottom two on play and gains no memory while a source remains", async () => {
@@ -71,8 +111,8 @@ describe("EX8-022", () => {
               as: "target",
               under: [
                 { card: "BT1-001", as: "bottom" },
-                { card: "BT1-002", as: "middle" },
-                { card: "BT1-003", as: "top" },
+                { card: "BT1-009", as: "middle" },
+                { card: "BT1-016", as: "top" },
               ],
             },
           ],
@@ -106,7 +146,7 @@ describe("EX8-022", () => {
           battleArea: [{ card: "EX8-019", as: "penguinmon" }],
           hand: [{ card: "EX8-022", as: "frigimon" }],
         },
-        1: { battleArea: [{ card: "BT1-024", as: "target", under: ["BT1-001", "BT1-002"] }] },
+        1: { battleArea: [{ card: "BT1-024", as: "target", under: ["BT1-001", "BT1-009"] }] },
       },
       { autoSelectCards: true },
     );
@@ -123,5 +163,25 @@ describe("EX8-022", () => {
 
     expect(s.state.players[1]!.trash).toHaveLength(2);
     expect(s.state.memory).toBe(1);
+  });
+
+  it("rejects the alternate route from a non-Ice-Snow level 3", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "base" }], hand: [{ card: "EX8-022", as: "frigimon" }] },
+    });
+    await s.ready();
+    s.state.memory = 2;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("frigimon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("base").topCard.cardId).toBe("BT1-009");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("frigimon").instanceId)).toBe(true);
   });
 });
