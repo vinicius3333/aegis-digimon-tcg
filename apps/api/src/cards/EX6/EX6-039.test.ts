@@ -69,4 +69,14 @@ describe("EX6-039 Kurisarimon", () => {
       true,
     );
   });
+
+  it("does not reduce an unrelated hand play and leaves a play-cost-4 opponent untouched", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "EX6-039", as: "kurisarimon" }] }, 1: { battleArea: [{ card: "BT1-053", as: "highCost" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kurisarimon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("kurisarimon").instanceId));
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
 });
