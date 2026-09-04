@@ -13,6 +13,7 @@ describe("EX4-055 Peckmon", () => {
       from: ["hand"],
       payCost: false,
       optional: true,
+      target: { filter: { nameOrTrait: [{ match: "nameExact", tokens: ["Keenan Crier"] }] } },
       condition: { kind: "youHaveNone" },
     });
   });
@@ -59,6 +60,22 @@ describe("EX4-055 Peckmon", () => {
     await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("source"));
     await settle();
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("handKeenan").instanceId);
+  });
+
+  it("does not play a longer Tamer name as exact Keenan Crier", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX4-055", as: "source" }],
+          hand: [{ card: "ST24-14", as: "longKeenanName" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("source"));
+    await settle();
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("longKeenanName").instanceId);
   });
   ex4CardBehaviorTests("EX4-055");
 });

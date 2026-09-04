@@ -14,7 +14,8 @@ describe("EX4-040 SkullKnightmon", () => {
       from: ["hand"],
       payCost: false,
       optional: true,
-      condition: { kind: "youHaveNone", filter: { nameOrTrait: [{ match: "name", tokens: ["Nene Amano"] }] } },
+      target: { filter: { nameOrTrait: [{ match: "nameExact", tokens: ["Nene Amano"] }] } },
+      condition: { kind: "youHaveNone", filter: { nameOrTrait: [{ match: "nameExact", tokens: ["Nene Amano"] }] } },
     });
   });
   it("reveals one Blue Flare or Twilight card on deletion and has inherited unsuspend", () => {
@@ -69,6 +70,22 @@ describe("EX4-040 SkullKnightmon", () => {
     expect(blocked.state.players[0]!.hand.some((card) => card.instanceId === blocked.inst("nene").instanceId)).toBe(
       true,
     );
+  });
+
+  it("does not treat a longer Nene name as an exact Nene Amano target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX4-040", as: "subject" }],
+          hand: [{ card: "EX10-064", as: "longNeneName" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("subject"));
+    await settle();
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("longNeneName").instanceId);
   });
 
   it("adds only a trait-matching deletion reveal and trashes the non-matching card", async () => {

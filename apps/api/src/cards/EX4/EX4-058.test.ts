@@ -11,7 +11,17 @@ describe("EX4-058 Ravemon", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "EndOfAttack")?.actions?.[0]).toMatchObject({
       kind: "SubTrigger",
       event: "endOfOpponentTurn",
-      actions: [{ kind: "PlayWithoutCost", payCost: false, target: { location: "trash", controller: "mine" } }],
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          payCost: false,
+          target: {
+            location: "trash",
+            controller: "mine",
+            filter: { nameOrTrait: [{ match: "nameExact", tokens: ["Ravemon"] }] },
+          },
+        },
+      ],
       cost: {
         kind: "deleteOwn",
         target: {
@@ -75,6 +85,25 @@ describe("EX4-058 Ravemon", () => {
     await advance(s.engine).fireForPermanent(EffectTiming.OnEndAttack, s.perm("source"));
     await settle(() => false, 60);
     expect(s.state.players[0]!.battleArea.some((perm) => perm.permanentId === s.perm("source").permanentId)).toBe(true);
+  });
+
+  it("does not play a longer Ravemon name from trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX4-058", as: "source", under: ["EX4-056"] }],
+          trash: [{ card: "BT13-092", as: "longRavemonName" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.OnEndAttack, s.perm("source"));
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+    s.state.turnSeat = 1;
+    await advance(s.engine).fireSubTrigger("endOfOpponentTurn");
+    await settle();
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("longRavemonName").instanceId);
   });
 
   it("trashes one card and then recovers security when the opponent starts with eight cards", async () => {

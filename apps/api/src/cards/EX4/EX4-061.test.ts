@@ -9,7 +9,7 @@ describe("EX4-061 Matt Ishida & Tai Kamiya", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")?.actions?.[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenPlayed",
-      sourceFilter: { nameOrTrait: [{ match: "name", tokens: ["Gabumon", "Agumon"] }] },
+      sourceFilter: { nameOrTrait: [{ match: "nameExact", tokens: ["Gabumon", "Agumon"] }] },
       actions: [{ kind: "GainMemory", amount: 1, cost: { kind: "suspend", target: { filter: { isSelfRef: true } } } }],
     });
   });
@@ -21,13 +21,13 @@ describe("EX4-061 Matt Ishida & Tai Kamiya", () => {
         kind: "PlayWithoutCost",
         from: ["hand", "trash"],
         payCost: false,
-        target: { filter: { nameOrTrait: [{ match: "name", tokens: ["Gabumon"] }] } },
+        target: { filter: { nameOrTrait: [{ match: "nameExact", tokens: ["Gabumon"] }] } },
       },
       {
         kind: "PlayWithoutCost",
         from: ["hand", "trash"],
         payCost: false,
-        target: { filter: { nameOrTrait: [{ match: "name", tokens: ["Agumon"] }] } },
+        target: { filter: { nameOrTrait: [{ match: "nameExact", tokens: ["Agumon"] }] } },
       },
     ]);
   });
@@ -35,6 +35,25 @@ describe("EX4-061 Matt Ishida & Tai Kamiya", () => {
   it("plays through the live engine", async () => {
     const s = await playEx4Card("EX4-061");
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("subject").instanceId)).toBe(false);
+  });
+
+  it("does not gain memory when a longer Gabumon name is played", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX4-061", as: "tamer" }],
+          hand: [{ card: "BT9-020", as: "longGabumonName" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("longGabumonName").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("longGabumonName").topCard?.cardId === "BT9-020");
+    expect(s.perm("tamer").isSuspended).toBe(false);
   });
 
   it("gains memory by suspending itself after an Agumon is played", async () => {

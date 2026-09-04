@@ -22,7 +22,7 @@ describe("EX4-053 Falcomon", () => {
             ],
           },
         },
-        { filter: { nameOrTrait: [{ match: "name", tokens: ["Keenan Crier"] }] } },
+        { filter: { nameOrTrait: [{ match: "nameExact", tokens: ["Keenan Crier"] }] } },
       ],
     });
   });
@@ -54,6 +54,23 @@ describe("EX4-053 Falcomon", () => {
     await settle(() => s.state.players[0]!.hand.length === 2);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["EX4-058", "EX4-064"]));
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toContain("BT1-010");
+  });
+
+  it("does not reveal a longer Tamer name as exact Keenan Crier", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX4-053", as: "source" }],
+          deck: ["ST24-14", "BT1-010", "BT1-010"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("source"));
+    await settle(() => s.state.players[0]!.deck.length === 3);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).not.toContain("ST24-14");
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toContain("ST24-14");
   });
 
   it("does not trash an opponent hand card when the inherited host is deleted in battle", async () => {

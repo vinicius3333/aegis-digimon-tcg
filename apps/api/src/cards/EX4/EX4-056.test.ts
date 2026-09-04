@@ -11,7 +11,7 @@ describe("EX4-056 Crowmon", () => {
       kind: "Digivolve",
       from: ["hand"],
       optional: true,
-      into: { nameOrTrait: [{ match: "name", tokens: ["Ravemon"] }] },
+      into: { nameOrTrait: [{ match: "nameExact", tokens: ["Ravemon"] }] },
       condition: { kind: "youHave", filter: { kind: ["Tamer"], colors: ["Purple"] } },
     });
   });
@@ -61,5 +61,6 @@ describe("EX4-056 Crowmon", () => {
     await settle();
     expect(battle.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT1-013")).toBe(true);
   });
+
   ex4CardBehaviorTests("EX4-056");
 });

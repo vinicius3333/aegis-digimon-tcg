@@ -20,7 +20,16 @@ describe("EX4-071 Ame-no-Ohabari", () => {
       event: "endOfOpponentTurn",
       condition: { kind: "bindingContains", ref: "deleted" },
       actions: [
-        { kind: "PlayWithoutCost", from: ["trash"], payCost: false, target: { location: "trash", controller: "mine" } },
+        {
+          kind: "PlayWithoutCost",
+          from: ["trash"],
+          payCost: false,
+          target: {
+            location: "trash",
+            controller: "mine",
+            filter: { nameOrTrait: [{ tokens: ["Ravemon"], match: "nameExact" }] },
+          },
+        },
       ],
     });
   });
@@ -88,6 +97,34 @@ describe("EX4-071 Ame-no-Ohabari", () => {
     await settle(() => false, 60);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX4-058")).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("revive").instanceId)).toBe(true);
+  });
+
+  it("does not play Ravemon: Burst Mode for the exact Ravemon target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-064", as: "tamer" },
+            { card: "EX4-058", as: "sacrifice" },
+          ],
+          hand: [{ card: "EX4-071", as: "option" }],
+          trash: [{ card: "BT13-092", as: "burstRavemon" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === optionId));
+    s.state.turnSeat = 1;
+    await advance(s.engine).fireSubTrigger("endOfOpponentTurn");
+    await settle();
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT13-092")).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("burstRavemon").instanceId)).toBe(true);
   });
 
   ex4CardBehaviorTests("EX4-071");
