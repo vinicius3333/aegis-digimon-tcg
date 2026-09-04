@@ -89,6 +89,10 @@ describe("EX8-021", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => eligible.perm("syakomon").topCard.instanceId === eligible.inst("seadramon").instanceId);
+    expect(eligible.perm("syakomon").topCard.cardId).toBe("EX8-021");
+    expect(eligible.perm("syakomon").stack.map((card) => card.instanceId)).toContain(
+      eligible.inst("syakomon").instanceId,
+    );
     expect(eligible.state.memory).toBe(0);
 
     const ineligible = setupEngine({
