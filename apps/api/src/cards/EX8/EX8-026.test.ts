@@ -59,6 +59,48 @@ describe("EX8-026", () => {
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "AD1-004")).toBe(true);
   });
 
+  it("Blast Digivolves from hand over a legal DS level 5 during Counter", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-010", as: "attacker" }],
+        security: ["BT1-001"],
+        deck: ["BT1-002"],
+      },
+      1: {
+        battleArea: [{ card: "EX8-024", as: "base" }],
+        hand: [{ card: "EX8-026", as: "metal" }],
+        security: ["BT1-001"],
+        deck: ["BT1-002"],
+      },
+    });
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("counter window did not open");
+    const eligible = opened.eligibleCounters.find((entry) => entry.instanceId === s.inst("metal").instanceId);
+    expect(eligible).toBeDefined();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondCounter",
+        sourceInstanceId: eligible!.instanceId,
+        effectKey: eligible!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX8-026");
+
+    expect(s.perm("base").topCard.cardId).toBe("EX8-026");
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.deck.at(-1)!.instanceId).toBe(s.inst("attacker").instanceId);
+  });
+
   it("blocks an opposing attack at +1 memory, including the Blitz legality path (Q3892–Q3893)", async () => {
     const s = setupEngine(
       {
