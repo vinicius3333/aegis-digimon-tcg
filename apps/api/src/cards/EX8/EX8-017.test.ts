@@ -40,7 +40,7 @@ describe("EX8-017", () => {
   });
   it("exposes inherited Jamming on a live host", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-024", as: "host", under: [{ card: "EX8-017", as: "crabmon" }] }] },
+      0: { battleArea: [{ card: "BT1-037", as: "host", under: [{ card: "EX8-017", as: "crabmon" }] }] },
     });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Jamming")).toBe(true);
@@ -48,7 +48,7 @@ describe("EX8-017", () => {
 
   it("survives a losing security battle through inherited Jamming", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", dp: 1000, as: "attacker", under: ["EX8-017"] }] },
+      0: { battleArea: [{ card: "BT1-037", dp: 1000, as: "attacker", under: ["EX8-017"] }] },
       1: { security: ["BT1-009"] },
     });
     await s.ready();
@@ -64,6 +64,44 @@ describe("EX8-017", () => {
     await settle(() => s.state.players[1]!.security.length === 0);
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(true);
+  });
+
+  it("uses the granted Blocker window to intercept an opponent attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX8-017", as: "crabmon" }],
+          battleArea: [{ card: "BT1-037", dp: 6000, as: "blocker" }],
+          security: ["BT1-045"],
+        },
+        1: { battleArea: [{ card: "AD1-001", dp: 5000, as: "attacker" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("crabmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("blocker"), "Blocker"));
+
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.perm("blocker").isSuspended).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
   it("uses the level-2 DS route for 0 and rejects a level-2 non-DS base", async () => {
