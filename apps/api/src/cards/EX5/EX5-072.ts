@@ -24,7 +24,12 @@ if (reduction?.kind === "ReducePlayCost") {
   reduction.scaling.filter.distinctNames = true;
   reduction.scaling.filter.excludeSelf = true;
   const reductionEffect = compiled.effects.find((effect) => effect.actions.includes(reduction));
-  reductionEffect?.actions.splice(reductionEffect.actions.indexOf(reduction), 1);
+  if (reductionEffect !== undefined) {
+    reductionEffect.actions.splice(reductionEffect.actions.indexOf(reduction), 1);
+    if (reductionEffect.actions.length === 0) {
+      compiled.effects.splice(compiled.effects.indexOf(reductionEffect), 1);
+    }
+  }
   compiled.effects.unshift({
     trigger: "BeforePayCost",
     actions: [
@@ -51,6 +56,17 @@ if (mainPlay?.kind === "PlayWithoutCost") {
     nameOrTrait: [{ tokens: ["Fanglongmon"], match: "name" }],
   };
 }
+
+// Drop empty generated containers left behind by the normalization above. Preserve keyword-only
+// Static effects because those carry executable continuous abilities even without actions.
+compiled.effects = compiled.effects.filter(
+  (effect) =>
+    !(
+      (effect.trigger === "Static" || effect.trigger === "BeforePayCost") &&
+      effect.actions.length === 0 &&
+      (effect.keywords?.length ?? 0) === 0
+    ),
+);
 
 compiled.coverage = "full";
 compiled.residual = [];
