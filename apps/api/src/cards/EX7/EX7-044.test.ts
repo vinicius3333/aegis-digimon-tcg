@@ -41,6 +41,42 @@ describe("EX7-044", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT10-058")).toBe(false);
   });
 
+  it("resolves the When Digivolving branch, deletes a low-cost Tamer, and returns misses to the bottom", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX7-044", as: "giga" }],
+          deck: ["EX7-066", "BT1-001", "BT1-002", "BT1-003"],
+        },
+        1: { battleArea: [{ card: "EX7-065", as: "tamer" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const firing = advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("giga"));
+    await settle(() => s.state.pendingDecision?.kind === "chooseOption");
+    const destination = s.state.pendingDecision!;
+    expect(destination.kind).toBe("chooseOption");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: destination.decisionId,
+        response: { kind: "chooseOption", optionIndex: 1 },
+      }),
+    ).toEqual({ ok: true });
+    await firing;
+    await settle(
+      () =>
+        s.perm("giga").topCard?.cardId === "EX7-044" &&
+        s.state.players[1]!.battleArea.length === 0 &&
+        s.state.players[0]!.eggDeck.length === 3,
+    );
+    expect(s.perm("giga").topCard?.cardId).toBe("EX7-044");
+    expect(s.perm("giga").stack.some((card) => card.cardId === "EX7-066")).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.eggDeck.map((card) => card.cardId)).toEqual(["BT1-001", "BT1-002", "BT1-003"]);
+  });
+
   it("returns a reveal with no qualifying Option to the chosen deck destination", async () => {
     const s = setupEngine(
       {
