@@ -9,6 +9,7 @@ import "../index.js";
 describe("EX6-070 Phantom Pain", () => {
   it("requires an armed Delay and does not double-pay its delayed deletion", () => {
     const runtime = runtimeCompiledCard("EX6-070");
+    const effects = runtime?.effects ?? [];
     const text = JSON.stringify(runtime);
     expect(runtime).toMatchObject({ coverage: "full", residual: [] });
     expect(runtime?.effects).toHaveLength(4);
@@ -17,7 +18,7 @@ describe("EX6-070 Phantom Pain", () => {
       kind: "GainKeyword",
       keyword: { keyword: "Delay" },
     });
-    const delayedDeleteEntries = runtime?.effects?.filter(
+    const delayedDeleteEntries = effects.filter(
       (entry) =>
         entry.trigger === "Main" &&
         entry.keywords?.length === 1 &&
@@ -44,14 +45,14 @@ describe("EX6-070 Phantom Pain", () => {
         },
       ],
     });
-    const ordinaryMainEntries = runtime?.effects?.filter(
+    const ordinaryMainEntries = effects.filter(
       (entry) => entry.trigger === "Main" && !entry.keywords?.some((keyword) => keyword.keyword === "Delay"),
     );
     expect(ordinaryMainEntries).toHaveLength(1);
     expect(ordinaryMainEntries[0]).toMatchObject({
       actions: [{ kind: "GrantAuraToOpponents" }, { kind: "PlaceInBattleAreaSelf" }],
     });
-    const securityDeleteEntries = runtime?.effects?.filter(
+    const securityDeleteEntries = effects.filter(
       (entry) =>
         entry.trigger === "Security" &&
         entry.actions?.length === 1 &&

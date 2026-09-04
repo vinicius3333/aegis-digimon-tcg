@@ -49,7 +49,7 @@ describe("EX6-074 Mirei Mikagura", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX6-074", as: "mirei" }], hand: [{ card: "BT1-046", as: "holy" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
     await s.ready();
     s.state.memory = 0;
-    await advance(s.engine).verb.playInstances([s.inst("holy").instanceId], 0, { payCost: false });
+    await advance(s.engine).verb.playInstances([s.inst("holy").instanceId]);
     expect(s.perm("mirei").isSuspended).toBe(true);
     expect(s.state.memory).toBe(1);
   });
