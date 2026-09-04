@@ -11,7 +11,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "GrantStatic",
+          kind: "ModifyDP",
+          playerWide: true,
           target: {
             filter: {
               controller: "opponent",
@@ -19,8 +20,7 @@ export const compiled: CompiledCard = {
             },
             count: "all",
           },
-          grant: "effect",
-          tokens: ["get -5000DP"],
+          amount: -5000,
           duration: "untilOpponentNextTurnEnd",
         },
       ],
@@ -29,7 +29,8 @@ export const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
-          kind: "GrantStatic",
+          kind: "ModifyDP",
+          playerWide: true,
           target: {
             filter: {
               controller: "opponent",
@@ -37,8 +38,7 @@ export const compiled: CompiledCard = {
             },
             count: "all",
           },
-          grant: "effect",
-          tokens: ["get -5000DP"],
+          amount: -5000,
           duration: "untilOpponentNextTurnEnd",
         },
       ],

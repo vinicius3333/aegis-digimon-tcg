@@ -670,8 +670,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // protocol for a DP change — the schema delta (currentDP) is the source of truth.
   };
 
-  const modifyPlayerDP: Primitives["modifyPlayerDP"] = (seat, delta, duration): void => {
-    ledger.addPlayerDpModifier(state, seat, delta, duration);
+  const modifyPlayerDP: Primitives["modifyPlayerDP"] = (seat, delta, duration, opts): void => {
+    ledger.addPlayerDpModifier(state, seat, delta, duration, opts);
   };
 
   const restoreDpReductions: Primitives["restoreDpReductions"] = (permanentId): void => {

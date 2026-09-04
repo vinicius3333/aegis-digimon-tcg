@@ -133,6 +133,13 @@ describe("canTrigger / canActivate gating", () => {
     expect(canTrigger(eff, fakeContext(source), new UseTracker())).toBe(true);
   });
 
+  it("does not trigger On Play after rule processing moved the played card off the field", () => {
+    const source = fakeSource({ isOnBattleArea: () => false, permanent: () => undefined });
+    const effect = onPlay({ source, effectKey: "k", description: "", resolve: async () => {} });
+
+    expect(canTrigger(effect, fakeContext(source), new UseTracker())).toBe(false);
+  });
+
   it("security and onDeletion builders do NOT require on-field", () => {
     const offField = fakeSource({ isOnBattleArea: () => false });
     const sec = security({ source: offField, effectKey: "s", description: "", resolve: async () => {} });
