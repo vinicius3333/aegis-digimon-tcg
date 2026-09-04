@@ -46,7 +46,7 @@ describe("EX7-044", () => {
       {
         0: {
           battleArea: [{ card: "EX7-044", as: "giga" }],
-          deck: ["EX7-066", "BT1-001", "BT1-002", "BT1-003"],
+          deck: ["EX7-066", "BT1-009", "BT1-010", "BT1-014", "BT1-038"],
         },
         1: { battleArea: [{ card: "EX7-065", as: "tamer" }] },
       },
@@ -69,26 +69,29 @@ describe("EX7-044", () => {
       () =>
         s.perm("giga").topCard?.cardId === "EX7-044" &&
         s.state.players[1]!.battleArea.length === 0 &&
-        s.state.players[0]!.eggDeck.length === 3,
+        s.state.players[0]!.deck.length === 4,
     );
     expect(s.perm("giga").topCard?.cardId).toBe("EX7-044");
     expect(s.perm("giga").stack.some((card) => card.cardId === "EX7-066")).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    expect(s.state.players[0]!.eggDeck.map((card) => card.cardId)).toEqual(["BT1-001", "BT1-002", "BT1-003"]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-038", "BT1-009", "BT1-010", "BT1-014"]);
   });
 
   it("returns a reveal with no qualifying Option to the chosen deck destination", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX7-044", as: "giga" }], deck: ["BT1-009", "BT1-010", "BT1-014", "BT1-038"] },
+      0: {
+        battleArea: [{ card: "EX7-044", as: "giga" }],
+        deck: ["BT1-009", "BT1-010", "BT1-014", "BT1-038", "BT1-045"],
+      },
         1: { battleArea: [{ card: "BT10-058", as: "target" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("giga"));
-    await settle(() => s.state.players[0]!.deck.length === 4);
-    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-010", "BT1-014", "BT1-038"]);
+    await settle(() => s.state.players[0]!.deck.length === 5);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-010", "BT1-014", "BT1-038", "BT1-045"]);
     expect(s.perm("giga").stack).toHaveLength(0);
     expect(s.perm("target").topCard?.cardId).toBe("BT10-058");
   });
