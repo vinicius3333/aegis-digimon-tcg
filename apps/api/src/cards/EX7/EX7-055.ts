@@ -30,6 +30,9 @@ export const compiled: CompiledCard = {
             kind: "zoneCount",
             seat: "mine",
             zone: "battleArea",
+            filter: {
+              kind: ["Tamer"],
+            },
             op: "lte",
             value: 1,
             raw: "you have 1 or fewer Tamers",

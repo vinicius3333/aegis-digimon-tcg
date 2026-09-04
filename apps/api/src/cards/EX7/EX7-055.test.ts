@@ -16,6 +16,7 @@ describe("EX7-055", () => {
         kind: "zoneCount",
         seat: "mine",
         zone: "battleArea",
+        filter: { kind: ["Tamer"] },
         op: "lte",
         value: 1,
       },
@@ -55,6 +56,26 @@ describe("EX7-055", () => {
     await s.ready();
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("punk"));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("yuuki").instanceId)).toBe(true);
+  });
+
+  it("counts Tamers rather than other cards in the battle area", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX7-055", as: "punk" },
+            { card: "BT1-009", as: "digimon" },
+            { card: "BT14-086", as: "tamer" },
+          ],
+          hand: [{ card: "EX7-065", as: "yuuki" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("punk"));
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX7-065"));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX7-065")).toBe(true);
   });
 
   it("publicly applies its inherited +2000 DP during your turn", async () => {
