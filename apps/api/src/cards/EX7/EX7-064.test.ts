@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX7-064.js";
-describe("EX7-064 Lighdramon", () => {
+describe("EX7-064 Shoto Kazama", () => {
   it("gains memory when the opponent has a Digimon", () =>
     expect(compiled.effects?.[0]?.actions[0]).toMatchObject({
       kind: "GainMemory",
@@ -22,5 +26,85 @@ describe("EX7-064 Lighdramon", () => {
       kind: "PlayWithoutCost",
       payCost: false,
     });
+  });
+
+  it("gains memory only when the opponent has a Digimon at the start of Main", async () => {
+    const withOpponent = setupEngine({
+      0: { battleArea: [{ card: "EX7-064", as: "shoto" }] },
+      1: { battleArea: [{ card: "BT1-009" }] },
+    });
+    withOpponent.state.memory = 0;
+    await advance(withOpponent.engine).fire(EffectTiming.StartOfYourMainPhase, withOpponent.perm("shoto"));
+    expect(withOpponent.state.memory).toBe(1);
+
+    const withoutOpponent = setupEngine({ 0: { battleArea: [{ card: "EX7-064", as: "shoto" }] } });
+    withoutOpponent.state.memory = 0;
+    await advance(withoutOpponent.engine).fire(EffectTiming.StartOfYourMainPhase, withoutOpponent.perm("shoto"));
+    expect(withoutOpponent.state.memory).toBe(0);
+  });
+
+  it("suspends itself, grants both keywords, and unsuspends a Vortex Warriors target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX7-064", as: "shoto" },
+            { card: "EX7-034", as: "vortex", suspended: true },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("shoto"));
+    expect(s.perm("shoto").isSuspended).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("vortex"))).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("vortex"), "Blocker")).toBe(true);
+    expect(s.perm("vortex").isSuspended).toBe(false);
+  });
+
+  it("does not unsuspend a non-Vortex target, and declining the optional effect leaves it unchanged", async () => {
+    const accepted = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX7-064", as: "shoto" },
+            { card: "BT1-009", as: "ordinary", suspended: true },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await accepted.ready();
+    await advance(accepted.engine).fire(EffectTiming.EndOfYourTurn, accepted.perm("shoto"));
+    expect(accepted.perm("ordinary").isSuspended).toBe(true);
+    expect(observe(accepted.engine).hasPierce(accepted.perm("ordinary"))).toBe(true);
+    expect(observe(accepted.engine).hasKeyword(accepted.perm("ordinary"), "Blocker")).toBe(true);
+
+    const declined = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX7-064", as: "shoto" },
+            { card: "BT1-009", as: "ordinary", suspended: true },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await declined.ready();
+    await advance(declined.engine).fire(EffectTiming.EndOfYourTurn, declined.perm("shoto"));
+    expect(declined.perm("shoto").isSuspended).toBe(false);
+    expect(observe(declined.engine).hasKeyword(declined.perm("ordinary"), "Blocker")).toBe(false);
+  });
+
+  it("plays itself when revealed as a Security card", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "EX7-064", as: "shoto" }] } }, { autoAcceptOptional: true });
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.Security, s.inst("shoto"));
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("shoto").instanceId),
+    ).toBe(true);
   });
 });
