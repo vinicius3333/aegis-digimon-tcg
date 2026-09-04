@@ -139,6 +139,28 @@ describe("EX7-061 Lilithmon (X Antibody)", () => {
     if (decline) expect(s.perm("cost").topCard?.cardId).toBe("BT1-009");
   });
 
+  it("does not prevent departure when the accepted cost deletion is itself prevented", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX7-061", as: "lilith", under: ["BT3-091"] },
+            { card: "EX7-041", as: "protectedCost" },
+          ],
+        },
+        1: { battleArea: [] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("lilith").permanentId], "byEffect")).toBe(1);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.perm("protectedCost").topCard?.cardId).toBe("EX7-041");
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("EX7-061");
+  });
+
   it("does not offer prevention or delete its cost Digimon without Lilithmon or X Antibody below it", async () => {
     const s = setupEngine(
       {
