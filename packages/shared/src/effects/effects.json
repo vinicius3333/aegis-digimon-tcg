@@ -178500,14 +178500,17 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Nene Amano"], "match": "name" }] },
+              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Nene Amano"], "match": "nameExact" }] },
               "count": 1
             },
             "from": ["hand"],
             "payCost": false,
             "condition": {
               "kind": "youHaveNone",
-              "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Nene Amano"], "match": "name" }] },
+              "filter": {
+                "controllerDefault": "mine",
+                "nameOrTrait": [{ "tokens": ["Nene Amano"], "match": "nameExact" }]
+              },
               "raw": "you don't have [Nene Amano] in play"
             },
             "optional": true
@@ -179182,7 +179185,7 @@
               {
                 "filter": {
                   "controllerDefault": "mine",
-                  "nameOrTrait": [{ "tokens": ["Keenan Crier"], "match": "name" }]
+                  "nameOrTrait": [{ "tokens": ["Keenan Crier"], "match": "nameExact" }]
                 },
                 "count": 1,
                 "to": "hand"
@@ -179257,7 +179260,7 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Keenan Crier"], "match": "name" }] },
+              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Keenan Crier"], "match": "nameExact" }] },
               "count": 1
             },
             "from": ["hand"],
@@ -179266,7 +179269,7 @@
               "kind": "youHaveNone",
               "filter": {
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Keenan Crier"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Keenan Crier"], "match": "nameExact" }]
               },
               "raw": "you don't have [Keenan Crier] in play"
             },
@@ -179302,7 +179305,7 @@
           {
             "kind": "Digivolve",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "into": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Ravemon"], "match": "name" }] },
+            "into": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Ravemon"], "match": "nameExact" }] },
             "from": ["hand"],
             "optional": true,
             "condition": {
@@ -179400,7 +179403,7 @@
               {
                 "kind": "PlayWithoutCost",
                 "target": {
-                  "filter": { "nameOrTrait": [{ "tokens": ["Ravemon"], "match": "name" }] },
+                  "filter": { "nameOrTrait": [{ "tokens": ["Ravemon"], "match": "nameExact" }] },
                   "count": 1,
                   "location": "trash",
                   "controller": "mine"
@@ -179613,7 +179616,7 @@
             "event": "whenPlayed",
             "sourceFilter": {
               "controllerDefault": "mine",
-              "nameOrTrait": [{ "tokens": ["Gabumon", "Agumon"], "match": "name" }]
+              "nameOrTrait": [{ "tokens": ["Gabumon", "Agumon"], "match": "nameExact" }]
             },
             "actions": [
               {
@@ -179645,7 +179648,7 @@
                   "filter": {
                     "controller": "mine",
                     "kind": ["Digimon"],
-                    "nameOrTrait": [{ "tokens": ["Gabumon"], "match": "name" }]
+                    "nameOrTrait": [{ "tokens": ["Gabumon"], "match": "nameExact" }]
                   },
                   "count": 1
                 },
@@ -179676,7 +179679,7 @@
                   "filter": {
                     "controller": "mine",
                     "kind": ["Digimon"],
-                    "nameOrTrait": [{ "tokens": ["Agumon"], "match": "name" }]
+                    "nameOrTrait": [{ "tokens": ["Agumon"], "match": "nameExact" }]
                   },
                   "count": 1
                 },
@@ -179784,7 +179787,7 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "nameOrTrait": [{ "tokens": ["Terriermon", "Lopmon"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Terriermon", "Lopmon"], "match": "nameExact" }]
               },
               "count": 1
             },
@@ -179818,7 +179821,7 @@
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Digimon"],
-              "digivolutionStackNameOrTrait": [{ "tokens": ["Terriermon", "Lopmon"], "match": "name" }]
+              "digivolutionStackNameOrTrait": [{ "tokens": ["Terriermon", "Lopmon"], "match": "nameExact" }]
             },
             "actions": [
               {
@@ -179948,13 +179951,13 @@
                   "target": {
                     "filter": {
                       "controller": "mine",
-                      "nameOrTrait": [{ "tokens": ["Agumon", "Greymon"], "match": "name" }]
+                      "nameOrTrait": [{ "tokens": ["Agumon", "Greymon"], "match": "nameExact" }]
                     },
                     "count": 1
                   },
                   "into": {
                     "controllerDefault": "mine",
-                    "nameOrTrait": [{ "tokens": ["BlitzGreymon"], "match": "name" }]
+                    "nameOrTrait": [{ "tokens": ["BlitzGreymon"], "match": "nameExact" }]
                   },
                   "payCost": false,
                   "from": ["hand"],
@@ -179965,7 +179968,7 @@
                     "filter": {
                       "zone": "battleArea",
                       "controllerDefault": "mine",
-                      "nameOrTrait": [{ "tokens": ["CresGarurumon"], "match": "name" }]
+                      "nameOrTrait": [{ "tokens": ["CresGarurumon"], "match": "nameExact" }]
                     },
                     "raw": "you have [CresGarurumon] in play"
                   }
@@ -179977,13 +179980,13 @@
                   "target": {
                     "filter": {
                       "controller": "mine",
-                      "nameOrTrait": [{ "tokens": ["Gabumon", "Garurumon"], "match": "name" }]
+                      "nameOrTrait": [{ "tokens": ["Gabumon", "Garurumon"], "match": "nameExact" }]
                     },
                     "count": 1
                   },
                   "into": {
                     "controllerDefault": "mine",
-                    "nameOrTrait": [{ "tokens": ["CresGarurumon"], "match": "name" }]
+                    "nameOrTrait": [{ "tokens": ["CresGarurumon"], "match": "nameExact" }]
                   },
                   "payCost": false,
                   "from": ["hand"],
@@ -179994,7 +179997,7 @@
                     "filter": {
                       "zone": "battleArea",
                       "controllerDefault": "mine",
-                      "nameOrTrait": [{ "tokens": ["BlitzGreymon"], "match": "name" }]
+                      "nameOrTrait": [{ "tokens": ["BlitzGreymon"], "match": "nameExact" }]
                     },
                     "raw": "you have [BlitzGreymon] in play"
                   }
@@ -180010,7 +180013,10 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Gabumon", "Agumon"], "match": "name" }] },
+              "filter": {
+                "controller": "mine",
+                "nameOrTrait": [{ "tokens": ["Gabumon", "Agumon"], "match": "nameExact" }]
+              },
               "count": 1
             },
             "from": ["hand", "trash"],
@@ -180246,7 +180252,7 @@
               {
                 "kind": "PlayWithoutCost",
                 "target": {
-                  "filter": { "nameOrTrait": [{ "tokens": ["Ravemon"], "match": "name" }] },
+                  "filter": { "nameOrTrait": [{ "tokens": ["Ravemon"], "match": "nameExact" }] },
                   "count": 1,
                   "location": "trash",
                   "controller": "mine"
