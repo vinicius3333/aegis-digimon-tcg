@@ -25,7 +25,7 @@ describe("EX8-007", () => {
     ["BT1-024", "name-only MetalTyrannomon"],
     ["BT1-010", "Reptile-only Agumon"],
     ["AD1-001", "Dinosaur-only Greymon"],
-  ] as const)("selects %s and Ryutaro Williams from the live reveal (%s)", async (candidate) => {
+  ] as const)("selects %s and Ryutaro Williams from the live reveal (%s)", async (candidate, _label) => {
     const s = setupEngine(
       {
         0: {
