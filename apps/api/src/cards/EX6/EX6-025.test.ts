@@ -97,4 +97,33 @@ describe("EX6-025 Sanzomon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX6-019")).toBe(true);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
+
+  it("publicly returns its source after a real DigiXros host leaves play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX6-025", as: "sanzo" },
+            { card: "EX6-024", as: "material" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("sanzo").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("material").instanceId] },
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("sanzo").instanceId),
+    );
+    await advance(s.engine).verb.deletePermanent([s.state.players[0]!.battleArea[0]!.permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("material").instanceId));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("material").instanceId)).toBe(true);
+  });
 });

@@ -102,6 +102,35 @@ describe("EX6-026 Cho-Hakkaimon", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
 
+  it("publicly returns its source after a real DigiXros host leaves play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX6-026", as: "cho" },
+            { card: "EX6-025", as: "material" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("cho").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("material").instanceId] },
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("cho").instanceId),
+    );
+    await advance(s.engine).verb.deletePermanent([s.state.players[0]!.battleArea[0]!.permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("material").instanceId));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("material").instanceId)).toBe(true);
+  });
+
   it("publicly applies the inherited Security Attack -1 while its host attacks", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
