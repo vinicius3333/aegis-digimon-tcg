@@ -70,4 +70,68 @@ describe("EX7-048", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.perm("gundra").stack.some((card) => card.cardId === "EX7-066")).toBe(true);
   });
+
+  it("reveals and uses a Three Musketeers Option when digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX7-048", as: "gundra" }],
+          deck: ["EX7-066", "BT1-009", "BT1-010", "BT1-014", "BT1-038", "BT1-040", "BT1-045"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 3000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const firing = advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("gundra"));
+    await settle(() => s.state.pendingDecision?.kind === "chooseOption");
+    const destination = s.state.pendingDecision!;
+    expect(destination.kind).toBe("chooseOption");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: destination.decisionId,
+        response: { kind: "chooseOption", optionIndex: 1 },
+      }),
+    ).toEqual({ ok: true });
+    await firing;
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.players[0]!.deck.length === 6);
+    expect(s.perm("gundra").stack.some((card) => card.cardId === "EX7-066")).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual([
+      "BT1-045",
+      "BT1-009",
+      "BT1-010",
+      "BT1-014",
+      "BT1-038",
+      "BT1-040",
+    ]);
+  });
+
+  it("does not use an Option or delete when the reveal has no Three Musketeers Option", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX7-048", as: "gundra" }],
+          deck: ["BT1-009", "BT1-010", "BT1-014", "BT1-038", "BT1-040", "BT1-045", "BT1-046"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 3000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("gundra"));
+    await settle(() => s.state.players[0]!.deck.length === 7);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual([
+      "BT1-009",
+      "BT1-010",
+      "BT1-014",
+      "BT1-038",
+      "BT1-040",
+      "BT1-045",
+      "BT1-046",
+    ]);
+    expect(s.perm("gundra").stack).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
 });
