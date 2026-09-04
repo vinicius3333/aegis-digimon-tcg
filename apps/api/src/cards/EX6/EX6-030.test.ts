@@ -86,7 +86,7 @@ describe("EX6-030 Dominimon", () => {
         0: {
           battleArea: [
             { card: "EX6-030", as: "dom" },
-            { card: "EX6-019", as: "angel" },
+            { card: "EX6-017", as: "angel" },
           ],
           security: ["BT1-001"],
         },
