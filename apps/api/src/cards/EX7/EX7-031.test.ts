@@ -34,6 +34,50 @@ describe("EX7-031", () => {
     expect(s.state.memory).toBe(1);
   });
 
+  it("gains memory from a real battle deletion through its inherited effect", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", dp: 7000, under: ["EX7-031"] }] },
+      1: { battleArea: [{ card: "BT1-010", as: "target", dp: 3000, suspended: true }] },
+    });
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.memory === 1);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("does not reduce a Bird digivolution when the source is in the breeding area", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "EX7-031", as: "pteromon" },
+        hand: [{ card: "EX7-032", as: "galemon" }],
+      },
+    });
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("pteromon").permanentId,
+        instanceId: s.inst("galemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("pteromon").topCard?.cardId === "EX7-032");
+
+    expect(s.perm("pteromon").topCard?.cardId).toBe("EX7-032");
+    expect(s.state.memory).toBe(0);
+  });
+
   it("reduces a Bird digivolution cost by 1, but not a non-Bird digivolution", async () => {
     const bird = setupEngine({
       0: { battleArea: [{ card: "EX7-031", as: "host" }], hand: [{ card: "EX7-032", as: "bird" }] },
