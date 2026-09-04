@@ -2,7 +2,22 @@
 
 This ledger records a fresh card-by-card audit in ascending card-ID order using the committed catalog, the local rules knowledge base, each direct compiled-IR module, its shared primitives, peer implementations, and the existing colocated tests.
 
-## Latest review follow-up
+## Current validation checkpoint
+
+At `ef63d3f7f`, the exact EX7 collection passed 74 files / 397 tests in 9.97
+seconds with one fork and no file parallelism. The catalog was recalculated:
+74 contiguous IDs, 74 modules, 74 colocated tests, only IR registration, and
+no RawUnparsed nodes. Scoped EX7 lint/format and diff checks passed.
+
+Full shared/API/web typecheck and the web production build passed after the
+latest effects projection. Shared/API production builds also passed.
+The lower independent rereview approved EX7-041/056/063/073 with zero Critical,
+Important, or Minor findings and confirmed the final Armor Purge cost proofs
+for EX7-052/054. Upper review approved its corrections; the final explicit
+once-per-turn evidence assessment for EX7-061 remains pending. This is not yet
+a collection completion notification.
+
+## Review follow-up history
 
 The 370-test collection below is a passing checkpoint, not the final inventory.
 Independent rereview cleared EX7-001..037 but identified additional behavioral
@@ -40,9 +55,9 @@ Latest follow-up gates (not collection approval):
   Final recalculation, focused protected-cost proofs, and independent rereview
   remain pending.
 
-## Passing test inventory at collection checkpoint
+## Passing test inventory at latest collection checkpoint
 
-Exact collection at `edd2e897b`: 74 files / 370 tests passed in 10.51 seconds.
+Exact collection at `ef63d3f7f`: 74 files / 397 tests passed in 9.97 seconds.
 This table records passing behavioral and structural tests, not by itself a
 collection-wide 10/10 claim. Final independent rereview is still pending.
 
@@ -50,7 +65,7 @@ Current gates:
 
 - Catalog/registration inventory: 74 contiguous IDs, 74 modules, 74 test files;
   exclusively one `registerIrCard` registration per card.
-- Exact collection: 74/74 files and 370/370 tests passed.
+- Exact collection: 74/74 files and 397/397 tests passed.
 - Affected mechanisms: 3/3 files and 21/21 tests passed (Option use, exact-name
   matching, and digivolution candidate legality).
 - Effects: 74 synchronized records, 55 semantic changes against immutable base
@@ -105,39 +120,39 @@ Current gates:
 | EX7-038 | Gotsumon | 4/4 |
 | EX7-039 | Jazamon | 4/4 |
 | EX7-040 | ToyAgumon | 4/4 |
-| EX7-041 | Tortomon | 3/3 |
+| EX7-041 | Tortomon | 5/5 |
 | EX7-042 | Jazardmon | 4/4 |
 | EX7-043 | Tankmon | 5/5 |
-| EX7-044 | Gigadramon | 5/5 |
+| EX7-044 | Gigadramon | 6/6 |
 | EX7-045 | Jagamon | 3/3 |
 | EX7-046 | Jazarichmon | 4/4 |
 | EX7-047 | Eldradimon | 5/5 |
-| EX7-048 | Gundramon | 4/4 |
-| EX7-049 | Metallicdramon | 4/4 |
-| EX7-050 | Impmon | 4/4 |
+| EX7-048 | Gundramon | 6/6 |
+| EX7-049 | Metallicdramon | 5/5 |
+| EX7-050 | Impmon | 5/5 |
 | EX7-051 | Sparrowmon | 4/4 |
-| EX7-052 | Tsukaimon | 4/4 |
+| EX7-052 | Tsukaimon | 5/5 |
 | EX7-053 | Eyesmon: Scatter Mode | 3/3 |
-| EX7-054 | BlackGatomon | 4/4 |
+| EX7-054 | BlackGatomon | 5/5 |
 | EX7-055 | Punkmon | 6/6 |
 | EX7-056 | Orochimon | 7/7 |
 | EX7-057 | Loudmon | 4/4 |
 | EX7-058 | LadyDevimon (X Antibody) | 4/4 |
 | EX7-059 | BeelStarmon | 8/8 |
 | EX7-060 | Nidhoggmon | 5/5 |
-| EX7-061 | Lilithmon (X Antibody) | 7/7 |
+| EX7-061 | Lilithmon (X Antibody) | 12/12 |
 | EX7-062 | HeavyMetaldramon | 5/5 |
-| EX7-063 | Arisa Kinosaki | 7/7 |
-| EX7-064 | Shoto Kazama | 6/6 |
+| EX7-063 | Arisa Kinosaki | 8/8 |
+| EX7-064 | Shoto Kazama | 8/8 |
 | EX7-065 | Yuuki | 6/6 |
-| EX7-066 | Chaos Triangular | 6/6 |
+| EX7-066 | Chaos Triangular | 10/10 |
 | EX7-067 | Summon Frost | 5/5 |
 | EX7-068 | Wonder Stomp | 5/5 |
 | EX7-069 | Wind Slicer | 6/6 |
 | EX7-070 | Der Blitz | 6/6 |
 | EX7-071 | Hurricane Screw Shot | 7/7 |
-| EX7-072 | Seventh Fascination | 15/15 |
-| EX7-073 | BeelStarmon (X Antibody) | 4/4 |
+| EX7-072 | Seventh Fascination | 16/16 |
+| EX7-073 | BeelStarmon (X Antibody) | 9/9 |
 | EX7-074 | Vortex Resonance | 10/10 |
 
 ## Historical verification checkpoints — 2026-09-04
