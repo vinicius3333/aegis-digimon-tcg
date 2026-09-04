@@ -56,7 +56,7 @@ describe("EX8-025", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX8-020", as: "base", under: [{ card: "BT1-001", as: "existing" }] }],
+          battleArea: [{ card: "EX8-020", as: "base", under: [{ card: "EX8-017", as: "existing" }] }],
           hand: [{ card: "EX8-025", as: "whamon" }],
           trash: [{ card: "EX8-017", as: "ds" }],
         },
@@ -90,7 +90,7 @@ describe("EX8-025", () => {
                 { card: "EX8-021", as: "second" },
               ],
             },
-            { card: "BT1-038", as: "otherHost", under: [{ card: "EX8-017", as: "foreign" }] },
+            { card: "BT8-030", as: "otherHost", under: [{ card: "EX8-025", as: "foreign" }] },
           ],
         },
         1: { security: 2 },
@@ -121,8 +121,47 @@ describe("EX8-025", () => {
     expect(s.perm("whamon").stack).toHaveLength(1);
   });
 
+  it("keeps the On Play placement optional when declined", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "EX8-025", as: "whamon" }], trash: [{ card: "EX8-027", as: "ds" }] } },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("whamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX8-025"));
+
+    const whamon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "EX8-025");
+    expect(whamon?.stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX8-027")).toBe(true);
+  });
+
+  it("keeps the End of Attack playback optional when declined", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX8-025", as: "whamon", under: ["EX8-020"] }] },
+        1: { security: 1 },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("whamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.perm("whamon").stack).toHaveLength(1);
+    expect(s.perm("whamon").isSuspended).toBe(true);
+  });
+
   it("applies the inherited attack-target-change restriction only on its controller's turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-038", as: "host", under: ["EX8-025"] }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT8-030", as: "host", under: ["EX8-025"] }] } });
     await s.ready();
     expect(observe(s.engine).isRestricted(s.perm("host"), "attackTargetChange")).toBe(true);
     s.state.turnSeat = 1;
