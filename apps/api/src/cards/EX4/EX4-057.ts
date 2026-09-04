@@ -7,63 +7,25 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   [Main] Digivolve from 2-color w/green Lv.4 (cost 3). (When this Digimon attacks, by
 //          suspending 1 of your other Digimon, this Digimon adds the suspended Digimon's
 //          DP and gains <Security Attack +1> for the attack.)
+//   The parenthetical attack reminder is the printed <Alliance> keyword, not a separate
+//   inherited WhenAttacking effect.
 //   [End of Attack] You may play 1 green Lv.3 Digimon card from your trash without paying
 //                   the cost.
 //   Inherited [End of Attack][Once Per Turn] If you have another suspended Digimon,
 //             return 1 green Digimon from your trash to your hand.
 //
 // Fixes:
-// 1. The parenthetical suspend/+DP effect fires "when this Digimon attacks", not on
-//    digivolving — it must be trigger "WhenAttacking", not "WhenDigivolving" (see
-//    BT3-004 for the same top-level-trigger pattern).
+// 1. The parenthetical is the printed Alliance reminder and is materialized as a Static
+//    Alliance keyword, which delegates suspension, DP, and Security Attack to combat.
 // 2. digivolutionRequirement: multicolor:true + colors:['Green'] is the established codebase
 //    encoding for "2-color w/green" (no colorCount field exists; see interpreter.ts:249,
 //    which already requires def.colors.length >= 2 for multicolor:true).
-// 3. "By suspending 1 of your other Digimon, [effect]" is a by-cost activation the controller
-//    may decline — encoded as the suspend on the ModifyDP action's `cost` field with the
-//    action itself `optional:true` (same pattern as BT2-084), not a separate mandatory
-//    Suspend action ahead of it.
 export const compiled: CompiledCard = {
   effects: [
     {
-      trigger: "WhenAttacking",
-      actions: [
-        {
-          kind: "AddDPFromSuspendedCost",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
-          dpSource: {
-            kind: "suspendedTarget",
-          },
-          duration: "forThisAttack",
-          alsoGainKeywords: [
-            {
-              keyword: "SecurityAttack",
-              amount: 1,
-              raw: "＜Security Attack +1＞",
-            },
-          ],
-          cost: {
-            kind: "suspend",
-            target: {
-              filter: {
-                controller: "mine",
-                zone: "battleArea",
-                excludeSelf: true,
-                kind: ["Digimon"],
-              },
-              count: 1,
-            },
-            raw: "by suspending 1 of your other Digimon",
-          },
-          optional: true,
-        },
-      ],
+      trigger: "Static",
+      actions: [],
+      keywords: [{ keyword: "Alliance", raw: "＜Alliance＞" }],
     },
     {
       trigger: "EndOfAttack",
