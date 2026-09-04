@@ -101,8 +101,8 @@ describe("EX4-006 Guilmon", () => {
     const guilmon = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "EX4-006")!;
     expect(observe(s.engine).hasKeyword(guilmon, "Rush")).toBe(true);
 
-    s.state.players[0]!.trash = [];
-    s.state.players[1]!.trash = [];
+    s.state.players[0]!.trash.splice(0);
+    s.state.players[1]!.trash.splice(0);
     await advance(s.engine).recompute();
     expect(observe(s.engine).hasKeyword(guilmon, "Rush")).toBe(true);
 

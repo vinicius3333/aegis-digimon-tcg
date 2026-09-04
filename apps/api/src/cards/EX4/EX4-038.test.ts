@@ -96,7 +96,7 @@ describe("EX4-038 Agumon", () => {
     );
     ownEvolution.state.memory = 10;
     await ownEvolution.ready();
-    await advance(ownEvolution.engine).fireForPermanent(EffectTiming.YourTurn, ownEvolution.perm("subject"));
+    await advance(ownEvolution.engine).fireForPermanent(EffectTiming.None, ownEvolution.perm("subject"));
     expect(
       ownEvolution.engine.applyIntent(0, {
         type: "digivolve",
