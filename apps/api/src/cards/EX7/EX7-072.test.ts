@@ -295,7 +295,9 @@ describe("EX7-072 [Main] grants a delayed self-delete choice to every opponent D
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
     expect(observe(s.engine).subscriptions("endOfOpponentTurn")).toHaveLength(2);
 
