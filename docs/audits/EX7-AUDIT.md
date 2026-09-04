@@ -21,6 +21,17 @@ final review, and push remain pending. No collection-wide 10/10 claim is made.
 
 ### Evidence follow-up
 
+- Recalculation confirms 74 contiguous catalog IDs (EX7-001..074), 74 direct
+  modules, and 74 colocated test files. Every module has one IR registration;
+  no legacy registration or unparsed node was found in this set.
+- Final payment/name corrections were synchronized in `971275b24`: 74 records,
+  55 semantic changes against the fixed base, zero semantic or byte changes
+  outside EX7. Shared and API production builds passed as part of this run.
+- Optimized affected mechanisms passed 3 files / 21 tests: Option use (11),
+  digivolution candidate legality (6), and exact-name matching (4).
+- Full `pnpm typecheck` passed for shared/API/web. Scoped lint, formatting,
+  and `git diff --check` passed after `e0d7b0d6b`. Subsequent test additions
+  still require the final collection and style check before closeout.
 - EX7-002 passed 4/4 focused tests, now including two completed legal attacks
   by the same inherited source with exactly one draw (`9937a6b94`).
 - Upper-range follow-up passed EX7-043 (5), 044 (5), 047 (5), 048 (4), 051
