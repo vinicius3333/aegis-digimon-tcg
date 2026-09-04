@@ -1,4 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX7-056.js";
 
 describe("EX7-056", () => {
@@ -18,4 +22,24 @@ describe("EX7-056", () => {
       keyword: "Retaliation",
       raw: "＜Retaliation＞",
     }));
+
+  it("publicly trashes a hand card on deletion and deletes opposing level 3 and level 4 Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX7-056", as: "oro" }], hand: ["BT1-001"] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "level3" },
+            { card: "EX7-041", as: "level4" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("oro"), "Blocker")).toBe(true);
+    await advance(s.engine).fire(EffectTiming.OnDestroyedAnyone, s.perm("oro"));
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
 });
