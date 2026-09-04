@@ -26,8 +26,8 @@ establish behavioral proof.
   the corrected API typecheck then passed twice. Shared, API, and web production
   builds passed. Changed TypeScript scope is lint- and format-clean, the ledger
   is format-clean, and `git diff --check` is clean.
-- Key late closeout commits include `44a73a004`, `4bf8b9877`, `7d9152951`,
-  `0223b520f`, and `f652b5864`. Independent final rereview and branch push
+- Key late closeout commits include `44a73a004`, `7d9152951`, `f652b5864`,
+  `39468e7a4`, and `ac27b48ef`. Independent final rereview and branch push
   remain pending; this ledger does not claim a pushed branch yet.
 
 Focused declaration inventory (recounted from `^\s*(it|test)\(`):
@@ -585,7 +585,7 @@ EX6-073=5  EX6-074=6
 ## EX6-061 — Leviamon — runtime verified
 
 - Catalog/KB evidence: the All Turns once-per-turn watcher triggers on an opponent Digimon play **or** a controller `Seven Great Demon Lords` Digimon play, trashes one hand card to return bottom three sources of an opposing Digimon to deck bottom, then conditionally deletes a stackless opponent Digimon; Q3803 confirms self play can trigger it, while Q3804/Q3805 define its non-battle Gate replacement and exclude the departing card from trash selection.
-- Defect corrected: generated IR encoded an AND-like opponent+trait watcher, a whole-permanent return, and a detached delete. Hand-fixed IR uses an executable OR source filter, a new bottom-stack mode on `ReturnTopDigivolutionCards`, nested mandatory Then delete with `boardCountCompare`, and trash-to-`breeding` Gate bottom placement; its primitive now inserts returned bottom-stack cards at deck bottom rather than ignoring the requested position.
+- Defect corrected: generated IR encoded an AND-like opponent+trait watcher, a whole-permanent return, and a detached delete. Hand-fixed IR uses an executable OR source filter, a new bottom-stack mode on `ReturnTopDigivolutionCards`, nested mandatory Then delete with `boardCountCompare`, and trash-to-`breeding` Gate bottom placement; its primitive now inserts returned bottom-stack cards at deck bottom rather than ignoring the requested position. The bracket-only Gate reference is an exact-name filter, rejecting longer near-name variants.
 - Focused runtime proof: the colocated suite exercises both play-watch sources, bottom-three stack return, board-count deletion, non-battle replacement, and breeding placement.
 - Status: runtime 10/10; focused proof is green.
 
@@ -641,7 +641,7 @@ EX6-073=5  EX6-074=6
 ## EX6-069 — Rise of the Seven Great Demon Lords — runtime verified
 
 - Catalog/KB evidence: Main optionally places a Seven Great Demon Lords card from hand/trash under a breeding Gate, then places itself in battle; deletion arms Delay to optionally play one such Digimon specifically from that Gate's digivolution cards. Q3819 permits the Main Option placement even without a source card.
-- Defects corrected: the Delay play could enumerate unrelated own stacks, and the Main placement defaulted directly below the stack top rather than the printed bottom. Its `hostFilter` now explicitly restricts digivolution-card candidates to a controller-owned `Gate of Deadly Sins` in `breeding`, and Main explicitly sets `position: "bottom"`.
+- Defects corrected: the Delay play could enumerate unrelated own stacks, and the Main placement defaulted directly below the stack top rather than the printed bottom. Its `hostFilter` now explicitly restricts digivolution-card candidates to an exact-name controller-owned `Gate of Deadly Sins` in `breeding`; the Main placement uses the same exact-name Gate filter and explicitly sets `position: "bottom"`.
 - Focused runtime proof: the five-case colocated suite executes Main placement, the optional breeding placement, Q3819's decline path, Security placement, and the public Delay activation that plays specifically from the breeding Gate's sources.
 - Status: runtime 10/10; focused proof is green.
 
@@ -675,6 +675,6 @@ EX6-073=5  EX6-074=6
 ## EX6-074 — Mirei Mikagura — runtime verified
 
 - Catalog evidence: after a controller Holy Beast/Archangel/Fallen Angel Digimon is played, suspending this Tamer gains one memory, then one controller Digimon may digivolve into Angewomon/LadyDevimon from trash with cost reduced by one. End of turn once-per-turn offers normal-requirement DNA Digivolve; Security plays this Tamer.
-- Defect corrected: the reduced Digivolve was detached as a top-level Your Turn action. It is now nested after the qualifying-play watcher’s optional, aborting self-suspend GainMemory head, preserving the printed Then sequence: a declined or unpayable Mirei cannot continue to the optional Digivolve, while the controller may decline activation.
+- Defect corrected: the reduced Digivolve was detached as a top-level Your Turn action. It is now nested after the qualifying-play watcher’s optional, aborting self-suspend GainMemory head, preserving the printed Then sequence: a declined or unpayable Mirei cannot continue to the optional Digivolve, while the controller may decline activation. Its bracket-only Angewomon/LadyDevimon destinations use exact-name matching and reject longer variants.
 - Focused runtime proof: the colocated suite exercises a qualifying play into suspend/memory/reduced trash digivolution for any controller Digimon, the declined/unpayable boundary, end-of-turn DNA once per turn, and public Security play.
 - Status: runtime 10/10; focused proof is green.
