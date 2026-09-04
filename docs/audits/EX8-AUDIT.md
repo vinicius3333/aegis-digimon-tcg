@@ -34,6 +34,7 @@ EX10 (74), EX11 (74), and EX12 (77); these sets have not begun in this run.
 | EX8-010 | 6/6 | `6e31c209c`: alternate evolution now uses off-color NSo EX8-030; off-color non-NSo rejection, On Play/On Deletion DP boundary, and inherited turn gate reconfirmed |
 | EX8-038 | 8/8 | `cf93ab20a`, `f7cd5c5a5`: unequal-DP battle proves inherited Retaliation on a legal green host; named off-color Koromon evolution, nonmatching egg rejection, both suspension controllers, and refusal |
 | EX8-039 | 6/6 | `862783bb9`, `55af3b526`: disjoint Insectoid/NSp selection, unrevealed anchors in positive and all-nonmatching reveals, off-color NSp egg evolution and rejection, legal green inherited host with turn gate |
+| EX8-040 | 7/7 | `4380b4788`: real off-color NSp evolution proves cost, draw and allied suspension; opposing On Play target, refusal, non-NSp rejection and legal inherited host turn gate |
 
 EX8-038's added Retaliation case initially used equal-DP combat, which would
 delete both Digimon without Retaliation. `cf93ab20a` corrects it to an unequal-DP
