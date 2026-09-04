@@ -6,22 +6,61 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const generated = getCompiledCard("EX5-072")!;
 export const compiled: CompiledCard = structuredClone(generated);
 
+// The generated record combines Use Requirement waiver and pay-time reduction in one Static
+// effect. The waiver consumer deliberately accepts waiver-only Static blocks, so split the
+// clauses while preserving their independent runtime semantics.
+const staticEffect = compiled.effects.find((effect) => effect.trigger === "Static");
+const waiver = staticEffect?.actions.find((action) => action.kind === "WaiveColorRequirement");
+if (staticEffect !== undefined && waiver !== undefined && staticEffect.actions.length > 1) {
+  staticEffect.actions = staticEffect.actions.filter((action) => action !== waiver);
+  compiled.effects.unshift({ trigger: "Static", actions: [waiver] });
+}
+
 // Q3685: exclude this card and count each qualifying trash name once.
 const reduction = compiled.effects
-  .find((effect) => effect.trigger === "Static")
-  ?.actions.find((action) => action.kind === "ReducePlayCost");
+  .filter((effect) => effect.trigger === "Static")
+  .flatMap((effect) => effect.actions)
+  .find((action) => action.kind === "ReducePlayCost");
 if (reduction?.kind === "ReducePlayCost") {
-  reduction.scaling.filter.uniqueByName = true;
+  reduction.scaling.filter.distinctNames = true;
   reduction.scaling.filter.excludeSelf = true;
+  const ownerHasQualifyingDigimon = {
+    kind: "youHave",
+    filter: {
+      controllerDefault: "mine",
+      kind: ["Digimon"],
+      nameOrTrait: [{ tokens: ["Deva", "Four Sovereigns"], match: "trait" }],
+    },
+  } as const;
+  const reductionEffect = compiled.effects.find(
+    (effect) => effect.trigger === "Static" && effect.actions.includes(reduction),
+  );
+  reductionEffect?.actions.splice(reductionEffect.actions.indexOf(reduction), 1);
+  compiled.effects.unshift({
+    trigger: "BeforePayCost",
+    actions: [
+      {
+        kind: "ReducePlayCost",
+        payment: { kind: "automatic", condition: ownerHasQualifyingDigimon },
+        amount: { kind: "fixed", value: reduction.amount },
+        scaling: reduction.scaling,
+      },
+    ],
+  });
 }
 const securityReturn = compiled.effects.find((effect) => effect.trigger === "Security")?.actions[0];
 if (securityReturn?.kind === "Return") {
-  securityReturn.target.filter.kind = ["Digimon"];
+  // Security text says "1 card with [Fanglongmon] in its name", not a Digimon card.
+  securityReturn.target.filter.kind = undefined;
 }
 const mainPlay = compiled.effects.find((effect) => effect.trigger === "Main")?.actions[0];
 if (mainPlay?.kind === "PlayWithoutCost") {
   mainPlay.from = ["hand"];
-  mainPlay.target.filter = { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Fanglongmon"], match: "name" }] };
+  mainPlay.target.filter = {
+    controller: "mine",
+    kind: ["Digimon"],
+    nameOrTrait: [{ tokens: ["Fanglongmon"], match: "name" }],
+  };
 }
 
 compiled.coverage = "full";

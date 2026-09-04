@@ -255,17 +255,25 @@ export function scaleFactor(ctx: EffectContext, scaling: Scaling): number {
     }
     case "trash": {
       const seats = seatsForController(ctx, { ...filter, controller: filter.controller ?? "mine" });
+      const names = filter.distinctNames === true ? new Set<string>() : undefined;
       for (const seat of seats) {
         const trash = ctx.game.player(seat).trash;
         const alternatives = (filter as Filter & { orFilters?: Filter[] }).orFilters ?? [];
-        raw += Array.from(trash).filter((c) => {
-          const definition = ctx.game.definitionOf(c);
-          return (
+        for (const card of trash) {
+          if (filter.excludeSelf === true && card.instanceId === ctx.source.instanceId) continue;
+          const definition = ctx.game.definitionOf(card);
+          const matches =
             definitionMatches(filter, definition) ||
-            alternatives.some((alternative) => definitionMatches(alternative, definition))
-          );
-        }).length;
+            alternatives.some((alternative) => definitionMatches(alternative, definition));
+          if (!matches) continue;
+          if (names !== undefined) {
+            names.add((definition.nameEn ?? card.cardId).toLowerCase());
+          } else {
+            raw++;
+          }
+        }
       }
+      if (names !== undefined) raw = names.size;
       break;
     }
     case "digivolutionCards": {

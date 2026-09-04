@@ -56,14 +56,11 @@ export const compiled: CompiledCard = {
         {
           kind: "PlaceInBattleAreaSelf",
           condition: {
-            kind: "boundCardHasTrait",
-            bindRef: "trashedCard",
-            nameOrTrait: [
-              {
-                tokens: ["Seven Great Demon Lords"],
-                match: "trait",
-              },
-            ],
+            kind: "lastTrashedMatchesFilter",
+            filter: {
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Seven Great Demon Lords"], match: "trait" }],
+            },
             raw: "the card trashed from your hand has the [Seven Great Demon Lords] trait",
           },
         },
@@ -121,7 +118,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Leviamon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },

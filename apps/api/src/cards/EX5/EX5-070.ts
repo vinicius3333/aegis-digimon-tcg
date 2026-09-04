@@ -11,7 +11,17 @@ if (digivolve?.kind === "Digivolve") {
   // The printed target is a Digimon *without* [X Antibody] in its digivolution cards.
   // `nameOrTrait` tests the top card and the generated record therefore selected the inverse.
   digivolve.target.filter.nameOrTrait = undefined;
-  digivolve.target.filter.digivolutionStackNameOrTrait = [{ tokens: ["X Antibody"], match: "trait", negate: true }];
+  digivolve.target.filter.digivolutionStackNameOrTrait = [{ tokens: ["X Antibody"], match: "nameExact", negate: true }];
+  digivolve.payCost = true;
+  digivolve.bindResultAs = "ex5-070-digivolved";
+  const placeUnder = main?.actions.find((action) => action.kind === "PlaceUnder");
+  if (placeUnder?.kind === "PlaceUnder") {
+    // Place Proto Form only after the preceding effect-driven digivolve succeeds.
+    placeUnder.condition = { kind: "ifThisEffectDigivolved" };
+    placeUnder.target = { filter: { isSelfRef: true }, count: 1, isSelf: true };
+    placeUnder.position = "bottom";
+    placeUnder.underFilter = { controller: "mine", boundRef: "ex5-070-digivolved" };
+  }
 }
 if (!compiled.effects.some((effect) => effect.trigger === "Rule")) {
   compiled.effects.push({
@@ -49,7 +59,7 @@ if (replacement?.kind === "Replacement") {
           controller: "mine",
           hostFilter: { isSelfRef: true },
           // [X Antibody] is a named card reference here, not the broad [X Antibody] trait.
-          nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }],
+          nameOrTrait: [{ tokens: ["X Antibody"], match: "nameExact" }],
         },
       },
       amount: 1,
