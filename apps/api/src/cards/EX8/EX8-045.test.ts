@@ -36,6 +36,7 @@ describe("EX8-045", () => {
       1: { battleArea: [{ card: "AD1-001", as: "target" }] },
     });
     await s.ready();
+    expect(observe(s.engine).hasPierce(s.perm("callismon"))).toBe(true);
     await settle(() => observe(s.engine).hasPierce(s.perm("callismon")));
 
     expect(s.perm("callismon").currentDP).toBe(13000);
@@ -52,6 +53,27 @@ describe("EX8-045", () => {
 
     expect(observe(s.engine).hasPierce(s.perm("callismon"))).toBe(false);
     expect(observe(s.engine).keywordAmount(s.perm("callismon"), "SecurityAttack")).toBe(0);
+  });
+
+  it("uses Security Attack +1 on a player attack while its conditional keywords are active", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX8-045", as: "callismon", under: ["EX8-032", "EX8-030"] }] },
+      1: {
+        battleArea: [{ card: "AD1-001", as: "target", dp: 5000, suspended: true }],
+        security: ["BT1-001", "BT1-001", "BT1-001"],
+      },
+    });
+    await s.ready();
+    expect(observe(s.engine).hasPierce(s.perm("callismon"))).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("callismon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.state.players[1]!.security).toHaveLength(1); // two checks from base +1 Security Attack.
   });
 
   it("suspends one opponent and may bottom-deck a different suspended Tamer", async () => {
