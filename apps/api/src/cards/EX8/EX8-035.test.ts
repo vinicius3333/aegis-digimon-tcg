@@ -3,7 +3,6 @@ import { EffectTiming } from "@aegis/shared";
 import { observe } from "../../engine/testkit/observe.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
-import "../BT10/BT10-023.js";
 import "./index.js";
 import { compiled } from "./EX8-035.js";
 
@@ -142,25 +141,42 @@ describe("EX8-035", () => {
     expect(digivolve.state.pendingDecision).toBeUndefined();
     expect(digivolve.state.players[1]!.hand.map((card) => card.cardId)).toEqual(["BT1-001", "BT1-028"]);
 
+    const preferInstanceIds: string[] = [];
     const attack = setupEngine(
       {
-        0: { battleArea: [{ card: "EX8-035", as: "marine" }] },
+        0: {
+          battleArea: [
+            { card: "EX8-035", as: "marine" },
+            { card: "EX8-017", as: "source-less" },
+          ],
+        },
         1: {
-          battleArea: [{ card: "BT10-023", as: "attacker", suspended: true }],
-          hand: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
-          deck: ["BT1-028", "BT1-037", "BT1-010"],
+          battleArea: [{ card: "EX8-023", as: "base", suspended: true }],
+          hand: [{ card: "EX8-028", as: "evolver" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
     );
+    preferInstanceIds.push(attack.perm("source-less").topCard.instanceId);
     attack.state.turnSeat = 1;
-    attack.state.memory = -1;
+    attack.state.memory = -3;
     await attack.ready();
-    const handBeforeAttacking = attack.state.players[1]!.hand.length;
-    expect(handBeforeAttacking).toBe(8);
-    await advance(attack.engine).fire(EffectTiming.OnUseAttack, attack.perm("attacker"));
-    await settle(() => attack.state.players[1]!.hand.length === handBeforeAttacking - 2);
-    expect(attack.state.players[1]!.hand).toHaveLength(handBeforeAttacking - 2);
-    expect(attack.perm("attacker").isSuspended).toBe(false);
+    expect(
+      attack.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: attack.perm("base").permanentId,
+        instanceId: attack.inst("evolver").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => attack.perm("base").topCard.cardId === "EX8-028");
+    expect(attack.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX8-017")).toBe(true);
+    expect(attack.state.players[0]!.security).toHaveLength(0);
+
+    await advance(attack.engine).fire(EffectTiming.OnUseAttack, attack.perm("base"));
+    await settle(() => attack.state.players[0]!.security.length === 1);
+    expect(attack.state.players[0]!.security[0]!.cardId).toBe("EX8-017");
+    expect(attack.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX8-017")).toBe(false);
+    expect(attack.perm("base").isSuspended).toBe(false);
   });
 });
