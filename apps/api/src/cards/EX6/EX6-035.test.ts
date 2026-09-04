@@ -3,6 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-035.js";
+import "../BT1/BT1-055.js";
 
 describe("EX6-035 Cherubimon", () => {
   it("has Blast Digivolve and Alliance and plays a level 4 or lower yellow/green Digimon", () => {
@@ -107,6 +108,33 @@ describe("EX6-035 Cherubimon", () => {
     const before = two.perm("opponent").currentDP;
     await advance(two.engine).fire(EffectTiming.OnPlay, two.perm("cherub"));
     expect(two.perm("opponent").currentDP).toBe(before - 8000);
+  });
+
+  it("resolves the played Digimon before the Then reduction and defers zero-DP deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX6-035", as: "cherub" },
+            { card: "BT1-009", as: "ally" },
+          ],
+          hand: [{ card: "BT1-055", as: "child" }],
+        },
+        1: { battleArea: [{ card: "EX6-031", as: "target", dp: 7000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("cherub"));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("child").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("child").instanceId)).toBe(
+      true,
+    );
+    expect(
+      s.state.players[1]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("target").instanceId),
+    ).toBe(false);
   });
 
   it("publicly applies the same scaled reduction when digivolving", async () => {
