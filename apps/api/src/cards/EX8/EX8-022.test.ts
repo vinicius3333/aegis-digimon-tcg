@@ -80,7 +80,7 @@ describe("EX8-022", () => {
   it("uses Ice Clad source count to win a lower-DP battle", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "EX8-022", as: "frigimon", dp: 1000, under: ["BT1-001", "BT1-009"] }],
+        battleArea: [{ card: "EX8-022", as: "frigimon", dp: 1000, under: ["BT1-003", "BT1-028"] }],
       },
       1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 15000, suspended: true }] },
     });
