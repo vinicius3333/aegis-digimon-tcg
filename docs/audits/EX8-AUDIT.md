@@ -25,6 +25,7 @@ catalog/KB/runtime/test verification. Current closure status: in progress.
 | EX8-003 | 4/4 | `67ad09bb3`: public attacks prove the condition and same-turn limit; turn-end processing restores the target's DP |
 | EX8-004 | 5/5 | Fresh trace and runtime: friendly distinct NSp play, NSp host, optional attack refusal, nonmatching negatives, and same-turn limit |
 | EX8-005 | 5/5 | Fresh trace and runtime: separate Mineral/Rock hosts, nonmatching host, and wrong discarded source; no code change |
+| EX8-006 | 7/7 | Fresh trace and runtime: NSo host, exact level-3 target, paid hand trash, refusal, insufficient cost, and same-turn limit; no code change |
 
 EX8-038's added Retaliation case initially used equal-DP combat, which would
 delete both Digimon without Retaliation. `cf93ab20a` corrects it to an unequal-DP
