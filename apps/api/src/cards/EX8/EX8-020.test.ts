@@ -38,6 +38,8 @@ describe("EX8-020", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.length === 8);
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    await advance(s.engine).verb.trash([s.state.players[0]!.hand[0]!.instanceId], 0);
+    expect(s.state.players[0]!.hand).toHaveLength(7);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -46,7 +48,7 @@ describe("EX8-020", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
-    expect(s.state.players[0]!.hand).toHaveLength(8);
+    expect(s.state.players[0]!.hand).toHaveLength(7);
   });
 
   it("does not draw above the seven-card boundary", async () => {
