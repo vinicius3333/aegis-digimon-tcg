@@ -34,7 +34,8 @@ describe("EX6-032 Lopmon", () => {
     expect(s.perm("opponent").isSuspended).toBe(true);
   });
 
-  it("does not suspend a friendly Digimon when an opposing target is unavailable", async () => {
+  it("can suspend a friendly Digimon because the target is not opponent-scoped", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -45,11 +46,12 @@ describe("EX6-032 Lopmon", () => {
         },
         1: {},
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     await s.ready();
+    preferred.push(s.perm("ally").topCard!.instanceId);
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("lopmon"));
-    expect(s.perm("ally").isSuspended).toBe(false);
+    expect(s.perm("ally").isSuspended).toBe(true);
   });
 
   it("publicly reduces an opposing Digimon by 2000 from its inherited attack effect", async () => {
