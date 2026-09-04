@@ -46,7 +46,7 @@ EX10 (74), EX11 (74), and EX12 (77); these sets have not begun in this run.
 | EX8-022 | 8/8 | `838a3f219`, `04b7c19ba`: legal source stacks, actual Ice Clad count-over-DP battle, opposing attack with no security checks under inherited -1, expiry, and alternate-route rejection |
 | EX8-023 | 9/9 | `d1cde8569`: explicit Q3883 security check with a legal Ice Clad winning stack; real On Play paths, legal opposing stacks, frozen battle reactions and post-removal passive refresh. Shared review Ready |
 | EX8-024 | 9/9 | `f5a4e98a8`: actual attacks and restriction attempts, inherited cost refusal/limit, legal stacks and duration checks |
-| EX8-025 | 10/10 tests; fixture review OPEN | `5ccbac868`, `54716e6ae`: redirect runtime added, but the initial Red Marsmon over Blue Whamon stack requires a color-compatible replacement or actual effect-placement proof before acceptance |
+| EX8-025 | 10/10 | `f1248008c` supersedes the invalid Marsmon setup with actual Blue evolutions into Whamon and EX12-048 SeitenGokuumon. Raid attempts a redirect, Whamon prevents it, and both security checks resolve against the player. Coordinator 025/034 verification: 17/17 |
 | EX8-026 | 8/8 | `73e75d431`: actual Counter/Blast Digivolve added to live threshold, Blitz restriction and DS removal proofs |
 | EX8-027 | 8/8 | `458148279`, `12e4ff3b7`: legal foreign-source fixture, optional playback refusal, public DNA timing and Q3896 trigger ordering |
 | EX8-028 | 10/10 | `d97d82b55`: real Ice Clad/Barrier combat, attack activation and added boundary/refusal evidence |
@@ -56,8 +56,8 @@ EX10 (74), EX11 (74), and EX12 (77); these sets have not begun in this run.
 | EX8-032 | 3/3 | `2fbcd5bd2`, `938c60529`: legal yellow level-5 host, two-attack inherited limit and expiry; off-color NSo evolution explicitly proves cost, source retention and draw, with a non-NSo rejection |
 | EX8-033 | 4/4 | `0b79911cc`: legal purple level-6 inherited Recovery host, actual NSo evolution recovery, and On Deletion DP expiry |
 | EX8-034 | 7/7 | `eeeb07233`, `6da0481ef`: deletion Security Attack debuff expiry, two actual inherited attacks with explicit security result and DP expiry, and a resolved optional refusal with no pending decision and preserved host/hand. The earlier security-fixture correction remains sound |
-| EX8-035 | 6/6; review OPEN | `daaacda44`: real opposing digivolution suppresses BT16-020's draw at the memory gate; actual Security battle grants both debuffs and returns the card to its owner's hand. Pending: Security debuff expiry and Q3917–Q3920 runtime interactions |
-| EX8-036 | 6/6; review OPEN | `667bc497e`: actual hand/trash evolution-play routes, play-cost-6 rejection, and On Deletion deck recovery. The alleged refusal leaves an optional decision pending and must be replaced with a resolved decline |
+| EX8-035 | 7/7; rereview pending | `7c9a0c483`: worker reports Security debuff expiry, disabled evolution by-cost nonprocessing, and preserved attacking timing with BT10-023. Prior live Security return and memory gates retained |
+| EX8-036 | 6/6 | `437235a1f`: public respondDecision(false) replaces the pending pseudo-refusal; explicit no-pending-decision, preserved host, one battle-area permanent and hand candidate assertions accompany hand/trash routes, cost ceiling and recovery |
 | EX8-037 | 7/7; review OPEN | `e361926b3`: real Option use, second-attack once-per-turn gate, no-cost proof, independent X Antibody stack token branch and alternate evolution rejection. Pending: resolved decline, Q4738 evolution during Option resolution, and neither-source token-condition negative |
 | EX8-038 | 8/8 | `cf93ab20a`, `f7cd5c5a5`: unequal-DP battle proves inherited Retaliation on a legal green host; named off-color Koromon evolution, nonmatching egg rejection, both suspension controllers, and refusal |
 | EX8-039 | 6/6 | `862783bb9`, `55af3b526`: disjoint Insectoid/NSp selection, unrevealed anchors in positive and all-nonmatching reveals, off-color NSp egg evolution and rejection, legal green inherited host with turn gate |
@@ -73,6 +73,7 @@ EX10 (74), EX11 (74), and EX12 (77); these sets have not begun in this run.
 | EX8-055 | 7/7 | `6f7a45879`: actual attack trashes three sources, performs two security checks and proves expiry; explicit optional refusal for Q3940 |
 | EX8-059 | 10/10 | `c461132bd`: separate On Play/evolution refusals and no-hand cost failure, alongside successful grants and actual inherited attack |
 | EX8-060 | 14/14 | `6519bc573`: legal DNA pair, public optional intents, an additional Digimon before the bound attack, and Q3944 real orderTriggers sequences for the simultaneous group |
+| EX8-074 | 7/7; shared-fix review OPEN | Coordinator replaced the memory -10 pseudo-failure with memory 0 and one available Digimon (Q3986), exposing acceptance of a partial fixed-count suspension cost. Uncommitted shared payment guard restores 7/7; selected shared suspension regressions 7/7 and API typecheck passed. Other KB edges remain subject to final review |
 
 ### Intermediate gates — collection not yet closed
 
