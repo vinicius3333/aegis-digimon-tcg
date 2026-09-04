@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { type PlayerState } from "@aegis/shared";
+import { EffectTiming, type PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
@@ -27,6 +27,11 @@ describe("EX5-062 deletes a Lv.5- opp Digimon when an effect plays your Digimon"
       unit: "namedCount",
       countSource: "anubismonTrashed",
     });
+    expect(
+      compiled.effects
+        ?.filter((effect) => effect.trigger === "Main" || effect.trigger === "WhenDigivolving")
+        .map((effect) => effect.sharedUseKey),
+    ).toEqual(["ir-shared-0", "ir-shared-0"]);
 
     const s = setupEngine(
       {
@@ -151,5 +156,43 @@ describe("EX5-062 deletes a Lv.5- opp Digimon when an effect plays your Digimon"
     });
     await settle();
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === oppLv5Id)).toBe(true);
+  });
+
+  it("shares one once-per-turn use between Main and When Digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: ANUBIS, as: "anubis" }],
+          hand: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+          trash: [
+            { card: PURPLE_PLAY, as: "first" },
+            { card: PURPLE_PLAY, as: "second" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    const main = observe(s.engine)
+      .activatableEffects(s.perm("anubis"))
+      .find((entry) => /trash/i.test(entry.description ?? ""));
+    if (main?.instanceId === undefined) throw new Error("EX5-062 Main trash effect is unavailable");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: main.instanceId,
+        effectKey: main.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("first").instanceId),
+    );
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("anubis"));
+
+    expect(s.state.players[0]!.battleArea.filter((p) => p.topCard?.cardId === PURPLE_PLAY)).toHaveLength(1);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("second").instanceId)).toBe(true);
   });
 });

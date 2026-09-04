@@ -91,6 +91,32 @@ describe("EX5-072 Holy Beasts Great Cardinal Positions", () => {
     expect(s.state.memory).toBe(0);
   });
 
+  it("applies the trash-name reduction without requiring the separate waiver Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-095", as: "whiteTamer" }],
+          hand: [
+            { card: "EX5-072", as: "option" },
+            { card: "EX5-074", as: "fanglongmon" },
+          ],
+          trash: ["BT10-079", "BT6-029", "BT10-079"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 12;
+    await s.ready();
+    const optionInstanceId = s.inst("option").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionInstanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === optionInstanceId));
+
+    expect(s.state.memory).toBe(2);
+  });
+
   it("declines the optional Main play when no Fanglongmon-name Digimon is in hand", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "BT6-029", as: "waiver" }], hand: [{ card: "EX5-072", as: "option" }, "BT1-009"] } },

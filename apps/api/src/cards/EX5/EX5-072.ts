@@ -18,31 +18,20 @@ if (staticEffect !== undefined && waiver !== undefined && staticEffect.actions.l
 
 // Q3685: exclude this card and count each qualifying trash name once.
 const reduction = compiled.effects
-  .filter((effect) => effect.trigger === "Static")
   .flatMap((effect) => effect.actions)
   .find((action) => action.kind === "ReducePlayCost");
 if (reduction?.kind === "ReducePlayCost") {
   reduction.scaling.filter.distinctNames = true;
   reduction.scaling.filter.excludeSelf = true;
-  const ownerHasQualifyingDigimon = {
-    kind: "youHave",
-    filter: {
-      controllerDefault: "mine",
-      kind: ["Digimon"],
-      nameOrTrait: [{ tokens: ["Deva", "Four Sovereigns"], match: "trait" }],
-    },
-  } as const;
-  const reductionEffect = compiled.effects.find(
-    (effect) => effect.trigger === "Static" && effect.actions.includes(reduction),
-  );
+  const reductionEffect = compiled.effects.find((effect) => effect.actions.includes(reduction));
   reductionEffect?.actions.splice(reductionEffect.actions.indexOf(reduction), 1);
   compiled.effects.unshift({
     trigger: "BeforePayCost",
     actions: [
       {
         kind: "ReducePlayCost",
-        payment: { kind: "automatic", condition: ownerHasQualifyingDigimon },
-        amount: { kind: "fixed", value: reduction.amount },
+        payment: { kind: "automatic", condition: { kind: "true" } },
+        amount: { kind: "fixed", value: reduction.amount.value },
         scaling: reduction.scaling,
       },
     ],
