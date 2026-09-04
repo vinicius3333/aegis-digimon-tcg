@@ -5,7 +5,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX7-049.js";
 import "../index.js";
-describe("EX7-049 Bryweludramon", () => {
+describe("EX7-049 Metallicdramon", () => {
   it("De-Digivolves four on play and attack, stopping at level 3", () => {
     for (const trigger of ["OnPlay", "WhenAttacking"])
       expect(compiled.effects?.find((e) => e.trigger === trigger)?.actions[0]).toMatchObject({
