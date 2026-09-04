@@ -90,7 +90,7 @@ describe("EX8-038", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "AD1-001", as: "host", dp: 1000, under: ["EX8-038"] }] },
-        1: { battleArea: [{ card: "AD1-001", as: "target", dp: 1000, suspended: true }] },
+        1: { battleArea: [{ card: "AD1-001", as: "target", dp: 3000, suspended: true }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
