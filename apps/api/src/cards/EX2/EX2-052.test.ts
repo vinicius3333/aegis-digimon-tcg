@@ -56,4 +56,14 @@ describe("EX2-052 ADR-06 Horn Striker", () => {
       }),
     ).toMatchObject({ ok: false });
   });
+
+  it("does not gain Rush during the opponent's turn even while Mother D-Reaper is in play", async () => {
+    const s = setupEngine({
+      0: { battleArea: ["EX2-007", { card: "EX2-052", as: "striker" }] },
+      1: { deck: ["BT1-001"] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("striker"), "Rush")).toBe(false);
+  });
 });

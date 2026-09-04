@@ -48,6 +48,33 @@ describe("EX2-048 ADR-04 Bubbles", () => {
     ).toBe(false);
   });
 
+  it("chooses exactly one Searcher across the hand and battle-area source pools", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX2-007", as: "mother" },
+            { card: "EX2-046", as: "fieldSearcher" },
+          ],
+          hand: [
+            { card: "EX2-048", as: "bubbles" },
+            { card: "EX2-046", as: "handSearcher" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("handSearcher").instanceId);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("bubbles").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("mother").stack.some((card) => card.instanceId === s.inst("handSearcher").instanceId));
+    expect(s.perm("mother").stack.map((card) => card.instanceId)).toContain(s.inst("handSearcher").instanceId);
+    expect(s.perm("fieldSearcher").topCard.instanceId).toBe(s.inst("fieldSearcher").instanceId);
+  });
+
   it("leaves the Searcher in hand when the optional placement is declined", async () => {
     const s = setupEngine(
       {
