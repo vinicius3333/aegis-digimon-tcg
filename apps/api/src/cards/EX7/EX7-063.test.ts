@@ -3,6 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX7-063.js";
+import "../index.js";
 
 describe("EX7-063", () => {
   it("gains 1 memory when the opponent has a Digimon", () =>
@@ -79,6 +80,34 @@ describe("EX7-063", () => {
     await advance(s.engine).verb.deletePermanent([s.perm("ordinary").permanentId], "byEffect");
     expect(s.perm("arisa").isSuspended).toBe(false);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("replacement").instanceId);
+  });
+
+  it("responds to deletion of a non-Puppet Token by paying its suspension cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX7-063", as: "arisa" },
+            { card: "BT5-084", as: "diaboromon" },
+          ],
+          hand: [{ card: "BT13-035", as: "replacement" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("diaboromon"));
+    const token = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "TOKEN-Diaboromon");
+    expect(token).toBeDefined();
+    s.state.memory = 3;
+    expect(await advance(s.engine).verb.deletePermanent([token!.permanentId], "byEffect")).toBe(1);
+    expect(s.perm("arisa").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-035")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === token!.permanentId)).toBe(
+      false,
+    );
+    expect(s.state.memory).toBe(3);
   });
 
   it("plays itself when revealed as a Security card", async () => {
