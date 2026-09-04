@@ -19,18 +19,25 @@ export const compiled: CompiledCard = {
           },
           from: ["security"],
           payCost: false,
+          withoutBattle: true,
         },
         {
-          kind: "Return",
-          target: {
-            filter: {
-              isSelfRef: true,
+          kind: "SubTrigger",
+          event: "endOfTurn",
+          once: true,
+          actions: [
+            {
+              kind: "Return",
+              target: {
+                filter: {
+                  isSelfRef: true,
+                },
+                count: 1,
+                isSelf: true,
+              },
+              to: "hand",
             },
-            count: 1,
-            isSelf: true,
-          },
-          to: "hand",
-          scheduling: "endOfTurn",
+          ],
         },
       ],
     },

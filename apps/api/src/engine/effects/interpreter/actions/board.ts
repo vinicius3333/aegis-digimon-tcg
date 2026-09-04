@@ -64,7 +64,10 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       // changed orientation, not merely the candidates selected by the player.
       const suspendedIds = suspendResult;
       if ((action as { preventUnsuspend?: string }).preventUnsuspend === "opponentNextUnsuspendPhase") {
-        for (const id of suspendedIds) {
+        // This continuation applies to the chosen Digimon even when it was already suspended.
+        // The printed "that Digimon doesn't unsuspend" still resolves in that state (EX4-013,
+        // Q3451); only "if this effect suspended" conditions use the transition receipt.
+        for (const id of ids) {
           ctx.fx.restrict(id, "unsuspend", toDuration("untilOpponentNextUnsuspendPhase"));
         }
       }
