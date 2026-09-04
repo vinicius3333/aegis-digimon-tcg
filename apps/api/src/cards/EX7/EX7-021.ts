@@ -84,12 +84,6 @@ export const compiled: CompiledCard = {
           target: {
             filter: {
               isSelfRef: true,
-              nameOrTrait: [
-                {
-                  tokens: ["Ice-Snow"],
-                  match: "trait",
-                },
-              ],
             },
             count: 1,
             isSelf: true,
@@ -102,13 +96,18 @@ export const compiled: CompiledCard = {
             },
           },
           while: {
-            kind: "opponentHasNone",
-            filter: {
-              digivolutionCards: "hasAny",
-              controllerDefault: "opponent",
-              kind: ["Digimon"],
-            },
-            raw: "your opponent has no Digimon with digivolution cards",
+            kind: "allOf",
+            conditions: [
+              {
+                kind: "selfHasTrait",
+                filter: { nameOrTrait: [{ tokens: ["Ice-Snow"], match: "trait" }] },
+              },
+              {
+                kind: "opponentHasNone",
+                filter: { digivolutionCards: "hasAny", controllerDefault: "opponent", kind: ["Digimon"] },
+              },
+            ],
+            raw: "this Digimon has Ice-Snow and your opponent has no Digimon with digivolution cards",
           },
         },
         {
@@ -116,12 +115,6 @@ export const compiled: CompiledCard = {
           target: {
             filter: {
               isSelfRef: true,
-              nameOrTrait: [
-                {
-                  tokens: ["Ice-Snow"],
-                  match: "trait",
-                },
-              ],
             },
             count: 1,
             isSelf: true,
@@ -135,13 +128,18 @@ export const compiled: CompiledCard = {
             },
           },
           while: {
-            kind: "opponentHasNone",
-            filter: {
-              digivolutionCards: "hasAny",
-              controllerDefault: "opponent",
-              kind: ["Digimon"],
-            },
-            raw: "your opponent has no Digimon with digivolution cards",
+            kind: "allOf",
+            conditions: [
+              {
+                kind: "selfHasTrait",
+                filter: { nameOrTrait: [{ tokens: ["Ice-Snow"], match: "trait" }] },
+              },
+              {
+                kind: "opponentHasNone",
+                filter: { digivolutionCards: "hasAny", controllerDefault: "opponent", kind: ["Digimon"] },
+              },
+            ],
+            raw: "this Digimon has Ice-Snow and your opponent has no Digimon with digivolution cards",
           },
         },
       ],
