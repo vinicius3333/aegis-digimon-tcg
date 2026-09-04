@@ -8,6 +8,7 @@ export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
+      isInherited: true,
       actions: [
         {
           kind: "SubTrigger",
@@ -19,6 +20,11 @@ export const compiled: CompiledCard = {
           actions: [{ kind: "DeDigivolve", target: anyOpponentDigimon, amount: 1, stopAtLevel: 3 }],
           raw: "When an effect trashes this digivolution card, De-Digivolve 1 an opponent Digimon",
         },
+      ],
+    },
+    {
+      trigger: "Static",
+      actions: [
         {
           kind: "WaiveColorRequirement",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
