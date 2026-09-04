@@ -45,6 +45,7 @@ describe("EX8-047", () => {
             { card: "EX8-048", as: "mineral" },
             { card: "EX8-065", as: "liberator" },
             { card: "AD1-001", as: "rest" },
+            { card: "BT1-001", as: "anchor" },
           ],
         },
       },
@@ -62,7 +63,10 @@ describe("EX8-047", () => {
     );
     expect(player.hand.some((card) => card.instanceId === s.inst("mineral").instanceId)).toBe(true);
     expect(player.hand.some((card) => card.instanceId === s.inst("liberator").instanceId)).toBe(true);
-    expect(player.deck.at(-1)?.instanceId).toBe(s.inst("rest").instanceId);
+    expect(player.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("anchor").instanceId,
+      s.inst("rest").instanceId,
+    ]);
   });
 
   it("deletes an opposing low-cost Digimon from a qualifying host", async () => {
