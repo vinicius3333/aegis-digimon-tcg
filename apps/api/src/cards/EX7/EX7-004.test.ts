@@ -68,4 +68,24 @@ describe("EX7-004 Wormmon", () => {
 
     assertNoLoudGap(s);
   });
+
+  it("does not gain memory when the battle does not delete the opponent", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", dp: 4000, under: ["EX7-004"], as: "host" }] },
+      1: { battleArea: [{ card: "BT1-009", dp: 5000, suspended: true, as: "defender" }] },
+    });
+    await s.ready();
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => false, 20);
+
+    expect(s.state.memory).toBe(3);
+  });
 });

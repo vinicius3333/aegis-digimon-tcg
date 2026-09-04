@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { compiled } from "./EX7-003.js";
 import { Zone } from "@aegis/shared";
 import { setupEngine, settle, assertNoLoudGap } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 
 describe("EX7-003 Kyaromon", () => {
   it("inherits -2000 DP to the opposing security Digimon battle value on your turn", () =>
@@ -40,5 +41,16 @@ describe("EX7-003 Kyaromon", () => {
     expect(opponent!.security).toHaveLength(0);
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === attacker.permanentId)).toBe(true);
     expect(battleTarget.currentDP).toBe(3000);
+  });
+
+  it("does not reduce security Digimon during the opponent's turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX7-004", under: ["EX7-003"], as: "host" }] },
+      1: { security: ["BT1-009"] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(observe(s.engine).securityDp(1)).toBe(0);
   });
 });

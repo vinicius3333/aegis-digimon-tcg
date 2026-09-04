@@ -32,4 +32,28 @@ describe("EX7-002 Terriermon", () => {
     expect(s.state.players[0]!.hand).toHaveLength(2);
     assertNoLoudGap(s);
   });
+
+  it("does not draw when the opposing Digimon has a digivolution card", async () => {
+    const s = setupEngine({
+      0: {
+        hand: ["AD1-001"],
+        deck: ["AD1-001"],
+        battleArea: [{ card: "AD1-001", as: "host", dp: 5000, under: ["EX7-002"] }],
+      },
+      1: {
+        battleArea: [{ card: "AD1-001", as: "target", dp: 3000, suspended: true, under: ["BT1-009"] }],
+      },
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => false, 20);
+
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+  });
 });
