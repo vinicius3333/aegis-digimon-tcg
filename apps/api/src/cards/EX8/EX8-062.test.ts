@@ -44,6 +44,10 @@ describe("EX8-062", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
     await settle(() => s.perm("target").currentDP === 4000);
     expect(s.perm("target").currentDP).toBe(4000);
+    s.state.memory = 0;
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("target").currentDP).toBe(12000);
   });
   it("distributes the four activations and delays 0-DP deletion until all four finish (Q3948-Q3950)", async () => {
     const s = setupEngine({
