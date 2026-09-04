@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "./index.js";
+import "../ST2/ST2-16.js";
 import { compiled } from "./EX8-043.js";
 
 describe("EX8-043", () => {
@@ -166,11 +167,14 @@ describe("EX8-043", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX8-043", as: "metal", suspended: true, under: ["BT1-009"] }],
+          battleArea: [{ card: "EX8-043", as: "metal", suspended: true, under: ["BT1-071"] }],
         },
         1: {
-          battleArea: [{ card: "AD1-001", as: "opponentEffect" }],
-          hand: [{ card: "EX8-049", as: "devolver" }],
+          battleArea: [{ card: "BT1-028", as: "blueSource" }],
+          hand: [
+            { card: "EX8-049", as: "devolver" },
+            { card: "ST2-16", as: "returnOption" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -188,6 +192,16 @@ describe("EX8-043", () => {
     await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "EX8-049"));
     expect(s.perm("metal").topCard?.cardId).toBe("EX8-043");
     expect(s.perm("metal").stack).toHaveLength(1);
+
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("returnOption").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("returnOption").instanceId));
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("returnOption").instanceId)).toBe(true);
+    expect(s.perm("metal").topCard.cardId).toBe("EX8-043");
+    expect(s.perm("metal").stack.map((card) => card.cardId)).toEqual(["BT1-071"]);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
 
     s.state.turnSeat = 0;
     await advance(s.engine).verb.returnToHand([s.perm("metal").topCard!.instanceId]);
