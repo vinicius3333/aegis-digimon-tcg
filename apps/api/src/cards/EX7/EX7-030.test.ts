@@ -72,4 +72,32 @@ describe("EX7-030", () => {
     await settle(() => s.perm("target").currentDP === 1000);
     expect(s.perm("target").currentDP).toBe(1000);
   });
+
+  it("executes the errata-mandated Overclock attack by deleting a Token", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX7-030", as: "cendrillmon", dp: 6000 },
+            { card: "TOKEN-Familiar-Token", as: "familiar", dp: 1000 },
+          ],
+        },
+        1: { security: ["BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const sourceId = s.perm("cendrillmon").permanentId;
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("cendrillmon"));
+    await settle(() => !s.state.players[0]!.battleArea.some((perm) => perm.topCard.cardId === "TOKEN-Familiar-Token"));
+
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard.cardId === "TOKEN-Familiar-Token")).toBe(false);
+    expect(
+      s.events.some(
+        (event) => event.kind === "attackDeclared" && (event as { attackerPermanentId?: string }).attackerPermanentId === sourceId,
+      ),
+    ).toBe(true);
+    expect(s.perm("cendrillmon").isSuspended).toBe(false);
+  });
 });
