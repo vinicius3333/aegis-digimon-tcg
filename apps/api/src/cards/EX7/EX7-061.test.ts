@@ -139,13 +139,13 @@ describe("EX7-061 Lilithmon (X Antibody)", () => {
     if (decline) expect(s.perm("cost").topCard?.cardId).toBe("BT1-009");
   });
 
-  it("does not prevent departure when the accepted cost deletion is itself prevented", async () => {
+  it("does not prevent departure when Armor Purge prevents the accepted cost deletion", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "EX7-061", as: "lilith", under: ["BT3-091"] },
-            { card: "EX7-041", as: "protectedCost" },
+            { card: "BT8-039", as: "protectedCost", under: ["BT8-046"] },
           ],
         },
         1: { battleArea: [] },
@@ -157,7 +157,8 @@ describe("EX7-061 Lilithmon (X Antibody)", () => {
 
     expect(await advance(s.engine).verb.deletePermanent([s.perm("lilith").permanentId], "byEffect")).toBe(1);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
-    expect(s.perm("protectedCost").topCard?.cardId).toBe("EX7-041");
+    expect(s.perm("protectedCost").topCard?.cardId).toBe("BT8-046");
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT8-039");
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("EX7-061");
   });
 
