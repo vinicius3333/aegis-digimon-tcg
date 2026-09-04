@@ -55,7 +55,11 @@ describe("EX6-008 ZubaEagermon", () => {
     const [effect] = JSON.parse(s.inst("eager").activatableEffectsJson || "[]") as Array<{ effectKey: string }>;
     expect(effect).toBeDefined();
     expect(
-      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: s.inst("eager").instanceId, effectKey: effect!.effectKey }),
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("eager").instanceId,
+        effectKey: effect!.effectKey,
+      }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").stack.some((card) => card.instanceId === s.inst("eager").instanceId));
     expect(s.state.memory).toBe(4);
@@ -79,7 +83,9 @@ describe("EX6-008 ZubaEagermon", () => {
   });
 
   it("does not offer the hand effect without a level-4 or Legend-Arms host", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "ineligible" }], hand: [{ card: "EX6-008", as: "eager" }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "ineligible" }], hand: [{ card: "EX6-008", as: "eager" }] },
+    });
     await s.ready();
     expect(JSON.parse(s.inst("eager").activatableEffectsJson || "[]")).toHaveLength(0);
   });

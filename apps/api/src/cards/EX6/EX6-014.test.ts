@@ -42,13 +42,24 @@ describe("EX6-014 Huankunmon", () => {
     );
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("huan"));
-    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("source").instanceId));
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("source").instanceId)).toBe(true);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("source").instanceId),
+    );
+    expect(
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("source").instanceId),
+    ).toBe(true);
   });
 
   it("publicly places another blue Digimon under the host to unsuspend it", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT1-027", as: "host", under: ["EX6-014"], suspended: true }, { card: "BT1-027", as: "other" }] } },
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-027", as: "host", under: ["EX6-014"], suspended: true },
+            { card: "BT1-027", as: "other" },
+          ],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();

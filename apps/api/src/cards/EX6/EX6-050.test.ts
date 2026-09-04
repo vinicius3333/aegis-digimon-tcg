@@ -35,7 +35,10 @@ describe("EX6-050 Feresmon", () => {
   });
   it("publicly trashes one opponent hand card on digivolving at seven cards without gaining memory", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX6-050", as: "feres" }] }, 1: { hand: Array.from({ length: 7 }, () => "BT1-010") } },
+      {
+        0: { battleArea: [{ card: "EX6-050", as: "feres" }] },
+        1: { hand: Array.from({ length: 7 }, () => "BT1-010") },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 0;

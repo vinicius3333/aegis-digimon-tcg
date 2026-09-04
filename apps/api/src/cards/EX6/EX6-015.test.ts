@@ -66,10 +66,17 @@ describe("EX6-015 Xiangpengmon", () => {
   });
 
   it("publicly plays an Aquatic stack card when one is added beneath itself", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX6-015", as: "host" }], hand: [{ card: "BT1-033", as: "added" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX6-015", as: "host" }], hand: [{ card: "BT1-033", as: "added" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     await advance(s.engine).verb.placeUnder(s.perm("host").permanentId, [s.inst("added").instanceId]);
-    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("added").instanceId));
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("added").instanceId)).toBe(true);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("added").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("added").instanceId)).toBe(
+      true,
+    );
   });
 });

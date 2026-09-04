@@ -46,7 +46,10 @@ describe("EX6-074 Mirei Mikagura", () => {
       payCost: false,
     }));
   it("publicly suspends Mirei and gains memory when a Holy Beast is played", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX6-074", as: "mirei" }], hand: [{ card: "BT1-046", as: "holy" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX6-074", as: "mirei" }], hand: [{ card: "BT1-046", as: "holy" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     s.state.memory = 0;
     await advance(s.engine).verb.playInstances([s.inst("holy").instanceId]);

@@ -22,7 +22,10 @@ describe("EX6-036 Keramon", () => {
       ],
     }));
   it("publicly adds the matching Tamer and Option from its reveal", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX6-036", as: "keramon" }], deck: ["BT5-090", "EX6-043", "BT1-001"] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX6-036", as: "keramon" }], deck: ["BT5-090", "EX6-043", "BT1-001"] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("keramon"));
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT5-090", "EX6-043"]));
@@ -30,7 +33,10 @@ describe("EX6-036 Keramon", () => {
   });
 
   it("publicly plays a Diaboromon token when an Unidentified Keramon is deleted", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT17-053", as: "host", under: ["EX6-036"] }] } }, { autoAcceptOptional: true });
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT17-053", as: "host", under: ["EX6-036"] }] } },
+      { autoAcceptOptional: true },
+    );
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "TOKEN-Diaboromon"));

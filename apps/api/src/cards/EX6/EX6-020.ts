@@ -33,7 +33,7 @@ export const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Mirei Mikagura"],
-                  match: "nameExact",
+                    match: "nameExact",
                   },
                 ],
               },

@@ -20,7 +20,10 @@ describe("EX6-060 Belphemon: Rage Mode", () => {
       ],
     }));
   it("publicly trashes available hand cards on play", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX6-060", as: "belphe" }], hand: ["BT1-009", "BT1-010"], deck: ["BT1-011"] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX6-060", as: "belphe" }], hand: ["BT1-009", "BT1-010"], deck: ["BT1-011"] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("belphe"));
     expect(s.state.players[0]!.hand).toHaveLength(0);
@@ -30,7 +33,13 @@ describe("EX6-060 Belphemon: Rage Mode", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX6-060", as: "belphe" }], hand: ["BT1-009", "BT1-010", "BT1-011"] },
-        1: { battleArea: [{ card: "BT1-009", as: "low" }, { card: "BT1-010", as: "mid" }, { card: "BT1-053", as: "high" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "low" },
+            { card: "BT1-010", as: "mid" },
+            { card: "BT1-053", as: "high" },
+          ],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

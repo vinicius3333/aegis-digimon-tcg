@@ -61,13 +61,23 @@ describe("EX6-038 Ludomon", () => {
   });
 
   it("does not expose the hand Main effect without a legal level 3 or Legend-Arms host", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-053", as: "ineligible" }], hand: [{ card: "EX6-038", as: "ludomon" }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-053", as: "ineligible" }], hand: [{ card: "EX6-038", as: "ludomon" }] },
+    });
     await s.ready();
     expect(JSON.parse(s.inst("ludomon").activatableEffectsJson || "[]")).toHaveLength(0);
   });
 
   it("does not draw when an unrelated host receives a stack card, and inherits DP on opponent turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "host", under: ["EX6-038"] }, { card: "BT1-009", as: "other" }], hand: [{ card: "BT1-010", as: "added" }] } });
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-009", as: "host", under: ["EX6-038"] },
+          { card: "BT1-009", as: "other" },
+        ],
+        hand: [{ card: "BT1-010", as: "added" }],
+      },
+    });
     s.state.turnSeat = 1;
     await s.ready();
     const before = s.state.players[0]!.deck.length;

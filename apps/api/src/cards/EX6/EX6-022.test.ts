@@ -34,10 +34,13 @@ describe("EX6-022 Angewomon", () => {
   });
 
   it("reduces one opposing Digimon's Security Attack by 2 when Mirei is present", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT11-094", as: "mirei" }], hand: [{ card: "EX6-022", as: "ange" }] },
-      1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
-    }, { autoSelectCards: true, autoAcceptOptional: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT11-094", as: "mirei" }], hand: [{ card: "EX6-022", as: "ange" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
     s.state.memory = 10;
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ange").instanceId })).toEqual({ ok: true });
@@ -52,7 +55,11 @@ describe("EX6-022 Angewomon", () => {
     );
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("ange"));
-    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("mirei").instanceId));
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("mirei").instanceId)).toBe(true);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("mirei").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("mirei").instanceId)).toBe(
+      true,
+    );
   });
 });

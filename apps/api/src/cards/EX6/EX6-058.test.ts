@@ -27,7 +27,18 @@ describe("EX6-058 Creepymon", () => {
       ],
     }));
   it("publicly deletes the opponent's lowest-DP Digimon on play", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX6-058", as: "creepy" }], deck: ["BT1-009"] }, 1: { battleArea: [{ card: "BT1-009", dp: 1000, as: "low" }, { card: "BT1-010", dp: 2000, as: "high" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX6-058", as: "creepy" }], deck: ["BT1-009"] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", dp: 1000, as: "low" },
+            { card: "BT1-010", dp: 2000, as: "high" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     const lowId = s.perm("low").permanentId;
     const highId = s.perm("high").permanentId;

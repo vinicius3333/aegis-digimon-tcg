@@ -32,7 +32,18 @@ describe("EX6-053 LadyDevimon", () => {
     });
   });
   it("publicly deletes an opposing level 4 Digimon when Mirei is present", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX6-053", as: "lady" }, { card: "EX6-074", as: "mirei" }] }, 1: { battleArea: [{ card: "BT1-053", as: "victim" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX6-053", as: "lady" },
+            { card: "EX6-074", as: "mirei" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-053", as: "victim" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("lady"));
     await settle(() => s.state.players[1]!.battleArea.length === 0);

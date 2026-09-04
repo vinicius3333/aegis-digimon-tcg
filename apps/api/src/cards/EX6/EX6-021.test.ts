@@ -30,8 +30,14 @@ describe("EX6-021 ArkhaiAngemon", () => {
 
   it("publicly trades the top security card for -4000 DP and an Angel security placement", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX6-021", as: "arkhai" }], security: [{ card: "BT1-001", as: "paid" }], hand: [{ card: "EX6-019", as: "angel" }] },
-        1: { battleArea: [{ card: "EX6-031", as: "opponent" }] } },
+      {
+        0: {
+          battleArea: [{ card: "EX6-021", as: "arkhai" }],
+          security: [{ card: "BT1-001", as: "paid" }],
+          hand: [{ card: "EX6-019", as: "angel" }],
+        },
+        1: { battleArea: [{ card: "EX6-031", as: "opponent" }] },
+      },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     await s.ready();
@@ -44,7 +50,13 @@ describe("EX6-021 ArkhaiAngemon", () => {
   });
 
   it("does not resolve the gated effects when the controller has no security", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX6-021", as: "arkhai" }] }, 1: { battleArea: [{ card: "EX6-031", as: "opponent" }] } }, { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX6-021", as: "arkhai" }] },
+        1: { battleArea: [{ card: "EX6-031", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
     await s.ready();
     const before = s.perm("opponent").currentDP;
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("arkhai"));

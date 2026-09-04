@@ -45,7 +45,15 @@ describe("EX6-040 TiaLudomon", () => {
   });
 
   it("publicly grants Blocker and Reboot only when its own host gains a stack card", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX6-040", as: "host", under: ["EX6-008"] }, { card: "EX6-008", as: "other" }], hand: [{ card: "BT1-009", as: "added" }] } });
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX6-040", as: "host", under: ["EX6-008"] },
+          { card: "EX6-008", as: "other" },
+        ],
+        hand: [{ card: "BT1-009", as: "added" }],
+      },
+    });
     await s.ready();
     await advance(s.engine).verb.placeUnder(s.perm("host").permanentId, [s.inst("added").instanceId]);
     await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {

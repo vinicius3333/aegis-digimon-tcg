@@ -19,7 +19,17 @@ describe("EX6-063 T.K. Takaishi & Kari Kamiya", () => {
     });
   });
   it("publicly grants Barrier to one of its controller's yellow Digimon on play", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX6-063", as: "tamer" }, { card: "BT1-053", as: "yellow" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX6-063", as: "tamer" },
+            { card: "BT1-053", as: "yellow" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("tamer"));
     expect(observe(s.engine).hasKeyword(s.perm("yellow"), "Barrier")).toBe(true);

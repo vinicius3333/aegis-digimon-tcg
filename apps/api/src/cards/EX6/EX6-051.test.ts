@@ -31,7 +31,10 @@ describe("EX6-051 NeoDevimon", () => {
     });
   });
   it("publicly deletes an opposing level 4 Digimon on play", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX6-051", as: "neo" }] }, 1: { battleArea: [{ card: "BT1-053", as: "victim" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX6-051", as: "neo" }] }, 1: { battleArea: [{ card: "BT1-053", as: "victim" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("neo"));
     await settle(() => s.state.players[1]!.battleArea.length === 0);

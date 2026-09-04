@@ -29,7 +29,13 @@ describe("EX6-027 Ophanimon", () => {
       ],
     }));
   it("publicly pays with security and gives an opposing Digimon -8000 DP", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "EX6-027", as: "oph" }], security: ["BT1-001"] }, 1: { battleArea: [{ card: "EX6-031", as: "opponent" }] } }, { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true });
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX6-027", as: "oph" }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "EX6-031", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
     s.state.memory = 10;
     await s.ready();
     const before = s.perm("opponent").currentDP;
@@ -39,7 +45,10 @@ describe("EX6-027 Ophanimon", () => {
   });
 
   it("does not offer the paid effect with no security cards", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX6-027", as: "oph" }] }, 1: { battleArea: [{ card: "EX6-031", as: "opponent" }] } }, { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true });
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX6-027", as: "oph" }] }, 1: { battleArea: [{ card: "EX6-031", as: "opponent" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
     await s.ready();
     const before = s.perm("opponent").currentDP;
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("oph"));

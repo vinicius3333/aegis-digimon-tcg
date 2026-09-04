@@ -40,7 +40,9 @@ describe("EX6-065 Mythical Arms of Salvation!", () => {
     );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-065"));
     expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("legend").instanceId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-065")).toBe(true);

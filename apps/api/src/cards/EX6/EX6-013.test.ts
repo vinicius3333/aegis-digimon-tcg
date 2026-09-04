@@ -20,7 +20,9 @@ describe("EX6-013 Xiquemon", () => {
   });
 
   it("draws one card when played from hand", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "EX6-013", as: "xique" }], deck: [{ card: "BT1-001", as: "drawn" }] } });
+    const s = setupEngine({
+      0: { hand: [{ card: "EX6-013", as: "xique" }], deck: [{ card: "BT1-001", as: "drawn" }] },
+    });
     s.state.memory = 10;
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("xique").instanceId })).toEqual({ ok: true });
@@ -30,7 +32,12 @@ describe("EX6-013 Xiquemon", () => {
 
   it("gains memory when publicly played from a digivolution stack", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX6-014", as: "host", under: [{ card: "EX6-013", as: "xique" }] }], deck: [{ card: "BT1-001", as: "drawn" }] } },
+      {
+        0: {
+          battleArea: [{ card: "EX6-014", as: "host", under: [{ card: "EX6-013", as: "xique" }] }],
+          deck: [{ card: "BT1-001", as: "drawn" }],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();

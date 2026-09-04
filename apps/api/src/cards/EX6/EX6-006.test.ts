@@ -116,6 +116,8 @@ describe("EX6-006 Gate of Deadly Sins", () => {
     await advance(s.engine).fire(EffectTiming.EndOfOpponentsTurn, s.perm("gate"));
 
     expect(s.state.players[0]!.breeding).toBeUndefined();
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("ogudomon").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("ogudomon").instanceId)).toBe(
+      true,
+    );
   });
 });

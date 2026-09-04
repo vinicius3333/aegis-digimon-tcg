@@ -55,7 +55,9 @@ describe("EX6-002 Yokomon", () => {
 
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
     expect(s.perm("host").stack).toHaveLength(2);
-    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("secondBlueLevel3").instanceId);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("secondBlueLevel3").instanceId,
+    );
   });
 
   it("may decline and cannot select a non-blue level 3", async () => {

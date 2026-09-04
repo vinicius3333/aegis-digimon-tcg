@@ -34,7 +34,10 @@ describe("EX6-016 Salamon", () => {
   });
 
   it("reduces an opposing Digimon by 2000 DP through its inherited attack effect", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "host", under: ["EX6-016"] }] }, 1: { battleArea: [{ card: "BT1-009", as: "opponent" }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["EX6-016"] }] },
+      1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+    });
     await s.ready();
     const before = s.perm("opponent").currentDP;
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));

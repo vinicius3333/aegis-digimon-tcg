@@ -61,7 +61,13 @@ describe("EX6-009 Duramon", () => {
     await s.ready();
     const [effect] = JSON.parse(s.inst("dura").activatableEffectsJson || "[]") as Array<{ effectKey: string }>;
     expect(effect).toBeDefined();
-    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: s.inst("dura").instanceId, effectKey: effect!.effectKey })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("dura").instanceId,
+        effectKey: effect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("host").stack.some((card) => card.instanceId === s.inst("dura").instanceId));
     expect(s.state.memory).toBe(3);
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);
@@ -84,7 +90,9 @@ describe("EX6-009 Duramon", () => {
   });
 
   it("does not offer the hand effect without a level-5 or Legend-Arms host", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-015", as: "ineligible" }], hand: [{ card: "EX6-009", as: "dura" }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-015", as: "ineligible" }], hand: [{ card: "EX6-009", as: "dura" }] },
+    });
     await s.ready();
     expect(JSON.parse(s.inst("dura").activatableEffectsJson || "[]")).toHaveLength(0);
   });

@@ -13,24 +13,44 @@ describe("EX6-068 Descent of the Three Great Angels", () => {
   });
   it("publicly places an Angel at security bottom before placing the Option in the battle area", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT1-055", as: "source" }], hand: [{ card: "EX6-068", as: "option" }, { card: "BT1-053", as: "angel" }] } },
+      {
+        0: {
+          battleArea: [{ card: "BT1-055", as: "source" }],
+          hand: [
+            { card: "EX6-068", as: "option" },
+            { card: "BT1-053", as: "angel" },
+          ],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-068"));
     expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("angel").instanceId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-068")).toBe(true);
   });
   it("publicly still places itself when the optional security placement is declined", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT1-055", as: "source" }], hand: [{ card: "EX6-068", as: "option" }, { card: "BT1-053", as: "angel" }] } },
+      {
+        0: {
+          battleArea: [{ card: "BT1-055", as: "source" }],
+          hand: [
+            { card: "EX6-068", as: "option" },
+            { card: "BT1-053", as: "angel" },
+          ],
+        },
+      },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-068"));
     expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("angel").instanceId)).toBe(false);
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-068")).toBe(true);

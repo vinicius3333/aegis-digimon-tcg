@@ -40,16 +40,30 @@ describe("EX6-048 Witchmon", () => {
   it("publicly ends an opponent attack by deleting another own Digimon", async () => {
     const s = setupEngine(
       {
-        0: { security: ["BT1-001"], battleArea: [{ card: "BT1-009", as: "host", under: ["EX6-048"] }, { card: "BT1-010", as: "cost" }] },
+        0: {
+          security: ["BT1-001"],
+          battleArea: [
+            { card: "BT1-009", as: "host", under: ["EX6-048"] },
+            { card: "BT1-010", as: "cost" },
+          ],
+        },
         1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.turnSeat = 1;
     await s.ready();
-    expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 1);
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("cost").instanceId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("cost").instanceId)).toBe(
+      false,
+    );
     expect(s.state.players[0]!.security).toHaveLength(1);
   });
 });

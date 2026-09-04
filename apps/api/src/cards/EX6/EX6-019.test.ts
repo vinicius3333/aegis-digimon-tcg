@@ -20,7 +20,10 @@ describe("EX6-019 Angemon", () => {
     expect(observe(top.engine).hasKeyword(top.perm("angemon"), "Barrier")).toBe(true);
 
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-060", as: "host", under: ["EX6-019"] }], deck: [{ card: "BT1-001", as: "drawn" }] },
+      0: {
+        battleArea: [{ card: "BT1-060", as: "host", under: ["EX6-019"] }],
+        deck: [{ card: "BT1-001", as: "drawn" }],
+      },
     });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Barrier")).toBe(false);
@@ -30,7 +33,10 @@ describe("EX6-019 Angemon", () => {
 
   it("does not draw from the inherited effect on a non-Angel host", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["EX6-019"] }], deck: [{ card: "BT1-001", as: "drawn" }] },
+      0: {
+        battleArea: [{ card: "BT1-009", as: "host", under: ["EX6-019"] }],
+        deck: [{ card: "BT1-001", as: "drawn" }],
+      },
     });
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));

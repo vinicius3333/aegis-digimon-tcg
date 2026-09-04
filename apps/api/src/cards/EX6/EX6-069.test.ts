@@ -31,16 +31,23 @@ describe("EX6-069 Rise of the Seven Great Demon Lords", () => {
         0: {
           breeding: { card: "EX6-006", as: "gate" },
           battleArea: [{ card: "EX6-056", as: "source" }],
-          hand: [{ card: "EX6-069", as: "option" }, { card: "EX6-059", as: "lord" }],
+          hand: [
+            { card: "EX6-069", as: "option" },
+            { card: "EX6-059", as: "lord" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-069"));
-    expect(s.state.players[0]!.breeding?.stack.some((card) => card.instanceId === s.inst("lord").instanceId)).toBe(true);
+    expect(s.state.players[0]!.breeding?.stack.some((card) => card.instanceId === s.inst("lord").instanceId)).toBe(
+      true,
+    );
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-069")).toBe(true);
   });
   it("publicly still places itself when the optional breeding placement is declined", async () => {
@@ -49,16 +56,23 @@ describe("EX6-069 Rise of the Seven Great Demon Lords", () => {
         0: {
           breeding: { card: "EX6-006", as: "gate" },
           battleArea: [{ card: "EX6-056", as: "source" }],
-          hand: [{ card: "EX6-069", as: "option" }, { card: "EX6-059", as: "lord" }],
+          hand: [
+            { card: "EX6-069", as: "option" },
+            { card: "EX6-059", as: "lord" },
+          ],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-069"));
-    expect(s.state.players[0]!.breeding?.stack.some((card) => card.instanceId === s.inst("lord").instanceId)).toBe(false);
+    expect(s.state.players[0]!.breeding?.stack.some((card) => card.instanceId === s.inst("lord").instanceId)).toBe(
+      false,
+    );
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-069")).toBe(true);
   });
 });

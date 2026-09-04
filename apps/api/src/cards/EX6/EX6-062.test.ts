@@ -27,7 +27,9 @@ describe("EX6-062 UltimateChaosmon", () => {
     ]);
   });
   it("publicly exposes the threshold keywords with four level 6 stack cards", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX6-062", as: "chaos", under: ["EX6-056", "EX6-057", "EX6-058", "EX6-059"] }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX6-062", as: "chaos", under: ["EX6-056", "EX6-057", "EX6-058", "EX6-059"] }] },
+    });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("chaos"), "SecurityAttack")).toBe(true);
     expect(observe(s.engine).hasPierce(s.perm("chaos"))).toBe(true);

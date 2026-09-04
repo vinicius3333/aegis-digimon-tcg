@@ -55,7 +55,9 @@ describe("EX6-005 Kakkinmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-009", as: "host", under: ["EX6-005", { card: "EX6-065", as: "legendArmsOption" }] }],
+          battleArea: [
+            { card: "BT1-009", as: "host", under: ["EX6-005", { card: "EX6-065", as: "legendArmsOption" }] },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

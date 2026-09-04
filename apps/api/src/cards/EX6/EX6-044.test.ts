@@ -17,7 +17,6 @@ import { createGameAccess, createEffectContext } from "../../engine/effects/cont
 import { consultLeavePrevention, type LeavePreventionHost } from "../../engine/effects/leavePrevention.js";
 import { irCardModule } from "../../engine/effects/interpreter.js";
 import type { EffectContext, RemovalCause } from "../../engine/effects/EffectContext.js";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";

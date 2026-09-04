@@ -34,7 +34,10 @@ describe("EX6-054 Lucemon: Chaos Mode", () => {
       actions: [{ kind: "PlayWithoutCost", from: ["trash"], payCost: false, optional: true }],
     }));
   it("publicly deletes an opposing Digimon on play", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX6-054", as: "chaos" }] }, 1: { battleArea: [{ card: "BT1-009", as: "victim" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX6-054", as: "chaos" }] }, 1: { battleArea: [{ card: "BT1-009", as: "victim" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("chaos"));
     await settle(() => s.state.players[1]!.battleArea.length === 0);

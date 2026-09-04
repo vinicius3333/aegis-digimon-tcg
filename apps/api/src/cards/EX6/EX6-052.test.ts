@@ -35,10 +35,17 @@ describe("EX6-052 Bastemon", () => {
       ],
     }));
   it("publicly plays a purple level 3 from trash on digivolving", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX6-052", as: "bastemon" }], trash: [{ card: "EX6-046", as: "revived" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX6-052", as: "bastemon" }], trash: [{ card: "EX6-046", as: "revived" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("bastemon"));
-    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("revived").instanceId));
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("revived").instanceId)).toBe(true);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("revived").instanceId),
+    );
+    expect(
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("revived").instanceId),
+    ).toBe(true);
   });
 });
