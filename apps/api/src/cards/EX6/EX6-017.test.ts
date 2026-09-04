@@ -51,7 +51,7 @@ describe("EX6-017 Luxmon", () => {
 
   it("publicly resolves both reveal buckets and bottoms the remaining card", async () => {
     const s = setupEngine(
-      { 0: { hand: [{ card: "EX6-017", as: "lux" }], deck: ["EX6-019", "EX6-027", "BT1-001"] } },
+      { 0: { hand: [{ card: "EX6-017", as: "lux" }], deck: ["EX6-019", "EX6-027", "BT1-009"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
@@ -61,6 +61,7 @@ describe("EX6-017 Luxmon", () => {
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("lux").instanceId),
     );
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["EX6-019", "EX6-027"]));
-    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(s.state.players[0]!.deck[0]!.cardId).toBe("BT1-009");
   });
 });

@@ -62,7 +62,12 @@ describe("EX6-023 Gokuumon", () => {
             { card: "EX6-025", as: "material" },
           ],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 6000 }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "opponent", dp: 6000 },
+            { card: "BT1-009", as: "overLimit", dp: 7000 },
+          ],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -75,8 +80,9 @@ describe("EX6-023 Gokuumon", () => {
         digiXros: { materialInstanceIds: [s.inst("material").instanceId] },
       } as never),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 0);
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea[0]!.topCard?.instanceId).toBe(s.inst("overLimit").instanceId);
     expect(s.perm("goku").stack.some((card) => card.instanceId === s.inst("material").instanceId)).toBe(true);
   });
 

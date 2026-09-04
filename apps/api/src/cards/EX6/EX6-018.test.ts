@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-018.js";
@@ -103,5 +102,24 @@ describe("EX6-018 Lucemon", () => {
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "EX6-019"));
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("EX6-019");
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("EX6-054");
+  });
+
+  it("still pays the level-6 security cost when no Chaos Mode is available in trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX6-018", as: "lucemon" },
+            { card: "EX6-029", as: "levelSix" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const levelSixId = s.inst("levelSix").instanceId;
+    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("lucemon"));
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === levelSixId)).toBe(true);
+    expect(s.perm("lucemon").topCard.cardId).toBe("EX6-018");
   });
 });
