@@ -8,9 +8,9 @@ establish behavioral proof.
 
 ## Current closeout — 2026-09-04
 
-- Focused inventory: all 74 colocated EX6 test files are green. The 346 source
-  declarations expand to 350 runtime cases through parameterized tests. The
-  final exact collection gate passed 74/74 files and 350/350 tests in serial
+- Focused inventory: all 74 colocated EX6 test files are green. The 361 source
+  declarations expand to 365 runtime cases through parameterized tests. The
+  final exact collection gate passed 74/74 files and 365/365 tests in serial
   mode with one fork.
 - Every card below is assessed `runtime 10/10` from its focused public-runtime
   evidence, direct module, catalog, and KB review. Per-card declaration counts
@@ -26,9 +26,9 @@ establish behavioral proof.
   the corrected API typecheck then passed twice. Shared, API, and web production
   builds passed. Changed TypeScript scope is lint- and format-clean, the ledger
   is format-clean, and `git diff --check` is clean.
-- Key late closeout commits include `a973a05d6`, `c4e4d2144`, `d6ddcebc2`,
-  `665b4b696`, and `d4e87915c`. Independent final review and branch push remain
-  pending; this ledger does not claim a pushed branch yet.
+- Key late closeout commits include `44a73a004`, `4bf8b9877`, `7d9152951`,
+  `0223b520f`, and `f652b5864`. Independent final rereview and branch push
+  remain pending; this ledger does not claim a pushed branch yet.
 
 Focused declaration inventory (recounted from `^\s*(it|test)\(`):
 
@@ -43,9 +43,9 @@ EX6-037=9  EX6-038=5  EX6-039=5  EX6-040=5 EX6-041=4 EX6-042=4
 EX6-043=4  EX6-044=5 EX6-045=4 EX6-046=4 EX6-047=4 EX6-048=4
 EX6-049=4  EX6-050=4 EX6-051=4 EX6-052=3 EX6-053=3 EX6-054=3
 EX6-055=5  EX6-056=3 EX6-057=3 EX6-058=3 EX6-059=3 EX6-060=4
-EX6-061=2  EX6-062=3 EX6-063=2 EX6-064=3 EX6-065=3 EX6-066=4
-EX6-067=3  EX6-068=3 EX6-069=3 EX6-070=3 EX6-071=2 EX6-072=3
-EX6-073=5  EX6-074=3
+EX6-061=5  EX6-062=3 EX6-063=2 EX6-064=3 EX6-065=5 EX6-066=4
+EX6-067=4  EX6-068=5 EX6-069=5 EX6-070=4 EX6-071=2 EX6-072=4
+EX6-073=5  EX6-074=6
 ```
 
 ## EX6-001 — Sakuttomon — runtime verified
@@ -126,14 +126,14 @@ EX6-073=5  EX6-074=3
 - Knowledge base: Q3703 confirms the hand Main must not activate without a legal level-5 or `Legend-Arms` placement host.
 - Defect corrected: the inherited target-switch `SubTrigger` was missing `sourceFilter.isSelfRef`, allowing it to react to a target switch from an unrelated attacker. The audited IR now gates the watcher to the exact host and retains its once-per-turn source identity. The hand Main is already expressed through supported atomic memory-plus-placement costs and a `placementTarget` binding; registration remains exclusively `registerIrCard("EX6-009", compiled)` with full coverage and no residual clauses.
 - Shared primitive trace: `activateEffect` preflights Q3703's legal host requirement; the action runner pays 2 and completes stack placement before applying Security Attack +1 to the bound host. `onAddDigivolutionCards` grants both turn-bounded combat keywords through the keyword ledger. `redirectAttack` emits `whenAttackTargetSwitched` with the attacker as event subject only after a successful redirection; `subTrigger.ts` now compares that subject to the inherited host, and `SecurityManipulation(trashTop)` removes exactly the opponent's security top.
-- Focused runtime proof: `effects/primitives.test.ts` proves the redirect event fires with the attacker as subject and does not fire on a declined redirect. The colocated EX6-009 test proves the IR contract but not Duramon's hand Main transaction, own-host gate, security movement, or once-per-turn boundary. These remain material card-level proof gaps; the focused colocated runtime suite is green for the card-specific branches and boundaries identified by the catalog and KB.
+- Focused runtime proof: `effects/primitives.test.ts` proves the redirect event fires with the attacker as subject and does not fire on a declined redirect. The colocated EX6-009 suite executes the hand Main transaction, legal-host gate, bound Security Attack grant, exact-host target-switch response, security movement, and once-per-turn boundary through public runtime seams.
 - Status: runtime 10/10; focused proof is green.
 
 ## EX6-010 — Durandamon — runtime verified
 
 - Catalog evidence: Red level 6, play cost 12, 12000 DP, evolves from a level-5 `Legend-Arms` Digimon for 4; form `Mega`, attribute `Vaccine`, traits `Holy Sword` and `Legend-Arms`. Its hand `[Main]` pays 3, places itself below one controller-owned level-6 or `Legend-Arms` Digimon, then deletes one opponent Digimon with DP no greater than that host. It has Raid and Piercing, and its When Digivolving allows one controller Digimon to attack. Its inherited Piercing additionally suppresses Security effects checked by a `RagnaLoardmon` host during the controller's turn.
 - Knowledge base: Q3704 confirms hand-Main activation needs a legal placement host. Q3705 confirms the optional When Digivolving attack does not bypass normal attack legality. Q3706 confirms an inherited security-suppression clause cannot retroactively suppress a Security effect after the host has been deleted in battle.
-- Direct IR: [`EX6-010.ts`](apps/api/src/cards/EX6/EX6-010.ts) begins from generated IR and replaces the hand Main action with explicit 3-memory and atomic placement costs, a placement-host binding, and an opponent DP comparison relative to that binding. It replaces the generated RagnaLoardmon clause with `DisableSecurityEffect` gated by `selfHasNameContaining(RagnaLoardmon)`. The module keeps full coverage and residual-free exclusive `registerIrCard("EX6-010", compiled)` registration.
+- Direct IR: [`EX6-010.ts`](apps/api/src/cards/EX6/EX6-010.ts) begins from generated IR and replaces the hand Main action with explicit 3-memory and atomic placement costs, a placement-host binding, and an opponent DP comparison relative to that binding. It replaces the generated RagnaLoardmon clause with `DisableSecurityEffect` gated by exact `selfHasName(RagnaLoardmon)`. The module keeps full coverage and residual-free exclusive `registerIrCard("EX6-010", compiled)` registration.
 - Shared primitive trace: `activateEffect` uses the fixed `effectKey`, preflights the supported atomic placement, charges three memory, and routes deletion through the DP-comparison target resolver. The continuous ledger records `DisableSecurityEffect` only while the inherited source is under an exact RagnaLoardmon host; Security resolution reads that ledger before security battle effects are collected. The normal attack controller retains the suspension/freshness/legality gates Q3705 requires.
 - Focused runtime proof: the colocated public-runtime suite exercises the catalog and KB clauses with applicable positive, negative, boundary, timing, and optionality cases; shared mechanism tests provide mapped primitive coverage.
 - Status: runtime 10/10; focused proof is green.
@@ -614,7 +614,8 @@ EX6-073=5  EX6-074=3
 ## EX6-065 — Mythical Arms of Salvation! — runtime verified
 
 - Catalog/KB evidence: the optional trash placement is followed by mandatory battle-area placement; its non-self-effect leave condition arms Delay, whose play must use the triggering Digimon's stack. Q3815 defines leave scope and Q3816 confirms the resulting play timing can activate RaijiLudomon's inherited prevention.
-- Direct IR/primitive trace: Main now has optional `PlaceUnder` then mandatory `PlaceInBattleAreaSelf`; `whenDigimonWouldLeave` explicitly gates `otherThanYourEffect` using preserved removal cause/effect-owner provenance before granting Delay, and the delayed Main play requires that armed Delay while sourcing only `sourceRef: triggerSubject` digivolution cards. Registration is exclusive `registerIrCard("EX6-065", compiled)`.
+- Direct IR/primitive trace: Main has optional `PlaceUnder` then mandatory `PlaceInBattleAreaSelf`; the intrinsic `whenDigimonWouldLeave` Delay trigger explicitly gates `otherThanYourEffect` using preserved removal cause/effect-owner provenance. Its nested zero-cost play sources only the triggering subject's digivolution cards, preserving that subject through Delay activation. Registration is exclusive `registerIrCard("EX6-065", compiled)`.
+- Focused runtime proof: the colocated suite exercises Main placement, Security placement, Delay arming from a qualifying leave, zero-cost play from the triggering stack, and a neutral aggregate fixture that cannot activate unrelated leave prevention.
 - Status: runtime 10/10; focused proof is green.
 
 ## EX6-066 — Sea of Destruction — runtime verified
@@ -641,14 +642,14 @@ EX6-073=5  EX6-074=3
 
 - Catalog/KB evidence: Main optionally places a Seven Great Demon Lords card from hand/trash under a breeding Gate, then places itself in battle; deletion arms Delay to optionally play one such Digimon specifically from that Gate's digivolution cards. Q3819 permits the Main Option placement even without a source card.
 - Defects corrected: the Delay play could enumerate unrelated own stacks, and the Main placement defaulted directly below the stack top rather than the printed bottom. Its `hostFilter` now explicitly restricts digivolution-card candidates to a controller-owned `Gate of Deadly Sins` in `breeding`, and Main explicitly sets `position: "bottom"`.
-- Focused execution: coordinator ran `EX6-070.test.ts` in the first authorized serial window using forks, `singleFork`, and no file parallelism. After correcting the test-only registry import to `../../engine/effects/registry.js`, it passed reproducibly: 1 file, 2/2 tests, 7.53s.
+- Focused runtime proof: the five-case colocated suite executes Main placement, the optional breeding placement, Q3819's decline path, Security placement, and the public Delay activation that plays specifically from the breeding Gate's sources.
 - Status: runtime 10/10; focused proof is green.
 
 ## EX6-070 — Phantom Pain — runtime verified
 
 - Catalog/KB evidence: Main gives an opposing Digimon delayed end-turn self-deletion then places this Option in battle; at opponent end, a controller Lilithmon condition arms Delay to optionally delete an unsuspended opponent Digimon. Q3820/Q4255 cover target immunity expiry and breeding relocation timing.
 - Defect corrected: automatic Delete with a self-delete cost did not model an executable Delay. End-of-opponent-turn now grants Delay under the Lilithmon condition, and a Delay-keyword Main entry carries optional armed-only unsuspended opponent deletion; its self-trash activation cost is paid once by the Delay wrapper, not again by the payload. The shared OnDeclaration wrapper now also stops that payload when source trash is prevented or fails, matching the other Delay wrappers.
-- Focused runtime proof: the colocated suite exercises armed Delay source-trash failure, end-turn timing, and the boundary that an unsuspended opposing Digimon remains when the source cannot be trashed.
+- Focused runtime proof: the colocated suite exercises the positive end-of-opponent-turn arm and public Delay activation through the Option permanent, observing target deletion and source trash, plus the source-trash failure boundary that leaves an unsuspended opponent Digimon intact.
 - Status: runtime 10/10; focused proof is green.
 
 ## EX6-071 — Pandemonium Lost — runtime verified
@@ -661,6 +662,7 @@ EX6-073=5  EX6-074=3
 
 - Catalog/KB evidence: color requirements waive against an opposing level-6-or-higher Digimon; Main optionally DNA digivolves one controller level-6 battle Digimon and one controller hand card into a level-7 hand Digimon, retaining required material legality (Q3822); Security returns one level-6-or-higher trash Digimon then adds this Option to hand.
 - Direct IR/primitive trace: independent battle/hand material slots feed `DnaDigivolve`, with target level seven and normal requirements; Security sequences loose trash return then `AddToHandSelf`. The focused test now correctly identifies Mega Digimon Assembly!, with full coverage and exclusive registration.
+- Focused runtime proof: the colocated suite exercises Main DNA legality and the public Security sequence, observing a level-6-or-higher Digimon returned from trash before this Option is added to hand.
 - Status: runtime 10/10; focused proof is green.
 
 ## EX6-073 — Ogudomon — runtime verified
@@ -672,8 +674,7 @@ EX6-073=5  EX6-074=3
 
 ## EX6-074 — Mirei Mikagura — runtime verified
 
-- Static causal follow-up: the chained `Digivolve` after Mirei's qualifying `[When Played]` watcher was previously free to select any own Digimon, losing the printed “that Digimon” identity. The target now binds to `sourceRef: "triggerSubject"`, while retaining normal requirement validation and the printed -1 cost reduction. No test suite was run per the static follow-up scope.
-
 - Catalog evidence: after a controller Holy Beast/Archangel/Fallen Angel Digimon is played, suspending this Tamer gains one memory, then one controller Digimon may digivolve into Angewomon/LadyDevimon from trash with cost reduced by one. End of turn once-per-turn offers normal-requirement DNA Digivolve; Security plays this Tamer.
 - Defect corrected: the reduced Digivolve was detached as a top-level Your Turn action. It is now nested after the qualifying-play watcher’s optional, aborting self-suspend GainMemory head, preserving the printed Then sequence: a declined or unpayable Mirei cannot continue to the optional Digivolve, while the controller may decline activation.
+- Focused runtime proof: the colocated suite exercises a qualifying play into suspend/memory/reduced trash digivolution for any controller Digimon, the declined/unpayable boundary, end-of-turn DNA once per turn, and public Security play.
 - Status: runtime 10/10; focused proof is green.
