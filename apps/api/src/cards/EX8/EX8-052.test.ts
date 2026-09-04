@@ -110,4 +110,26 @@ describe("EX8-052", () => {
     expect(s.perm("target").stack).toHaveLength(1);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
   });
+
+  it("keeps the Option and opponent stack when the optional de-digivolve is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX8-052", as: "source" },
+            { card: "EX8-070", as: "option" },
+          ],
+        },
+        1: { battleArea: [{ card: "EX8-029", as: "target", under: ["EX8-020", "EX8-024", "EX8-026"] }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.perm("option").placedByEffect = true;
+    const optionId = s.inst("option").instanceId;
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+
+    expect(s.perm("target").stack).toHaveLength(3);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === optionId)).toBe(true);
+  });
 });
