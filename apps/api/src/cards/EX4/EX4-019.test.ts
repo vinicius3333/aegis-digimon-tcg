@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, Zone } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX4-019.js";
@@ -86,7 +86,7 @@ describe("EX4-019 MachGaogamon", () => {
     });
     expect(s.perm("host").isSuspended).toBe(true);
 
-    s.give(1, "hand", "BT1-001");
+    s.give(1, Zone.Hand, "BT1-001");
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
     await advance(s.engine).verb.suspend([s.perm("host").permanentId]);
     await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), {
