@@ -179,7 +179,7 @@ describe("EX8-061", () => {
   });
   it("plays the exact eligible DS card from trash through the inherited On Deletion effect", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT19-062", as: "host", under: ["EX8-061"] }], trash: ["EX8-058", "BT1-010"] } },
+      { 0: { battleArea: [{ card: "EX8-062", as: "host", under: ["EX8-061"] }], trash: ["EX8-058", "BT1-010"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const player = s.state.players[0] as PlayerState;
