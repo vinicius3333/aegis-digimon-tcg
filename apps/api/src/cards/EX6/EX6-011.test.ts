@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX6-011.js";
 
 describe("EX6-011 RagnaLoardmon", () => {
@@ -122,5 +123,12 @@ describe("EX6-011 RagnaLoardmon", () => {
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("ragna").instanceId)).toBe(
       true,
     );
+  });
+
+  it("publicly exposes Raid and Reboot on RagnaLoardmon", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX6-011", as: "ragna" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("ragna"), "Raid")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("ragna"), "Reboot")).toBe(true);
   });
 });
