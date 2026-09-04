@@ -82,6 +82,22 @@ describe("EX8-068", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("ds").permanentId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX8-058")).toBe(false);
   });
+  it("does not waive the color requirement while security contains a face-up card", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-010", as: "red" }],
+        hand: [{ card: "EX8-068", as: "option" }],
+        security: [{ card: "BT1-002", as: "faceUp", faceUp: true }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toMatchObject({
+      ok: false,
+    });
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
+  });
   it("moves bottom security to hand and places the exact option face-up at the new bottom", async () => {
     const s = setupEngine({
       0: {
