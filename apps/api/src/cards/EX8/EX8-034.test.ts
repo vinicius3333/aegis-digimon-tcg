@@ -48,6 +48,32 @@ describe("EX8-034", () => {
     expect(observe(s.engine).keywordAmount(s.perm("one"), "SecurityAttack")).toBe(-1);
     expect(observe(s.engine).keywordAmount(s.perm("two"), "SecurityAttack")).toBe(-1);
   });
+
+  it("Security Attack -1 suppresses an actual opposing security check", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX8-034", as: "mammoth" }], security: ["BT1-001"] },
+      1: { battleArea: [{ card: "AD1-001", as: "one" }] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("mammoth").permanentId]);
+    await settle(() => observe(s.engine).keywordAmount(s.perm("one"), "SecurityAttack") === -1);
+
+    expect(s.state.turnSeat).toBe(1);
+    expect(s.perm("one").controllerSeat).toBe(1);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(observe(s.engine).keywordAmount(s.perm("one"), "SecurityAttack")).toBe(-1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("one").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.security).toHaveLength(1);
+  });
+
   it("plays an NSo Digimon costing 3 or less when digivolving and rejects cost 4", async () => {
     const s = setupEngine(
       {
