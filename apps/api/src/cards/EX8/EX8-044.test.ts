@@ -15,7 +15,7 @@ describe("EX8-044", () => {
       { kind: "GainMemory", amount: 1, scaling: { per: 1 } },
     ]);
   });
-  it("inherits a once-per-turn effect when suspended that grants Piercing and +3000 DP", () =>
+  it("applies an All Turns once-per-turn effect when suspended that grants Piercing and +3000 DP", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenSuspended",
@@ -113,7 +113,7 @@ describe("EX8-044", () => {
     expect(s.perm("hercules").currentDP).toBe(11000);
   });
 
-  it("does not repeat the inherited suspension grant in the same turn", async () => {
+  it("does not repeat the All Turns suspension grant in the same turn", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
@@ -133,5 +133,56 @@ describe("EX8-044", () => {
     await advance(s.engine).verb.unsuspend([s.perm("hercules").permanentId]);
     await advance(s.engine).verb.suspend([s.perm("hercules").permanentId]);
     expect(s.perm("ally").currentDP).toBe(8000);
+  });
+
+  it("Blast Digivolves from hand and resolves When Digivolving without paying memory", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-009", as: "attacker" },
+            { card: "BT1-010", as: "other" },
+          ],
+          security: ["BT1-001"],
+        },
+        1: {
+          battleArea: [{ card: "EX8-042", as: "base" }],
+          hand: [{ card: "EX8-044", as: "hercules" }],
+          deck: ["BT1-001"],
+          security: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("counter window did not open");
+    const eligible = opened.eligibleCounters.find((entry) => entry.instanceId === s.inst("hercules").instanceId);
+    expect(eligible).toBeDefined();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondCounter",
+        sourceInstanceId: eligible!.instanceId,
+        effectKey: eligible!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "EX8-044");
+
+    expect(s.perm("base").topCard?.cardId).toBe("EX8-044");
+    expect(s.perm("attacker").isSuspended).toBe(true);
+    expect(s.perm("other").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(-1); // seat 1 gains one memory for suspending seat 0's other Digimon.
   });
 });
