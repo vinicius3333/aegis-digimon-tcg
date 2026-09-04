@@ -3,6 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import { observe } from "../../engine/testkit/observe.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
+import "../BT10/BT10-023.js";
 import "./index.js";
 import { compiled } from "./EX8-035.js";
 
@@ -101,5 +102,65 @@ describe("EX8-035", () => {
     expect(observe(s.engine).keywordAmount(s.perm("attacker"), "SecurityAttack")).toBe(-1);
     expect(observe(s.engine).keywordAmount(s.perm("two"), "SecurityAttack")).toBe(-1);
     expect(s.state.players[1]!.hand.some((card) => card.instanceId === instanceId)).toBe(true);
+    s.state.memory = 0;
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    expect(observe(s.engine).keywordAmount(s.perm("attacker"), "SecurityAttack")).toBe(0);
+    expect(observe(s.engine).keywordAmount(s.perm("two"), "SecurityAttack")).toBe(0);
+  });
+
+  it("blocks When Digivolving activation and by-cost processing but allows When Attacking (Q3917-Q3920)", async () => {
+    const digivolve = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX8-035", as: "marine" },
+            { card: "AD1-001", as: "target" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "EX8-008", as: "base" }],
+          hand: [{ card: "EX8-059", as: "evolver" }, "BT1-001"],
+          deck: ["BT1-028", "BT1-037"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    digivolve.state.turnSeat = 1;
+    digivolve.state.memory = -2;
+    await digivolve.ready();
+    expect(
+      digivolve.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: digivolve.perm("base").permanentId,
+        instanceId: digivolve.inst("evolver").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => digivolve.perm("base").topCard.cardId === "EX8-059");
+    await settle(() => digivolve.state.pendingDecision === undefined);
+    expect(digivolve.state.pendingDecision).toBeUndefined();
+    expect(digivolve.state.players[1]!.hand.map((card) => card.cardId)).toEqual(["BT1-001", "BT1-028"]);
+
+    const attack = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX8-035", as: "marine" }] },
+        1: {
+          battleArea: [{ card: "BT10-023", as: "attacker", suspended: true }],
+          hand: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+          deck: ["BT1-028", "BT1-037", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    attack.state.turnSeat = 1;
+    attack.state.memory = -1;
+    await attack.ready();
+    const handBeforeAttacking = attack.state.players[1]!.hand.length;
+    expect(handBeforeAttacking).toBe(8);
+    await advance(attack.engine).fire(EffectTiming.OnUseAttack, attack.perm("attacker"));
+    await settle(() => attack.state.players[1]!.hand.length === handBeforeAttacking - 2);
+    expect(attack.state.players[1]!.hand).toHaveLength(handBeforeAttacking - 2);
+    expect(attack.perm("attacker").isSuspended).toBe(false);
   });
 });
