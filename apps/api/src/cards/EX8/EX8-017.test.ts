@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { digivolutionRequirementsFor } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./index.js";
@@ -20,7 +21,10 @@ describe("EX8-017", () => {
     }));
   it("gives a live friendly Digimon Blocker on play", async () => {
     const s = setupEngine(
-      { 0: { hand: [{ card: "EX8-017", as: "crabmon" }], battleArea: [{ card: "AD1-001", as: "target" }] } },
+      {
+        0: { hand: [{ card: "EX8-017", as: "crabmon" }], battleArea: [{ card: "AD1-001", as: "target" }] },
+        1: { deck: ["BT1-045"] },
+      },
       { autoSelectCards: true },
     );
     s.state.memory = 10;
@@ -29,10 +33,14 @@ describe("EX8-017", () => {
     });
     await settle(() => observe(s.engine).hasKeyword(s.perm("target"), "Blocker"));
     expect(observe(s.engine).hasKeyword(s.perm("target"), "Blocker")).toBe(true);
+    s.state.memory = 0;
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    expect(observe(s.engine).hasKeyword(s.perm("target"), "Blocker")).toBe(false);
   });
   it("exposes inherited Jamming on a live host", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: [{ card: "EX8-017", as: "crabmon" }] }] },
+      0: { battleArea: [{ card: "BT1-024", as: "host", under: [{ card: "EX8-017", as: "crabmon" }] }] },
     });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Jamming")).toBe(true);
