@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-035.js";
 
 describe("EX6-035 Cherubimon", () => {
@@ -21,4 +24,11 @@ describe("EX6-035 Cherubimon", () => {
       amount: -4000,
       scaling: { per: 1, unit: "cards", filter: { excludeSelf: true } },
     }));
+  it("publicly plays a level-3 yellow Digimon from hand on play", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX6-035", as: "cherub" }], hand: [{ card: "EX6-016", as: "rookie" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("cherub"));
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("rookie").instanceId));
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("rookie").instanceId)).toBe(true);
+  });
 });

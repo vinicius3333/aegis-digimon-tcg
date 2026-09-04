@@ -1,4 +1,7 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-029.js";
 
 describe("EX6-029 Mastemon", () => {
@@ -46,5 +49,15 @@ describe("EX6-029 Mastemon", () => {
       source: { filter: { excludeSelf: true, kind: ["Digimon"] }, count: 1 },
     });
     expect(action).not.toHaveProperty("underFilter");
+  });
+  it("publicly plays an Angel-family Digimon from trash on play", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX6-029", as: "mast" }], trash: [{ card: "EX6-019", as: "angel" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("mast"));
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("angel").instanceId));
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("angel").instanceId)).toBe(true);
   });
 });

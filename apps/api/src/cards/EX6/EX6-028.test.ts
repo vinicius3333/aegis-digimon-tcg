@@ -1,4 +1,7 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-028.js";
 
 describe("EX6-028 Seraphimon", () => {
@@ -30,4 +33,11 @@ describe("EX6-028 Seraphimon", () => {
         },
       ],
     }));
+  it("publicly recovers one card from the deck on play", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX6-028", as: "sera" }], deck: [{ card: "BT1-001", as: "recovery" }], security: ["BT1-002"] } });
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("sera"));
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("recovery").instanceId)).toBe(true);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+  });
 });

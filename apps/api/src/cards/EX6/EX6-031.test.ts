@@ -1,4 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX6-031.js";
 
 describe("EX6-031 Shakamon", () => {
@@ -24,5 +28,12 @@ describe("EX6-031 Shakamon", () => {
       frequency: "OncePerTurn",
       actions: [{ kind: "SecurityManipulation", op: "placeAsSecurity", toTop: true }],
     });
+  });
+
+  it("publicly gives all Digimon Security Attack -1 on play", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX6-031", as: "shaka" }] }, 1: { battleArea: [{ card: "BT1-009", as: "opponent" }] } });
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("shaka"));
+    expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
   });
 });
