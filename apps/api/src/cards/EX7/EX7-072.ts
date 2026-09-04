@@ -13,7 +13,7 @@ export const compiled: CompiledCard = {
           event: "whenOneOfYoursDigivolves",
           sourceFilter: {
             controllerDefault: "mine",
-            nameOrTrait: [{ tokens: ["Lilithmon (X Antibody)"], match: "name" }],
+            nameOrTrait: [{ tokens: ["Lilithmon (X Antibody)"], match: "nameExact" }],
           },
           actions: [
             {

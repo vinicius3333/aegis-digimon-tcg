@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { CardKind, CardColor, EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
@@ -186,6 +187,58 @@ describe("EX7-072 Seventh Fascination", () => {
     expect(deleteCalls.length).toBe(1);
     expect(deleteCalls[0]!.args[0] as string[]).toContain("OPP-ACTIVE");
     expect(deleteCalls[0]!.args[0] as string[]).not.toContain("OPP-SUSP");
+  });
+});
+
+describe("EX7-072 public Trash digivolution trigger", () => {
+  it("returns itself to deck bottom and activates Main on an exact Lilithmon (X Antibody) digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-083", as: "base" }],
+          trash: [{ card: "EX7-072", as: "option" }],
+          hand: [{ card: "EX7-061", as: "lilithmonXa" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("lilithmonXa").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.deck.some((card) => card.cardId === "EX7-072"));
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX7-072")).toBe(false);
+    expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("EX7-072");
+  });
+
+  it("does not trigger for the near-name Lilithmon card without X Antibody", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-083", as: "base" }],
+          trash: [{ card: "EX7-072", as: "option" }],
+          hand: [{ card: "BT11-087", as: "lilithmon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("lilithmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "BT11-087");
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX7-072")).toBe(true);
   });
 });
 
