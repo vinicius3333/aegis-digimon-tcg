@@ -460,7 +460,11 @@ export class GameEngine {
   }> = [];
   private flushingDeferredSecurityRemovalTriggers = false;
   /** Trigger windows created inside a resolving effect and activated only after that effect ends. */
-  private readonly deferredTimingWindows: Array<{ timing: EffectTiming; trigger: TriggerInfo }> = [];
+  private readonly deferredTimingWindows: Array<{
+    timing: EffectTiming;
+    trigger: TriggerInfo;
+    transientCandidates: readonly CardInstance[];
+  }> = [];
   private flushingDeferredTimingWindows = false;
 
   /**
@@ -527,7 +531,8 @@ export class GameEngine {
     try {
       while (this.deferredTimingWindows.length > 0) {
         const deferred = this.deferredTimingWindows.shift();
-        if (deferred !== undefined) await this.fireTiming(deferred.timing, deferred.trigger);
+        if (deferred !== undefined)
+          await this.fireTiming(deferred.timing, deferred.trigger, deferred.transientCandidates);
       }
     } finally {
       this.flushingDeferredTimingWindows = false;
@@ -764,7 +769,15 @@ export class GameEngine {
       },
       fireSubTrigger: async (event, payload) => this.fireSubTrigger(event, payload),
       prepareSubTrigger: (event, payload) => this.prepareSubTrigger(event, payload),
-      resolveDeletionReactions: async (trigger, candidates) => this.resolveDeletionReactions(trigger, candidates),
+      prepareFrozenSubTrigger: (event, payload) => this.prepareFrozenSubTrigger(event, payload),
+      refreshContinuousEffects: () => this.recomputeContinuousEffects(),
+      resolveDeletionReactions: async (trigger, candidates, transientCandidates = []) =>
+        this.resolveDeletionReactions(
+          trigger,
+          candidates,
+          (deletionTrigger) => this.fireTiming(EffectTiming.OnDestroyedAnyone, deletionTrigger, transientCandidates),
+          transientCandidates,
+        ),
       effectiveColorsOf: (permanentId) => {
         const permanent = this.access.permanentById(permanentId);
         return permanent === undefined ? [] : this.effectiveColorsOf(permanent);
@@ -2004,7 +2017,11 @@ export class GameEngine {
    * triggered DURING resolution (documented behavior). Centralized
    * so every caller (turn machine, actions, security check) shares one seam.
    */
-  private async fireTiming(timing: EffectTiming, trigger: TriggerInfo = {}): Promise<void> {
+  private async fireTiming(
+    timing: EffectTiming,
+    trigger: TriggerInfo = {},
+    transientCandidates: readonly CardInstance[] = [],
+  ): Promise<void> {
     if (timing === EffectTiming.OnDestroyedAnyone) {
       // Every deletion of ONE rule-check pass is simultaneous (§17-1-3), so its [On Deletion]
       // effects join the pass's single pool instead of opening a window per sweep (§15-4-3-3).
@@ -2015,9 +2032,12 @@ export class GameEngine {
           // A deleted Token leaves the match instead of entering trash. Capture its live card
           // instance before movement so its already-triggered [On Deletion] can still join the
           // pooled post-fixpoint window (EX11-012 Q6514).
-          transientCandidates: this.instancesById(trigger.deletedInstanceIds ?? []).filter(
-            (instance) => definitionOf(instance).isToken === true,
-          ),
+          transientCandidates: [
+            ...transientCandidates,
+            ...this.instancesById(trigger.deletedInstanceIds ?? []).filter(
+              (instance) => definitionOf(instance).isToken === true,
+            ),
+          ],
         });
         return;
       }
@@ -2026,16 +2046,20 @@ export class GameEngine {
       // flush time also enforces §15-4-4-3: if that card left trash meanwhile, its pending
       // effect can no longer activate (BT26-016 Q6977).
       if (this.activeWindowToken !== undefined && !this.flushingDeferredTimingWindows) {
-        this.deferredTimingWindows.push({ timing, trigger: { ...trigger } });
+        this.deferredTimingWindows.push({
+          timing,
+          trigger: { ...trigger },
+          transientCandidates: [...transientCandidates],
+        });
         return;
       }
     }
     if (this.shouldDeferNestedTiming() && !this.flushingDeferredTimingWindows) {
       await this.recomputeContinuousEffects();
-      this.deferNestedTimingEffects(timing, trigger, this.listCandidateInstances());
+      this.deferNestedTimingEffects(timing, trigger, [...this.listCandidateInstances(), ...transientCandidates]);
       return;
     }
-    await this.runTimingWindow(timing, trigger);
+    await this.runTimingWindow(timing, trigger, transientCandidates);
   }
 
   /**
@@ -2143,6 +2167,7 @@ export class GameEngine {
     ascensionCandidates: readonly { instanceId: string; seat: Seat }[],
     fire: (deletionTrigger: TriggerInfo) => Promise<void> = (deletionTrigger) =>
       this.fireTiming(EffectTiming.OnDestroyedAnyone, deletionTrigger),
+    transientCandidates: readonly CardInstance[] = [],
   ): Promise<void> {
     // A rule-check pass pools every deletion it performs, Ascension offer included, and
     // resolves them as one simultaneous group once the fixpoint converges (§17-1-3,
@@ -2152,7 +2177,7 @@ export class GameEngine {
       this.ruleTriggerPool.push({
         trigger: { ...trigger },
         ascensionCandidates: [...ascensionCandidates],
-        transientCandidates: [],
+        transientCandidates: [...transientCandidates],
       });
       return;
     }
@@ -2382,6 +2407,65 @@ export class GameEngine {
       await this.withTriggeredMutations(async () => {
         await this.fireSubTriggerSnapshot(subscriptions, boundPayload, contexts);
       });
+    };
+  }
+
+  /**
+   * Capture a SubTrigger's eligibility at the event boundary and defer only its activation.
+   *
+   * Battle deletion has a small but important ordering seam: the losing permanent must leave
+   * the field before continuous effects are refreshed (so a conditional ＜Piercing＞ can become
+   * active), while the battle's `whenBattleWon`/`onDeletionOf` reactions must not be allowed to
+   * mutate that refreshed state before Piercing is captured. The ordinary `prepareSubTrigger`
+   * path intentionally re-checks `matches`/`canFire` when its callback runs; that is correct for
+   * attack watchers, but would make a deletion watcher observe the post-removal board. This
+   * variant freezes those two event predicates and the source context immediately, then runs
+   * the already-armed body later.
+   *
+   * The cloned subscription clears only the live predicates. It retains the original id and all
+   * lifecycle/once fields, so `fireSnapshot` still enforces once-per-turn and once-per-timing
+   * ledgers, while the bound context allows a watcher whose source was just deleted to resolve.
+   */
+  private prepareFrozenSubTrigger(event: SubTriggerEventName, payload: TriggerInfo): () => Promise<void> {
+    let boundPayload = { ...payload };
+    const deletedPermanent =
+      payload.deletedPermanentId === undefined ? undefined : this.access.permanentById(payload.deletedPermanentId);
+    if (deletedPermanent !== undefined) {
+      boundPayload = {
+        deletedControllerSeat: deletedPermanent.controllerSeat,
+        deletedTopCardId: deletedPermanent.topCard?.cardId,
+        deletedDigivolutionCardCount: deletedPermanent.stack.length,
+        ...boundPayload,
+      };
+    }
+
+    const subscriptions = [...this.subTriggers.subscriptionsFor(event)];
+    const contexts = new Map<number, EffectContext>();
+    for (const sub of subscriptions) {
+      const context = this.buildSubTriggerContext(sub, boundPayload);
+      if (context !== undefined) contexts.set(sub.id, context);
+    }
+
+    // `armedSubTriggers` is deliberately called NOW: it evaluates matches/canFire against the
+    // live event state and captures the shared Once Per Turn occurrence. A later continuous
+    // recompute or reaction must not add a watcher to this event or make an unarmed one eligible.
+    const frozen = this.armedSubTriggers(subscriptions, boundPayload, contexts).map((item) => ({
+      ...item,
+      // `runSubTriggersInChosenOrder` performs its normal liveness re-check before every body,
+      // and `fireSnapshot` checks `matches` again. For this event-locked path those predicates
+      // have already been evaluated above; clearing them on the private snapshot preserves the
+      // event result without mutating the registry's original subscription.
+      sub: { ...item.sub, matches: undefined, canFire: undefined },
+      contextAtFireTime: () => item.ctx,
+    }));
+
+    return async () => {
+      if (frozen.length === 0) return;
+      await this.withTriggeredMutations(async () => {
+        const remaining = frozen.filter((item) => !this.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub)));
+        if (remaining.length > 0) await this.runSubTriggersInChosenOrder(remaining);
+      });
+      await this.recomputeContinuousEffects();
     };
   }
 

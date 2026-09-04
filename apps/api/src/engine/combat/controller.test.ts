@@ -70,6 +70,8 @@ interface Harness {
 function harness(opts?: {
   preventBattleDeletion?: boolean;
   piercingChange?: { initial: boolean; afterDeletion: boolean };
+  piercingWhenOpponentGone?: boolean;
+  piercingReactionEvent?: "whenBattleWon" | "onDeletionOf";
 }): Harness {
   const state = makeState();
   const access = new GameStateAccess(state);
@@ -89,8 +91,10 @@ function harness(opts?: {
         hasPiercing = opts.piercingChange.afterDeletion;
       }
     },
-    hasPierce: () => hasPiercing,
+    hasPierce: () =>
+      hasPiercing || (opts?.piercingWhenOpponentGone === true && state.players[1]!.battleArea.length === 0),
     fireSubTrigger: async (event, payload) => {
+      if (event === opts?.piercingReactionEvent) hasPiercing = true;
       firedSubTriggers.push({ event, payload });
       timeline.push(`sub:${event}`);
     },
@@ -137,6 +141,45 @@ async function flush(): Promise<void> {
 }
 
 describe("CombatController.resolveAttack — Digimon vs Digimon", () => {
+  it("does not trigger Piercing acquired from a deleted Token's reaction", async () => {
+    const h = harness({ piercingChange: { initial: false, afterDeletion: true } });
+    const attacker = digimon(0, 9000);
+    const defender = digimon(1, 3000, { suspended: true, cardId: "TOKEN-Petrification-Token" });
+    h.state.players[0]!.battleArea.push(attacker);
+    h.state.players[1]!.battleArea.push(defender);
+    await h.combat.resolveAttack(0, attacker, { kind: "permanent", permanentId: defender.permanentId });
+    expect(h.state.players[1]!.battleArea).toHaveLength(0);
+    expect(h.firedTimings.filter((timing) => timing === EffectTiming.OnDestroyedAnyone)).toHaveLength(1);
+    expect(h.securityCalls).toHaveLength(0);
+  });
+
+  it.each(["whenBattleWon", "onDeletionOf"] as const)(
+    "does not retroactively trigger Piercing gained by %s",
+    async (event) => {
+      const h = harness({ piercingReactionEvent: event });
+      const attacker = digimon(0, 9000);
+      const defender = digimon(1, 4000, { suspended: true });
+      h.state.players[0]!.battleArea.push(attacker);
+      h.state.players[1]!.battleArea.push(defender);
+      await h.combat.resolveAttack(0, attacker, { kind: "permanent", permanentId: defender.permanentId });
+      expect(h.state.players[1]!.battleArea).toHaveLength(0);
+      expect(h.firedSubTriggers.some((trigger) => trigger.event === event)).toBe(true);
+      expect(h.securityCalls).toHaveLength(0);
+    },
+  );
+
+  it("triggers Piercing gained simultaneously with the last opposing battle deletion (Q3883)", async () => {
+    const h = harness({ piercingWhenOpponentGone: true });
+    const attacker = digimon(0, 9000);
+    const defender = digimon(1, 4000, { suspended: true });
+    h.state.players[0]!.battleArea.push(attacker);
+    h.state.players[1]!.battleArea.push(defender);
+    await h.combat.resolveAttack(0, attacker, { kind: "permanent", permanentId: defender.permanentId });
+    expect(h.state.players[0]!.battleArea).toHaveLength(1);
+    expect(h.state.players[1]!.battleArea).toHaveLength(0);
+    expect(h.securityCalls).toHaveLength(1);
+  });
+
   it.each([
     { initial: true, afterDeletion: false, checks: 1 },
     { initial: false, afterDeletion: true, checks: 0 },

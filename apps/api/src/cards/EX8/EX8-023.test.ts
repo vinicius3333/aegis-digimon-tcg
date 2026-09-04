@@ -28,7 +28,7 @@ describe("EX8-023", () => {
 
     const stacked = setupEngine({
       0: { battleArea: [{ card: "EX8-028", as: "host", under: [{ card: "EX8-023", as: "polar" }] }] },
-      1: { battleArea: [{ card: "BT1-009", as: "stacked", under: ["BT1-009"] }] },
+      1: { battleArea: [{ card: "BT1-009", as: "stacked", under: ["BT1-001"] }] },
     });
     await stacked.ready();
     expect(observe(stacked.engine).hasPierce(stacked.perm("host"))).toBe(false);
@@ -52,12 +52,13 @@ describe("EX8-023", () => {
   it("trashes two opposing digivolution cards and applies both printed restrictions on play", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX8-023", as: "polar" }] },
-        1: { battleArea: [{ card: "EX8-022", as: "opponent", under: ["BT1-009", "BT1-009"] }] },
+        0: { hand: [{ card: "EX8-023", as: "polar" }] },
+        1: { battleArea: [{ card: "EX8-022", as: "opponent", under: ["BT1-004", "BT1-028"] }] },
       },
       { autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("polar"));
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("polar").instanceId })).toEqual({ ok: true });
     await settle(() => observe(s.engine).isRestricted(s.perm("opponent"), "suspend"));
     expect(s.perm("opponent").stack).toHaveLength(0);
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "suspend")).toBe(true);
@@ -71,7 +72,7 @@ describe("EX8-023", () => {
           battleArea: [{ card: "EX8-022", as: "frigimon" }],
           hand: [{ card: "EX8-023", as: "polar" }],
         },
-        1: { battleArea: [{ card: "BT1-024", as: "opponent", under: ["BT1-009", "BT1-010"] }] },
+        1: { battleArea: [{ card: "BT1-024", as: "opponent", under: ["BT1-009", "AD1-001"] }] },
       },
       { autoSelectCards: true },
     );
@@ -95,17 +96,19 @@ describe("EX8-023", () => {
   it("can trash the two cards from different opposing Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX8-023", as: "polar" }] },
+        0: { hand: [{ card: "EX8-023", as: "polar" }] },
         1: {
           battleArea: [
-            { card: "EX8-022", as: "opponent-a", under: ["BT1-009"] },
-            { card: "EX8-022", as: "opponent-b", under: ["BT1-009"] },
+            { card: "EX8-022", as: "opponent-a", under: ["BT1-028"] },
+            { card: "EX8-022", as: "opponent-b", under: ["BT1-028"] },
           ],
         },
       },
       { autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("polar"));
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("polar").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("opponent-a").stack.length === 0 && s.perm("opponent-b").stack.length === 0);
     expect(s.perm("opponent-a").stack).toHaveLength(0);
     expect(s.perm("opponent-b").stack).toHaveLength(0);
   });
@@ -116,7 +119,7 @@ describe("EX8-023", () => {
         0: {
           battleArea: [
             { card: "EX8-023", as: "polar" },
-            { card: "BT1-024", as: "victim", under: ["BT1-001", "BT1-002"] },
+            { card: "BT1-024", as: "victim", under: ["BT1-009", "AD1-001"] },
           ],
         },
         1: {
@@ -157,7 +160,7 @@ describe("EX8-023", () => {
 
   it("gains Piercing as the last opposing stack is deleted in battle and checks security (Q3883)", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX8-028", as: "host", under: ["EX8-023"] }] },
+      0: { battleArea: [{ card: "EX8-028", as: "host", under: ["BT1-037", "EX8-023"] }] },
       1: {
         battleArea: [{ card: "BT1-009", dp: 1000, as: "target", suspended: true, under: ["BT1-001"] }],
         security: 1,
@@ -175,6 +178,8 @@ describe("EX8-023", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(0);
   });
 
   it("meets the inherited condition with no opposing Digimon and uses the Ice-Snow route for 3 (Q6042)", async () => {
