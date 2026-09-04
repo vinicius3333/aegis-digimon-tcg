@@ -55,8 +55,13 @@ export const compiled: CompiledCard = {
             filter: {
               nameOrTrait: [
                 {
-                  tokens: ["WereGarurumon", "X Antibody"],
-                  match: "name",
+                  tokens: ["WereGarurumon"],
+                  match: "nameExact",
+                },
+                {
+                  tokens: ["X Antibody"],
+                  match: "nameExact",
+                  orPrevious: true,
                 },
               ],
             },

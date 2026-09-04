@@ -34,16 +34,21 @@ export const compiled: CompiledCard = {
           kind: "GainMemory",
           amount: 2,
           cost: {
-            kind: "moveTopCardToBottom",
+            kind: "place",
             target: {
               filter: {
                 isSelfRef: true,
-                topCardHasTrait: ["Light Fang", "Night Claw"],
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Light Fang", "Night Claw"], match: "trait" }],
               },
               count: 1,
               isSelf: true,
             },
             raw: "By placing the top card of this Digimon with the [Light Fang]/[Night Claw] trait as this Digimon's bottom digivolution card",
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "self",
           },
           optional: true,
           abortOnDecline: true,
