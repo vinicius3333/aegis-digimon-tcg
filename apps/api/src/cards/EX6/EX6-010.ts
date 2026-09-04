@@ -70,7 +70,7 @@ export const compiled: CompiledCard = {
             sourceKind: "any",
             duration: "untilEachTurnEnd",
             condition: {
-              kind: "selfHasNameContaining",
+              kind: "selfHasName",
               names: ["RagnaLoardmon"],
               raw: "this Digimon is [RagnaLoardmon]",
             },

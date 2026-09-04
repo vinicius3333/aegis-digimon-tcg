@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { CardKind, EffectTiming, type CardDefinition } from "@aegis/shared";
+import { CardKind, EffectTiming, getCardDefinition, type CardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -65,6 +65,23 @@ describe("EX6-010 [Inherited] RagnaLoardmon host disables security effects (reco
     await recompute(s.engine);
 
     expect(ledger(s.engine).isSecurityEffectDisabled(s.perm("host").permanentId, fakeOptionDef())).toBe(false);
+  });
+
+  it("does NOT treat a longer RagnaLoardmon name as the exact host name", async () => {
+    const definition = getCardDefinition(RAGNALOARDMON)!;
+    const originalName = definition.nameEn;
+    definition.nameEn = "RagnaLoardmon: X Antibody";
+    try {
+      const s = setupEngine({
+        0: { battleArea: [{ card: RAGNALOARDMON, dp: 12000, as: "host", under: [DURANDAMON] }] },
+      });
+
+      await recompute(s.engine);
+
+      expect(ledger(s.engine).isSecurityEffectDisabled(s.perm("host").permanentId, fakeOptionDef())).toBe(false);
+    } finally {
+      definition.nameEn = originalName;
+    }
   });
 });
 
@@ -231,5 +248,67 @@ describe("EX6-010 [Hand] [Main] pay 3, place as bottom digivolution card, delete
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.perm("opponent").isSuspended).toBe(false);
     expect(observe(s.engine).suppressesSecurityEffect(s.perm("host"), "BT1-110")).toBe(true);
+  });
+});
+
+describe("EX6-010 [When Digivolving] attack and alternate evolution", () => {
+  it("evolves from a level-5 Legend-Arms Digimon and attacks through its public trigger", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-009", as: "base" }],
+          hand: [{ card: DURANDAMON, as: "durandamon" }],
+        },
+        1: { security: [FILLER] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("durandamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.events.some(
+        (event) => event.kind === "attackDeclared" && event.attackerPermanentId === s.perm("base").permanentId,
+      ),
+    );
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.perm("base").topCard.cardId).toBe(DURANDAMON);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toContain("EX6-009");
+    expect(s.state.memory).toBe(6);
+    expect(s.perm("base").isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Raid")).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("base"))).toBe(true);
+  });
+
+  it("uses Raid and Piercing to win a public attack and continue the security check", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: DURANDAMON, as: "durandamon" }] },
+        1: { battleArea: [{ card: FILLER, as: "raidTarget", dp: 3000 }], security: [FILLER] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("durandamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.players[1]!.security.length === 0);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
   });
 });
