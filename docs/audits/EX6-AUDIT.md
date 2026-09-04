@@ -20,7 +20,7 @@ establish behavioral proof.
   rerun, and build/type gates remain **pending coordinator execution**. This
   ledger does not claim collection completion or a pushed branch.
 
-Focused declaration inventory (recounted from `^\s*(it|test)(\.[A-Za-z]+)?\s*\(`):
+Focused declaration inventory (recounted from `^\s*(it|test)\(`):
 
 ```text
 EX6-001=2  EX6-002=3  EX6-003=3  EX6-004=4  EX6-005=3  EX6-006=5
