@@ -33,12 +33,12 @@ EX10 (74), EX11 (74), and EX12 (77); these sets have not begun in this run.
 | EX8-009 | 8/8 | `09c8cee36`, `4929578fb`, `b2fc129df`: reveal anchors prove bottom order; separate legal battle-area evolution explicitly asserts the bonus draw and both searched cards in hand. Q3874 simultaneous deletion, turn gate, and same-turn limit retained |
 | EX8-010 | 6/6 | `6e31c209c`: alternate evolution now uses off-color NSo EX8-030; off-color non-NSo rejection, On Play/On Deletion DP boundary, and inherited turn gate reconfirmed |
 | EX8-011 | 8/8 | `d27c6d9f1`, `0152bd58a`: duration expiry and legal inherited host; real Security battle exposed premature self-play, fixed with the existing security-battle-ended SubTrigger. Focused plus EX10-014 peer regression: 2 files / 15 tests passed |
-| EX8-012 | 10/10 tests reported; review open | `f9e9a4355`, `1d4e77e14`: separate bonus/effect draws, recovery condition negative and expiry, legal red inherited host, Q3875; independent X Antibody condition and optional recovery refusal still requested |
+| EX8-012 | 12/12 | `f9e9a4355`, `1d4e77e14`, `5bd07ee85`: separate bonus/effect draws, independent Growlmon/X Antibody recovery conditions, optional refusal, negative and expiry, legal red inherited host, Q3875 |
 | EX8-013 | 4/4 | `8920a9275`, `a2b64c2cc`: real two-check player attack with legal red ST1-10 host; off-color NSo level-4 evolution and nonmatching rejection |
-| EX8-014 | 9/9 tests reported; review open | `4d72c362a`: opposing suspension branch strengthened; explicit Fortitude replay/no-source assertions and legal inherited combat proof still requested |
+| EX8-014 | 10/10 tests; entry-intent review open | `4d72c362a`, `9d0dbf1c1`: opposing suspension, explicit Fortitude replay/no-source assertions and legal inherited two-check combat; entry effect positives still use timing drivers rather than real play/evolution |
 | EX8-015 | 6/6 | `f5ed535e0`, `56421c1db`, `392adc0ef`: legal red inherited host and two checks, return/DP expiry, conditional deletion boundary and source branches. Explicit collection import ensures Meramon's inherited +2000 participates, giving 13000 DP |
-| EX8-016 | 8/8 reported; coordinator review pending | `498d52235`: Q3877 uses a distinct unsuspended opposing target while deleting the lower pre-suspended opponent |
-| EX8-017 | 6/6 tests reported; review open | `17b62628e`: Blocker expiry added; legal blue level-4 inherited host and actual Jamming/Blocker combat proof still requested |
+| EX8-016 | 10/10 tests; entry-intent review open | `498d52235`, `4a12cb403`: Q3877 distinct suspension/deletion, Q3878/3879/3880 targeting, actual two checks, Fortitude replay zones/no-source negative, independent named/Dinosaur evolution; entry resolution positives still use timing drivers |
+| EX8-017 | 7/7 | `17b62628e`, `72440199b`: legal blue level-4 host survives stronger security through Jamming, granted Blocker intercepts an actual attack, and grant expires after the opponent turn |
 | EX8-038 | 8/8 | `cf93ab20a`, `f7cd5c5a5`: unequal-DP battle proves inherited Retaliation on a legal green host; named off-color Koromon evolution, nonmatching egg rejection, both suspension controllers, and refusal |
 | EX8-039 | 6/6 | `862783bb9`, `55af3b526`: disjoint Insectoid/NSp selection, unrevealed anchors in positive and all-nonmatching reveals, off-color NSp egg evolution and rejection, legal green inherited host with turn gate |
 | EX8-040 | 7/7 | `4380b4788`: real off-color NSp evolution proves cost, draw and allied suspension; opposing On Play target, refusal, non-NSp rejection and legal inherited host turn gate |
@@ -49,6 +49,9 @@ EX10 (74), EX11 (74), and EX12 (77); these sets have not begun in this run.
 
 EX8-043/044 coordinator verification: 2 files / 22 tests passed (1.37 s),
 with one worker and file parallelism disabled; scoped lint/format/diff clean.
+EX8-012/014/017 coordinator verification: 3 files / 29 tests passed (736 ms),
+with the same single-worker configuration. Test counts are not audit scores;
+entries with open review remain unclosed despite green focused runs.
 
 EX8-038's added Retaliation case initially used equal-DP combat, which would
 delete both Digimon without Retaliation. `cf93ab20a` corrects it to an unequal-DP
