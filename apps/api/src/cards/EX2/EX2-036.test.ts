@@ -40,7 +40,7 @@ describe("EX2-036 GroundLocomon", () => {
   it("keeps its trash-based DP bonus on the opponent's turn but only restricts attacks on its own turn", async () => {
     const opponentTurn = setupEngine({
       0: { battleArea: [{ card: "EX2-036", as: "groundLocomon" }], trash: ["EX2-031", "EX2-034"] },
-      1: { deck: ["BT1-001"] },
+      1: { hand: ["BT1-009"], deck: ["BT1-001"] },
     });
     await opponentTurn.ready();
     const turnLoop = opponentTurn.engine.startTurnLoop();

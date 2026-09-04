@@ -3,6 +3,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./EX2-028.js";
+import "./EX2-029.js";
 
 describe("EX2-028 Parasitemon", () => {
   it("gives its host +2000 DP and Security Attack +1 during its turn", async () => {
@@ -23,7 +24,7 @@ describe("EX2-028 Parasitemon", () => {
 
     const opponentTurn = setupEngine({
       0: { battleArea: [{ card: "EX2-029", as: "host", under: ["EX2-028"] }] },
-      1: { deck: ["BT1-001"] },
+      1: { hand: ["BT1-009"], deck: ["BT1-001"] },
     });
     await opponentTurn.ready();
     const turnLoop = opponentTurn.engine.startTurnLoop();

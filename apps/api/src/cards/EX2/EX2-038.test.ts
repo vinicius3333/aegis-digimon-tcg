@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX2-038.js";
+import "./EX2-060.js";
+import "./EX2-065.js";
 
 describe("EX2-038 Justimon: Blitz Arm", () => {
   it("may choose the +2000 DP mode when digivolving", async () => {
@@ -78,7 +80,7 @@ describe("EX2-038 Justimon: Blitz Arm", () => {
         },
         1: { security: ["BT1-001", "BT1-002"] },
       },
-      { autoChooseOption: true, preferOptionIndex: 0, autoOrderTriggers: true },
+      { autoChooseOption: true, preferOptionIndex: 0, autoDeclineOptional: true, autoOrderTriggers: true },
     );
     await s.ready();
     expect(

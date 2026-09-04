@@ -2,6 +2,8 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./EX2-019.js";
+import "./EX2-021.js";
 import "./EX2-072.js";
 
 describe("EX2-072 Blue Card", () => {
@@ -64,10 +66,17 @@ describe("EX2-072 Blue Card", () => {
 
     expect(s.perm("renamon").topCard.cardId).toBe("EX2-021");
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("bonusDraw").instanceId);
-    // Blue Card pays 3 and the revealed digivolution is free. The standalone
-    // Renamon is not an evolution source, so its inherited effect does not apply.
-    expect(s.state.memory).toBe(memoryBefore - 3);
-    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["EX2-066", "EX2-067", "EX2-068", "EX2-069"]);
+    // Blue Card pays 3 and the revealed digivolution is free. After its [Main]
+    // effect finishes, Renamon is now an evolution source, so its inherited
+    // "used an Option with cost 2+" effect gains 1 memory (Q3305/Q3363).
+    expect(s.state.memory).toBe(memoryBefore - 2);
+    // Kyubimon's [When Digivolving] waits until Blue Card returns the remaining
+    // reveals, then adds the available Plug-In from that rebuilt deck (Q3364).
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("EX2-066");
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toHaveLength(3);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["EX2-067", "EX2-068", "EX2-069"]),
+    );
   });
 
   it("does not waive the white color requirement without a Tamer", async () => {

@@ -16,6 +16,7 @@ describe("EX2-037 Reapermon", () => {
       0: { battleArea: ["EX2-037"], deck: ["BT1-001"] },
       1: {
         battleArea: [{ card: "EX2-037", as: "target", under: ["EX2-032"], suspended: true }, "EX2-032"],
+        hand: ["BT1-009"],
         deck: ["BT1-001"],
       },
     });
@@ -36,6 +37,7 @@ describe("EX2-037 Reapermon", () => {
       0: { battleArea: ["EX2-037"], deck: ["BT1-001"] },
       1: {
         battleArea: [{ card: "EX2-037", as: "target", under: ["EX2-032", "EX2-031"] }],
+        hand: ["BT1-009"],
         deck: ["BT1-001"],
       },
     });

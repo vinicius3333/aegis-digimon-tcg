@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./EX2-035.js";
 import "./EX2-062.js";
 
 describe("EX2-062 Ryo Akiyama", () => {
@@ -69,10 +70,15 @@ describe("EX2-062 Ryo Akiyama", () => {
             { card: "EX2-035", as: "attacker" },
             { card: "EX2-062", as: "ryo" },
           ],
+          hand: ["BT1-009"],
           deck: ["BT1-009", "BT1-010", "BT1-011"],
           security: ["BT1-001"],
         },
-        1: { deck: ["BT1-012", "BT1-013", "BT1-014"], security: ["BT1-002"] },
+        1: {
+          hand: ["BT1-010"],
+          deck: ["BT1-012", "BT1-013", "BT1-014"],
+          security: ["BT1-002"],
+        },
       },
       { autoAcceptOptional: true, autoOrderTriggers: true },
     );

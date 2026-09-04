@@ -4,6 +4,8 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX2-032.js";
 import "./EX2-034.js";
+import "./EX2-062.js";
+import "./EX2-063.js";
 
 describe("EX2-032 Strikedramon", () => {
   it("adds a black Tamer from the top four when digivolving", async () => {
@@ -107,7 +109,7 @@ describe("EX2-032 Strikedramon", () => {
         },
         1: { security: ["BT1-001"] },
       },
-      { autoOrderTriggers: true },
+      { autoDeclineOptional: true, autoOrderTriggers: true },
     );
     s.state.memory = 3;
     await s.ready();

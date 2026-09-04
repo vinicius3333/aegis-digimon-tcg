@@ -3,6 +3,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./EX2-017.js";
+import "./EX2-059.js";
 
 describe("EX2-017 Leomon", () => {
   it("gains 2 memory and draws 1 when deleted in battle", async () => {
@@ -39,7 +40,7 @@ describe("EX2-017 Leomon", () => {
         ],
         deck: ["BT1-001"],
       },
-      1: { deck: ["BT1-001"] },
+      1: { hand: ["BT1-009"], deck: ["BT1-001"] },
     });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("leomon"), "Blocker")).toBe(false);
