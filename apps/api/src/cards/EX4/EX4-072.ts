@@ -13,6 +13,11 @@ const compiled: CompiledCard = {
           grant: "name",
           tokens: ["Plug-In"],
         },
+      ],
+    },
+    {
+      trigger: "Static",
+      actions: [
         {
           kind: "WaiveColorRequirement",
           condition: { kind: "youHave", filter: { controllerDefault: "mine", kind: ["Tamer"] } },

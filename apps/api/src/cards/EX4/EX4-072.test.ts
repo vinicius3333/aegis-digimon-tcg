@@ -11,6 +11,8 @@ import {
   type Seat,
 } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { observe } from "../../engine/testkit/observe.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX4-072.js";
 
 describe("EX4-072 Digital Translator", () => {
@@ -118,5 +120,39 @@ describe("EX4-072 Digital Translator", () => {
     const s = await playEx4Card("EX4-072");
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("subject").instanceId)).toBe(false);
   });
+
+  it("exposes the Plug-In rule name and waives white color requirements with a Tamer", async () => {
+    const placed = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX4-072", as: "placed" },
+          { card: "EX4-064", as: "tamer" },
+        ],
+      },
+    });
+    await placed.ready();
+    expect(observe(placed.engine).grantedNames(placed.perm("placed"))).toContain("plug-in");
+
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX4-064", as: "tamer" }], hand: [{ card: "EX4-072", as: "option" }] },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === optionId));
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
+
+    const withoutTamer = setupEngine({ 0: { hand: [{ card: "EX4-072", as: "option" }] } });
+    withoutTamer.state.memory = 10;
+    await withoutTamer.ready();
+    expect(
+      withoutTamer.engine.applyIntent(0, { type: "playCard", instanceId: withoutTamer.inst("option").instanceId }),
+    ).toEqual({
+      ok: false,
+      reason: "color-requirement-unmet",
+    });
+  });
+
   ex4CardBehaviorTests("EX4-072");
 });
