@@ -52,4 +52,25 @@ describe("EX7-013 MagnaKidmon", () => {
     await settle(() => s.state.players[0]!.hand.length === 6);
     expect(s.state.players[0]!.hand).toHaveLength(6);
   });
+
+  it("uses a Three Musketeers Option for free before drawing to six", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: ["EX7-066", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          deck: ["BT1-009", "BT1-009"],
+          battleArea: [{ card: "EX7-013", as: "magna" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", dp: 3000, as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("magna"));
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.players[0]!.hand.length === 6);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.hand).toHaveLength(6);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).not.toContain("EX7-066");
+  });
 });
