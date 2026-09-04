@@ -136,7 +136,7 @@ describe("EX7-061 Lilithmon (X Antibody)", () => {
 
     expect(await advance(s.engine).verb.deletePermanent([s.perm("lilith").permanentId], "byEffect")).toBe(1);
     expect(s.state.players[0]!.battleArea).toHaveLength(decline ? 1 : 0);
-    if (decline) expect(s.perm("cost").topCard?.cardId).toBe("BT1-009");
+    expect(decline ? s.perm("cost").topCard?.cardId : undefined).toBe(decline ? "BT1-009" : undefined);
   });
 
   it("does not prevent departure when Armor Purge prevents the accepted cost deletion", async () => {
