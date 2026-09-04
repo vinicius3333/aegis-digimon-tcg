@@ -80,7 +80,7 @@ describe("EX8-043", () => {
   });
   it("trashes the opponent's top security when its host deletes in battle", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "AD1-001", as: "attacker", dp: 10000, under: ["EX8-043"] }] },
+      0: { battleArea: [{ card: "BT1-080", as: "attacker", dp: 10000, under: ["EX8-043"] }] },
       1: {
         battleArea: [{ card: "BT1-016", as: "defender", dp: 1000, suspended: true }],
         security: [{ card: "BT1-010", as: "top" }],
@@ -101,7 +101,7 @@ describe("EX8-043", () => {
 
   it("trashes security only once across two real battles in one turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "AD1-001", as: "attacker", dp: 10000, under: ["EX8-043"] }] },
+      0: { battleArea: [{ card: "BT1-080", as: "attacker", dp: 10000, under: ["EX8-043"] }] },
       1: {
         battleArea: [
           { card: "BT1-016", as: "first", dp: 1000, suspended: true },
@@ -122,7 +122,9 @@ describe("EX8-043", () => {
         target: { kind: "permanent", permanentId: s.perm("first").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.every((p) => p.topCard?.cardId !== "BT1-016"));
+    const firstId = s.perm("first").permanentId;
+    await settle(() => s.state.players[1]!.battleArea.every((p) => p.permanentId !== firstId));
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === firstId)).toBe(false);
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("firstSecurity").instanceId)).toBe(true);
 
@@ -134,7 +136,9 @@ describe("EX8-043", () => {
         target: { kind: "permanent", permanentId: s.perm("second").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.every((p) => p.topCard?.cardId !== "BT1-016"));
+    const secondId = s.perm("second").permanentId;
+    await settle(() => s.state.players[1]!.battleArea.every((p) => p.permanentId !== secondId));
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === secondId)).toBe(false);
 
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("secondSecurity").instanceId)).toBe(
@@ -158,9 +162,42 @@ describe("EX8-043", () => {
     expect(observe(s.engine).isRestricted(s.perm("metal"), "cantBeDeDigivolved")).toBe(true);
   });
 
+  it("blocks an opponent's real return and de-digivolution but allows its controller's return", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-043", as: "metal", suspended: true, under: ["BT1-009"] }],
+        },
+        1: {
+          battleArea: [{ card: "AD1-001", as: "opponentEffect" }],
+          hand: [{ card: "EX8-049", as: "devolver" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("metal"));
+    expect(observe(s.engine).isRestricted(s.perm("metal"), "beReturned")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("metal"), "cantBeDeDigivolved")).toBe(true);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("devolver").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "EX8-049"));
+    expect(s.perm("metal").topCard?.cardId).toBe("EX8-043");
+    expect(s.perm("metal").stack).toHaveLength(1);
+
+    s.state.turnSeat = 0;
+    await advance(s.engine).verb.returnToHand([s.perm("metal").topCard!.instanceId]);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX8-043")).toBe(true);
+  });
+
   it("does not trash security when both battlers are deleted (Q3929)", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "AD1-001", as: "attacker", dp: 3000, under: ["EX8-043"] }] },
+      0: { battleArea: [{ card: "BT1-080", as: "attacker", dp: 3000, under: ["EX8-043"] }] },
       1: {
         battleArea: [{ card: "BT1-016", as: "defender", dp: 3000, suspended: true }],
         security: [{ card: "BT1-010", as: "top" }],
