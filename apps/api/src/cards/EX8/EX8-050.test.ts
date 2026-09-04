@@ -48,6 +48,34 @@ describe("EX8-050", () => {
     expect(player.trash.some((card) => card.cardId === "EX8-048")).toBe(true);
     expect(player.trash.some((card) => card.cardId === "AD1-001")).toBe(true);
   });
+
+  it("trashes all three revealed cards when no Mineral or Rock card is within the cost limit", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-050", as: "source" }],
+          deck: [
+            { card: "EX8-053", as: "overCost" },
+            { card: "EX8-052", as: "other" },
+            { card: "BT1-010", as: "rest" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const player = s.state.players[0] as PlayerState;
+    const source = player.battleArea[0]!;
+    await advance(s.engine).verb.deletePermanent([source.permanentId]);
+    await settle(
+      () => player.trash.filter((card) => ["EX8-053", "EX8-052", "BT1-010"].includes(card.cardId)).length === 3,
+    );
+
+    expect(player.battleArea).toHaveLength(0);
+    expect(player.trash.some((card) => card.instanceId === s.inst("overCost").instanceId)).toBe(true);
+    expect(player.trash.some((card) => card.instanceId === s.inst("other").instanceId)).toBe(true);
+    expect(player.trash.some((card) => card.instanceId === s.inst("rest").instanceId)).toBe(true);
+  });
+
   it("redirects an opponent's attack to the inherited host once per turn", async () => {
     const s = setupEngine(
       {
