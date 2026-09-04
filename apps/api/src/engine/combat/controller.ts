@@ -382,7 +382,7 @@ export class CombatController {
     const eligible: string[] = [];
     for (const perm of this.access.battleAreaPermanents(seat)) {
       if (perm.isSuspended) continue;
-      if (!this.access.isBattleAreaDigimon(perm)) continue;
+      if (!this.access.isBattleAreaDigimon(perm, this.hooks.continuous)) continue;
       if (this.attackedThisTurn.has(perm.permanentId)) continue;
       if (this.hasKeyword(perm.permanentId, "Blitz")) {
         eligible.push(perm.permanentId);
@@ -615,7 +615,12 @@ export class CombatController {
       if (this.hasKeyword(attacker.permanentId, "Alliance")) {
         const allyIds = this.access
           .battleAreaPermanents(attackerSeat)
-          .filter((p) => p.permanentId !== attacker.permanentId && !p.isSuspended && this.access.isBattleAreaDigimon(p))
+          .filter(
+            (p) =>
+              p.permanentId !== attacker.permanentId &&
+              !p.isSuspended &&
+              this.access.isBattleAreaDigimon(p, this.hooks.continuous),
+          )
           .map((p) => p.permanentId);
         if (allyIds.length > 0) {
           const allyId = await this.runAllianceDecision(attackerSeat, attacker.permanentId, allyIds);
@@ -652,7 +657,10 @@ export class CombatController {
         const defendingSeat = this.access.opponentOf(attackerSeat);
         const unsuspended = this.access
           .battleAreaPermanents(defendingSeat)
-          .filter((p) => !p.isSuspended && this.access.isBattleAreaDigimon(p) && p.topCard !== undefined);
+          .filter(
+            (p) =>
+              !p.isSuspended && this.access.isBattleAreaDigimon(p, this.hooks.continuous) && p.topCard !== undefined,
+          );
         if (unsuspended.length > 0) {
           const highestDP = Math.max(...unsuspended.map((p) => p.currentDP));
           const tied = unsuspended.filter((p) => p.currentDP === highestDP);
@@ -763,7 +771,10 @@ export class CombatController {
       } else if (defender === undefined) {
         // Player-directed, unblocked: hand off to security-and-win-check.
         await this.hooks.checkSecurity(this.access.opponentOf(attackerSeat), attacker.permanentId, "attack");
-      } else if (this.access.isBattleAreaDigimon(defender) && this.access.isBattleAreaDigimon(attacker)) {
+      } else if (
+        this.access.isBattleAreaDigimon(defender, this.hooks.continuous) &&
+        this.access.isBattleAreaDigimon(attacker, this.hooks.continuous)
+      ) {
         await this.resolveDigimonBattle(attacker, defender);
       }
 
@@ -897,7 +908,7 @@ export class CombatController {
    * left play or stopped being a Digimon mid-resolution, skip straight to end.
    */
   private attackerStillValid(attacker: Permanent): boolean {
-    return this.access.isBattleAreaDigimon(attacker);
+    return this.access.isBattleAreaDigimon(attacker, this.hooks.continuous);
   }
 
   /**
@@ -1302,7 +1313,12 @@ export class CombatController {
       if (perm === undefined) continue;
       const candidates = this.access
         .battleAreaPermanents(perm.controllerSeat)
-        .filter((p) => p.permanentId !== permanentId && p.topCard !== undefined && this.access.isBattleAreaDigimon(p));
+        .filter(
+          (p) =>
+            p.permanentId !== permanentId &&
+            p.topCard !== undefined &&
+            this.access.isBattleAreaDigimon(p, this.hooks.continuous),
+        );
       if (candidates.length === 0) continue;
       const chosenInstanceId = await this.hooks.selectOptionalInstance?.(
         perm.controllerSeat,
