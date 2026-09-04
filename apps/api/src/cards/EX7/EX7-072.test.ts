@@ -287,6 +287,7 @@ describe("EX7-072 [Main] grants a delayed self-delete choice to every opponent D
             { card: "BT1-009", as: "first" },
             { card: "BT1-010", as: "second" },
           ],
+          deck: ["BT1-001"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
@@ -299,7 +300,10 @@ describe("EX7-072 [Main] grants a delayed self-delete choice to every opponent D
     expect(observe(s.engine).subscriptions("endOfOpponentTurn")).toHaveLength(2);
 
     s.state.turnSeat = 1;
-    await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
+    const opponentTurn = advance(s.engine).runTurn(1);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
