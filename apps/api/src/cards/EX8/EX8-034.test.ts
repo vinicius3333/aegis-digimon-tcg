@@ -157,7 +157,12 @@ describe("EX8-034", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.perm("target").currentDP).toBe(before - 4000);
+    s.state.memory = 0;
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("target").currentDP).toBe(before);
   });
 
   it("can decline the optional NSo play without consuming the card", async () => {
@@ -184,6 +189,9 @@ describe("EX8-034", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "EX8-034");
     await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.perm("base").topCard.cardId).toBe("EX8-034");
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("candidate").instanceId)).toBe(true);
   });
 });
