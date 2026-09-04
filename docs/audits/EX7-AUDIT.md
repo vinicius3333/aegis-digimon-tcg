@@ -24,6 +24,22 @@ collection approval; no collection-wide 10/10 claim is made yet.
 - Follow-up evidence for EX7-044/046/048/049/050/052/054 and
   EX7-058/061/064/066/072 is being completed and independently checked.
 
+Latest follow-up gates (not collection approval):
+
+- `0f2f55335` synchronized all 74 EX7 effects records after the Lilithmon,
+  Chaos Triangular, and BeelStarmon corrections. Against the immutable base,
+  55 records differ semantically and no out-of-set bytes or semantics differ.
+  Shared and API production builds passed in that synchronization run.
+- API typecheck passed after these corrections.
+- Optimized additional mechanism checks passed 3 files / 4 selected tests
+  (317 skipped by name filter): failed/declined prevention, prevention
+  once-per-turn accounting, abort-on-decline continuation, and distinct-name
+  counting. This supplements the earlier 3 files / 21 tests; it does not claim
+  all tests in those mechanism files ran.
+- The exact collection inventory below remains the earlier 370-test checkpoint.
+  Final recalculation, focused protected-cost proofs, and independent rereview
+  remain pending.
+
 ## Passing test inventory at collection checkpoint
 
 Exact collection at `edd2e897b`: 74 files / 370 tests passed in 10.51 seconds.
