@@ -23,7 +23,7 @@ export const compiled: CompiledCard = {
                 },
                 {
                   tokens: ["Hina Kurihara"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -44,7 +44,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Hina Kurihara"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
