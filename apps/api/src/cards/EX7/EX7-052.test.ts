@@ -3,6 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX7-052.js";
+import "../index.js";
 
 describe("EX7-052", () => {
   it("reveals 3, adds a Lilithmon card to hand and a purple card to trash", () =>
@@ -74,10 +75,16 @@ describe("EX7-052", () => {
     expect(s.state.players[0]!.security).toHaveLength(1);
   });
 
-  it("does not end an attack when the deletion cost has no legal Digimon", async () => {
+  it("does not end an attack when Armor Purge prevents the deletion cost", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX7-042", as: "host", under: ["EX7-052"] }], security: ["BT1-001"] },
+        0: {
+          battleArea: [
+            { card: "EX7-042", as: "host", under: ["EX7-052"] },
+            { card: "BT8-039", as: "cost", under: ["BT8-046"] },
+          ],
+          security: ["BT1-001"],
+        },
         1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -93,6 +100,8 @@ describe("EX7-052", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 0);
     expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT8-046")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT8-039")).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 });
