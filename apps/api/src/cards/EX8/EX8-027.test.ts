@@ -37,7 +37,7 @@ describe("EX8-027", () => {
         0: {
           battleArea: [
             { card: "EX8-025", as: "whamon", under: [{ card: "EX8-020", as: "own" }] },
-            { card: "BT1-009", as: "other", under: [{ card: "EX8-017", as: "foreign" }] },
+            { card: "BT1-038", as: "other", under: [{ card: "EX8-017", as: "foreign" }] },
           ],
           hand: [{ card: "EX8-027", as: "plesiomon" }],
         },
