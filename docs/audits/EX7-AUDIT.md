@@ -21,6 +21,21 @@ final review, and push remain pending. No collection-wide 10/10 claim is made.
 
 ### Evidence follow-up
 
+- The first exact collection run at `e4046996a` completed in 10.36 seconds:
+  74 files, 356 passed / 1 failed out of 357 tests. EX7-056's positive fixture
+  incorrectly expected effect-protected Tortomon to be deleted; isolated tests
+  had not loaded that peer module. `ab6477b2b` loads peers consistently, uses a
+  neutral positive fixture, and retains Tortomon as a negative; focused 5/5
+  passed. This collection run is not a green closeout result.
+- Independent review found missing effect provenance on EX7-005. The negative
+  test first reproduced memory 3 instead of 2. `796c29ac8` requires `byEffect`
+  and replaces the old primitive-only positive with public Option use. All
+  6 focused tests pass, including own-host exclusion and opponent-turn timing.
+  Effects synchronization is stale after this module change.
+- Further review findings remain active: EX7-029/030/031/033/035 need combat
+  or timing proof, EX7-055 needs a Tamer-only count correction, and EX7-056's
+  keyword presence check needs a battle-level proof. Collection 10/10 is not
+  yet established. The web production build passed before these follow-ups.
 - Recalculation confirms 74 contiguous catalog IDs (EX7-001..074), 74 direct
   modules, and 74 colocated test files. Every module has one IR registration;
   no legacy registration or unparsed node was found in this set.
