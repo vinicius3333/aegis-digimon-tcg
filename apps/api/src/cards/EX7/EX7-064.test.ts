@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX7-064.js";
 describe("EX7-064 Shoto Kazama", () => {
   it("gains memory when the opponent has a Digimon", () =>
@@ -61,6 +61,67 @@ describe("EX7-064 Shoto Kazama", () => {
     expect(observe(s.engine).hasPierce(s.perm("vortex"))).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("vortex"), "Blocker")).toBe(true);
     expect(s.perm("vortex").isSuspended).toBe(false);
+  });
+
+  it("allows a Vortex attack after Shoto's end-of-turn unsuspend (Q3868)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX7-064", as: "shoto" },
+          { card: "EX7-034", as: "vortex", under: ["EX7-035"], suspended: true },
+        ],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "target", dp: 1000, suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("shoto"));
+    expect(s.perm("vortex").isSuspended).toBe(false);
+    expect(observe(s.engine).hasPierce(s.perm("vortex"))).toBe(true);
+
+    const attackResult = s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("vortex").permanentId,
+      target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      vortex: true,
+    });
+    expect(attackResult).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("allows Shoto's effect after a Vortex attack (Q3869)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX7-064", as: "shoto" },
+            { card: "EX7-034", as: "vortex", under: ["EX7-035"] },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 1000, suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("vortex").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+        vortex: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.perm("vortex").isSuspended).toBe(true);
+
+    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("shoto"));
+    expect(s.perm("shoto").isSuspended).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("vortex"), "Blocker")).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("vortex"))).toBe(true);
   });
 
   it("does not unsuspend a non-Vortex target, and declining the optional effect leaves it unchanged", async () => {
