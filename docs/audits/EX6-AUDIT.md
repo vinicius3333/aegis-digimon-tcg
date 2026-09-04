@@ -8,17 +8,27 @@ establish behavioral proof.
 
 ## Current closeout — 2026-09-04
 
-- Focused inventory: all 74 colocated EX6 test files are green. Source recount is
-  346 focused test declarations; EX6-010 has 13 after its final fidelity and
-  combat additions, and EX6-020 has 6 after its purple evolution proof.
+- Focused inventory: all 74 colocated EX6 test files are green. The 346 source
+  declarations expand to 350 runtime cases through parameterized tests. The
+  final exact collection gate passed 74/74 files and 350/350 tests in serial
+  mode with one fork.
 - Every card below is assessed `runtime 10/10` from its focused public-runtime
   evidence, direct module, catalog, and KB review. Per-card declaration counts
   are listed in the compact inventory below.
-- Key implementation/proof commits include `802728266`, `ad7f3b905`,
-  `9a4e06f96`, `0e00582e6`, and `880b4764f`.
-- Optimized mechanism gates, effects synchronization/static checks, collection
-  rerun, and build/type gates remain **pending coordinator execution**. This
-  ledger does not claim collection completion or a pushed branch.
+- The final static recount found 74 unique catalog IDs (`EX6-001` through
+  `EX6-074`), 74 direct modules, 74 colocated test files, 74 exact
+  `registerIrCard` registrations, and zero legacy `registerCard` registrations.
+- Optimized mechanism gates passed 8 files and 30 relevant tests. The final
+  effects check found 74 fully covered, residual-free EX6 records already
+  synchronized: 63 semantic changes against `origin/main`, with zero semantic
+  or byte changes outside EX6.
+- Full shared/web typechecking passed before the API-only findings were fixed;
+  the corrected API typecheck then passed twice. Shared, API, and web production
+  builds passed. Changed TypeScript scope is lint- and format-clean, the ledger
+  is format-clean, and `git diff --check` is clean.
+- Key late closeout commits include `a973a05d6`, `c4e4d2144`, `d6ddcebc2`,
+  `665b4b696`, and `d4e87915c`. Independent final review and branch push remain
+  pending; this ledger does not claim a pushed branch yet.
 
 Focused declaration inventory (recounted from `^\s*(it|test)\(`):
 
