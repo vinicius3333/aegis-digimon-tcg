@@ -75,7 +75,7 @@ describe("EX6-065 Mythical Arms of Salvation!", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX6-009", under: ["EX6-042"], as: "host" }],
+          battleArea: [{ card: "EX6-009", under: ["EX6-007"], as: "host" }],
           hand: [{ card: "EX6-065", as: "option" }],
         },
       },
@@ -90,8 +90,8 @@ describe("EX6-065 Mythical Arms of Salvation!", () => {
     const option = s.perm("option");
     option.enterFieldTurnCount = s.state.turnCount - 1;
     await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byBattle");
-    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-042"));
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-042")).toBe(true);
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-007"));
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-007")).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
   });
 });
