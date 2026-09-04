@@ -104,7 +104,7 @@ describe("EX8-036", () => {
           ],
         },
       },
-      { autoAcceptOptional: false, autoSelectCards: true },
+      { autoSelectCards: true },
     );
     s.state.memory = 3;
     expect(
@@ -116,7 +116,20 @@ describe("EX8-036", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "EX8-036");
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
 
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.perm("base").topCard.cardId).toBe("EX8-036");
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("candidate").instanceId)).toBe(true);
   });
 });
