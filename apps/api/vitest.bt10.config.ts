@@ -1,4 +1,6 @@
+import { availableParallelism } from "node:os";
 import { configDefaults, defineConfig } from "vitest/config";
+import { testExecArgv, testMaxWorkers } from "./vitest.workers.js";
 
 /**
  * Exact historical card-test gate through BT10 (including EX1/EX2, starter
@@ -17,14 +19,10 @@ export default defineConfig({
     ],
     exclude: configDefaults.exclude,
     pool: "forks",
-    poolOptions: {
-      forks: {
-        execArgv: [`--max-old-space-size=${process.env.TEST_HEAP_MB ?? 6144}`],
-        maxForks: Number(process.env.TEST_MAX_FORKS ?? 2),
-        minForks: 1,
-      },
-    },
+    maxWorkers: testMaxWorkers(availableParallelism()),
+    execArgv: testExecArgv(process.argv),
     isolate: false,
+    fsModuleCache: true,
     testTimeout: 15_000,
     slowTestThreshold: 3_000,
   },

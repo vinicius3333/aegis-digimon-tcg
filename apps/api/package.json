@@ -12,13 +12,13 @@
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
-    "test:fast": "FAST=1 vitest run --pool=threads",
-    "test:watch": "FAST=1 vitest --pool=threads --passWithNoTests",
-    "test:core": "FAST=1 vitest run --pool=threads --passWithNoTests",
+    "test:fast": "FAST=1 vitest run",
+    "test:watch": "FAST=1 vitest --passWithNoTests",
+    "test:core": "FAST=1 vitest run --passWithNoTests",
     "test:cards": "vitest run --passWithNoTests src/cards/",
     "test:cards:bt10": "vitest run --config vitest.bt10.config.ts",
-    "test:conformance": "vitest run --passWithNoTests src/engine/conformance --pool=forks --poolOptions.forks.maxForks=1 --no-file-parallelism",
-    "test:engine": "FAST=1 vitest run --pool=threads --passWithNoTests src/engine/",
+    "test:conformance": "vitest run --passWithNoTests src/engine/conformance --pool=forks --maxWorkers=1 --no-file-parallelism",
+    "test:engine": "FAST=1 vitest run --passWithNoTests src/engine/",
     "bench:bot": "BOT_BENCH=1 vitest run src/bot/benchmark.test.ts",
     "test:postgres": "POSTGRES_TESTS=1 vitest run src/db/postgres.atomicity",
     "test:parallel": "concurrently -n fast,cards 'pnpm test:fast' 'pnpm test:cards'"
@@ -37,12 +37,12 @@
     "@types/express": "^4.17.21",
     "@types/node": "^22.0.0",
     "@types/pg": "^8.21.0",
-    "@vitest/ui": "2.1.9",
+    "@vitest/ui": "5.0.0",
     "concurrently": "^9.0.0",
     "pg-mem": "^3.0.14",
     "tsc-watch": "^7.2.0",
     "tsx": "^4.0.0",
     "typescript": "~5.8.0",
-    "vitest": "^2.1.0"
+    "vitest": "^5.0.0"
   }
 }

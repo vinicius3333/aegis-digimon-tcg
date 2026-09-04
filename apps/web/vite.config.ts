@@ -26,22 +26,16 @@ export default defineConfig({
     pool: "threads",
     // Each scenario file boots its own websocket server + Colyseus room + React
     // render tree and drives it through several seconds of real async traffic.
-    // With vitest's default maxThreads (= CPU count), a full-suite run packs
+    // With vitest's default worker count (= CPU count), a full-suite run packs
     // that many of these onto the machine at once; under the resulting CPU
     // contention, already-generous 10s findByRole/waitFor timeouts in the
     // heaviest files (attackPermanent, evade, mobileCore, ...) occasionally get
     // starved past their deadline — flaky only in the full run, never in
     // isolation. Capping concurrency gives each scenario server enough CPU
-    // headroom to finish inside its timeout.
-    poolOptions: {
-      threads: {
-        minThreads: 1,
-        // Keep low-memory gates on the thread pool: forcing `forks` makes
-        // Colyseus's non-plain log payloads cross IPC and crash Vitest's
-        // serializer. Override only the thread count when RAM is constrained.
-        maxThreads: testMaxThreads,
-      },
-    },
+    // headroom to finish inside its timeout. Keep low-memory gates on the thread
+    // pool: forcing `forks` makes Colyseus's non-plain log payloads cross IPC and
+    // crash Vitest's serializer. Override only the thread count when RAM is constrained.
+    maxWorkers: testMaxThreads,
   },
   server: {
     port: 5173,
