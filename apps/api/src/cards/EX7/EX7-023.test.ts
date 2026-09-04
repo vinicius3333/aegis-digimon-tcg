@@ -3,6 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./EX7-023.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("EX7-023 Hexeblaumon", () => {
@@ -48,5 +49,23 @@ describe("EX7-023 Hexeblaumon", () => {
     );
     expect(s.state.players[1]!.battleArea[0]!.stack).toHaveLength(0);
     expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("EX7-065");
+  });
+
+  it("prevents only opposing Digimon with no more evolution cards than its stack", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX7-023", as: "hex", under: ["EX7-018"] }] },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "low" },
+          { card: "BT1-010", as: "high", under: ["EX7-018", "EX7-020"] },
+        ],
+      },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(observe(s.engine).isRestricted(s.perm("low"), "suspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("high"), "suspend")).toBe(false);
+    await advance(s.engine).verb.suspend([s.perm("low").permanentId]);
+    expect(s.perm("low").isSuspended).toBe(false);
   });
 });
