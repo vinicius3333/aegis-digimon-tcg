@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX7-056.js";
+import "../index.js";
 
 describe("EX7-056", () => {
   it("has Blocker and on deletion trashes a card to delete opposing level 3 and level 4 Digimon", () => {
@@ -30,7 +31,7 @@ describe("EX7-056", () => {
         1: {
           battleArea: [
             { card: "BT1-009", as: "level3" },
-            { card: "EX7-041", as: "level4" },
+            { card: "BT1-014", as: "level4" },
           ],
         },
       },
@@ -41,6 +42,20 @@ describe("EX7-056", () => {
     await advance(s.engine).fire(EffectTiming.OnDestroyedAnyone, s.perm("oro"));
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("respects an opposing Tortomon's effect-deletion protection", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX7-056", as: "oro" }], hand: ["BT1-001"] },
+        1: { battleArea: ["BT1-009", { card: "EX7-041", as: "protected" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnDestroyedAnyone, s.perm("oro"));
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["EX7-041"]);
   });
 
   it("exposes Blocker and inherited Retaliation through an evolution stack", async () => {
