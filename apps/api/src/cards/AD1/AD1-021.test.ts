@@ -44,7 +44,7 @@ describe("AD1-021 Marcus Damon & Agumon", () => {
           deck: ["BT1-001"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 3;
 
@@ -115,5 +115,26 @@ describe("AD1-021 Marcus Damon & Agumon", () => {
     expect(endTurn?.actions.filter((action) => action.kind === "Attack")).toEqual([
       expect.objectContaining({ kind: "Attack", optional: true }),
     ]);
+  });
+
+  it("still draws on suspension but rejects a hand Digimon without Greymon in its name", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "AD1-021", as: "tamer" },
+            { card: "BT12-042", as: "base" },
+          ],
+          hand: [{ card: "BT1-010", as: "notGreymon" }],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).verb.suspend([s.perm("tamer").permanentId]);
+    await settle();
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("notGreymon").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.perm("base").topCard.cardId).toBe("BT12-042");
   });
 });

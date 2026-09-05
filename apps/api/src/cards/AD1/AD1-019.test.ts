@@ -131,4 +131,33 @@ describe("AD1-019 Matt Ishida & T.K. Takaishi", () => {
     await advance(unqualified.engine).fire(EffectTiming.StartOfYourMainPhase, unqualified.perm("tamer"));
     expect(unqualified.state.memory).toBe(0);
   });
+
+  it("can decline the optional ADVENTURE play after a qualifying evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "AD1-019", as: "tamer" },
+            { card: "ST20-10", as: "base" },
+          ],
+          hand: [
+            { card: "AD1-001", as: "evolving" },
+            { card: "AD1-001", as: "adventure" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "AD1-001");
+    expect(s.perm("tamer").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("adventure").instanceId)).toBe(true);
+  });
 });
