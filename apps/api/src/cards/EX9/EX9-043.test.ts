@@ -53,25 +53,54 @@ describe("EX9-043", () => {
       { cost: 3, isAlternate: true, traits: ["DM"], level: 4 },
     ]));
 
-  it("trashes an eligible hand card and reduces the play cost by exactly 2", async () => {
+  it.each(["BT1-021", "EX9-039"])(
+    "trashes an independently eligible %s and reduces play cost by two",
+    async (payment) => {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [
+              { card: "EX9-043", as: "metal" },
+              { card: payment, as: "payment" },
+            ],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      const player = s.state.players[0] as PlayerState;
+      const paymentId = s.inst("payment").instanceId;
+      const before = s.state.memory;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("metal").instanceId }).ok).toBe(true);
+      await settle(() => player.battleArea.length > 0);
+      await settle();
+      expect(before - s.state.memory).toBe(5);
+      expect(player.hand.find((card) => card.instanceId === paymentId)).toBeUndefined();
+      expect(player.battleArea[0]!.stack.map(({ cardId, faceUp }) => [cardId, faceUp])).toEqual([[payment, false]]);
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
+
+  it.each([true, false])("checks security after a battle win only with inherited Piercing: %s", async (inherited) => {
     const s = setupEngine(
       {
-        0: {
-          hand: [
-            { card: "EX9-043", as: "metal" },
-            { card: "BT1-021", as: "payment" },
-          ],
-        },
+        0: { battleArea: [{ card: "BT1-080", as: "host", under: inherited ? ["EX9-043"] : [] }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true }], security: ["BT1-001"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoSelectCards: true, autoOrderTriggers: true },
     );
-    const player = s.state.players[0] as PlayerState;
-    const paymentId = s.inst("payment").instanceId;
-    const before = s.state.memory;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("metal").instanceId }).ok).toBe(true);
-    await settle(() => player.battleArea.length > 0);
-    expect(before - s.state.memory).toBe(5);
-    expect(player.hand.find((card) => card.instanceId === paymentId)).toBeUndefined();
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(inherited ? 0 : 1);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("does not reduce the cost or trash an ineligible hand card", async () => {
