@@ -3275,6 +3275,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const allStackInstanceIds: string[] = [];
     const allLinkedInstanceIds: string[] = [];
     const deletedLinkHostInstanceByLinkedInstanceId: Record<string, string> = {};
+    const deletedHostInstanceByInstanceId: Record<string, string> = {};
     const deletedByDpZero =
       cause === "byRule" && toDelete.some((permanentId) => access.permanentById(permanentId)?.currentDP === 0);
     const deletedByDpZeroInstanceIds = toDelete
@@ -3312,9 +3313,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     });
     // ＜Fortitude＞ keyword (Comprehensive Rules §16-27): "When a Digimon WITH DIGIVOLUTION
     // CARDS and this effect is deleted, you play this Digimon without paying the cost" —
-    // mandatory (§16-27-3), no decision. Captured here (pre-deletion) so "had digivolution
-    // cards" reads the live stack; the actual replay happens after the movement below, once
-    // the top card is a loose instance sitting in trash.
+    // mandatory (§16-27-3). Capture eligibility before movement; the replay joins the
+    // ordinary deletion trigger pool so its controller can order it with other effects.
     const fortitudeReplays = toDelete
       .map((permanentId) => {
         const perm = access.permanentById(permanentId);
@@ -3405,6 +3405,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       allLinkedInstanceIds.push(...linkedIdsByPermanent[i]!);
       const hostInstanceId = topInstanceIdsByPermanent[i];
       if (hostInstanceId !== undefined) {
+        if (!tokenDeletionIds.includes(hostInstanceId)) {
+          for (const instanceId of moved) deletedHostInstanceByInstanceId[instanceId] = hostInstanceId;
+        }
         for (const linkedInstanceId of linkedIdsByPermanent[i]!) {
           deletedLinkHostInstanceByLinkedInstanceId[linkedInstanceId] = hostInstanceId;
         }
@@ -3452,6 +3455,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         deletedWasStackInstanceIds: allStackInstanceIds,
         deletedWasLinkedInstanceIds: allLinkedInstanceIds,
         deletedLinkHostInstanceByLinkedInstanceId,
+        deletedHostInstanceByInstanceId,
+        fortitudeInstanceIds: fortitudeReplays.filter((instanceId) => allMoved.includes(instanceId)),
         ...(deletingPermanentId === undefined ? {} : { deletingPermanentId }),
         removalCause: cause,
         removalMechanic: opts?.mechanic,
@@ -3474,10 +3479,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         });
       }
     }
-    // ＜Fortitude＞ replay: only for cards that actually left the field (in allMoved), each as
-    // its own fresh permanent (top card only — the digivolution stack that qualified it stays
-    // trashed as loose cards, matching every other "play this card from trash" reaction).
-    for (const instanceId of fortitudeReplays) {
+    // Legacy primitive-only harnesses without a timing runner retain the mandatory replay.
+    // Production replays exclusively through the collected Fortitude deletion effect.
+    for (const instanceId of engine.fireTiming ? [] : fortitudeReplays) {
       if (!allMoved.includes(instanceId)) continue;
       await playInstances([instanceId]);
     }

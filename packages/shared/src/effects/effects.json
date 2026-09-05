@@ -157439,6 +157439,7 @@
                 },
                 "restriction": "beAffected",
                 "fromSourceKind": ["Digimon"],
+                "byOpponentEffectsOnly": true,
                 "duration": "untilOpponentTurnEnd"
               },
               {

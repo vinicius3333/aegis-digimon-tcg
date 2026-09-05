@@ -6,7 +6,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // - 1st [All Turns]: text says "their Digimon effects don't affect this Digimon" (opponent
 //   Digimon-sourced effects only). `GrantImmunity`'s `immuneFrom: "opponentEffects"` blocks
 //   ALL opponent effects (Options/Tamers too), so it's replaced with the dedicated `Restrict`
-//   action + `fromSourceKind: ["Digimon"]` (CAP-#8, see ex12Gap8Immunity.test.ts).
+//   action + `fromSourceKind: ["Digimon"]` + `byOpponentEffectsOnly: true` (CAP-#8, see
+//   ex12Gap8Immunity.test.ts).
 // - 2nd [All Turns]: text says "When security stacks are removed from, this Digimon may
 //   unsuspend" — a triggered ability, not an unconditional per-turn Unsuspend on any of my
 //   Digimon. Wrapped in a `whenSecurityRemoved` SubTrigger (AD1-017 pattern) and the Unsuspend
@@ -141,6 +142,7 @@ const compiled: CompiledCard = {
               },
               restriction: "beAffected",
               fromSourceKind: ["Digimon"],
+              byOpponentEffectsOnly: true,
               duration: "untilOpponentTurnEnd",
             },
             {

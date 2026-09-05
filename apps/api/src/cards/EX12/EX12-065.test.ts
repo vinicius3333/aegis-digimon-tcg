@@ -264,7 +264,7 @@ describe("EX12-065 Kaguyamon", () => {
       await s.ready();
 
       // Fire-and-forget: the deletion cannot complete until the ordering decision is answered.
-      void advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect");
+      const deletion = advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect");
       await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
 
       const ordering = s.state.pendingDecision!;
@@ -272,23 +272,51 @@ describe("EX12-065 Kaguyamon", () => {
       const ids = request.options?.triggerCardIds ?? [];
       const keys = request.options?.triggerKeys ?? [];
       // Kaguyamon's own [On Deletion] and Karakurumon's inherited [On Deletion] trigger at the
-      // same time, so the controller — not the engine — decides which resolves first.
-      expect(ids).toEqual(expect.arrayContaining(["EX12-063", CARD_ID]));
+      // same time. Fortitude is a third simultaneous trigger for the same deletion, so the
+      // controller — not the engine — decides which resolves first.
+      expect(ids).toHaveLength(3);
+      expect(ids).toEqual(expect.arrayContaining(["EX12-063", CARD_ID, CARD_ID]));
 
+      const firstKey = keys.find((key, index) => ids[index] === firstCardId && !key.includes("keyword/fortitude"));
+      expect(firstKey).toBeDefined();
       expect(
         s.engine.applyIntent(0, {
           type: "respondDecision",
           decisionId: ordering.decisionId,
-          response: { kind: "orderTriggers", order: [keys[ids.indexOf(firstCardId)]!] },
+          response: { kind: "orderTriggers", order: [firstKey!] },
         }),
       ).toEqual({ ok: true });
-      await settle(
-        () =>
-          s.events.filter(
-            (event) =>
-              event.kind === "effectResolved" && (event.sourceCardId === CARD_ID || event.sourceCardId === "EX12-063"),
-          ).length >= 2,
+
+      // The second order prompt contains the remaining printed effect and Fortitude. Select
+      // the other printed effect; Fortitude then resolves last and may legitimately replay the
+      // card's On Play effect.
+      const secondCardId = firstCardId === "EX12-063" ? CARD_ID : "EX12-063";
+      await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+      const secondOrdering = s.state.pendingDecision!;
+      expect(secondOrdering.decisionId).not.toBe(ordering.decisionId);
+      const secondRequest = s.decisions.find(({ req }) => req.decisionId === secondOrdering.decisionId)!.req;
+      const secondIds = secondRequest.options?.triggerCardIds ?? [];
+      const secondKeys = secondRequest.options?.triggerKeys ?? [];
+      const secondKey = secondKeys.find(
+        (key, index) => secondIds[index] === secondCardId && !key.includes("keyword/fortitude"),
       );
+      expect(secondKey).toBeDefined();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: secondRequest.decisionId,
+          response: { kind: "orderTriggers", order: [secondKey!] },
+        }),
+      ).toEqual({ ok: true });
+      await deletion;
+      await settle();
+      expect(s.state.pendingDecision).toBeUndefined();
+      expect(
+        s.events.filter(
+          (event) =>
+            event.kind === "effectResolved" && (event.sourceCardId === CARD_ID || event.sourceCardId === "EX12-063"),
+        ).length,
+      ).toBeGreaterThanOrEqual(2);
 
       expect(
         s.events
@@ -299,6 +327,126 @@ describe("EX12-065 Kaguyamon", () => {
       ).toEqual(expectedOrder);
     },
   );
+
+  it("Q6866: choosing Fortitude first strands both pending On Deletion effects", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "source", under: ["EX12-063"], suspended: true }],
+          trash: [{ card: "BT26-012", as: "fromTrash" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "lowest" }] },
+      },
+      { autoSelectCards: true, autoOrderTriggers: false },
+    );
+    await s.ready();
+
+    const sourceId = s.perm("source").permanentId;
+    const deletion = advance(s.engine).verb.deletePermanent([sourceId], "byEffect");
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+
+    const ordering = s.state.pendingDecision!;
+    const request = s.decisions.find(({ req }) => req.decisionId === ordering.decisionId)!.req;
+    const keys = request.options?.triggerKeys ?? [];
+    const fortitudeKey = keys.find((key) => key.includes("keyword/fortitude"));
+    expect(fortitudeKey).toBeDefined();
+    expect(request.options?.triggerKeys).toHaveLength(3);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: ordering.decisionId,
+        response: { kind: "orderTriggers", order: [fortitudeKey!] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const replayOnPlay = s.state.pendingDecision;
+    expect(replayOnPlay?.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: replayOnPlay!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await deletion;
+    await settle();
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID)).toBe(true);
+
+    // Fortitude replays the deleted top card, and replaying it first removes the deleted
+    // source's own/inherited pending effects from the queue: no opponent return and no
+    // inherited trash play may occur afterward.
+    expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT1-009")).toBe(true);
+    expect(s.state.players[1]!.deck.some(({ cardId }) => cardId === "BT1-009")).toBe(false);
+    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT26-012")).toBe(true);
+  });
+
+  it("Q6866 also orders Fortitude before both On Deletion effects after a battle deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX12-057", as: "attacker" },
+            { card: "BT1-009", as: "otherOpponent" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: CARD_ID, as: "source", under: ["EX12-063"], suspended: true }],
+          trash: [{ card: "BT26-012", as: "fromTrash" }],
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: false },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("source").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+
+    const ordering = s.state.pendingDecision!;
+    const decision = s.decisions.find(({ req }) => req.decisionId === ordering.decisionId)!;
+    const keys = decision.req.options?.triggerKeys ?? [];
+    const fortitudeKey = keys.find((key) => key.includes("keyword/fortitude"));
+    expect(decision.seat).toBe(1);
+    expect(fortitudeKey).toBeDefined();
+    expect(keys).toHaveLength(3);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: ordering.decisionId,
+        response: { kind: "orderTriggers", order: [fortitudeKey!] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const replayOnPlay = s.state.pendingDecision;
+    expect(replayOnPlay?.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: replayOnPlay!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID)).toBe(true);
+
+    // Equal DP deletes both combatants in the same battle; the attacker has no surviving
+    // permanent for Retaliation to delete.
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX12-057")).toBe(false);
+    // The unrelated opponent Digimon proves Kaguyamon's pending On Deletion return effect was
+    // stranded together with the inherited Karakurumon effect.
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT1-009")).toBe(true);
+    expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT26-012")).toBe(false);
+    expect(s.state.players[1]!.trash.some(({ cardId }) => cardId === "BT26-012")).toBe(true);
+  });
 
   it("stays deleted without a digivolution source", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: CARD_ID, as: "source" }] } });
