@@ -72,6 +72,42 @@ describe("AD1-007 Siriusmon", () => {
     expect(s.state.memory).toBe(2);
   });
 
+  it("can place all three Gammamon-text cards at the bottom of its stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-011", as: "base", under: ["BT1-001"] }],
+          hand: [
+            { card: "AD1-007", as: "siriusmon" },
+            { card: "BT10-011", as: "gamma-1" },
+            { card: "BT10-050", as: "gamma-2" },
+            { card: "BT10-078", as: "gamma-3" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 12000 }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, autoChooseOption: true, preferOptionIndex: 1 },
+    );
+    s.state.memory = 5;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("siriusmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").stack.length === 5);
+
+    expect(s.perm("base").stack[3]?.cardId).toBe("BT1-001");
+    expect(s.perm("base").stack.slice(0, 3).map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT10-011", "BT10-050", "BT10-078"]),
+    );
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("target").permanentId)).toBe(
+      false,
+    );
+  });
+
   it("shares one use between its when-digivolving and when-attacking timings", async () => {
     const s = setupEngine(
       {
