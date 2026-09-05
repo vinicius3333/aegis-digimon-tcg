@@ -184,7 +184,7 @@ describe("EX10-031 DarkKnightmon", () => {
       actions: [
         {
           kind: "DeDigivolve" as const,
-          target: { filter: { controller: "mine" as const, kind: ["Digimon"] }, count: 1 as const },
+          target: { filter: { controller: "mine" as const, kind: ["Digimon" as const] }, count: 1 as const },
           amount: 1,
         },
       ],
