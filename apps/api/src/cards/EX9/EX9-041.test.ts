@@ -58,6 +58,24 @@ describe("EX9-041", () => {
     expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual(eligible ? [base] : []);
     expect(s.state.pendingDecision).toBeUndefined();
   });
+  it("requires the exact Raremon name and rejects RareRaremon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX9-054", as: "host" }], hand: [{ card: "EX9-041", as: "evo" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evo").instanceId,
+        useAlternateCost: true,
+      }).ok,
+    ).toBe(false);
+    await settle();
+    expect(s.perm("host").topCard.cardId).toBe("EX9-054");
+    expect(s.state.memory).toBe(5);
+  });
   it.each([true, false])("Fortitude replays a fresh permanent only when a source existed: %s", async (hasSource) => {
     const s = setupEngine(
       {

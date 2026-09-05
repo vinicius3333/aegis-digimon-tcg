@@ -7,6 +7,10 @@ import { compiled } from "./EX9-063.js";
 import "../index.js";
 
 describe("EX9-063", () => {
+  it("declares the printed Nanimon route as an exact-name requirement", () => {
+    expect(compiled.digivolutionRequirement).toContainEqual({ namesExact: ["Nanimon"], cost: 3, isAlternate: true });
+  });
+
   it.each(["BT1-009", "EX9-009"])(
     "pays the hidden cost but cannot play a revealed nonmatching card (%s)",
     async (hidden) => {
@@ -79,6 +83,29 @@ describe("EX9-063", () => {
       expect(s.state.pendingDecision).toBeUndefined();
     },
   );
+  it.each([
+    ["EX9-028", true],
+    ["BT1-016", false],
+  ] as const)("matches the alternate Nanimon evolution by exact name (%s)", async (base, eligible) => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: base, as: "host" }], hand: [{ card: "EX9-063", as: "evo" }], deck: ["BT1-046"] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evo").instanceId,
+        useAlternateCost: true,
+      }).ok,
+    ).toBe(eligible);
+    await settle();
+    expect(s.perm("host").topCard.cardId).toBe(eligible ? "EX9-063" : base);
+    expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual(eligible ? [base] : []);
+    expect(s.state.memory).toBe(eligible ? 2 : 5);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
   it("cannot pay the attack cost with a face-up own source or another Digimon's face-down source", async () => {
     const s = setupEngine(
       {

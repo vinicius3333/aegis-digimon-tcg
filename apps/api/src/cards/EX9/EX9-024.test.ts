@@ -9,6 +9,10 @@ import "../EX5/EX5-074.js";
 import "../index.js";
 
 describe("EX9-024", () => {
+  it("declares the printed Kyaromon route as an exact-name requirement", () => {
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Kyaromon"], cost: 0, isAlternate: true }]);
+  });
+
   it("returns a Puppet Digimon from trash by trashing a card from hand on play", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
       kind: "Return",
@@ -62,6 +66,31 @@ describe("EX9-024", () => {
 
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-001"]);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-009"]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it.each([
+    ["BT1-005", true],
+    ["BT1-003", false],
+    ["BT6-002", true],
+  ] as const)("matches the alternate Kyaromon evolution by exact name (%s)", async (base, eligible) => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: base, as: "host" }], hand: [{ card: "EX9-024", as: "evo" }], deck: ["BT1-009"] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evo").instanceId,
+        useAlternateCost: true,
+      }).ok,
+    ).toBe(eligible);
+    await settle();
+    expect(s.perm("host").topCard.cardId).toBe(eligible ? "EX9-024" : base);
+    expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual(eligible ? [base] : []);
+    expect(s.state.memory).toBe(5);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 

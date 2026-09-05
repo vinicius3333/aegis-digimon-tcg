@@ -5,6 +5,40 @@ import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("EX9-012", () => {
+  it("uses the exact MetalGreymon alternate route at cost 1 and rejects a near-name level-five", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT1-021", as: "base" }], hand: [{ card: "EX9-012", as: "evo" }] } },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evo").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.memory).toBe(1);
+  });
+  it("rejects Alterous Mode as a near-name card for the exact MetalGreymon route", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX9-012", as: "base" }], hand: [{ card: "EX9-012", as: "evo" }] },
+    });
+    s.state.memory = 2;
+    await s.ready();
+    const result = s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("evo").instanceId,
+      alternateRequirementIndex: 0,
+    });
+    expect(result).toMatchObject({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("base").topCard.cardId).toBe("EX9-012");
+  });
   it("grants inherited +4000 on a real legal evolution and removes it on the opponent turn", async () => {
     const s = setupEngine({
       0: {

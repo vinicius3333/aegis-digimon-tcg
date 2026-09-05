@@ -74,7 +74,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Eyesmon: Scatter Mode"],
+      namesExact: ["Eyesmon: Scatter Mode"],
       cost: 1,
       isAlternate: true,
     },

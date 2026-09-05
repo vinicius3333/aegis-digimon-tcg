@@ -196961,7 +196961,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "names": ["MetalGreymon"], "cost": 1, "isAlternate": true },
+      { "namesExact": ["MetalGreymon"], "cost": 1, "isAlternate": true },
       { "level": 4, "names": ["Greymon"], "cost": 3, "isAlternate": true },
       { "traits": ["ADVENTURE"], "cost": 3, "isAlternate": true, "level": 4 }
     ]
@@ -197322,7 +197322,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "names": ["Mamemon"], "cost": 1, "isAlternate": true },
+      { "namesExact": ["Mamemon"], "cost": 1, "isAlternate": true },
       { "level": 4, "traits": ["DM"], "cost": 3, "isAlternate": true }
     ]
   },
@@ -197420,7 +197420,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "names": ["WereGarurumon"], "cost": 1, "isAlternate": true },
+      { "namesExact": ["WereGarurumon"], "cost": 1, "isAlternate": true },
       { "level": 4, "names": ["Garurumon"], "cost": 3, "isAlternate": true },
       { "traits": ["ADVENTURE"], "cost": 3, "isAlternate": true, "level": 4 }
     ]
@@ -197711,7 +197711,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Kyaromon"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Kyaromon"], "cost": 0, "isAlternate": true }]
   },
   "EX9-025": {
     "effects": [
@@ -198897,7 +198897,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "names": ["Raremon"], "cost": 3, "isAlternate": true },
+      { "namesExact": ["Raremon"], "cost": 3, "isAlternate": true },
       { "level": 4, "traits": ["DM"], "cost": 4, "isAlternate": true }
     ]
   },
@@ -199378,7 +199378,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Eyesmon: Scatter Mode"], "cost": 1, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Eyesmon: Scatter Mode"], "cost": 1, "isAlternate": true }]
   },
   "EX9-048": {
     "effects": [
@@ -200162,7 +200162,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Abbadomon"], "cost": 4, "isAlternate": true }]
+    "digivolutionRequirement": [{ "namesExact": ["Abbadomon"], "cost": 4, "isAlternate": true }]
   },
   "EX9-058": {
     "effects": [
@@ -200634,7 +200634,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "names": ["Nanimon"], "cost": 3, "isAlternate": true },
+      { "namesExact": ["Nanimon"], "cost": 3, "isAlternate": true },
       { "level": 4, "traits": ["DM"], "cost": 4, "isAlternate": true }
     ]
   },

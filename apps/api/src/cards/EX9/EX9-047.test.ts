@@ -7,6 +7,12 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("EX9-047", () => {
+  it("declares the printed Eyesmon: Scatter Mode route as an exact-name requirement", () => {
+    expect(compiled.digivolutionRequirement).toEqual([
+      { namesExact: ["Eyesmon: Scatter Mode"], cost: 1, isAlternate: true },
+    ]);
+  });
+
   it("Collision forces a non-Blocker to block without allowing direct attacks on unsuspended Digimon", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "EX9-047", as: "attacker" }] },

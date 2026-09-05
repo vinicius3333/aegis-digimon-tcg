@@ -45,6 +45,25 @@ describe("EX9-018", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
+  it("requires the exact Mamemon name and rejects MetalMamemon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT3-071", as: "host" }], hand: [{ card: "EX9-018", as: "evo" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evo").instanceId,
+        useAlternateCost: true,
+      }).ok,
+    ).toBe(false);
+    await settle();
+    expect(s.perm("host").topCard.cardId).toBe("BT3-071");
+    expect(s.state.memory).toBe(5);
+  });
+
   it("declines the On Play trash-placement cost without trashing or returning the target", async () => {
     const s = setupEngine(
       {

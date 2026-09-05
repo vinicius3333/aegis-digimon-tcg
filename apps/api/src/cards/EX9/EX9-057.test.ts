@@ -189,6 +189,25 @@ describe("EX9-057", () => {
       expect(s.state.pendingDecision).toBeUndefined();
     },
   );
+
+  it("requires the exact Abbadomon name and rejects an Abbadomon Core base", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX9-057", as: "host" }], hand: [{ card: "EX9-057", as: "evo" }] },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evo").instanceId,
+        useAlternateCost: true,
+      }).ok,
+    ).toBe(false);
+    await settle();
+    expect(s.perm("host").topCard.cardId).toBe("EX9-057");
+    expect(s.state.memory).toBe(10);
+  });
   it("Q4816/Q4819 pays mixed-zone Negamon, resolves When Moving, then blocks the same real attack", async () => {
     const s = setupEngine(
       {
