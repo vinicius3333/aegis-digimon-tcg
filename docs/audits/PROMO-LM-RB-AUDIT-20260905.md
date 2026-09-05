@@ -1,6 +1,6 @@
 # Promo, LM and RB1 audit — coordinator evidence
 
-Status: audit verification passed; integration with the latest main is in progress. Scope: 338 catalog cards (P: 243; LM: 62;
+Status: verification complete, including integration with the latest main. Scope: 338 catalog cards (P: 243; LM: 62;
 RB1: 33). P-226 is absent. Historical scores were rechecked against catalog text,
 local KB rulings, direct IR and observable test assertions.
 
@@ -92,4 +92,11 @@ All commands run from the isolated audit checkout. Tests use `--maxWorkers=1
 
 All 338 canonical rows were recalculated at 10/10 from the reviewed evidence and green aggregate gates. Changed-file lint/format and diff checks passed. Independent review found no remaining functional defect; its duplicate-import cleanup was applied and P-177 rechecked (five tests).
 
-The user subsequently authorized merging into main and pushing. Main advanced with EX10 audit work during this run. Integration must preserve those changes and revalidate the combined engine before merge delivery and the Orca completion update.
+The user authorized merging into main and pushing. Main commit `18156ecee` was integrated without conflicts in `47933c590`, preserving the EX10 audit changes. Post-integration verification passed:
+
+- All P/LM/RB1 and persisted-parity files: **362 files / 1,988 tests**, in ten serial batches of at most 40 files. Every file ran once in the completed batch pass. The slow monolithic integration run was stopped and is not counted as passing evidence; no additional EX10 suite was required.
+- Related and incoming shared-engine mechanisms: **19 files / 525 tests**.
+- Rendered Promo and EX10 evolution-stack scenarios: **2 files / 2 tests**.
+- Full workspace typecheck, changed-file lint/format and clean full diff checks.
+
+All 338 audited cards retain reproducible 10/10 evidence after integration. No audit-owned production engine change, skipped required reproduction or unresolved implementation limitation remains.

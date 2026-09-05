@@ -73,7 +73,7 @@ Clause-review links record card-specific source mappings. Exact test-title templ
 
 ## Shared verification
 
-The combined P/LM/RB1 and persisted-parity run passed **362 files / 1,988 tests**. A subsequent focused P-221 run passed all eight tests after replacing an invalid timing constant with a real attack intent; API typecheck also passed. Related mechanisms passed **12 files / 343 tests**. No production engine changes were needed.
+Post-integration verification against main `18156ecee` passed **362 collection/parity files / 1,988 tests** in ten serial batches. Related and incoming shared-engine mechanisms passed **19 files / 525 tests**, both rendered evolution scenarios passed, and full workspace typecheck passed. No audit-owned production engine changes were needed.
 
 ```sh
 pnpm --filter @aegis/api exec vitest run src/cards/P src/cards/LM src/cards/RB1 src/cards/promo-lm-rb.catalog-parity.test.ts --maxWorkers=1 --no-file-parallelism
