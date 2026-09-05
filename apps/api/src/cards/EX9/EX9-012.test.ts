@@ -3,8 +3,40 @@ import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./EX9-012.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import "../index.js";
 
 describe("EX9-012", () => {
+  it("grants inherited +4000 on a real legal evolution and removes it on the opponent turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX9-012", as: "host" }],
+        hand: [{ card: "ST1-10", as: "evo" }],
+        deck: ["BT1-009", "BT1-009", "BT1-009"],
+      },
+      1: { deck: ["BT1-009", "BT1-009"] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("host").topCard.cardId).toBe("ST1-10");
+    expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual(["EX9-012"]);
+    expect(s.perm("host").currentDP).toBe(16000);
+    expect(s.state.memory).toBe(3);
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.engine.recomputeContinuousEffects();
+    expect(s.perm("host").currentDP).toBe(12000);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("deletes an opposing Digimon up to 8000 DP on play and digivolving", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
       kind: "Delete",
@@ -43,7 +75,7 @@ describe("EX9-012", () => {
             { card: "EX9-012", as: "source" },
             { card: "AD1-010", as: "garurumon" },
           ],
-          hand: [{ card: "AD1-004", as: "greymon" }],
+          hand: [{ card: "BT5-069", as: "greymon" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -53,8 +85,8 @@ describe("EX9-012", () => {
     await advance(positive.engine).fireSubTrigger("whenPlayed", {
       subjectPermanentId: positive.perm("garurumon").permanentId,
     });
-    await settle(() => positive.perm("source").topCard?.cardId === "AD1-004");
-    expect(positive.perm("source").topCard?.cardId).toBe("AD1-004");
+    await settle(() => positive.perm("source").topCard?.cardId === "BT5-069");
+    expect(positive.perm("source").topCard?.cardId).toBe("BT5-069");
 
     const positiveDigivolution = setupEngine(
       {
@@ -63,7 +95,7 @@ describe("EX9-012", () => {
             { card: "EX9-012", as: "source" },
             { card: "AD1-010", as: "garurumon" },
           ],
-          hand: [{ card: "AD1-004", as: "greymon" }],
+          hand: [{ card: "BT5-069", as: "greymon" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -73,8 +105,8 @@ describe("EX9-012", () => {
     await advance(positiveDigivolution.engine).fireSubTrigger("whenOneOfYoursDigivolves", {
       subjectPermanentId: positiveDigivolution.perm("garurumon").permanentId,
     });
-    await settle(() => positiveDigivolution.perm("source").topCard?.cardId === "AD1-004");
-    expect(positiveDigivolution.perm("source").topCard?.cardId).toBe("AD1-004");
+    await settle(() => positiveDigivolution.perm("source").topCard?.cardId === "BT5-069");
+    expect(positiveDigivolution.perm("source").topCard?.cardId).toBe("BT5-069");
 
     const negative = setupEngine(
       {
@@ -83,7 +115,7 @@ describe("EX9-012", () => {
             { card: "EX9-012", as: "source" },
             { card: "AD1-001", as: "nonMatching" },
           ],
-          hand: [{ card: "AD1-004", as: "greymon" }],
+          hand: [{ card: "BT5-069", as: "greymon" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
