@@ -1,4 +1,6 @@
 import { describeLegacyStCollection } from "../legacy-st-collection-gate.js";
+import { getCardDefinition } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
 import "./index.js";
 
 describeLegacyStCollection({
@@ -21,4 +23,32 @@ describeLegacyStCollection({
     { cardId: "ST3-15", nameEn: "Holy Flame" },
     { cardId: "ST3-16", nameEn: "Seven Heavens" },
   ],
+});
+
+describe("ST3 catalog contract", () => {
+  it("matches the printed stats and evolution requirements for every card", () => {
+    const expected = [
+      ["ST3-01", ["Yellow"], 2, -1, 0, []],
+      ["ST3-02", ["Yellow"], 3, 2, 3000, [{ color: "Yellow", level: 2, memoryCost: 0 }]],
+      ["ST3-03", ["Yellow"], 3, 3, 4000, [{ color: "Yellow", level: 2, memoryCost: 0 }]],
+      ["ST3-04", ["Yellow"], 3, 3, 1000, [{ color: "Yellow", level: 2, memoryCost: 0 }]],
+      ["ST3-05", ["Yellow"], 4, 5, 4000, [{ color: "Yellow", level: 3, memoryCost: 2 }]],
+      ["ST3-06", ["Yellow"], 4, 4, 5000, [{ color: "Yellow", level: 3, memoryCost: 2 }]],
+      ["ST3-07", ["Yellow"], 4, 5, 6000, [{ color: "Yellow", level: 3, memoryCost: 2 }]],
+      ["ST3-08", ["Yellow"], 5, 7, 7000, [{ color: "Yellow", level: 4, memoryCost: 3 }]],
+      ["ST3-09", ["Yellow"], 5, 6, 7000, [{ color: "Yellow", level: 4, memoryCost: 3 }]],
+      ["ST3-10", ["Yellow"], 6, 10, 12000, [{ color: "Yellow", level: 5, memoryCost: 2 }]],
+      ["ST3-11", ["Yellow"], 6, 12, 10000, [{ color: "Yellow", level: 5, memoryCost: 4 }]],
+      ["ST3-12", ["Yellow"], undefined, 2, 0, []],
+      ["ST3-13", ["Yellow"], undefined, 1, 0, []],
+      ["ST3-14", ["Yellow"], undefined, 2, 0, []],
+      ["ST3-15", ["Yellow"], undefined, 2, 0, []],
+      ["ST3-16", ["Yellow"], undefined, 7, 0, []],
+    ] as const;
+    for (const [cardId, colors, level, playCost, dp, evoCosts] of expected) {
+      const definition = getCardDefinition(cardId)!;
+      expect(definition).toMatchObject({ cardId, colors, playCost, dp, evoCosts });
+      expect(definition.level).toBe(level);
+    }
+  });
 });
