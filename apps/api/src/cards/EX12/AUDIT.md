@@ -1,9 +1,9 @@
 # EX12 Card Audit Ledger
 
-Overall completion: **76/77 cards (98.7%) at 10/10**.
+Overall completion: **77/77 cards (100%) at 10/10**.
 
 This versioned ledger records the card-by-card audit judgment first delivered on branch
-`audit-ex12-luna-revalidation` and revalidated on `audit/ex12-card-by-card-20260901`. It complements executable evidence; it does not replace
+`audit-ex12-luna-revalidation` and revalidated on `audit/ex12-card-by-card-20260901` and `audit-ex12-20260905`. It complements executable evidence; it does not replace
 the catalog, knowledge-base rulings, direct IR inspection, or behavioral tests.
 
 ## Scoring rubric
@@ -45,20 +45,35 @@ with per-card evidence live in `internal-docs/audits/EX12/`; the collection ledg
 - Persistence: 23 `effects.json` records had drifted from their modules; all 77 EX12 records
   were regenerated from the modules and `EX12-catalog-sync.test.ts` now enforces equality.
 
+## Revalidation 2026-09-05
+
+Three Luna auditors revalidated all 77 cards against the catalog, KB, executable IR,
+and observable focused/peer/stack tests. The reports cover 26 + 26 + 25 cards, all
+at 10/10, and 264 + 268 + 250 passing focused tests. The coordinator independently
+verified the full collection and the shared deletion mechanisms.
+
+- EX12-019 now explicitly records the opponent-only Digimon-effect scope in IR.
+  The runtime already allowed friendly effects; new assertions verify friendly Digimon
+  effects and opponent Option effects still apply, while opposing Digimon effects do not.
+- EX12-065 now satisfies Q6866: Fortitude participates in the same ordering pool as
+  the own and inherited deletion effects. Replaying the host first strands the pending
+  effects. Tests cover effect and battle deletion, separate DP rule-check sweeps,
+  and a Fortitude holder paid as a combat Scapegoat sacrifice.
+- Independent Luna review found no additional reproducible defect in the shared change.
+
+Current evidence and per-card reports:
+[2026-09-05 revalidation](../../../../../docs/audits/EX12-20260905.md).
+
 ## Exceptions
 
-- **EX12-065 Kaguyamon, 9/10 (peer and stack 1/2).** Q6866 says a player who resolves
-  ＜Fortitude＞ first strands the card's other pending `[On Deletion]` effects. The engine replays
-  ＜Fortitude＞ unconditionally after every deletion timing has fired (`primitives.ts`), so the
-  keyword never enters the trigger-ordering pool. The card's own IR and its player-ordered
-  `[On Deletion]` sequencing are proven; the deviation is a shared ＜Fortitude＞ seam recorded in
-  `docs/audits/EX12-AUDIT.md`.
+None. The previous EX12-065 9/10 exception is resolved by the Fortitude trigger
+and deleted-host provenance correction, with reproducible Q6866 tests.
 
 ## Reproducible collection evidence
 
 - Audit invariants: `pnpm --filter @aegis/api exec vitest run src/cards/EX12/EX12.audit.test.ts src/cards/EX12/EX12-catalog-sync.test.ts`.
-- Focused collection: `pnpm --filter @aegis/api exec vitest run src/cards/EX12/`, 79 files, 858 tests passed.
-- Static verification: `pnpm typecheck` (14 pre-existing errors in two engine sync test files unrelated to EX12), `oxlint`, `oxfmt --check`, and `git diff --check` passed on every changed file.
+- Focused collection: `pnpm --filter @aegis/api exec vitest run src/cards/EX12/ --maxWorkers 1 --no-file-parallelism`, 79 files, 865 tests passed.
+- Static verification: `pnpm typecheck` across all workspace packages, `oxlint`, `oxfmt --check`, and `git diff --check` passed on every changed file.
 - Registration inventory: 77 catalog IDs, 77 direct modules, 77 focused suites, 77 exclusive `registerIrCard` registrations, 0 `registerCard` registrations, 0 `// @ts-nocheck` directives.
 
 ## Card scores
@@ -129,7 +144,7 @@ with per-card evidence live in `internal-docs/audits/EX12/`; the collection ledg
 | EX12-062 | Kokeshimon                       |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX12-062.ts`](./EX12-062.ts) · [`EX12-062.test.ts`](./EX12-062.test.ts) |
 | EX12-063 | Karakurumon                      |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX12-063.ts`](./EX12-063.ts) · [`EX12-063.test.ts`](./EX12-063.test.ts) |
 | EX12-064 | Megadramon                       |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX12-064.ts`](./EX12-064.ts) · [`EX12-064.test.ts`](./EX12-064.test.ts) |
-| EX12-065 | Kaguyamon                        |            2/2 |      2/2 |              2/2 |        1/2 |   2/2 |  9/10 | [`EX12-065.ts`](./EX12-065.ts) · [`EX12-065.test.ts`](./EX12-065.test.ts) |
+| EX12-065 | Kaguyamon                        |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX12-065.ts`](./EX12-065.ts) · [`EX12-065.test.ts`](./EX12-065.test.ts) |
 | EX12-066 | Hiro Amanokawa                   |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX12-066.ts`](./EX12-066.ts) · [`EX12-066.test.ts`](./EX12-066.test.ts) |
 | EX12-067 | Kiyoshiro Higashimitarai         |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX12-067.ts`](./EX12-067.ts) · [`EX12-067.test.ts`](./EX12-067.test.ts) |
 | EX12-068 | Ruli Tsukiyono                   |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX12-068.ts`](./EX12-068.ts) · [`EX12-068.test.ts`](./EX12-068.test.ts) |
