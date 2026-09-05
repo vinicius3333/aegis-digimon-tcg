@@ -174,12 +174,20 @@ describe("EX9-066", () => {
   });
   it("draws when no named Digimon is available in trash", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX9-066", as: "source" }], deck: ["BT1-001"] } },
+      { 0: { hand: [{ card: "EX9-066", as: "source" }], deck: ["BT1-046", "BT1-048"], trash: ["BT1-024"] } },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
-    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001"));
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-046"]);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-048"]);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-024"]);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX9-066"]);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
   it.each([
     ["whenPlayed", "whenPlayed"],
@@ -204,15 +212,28 @@ describe("EX9-066", () => {
   );
   it("plays itself from security without paying its cost", async () => {
     const s = setupEngine(
-      { 0: { security: [{ card: "EX9-066", as: "source" }] } },
+      {
+        0: { security: ["EX9-066", "BT1-048"], trash: ["BT1-015"], deck: ["BT1-046"] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
-    s.inst("source").faceUp = true;
-
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("source"));
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-066"));
-
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-066")).toBe(true);
-    expect(s.state.players[0]!.security.some((card) => card.cardId === "EX9-066")).toBe(false);
+    s.state.turnSeat = 1;
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX9-066"]);
+    expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-048"]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-015"]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-046"]);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });
