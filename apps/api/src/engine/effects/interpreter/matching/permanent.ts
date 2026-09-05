@@ -276,9 +276,12 @@ export function permanentMatchesFilter(
     // methods it can synchronize and throws on the rest — `flatMap` is one of the rest.
     const sourceColors = new Set<CardColor>();
     for (const card of source.permanent()?.stack ?? []) {
+      if (card.faceUp !== true) continue;
       for (const color of ctx.game.definitionOf(card).colors) sourceColors.add(color);
     }
-    if (!def.colors.some((color) => sourceColors.has(color))) return false;
+    const effectiveColors =
+      typeof ctx.game.effectiveColors === "function" ? ctx.game.effectiveColors(permanent) : def.colors;
+    if (!effectiveColors.some((color) => sourceColors.has(color))) return false;
     const { colorMatchesAnyDigivolutionCard: _colorMatch, ...rest } = filter;
     filter = rest;
   }

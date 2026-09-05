@@ -3,8 +3,8 @@
 import { requireOpponentAsk } from "../../../decisions/decisionApi.js";
 import type { ActionScope } from "../dispatch.js";
 import type { EffectContext } from "../../EffectContext.js";
-import { CardKind } from "@aegis/shared";
-import type { CardColor } from "@aegis/shared";
+import { CardColor, CardKind } from "@aegis/shared";
+import { viableColorCandidates } from "../targeting/colorMatching.js";
 import { seatsForController } from "../matching/permanent.js";
 import { countMatching, scaleFactor } from "../scaling.js";
 import { candidateLooseInstances, looseCardsInZone, pickLoose, zoneList } from "../targeting/loose.js";
@@ -186,34 +186,37 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
     case "DeletePerColor": {
       const source = ctx.source.permanent();
       if (source === undefined || action.source !== "digivolutionCards") return false;
-      // `stack` is an ArraySchema, which throws on flatMap: iterate and collect.
-      const colorSet = new Set<CardColor>();
-      for (const card of source.stack) {
-        for (const color of ctx.game.definitionOf(card).colors) colorSet.add(color);
-      }
-      const colors = [...colorSet];
+      // The source-color threshold is the IR condition. Q5003 then considers all seven colors.
+      const colors = [
+        CardColor.Red,
+        CardColor.Blue,
+        CardColor.Yellow,
+        CardColor.Green,
+        CardColor.Black,
+        CardColor.Purple,
+        CardColor.White,
+      ];
       const selected: string[] = [];
-      for (const color of colors) {
-        const candidates = candidatePermanents(ctx, action.target).filter((permanent) => {
-          if (selected.includes(permanent.permanentId)) return false;
-          const def = permanent.topCard === undefined ? undefined : ctx.game.definitionOf(permanent.topCard);
-          return def?.colors.includes(color) === true;
-        });
-        if (candidates.length === 0) continue;
-        // Prefer a single-color candidate over a multicolor candidate. This preserves a
-        // multicolor Digimon for another color when both choices are possible (EX9-074 / KB
-        // Q5005): a red single-color Digimon must be used for red before a red/blue Digimon.
-        const orderedCandidates = [...candidates].sort((left, right) => {
-          const leftColors = left.topCard === undefined ? 0 : ctx.game.definitionOf(left.topCard).colors.length;
-          const rightColors = right.topCard === undefined ? 0 : ctx.game.definitionOf(right.topCard).colors.length;
-          return leftColors - rightColors;
-        });
+      for (let index = 0; index < colors.length; index++) {
+        const candidates = candidatePermanents(ctx, action.target)
+          .filter((permanent) => !selected.includes(permanent.permanentId))
+          .map((permanent) => ({
+            id: permanent.permanentId,
+            colors:
+              permanent.topCard === undefined
+                ? []
+                : (ctx.game.effectiveColors?.(permanent) ?? ctx.game.definitionOf(permanent.topCard).colors),
+          }));
+        const orderedCandidates = viableColorCandidates(colors.slice(index), candidates).sort(
+          (left, right) => left.colors.length - right.colors.length,
+        );
+        if (orderedCandidates.length === 0) continue;
         const chosen =
           orderedCandidates.length === 1
-            ? orderedCandidates[0]!.permanentId
+            ? orderedCandidates[0]!.id
             : (
                 await ctx.ask.chooseTargets(ctx, {
-                  candidates: orderedCandidates.map((p) => p.permanentId),
+                  candidates: orderedCandidates.map((p) => p.id),
                   min: 1,
                   max: 1,
                 })
