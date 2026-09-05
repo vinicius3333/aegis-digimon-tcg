@@ -7,11 +7,69 @@ import { compiled } from "./EX9-073.js";
 import "../index.js";
 
 describe("EX9-073", () => {
+  it.each([
+    { base: "BT10-064", alternate: false, legal: true },
+    { base: "BT1-024", alternate: true, legal: false },
+  ])("validates normal evolution and a non-DM alternate rejection from $base", async ({ base, alternate, legal }) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: base, as: "host" }],
+          hand: [{ card: "EX9-073", as: "evo" }, "EX9-041"],
+          deck: ["BT1-048"],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evo").instanceId,
+        useAlternateCost: alternate,
+      }).ok,
+    ).toBe(legal);
+    await settle();
+    expect(s.perm("host").topCard.cardId).toBe(legal ? "EX9-073" : base);
+    expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual(legal ? [base] : []);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(
+      legal ? ["EX9-041", "BT1-048"] : ["EX9-073", "EX9-041"],
+    );
+    expect(s.state.memory).toBe(legal ? 1 : 5);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+  it("cannot prevent a real battle deletion with only one qualifying source", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-024", as: "attacker", dp: 15000 }] },
+        1: {
+          battleArea: [
+            { card: "EX9-073", as: "host", suspended: true, under: [{ card: "BT1-048", faceUp: false }, "BT10-064"] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("host").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId).sort()).toEqual(["BT1-048", "BT10-064", "EX9-073"]);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
+  });
   it.each(["EX9-010", "BT1-038"])("rejects an ineligible source %s on a real attack", async (candidate) => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX9-073", as: "host" }], hand: [candidate], trash: [candidate] },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-046"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -34,7 +92,7 @@ describe("EX9-073", () => {
   it("explicitly declines source placement on attack and preserves the eligible trash card", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "EX9-073", as: "host" }], trash: ["EX9-041"] },
-      1: { battleArea: [{ card: "BT1-009", as: "target" }], security: ["BT1-001"] },
+      1: { battleArea: [{ card: "BT1-009", as: "target" }], security: ["BT1-046"] },
     });
     await s.ready();
     expect(
@@ -73,7 +131,7 @@ describe("EX9-073", () => {
               { card: "BT1-009", as: "target" },
               ...(suppressed ? [{ card: "BT20-037", as: "suppressor" }] : []),
             ],
-            security: ["BT1-001"],
+            security: ["BT1-046"],
           },
         },
         { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
@@ -173,7 +231,7 @@ describe("EX9-073", () => {
           trash: [{ card: "BT1-009", as: "hidden" }],
           deck: ["BT1-048"],
         },
-        1: { security: ["BT1-001", "BT1-001"] },
+        1: { security: ["BT1-046", "BT1-046"] },
       },
       options,
     );
@@ -285,6 +343,10 @@ describe("EX9-073", () => {
     expect(s.perm("source").stack.map((card) => card.cardId)).toEqual(["BT1-009", "EX9-011"]);
     expect(s.perm("source").stack[0]?.faceUp).toBe(false);
     expect(s.perm("source").stack[1]?.faceUp).toBe(true);
+    expect(s.perm("source").topCard.cardId).toBe("EX9-073");
+    expect(s.state.memory).toBe(-2);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
