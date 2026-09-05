@@ -6,6 +6,124 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("EX9-067", () => {
+  it.each([
+    { evolution: "BT13-039", cost: 3, decline: true },
+    { evolution: "BT1-051", cost: 2, decline: false },
+  ])(
+    "preserves Mirai and the hand when declining or evolving into non-Puppet $evolution",
+    async ({ evolution, cost, decline }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT1-046", as: "host" },
+              { card: "EX9-067", as: "tamer" },
+            ],
+            hand: [{ card: evolution, as: "evo" }, "BT13-035"],
+            deck: ["BT1-048", "BT1-049"],
+          },
+        },
+        { autoDeclineOptional: decline, autoAcceptOptional: !decline, autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("host").permanentId,
+          instanceId: s.inst("evo").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle();
+      expect(s.perm("host").topCard.cardId).toBe(evolution);
+      expect(s.perm("tamer").topCard.cardId).toBe("EX9-067");
+      expect(s.state.players[0]!.battleArea).toHaveLength(2);
+      expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT13-035", "BT1-048"]);
+      expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-049"]);
+      expect(s.state.memory).toBe(10 - cost);
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
+  it.each([
+    { copies: 1, played: "BT13-039", cost: 2 },
+    { copies: 2, played: "BT13-039", cost: 2 },
+    { copies: 1, played: "EX11-060", cost: 1 },
+    { copies: 2, played: "EX11-060", cost: 1 },
+  ])(
+    "Q4827 keeps $copies copies from stacking discounts on $played after a real Puppet evolution",
+    async ({ copies, played, cost }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT1-046", as: "host" },
+              ...Array.from({ length: copies }, () => ({ card: "EX9-067" })),
+            ],
+            hand: [
+              { card: "BT13-039", as: "evo" },
+              { card: played, as: "played" },
+            ],
+            deck: ["BT1-048", "BT1-049"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+      );
+      s.state.memory = 10;
+      const playedId = s.inst("played").instanceId;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("host").permanentId,
+          instanceId: s.inst("evo").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle();
+      expect(s.perm("host").topCard.cardId).toBe("BT13-039");
+      expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT1-046"]);
+      expect(
+        s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.instanceId === playedId),
+      ).toHaveLength(1);
+      expect(s.state.memory).toBe(10 - 3 - cost);
+      expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-048"]);
+      expect(s.state.players[0]!.deck[0]!.cardId).toBe("BT1-049");
+      expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("EX9-067");
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
+
+  it.each(["BT13-035", "EX9-067"])(
+    "searches independent Puppet/LIBERATOR candidate %s and puts leftovers below an unrevealed anchor",
+    async (candidate) => {
+      const s = setupEngine(
+        {
+          0: { hand: [{ card: "EX9-067", as: "card" }], deck: ["BT1-009", candidate, "BT1-010", "BT1-048"] },
+        },
+        { autoSelectCards: true, autoOrderCards: true },
+      );
+      s.state.memory = 10;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("card").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle();
+      expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual([candidate]);
+      expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-048", "BT1-009", "BT1-010"]);
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
+
+  it("returns all nonmatching revealed cards below the unrevealed anchor", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX9-067", as: "card" }], deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-048"] },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("card").instanceId })).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-048", "BT1-009", "BT1-010", "BT1-011"]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
   it("reveals three and adds a Puppet LIBERATOR trait card", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
       kind: "RevealAdd",
@@ -47,7 +165,7 @@ describe("EX9-067", () => {
             count: 1,
             filter: {
               controller: "mine",
-              orFilters: [
+              or: [
                 { kind: ["Tamer"], nameOrTrait: [{ tokens: ["Arisa Kinosaki"], match: "name" }] },
                 { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Puppet"], match: "trait" }] },
               ],
