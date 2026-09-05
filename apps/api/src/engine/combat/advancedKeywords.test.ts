@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import type { PlayerState } from "@aegis/shared";
+import { EffectDuration, type PlayerState } from "@aegis/shared";
+import { advance } from "../testkit/advance.js";
 import { makeInstance as instance, makeDigimon as digimon, setupEngine as setup, settle } from "../testkit/harness.js";
 import "../../cards/index.js";
 
@@ -74,6 +75,48 @@ describe("§16-23 <Raid> — switch the attack target to the opponent's highest-
     // (unopposed by any battle) survives too.
     expect(p1.battleArea.some((p) => p.permanentId === highDP.permanentId)).toBe(true);
     expect(p0.battleArea.some((p) => p.permanentId === attacker.permanentId)).toBe(true);
+  });
+
+  it("does not prompt or redirect after a Raid attacker leaves during When Attacking", async () => {
+    const s = setup(
+      {
+        0: { battleArea: [{ card: "BT3-086", as: "attacker" }], hand: ["BT3-092"] },
+        1: { battleArea: [{ card: NON_KEYWORD_CARD, as: "highest", dp: 9000 }], security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    const p0 = s.state.players[0] as PlayerState;
+    const p1 = s.state.players[1] as PlayerState;
+    await s.ready();
+    const attackerId = s.perm("attacker").permanentId;
+    const highestId = s.perm("highest").permanentId;
+    const securityBefore = p1.security.length;
+
+    // BT3-086's real [When Attacking] effect plays MaloMyotismon, then deletes itself.
+    // Grant Raid through the documented ledger seam so this test isolates the combat rule's
+    // declaration snapshot while exercising an actual production OnUseAttack departure.
+    advance(s.engine).ledgers.continuous.addKeywordGrant(attackerId, "Raid", EffectDuration.Permanent);
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attackerId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !p0.battleArea.some((permanent) => permanent.permanentId === attackerId), 5000);
+    await settle();
+
+    expect(p0.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(false);
+    expect(p1.battleArea.some((permanent) => permanent.permanentId === highestId)).toBe(true);
+    expect(p1.security).toHaveLength(securityBefore);
+    expect(
+      s.events.filter((event) => event.kind === "attackDeclared" && event.target.kind === "permanent"),
+    ).toHaveLength(0);
+    expect(s.decisions.filter(({ req }) => req.kind === "selectCards" && req.promptText.includes("Raid"))).toHaveLength(
+      0,
+    );
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });
 

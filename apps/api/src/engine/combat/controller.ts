@@ -540,6 +540,9 @@ export class CombatController {
     this.resolving = true;
     this.completedCombat = undefined;
     const attackSequence = ++this.attackSequence;
+    // Raid triggers at declaration; evolution during When Attacking cannot
+    // retroactively add that trigger (EX9-001 / Q4751-Q4752).
+    const raidTriggeredAtDeclaration = this.hasKeyword(attacker.permanentId, "Raid");
     this.currentAttack = {
       attackerPermanentId: attacker.permanentId,
       attackerCardId: attacker.topCard.cardId,
@@ -645,7 +648,7 @@ export class CombatController {
       // ＜Raid＞ (§16-23): when this Digimon attacks, you may switch the attack target onto
       // the opponent's UNSUSPENDED Digimon with the highest DP (§16-23-4: the attacker's
       // controller picks among any tied for highest).
-      if (this.hasKeyword(attacker.permanentId, "Raid")) {
+      if (raidTriggeredAtDeclaration && this.attackerStillValid(attacker)) {
         const defendingSeat = this.access.opponentOf(attackerSeat);
         const unsuspended = this.access
           .battleAreaPermanents(defendingSeat)
