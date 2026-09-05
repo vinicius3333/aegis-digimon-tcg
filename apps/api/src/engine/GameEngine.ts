@@ -3761,7 +3761,14 @@ export class GameEngine {
     projectOnly = false,
   ): Promise<number> {
     const source = this.cardSourceOf(instance);
-    if (this.continuous.blocksCostReduction(source.ownerSeat, "play")) return baseCost;
+    // A reduction prohibition does not prohibit paying the optional effect cost
+    // (EX8-074/Q4443), but it cannot justify an otherwise unaffordable declaration
+    // or a speculative projection (Q4442).
+    if (
+      this.continuous.blocksCostReduction(source.ownerSeat, "play") &&
+      (projectOnly || !this.memory.canPay(source.ownerSeat, baseCost))
+    )
+      return baseCost;
     const effects = effectsOf(EffectTiming.BeforePayCost, source).filter((effect) => effect.costWindow !== "digivolve");
     // Self-targeted "when this card would be played, [by cost / gated by condition], reduce by N"
     // reducers (EX8-074, BT17-068, BT12-112, BT8-043, BT9-097, ...): the runtime record compiled these as
@@ -3918,6 +3925,7 @@ export class GameEngine {
       this.pendingPlayReducerPlacements.set(instance.instanceId, [...pending, ...ctx.pendingSelfReducerPlacements]);
     }
     await this.runCrossPermanentPlayReducers(instance, ctx, crossWatchers);
+    if (this.continuous.blocksCostReduction(source.ownerSeat, "play")) return baseCost;
     const delta = Math.max(0, ctx.playCostDelta ?? 0);
     return Math.max(0, baseCost - delta);
   }
