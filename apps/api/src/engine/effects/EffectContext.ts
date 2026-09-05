@@ -39,6 +39,7 @@ export type EnforcedRestriction =
   | "suspend"
   | "unsuspend"
   | "unsuspendDuringOwnUnsuspendPhase"
+  | "unsuspendDuringUnsuspendPhase"
   | "unsuspendHandTrashCost"
   | "beDeletedInBattle"
   | "beDeleted"

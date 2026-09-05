@@ -17,6 +17,7 @@ export type RestrictionKind =
   | "suspend"
   | "unsuspend" // "doesn't unsuspend"
   | "unsuspendDuringOwnUnsuspendPhase" // effect-driven unsuspend and opponent-turn Reboot remain legal
+  | "unsuspendDuringUnsuspendPhase" // no Digimon/Tamers unsuspend during either player's unsuspend phase
   | "beDeletedInBattle"
   | "beDeleted"
   | "beTrashed"

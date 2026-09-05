@@ -39,7 +39,13 @@ describe("EX10-023 Quartzmon compiled contract", () => {
         }),
         expect.objectContaining({
           trigger: "AllTurns",
-          actions: [expect.objectContaining({ kind: "Restrict", restriction: "unsuspend", duration: "forTheTurn" })],
+          actions: [
+            expect.objectContaining({
+              kind: "Restrict",
+              restriction: "unsuspendDuringUnsuspendPhase",
+              duration: "forTheTurn",
+            }),
+          ],
         }),
       ]),
     );
@@ -191,9 +197,9 @@ describe("EX10-023 Quartzmon compiled contract", () => {
       },
     });
     await s.ready();
-    expect(observe(s.engine).isRestricted(s.perm("quartz"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("quartz"), "unsuspendDuringUnsuspendPhase")).toBe(false);
     for (const alias of ["mine", "theirs", "tamer"]) {
-      expect(observe(s.engine).isRestricted(s.perm(alias), "unsuspend")).toBe(true);
+      expect(observe(s.engine).isRestricted(s.perm(alias), "unsuspendDuringUnsuspendPhase")).toBe(true);
     }
   });
 
@@ -205,7 +211,7 @@ describe("EX10-023 Quartzmon compiled contract", () => {
       1: { battleArea: [{ card: "BT1-010", as: "first", suspended: true }] },
     });
     await s.ready();
-    expect(observe(s.engine).isRestricted(s.perm("first"), "unsuspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("first"), "unsuspendDuringUnsuspendPhase")).toBe(true);
 
     const late = setupEngine({
       0: { battleArea: [{ card: CARD_ID, as: "quartz", suspended: true }] },
@@ -217,8 +223,8 @@ describe("EX10-023 Quartzmon compiled contract", () => {
       },
     });
     await late.ready();
-    expect(observe(late.engine).isRestricted(late.perm("late"), "unsuspend")).toBe(true);
-    expect(observe(late.engine).isRestricted(late.perm("quartz"), "unsuspend")).toBe(false);
+    expect(observe(late.engine).isRestricted(late.perm("late"), "unsuspendDuringUnsuspendPhase")).toBe(true);
+    expect(observe(late.engine).isRestricted(late.perm("quartz"), "unsuspendDuringUnsuspendPhase")).toBe(false);
   });
 
   it("Q5075 the opponent's unsuspend phase flips nothing but Quartzmon's own controller's exempt card", async () => {
@@ -244,20 +250,14 @@ describe("EX10-023 Quartzmon compiled contract", () => {
     expect(s.perm("quartz").isSuspended).toBe(false);
   });
 
-  it("the lock currently also blocks effect-driven unsuspension, which is broader than the printed phase scope", async () => {
-    // Printed: "no Digimon or Tamers can unsuspend IN THE UNSUSPEND PHASE". The engine models
-    // "unsuspend" as one unscoped Restriction: `primitives.unsuspend` re-checks it (deliberately,
-    // for the freeze family) and so does `unsuspendForActivePhase`. There is no phase-scoped
-    // restriction kind, and `restrictPlayer` would not add one — it records the SAME Restriction
-    // per seat. This case pins the boundary so the gap is observable rather than assumed; see the
-    // audit report's seam request.
+  it("allows effect-driven unsuspension while blocking both active-phase paths", async () => {
     const locked = setupEngine({
       0: { battleArea: [{ card: CARD_ID, as: "quartz" }] },
       1: { battleArea: [{ card: "BT1-010", as: "theirs", suspended: true }] },
     });
     await locked.ready();
     await advance(locked.engine).verb.unsuspend([locked.perm("theirs").permanentId]);
-    expect(locked.perm("theirs").isSuspended).toBe(true);
+    expect(locked.perm("theirs").isSuspended).toBe(false);
 
     const control = setupEngine({
       0: { battleArea: [{ card: "BT1-009", as: "neutral" }] },
@@ -266,5 +266,19 @@ describe("EX10-023 Quartzmon compiled contract", () => {
     await control.ready();
     await advance(control.engine).verb.unsuspend([control.perm("theirs").permanentId]);
     expect(control.perm("theirs").isSuspended).toBe(false);
+  });
+
+  it("blocks an opponent Reboot unsuspend during the same phase", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: CARD_ID, as: "quartz" }] },
+      1: { battleArea: [{ card: "AD1-013", as: "reboot", suspended: true }] },
+    });
+    await s.ready();
+    const unsuspendForActivePhase = (
+      s.engine as unknown as { unsuspendForActivePhase(seat: Seat): Promise<string[]> }
+    ).unsuspendForActivePhase.bind(s.engine);
+
+    expect(await unsuspendForActivePhase(0)).toEqual([]);
+    expect(s.perm("reboot").isSuspended).toBe(true);
   });
 });

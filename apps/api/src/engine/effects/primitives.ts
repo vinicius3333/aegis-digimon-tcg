@@ -4,6 +4,7 @@ import {
   DECK_BOTTOM,
   Permanent,
   Zone,
+  Phase,
   EffectTiming,
   EffectDuration,
   requireCardDefinition,
@@ -3659,7 +3660,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       // routes through this primitive, so enforce the same continuous restriction here too
       // (Samādhi Śānti and the wider freeze family). Active-phase code keeps its earlier
       // filter to report an accurate list of permanents that changed orientation.
-      if (isRestricted(permanentId, "unsuspend")) continue;
+      if (
+        isRestricted(permanentId, "unsuspend") ||
+        (state.phase === Phase.Active && isRestricted(permanentId, "unsuspendDuringUnsuspendPhase"))
+      )
+        continue;
       const handTrashCost = continuous.restrictionCount(permanentId, "unsuspendHandTrashCost");
       if (handTrashCost > 0) {
         const hand = player(permanent.controllerSeat).hand;

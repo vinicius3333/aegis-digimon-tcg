@@ -1438,7 +1438,11 @@ export class GameEngine {
     for (const permanent of permanents) {
       if (permanent.isSuspended) {
         if (this.continuous.hasRestriction(permanent.permanentId, "unsuspend")) continue;
-        if (this.continuous.hasRestriction(permanent.permanentId, "unsuspendDuringOwnUnsuspendPhase")) continue;
+        if (
+          this.continuous.hasRestriction(permanent.permanentId, "unsuspendDuringOwnUnsuspendPhase") ||
+          this.continuous.hasRestriction(permanent.permanentId, "unsuspendDuringUnsuspendPhase")
+        )
+          continue;
         const handTrashCost = this.continuous.restrictionCount(permanent.permanentId, "unsuspendHandTrashCost");
         if (handTrashCost > 0) {
           if (player.hand.length < handTrashCost) continue;
@@ -1473,6 +1477,7 @@ export class GameEngine {
     for (const permanent of player.battleArea) {
       if (!permanent.isSuspended) continue;
       if (this.continuous.hasRestriction(permanent.permanentId, "unsuspend")) continue;
+      if (this.continuous.hasRestriction(permanent.permanentId, "unsuspendDuringUnsuspendPhase")) continue;
       if (!this.continuous.hasKeyword(permanent.permanentId, "Reboot")) continue;
       permanent.isSuspended = false;
       flipped.push(permanent.permanentId);
@@ -1480,7 +1485,8 @@ export class GameEngine {
     if (
       player.breeding?.isSuspended &&
       this.continuous.hasKeyword(player.breeding.permanentId, "Reboot") &&
-      !this.continuous.hasRestriction(player.breeding.permanentId, "unsuspend")
+      !this.continuous.hasRestriction(player.breeding.permanentId, "unsuspend") &&
+      !this.continuous.hasRestriction(player.breeding.permanentId, "unsuspendDuringUnsuspendPhase")
     ) {
       player.breeding.isSuspended = false;
       flipped.push(player.breeding.permanentId);
