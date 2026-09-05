@@ -23,9 +23,11 @@ describe("EX9-068", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: playedId })).toEqual({ ok: true });
     await settle();
     expect(s.perm("tamer").isSuspended).toBe(true);
-    expect(s.state.players[0]!.battleArea.find(({ topCard }) => topCard.instanceId === playedId)?.stack).toMatchObject([
-      { cardId: "BT1-048", faceUp: false },
-    ]);
+    expect(
+      s.state.players[0]!.battleArea.find(({ topCard }) => topCard.instanceId === playedId)?.stack.map(
+        ({ cardId, faceUp }) => ({ cardId, faceUp }),
+      ),
+    ).toEqual([{ cardId: "BT1-048", faceUp: false }]);
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-046"]);
     expect(s.state.memory).toBe(4);
