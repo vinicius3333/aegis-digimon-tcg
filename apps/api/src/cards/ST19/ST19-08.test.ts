@@ -1,6 +1,8 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "./ST19-08.js";
 
 describe("ST19-08 ShoeShoemon", () => {
@@ -29,6 +31,15 @@ describe("ST19-08 ShoeShoemon", () => {
       inheritedEffectText: "[Your Turn] All of your opponent's security Digimon get -3000 DP.",
       effectText: expect.stringContaining("＜Overclock ([Puppet] trait)＞"),
     });
+  });
+
+  it("applies the inherited -3000 security-DP effect from a real evolution stack", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST19-10", as: "host", under: ["ST19-08"] }] },
+      1: { security: ["BT1-009"] },
+    });
+    await advance(s.engine).recompute();
+    expect(observe(s.engine).securityDp(1)).toBe(-3000);
   });
 
   it("also accepts the LIBERATOR card from trash and rejects a play-cost overflow", async () => {
@@ -78,5 +89,30 @@ describe("ST19-08 ShoeShoemon", () => {
     await settle(() => s.state.players[1]!.security.length === 0);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST19-01")).toBe(false);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("egg").instanceId)).toBe(true);
+  });
+
+  it("uses errata Overclock by deleting a Familiar Token and attacking without suspending", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST19-08", as: "shoe" },
+            { card: "TOKEN-Familiar-Token", as: "fodder", dp: 3000 },
+          ],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+    await settle(() => mainPhase.isOpen, 500);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "TOKEN-Familiar-Token")).toBe(false);
+    expect(s.perm("shoe").isSuspended).toBe(false);
+    expect(s.events.some((event) => (event as { kind?: string }).kind === "attackDeclared")).toBe(true);
   });
 });

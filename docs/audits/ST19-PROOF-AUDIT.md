@@ -1,0 +1,36 @@
+# ST19 card proof audit
+
+Audited against `packages/shared/src/cards/data/cards.json`, the local KB, each
+direct IR module, and the colocated behavioral tests. All 15 catalog cards are
+compiled and registered with `registerIrCard`; no legacy registration or
+unresolved IR residual remains.
+
+| Card                      | Clause to observable proof                                                                                                                      | Evidence                                                                                                                                                                                   | Score |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----- |
+| ST19-01 Kyaromon          | Inherited once-per-turn attack draw; requires another Digimon                                                                                   | `ST19-01.test.ts`: positive draw, alone negative, repeated attack once-per-turn                                                                                                            | 10/10 |
+| ST19-02 Junkmon           | Puppet Decoy, Barrier inherited, once-per-turn battle/effect prevention                                                                         | `ST19-02.test.ts`: catalog identity, first/second battle boundary, effect deletion sacrifice                                                                                               | 10/10 |
+| ST19-03 Shoemon           | Reveal exactly 3; add Puppet and LIBERATOR, bottom rest; mandatory maximum; inherited security-DP modifier                                      | `ST19-03.test.ts`: both traits, only eligible card, real evolution stack security-DP read; KB Q853/Q854                                                                                    | 10/10 |
+| ST19-04 PawnChessmon      | On Play Puppet discard cost then Draw 2; inherited Reboot                                                                                       | `ST19-04.test.ts`: paid success, unavailable-cost negative, real-stack Reboot                                                                                                              | 10/10 |
+| ST19-05 PawnChessmon      | Blocker; On Deletion same Puppet discard/Draw 2 cost path                                                                                       | `ST19-05.test.ts`: live Blocker, deletion success, unavailable-cost negative                                                                                                               | 10/10 |
+| ST19-06 Doggymon          | On Play and On Deletion opposing Digimon Security Attack -1                                                                                     | `ST19-06.test.ts`: exact one-target play, catalog clause, real battle deletion trigger                                                                                                     | 10/10 |
+| ST19-07 Tobucatmon        | Jamming; inherited Barrier; security battle survival                                                                                            | `ST19-07.test.ts`: live keyword read and stronger security Digimon battle                                                                                                                  | 10/10 |
+| ST19-08 ShoeShoemon       | Security play of LIBERATOR cost ≤4 from hand/trash; rejects Digi-Egg/overflow; inherited security-DP; errata mandatory Overclock                | `ST19-08.test.ts`: hand, trash, Digi-Egg and cost boundaries, real prebuilt evolution-stack security-DP read, and end-turn Token deletion/unsuspended attack; KB Q855/Q856 and errata      | 10/10 |
+| ST19-09 Pandamon          | Blocker; optional On Deletion play level-3 Puppet from hand; reject level/trait mismatch                                                        | `ST19-09.test.ts`: live Blocker, play success, mismatch negative, and explicit refusal after observing the ST19-09 optional decision                                                       | 10/10 |
+| ST19-10 ExTyrannomon      | Alternate evolution; DigiXros exact Lv.4 named/Puppet recipe; Armor Purge; inherited Barrier                                                    | `ST19-10.test.ts`: catalog requirements, legal real stack, invalid lower-level material; shared `advancedKeywords.test.ts` proves Armor Purge consume behavior                             | 10/10 |
+| ST19-11 Chaperomon        | On Play/When Digivolving -3000, becoming -6000 at 3 total Digimon; inherited leave replacement                                                  | `ST19-11.test.ts`: below/at threshold, real leave-prevention with Token; KB-defined inherited clause                                                                                       | 10/10 |
+| ST19-12 Cendrillmon       | Overclock deletion/attack, Blocker, optional two Familiar Tokens and exact token On Deletion -3000                                              | `ST19-12.test.ts`: token stats and deletion effect, Overclock consumes Token and attacks unsuspended, and explicit refusal after observing the ST19-12 optional decision                   | 10/10 |
+| ST19-13 ShinMonzaemon     | Alternate evolution; Armor Purge; On Play/When Digivolving place eligible trash card then Recovery +1; no eligible negative                     | `ST19-13.test.ts`: placement order, level/trait and trash boundaries, face-down recovery; KB Q861                                                                                          | 10/10 |
+| ST19-14 Arisa Kinosaki    | Start memory set-to-3 threshold; Your Turn effect-play Token/Puppet grants Rush by suspending; normal play negative; Security play registration | `ST19-14.test.ts`: memory 2 reset and 4 boundary, effect-play Token, normal Puppet negative, actual SecuritySkill play, and explicit refusal after observing the ST19-14 optional decision | 10/10 |
+| ST19-15 Noble Family Arts | Opponent target -6000, additional -6000 at 3 total Digimon, Security activates Main                                                             | `ST19-15.test.ts`: exact 3+ total threshold (-12000), below threshold (-6000), security path; KB Q863/Q864                                                                                 | 10/10 |
+
+Focused validation performed while this audit was updated:
+
+```text
+pnpm --filter @aegis/api exec vitest run src/cards/ST19
+  16 files passed, 76 tests passed
+```
+
+The complete ST19 collection pass above is the final card-local validation after
+all edits settled.
+
+Coordinator review: exact ST19 catalog names rechecked; optional decisions and memory 4→4 control inspected. Shared combat/advanced-keyword regression (56 passing tests at 6e50b8246) covers the reusable keyword mechanisms cited above. Final whole-branch integration validation remains required before the overall ST audit closes.
