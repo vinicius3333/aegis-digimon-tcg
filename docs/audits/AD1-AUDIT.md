@@ -1,6 +1,6 @@
 # AD1 Audit Ledger
 
-Canonical card-by-card verification ledger. Every catalog card is represented exactly once; all five audit components are scored 2/2 after catalog, KB, implementation, behavior, and gate evidence were checked.
+Re-audit in progress on `audit-ad1-20260905`. The rows below are historical claims, not current verified scores. The initial collection run failed three behavioral tests (AD1-011, AD1-021, AD1-024); no collection-wide 10/10 claim is valid until the new clause evidence and final gates are integrated. See [the execution plan](../plans/2026-09-05-ad1-audit-design.md) and [baseline evidence](AD1-BASELINE-AUDIT.md).
 
 Verification commands: `pnpm --filter @aegis/api exec vitest run src/cards/AD1 --no-file-parallelism --pool=forks --poolOptions.forks.maxForks=1`; `pnpm typecheck`; `pnpm lint`; changed-file `pnpm exec oxfmt --check`; and `git diff --check`. The prescribed `meteor npm run quave-check*` scripts are absent in this repository, and the repo-wide format check retains pre-existing baseline findings. Local KB query was run for every row with `node tools/kb/query.mjs card CARD_ID --json`.
 
