@@ -11,62 +11,77 @@ describe("EX9-070", () => {
     { ruling: "Q4884", base: "EX9-025", evolution: "BT22-038", egg: false, suspended: false, cost: 1 },
     { ruling: "Q4915", base: "EX9-017", evolution: "BT22-061", egg: false, suspended: false, cost: 1 },
     { ruling: "Q4939", base: "BT22-038", evolution: "BT22-076", egg: false, suspended: false, cost: 1 },
+    {
+      ruling: "Q4939 with two physical copies",
+      base: "BT22-038",
+      evolution: "BT22-076",
+      egg: false,
+      suspended: false,
+      cost: 1,
+      copies: 2,
+    },
     { ruling: "Q5195", base: "P-202", evolution: "EX9-011", egg: false, suspended: true, cost: 0 },
     { ruling: "Q5195 unsuspended", base: "P-202", evolution: "EX9-011", egg: false, suspended: false, cost: 1 },
-  ])("$ruling combines only applicable reductions with Meat", async ({ base, evolution, egg, suspended, cost }) => {
-    const options = {
-      autoDeclineOptional: false,
-      autoSelectCards: true,
-      autoChooseOption: true,
-      preferInstanceIds: [] as string[],
-    };
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "EX9-070", as: "meat" },
-            { card: base, as: "host", suspended, under: egg ? ["EX9-003", "EX9-023"] : [] },
-          ],
-          hand: [{ card: "BT1-009", as: "cost" }, evolution],
-          deck: ["BT1-048"],
+  ])(
+    "$ruling combines only applicable reductions with Meat",
+    async ({ base, evolution, egg, suspended, cost, copies = 1 }) => {
+      const options = {
+        autoDeclineOptional: false,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        preferInstanceIds: [] as string[],
+      };
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "EX9-070", as: "meat" },
+              { card: base, as: "host", suspended, under: egg ? ["EX9-003", "EX9-023"] : [] },
+            ],
+            hand: [{ card: "BT1-009", as: "cost" }, ...Array.from({ length: copies }, () => evolution)],
+            deck: ["BT1-048"],
+          },
         },
-      },
-      options,
-    );
-    s.perm("meat").placedByEffect = true;
-    options.preferInstanceIds.push(s.inst("cost").instanceId);
-    s.state.memory = 5;
-    await s.ready();
-    const ability = observe(s.engine).activatableEffects(s.perm("meat"))[0]!;
-    expect(ability).toBeDefined();
-    expect(
-      s.engine.applyIntent(0, {
-        type: "activateEffect",
-        sourceInstanceId: s.perm("meat").topCard.instanceId,
-        effectKey: ability.effectKey,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
-    const choice = s.state.pendingDecision!;
-    expect(choice.kind).toBe("optional");
-    // Accept Meat, then refuse the evolved card's unrelated optional body.
-    options.autoDeclineOptional = true;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: choice.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
-    await settle();
-    expect(s.perm("host").topCard.cardId).toBe(evolution);
-    expect(s.perm("host").stack[0]).toMatchObject({ cardId: "BT1-009", faceUp: false });
-    expect(s.perm("host").stack.at(-1)?.cardId).toBe(base);
-    expect(s.state.memory).toBe(5 - cost);
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-048"]);
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["EX9-070"]);
-    expect(s.state.pendingDecision).toBeUndefined();
-  });
+        options,
+      );
+      s.perm("meat").placedByEffect = true;
+      options.preferInstanceIds.push(s.inst("cost").instanceId);
+      s.state.memory = 5;
+      await s.ready();
+      const ability = observe(s.engine).activatableEffects(s.perm("meat"))[0]!;
+      expect(ability).toBeDefined();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "activateEffect",
+          sourceInstanceId: s.perm("meat").topCard.instanceId,
+          effectKey: ability.effectKey,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      const choice = s.state.pendingDecision!;
+      expect(choice.kind).toBe("optional");
+      // Accept Meat, then refuse the evolved card's unrelated optional body.
+      options.autoDeclineOptional = true;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: choice.decisionId,
+          response: { kind: "optional", accept: true },
+        }),
+      ).toEqual({ ok: true });
+      await settle();
+      expect(s.perm("host").topCard.cardId).toBe(evolution);
+      expect(s.perm("host").stack[0]).toMatchObject({ cardId: "BT1-009", faceUp: false });
+      expect(s.perm("host").stack.at(-1)?.cardId).toBe(base);
+      expect(s.state.memory).toBe(5 - cost);
+      expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual([
+        ...Array.from({ length: copies - 1 }, () => evolution),
+        "BT1-048",
+      ]);
+      expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["EX9-070"]);
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
   it("Q4742 rejects Meat during EX9-002's Training-triggered evolution and charges that effect's reduced cost", async () => {
     const options = { autoAcceptOptional: false, autoSelectCards: true, autoChooseOption: true };
     const s = setupEngine(

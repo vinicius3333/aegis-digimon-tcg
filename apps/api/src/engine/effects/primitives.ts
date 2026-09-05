@@ -706,6 +706,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       continuous?: boolean;
       onConsume?: (match: EvoCostMatch) => void;
       intrinsicCardId?: string;
+      intrinsicEffectKey?: object;
     },
   ): void => {
     ledger.addEvoCostAdjustment(filter, delta, opts?.setFixed ?? false, {
@@ -713,6 +714,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       once: opts?.once,
       onConsume: opts?.onConsume,
       intrinsicCardId: opts?.intrinsicCardId,
+      intrinsicEffectKey: opts?.intrinsicEffectKey,
     });
   };
 

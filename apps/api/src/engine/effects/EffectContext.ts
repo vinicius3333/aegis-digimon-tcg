@@ -1066,6 +1066,7 @@ export interface Primitives {
       continuous?: boolean;
       onConsume?: (match: EvoCostMatch) => void;
       intrinsicCardId?: string;
+      intrinsicEffectKey?: object;
     },
   ): void;
   /**

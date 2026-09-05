@@ -130,6 +130,8 @@ export interface EvoCostAdjustment {
   id: number;
   /** Destination card whose intrinsic hand-resident reduction this IR modifier implements. */
   intrinsicCardId?: string;
+  /** Stable compiled-effect identity used to collapse duplicate hand copies at query time. */
+  intrinsicEffectKey?: object;
   match: (m: EvoCostMatch) => boolean;
   delta: number;
   setFixed: boolean;
@@ -512,11 +514,13 @@ export class ModifierLedger {
       once?: boolean;
       onConsume?: (match: EvoCostMatch) => void;
       intrinsicCardId?: string;
+      intrinsicEffectKey?: object;
     },
   ): EvoCostAdjustment {
     const adjustment: EvoCostAdjustment = {
       id: this.evoCostSeq++,
       intrinsicCardId: opts?.intrinsicCardId,
+      intrinsicEffectKey: opts?.intrinsicEffectKey,
       match,
       delta,
       setFixed,
@@ -612,8 +616,15 @@ export class ModifierLedger {
     let matched = false;
     const consumeIds: number[] = [];
     const consumeCallbacks: ((match: EvoCostMatch) => void)[] = [];
+    const intrinsicKeys = new Map<string, Set<object>>();
     for (const a of this.evoCostAdjustments) {
       if (!a.match(m)) continue;
+      if (a.intrinsicCardId !== undefined && a.intrinsicEffectKey !== undefined) {
+        const keysForCard = intrinsicKeys.get(a.intrinsicCardId) ?? new Set<object>();
+        if (keysForCard.has(a.intrinsicEffectKey)) continue;
+        keysForCard.add(a.intrinsicEffectKey);
+        intrinsicKeys.set(a.intrinsicCardId, keysForCard);
+      }
       matched = true;
       if (opts?.consumeOnce === true && a.once === true) {
         consumeIds.push(a.id);

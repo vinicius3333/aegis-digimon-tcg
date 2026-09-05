@@ -35,6 +35,55 @@ describe("ModifierLedger DP modifiers", () => {
     expect(ledger.hasIntrinsicEvoCostAdjustment(target, into)).toBe(false);
     expect(ledger.evoCostFor(target, into)).toEqual({ delta: -1 });
   });
+  it("deduplicates matching hand copies while retaining distinct intrinsic clauses and external reductions", () => {
+    const ledger = new ModifierLedger();
+    const target = new Permanent();
+    target.controllerSeat = 0;
+    const into = getCardDefinition("BT22-076")!;
+    const clauseA = {};
+    const clauseB = {};
+    ledger.addEvoCostAdjustment(() => true, -2, false, {
+      intrinsicCardId: "BT22-076",
+      intrinsicEffectKey: clauseA,
+    });
+    ledger.addEvoCostAdjustment(() => true, -2, false, {
+      intrinsicCardId: "BT22-076",
+      intrinsicEffectKey: clauseA,
+    });
+    ledger.addEvoCostAdjustment(() => true, -1, false, {
+      intrinsicCardId: "BT22-076",
+      intrinsicEffectKey: clauseB,
+    });
+    ledger.addEvoCostAdjustment(() => true, -1, false);
+    expect(ledger.evoCostFor(target, into)).toEqual({ delta: -4 });
+  });
+  it("deduplicates by action identity only after owner predicates match and preserves removal handles", () => {
+    const ledger = new ModifierLedger();
+    const into = getCardDefinition("BT22-076")!;
+    const ownerClause = {};
+    const own = new Permanent();
+    own.controllerSeat = 0;
+    const opposing = new Permanent();
+    opposing.controllerSeat = 1;
+    const first = ledger.addEvoCostAdjustment((m) => m.target.controllerSeat === 0, -2, false, {
+      intrinsicCardId: "BT22-076",
+      intrinsicEffectKey: ownerClause,
+    });
+    const second = ledger.addEvoCostAdjustment((m) => m.target.controllerSeat === 0, -2, false, {
+      intrinsicCardId: "BT22-076",
+      intrinsicEffectKey: ownerClause,
+    });
+    ledger.addEvoCostAdjustment((m) => m.target.controllerSeat === 1, -2, false, {
+      intrinsicCardId: "BT22-076",
+      intrinsicEffectKey: ownerClause,
+    });
+    expect(ledger.evoCostFor(own, into)).toEqual({ delta: -2 });
+    expect(ledger.evoCostFor(opposing, into)).toEqual({ delta: -2 });
+    ledger.removeEvoCostAdjustment(first.id);
+    expect(ledger.evoCostFor(own, into)).toEqual({ delta: -2 });
+    ledger.removeEvoCostAdjustment(second.id);
+    expect(ledger.evoCostFor(own, into)).toBeUndefined();
+  });
   it("applies player-wide deltas to current and future Digimon until the duration expires", () => {
     const s = setupEngine({ 1: { battleArea: [{ card: "AD1-001", dp: 7000, as: "current" }] } });
     const ledger = new ModifierLedger();
