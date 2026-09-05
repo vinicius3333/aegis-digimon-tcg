@@ -11,6 +11,7 @@ import { scaleFactor } from "../scaling.js";
 import { targetFateOf } from "../targetFate.js";
 import { DEFAULT_PLAY_ZONES, candidateLooseInstances, zoneList } from "../targeting/loose.js";
 import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
+import { targetAfterSelfPlacementCost } from "../targeting/afterCost.js";
 import { runBoardAction } from "./board.js";
 import { runCombatAction } from "./combat.js";
 import { runControlFlowAction } from "./controlFlow.js";
@@ -345,7 +346,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     !placeCostProducesDeleteTarget &&
     !looseCostDefinesDeleteTarget &&
     (!deleteTargetBoundByItsCost || !deleteOwnBoundedTargetAvailable) &&
-    candidatePermanents(ctx, action.target).length === 0
+    candidatePermanents(ctx, targetAfterSelfPlacementCost(ctx, action) ?? action.target).length === 0
   ) {
     return action.abortOnDecline === true;
   }
