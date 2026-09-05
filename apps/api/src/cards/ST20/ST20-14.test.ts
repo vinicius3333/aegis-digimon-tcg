@@ -102,4 +102,74 @@ describe("ST20-14 Our Courage United", () => {
     await advance(s.engine).recompute();
     expect(observe(s.engine).activatableEffects(option)).toHaveLength(0);
   });
+
+  it("activates Delay to play an Adventure Digimon from hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST20-11", as: "level5" }],
+          hand: [
+            { card: "ST20-14", as: "option" },
+            { card: "ST20-02", as: "target" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.placeOptionAsPermanent(s.inst("option").instanceId);
+    await advance(s.engine).verb.deletePermanent([s.perm("level5").permanentId!], "byEffect");
+    s.state.turnCount += 1;
+    await advance(s.engine).recompute();
+    const option = s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === s.inst("option").instanceId)!;
+    const delay = observe(s.engine)
+      .activatableEffects(option)
+      .find((effect) => /Delay/i.test(effect.description ?? ""));
+    expect(delay).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: delay!.instanceId!,
+        effectKey: delay!.effectKey!,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("target").instanceId),
+    );
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("target").instanceId)).toBe(false);
+  });
+
+  it("can decline Delay without playing the eligible Adventure Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST20-11", as: "level5" }],
+          hand: [
+            { card: "ST20-14", as: "option" },
+            { card: "ST20-02", as: "target" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.placeOptionAsPermanent(s.inst("option").instanceId);
+    await advance(s.engine).verb.deletePermanent([s.perm("level5").permanentId!], "byEffect");
+    s.state.turnCount += 1;
+    await advance(s.engine).recompute();
+    const option = s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === s.inst("option").instanceId)!;
+    const delay = observe(s.engine)
+      .activatableEffects(option)
+      .find((effect) => /Delay/i.test(effect.description ?? ""));
+    expect(delay).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: delay!.instanceId!,
+        effectKey: delay!.effectKey!,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "ST20-14"));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("target").instanceId)).toBe(true);
+  });
 });
