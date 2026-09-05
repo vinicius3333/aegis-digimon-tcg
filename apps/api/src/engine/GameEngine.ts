@@ -121,6 +121,7 @@ import type { CardSource } from "./effects/CardSource.js";
 import type { Effect } from "./effects/Effect.js";
 import type { CollectedEffect } from "./effects/collect.js";
 import type {
+  DiscardedStackSourceProof,
   EffectContext,
   GameAccess,
   Primitives,
@@ -2667,6 +2668,11 @@ export class GameEngine {
   private subTriggerAsCollected({ sub, ctx }: ArmedSubTrigger): CollectedEffect {
     return {
       source: ctx.source,
+      // The stack resolver re-creates a context for every collected effect. Carry the event
+      // snapshot along with this watcher so placement guards and action filters see the same
+      // exact payload that armed it (especially a stack source already moved to trash).
+      triggerInfo: ctx.trigger,
+      discardedStackSourceProof: ctx.discardedStackSourceProof,
       effect: {
         effectKey: `subtrigger/${sub.id}/${sub.description}`,
         description: sub.description,
@@ -2745,6 +2751,40 @@ export class GameEngine {
     return this.breedingHidesSubjectFrom(sub.event, payload, context.source) ? undefined : context;
   }
 
+  /**
+   * Preserve the placement proof for an inherited source that was just discarded from a live
+   * host. The normal inherited placement guard intentionally rejects an off-field source; these
+   * three discard events are the only seams that carry an exact stack-card identity after the
+   * move. Enrich only the bound context (never the shared payload) and require the card to be in
+   * trash and the event subject to be the anchored host, so a returned/unrelated card cannot be
+   * resurrected as an inherited effect.
+   */
+  private discardedStackSourceContextPayload(
+    sub: SubTriggerSubscription,
+    payload: TriggerInfo,
+  ): { payload: TriggerInfo; proof: DiscardedStackSourceProof } | undefined {
+    const sourceInstanceId = sub.sourceInstanceId;
+    if (sourceInstanceId === undefined) return undefined;
+    if (
+      sub.event !== "onDigiBurstCardDiscarded" &&
+      sub.event !== "onDigivolutionCardsDiscardedBatch" &&
+      sub.event !== "onDigivolutionCardDiscarded"
+    )
+      return undefined;
+    if (payload.subjectPermanentId === undefined) return undefined;
+    if (this.access.permanentById(payload.subjectPermanentId) === undefined) return undefined;
+    if (sub.sourcePermanentId !== undefined && payload.subjectPermanentId !== sub.sourcePermanentId) return undefined;
+    const listed =
+      sub.event === "onDigivolutionCardDiscarded"
+        ? payload.trashedDigivolutionInstanceId === sourceInstanceId
+        : (payload.trashedDigivolutionInstanceIds ?? []).includes(sourceInstanceId);
+    if (!listed || rootZoneOfLooseInstance(this.state, sourceInstanceId) !== "trash") return undefined;
+    return {
+      payload,
+      proof: { sourceInstanceId, hostPermanentId: payload.subjectPermanentId },
+    };
+  }
+
   private buildSubTriggerSourceContext(sub: SubTriggerSubscription, payload: TriggerInfo): EffectContext | undefined {
     if (sub.sourcePermanentId !== undefined) {
       const srcPerm = this.access.permanentById(sub.sourcePermanentId);
@@ -2752,7 +2792,18 @@ export class GameEngine {
       const sourceInstance = [srcPerm.topCard, ...srcPerm.stack, ...srcPerm.linked].find(
         (card) => card.instanceId === sub.sourceInstanceId,
       );
-      if (sub.sourceInstanceId !== undefined && sourceInstance === undefined) return undefined;
+      if (sub.sourceInstanceId !== undefined && sourceInstance === undefined) {
+        // A stack-card watcher can retain the host as its lifecycle anchor while its printed
+        // source has just moved to trash. Rebind only to the exact card named by this discard
+        // event; a generic loose-zone lookup here would resurrect unrelated/returned cards.
+        const discarded = this.discardedStackSourceContextPayload(sub, payload);
+        if (discarded === undefined) return undefined;
+        const discardedSource = this.findLooseInstance(sub.sourceInstanceId);
+        if (discardedSource === undefined) return undefined;
+        const context = this.buildEffectContext(this.cardSourceOf(discardedSource), discarded.payload);
+        context.discardedStackSourceProof = discarded.proof;
+        return context;
+      }
       return this.buildEffectContext(this.cardSourceOf(sourceInstance ?? srcPerm.topCard), payload);
     }
     if (sub.sourceInstanceId !== undefined) {
@@ -2769,7 +2820,10 @@ export class GameEngine {
       if (!activatesFromItsOwnHandTrash && this.looseSourceLeftInstallZone(sub, sub.sourceInstanceId)) return undefined;
       const loose = this.findLooseInstance(sub.sourceInstanceId);
       if (loose === undefined) return undefined;
-      return this.buildEffectContext(this.cardSourceOf(loose), payload);
+      const discarded = this.discardedStackSourceContextPayload(sub, payload);
+      const context = this.buildEffectContext(this.cardSourceOf(loose), discarded?.payload ?? payload);
+      if (discarded !== undefined) context.discardedStackSourceProof = discarded.proof;
+      return context;
     }
     if (sub.activationContext !== undefined) {
       return { ...sub.activationContext, trigger: payload, selections: new Map() };

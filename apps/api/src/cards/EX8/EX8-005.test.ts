@@ -14,33 +14,32 @@ describe("EX8-005", () => {
       actions: [{ kind: "GainMemory", amount: 1 }],
     }));
 
-  it.each(["EX8-047", "EX8-046"])("gains memory when trashed from a Mineral or Rock host (%s)", async (host) => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: host, as: "host", under: [{ card: "EX8-005", as: "discarded" }] }] },
-    });
-    await s.ready();
-    s.state.memory = 0;
-    await advance(s.engine).verb.trashDigivolutionCards(
-      s.perm("host").permanentId,
-      [s.inst("discarded").instanceId],
-      0,
+  it.each([
+    ["EX8-047", 5],
+    ["EX8-046", 5],
+    ["BT2-055", 6],
+  ] as const)("checks the %s host after an opposing public On Play discards Tumblemon", async (host, memory) => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX8-022", as: "frigimon" }] },
+        1: { battleArea: [{ card: host, as: "host", under: [{ card: "EX8-005", as: "discarded" }] }] },
+      },
+      { autoSelectCards: true },
     );
-    await settle(() => s.state.memory === 1);
-    expect(s.state.memory).toBe(1);
-  });
-
-  it("does not gain memory when this card is trashed from a non-Mineral/Rock host", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-010", as: "host", under: [{ card: "EX8-005", as: "discarded" }] }] },
-    });
     await s.ready();
-    s.state.memory = 0;
-    await advance(s.engine).verb.trashDigivolutionCards(
-      s.perm("host").permanentId,
-      [s.inst("discarded").instanceId],
-      0,
-    );
-    expect(s.state.memory).toBe(0);
+    s.state.memory = 10;
+    const sourceId = s.inst("discarded").instanceId;
+    const playedId = s.inst("frigimon").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: playedId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === sourceId));
+    await settle(() => s.state.memory === memory);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(sourceId);
+    expect(s.perm("host").stack).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === playedId)).toBe(true);
+    // Frigimon costs 5 and gains 1 after removing the last source. Tumblemon's
+    // opposing-controller memory gain subtracts 1 only for Mineral/Rock hosts.
+    expect(s.state.memory).toBe(memory);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("does not gain memory when another digivolution card is trashed but Tumblemon remains in the stack", async () => {
@@ -48,7 +47,7 @@ describe("EX8-005", () => {
       0: {
         battleArea: [
           {
-            card: "EX8-055",
+            card: "EX8-048",
             as: "host",
             under: [
               { card: "EX8-005", as: "tumblemon" },

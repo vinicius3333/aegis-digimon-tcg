@@ -150,6 +150,7 @@ export function buildResolutionEnv(env: EffectEnvironment, deps: ResolutionDeps)
         activeEffectKey: collected.effect.effectKey,
         conferredToPermanentId: collected.conferredToPermanentId,
         conferralGranterInstanceId: collected.conferralGranterInstanceId,
+        discardedStackSourceProof: collected.discardedStackSourceProof,
       }),
     ruleProcess: deps.ruleProcess,
     isGameOver: deps.isGameOver,

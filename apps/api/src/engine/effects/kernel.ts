@@ -85,8 +85,33 @@ export function isOverMaxPerTurn(effect: Effect, tracker: UseTracker, instanceId
  * are deferred to the inherited-effects and advanced-mechanics subsystems.
  */
 export function passesPlacementGuard(effect: Effect, ctx: EffectContext): boolean {
+  // This proof is captured for one discard event and remains on the deferred context. Once the
+  // source or host moves again, it is stale: do not let the ordinary inherited branch below
+  // reinterpret a reattached source as the original discarded card.
+  const discardedProof = ctx.discardedStackSourceProof;
+  if (discardedProof !== undefined) {
+    const host = ctx.game.permanentById(discardedProof.hostPermanentId);
+    const proofIsLive =
+      effect.isInherited &&
+      discardedProof.sourceInstanceId === ctx.source.instanceId &&
+      discardedProof.hostPermanentId === ctx.trigger?.subjectPermanentId &&
+      ctx.source.isInTrash?.() === true &&
+      host?.inBreeding === false;
+    if (!proofIsLive) return false;
+  }
   const permanent = ctx.source.permanent();
   if (permanent === undefined) {
+    // A discarded digivolution card is not a deletion, so it must not borrow
+    // deletedWasStackInstanceIds. The engine supplies this explicit proof only
+    // for the exact discard event, source instance, and still-live host.
+    if (
+      effect.isInherited &&
+      discardedProof?.sourceInstanceId === ctx.source.instanceId &&
+      discardedProof.hostPermanentId === ctx.trigger?.subjectPermanentId &&
+      ctx.game.permanentById(discardedProof.hostPermanentId) !== undefined
+    ) {
+      return true;
+    }
     // Off-field source (deleted → trash, hand-resident, etc.). For an inherited
     // effect whose source was deleted, consult the trigger's deletedWasStackInstanceIds
     // to determine whether the card was a stack card (inherited effect may fire) or
