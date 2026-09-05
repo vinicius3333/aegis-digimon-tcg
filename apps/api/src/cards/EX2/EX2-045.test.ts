@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX2-045.js";
+import "../EX4/EX4-023.js";
+import "../EX4/EX4-052.js";
 
 describe("EX2-045 Calumon", () => {
   it("costs 2 less to play while a named partner Digimon is in play", async () => {
@@ -166,6 +168,101 @@ describe("EX2-045 Calumon", () => {
       s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("normalDigivolutionDraw").instanceId),
     ).toBe(true);
     expect(s.perm("ally").currentDP).toBe(1000);
+  });
+
+  it("does nothing when the optional suspend cost is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX2-045", as: "calumon" },
+            { card: "EX2-019", as: "base" },
+            { card: "EX2-008", as: "ally" },
+          ],
+          hand: [{ card: "EX2-021", as: "evolution" }],
+          deck: [{ card: "BT1-001", as: "drawn" }],
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
+    const optionalDecision = s.decisions.find(({ req }) => req.kind === "optional");
+    expect(optionalDecision).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: optionalDecision!.req.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("calumon").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
+    expect(s.perm("ally").currentDP).toBe(1000);
+  });
+
+  it("is not a same-level hand reveal when an opponent plays a level-less Calumon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX4-023", as: "expert" }],
+          hand: [{ card: "EX2-045", as: "calumon" }],
+          security: [{ card: "BT1-001", as: "security" }],
+          deck: ["BT1-002", "BT1-003"],
+        },
+        1: { hand: [{ card: "EX2-045", as: "played" }], deck: ["BT1-004", "BT1-005"] },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const turnLoop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("security").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("calumon").instanceId);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await turnLoop;
+  });
+
+  it("is not a same-level hand trash when an opponent's level-less Calumon is deleted", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX4-052", as: "expert" }],
+          hand: [{ card: "EX2-045", as: "calumon" }],
+          deck: [
+            { card: "BT1-001", as: "deckOne" },
+            { card: "BT1-002", as: "deckTwo" },
+          ],
+        },
+        1: { battleArea: [{ card: "EX2-045", as: "deleted" }] },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await s.ready();
+    void advance(s.engine).verb.deletePermanent([s.perm("deleted").permanentId], "byEffect");
+    await settle();
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("calumon").instanceId);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("deckOne").instanceId,
+      s.inst("deckTwo").instanceId,
+    ]);
   });
 
   it("cannot attack during its controller's turn", async () => {

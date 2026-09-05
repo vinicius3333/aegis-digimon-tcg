@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, Primitives, SubTriggerInstall } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX2-043.js";
 
 const digimonDefinition = {
@@ -28,6 +30,7 @@ function source(): CardSource {
     permanent: () =>
       ({
         permanentId: "gulfmon",
+        controllerSeat: 0,
         topCard: { instanceId: "gulfmon-card", cardId: "EX2-043", ownerSeat: 0 },
         stack: [],
         linked: [],
@@ -51,6 +54,7 @@ function context(subscription: { value?: SubTriggerInstall }, unsuspended: strin
         cardSource.permanent()!,
         {
           permanentId: "target",
+          controllerSeat: 0,
           topCard: { instanceId: "target-card", cardId: "EX2-043", ownerSeat: 0 },
           stack: [],
           linked: [],
@@ -67,7 +71,10 @@ function context(subscription: { value?: SubTriggerInstall }, unsuspended: strin
       state: { turnSeat: 0, memory: 3, players } as never,
       player: (seat) => players[seat] as never,
       opponentOf: (seat) => (seat === 0 ? 1 : 0),
-      permanentById: () => undefined,
+      permanentById: (permanentId) =>
+        players
+          .flatMap((player) => player.battleArea)
+          .find((permanent) => permanent.permanentId === permanentId) as never,
       definitionOf: () => digimonDefinition,
     },
     ask: {
@@ -131,6 +138,116 @@ describe("EX2-043 Gulfmon", () => {
     expect(trashed).toHaveLength(3);
     expect(trashed.filter((id) => id.startsWith("p0-"))).toHaveLength(2);
     expect(trashed.filter((id) => id.startsWith("p1-"))).toHaveLength(1);
+  });
+
+  it("publicly digivolves, trashes excess hands, and may unsuspend a Digimon from its own effect", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX2-042", as: "base" },
+            { card: "EX2-040", as: "target", suspended: true },
+            { card: "EX2-040", as: "secondTarget", suspended: true },
+          ],
+          hand: [{ card: "EX2-043", as: "gulfmon" }, "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+          deck: Array.from({ length: 8 }, () => "BT1-001"),
+        },
+        1: { deck: Array.from({ length: 8 }, () => "BT1-001") },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("target").permanentId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gulfmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX2-043" && !s.perm("target").isSuspended);
+
+    expect(s.perm("base").topCard.cardId).toBe("EX2-043");
+    expect(s.perm("target").isSuspended).toBe(false);
+    expect(s.perm("secondTarget").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand.length).toBe(5);
+    await advance(s.engine).fireSubTrigger("whenHandTrashed", {
+      handTrashedSeat: 0,
+      byEffectSeat: 0,
+    });
+    await settle();
+    expect(s.perm("secondTarget").isSuspended).toBe(true);
+  });
+
+  it("leaves a five-card hand intact while trimming the other player's hand to five", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX2-042", as: "base" }],
+          hand: [{ card: "EX2-043", as: "gulfmon" }, "BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+          deck: [{ card: "BT1-004", as: "drawn" }],
+        },
+        1: { hand: ["BT1-005", "BT1-006", "BT1-007", "BT1-008", "BT1-009", "BT1-010"] },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gulfmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX2-043" && s.state.players[1]!.hand.length === 5);
+    expect(s.state.players[0]!.hand).toHaveLength(5);
+    expect(s.state.players[1]!.hand).toHaveLength(5);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[1]!.trash).toHaveLength(1);
+    expect(s.state.players[1]!.trash[0]!.ownerSeat).toBe(1);
+  });
+
+  it("does not unsuspend a target when the Your Turn watcher is declined", async () => {
+    const preferredTargets: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX2-042", as: "base" },
+            { card: "EX2-040", as: "target", suspended: true },
+          ],
+          hand: [{ card: "EX2-043", as: "gulfmon" }, "BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006"],
+          deck: ["BT1-007"],
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds: preferredTargets },
+    );
+    preferredTargets.push(s.perm("target").permanentId);
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gulfmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
+    const optionalDecision = s.decisions.find(({ req }) => req.kind === "optional");
+    expect(optionalDecision).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: optionalDecision!.req.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand).toHaveLength(5);
   });
 
   it("installs a triggered watcher and never exposes the effect as an activated [Main]", async () => {

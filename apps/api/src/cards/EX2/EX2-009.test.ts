@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import "./EX2-009.js";
@@ -63,7 +65,7 @@ describe("EX2-009 Growlmon", () => {
   it("deletes a 3000 DP target from a Growlmon-family host as an inherited effect", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX2-010", under: ["EX2-009"], as: "attacker" }] },
+        0: { battleArea: [{ card: "EX2-010", under: [{ card: "EX2-009", as: "source" }], as: "attacker" }] },
         1: { battleArea: [{ card: "EX2-031", dp: 3000, as: "target" }], security: ["BT1-001"] },
       },
       { autoSelectCards: true, autoOrderTriggers: true },
@@ -78,5 +80,31 @@ describe("EX2-009 Growlmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("applies its inherited 3000 DP limit once per turn", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX2-010", under: [{ card: "EX2-009", as: "source" }], as: "attacker" }] },
+        1: {
+          battleArea: [
+            { card: "EX2-031", dp: 3000, as: "target" },
+            { card: "EX2-031", dp: 3000, as: "secondTarget" },
+            { card: "EX2-031", dp: 4000, as: "aboveLimit" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.OnUseAttack, s.inst("source"));
+    expect(s.state.players[1]!.battleArea).toHaveLength(2);
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("aboveLimit").permanentId),
+    ).toBe(true);
+
+    await advance(s.engine).fireForInstance(EffectTiming.OnUseAttack, s.inst("source"));
+    expect(s.state.players[1]!.battleArea).toHaveLength(2);
   });
 });

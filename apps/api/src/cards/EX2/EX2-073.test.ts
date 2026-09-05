@@ -75,4 +75,117 @@ describe("EX2-073 Gallantmon: Crimson Mode", () => {
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT1-010"]);
   });
+
+  it("wins by the successful attack after its security trash reaches zero", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT9-017", as: "base", under: ["EX2-011"] }],
+          hand: [{ card: "EX2-073", as: "attacker" }],
+          deck: ["BT1-014"],
+        },
+        1: {
+          trash: Array.from({ length: 10 }, () => "BT1-001"),
+          security: ["EX2-070", "BT1-001"],
+          deck: ["BT1-014"],
+        },
+      },
+      { autoOrderTriggers: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("attacker").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX2-073");
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.gameOver === true);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("EX2-070");
+    expect(s.events.some((event) => event.kind === "effectActivated" && event.sourceCardId === "EX2-070")).toBe(false);
+    expect(s.state.gameOver).toBe(true);
+    expect(s.state.winnerSeat).toBe(0);
+  });
+
+  it("adds each complete ten-card trash group to its When Attacking security trash", async () => {
+    const nineteen = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT9-017", as: "base", under: ["EX2-011"] }],
+          hand: [{ card: "EX2-073", as: "attacker" }],
+          deck: ["BT1-014"],
+        },
+        1: {
+          trash: Array.from({ length: 19 }, () => "BT1-001"),
+          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
+          deck: ["BT1-014"],
+        },
+      },
+      { autoOrderTriggers: true, autoSelectCards: true },
+    );
+    nineteen.state.memory = 6;
+    expect(
+      nineteen.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: nineteen.perm("base").permanentId,
+        instanceId: nineteen.inst("attacker").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => nineteen.perm("base").topCard.cardId === "EX2-073");
+    await nineteen.ready();
+    expect(
+      nineteen.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: nineteen.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !(nineteen.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking);
+    expect(nineteen.state.players[1]!.security).toHaveLength(2);
+
+    const twenty = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT9-017", as: "base", under: ["EX2-011"] }],
+          hand: [{ card: "EX2-073", as: "attacker" }],
+          deck: ["BT1-014"],
+        },
+        1: {
+          trash: Array.from({ length: 20 }, () => "BT1-001"),
+          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
+          deck: ["BT1-014"],
+        },
+      },
+      { autoOrderTriggers: true, autoSelectCards: true },
+    );
+    twenty.state.memory = 6;
+    expect(
+      twenty.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: twenty.perm("base").permanentId,
+        instanceId: twenty.inst("attacker").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => twenty.perm("base").topCard.cardId === "EX2-073");
+    await twenty.ready();
+    expect(
+      twenty.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: twenty.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !(twenty.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking);
+    expect(twenty.state.players[1]!.security).toHaveLength(1);
+  });
 });

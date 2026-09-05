@@ -171040,6 +171040,7 @@
             "op": "addTop",
             "controller": "mine",
             "source": "deck",
+            "amount": 1,
             "condition": {
               "kind": "allOf",
               "conditions": [
@@ -171062,8 +171063,7 @@
                 }
               ],
               "raw": "you have 3 or fewer security cards and [Shu-Chong Wong] in play"
-            },
-            "amount": 1
+            }
           }
         ]
       }
@@ -171145,15 +171145,9 @@
     "residual": [],
     "digivolutionRequirement": [
       {
-        "names": ["Lopmon"],
+        "namesExact": ["Lopmon"],
         "cost": 3,
-        "zone": "hand",
-        "ignoreRequirements": true,
-        "condition": {
-          "kind": "youHave",
-          "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Shu-Chong Wong"], "match": "name" }] },
-          "raw": "you have [Shu-Chong Wong] in play"
-        },
+        "controllerControls": { "kind": ["Tamer"], "namesExact": ["Shu-Chong Wong"], "min": 1 },
         "isAlternate": true
       }
     ]
@@ -171392,7 +171386,10 @@
           {
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "underFilter": { "controller": "mine", "kind": ["Digimon"] },
+            "underFilter": { "controller": "mine", "kind": ["Digimon"], "excludeSelf": true },
+            "targetIsPermanent": true,
+            "shedOwnCards": true,
+            "position": "bottom",
             "optional": true
           }
         ]
@@ -171690,11 +171687,7 @@
   },
   "EX2-037": {
     "effects": [
-      {
-        "trigger": "Static",
-        "actions": [{ "kind": "Unsuspend", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }],
-        "keywords": [{ "keyword": "Reboot", "raw": "＜Reboot＞" }]
-      },
+      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Reboot", "raw": "＜Reboot＞" }] },
       {
         "trigger": "OpponentsTurn",
         "actions": [
@@ -171705,7 +171698,11 @@
             "actions": [
               {
                 "kind": "DeDigivolve",
-                "target": { "filter": { "controllerDefault": "opponent", "kind": ["Digimon"] }, "count": 1 },
+                "target": {
+                  "sourceRef": "triggerSubject",
+                  "filter": { "controllerDefault": "opponent", "kind": ["Digimon"] },
+                  "count": 1
+                },
                 "amount": 1
               }
             ]
@@ -171942,14 +171939,14 @@
             "kind": "SubTrigger",
             "event": "whenHandTrashed",
             "sourceFilter": { "controller": "mine" },
+            "fireCondition": { "kind": "triggerByYourEffect" },
             "actions": [
               {
                 "kind": "Unsuspend",
-                "target": { "filter": { "controller": "mine", "kind": ["Digimon"], "excludeSelf": true }, "count": 1 },
+                "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
                 "optional": true
               }
-            ],
-            "fireCondition": { "kind": "triggerHandTrashedSeat", "seat": "mine" }
+            ]
           }
         ]
       }
@@ -172039,7 +172036,7 @@
               "filter": {
                 "controller": "mine",
                 "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Guilmon", "Terriermon", "Renamon", "Impmon"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Guilmon", "Terriermon", "Renamon", "Impmon"], "match": "nameExact" }]
               },
               "raw": "you have [Guilmon], [Terriermon], [Renamon], or [Impmon] in play"
             },
@@ -172072,18 +172069,16 @@
           {
             "kind": "SubTrigger",
             "event": "whenOneOfYoursDigivolves",
+            "sourceFilter": { "controller": "mine", "kind": ["Digimon"] },
+            "cost": {
+              "kind": "suspend",
+              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+              "raw": "by suspending this Digimon"
+            },
+            "optional": true,
+            "raw": "When one of your Digimon digivolves, you may suspend this Digimon",
             "actions": [
-              {
-                "kind": "GainMemory",
-                "amount": 1,
-                "cost": {
-                  "kind": "suspend",
-                  "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                  "raw": "by suspending this Digimon"
-                },
-                "optional": true,
-                "abortOnDecline": true
-              },
+              { "kind": "GainMemory", "amount": 1 },
               { "kind": "Draw", "amount": 1 },
               {
                 "kind": "ModifyDP",
@@ -172107,7 +172102,7 @@
           {
             "kind": "Replacement",
             "event": "wouldBePlayed",
-            "sourceFilter": { "controllerDefault": "mine" },
+            "sourceFilter": { "isSelfRef": true },
             "actions": [
               {
                 "kind": "Replacement",
@@ -172207,16 +172202,17 @@
             "kind": "PlaceUnder",
             "target": {
               "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["ADR-02 Searcher"], "match": "name" }] },
-              "count": 1,
-              "from": ["battleArea", "hand"]
+              "count": 1
             },
-            "underFilter": {
-              "controller": "mine",
-              "nameOrTrait": [{ "tokens": ["Mother D-Reaper"], "match": "name" }]
+            "destination": {
+              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Mother D-Reaper"], "match": "name" }] },
+              "count": 1
             },
+            "mixedSources": { "battleAreaPermanents": true, "hand": true },
             "optional": true
           }
-        ]
+        ],
+        "isSecurity": true
       },
       {
         "trigger": "OnPlay",
@@ -172225,13 +172221,13 @@
             "kind": "PlaceUnder",
             "target": {
               "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["ADR-02 Searcher"], "match": "name" }] },
-              "count": 1,
-              "from": ["battleArea", "hand"]
+              "count": 1
             },
-            "underFilter": {
-              "controller": "mine",
-              "nameOrTrait": [{ "tokens": ["Mother D-Reaper"], "match": "name" }]
+            "destination": {
+              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Mother D-Reaper"], "match": "name" }] },
+              "count": 1
             },
+            "mixedSources": { "battleAreaPermanents": true, "hand": true },
             "optional": true
           }
         ]
@@ -172330,7 +172326,8 @@
               "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
               "raw": "by suspending this Digimon"
             },
-            "optional": true
+            "optional": true,
+            "abortOnDecline": true
           }
         ]
       }
@@ -172456,6 +172453,7 @@
             "op": "addTop",
             "controller": "mine",
             "source": "deck",
+            "amount": 1,
             "condition": {
               "kind": "youHave",
               "filter": {
@@ -172464,8 +172462,7 @@
                 "nameOrTrait": [{ "tokens": ["Mother D-Reaper"], "match": "name" }]
               },
               "raw": "you have a [Mother D-Reaper] in play"
-            },
-            "amount": 1
+            }
           }
         ]
       },
@@ -172646,7 +172643,50 @@
           {
             "kind": "SubTrigger",
             "event": "whenPlayed",
-            "sourceFilter": { "controllerDefault": "mine", "kind": ["Digimon"], "colors": ["Blue"] },
+            "sourceFilter": {
+              "controllerDefault": "mine",
+              "kind": ["Digimon"],
+              "colors": ["Blue"],
+              "nameOrTrait": [{ "tokens": ["MarineAngemon"], "match": "nameExact" }]
+            },
+            "actions": [
+              {
+                "kind": "TrashDigivolution",
+                "target": {
+                  "filter": { "controller": "opponent", "kind": ["Digimon"], "digivolutionCards": "hasAny" },
+                  "count": 1
+                },
+                "amount": 1,
+                "fromTop": false,
+                "cost": {
+                  "kind": "suspend",
+                  "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+                  "raw": "by suspending this Tamer"
+                },
+                "optional": true,
+                "abortOnDecline": false
+              },
+              {
+                "kind": "TrashDigivolution",
+                "target": {
+                  "filter": { "controller": "opponent", "kind": ["Digimon"], "digivolutionCards": "hasAny" },
+                  "count": "all"
+                },
+                "amount": 1,
+                "fromTop": false,
+                "condition": { "kind": "ifThisEffectActed" }
+              }
+            ]
+          },
+          {
+            "kind": "SubTrigger",
+            "event": "whenPlayed",
+            "sourceFilter": {
+              "controllerDefault": "mine",
+              "kind": ["Digimon"],
+              "colors": ["Blue"],
+              "nameOrTrait": [{ "tokens": ["MarineAngemon"], "match": "nameExact", "negate": true }]
+            },
             "actions": [
               {
                 "kind": "TrashDigivolution",
@@ -172663,19 +172703,6 @@
                 },
                 "optional": true,
                 "abortOnDecline": true
-              },
-              {
-                "kind": "TrashDigivolution",
-                "target": {
-                  "filter": { "controller": "opponent", "kind": ["Digimon"], "digivolutionCards": "hasAny" },
-                  "count": "all"
-                },
-                "amount": 1,
-                "fromTop": false,
-                "condition": {
-                  "kind": "triggerSubjectMatchesFilter",
-                  "filter": { "nameOrTrait": [{ "tokens": ["MarineAngemon"], "match": "name" }] }
-                }
               }
             ]
           }
@@ -172719,19 +172746,14 @@
           {
             "kind": "SubTrigger",
             "event": "whenOpponentAttacks",
-            "actions": [
-              {
-                "kind": "Draw",
-                "controller": "mine",
-                "amount": 1,
-                "cost": {
-                  "kind": "suspend",
-                  "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                  "raw": "by suspending this Tamer"
-                },
-                "optional": true
-              }
-            ]
+            "cost": {
+              "kind": "suspend",
+              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+              "raw": "by suspending this Tamer"
+            },
+            "optional": true,
+            "abortOnDecline": true,
+            "actions": [{ "kind": "Draw", "controller": "mine", "amount": 1 }]
           }
         ]
       },
@@ -172807,7 +172829,7 @@
         "actions": [{ "kind": "SetMemory", "value": 3, "condition": { "kind": "memoryAtMost", "value": 2 } }]
       },
       {
-        "trigger": "AllTurns",
+        "trigger": "YourTurn",
         "actions": [
           {
             "kind": "SubTrigger",
@@ -172817,12 +172839,13 @@
               "kind": ["Digimon"],
               "nameOrTrait": [{ "tokens": ["Renamon", "Kyubimon", "Taomon", "Sakuyamon"], "match": "name" }]
             },
+            "cost": {
+              "kind": "suspend",
+              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+              "raw": "by suspending this Tamer"
+            },
+            "optional": true,
             "actions": [
-              {
-                "kind": "Suspend",
-                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                "optional": true
-              },
               {
                 "kind": "UseOptionWithoutCost",
                 "filter": {
@@ -172831,8 +172854,7 @@
                   "nameOrTrait": [{ "tokens": ["Plug-In"], "match": "name" }]
                 },
                 "from": ["hand"],
-                "payCost": false,
-                "condition": { "kind": "selfIsSuspended", "raw": "after suspending this Tamer" }
+                "payCost": false
               }
             ]
           }
@@ -173082,18 +173104,15 @@
             "kind": "SubTrigger",
             "event": "whenAttacking",
             "sourceFilter": { "controllerDefault": "mine", "kind": ["Digimon"] },
+            "cost": {
+              "kind": "suspend",
+              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+              "raw": "by suspending this Tamer"
+            },
+            "optional": true,
+            "raw": "When you attack with a Digimon, you may suspend this Tamer",
             "actions": [
-              {
-                "kind": "TrashTopDeck",
-                "controller": "mine",
-                "amount": 1,
-                "cost": {
-                  "kind": "suspend",
-                  "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                  "raw": "by suspending this Tamer"
-                },
-                "optional": true
-              },
+              { "kind": "TrashTopDeck", "controller": "mine", "amount": 1 },
               {
                 "kind": "Digivolve",
                 "target": { "filter": {}, "count": 1, "sourceRef": "triggerSubject" },
@@ -173101,7 +173120,7 @@
                   "filter": {
                     "zone": "trash",
                     "controller": "mine",
-                    "nameOrTrait": [{ "tokens": ["Beelzemon Blast Mode"], "match": "name" }]
+                    "nameOrTrait": [{ "tokens": ["Beelzemon Blast Mode"], "match": "nameExact" }]
                   },
                   "count": 1
                 },
@@ -173110,7 +173129,7 @@
                 "costOverride": 3,
                 "condition": {
                   "kind": "triggerAttackerMatchesFilter",
-                  "filter": { "nameOrTrait": [{ "tokens": ["Beelzemon"], "match": "name" }] }
+                  "filter": { "nameOrTrait": [{ "tokens": ["Beelzemon"], "match": "nameExact" }] }
                 },
                 "optional": true
               }

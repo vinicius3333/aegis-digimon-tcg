@@ -160,7 +160,7 @@ describe("§15-4-3 Simultaneous Triggering (comprehensive-0164)", () => {
       makeContext: (c) => ({ source: c.source, trigger: {}, game: {}, fx: {}, ask: {} }) as never,
       ruleProcess: async () => {},
       isGameOver: () => false,
-      chooseOrder: async (_seat, active) => 0, // resolve the frontmost of whichever group is offered
+      chooseOrder: async () => 0, // resolve the frontmost of whichever group is offered
       askOptional: async () => true,
     };
     await resolveTiming(EffectTiming.OnPlay, env);
@@ -419,15 +419,15 @@ describe("§15-7 Optional Processing Conditions (comprehensive-0169/0170)", () =
     await settle(() => s.decisions.some((d) => d.req.kind === "optional"), 5000);
 
     const optionalDecision = s.decisions.find((d) => d.req.kind === "optional");
-    expect(optionalDecision).toBeDefined();
-    if (optionalDecision !== undefined) {
-      const acceptResult = s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: optionalDecision.req.decisionId,
-        response: { kind: "optional", accept: true },
-      });
-      expect(acceptResult).toEqual({ ok: true });
+    if (optionalDecision === undefined) {
+      throw new Error("Expected the inherited OnDeletion effect to request an optional decision");
     }
+    const acceptResult = s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: optionalDecision.req.decisionId,
+      response: { kind: "optional", accept: true },
+    });
+    expect(acceptResult).toEqual({ ok: true });
   });
 });
 
@@ -554,6 +554,29 @@ describe("§15-8-4 Activation-Type Effects (comprehensive-0176)", () => {
       effectKey: "BT15-009/ir-27-0",
     });
     expect(result.ok).toBe(true);
+  });
+
+  it("15-8-4-3-1: a cost-bearing activation with no legal target is not declarable by default", async () => {
+    cite(
+      "comprehensive-0176",
+      "15-8-4-3-1 an activation-type effect can be declared only while its processing " +
+        "conditions are met; EX2-051's deletion clause has no legal target above its DP ceiling",
+    );
+
+    const s = setup({
+      0: { battleArea: [{ card: "EX2-051", as: "palates" }, "EX2-007"] },
+      1: { battleArea: [{ card: "EX2-022", as: "tooLarge" }] },
+    });
+    await s.ready();
+
+    const result = s.engine.applyIntent(0, {
+      type: "activateEffect",
+      sourceInstanceId: s.perm("palates").topCard!.instanceId,
+      effectKey: "EX2-051/ir-27-0",
+    });
+
+    expect(result).toEqual({ ok: false, reason: "illegal-target" });
+    expect(s.perm("palates").isSuspended).toBe(false);
   });
 
   it("15-8-4-3-1 (boundary): a cost exactly equal to maxCostFor(seat) is payable, one more is not", () => {

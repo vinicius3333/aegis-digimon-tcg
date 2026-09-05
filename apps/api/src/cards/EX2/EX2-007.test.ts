@@ -1,10 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, type CardDefinition, type GameState, type Permanent, type Seat } from "@aegis/shared";
+import { EffectTiming, type CardDefinition, type Permanent, type Seat } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import "./EX2-007.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
+import "../ST9/ST9-10.js";
 
 // EX2-007 (Mother D-Reaper) — KB-grounded behavior tests.
 //
@@ -17,10 +18,6 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 //      KB basis: printed text "[Your Turn][Once Per Turn] When you would play a
 //      card with [D-Reaper] in its traits from your hand, you may reduce its play
 //      cost by 1 for each of this Digimon's digivolution cards." and documented behavior source
-
-interface Recorder {
-  calls: { verb: string; args: unknown[] }[];
-}
 
 function fakeDefinition(over: Partial<CardDefinition> = {}): CardDefinition {
   return {
@@ -66,48 +63,6 @@ function makeSource(opts: { stackSize?: number; isOnBattle?: boolean; isOwnersTu
   };
 }
 
-function makeContext(opts: { recorder: Recorder; source?: CardSource; stackSize?: number }): EffectContext {
-  const source = opts.source ?? makeSource({ stackSize: opts.stackSize });
-  const players = [
-    { seat: 0, battleArea: [], security: [], hand: [], deck: [], trash: [] },
-    { seat: 1, battleArea: [], security: [], hand: [], deck: [], trash: [] },
-  ];
-  const state = { memory: 3, players, turnSeat: 0 as Seat } as unknown as GameState;
-
-  const game: GameAccess = {
-    state,
-    player: (seat: Seat) => players[seat] as never,
-    opponentOf: (s) => (s === 0 ? 1 : 0) as Seat,
-    permanentById: (id) => (id === "PERM#EX2-007" ? source.permanent() : undefined),
-    definitionOf: (card) => fakeDefinition({ cardId: card.cardId }),
-  };
-
-  const record =
-    (verb: string) =>
-    (...args: unknown[]) => {
-      opts.recorder.calls.push({ verb, args });
-      return undefined as never;
-    };
-
-  // Real bodies only for verbs the tested clauses can reach; everything else
-  // throws on accidental dispatch so gaps surface immediately.
-  const fx = {
-    subscribeReplacement: record("subscribeReplacement"),
-    restrict: record("restrict"),
-    changePlayCost: record("changePlayCost"),
-  } as unknown as Primitives;
-
-  const ask: DecisionApi = {
-    optional: async () => true,
-    chooseTargets: async (_c, o) => o.candidates.slice(0, o.max),
-    selectPermanents: async (_c, o) => o.candidates.slice(0, o.max),
-    selectCards: async (_c, o) => o.candidates.slice(0, o.max),
-    chooseOption: async () => 0,
-  };
-
-  return { source, trigger: {}, game, fx, ask };
-}
-
 describe("EX2-007 (Mother D-Reaper) routing and registration", () => {
   const module = getEffectModule("EX2-007");
 
@@ -133,6 +88,71 @@ describe("EX2-007 (Mother D-Reaper) routing and registration", () => {
 });
 
 describe("EX2-007 Mother D-Reaper — integrated D-Reaper line", () => {
+  it("cannot attack", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX2-007", as: "mother" }] }, 1: { security: ["BT1-001"] } });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("mother").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: false, reason: "illegal-target" });
+  });
+
+  it("is not affected by an opponent's On Play effect", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX2-007", as: "mother" }], deck: ["BT1-001"] },
+        1: { hand: [{ card: "ST9-10", as: "snimon" }], deck: ["BT1-001", "BT1-001"] },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const turnLoop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("snimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST9-10"));
+    expect(s.perm("mother").isSuspended).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await turnLoop;
+  });
+
+  it("reduces only the first D-Reaper play each turn by its source count", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX2-007", as: "mother", under: ["EX2-046"] }],
+          hand: [
+            { card: "EX2-047", as: "firstDReaper" },
+            { card: "EX2-047", as: "secondDReaper" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstDReaper").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX2-047"));
+    expect(s.state.memory).toBe(3);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondDReaper").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () => s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "EX2-047").length === 2,
+    );
+    expect(s.state.memory).toBe(0);
+  });
+
   it("places ADR-02 Searcher from hand as its bottom source through the public Main-effect intent", async () => {
     const s = setupEngine(
       {

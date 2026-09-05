@@ -65,6 +65,7 @@ const STRUCTURED_REDUCER_COSTS = new Set([
  * is unsafe. This allowlist is the gate; new entries require reading the card's effect text.
  */
 const VERIFIED_SELF_REDUCER_CARDS = new Set([
+  "EX2-046", // no other ADR-02 Searcher in play -> self play cost -2
   "AD1-017", // 4+ Lucemon/Witchelny-text cards in trash -> self play cost -5
   "AD1-018", // 4+ Knightmon/Lucemon-text cards in trash -> self play cost -5
   "BT13-045", // 8+ Chessmon-name Digimon cards in trash -> self play cost -8

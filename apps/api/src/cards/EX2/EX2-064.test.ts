@@ -24,8 +24,11 @@ describe("EX2-064 Alice McCoy", () => {
         instanceId: s.inst("evolution").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX2-039"));
-    await settle();
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((card) => card.cardId === "EX2-039") &&
+        s.perm("base").topCard?.instanceId === s.inst("evolution").instanceId,
+    );
     expect(s.state.memory).toBe(10);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX2-039")).toBe(true);
   });
@@ -81,5 +84,69 @@ describe("EX2-064 Alice McCoy", () => {
 
     expect(s.state.memory).toBe(7);
     expect(s.state.players[0]!.trash.filter((card) => card.cardId === "EX2-039")).toHaveLength(1);
+  });
+
+  it("leaves the sacrifice in play when the optional reduction is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX2-042", as: "base" }, { card: "EX2-039", as: "sacrifice" }, "EX2-064"],
+          hand: [{ card: "EX2-044", as: "evolution" }],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.instanceId === s.inst("evolution").instanceId);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("sacrifice").instanceId)).toBe(false);
+    expect(s.state.memory).toBe(7);
+  });
+
+  it("does not offer the reduction for a non-level-5-to-6 evolution", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX2-039", as: "base" }, { card: "EX2-039", as: "sacrifice" }, "EX2-064"],
+        hand: [{ card: "EX2-044", as: "evolution" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("sacrifice").instanceId)).toBe(false);
+  });
+
+  it("plays EX2-064 from Security without paying its cost", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX2-050", as: "attacker" }], security: ["BT1-001"] },
+      1: { security: [{ card: "EX2-064", as: "securityAlice" }] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("securityAlice").instanceId),
+    );
+    expect(
+      s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("securityAlice").instanceId),
+    ).toBe(true);
   });
 });

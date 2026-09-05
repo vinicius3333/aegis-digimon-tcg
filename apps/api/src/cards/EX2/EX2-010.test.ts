@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import "./EX2-067.js";
@@ -79,5 +81,22 @@ describe("EX2-010 WarGrowlmon", () => {
     });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("does not raise another effect's deletion ceiling during the opponent's turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX2-009", under: ["EX2-010"], as: "host" }],
+          hand: [{ card: "EX2-067", as: "fireBall" }],
+        },
+        1: { battleArea: [{ card: "EX2-031", dp: 4000, as: "target" }] },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.OnUseOption, s.inst("fireBall"));
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 });

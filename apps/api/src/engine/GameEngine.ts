@@ -597,8 +597,10 @@ export class GameEngine {
    * what they record as `continuous` (the next recompute clears and re-derives it).
    */
   private continuousMode = false;
-  /** Guards against re-entrant continuous recomputes (a static effect that itself recomputes). */
-  private recomputing = false;
+  /** Shared completion barrier for the current continuous recompute batch. */
+  private recomputeInFlight: Promise<void> | undefined;
+  /** Coalesces external recompute requests that arrive while a pass is rebuilding the ledgers. */
+  private recomputeQueued = false;
 
   /**
    * Cards linked since the last over-limit rule check (fed by the link verb through
@@ -2763,14 +2765,19 @@ export class GameEngine {
    * which is exactly how a `[Your Turn]`/`while ...` effect lapses when its gate stops
    * holding.
    *
-   * Re-entrancy guarded: a recompute triggered while one is already running is a no-op
-   * (the in-flight pass already reflects the latest state). Public so callers/tests can
-   * force a recompute at a decision point the timing/boundary hooks do not already cover.
+   * Re-entrant calls from inside the continuous pass are no-ops. Concurrent requests from a
+   * different async flow instead wait for the in-flight pass and queue one final refresh. That
+   * completion barrier prevents consumers from observing the clear-before-refill interval of
+   * the continuous ledgers. Public so callers/tests can force a recompute at a decision point
+   * the timing/boundary hooks do not already cover.
    */
   async recomputeContinuousEffects(): Promise<void> {
-    if (this.recomputing) return;
-    this.recomputing = true;
-    this.continuousMode = true;
+    if (this.recomputeInFlight !== undefined) {
+      if (this.continuousScope.getStore() === true) return;
+      this.recomputeQueued = true;
+      await this.recomputeInFlight;
+      return;
+    }
     // Continuous effects are passive modifiers and never prompt (ARCHITECTURE.md §5);
     // a Static effect whose action has `optional:true` must be auto-declined here so
     // we don't open a nested DecisionManager request that collides with an already-open
@@ -2782,21 +2789,35 @@ export class GameEngine {
       selectPermanents: async () => [],
       chooseOption: async () => 0,
     };
+    // Defer the driver by one microtask so `recomputeInFlight` is installed before the
+    // first pass can recursively reach this method through a static effect primitive.
+    const task = Promise.resolve().then(async () => {
+      do {
+        this.recomputeQueued = false;
+        this.continuousMode = true;
+        try {
+          // Everything this pass records is a continuous effect, and the tier tag has to follow
+          // THIS async chain: a timing window resolving concurrently (a play whose trailing
+          // recompute is still in flight) must not read the tag from a shared field.
+          await this.continuousScope.run(true, () => this.runContinuousPass(noPromptAsk));
+        } finally {
+          this.continuousMode = false;
+        }
+      } while (this.recomputeQueued);
+
+      this.syncActivatableEffects();
+      this.syncKeywords();
+      this.syncSummoningSickness();
+      this.syncRestrictions();
+      this.syncAttackTargets();
+      this.syncHandAffordances();
+    });
+    this.recomputeInFlight = task;
     try {
-      // Everything this pass records is a continuous effect, and the tier tag has to follow
-      // THIS async chain: a timing window resolving concurrently (a play whose trailing
-      // recompute is still in flight) must not read the tag from a shared field.
-      await this.continuousScope.run(true, () => this.runContinuousPass(noPromptAsk));
+      await task;
     } finally {
-      this.continuousMode = false;
-      this.recomputing = false;
+      if (this.recomputeInFlight === task) this.recomputeInFlight = undefined;
     }
-    this.syncActivatableEffects();
-    this.syncKeywords();
-    this.syncSummoningSickness();
-    this.syncRestrictions();
-    this.syncAttackTargets();
-    this.syncHandAffordances();
   }
 
   /**
@@ -3774,6 +3795,14 @@ export class GameEngine {
       originZone,
     );
     if (interactiveReduction > 0) ctx.playCostDelta = (ctx.playCostDelta ?? 0) + interactiveReduction;
+    const passiveReduction = this.continuous.blocksCostReduction(source.ownerSeat, "play")
+      ? 0
+      : this.subTriggers.costReductionFor("wouldBePlayed", playTarget, source.definition, {
+          consume: true,
+          hasFired: (key) => this.tracker.count(key, "replacement") > 0,
+          markFired: (key) => this.tracker.register(key, "replacement"),
+        });
+    if (passiveReduction > 0) ctx.playCostDelta = (ctx.playCostDelta ?? 0) + passiveReduction;
     for (const reducer of selfReducers) await applyWouldBePlayedSelfReducer(ctx, reducer);
     // A self-reducer's cost body may have selected a permanent (BT12-112's chosen [Shoutmon]) to
     // relocate under the played card's own permanent — which does not exist yet at this point. Stash

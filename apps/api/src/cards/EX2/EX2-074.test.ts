@@ -76,4 +76,26 @@ describe("EX2-074 Beelzemon: Blast Mode", () => {
 
     expect(observe(s.engine).keywordAmount(s.perm("blastMode"), "SecurityAttack")).toBe(2);
   });
+
+  it("uses the ten-card floor and does not apply the bonus during the opponent's turn", async () => {
+    const below = setupEngine({
+      0: { battleArea: [{ card: "EX2-074", as: "nine" }], trash: Array.from({ length: 9 }, () => "BT1-001") },
+    });
+    await below.ready();
+    expect(observe(below.engine).keywordAmount(below.perm("nine"), "SecurityAttack")).toBe(0);
+
+    const at = setupEngine({
+      0: { battleArea: [{ card: "EX2-074", as: "ten" }], trash: Array.from({ length: 10 }, () => "BT1-001") },
+    });
+    await at.ready();
+    expect(observe(at.engine).keywordAmount(at.perm("ten"), "SecurityAttack")).toBe(1);
+
+    const opponentTurn = setupEngine({
+      0: { battleArea: [{ card: "EX2-074", as: "opponentTurn" }], trash: Array.from({ length: 20 }, () => "BT1-001") },
+      1: { deck: ["BT1-001"] },
+    });
+    opponentTurn.state.turnSeat = 1;
+    await opponentTurn.ready();
+    expect(observe(opponentTurn.engine).keywordAmount(opponentTurn.perm("opponentTurn"), "SecurityAttack")).toBe(0);
+  });
 });

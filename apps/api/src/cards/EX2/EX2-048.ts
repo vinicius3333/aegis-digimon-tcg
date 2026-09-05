@@ -20,20 +20,24 @@ const compiled: CompiledCard = {
               ],
             },
             count: 1,
-            from: ["battleArea", "hand"],
           },
-          underFilter: {
-            controller: "mine",
-            nameOrTrait: [
-              {
-                tokens: ["Mother D-Reaper"],
-                match: "name",
-              },
-            ],
+          destination: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["Mother D-Reaper"],
+                  match: "name",
+                },
+              ],
+            },
+            count: 1,
           },
+          mixedSources: { battleAreaPermanents: true, hand: true },
           optional: true,
         },
       ],
+      isSecurity: true,
     },
     {
       trigger: "OnPlay",
@@ -51,17 +55,20 @@ const compiled: CompiledCard = {
               ],
             },
             count: 1,
-            from: ["battleArea", "hand"],
           },
-          underFilter: {
-            controller: "mine",
-            nameOrTrait: [
-              {
-                tokens: ["Mother D-Reaper"],
-                match: "name",
-              },
-            ],
+          destination: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["Mother D-Reaper"],
+                  match: "name",
+                },
+              ],
+            },
+            count: 1,
           },
+          mixedSources: { battleAreaPermanents: true, hand: true },
           optional: true,
         },
       ],
