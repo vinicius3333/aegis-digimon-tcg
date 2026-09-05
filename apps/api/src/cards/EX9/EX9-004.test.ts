@@ -63,11 +63,11 @@ describe("EX9-004", () => {
     expect(s.state.memory).toBe(2);
   });
 
-  it("does not gain memory when the bottom card is face up", async () => {
+  it("does not gain memory without a face-down source", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX9-035", as: "host", under: [{ card: "BT1-009" }, "EX9-004"] }],
+          battleArea: [{ card: "EX9-035", as: "host", under: ["EX9-004"] }],
           hand: [{ card: "EX9-038", as: "played" }],
         },
       },
@@ -84,7 +84,7 @@ describe("EX9-004", () => {
     expect(s.state.memory).toBe(0);
   });
 
-  it("does not use an upper face-down card when the bottom card is face up", async () => {
+  it("pays the lowest hidden source above the visible egg, consistent with Q4785", async () => {
     const s = setupEngine(
       {
         0: {
@@ -92,7 +92,7 @@ describe("EX9-004", () => {
             {
               card: "EX9-035",
               as: "host",
-              under: ["BT1-009", { card: "BT1-010", faceUp: false }, "EX9-004"],
+              under: ["EX9-004", { card: "BT1-010", faceUp: false }, { card: "BT1-009", faceUp: false }],
             },
           ],
           hand: [{ card: "EX9-038", as: "played" }],
@@ -108,7 +108,13 @@ describe("EX9-004", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-038"));
 
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).not.toContain("BT1-009");
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).not.toContain("BT1-010");
-    expect(s.state.memory).toBe(0);
+    await settle();
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-010"]);
+    expect(s.perm("host").stack.map(({ cardId, faceUp }) => [cardId, faceUp])).toEqual([
+      ["EX9-004", true],
+      ["BT1-009", false],
+    ]);
+    expect(s.state.memory).toBe(1);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });

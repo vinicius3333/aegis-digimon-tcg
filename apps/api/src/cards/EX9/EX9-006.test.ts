@@ -126,7 +126,7 @@ describe("EX9-006", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("does not use an upper face-down card when the bottom card is face up", async () => {
+  it("pays the first hidden source above the visible egg to evolve from trash", async () => {
     const s = setupEngine(
       {
         0: {
@@ -134,7 +134,7 @@ describe("EX9-006", () => {
             {
               card: "EX9-007",
               as: "source",
-              under: [{ card: "BT1-009", faceUp: true }, { card: "BT1-010", faceUp: false }, "EX9-006"],
+              under: ["EX9-006", { card: "BT1-010", faceUp: false }, { card: "BT1-009", faceUp: false }],
             },
           ],
           trash: ["EX9-010"],
@@ -154,14 +154,15 @@ describe("EX9-006", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
 
-    expect(s.perm("source").topCard?.cardId).toBe("EX9-007");
+    await settle();
+    expect(s.perm("source").topCard?.cardId).toBe("EX9-010");
     expect(s.perm("source").stack.map((card) => [card.cardId, card.faceUp])).toEqual([
-      ["BT1-009", true],
-      ["BT1-010", false],
       ["EX9-006", true],
+      ["BT1-009", false],
+      ["EX9-007", true],
     ]);
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["EX9-010"]);
-    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-010"]);
+    expect(s.state.memory).toBe(2);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
