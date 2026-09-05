@@ -64,7 +64,14 @@ describe("EX9-030", () => {
 
   it("trashes an eligible hand card and reduces the play cost by exactly 2", async () => {
     const s = setupEngine(
-      { 0: { hand: [{ card: "EX9-023", as: "payment" }, { card: "EX9-030", as: "source" }] } },
+      {
+        0: {
+          hand: [
+            { card: "EX9-023", as: "payment" },
+            { card: "EX9-030", as: "source" },
+          ],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const before = s.state.memory;
@@ -73,41 +80,46 @@ describe("EX9-030", () => {
 
     expect(before - s.state.memory).toBe(5);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX9-023")).toBe(false);
-    expect(s.state.players[0]!.battleArea[0]?.stack.some((card) => card.cardId === "EX9-023" && !card.faceUp)).toBe(true);
-  });
-
-  it("applies the additional DP reduction only for face-down cards and to the selected opponent", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            {
-              card: "EX9-030",
-              as: "source",
-              dp: 7000,
-              under: [
-                { card: "BT1-009", faceUp: false },
-                { card: "BT1-010", faceUp: true },
-              ],
-            },
-          ],
-          trash: ["BT1-021"],
-        },
-        1: {
-          battleArea: [
-            { card: "BT1-010", as: "target", dp: 10000 },
-            { card: "BT1-021", as: "untargeted", dp: 10000 },
-          ],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    expect(s.state.players[0]!.battleArea[0]?.stack.some((card) => card.cardId === "EX9-023" && !card.faceUp)).toBe(
+      true,
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
-    await settle(() => s.perm("target").currentDP !== 10000);
-
-    expect(s.perm("target").currentDP).toBe(3000);
-    expect(s.perm("untargeted").currentDP).toBe(10000);
-    expect(s.perm("source").currentDP).toBe(7000);
-    expect(s.perm("source").stack.filter((card) => card.faceUp !== true)).toHaveLength(2);
   });
+
+  it.each(["BT1-009", "BT1-001", "BT1-091"])(
+    "counts face-down %s without referencing its card kind and only reduces the selected opponent",
+    async (faceDownCard) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              {
+                card: "EX9-030",
+                as: "source",
+                dp: 7000,
+                under: [
+                  { card: faceDownCard, faceUp: false },
+                  { card: "BT1-051", faceUp: true },
+                ],
+              },
+            ],
+            trash: ["BT1-021"],
+          },
+          1: {
+            battleArea: [
+              { card: "BT1-010", as: "target", dp: 10000 },
+              { card: "BT1-021", as: "untargeted", dp: 10000 },
+            ],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+      );
+      await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+      await settle(() => s.perm("target").currentDP !== 10000);
+
+      expect(s.perm("target").currentDP).toBe(3000);
+      expect(s.perm("untargeted").currentDP).toBe(10000);
+      expect(s.perm("source").currentDP).toBe(7000);
+      expect(s.perm("source").stack.filter((card) => card.faceUp !== true)).toHaveLength(2);
+    },
+  );
 });
