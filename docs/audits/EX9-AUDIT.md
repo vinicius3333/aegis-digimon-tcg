@@ -1,128 +1,110 @@
 # EX9 Card Implementation Revalidation
 
-## Scope and source of truth
+## Current status
 
-This independent audit starts from immutable base
-`53616a8e464dacbcb4e73dd31deb043ae59f88e0` on
-`audit-ex9-card-by-card-20260904`. The committed catalog contains 74 contiguous
-IDs, EX9-001 through EX9-074. All 74 direct modules and 74 colocated test files
-exist. Two additional collection files, EX9-074.behavior.test.ts and
-EX9.audit.test.ts, bring the exact collection inventory to 76 test files.
-Every direct module registers IR; the inventory found no legacy
-registration or RawUnparsed node. Structural presence is not a runtime score.
+**Verification candidate, not delivered or marked complete.**
 
-EX1 through EX8 were delivered separately. The remaining sequential scope is
-EX9 (74 cards), EX10 (74), EX11 (74), and EX12 (77). EX10 through EX12 are not
-started here. Earlier audit scores and green baselines are not adopted without
-fresh catalog, local knowledge-base, IR and runtime review.
+- Branch: `audit-ex9-card-by-card-20260904`.
+- Immutable base: `53616a8e464dacbcb4e73dd31deb043ae59f88e0`.
+- Latest local implementation/effects commit: `f054a1a0b`.
+- Catalog: 74 contiguous cards, EX9-001..074, each with an IR module and test.
+- Exact collection: 77 files / 862 tests passed, exit 0, one worker, 92.86 seconds.
+- Dynamic inventory: 850 tests in 74 primary files and 12 complementary tests.
+- Affected mechanisms: 8 files / 311 tests passed in 3.46 seconds.
+- Shared evolution requirements: 106/106 passed after the exact-name fix.
+- Full shared/API/web typecheck passed after the last card module fix; subsequent test-only follow-ups passed API typecheck.
+- Shared/API production builds passed during effects verification; web production build passed with chunk/import warnings.
+- Independent review of all 34 changed engine files: Ready, 0 Critical / 0 Important / 0 Minor.
+- Push, remote verification and coordinator completion notification: pending.
 
-## Work ownership and verification
+Passing tests are behavioral evidence, not automatic 10/10 fidelity scores.
+Final card-review and historical-residual reconciliation remains required.
+No later collection is claimed reviewed by this ledger.
 
-Three Luna/high workers own EX9-001..025, EX9-026..050 and EX9-051..073.
-The coordinator owns EX9-074 and its shared color-selection review.
-Each proceeds one card at a time. The coordinator owns shared engine changes,
-independent review, this ledger, effects synchronization and all Git staging,
-commits and delivery. Workers never stage or commit shared worktree changes.
+## Historical evidence
 
-Focused command, substituting the exact card ID:
+[EX9-CHECKPOINTS.md](EX9-CHECKPOINTS.md) preserves the preceding ledger verbatim,
+including atomic commits, red/green traces, reviewer reports and runtime counts.
+Its OPEN/Pending labels and intermediate results describe their historical
+checkpoints, not the current gate status above. No historical evidence was discarded.
+
+The coordinator owns shared changes, staging, commits and delivery. Earlier
+worker assignments are historical; workers must not stage concurrent files.
+The pre-existing EX9-001 comment-only cleanup is preserved and still uncommitted.
+
+## Reproduction
+
+Exact collection:
 
 ```text
-pnpm --filter @aegis/api exec vitest run src/cards/EX9/EX9-NNN.test.ts --no-file-parallelism --pool=forks --maxWorkers=1 --reporter=dot
+pnpm --filter @aegis/api exec vitest run src/cards/EX9 --no-file-parallelism --pool=forks --maxWorkers=1 --reporter=dot
 ```
 
-Behavioral evidence must use legal stacks and neutral peers, resolve decisions,
-and explicitly assert final state. A settle predicate alone is not an assertion.
-Inherited limits need real repeat-activation boundaries and duration expiry;
-reveal routing needs an unrevealed anchor. Shared fixes require a red-capable
-regression and scoped mechanism checks. Collection tests, typechecks, builds,
-style, effects synchronization and independent review are closure gates, not
-per-card repeated work.
+Dynamic inventory without executing test bodies:
 
-## Current results
+```text
+pnpm --filter @aegis/api exec vitest list src/cards/EX9 --json --staticParse=false --maxWorkers=1
+```
 
-No card is claimed complete from the initial inventory. Dependencies installed
-offline from the existing cache with the frozen lockfile, without tracked
-changes. The initial shared build passed.
+Default static listing returned 663 declarations; it does not expand all
+parameterized cases. Dynamic collection returned 862, matching the passing run.
+Supplementary files: EX9-074.behavior (7), EX9-074.faceDown (2), EX9.audit (3).
 
-| Card | Fresh result | Evidence / unresolved work |
-| --- | --- | --- |
-| EX9-001 | Pending | Fresh audit required |
-| EX9-002 | Pending | Fresh audit required |
-| EX9-003 | Pending | Fresh audit required |
-| EX9-004 | Pending | Fresh audit required |
-| EX9-005 | Pending | Fresh audit required |
-| EX9-006 | Pending | Fresh audit required |
-| EX9-007 | Pending | Fresh audit required |
-| EX9-008 | Pending | Fresh audit required |
-| EX9-009 | Pending | Fresh audit required |
-| EX9-010 | Pending | Fresh audit required |
-| EX9-011 | Pending | Fresh audit required |
-| EX9-012 | Pending | Fresh audit required |
-| EX9-013 | Pending | Fresh audit required |
-| EX9-014 | Pending | Fresh audit required |
-| EX9-015 | Pending | Fresh audit required |
-| EX9-016 | Pending | Fresh audit required |
-| EX9-017 | Pending | Fresh audit required |
-| EX9-018 | Pending | Fresh audit required |
-| EX9-019 | Pending | Fresh audit required |
-| EX9-020 | Pending | Fresh audit required |
-| EX9-021 | Pending | Fresh audit required |
-| EX9-022 | Pending | Fresh audit required |
-| EX9-023 | Pending | Fresh audit required |
-| EX9-024 | Pending | Fresh audit required |
-| EX9-025 | Pending | Fresh audit required |
-| EX9-026 | Pending | Fresh audit required |
-| EX9-027 | Pending | Fresh audit required |
-| EX9-028 | Pending | Fresh audit required |
-| EX9-029 | Pending | Fresh audit required |
-| EX9-030 | Pending | Fresh audit required |
-| EX9-031 | Pending | Fresh audit required |
-| EX9-032 | Pending | Fresh audit required |
-| EX9-033 | Pending | Fresh audit required |
-| EX9-034 | Pending | Fresh audit required |
-| EX9-035 | Pending | Fresh audit required |
-| EX9-036 | Pending | Fresh audit required |
-| EX9-037 | Pending | Fresh audit required |
-| EX9-038 | Pending | Fresh audit required |
-| EX9-039 | Pending | Fresh audit required |
-| EX9-040 | Pending | Fresh audit required |
-| EX9-041 | Pending | Fresh audit required |
-| EX9-042 | Pending | Fresh audit required |
-| EX9-043 | Pending | Fresh audit required |
-| EX9-044 | Pending | Fresh audit required |
-| EX9-045 | Pending | Fresh audit required |
-| EX9-046 | Pending | Fresh audit required |
-| EX9-047 | Pending | Fresh audit required |
-| EX9-048 | Pending | Fresh audit required |
-| EX9-049 | Pending | Fresh audit required |
-| EX9-050 | Pending | Fresh audit required |
-| EX9-051 | Pending | Fresh audit required |
-| EX9-052 | Pending | Fresh audit required |
-| EX9-053 | Pending | Fresh audit required |
-| EX9-054 | Pending | Fresh audit required |
-| EX9-055 | Pending | Fresh audit required |
-| EX9-056 | Pending | Fresh audit required |
-| EX9-057 | Pending | Fresh audit required |
-| EX9-058 | Pending | Fresh audit required |
-| EX9-059 | Pending | Fresh audit required |
-| EX9-060 | Pending | Fresh audit required |
-| EX9-061 | Pending | Fresh audit required |
-| EX9-062 | Pending | Fresh audit required |
-| EX9-063 | Pending | Fresh audit required |
-| EX9-064 | Pending | Fresh audit required |
-| EX9-065 | Pending | Fresh audit required |
-| EX9-066 | Pending | Fresh audit required |
-| EX9-067 | Pending | Fresh audit required |
-| EX9-068 | Pending | Fresh audit required |
-| EX9-069 | Pending | Fresh audit required |
-| EX9-070 | Pending | Fresh audit required |
-| EX9-071 | Pending | Fresh audit required |
-| EX9-072 | Pending | Fresh audit required |
-| EX9-073 | Pending | Fresh audit required |
-| EX9-074 | OPEN: 1/2 behavior tests | Initial primary plus behavior baseline passed 5/5. Adding a white opponent to the existing six-source-color case exposes Q5003: white survives although the rule requires considering all seven opposing colors. Current DeletePerColor iterates only source colors. Q5004/Q5005 choice constraints and full public/legal-stack proof remain under review |
+The eight affected regression files, run with the same worker options:
 
-## Delivery status
+```text
+src/engine/actions/assemblySkullGreymon.test.ts
+src/engine/combat/advancedKeywords.test.ts
+src/engine/combat/retaliationOverflow.test.ts
+src/engine/effects/interpreter.test.ts
+src/engine/effects/interpreter/actions/play.test.ts
+src/engine/effects/interpreter/targeting/colorMatching.test.ts
+src/engine/effects/modifiers.test.ts
+src/engine/effects/stack.test.ts
+```
 
-In progress. No collection completion, runtime 10/10 total, final commit or push
-is claimed yet. Upon full verified completion the coordinator must update the
-Orca worktree status and notify the parent coordinator before becoming idle.
+## Effects and style scope
+
+EX9 sync/check passed for 74 records with 62 semantic changes against the audit
+base and zero out-of-set semantic or byte changes at `d1487361b`. One check
+attempt timed out in the formatter; the subsequent check passed.
+
+Explicit exception `f054a1a0b` adds only `position: bottom` to BT8-084,
+matching the previously delivered module and compiled runtime exactly. Its focused
+file passed 4/4. A full-branch effects scope assertion must allow EX9 plus
+BT8-084; do not claim zero outside EX9 for the entire branch.
+
+Global effects JSON format checking reports preserved differences in BT25 and
+EX12-066/067/068. Formatter range comparison found none in EX9 or BT8-084.
+No unrelated formatting rewrite was performed. Changed card/engine files passed
+scoped checks during atomic delivery; final whole-diff style reconciliation remains.
+Current `git diff --check` passes.
+
+## Latest corrective evidence
+
+- `b79958a97`: Q4785 selects the lowest hidden source above visible sources;
+  ordinary absolute-bottom selection remains unchanged. Red/green selector proof.
+- `959f43911`: exact Sukamon route, shared recovery limit and real Q4786 order.
+- `0376df695`: EX9-004/006 obsolete expectations corrected to the same
+  bottom-face-down rule; 11/11 focused. The earlier 860-pass/2-fail collection
+  is superseded by the current 862-pass result.
+- `94958c0e9`: EX9-042 old-Main-window fixture race corrected; 19/19.
+- `700b85713`: EX9-043 payment, refusal and independent routes; 22/22.
+- `71d673fa8`, `aefea6919`: EX9-044 real play and shared DNA limit; 18/18.
+- `373a8dc88`: EX9-045 normal/DNA routing and leave-play boundaries; 22/22.
+
+## Remaining closeout
+
+1. Reconcile final per-card fidelity evidence and historical residual reports.
+   The engine reviewer did not establish multiple physical intrinsic reducer
+   copies in hand as an introduced regression and did not claim it resolved.
+2. Finish scoped style checks and resolve the preserved comment cleanup.
+   This ledger and the complete checkpoint archive are delivered together.
+3. Verify clean scope, push the branch and verify its remote hash.
+4. Only after all 74 cards have reproducible 10/10 evidence and final gates pass,
+   mark the Orca worktree completed and notify the coordinator with collection,
+   counts, tests, commit, push result and remaining queue. Remain available.
+
+The persistent full queue is EX9 closeout → EX10 → EX11 → EX12 → LM → Promo →
+all ST collections. Recalculate each later group from the catalog when it begins.
+EX9 delivery alone does not complete that goal.
