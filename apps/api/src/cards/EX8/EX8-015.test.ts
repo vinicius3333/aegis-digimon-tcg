@@ -57,7 +57,7 @@ describe("EX8-015", () => {
         deck: ["BT1-045"],
         battleArea: [
           { card: "BT1-024", as: "boundary" },
-          { card: "AD1-004", as: "above" },
+          { card: "BT1-084", as: "above" },
         ],
       },
     });
@@ -78,7 +78,7 @@ describe("EX8-015", () => {
     expect(s.perm("warGrowlmon").currentDP).toBe(11000);
     expect(observe(s.engine).isRestricted(s.perm("warGrowlmon"), "beReturned")).toBe(true);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === boundaryId)).toBe(true);
-    expect(s.state.players[1]!.battleArea[0]!.topCard.cardId).toBe("AD1-004");
+    expect(s.state.players[1]!.battleArea[0]!.topCard.cardId).toBe("BT1-084");
 
     await advance(s.engine).verb.returnToHand([s.perm("warGrowlmon").topCard.instanceId]);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
