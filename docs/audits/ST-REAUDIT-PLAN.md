@@ -18,8 +18,8 @@ Three gpt-5.6-luna workers share this isolated worktree, with disjoint card/repo
 | ST6  |    16 | st01_08     | Luna evidence received; coordinator review pending         |
 | ST7  |    12 | st01_08     | Luna evidence received; coordinator review pending         |
 | ST8  |    12 | st01_08     | Luna evidence received; coordinator review pending         |
-| ST9  |    15 | st09_17     | Proof batch green; coordinator corrections in progress     |
-| ST10 |    15 | st09_17     | Baseline failures under correction                         |
+| ST9  |    15 | st09_17     | Reviewed 15/15 at 10/10; 42 tests; pushed 82690ac36     |
+| ST10 |    15 | coordinator | Reviewed 15/15 at 10/10; 61 tests; pushed 256c4170c                         |
 | ST12 |    16 | st09_17     | Solarmon activation fixed in 3241ceb87; collection pending |
 | ST13 |    16 | st09_17     | Baseline failures under correction                         |
 | ST14 |    12 | st09_17     | Baseline failures under correction                         |
@@ -28,7 +28,7 @@ Three gpt-5.6-luna workers share this isolated worktree, with disjoint card/repo
 | ST17 |    13 | st09_17     | Baseline failures under correction                         |
 | ST18 |    15 | st18_24     | Proof gaps recorded at 8–9/10; strengthening               |
 | ST19 |    15 | reviewer    | Reviewed proof batch; 76 tests; pushed 3be2d8628           |
-| ST20 |    15 | reviewer    | Security/Delay/Counter proofs; Alliance validation active  |
+| ST20 |    15 | reviewer    | Reviewed 15/15 at 10/10; 90 tests; pushed 490e5035f  |
 | ST21 |    15 | st18_24     | Initial tests green; detailed proof review queued          |
 | ST22 |    14 | st18_24     | Initial tests green; detailed proof review queued          |
 | ST23 |    15 | st18_24     | Initial tests green; detailed proof review queued          |
@@ -78,4 +78,20 @@ The baseline does not certify the other cards' full printed contracts. Luna clau
 - ST12-03 cost-reduction activation is delivered in 3241ceb87: ten card cases, direct/nested reducer controls, breeding and free-play coverage. See ST12-03-COST-AUDIT.md. ST15-10 asynchronous evolution proof is corrected in 8387fa337 with observable inherited Reboot; focused 3/3 passed.
 - ST18 has an explicit conservative per-card 8–9/10 proof ledger (ST18-PROOF-AUDIT.md). Added equality/optionality/conditional-result tests passed, but remaining behavioral gaps are still being closed; no ST18 completion claim is accepted.
 - User requested care with tests: keep targeted single-worker runs, inspect results, and avoid repeating broad suites without changed scope or a concrete unresolved failure.
-- Entire scope remains 343 cards / 23 collections. ST1 and ST19 reviewed batches are pushed; ST9, ST18 and ST20 proof work is active; other detailed reviews remain pending. Shared-engine conformance passed 28 files / 387 tests after the Solarmon fix; shared/web/API typechecks passed after correcting ST20 test typing.
+- Entire scope remains 343 cards / 23 collections. ST1, ST9, ST10, ST19 and ST20 reviewed batches are pushed. ST12 has 94 green tests and additional coordinator evidence corrections; ST13 Delay timing, ST18 granted Vortex, and ST21 proof quality remain under review. Other detailed reviews remain pending. Shared-engine conformance passed 28 files / 387 tests after the Solarmon fix; shared/web/API typechecks passed after correcting ST20 test typing.
+
+## Reviewed collection checkpoint
+
+- ST9: 17 files / 42 tests; pushed 82690ac36, including exact reveal remainder,
+  distinct suspended targets, Security return and duration negatives.
+- ST10: 17 files / 61 tests; pushed 256c4170c. Junomon now returns the exact
+  milled instance rather than mistaking its evolution draw for a trash return;
+  actual Retaliation battle is exercised.
+- ST20: 16 files / 90 tests; subsequent ST20-10 helper/assertion cleanup 4/4.
+  Pushed 490e5035f corrects invalid ADVENTURE trigger-subject conditions and
+  proves Alliance with explicit payment and completed security checks.
+- All three collection commands above explicitly used serial Vitest flags.
+- A passing provisional suite is insufficient for ST13/ST18/ST21 acceptance:
+  Delay requires explicit activation after a real turn transition, granted Vortex
+  requires a real end-turn attack, and Alliance requires an observed keyword/payment
+  outcome. The coordinator has returned weak proofs for correction.
