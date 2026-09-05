@@ -23,14 +23,10 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
-          kind: "Suspend",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-            },
-            count: 1,
-          },
+          kind: "ConditionalBranch",
+          condition: { kind: "true" },
+          optional: true,
+          abortOnDecline: true,
           cost: {
             kind: "place",
             faceDown: true,
@@ -43,18 +39,15 @@ export const compiled: CompiledCard = {
             },
             raw: "By placing 1 card in your hand face down as this Digimon's bottom digivolution card",
           },
-        },
-        {
-          kind: "Restrict",
-          target: {
-            filter: {
-              controller: "opponent",
+          ifTrue: [
+            { kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } },
+            {
+              kind: "Restrict",
+              target: { filter: { controller: "opponent" }, sameTarget: true, count: 1 },
+              restriction: "unsuspendDuringOwnUnsuspendPhase",
+              duration: "untilOpponentNextUnsuspendPhase",
             },
-            sameTarget: true,
-            count: 1,
-          },
-          restriction: "unsuspendDuringOwnUnsuspendPhase",
-          duration: "untilOpponentNextUnsuspendPhase",
+          ],
         },
       ],
     },
@@ -62,14 +55,10 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "Suspend",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-            },
-            count: 1,
-          },
+          kind: "ConditionalBranch",
+          condition: { kind: "true" },
+          optional: true,
+          abortOnDecline: true,
           cost: {
             kind: "place",
             faceDown: true,
@@ -82,18 +71,15 @@ export const compiled: CompiledCard = {
             },
             raw: "By placing 1 card in your hand face down as this Digimon's bottom digivolution card",
           },
-        },
-        {
-          kind: "Restrict",
-          target: {
-            filter: {
-              controller: "opponent",
+          ifTrue: [
+            { kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } },
+            {
+              kind: "Restrict",
+              target: { filter: { controller: "opponent" }, sameTarget: true, count: 1 },
+              restriction: "unsuspendDuringOwnUnsuspendPhase",
+              duration: "untilOpponentNextUnsuspendPhase",
             },
-            sameTarget: true,
-            count: 1,
-          },
-          restriction: "unsuspendDuringOwnUnsuspendPhase",
-          duration: "untilOpponentNextUnsuspendPhase",
+          ],
         },
       ],
     },
