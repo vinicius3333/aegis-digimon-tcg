@@ -73,6 +73,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenDigimonWouldLeave",
+          delayArmedIntrinsic: true,
           leaveCause: "otherThanYourEffect",
           sourceFilter: {
             controller: "mine",
@@ -80,40 +81,21 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
-              kind: "GainKeyword",
+              kind: "PlayWithoutCost",
               target: {
                 filter: {
-                  isSelfRef: true,
+                  controller: "mine",
+                  zone: "digivolutionCards",
+                  hostFilter: { sourceRef: "triggerSubject" },
+                  nameOrTrait: [{ tokens: ["Legend-Arms"], match: "trait" }],
                 },
                 count: 1,
-                isSelf: true,
               },
-              keyword: { keyword: "Delay" },
-              duration: "permanent",
+              from: ["digivolutionCards"],
+              payCost: false,
+              optional: true,
             },
           ],
-        },
-      ],
-    },
-    {
-      trigger: "Main",
-      keywords: [{ keyword: "Delay" }],
-      actions: [
-        {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              controller: "mine",
-              zone: "digivolutionCards",
-              hostFilter: { sourceRef: "triggerSubject" },
-              nameOrTrait: [{ tokens: ["Legend-Arms"], match: "trait" }],
-            },
-            count: 1,
-          },
-          from: ["digivolutionCards"],
-          payCost: false,
-          optional: true,
-          requiresDelayArmed: true,
         },
       ],
     },

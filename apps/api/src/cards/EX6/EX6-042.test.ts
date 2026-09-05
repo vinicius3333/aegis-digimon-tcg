@@ -1,4 +1,7 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-042.js";
 
 describe("EX6-042 RaijiLudomon", () => {
@@ -47,5 +50,25 @@ describe("EX6-042 RaijiLudomon", () => {
         },
       ],
     });
+  });
+
+  it("publicly pays 2 and places RaijiLudomon under an eligible level 5 host", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX6-009", as: "host" }], hand: [{ card: "EX6-042", as: "raiji" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.OnDeclaration, s.inst("raiji"));
+    await settle(() => s.perm("host").stack.some((card) => card.instanceId === s.inst("raiji").instanceId));
+    expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("raiji").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(3);
+  });
+  it("does not expose the hand Main effect without a level 5 or Legend-Arms host", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-053", as: "ineligible" }], hand: [{ card: "EX6-042", as: "raiji" }] },
+    });
+    await s.ready();
+    expect(JSON.parse(s.inst("raiji").activatableEffectsJson || "[]")).toHaveLength(0);
   });
 });

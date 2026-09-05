@@ -67,7 +67,7 @@ export const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["Sanzomon"],
-                      match: "name",
+                      match: "nameExact",
                     },
                   ],
                 },
@@ -85,7 +85,7 @@ export const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["Gokuumon", "Sagomon", "Cho-Hakkaimon"],
-                      match: "name",
+                      match: "nameExact",
                     },
                   ],
                 },
@@ -114,7 +114,7 @@ export const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["Sanzomon"],
-                      match: "name",
+                      match: "nameExact",
                     },
                   ],
                 },
@@ -132,7 +132,7 @@ export const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["Gokuumon", "Sagomon", "Cho-Hakkaimon"],
-                      match: "name",
+                      match: "nameExact",
                     },
                   ],
                 },

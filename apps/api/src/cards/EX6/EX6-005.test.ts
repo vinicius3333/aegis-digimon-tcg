@@ -55,7 +55,9 @@ describe("EX6-005 Kakkinmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-009", as: "host", under: ["EX6-005", "EX6-065"] }],
+          battleArea: [
+            { card: "BT1-009", as: "host", under: ["EX6-005", { card: "EX6-065", as: "legendArmsOption" }] },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -66,6 +68,8 @@ describe("EX6-005 Kakkinmon", () => {
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("host"));
 
     expect(s.state.memory).toBe(1);
-    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("EX6-065").instanceId);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("legendArmsOption").instanceId,
+    );
   });
 });

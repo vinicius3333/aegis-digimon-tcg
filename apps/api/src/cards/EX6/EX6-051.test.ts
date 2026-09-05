@@ -1,4 +1,7 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-051.js";
 
 describe("EX6-051 NeoDevimon", () => {
@@ -26,5 +29,32 @@ describe("EX6-051 NeoDevimon", () => {
         { kind: "PlayWithoutCost", from: ["trash"], condition: { kind: "ifThisEffectDidNotAct" } },
       ],
     });
+  });
+  it("publicly deletes an opposing level 4 Digimon on play", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX6-051", as: "neo" }] }, 1: { battleArea: [{ card: "BT1-053", as: "victim" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("neo"));
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+  it("publicly uses the seven-card branch without deleting the opposing Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX6-051", as: "neo" }] },
+        1: {
+          hand: Array.from({ length: 7 }, () => "BT1-010"),
+          battleArea: [{ card: "BT1-053", as: "victim" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("neo"));
+    await settle(() => s.state.players[1]!.hand.length === 6);
+    expect(s.state.players[1]!.hand).toHaveLength(6);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 });

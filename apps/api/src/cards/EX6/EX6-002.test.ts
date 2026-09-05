@@ -31,7 +31,10 @@ describe("EX6-002 Yokomon", () => {
       {
         0: {
           battleArea: [{ card: "EX6-007", as: "host", under: ["EX6-002"] }],
-          hand: [{ card: "BT12-021", as: "blueLevel3" }],
+          hand: [
+            { card: "BT12-021", as: "blueLevel3" },
+            { card: "BT12-021", as: "secondBlueLevel3" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -49,6 +52,12 @@ describe("EX6-002 Yokomon", () => {
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(s.inst("blueLevel3").instanceId);
     expect(s.perm("host").stack[0]!.instanceId).toBe(s.inst("blueLevel3").instanceId);
     expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual(["BT12-021", "EX6-002"]);
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    expect(s.perm("host").stack).toHaveLength(2);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("secondBlueLevel3").instanceId,
+    );
   });
 
   it("may decline and cannot select a non-blue level 3", async () => {

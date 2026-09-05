@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { observe } from "../../engine/testkit/observe.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-062.js";
 
 describe("EX6-062 UltimateChaosmon", () => {
@@ -23,5 +25,13 @@ describe("EX6-062 UltimateChaosmon", () => {
       },
       { kind: "Aura", effect: { kind: "keyword", keyword: { keyword: "Piercing" } } },
     ]);
+  });
+  it("publicly exposes the threshold keywords with four level 6 stack cards", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX6-062", as: "chaos", under: ["EX6-056", "EX6-057", "EX6-058", "EX6-059"] }] },
+    });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("chaos"), "SecurityAttack")).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("chaos"))).toBe(true);
   });
 });

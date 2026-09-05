@@ -17,6 +17,9 @@ import { createGameAccess, createEffectContext } from "../../engine/effects/cont
 import { consultLeavePrevention, type LeavePreventionHost } from "../../engine/effects/leavePrevention.js";
 import { irCardModule } from "../../engine/effects/interpreter.js";
 import type { EffectContext, RemovalCause } from "../../engine/effects/EffectContext.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import "../index.js";
 // The REAL authored IR (a hand-override exports it so the A3 asserts against the on-disk source).
 import { compiled as EX6_044 } from "./EX6-044.js";
 import "../index.js";
@@ -241,5 +244,13 @@ describe("EX6-044 BryweLudramon — conditional leave-prevention (documented beh
     await h.fx.deletePermanent([ragna.permanentId]);
 
     expect(h.state.players[0]!.battleArea.some((p) => p.permanentId === "p-ragna")).toBe(false);
+  });
+});
+
+describe("EX6-044 public continuous runtime", () => {
+  it("exposes Blocker on a BryweLudramon permanent after public engine setup", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX6-044", as: "brywe" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("brywe"), "Blocker")).toBe(true);
   });
 });

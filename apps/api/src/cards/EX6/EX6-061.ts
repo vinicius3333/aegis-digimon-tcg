@@ -70,7 +70,7 @@ export const compiled: CompiledCard = {
               underFilter: {
                 controller: "mine",
                 zone: "breeding",
-                nameOrTrait: [{ tokens: ["Gate of Deadly Sins"], match: "name" }],
+                nameOrTrait: [{ tokens: ["Gate of Deadly Sins"], match: "nameExact" }],
               },
               position: "bottom",
             },

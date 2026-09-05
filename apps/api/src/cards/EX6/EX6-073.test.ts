@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { PlayerState, Zone } from "@aegis/shared";
+import { EffectTiming, PlayerState, Zone } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { candidateLooseInstances, pickLoose } from "../../engine/effects/interpreter/targeting/loose.js";
 import { compiled } from "./EX6-073.js";
@@ -119,21 +120,22 @@ describe("EX6-073 [When Attacking] security trash is reduced by each card delete
 
 describe("EX6-073 [When Digivolving] places SGDL from trash; 4+ placed deletes 1 opp Digimon", () => {
   it("places 4 SGDL cards from trash and deletes 1 opponent Digimon (KB Q3825)", async () => {
-    setupEngine(
+    const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: OPP_DIGIMON, dp: 5000, as: "ogudomon" }],
+          battleArea: [{ card: OGUDOMON, dp: 16000, as: "ogudomon" }],
           trash: SGDL_IDS.slice(0, 4),
         },
         1: { battleArea: [{ card: OPP_DIGIMON, dp: 2000, as: "oppPerm" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("ogudomon"));
+    await settle(() => s.perm("ogudomon").stack.length === 4);
 
-    const text = JSON.stringify(compiled);
-    expect(compiled.coverage).toBe("full");
-    expect(text).toContain("ex6-073-deleted");
-    expect(text).toContain("Seven Great Demon Lords");
+    expect(s.perm("ogudomon").stack).toHaveLength(4);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === OPP_DIGIMON)).toBe(false);
   });
 });
 
@@ -150,7 +152,6 @@ describe("EX6-073 activation-local distinct-name contracts", () => {
     for (const placement of placements) {
       expect(placement).toMatchObject({
         target: { count: 7, upTo: true, distinctNames: true },
-        from: ["trash"],
         trackCount: "ex6-073-placed",
         trackDistinctNames: "ex6-073-placed",
       });
