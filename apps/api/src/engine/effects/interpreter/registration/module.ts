@@ -79,7 +79,12 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
             ((a as { target?: { isSelf?: boolean } }).target?.isSelf ?? false),
         )),
   );
-  if (printsTraining) effects.push(trainingActivatedEffect());
+  if (printsTraining) {
+    effects.push(trainingActivatedEffect());
+    // CR 16-41 explicitly permits Training in breeding. Keep the existing Main
+    // effect index and append its zone-specific counterpart.
+    effects.push(trainingActivatedEffect(true));
+  }
   if (declaresUnimplementedEngageKeyword(compiled)) effects.push(engageActivatedEffect());
   if (declaresExecuteKeyword(compiled)) effects.push(executeActivatedEffect(), executeDeleteEffect());
   registerTamerOntoFromEffects(cardId, compiled.effects);

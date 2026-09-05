@@ -3019,7 +3019,7 @@ export class GameEngine {
 
   /**
    * Recompute which [Main] activated abilities are currently usable for the turn
-   * player's battle-area permanents and hand cards. The server projects the result
+   * player's battle-area/breeding permanents, hand cards and trash cards. The server projects the result
    * onto each source so the client can render affordances without embedding rules
    * logic. Hand is private state; loose-card projections are cleared before every
    * pass so an ability cannot leak after the card changes zones.
@@ -3035,7 +3035,9 @@ export class GameEngine {
     const turnPlayer = this.state.players[this.state.turnSeat];
     if (!turnPlayer) return;
 
-    for (const perm of turnPlayer.battleArea) {
+    const activatablePermanents = [...turnPlayer.battleArea];
+    if (turnPlayer.breeding !== undefined) activatablePermanents.push(turnPlayer.breeding);
+    for (const perm of activatablePermanents) {
       const entries: { instanceId: string; effectKey: string; description: string }[] = [];
       const candidates = [perm.topCard, ...perm.stack, ...perm.linked].filter(Boolean);
       for (const { source, effect } of this.activatableEffectsFor(candidates)) {
