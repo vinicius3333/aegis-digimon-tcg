@@ -79,7 +79,11 @@ describe("EX1-064 Piedmon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("piedmon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-064"));
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX1-064"),
+    );
 
     expect(s.state.players[1]!.battleArea).toHaveLength(2);
     expect(s.state.players[0]!.deck).toHaveLength(1);
@@ -91,7 +95,7 @@ describe("EX1-064 Piedmon", () => {
         0: {
           hand: [{ card: "EX1-064", as: "piedmon" }],
           battleArea: [
-            { card: "EX1-056", as: "firstAttacker", dp: 10000 },
+            { card: "BT2-067", as: "firstAttacker", dp: 10000 },
             { card: "BT1-011", as: "secondAttacker", dp: 10000 },
           ],
           deck: ["BT1-001", "BT1-001"],
@@ -110,7 +114,11 @@ describe("EX1-064 Piedmon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("piedmon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-064"));
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX1-064"),
+    );
 
     expect(
       s.engine.applyIntent(0, {

@@ -205,9 +205,10 @@ describe("DeleteLevelBudget (BT17-051) + filter.hasLevel", () => {
 });
 
 describe("scaling unit digivolutionCardColors (BT18-018)", () => {
-  it("scales by the number of DISTINCT colors under the source", async () => {
+  it.each([true, false])("counts distinct colors only when source cards are face up (%s)", async (faceUp) => {
     // 3 distinct colors (Red, Blue, Green) among 4 digivolution cards => x3.
     const src = source("BT18-018", perm("SRC", 0 as Seat, "SRC", ["RED", "BLUE", "GREEN", "RED"]));
+    for (const card of src.permanent()!.stack) card.faceUp = faceUp;
     const opponent = [perm("OPP_A", 1 as Seat, "OPP_L3")];
     const { ctx, sink } = makeCtx({ source: src, own: [src.permanent()!], opponent });
     await runMain(
@@ -228,7 +229,7 @@ describe("scaling unit digivolutionCardColors (BT18-018)", () => {
       ctx,
       src,
     );
-    expect(sink.dp).toEqual([{ id: "OPP_A", amount: -3000 }]);
+    expect(sink.dp).toEqual(faceUp ? [{ id: "OPP_A", amount: -3000 }] : []);
   });
 });
 

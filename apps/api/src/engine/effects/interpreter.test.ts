@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   CardKind,
   EffectTiming,
+  EffectDuration,
   getCompiledCard,
   type Action,
   type CardDefinition,
@@ -2101,17 +2102,43 @@ describe("unsupported actions are loud", () => {
 
 describe("untilOpponentNextTurnEnd DP scope is loud", () => {
   const baseTarget = { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 } as const;
-  const cases: Array<[string, Action]> = [
-    [
-      "player-wide",
+  it.each([true, false])("supports player-wide DP with owner-turn state %s", async (isOwnersTurn) => {
+    const source = makeSource({ cardId: "X-NEXT-OPPONENT-DP", isOwnersTurn: () => isOwnersTurn });
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({ source, recorder });
+    const module = irCardModule(source.cardId, {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "ModifyDP",
+              target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+              amount: 3000,
+              duration: "untilOpponentNextTurnEnd",
+              playerWide: true,
+            },
+          ],
+        },
+      ],
+    });
+    await module.effectsForTiming(EffectTiming.OnPlay, source)[0]!.resolve(ctx);
+    expect(recorder.calls.filter((call) => call.verb === "modifyPlayerDP")).toEqual([
       {
-        kind: "ModifyDP",
-        target: baseTarget,
-        amount: 3000,
-        duration: "untilOpponentNextTurnEnd",
-        playerWide: true,
-      } as never,
-    ],
+        verb: "modifyPlayerDP",
+        args: [
+          0,
+          3000,
+          EffectDuration.UntilOpponentTurnEnd,
+          { ownerSeat: 0, skipsCurrentOpponentTurnEnd: !isOwnersTurn },
+        ],
+      },
+    ]);
+  });
+
+  const cases: Array<[string, Action]> = [
     [
       "continuous",
       {

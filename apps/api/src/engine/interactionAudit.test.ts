@@ -138,7 +138,7 @@ describe("＜Retaliation＞ meets a deletion-prevention keyword (§16-13, §16-2
     // Retaliation holder ends up as the only Digimon actually deleted in battle — which is
     // precisely the trigger condition. The trigger must therefore read the deletions that
     // really happened, not the pre-prevention battle result.
-    const s = setup();
+    const s = setup({ autoDeclineOptional: true });
     const p0 = s.state.players[0] as PlayerState;
     const p1 = s.state.players[1] as PlayerState;
 
@@ -168,7 +168,7 @@ describe("＜Retaliation＞ meets a deletion-prevention keyword (§16-13, §16-2
     expect(
       s.engine.applyIntent(0, { type: "respondBarrier", permanentId: attacker.permanentId, accept: true } as never),
     ).toEqual({ ok: true });
-    await settle(() => false, 5000);
+    await settle(() => !onBoard(s, 0, attacker.permanentId));
 
     expect(p0.security.length).toBe(0); // ＜Barrier＞ was paid
     expect(onBoard(s, 1, retaliator.permanentId)).toBe(false); // the holder is the sole battle deletion

@@ -131,24 +131,15 @@ markNotTestable(
     "resolve it), so this chunk is left honestly unverified rather than asserted on a guess.",
 );
 
-describe("§16-13 <Retaliation> (comprehensive-0231) — ENGINE BUG: the keyword check reads the wrong side", () => {
-  it("NOW MET: a Digimon deleted in battle with <Retaliation> also deletes the opponent's battled Digimon", async () => {
+describe("§16-13 <Retaliation> (comprehensive-0231)", () => {
+  it("a Digimon deleted in battle with <Retaliation> also deletes the opponent's battled Digimon", async () => {
     cite(
       "comprehensive-0231",
-      "DIVERGENCE (engine bug, not a card-implementation gap): §16-13-1 <Retaliation>: 'when a " +
-        "Digimon WITH THIS EFFECT is deleted in battle, the battled opponent's Digimon is " +
-        "also deleted.' combat/controller.ts's consume seam has the keyword check on the " +
-        "WRONG side of each branch: `deletedIds.has(attacker) && hasKeyword(DEFENDER, " +
-        "'Retaliation')` (should check the ATTACKER's own keyword — a Retaliation attacker " +
-        "that dies should take the defender with it) and symmetrically `deletedIds.has" +
-        "(defender) && hasKeyword(ATTACKER, 'Retaliation')` (should check the DEFENDER's own " +
-        "keyword). As written, Retaliation only fires when the *surviving* side happens to " +
-        "also carry the keyword — the dying Retaliation-holder's own death never triggers its " +
-        "own effect. Real card: BT10-078, which gains <Retaliation> via an Aura while a " +
-        "[Gammamon] digivolution card is stacked (KB confirms the printed text).",
+      "Retaliation triggers when its holder is deleted in battle and deletes the battled opponent by effect. " +
+        "Resolve the holder's optional On Deletion effect before asserting the mandatory Retaliation result.",
     );
 
-    const s = setup();
+    const s = setup({ autoDeclineOptional: true });
     const p0 = s.state.players[0] as PlayerState;
     const p1 = s.state.players[1] as PlayerState;
     const attacker = digimon(0, 9000, NON_KEYWORD_CARD); // no Retaliation
@@ -166,14 +157,11 @@ describe("§16-13 <Retaliation> (comprehensive-0231) — ENGINE BUG: the keyword
         target: { kind: "permanent", permanentId: retaliator.permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => false, 5000);
+    await settle(() => !p0.battleArea.some((p) => p.permanentId === attacker.permanentId));
 
     // The defender (4000 DP, HAS Retaliation) lost to the attacker (9000 DP) as usual...
     expect(p1.battleArea.some((p) => p.permanentId === retaliator.permanentId)).toBe(false);
-    // EXPECTED (per §16-13-1): Retaliation should also delete the winning attacker, because
-    // the DYING side (retaliator) is the one that carries the keyword. The engine's inverted
-    // check instead looks for Retaliation on the SURVIVING attacker (which has none here), so
-    // the attacker survives.
+    // The losing holder triggers Retaliation even though the winner has no such keyword.
     expect(p0.battleArea.some((p) => p.permanentId === attacker.permanentId)).toBe(false);
   });
 });
