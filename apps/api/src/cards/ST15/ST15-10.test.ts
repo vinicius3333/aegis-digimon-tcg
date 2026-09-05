@@ -1,6 +1,5 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -32,7 +31,7 @@ describe("ST15-10 Andromon", () => {
         instanceId: s.inst("andromon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await s.ready();
+    await settle(() => target.topCard?.cardId === "ST15-11");
 
     expect(target.topCard?.cardId).toBe("ST15-11");
     expect(target.stack).toHaveLength(2);
@@ -46,10 +45,7 @@ describe("ST15-10 Andromon", () => {
     ).toEqual({ ok: true });
     await settle(() => base.topCard.cardId === "ST15-13");
     await s.engine.recomputeContinuousEffects();
-    expect(registeredCompiledCards.get("ST15-10")?.effects.find((effect) => effect.isInherited)).toMatchObject({
-      trigger: "Static",
-      keywords: [{ keyword: "Reboot" }],
-    });
+    expect(observe(s.engine).hasKeyword(base, "Reboot")).toBe(true);
   });
 
   it("grants inherited Reboot to its evolved host", async () => {
