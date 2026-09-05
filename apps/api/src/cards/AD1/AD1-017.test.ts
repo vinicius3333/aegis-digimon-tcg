@@ -1,7 +1,10 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../../cards/index.js";
 
 describe("AD1-017 Dynasmon", () => {
@@ -122,6 +125,58 @@ describe("AD1-017 Dynasmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1, 5000);
     expect(s.state.players[1]!.battleArea[0]?.permanentId).toBe(s.perm("other").permanentId);
+  });
+
+  it("deletes only once per turn for own security removal and ignores the opponent's stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "AD1-017", as: "dynasmon" }],
+          security: ["BT1-001", "BT1-002"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "first", dp: 5000 },
+            { card: "BT1-010", as: "second", dp: 6000 },
+          ],
+          security: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 1 });
+    expect(s.state.players[1]!.battleArea).toHaveLength(2);
+    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  it("applies Security Attack -1 and -3000 DP to selected opposing Digimon", async () => {
+    const preferredInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "AD1-017", as: "security-dynasmon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "target", dp: 8000 },
+            { card: "BT1-010", as: "other-target", dp: 8000 },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferredInstanceIds },
+    );
+    preferredInstanceIds.push(s.perm("target").topCard.instanceId);
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("security-dynasmon"));
+
+    expect(s.decisions.filter(({ req }) => req.kind === "chooseTargets")).toHaveLength(1);
+    expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-1);
+    expect(s.perm("target").currentDP).toBe(5000);
+    expect(observe(s.engine).keywordAmount(s.perm("other-target"), "SecurityAttack")).toBe(0);
+    expect(s.perm("other-target").currentDP).toBe(8000);
   });
 
   it("resolves its Security effect before battling the attacking Digimon (Q6086)", async () => {
