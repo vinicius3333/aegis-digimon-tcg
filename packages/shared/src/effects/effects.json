@@ -144561,7 +144561,9 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digiXrosRequirement": [{ "materials": [{ "traits": ["Bagra Army"] }], "count": 2, "costReduction": 2 }]
+    "digiXrosRequirement": [
+      { "materials": [{ "traits": ["Bagra Army"] }], "count": 2, "costReduction": 2, "maxMaterials": 2 }
+    ]
   },
   "EX10-056": {
     "effects": [
@@ -144646,7 +144648,9 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digiXrosRequirement": [{ "materials": [{ "traits": ["Bagra Army"] }], "count": 2, "costReduction": 2 }]
+    "digiXrosRequirement": [
+      { "materials": [{ "traits": ["Bagra Army"] }], "count": 2, "costReduction": 2, "maxMaterials": 2 }
+    ]
   },
   "EX10-057": {
     "effects": [
@@ -144837,7 +144841,9 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digiXrosRequirement": [{ "materials": [{ "traits": ["Bagra Army"] }], "count": 2, "costReduction": 2 }]
+    "digiXrosRequirement": [
+      { "materials": [{ "traits": ["Bagra Army"] }], "count": 2, "costReduction": 2, "maxMaterials": 2 }
+    ]
   },
   "EX10-059": {
     "effects": [

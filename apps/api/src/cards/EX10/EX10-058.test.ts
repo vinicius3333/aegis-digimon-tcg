@@ -7,6 +7,36 @@ import "../index.js";
 
 const CARD_ID = "EX10-058";
 
+it("rejects a third DigiXros material without spending memory or moving cards", async () => {
+  const s = setupEngine({
+    0: {
+      hand: [
+        { card: CARD_ID, as: "played" },
+        { card: "EX10-026", as: "firstMaterial" },
+        { card: "EX10-027", as: "secondMaterial" },
+        { card: "EX10-045", as: "thirdMaterial" },
+      ],
+    },
+  });
+  s.state.memory = 9;
+  await s.ready();
+  const originalHand = s.state.players[0]!.hand.map(({ instanceId }) => instanceId);
+  expect(
+    s.engine.applyIntent(0, {
+      type: "playCard",
+      instanceId: s.inst("played").instanceId,
+      digiXros: {
+        materialInstanceIds: ["firstMaterial", "secondMaterial", "thirdMaterial"].map(
+          (alias) => s.inst(alias).instanceId,
+        ),
+      },
+    }).ok,
+  ).toBe(false);
+  expect(s.state.memory).toBe(9);
+  expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual(originalHand);
+  expect(s.state.players[0]!.battleArea).toHaveLength(0);
+});
+
 describe("EX10-058 Lilithmon", () => {
   it("records the exact catalog", () => {
     expect(getCardDefinition(CARD_ID)).toMatchObject({
@@ -29,7 +59,7 @@ describe("EX10-058 Lilithmon", () => {
     // `[Digivolve]` header.
     expect(compiled.digivolutionRequirement).toBeUndefined();
     expect(compiled.digiXrosRequirement).toEqual([
-      { materials: [{ traits: ["Bagra Army"] }], count: 2, costReduction: 2 },
+      { materials: [{ traits: ["Bagra Army"] }], count: 2, costReduction: 2, maxMaterials: 2 },
     ]);
 
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
