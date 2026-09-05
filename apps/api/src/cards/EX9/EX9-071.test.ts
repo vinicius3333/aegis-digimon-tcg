@@ -1,9 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX9-071.js";
+import "../index.js";
 
 describe("EX9-071", () => {
   it.each([
@@ -248,17 +247,28 @@ describe("EX9-071", () => {
   });
   it("gains one memory and enters the battle area from security", async () => {
     const s = setupEngine(
-      { 0: { security: [{ card: "EX9-071", as: "protein" }] } },
+      {
+        0: { security: [{ card: "EX9-071", as: "protein" }, "BT1-048"] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.inst("protein").faceUp = true;
-    const before = s.state.memory;
-
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("protein"));
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-071"));
-
-    expect(s.state.memory).toBe(before + 1);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-071")).toBe(true);
-    expect(s.state.players[0]!.security.some((card) => card.cardId === "EX9-071")).toBe(false);
+    s.state.turnSeat = 1;
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.memory).toBe(4);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX9-071"]);
+    expect(s.perm("protein").placedByEffect).toBe(true);
+    expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-048"]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });
