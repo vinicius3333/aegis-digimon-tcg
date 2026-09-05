@@ -38,6 +38,7 @@ export type EnforcedRestriction =
   | "cantBeBlockedByNoDigivolution"
   | "suspend"
   | "unsuspend"
+  | "unsuspendDuringOwnUnsuspendPhase"
   | "unsuspendHandTrashCost"
   | "beDeletedInBattle"
   | "beDeleted"
@@ -243,6 +244,8 @@ export interface TriggerInfo {
   deletedLinkHostInstanceByLinkedInstanceId?: Record<string, string>;
   /** Battle opponent for each card instance deleted in a battle. */
   battleOpponentPermanentIdByInstanceId?: Record<string, string>;
+  /** Snapshot of effective battle-deletion Retaliation holders and their opponents. */
+  retaliationTargetsByInstanceId?: Record<string, string>;
   /** Why the cards in this deletion window left play. */
   removalCause?: RemovalCause;
   /** Named procedure that caused the deletion, when the rules distinguish it. */
@@ -1079,7 +1082,14 @@ export interface Primitives {
   changeEvoCost(
     filter: (m: EvoCostMatch) => boolean,
     delta: number,
-    opts?: { setFixed?: boolean; once?: boolean; continuous?: boolean; onConsume?: (match: EvoCostMatch) => void },
+    opts?: {
+      setFixed?: boolean;
+      once?: boolean;
+      continuous?: boolean;
+      onConsume?: (match: EvoCostMatch) => void;
+      intrinsicCardId?: string;
+      intrinsicEffectKey?: object;
+    },
   ): void;
   /**
    * Record a continuous play/use-cost modification ("reduce the play cost of your

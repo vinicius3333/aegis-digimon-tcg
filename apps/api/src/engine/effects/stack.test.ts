@@ -99,6 +99,119 @@ function envOver(
   return { env, log, tracker };
 }
 
+describe("derived activation tiers", () => {
+  it("resumes the interrupted derived tier after a nested batch completes", async () => {
+    let childrenArmed = false;
+    let nestedArmed = false;
+    const resolved: string[] = [];
+    const parent = collected(
+      0,
+      "parent",
+      fakeEffect("parent", {
+        onResolve: () => {
+          resolved.push("parent");
+          childrenArmed = true;
+        },
+      }),
+    );
+    const older = collected(
+      0,
+      "older",
+      fakeEffect("older", {
+        onResolve: () => {
+          resolved.push("older");
+        },
+      }),
+    );
+    const childA = collected(
+      1,
+      "child-a",
+      fakeEffect("child-a", {
+        onResolve: () => {
+          resolved.push("child-a");
+          nestedArmed = true;
+        },
+      }),
+    );
+    const childB = collected(
+      1,
+      "child-b",
+      fakeEffect("child-b", {
+        onResolve: () => {
+          resolved.push("child-b");
+        },
+      }),
+    );
+    const nested = ["nested-a", "nested-b"].map((id) =>
+      collected(
+        0,
+        id,
+        fakeEffect(id, {
+          onResolve: () => {
+            resolved.push(id);
+          },
+        }),
+      ),
+    );
+    const { env } = envOver([], {
+      collect: () => [parent, older, ...(childrenArmed ? [childA, childB] : []), ...(nestedArmed ? nested : [])],
+    });
+    await resolveTiming(EffectTiming.OnStartMainPhase, env);
+    expect(resolved).toEqual(["parent", "child-a", "nested-a", "nested-b", "child-b", "older"]);
+  });
+  it.each([0, 1] as const)(
+    "finishes both derived effects for seat %s before returning to an older pending effect",
+    async (seat) => {
+      let derived = false;
+      const resolved: string[] = [];
+      const parent = collected(
+        0,
+        "parent",
+        fakeEffect("parent", {
+          onResolve: () => {
+            resolved.push("parent");
+            derived = true;
+          },
+        }),
+      );
+      const older = collected(
+        0,
+        "older",
+        fakeEffect("older", {
+          onResolve: () => {
+            resolved.push("older");
+          },
+        }),
+      );
+      const children = ["child-a", "child-b"].map((id) =>
+        collected(
+          seat,
+          id,
+          fakeEffect(id, {
+            onResolve: () => {
+              resolved.push(id);
+            },
+          }),
+        ),
+      );
+      const offered: string[][] = [];
+      const { env } = envOver([], {
+        collect: () => [parent, older, ...(derived ? children : [])],
+        chooseOrder: async (_seat, active) => {
+          offered.push(active.map((entry) => entry.effect.effectKey));
+          return 0;
+        },
+      });
+      await resolveTiming(EffectTiming.OnStartMainPhase, env);
+      expect(resolved).toEqual(["parent", "child-a", "child-b", "older"]);
+      expect(offered).toEqual([
+        ["parent", "older"],
+        ["child-a", "child-b"],
+      ]);
+    },
+  );
+});
+
 describe("orderTurnPlayerFirst", () => {
   it("places the turn player's effects before the opponent's, stable within each side", () => {
     const turn = 0 as Seat;

@@ -317,7 +317,7 @@ export const activated = (opts: BuilderOptions): Effect =>
       if (opts.isOptionPlayBody) return true;
       if (opts.isFromTrash) return inTrashZone(ctx);
       if (opts.isFromHand) return inHandZone(ctx);
-      return !inTrashZone(ctx) && !inHandZone(ctx);
+      return !inTrashZone(ctx) && !inHandZone(ctx) && !inBreedingArea(ctx);
     },
   });
 

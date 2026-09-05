@@ -223,18 +223,13 @@ export async function resolveTiming(timing: EffectTiming, env: ResolutionEnv): P
   // allowing every other pending effect in this same window to proceed.
   const inProgress = new Set<string>();
 
-  // Effects seen as ACTIVE (activatable) in some earlier pass this window. Used to spot
-  // derived triggering (Comprehensive Rules §15-4-5-2/3): "a derived triggering effect
-  // will activate before previously triggered effects that are pending activation ... if
-  // a derived triggering effect occurs for the non-turn player when there are pending
-  // activation effects for the turn player, the derived triggering effect will activate
-  // first." A key not in this set on the pass it first becomes active is a fresh/derived
-  // trigger and is ordered ahead of every already-pending (previously-seen) effect,
-  // regardless of seat; turn-player-first ordering is still applied WITHIN each of those
-  // two groups. On the very first pass nothing has been seen yet, so every effect is
-  // "derived" together and this collapses to plain orderTurnPlayerFirst (no behavior
-  // change for the common single-pass case).
-  const everActive = new Set<string>();
+  // Preserve the activation tier assigned when an effect first becomes active.
+  // Every derived batch must finish before returning to older pending effects
+  // (§15-4-5-2/3, EX9-069 Q4830), not only its first chosen member. New effects
+  // interrupt the current tier; remaining members retain their tier on re-collection.
+  // Turn-player priority applies only within the newest active tier.
+  const activationTiers = new Map<string, number>();
+  let newestTier = 0;
 
   // Effects seen in SOME earlier collection pass this window (before the canActivate filter),
   // and the subset of those that have since stopped being collected at all.
@@ -369,17 +364,16 @@ export async function resolveTiming(timing: EffectTiming, env: ResolutionEnv): P
         );
       }
 
-      // Split into freshly-active (derived this pass) vs already-pending (seen active in
-      // an earlier pass), per §15-4-5-3 above. Both groups keep turn-player-first order
-      // internally; the derived group goes first as a whole.
-      const derived: CollectedEffect[] = [];
-      const pending: CollectedEffect[] = [];
-      for (const c of active) (everActive.has(declineKey(c)) ? pending : derived).push(c);
-      for (const c of active) everActive.add(declineKey(c));
-      // A derived trigger is not merely sorted ahead of an older pending trigger: it forms the
-      // entire next activation tier (§15-4-5-2/3). Do not let a same-controller ordering group
-      // reach across that boundary, or the player could choose the older effect first (Q6723).
-      const ordered = orderTurnPlayerFirst(derived.length > 0 ? derived : pending, env.turnSeat);
+      const newlyActive = active.filter((c) => !activationTiers.has(declineKey(c)));
+      if (newlyActive.length > 0) {
+        newestTier += 1;
+        for (const c of newlyActive) activationTiers.set(declineKey(c), newestTier);
+      }
+      const activeTier = Math.max(...active.map((c) => activationTiers.get(declineKey(c))!));
+      const ordered = orderTurnPlayerFirst(
+        active.filter((c) => activationTiers.get(declineKey(c)) === activeTier),
+        env.turnSeat,
+      );
 
       // The frontmost contiguous group sharing the frontmost controller is the set of
       // that player's simultaneous triggers they may order among (rulebook: the turn

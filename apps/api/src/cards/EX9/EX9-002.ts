@@ -44,6 +44,7 @@ export const compiled: CompiledCard = {
               },
               from: ["hand"],
               reduceCost: 1,
+              payCost: true,
               optional: true,
             },
           ],

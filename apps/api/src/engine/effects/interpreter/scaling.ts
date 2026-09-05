@@ -327,6 +327,7 @@ export function scaleFactor(ctx: EffectContext, scaling: Scaling): number {
       if (self) {
         const colors = new Set<CardColor>();
         for (const card of self.stack) {
+          if (card.faceUp !== true) continue;
           for (const c of ctx.game.definitionOf(card).colors) colors.add(c);
         }
         raw = colors.size;
@@ -336,10 +337,11 @@ export function scaleFactor(ctx: EffectContext, scaling: Scaling): number {
     case "selfAndDigivolutionCardColors": {
       const self = ctx.source.permanent();
       if (self?.topCard) {
-        const colors = new Set<CardColor>(ctx.game.definitionOf(self.topCard).colors);
-        for (const card of self.stack) {
-          for (const color of ctx.game.definitionOf(card).colors) colors.add(color);
-        }
+        // BT8-084 counts this Digimon's current colors, not the printed colors
+        // of every source. Its continuous grant controls visibility and duration.
+        const colors = new Set<CardColor>(
+          ctx.game.effectiveColors?.(self) ?? ctx.game.definitionOf(self.topCard).colors,
+        );
         raw = colors.size;
       }
       break;

@@ -89865,7 +89865,7 @@
     "forms": ["Mega"],
     "attributes": ["Data"],
     "types": ["Holy Beast", "WG"],
-    "effectText": "＜Alliance＞.\n＜Blocker＞ \n[When Digivolving] you may play 1 play cost 7 or lower [WG] trait Digimon card from your hand without paying the cost. Then, if DNA digivolving, you may return up to 2 of your opponent's Digimon to the bottom of the deck.\n[All Turns] [Once Per Turn] When any of your [WG] trait Digimon would leave the battle area other than in battle, you may play 1 play cost 7 or lower [WG] trait Digimon card from your hand without paying the cost.",
+    "effectText": "[DNA Digivolve] Green/yellow Lv.6 + blue/purple Lv.6: Cost 0\n\n＜Alliance＞.\n＜Blocker＞ \n[When Digivolving] you may play 1 play cost 7 or lower [WG] trait Digimon card from your hand without paying the cost. Then, if DNA digivolving, you may return up to 2 of your opponent's Digimon to the bottom of the deck.\n[All Turns] [Once Per Turn] When any of your [WG] trait Digimon would leave the battle area other than in battle, you may play 1 play cost 7 or lower [WG] trait Digimon card from your hand without paying the cost.",
     "rarity": "SR",
     "maxCountInDeck": 4,
     "imageId": "EX9-045"
@@ -90584,7 +90584,7 @@
     "forms": ["Ultimate"],
     "attributes": ["Data"],
     "types": ["Composite", "DM", "Ver.3"],
-    "effectText": "＜Rush＞.\n＜Security A. +1＞ \n[On Play] [When Digivolving] You may place 1 level 4 or lower [DM] trait Digimon card from your trash as this Digimon's top digivolution card. Then, delete 1 of your opponent's Digimon with the same color as any of this Digimon's digivolution cards. If this Digimon has 6 or more colors in its digivolution cards, instead delete 1 of each of your opponent's Digimon with different colors.\n[All Turns] This Digimon gets +1000 DP for each color in its digivolution cards.",
+    "effectText": "＜Rush＞.\n＜Security A. +1＞ \n[On Play] [When Digivolving] You may place 1 level 4 or lower [DM] trait Digimon card from your trash as this Digimon's top digivolution card. Then, delete 1 of your opponent's Digimon with the same color as any of this Digimon's digivolution cards. If this Digimon has 6 or more colors in its digivolution cards, instead delete 1 of each of your opponent's Digimon with different colors.\n[All Turns] This Digimon gets +1000 DP for each color in its digivolution cards.\n[Assembly -7] 7 level 4 [DM] trait Digimon cards w/different names",
     "rarity": "UR",
     "maxCountInDeck": 4,
     "imageId": "EX9-074"

@@ -12,6 +12,9 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   - Delete.target.filter.colorMatchesAnyDigivolutionCard:true
 //   - DeletePerColor (per-color mandatory delete using divo card colors)
 export const compiled: CompiledCard = {
+  assemblyRequirement: [
+    { reduceCost: 7, materials: [{ count: 7, level: 4, traits: ["DM"], kinds: ["Digimon"], differentNames: true }] },
+  ],
   digivolutionRequirement: [
     {
       level: 4,

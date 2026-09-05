@@ -571,6 +571,7 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
           if (permanent === undefined) continue;
           const colors = new Set<CardColor>();
           for (const card of permanent.stack) {
+            if (card.faceUp !== true) continue;
             for (const color of ctx.game.definitionOf(card).colors) colors.add(color);
           }
           for (const color of colors) ctx.fx.addColorGrant(id, color, grantDuration);

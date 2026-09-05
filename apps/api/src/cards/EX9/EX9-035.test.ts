@@ -43,20 +43,70 @@ describe("EX9-035", () => {
     expect(
       s.state.players[0]!.battleArea.some((permanent) => permanent.stack.some((card) => card.faceUp === false)),
     ).toBe(true);
-    expect(s.state.players[0]!.deck[0]?.cardId).toBe("BT1-009");
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-009", "EX9-035"]);
   });
 
-  it("suspends one opposing Digimon from the inherited attack effect", async () => {
+  it("Q4787 adds the sole DM/Ver.4 reveal to hand before considering placement", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX9-034", as: "host", under: ["EX9-035"] }] },
-        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+        0: {
+          battleArea: [{ card: "EX9-034", as: "host" }],
+          hand: [{ card: "EX9-035", as: "source" }],
+          // The first revealed card is the only DM card and is also Ver.4.
+          // The other two revealed cards are neither DM nor Ver.4; no catalog
+          // card provides a Ver.4 trait without DM for an independent placement.
+          deck: ["EX9-035", "BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX9-035"]);
+    expect(s.perm("host").stack).toHaveLength(0);
+    expect(
+      s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "EX9-035")?.stack,
+    ).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-011", "BT1-009", "BT1-010"]);
+    expect(s.state.memory).toBe(7);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("suspends an opponent only on the first attack even when that target is unsuspended again", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-071", as: "host", under: ["EX9-035"] }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }], security: ["BT1-009", "BT1-009"] },
       },
       { autoSelectCards: true, autoAcceptOptional: true, autoOrderTriggers: true },
     );
     s.state.turnSeat = 0;
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
-    await settle(() => s.perm("opponent").isSuspended);
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
     expect(s.perm("opponent").isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId, s.perm("opponent").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("opponent").isSuspended).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });

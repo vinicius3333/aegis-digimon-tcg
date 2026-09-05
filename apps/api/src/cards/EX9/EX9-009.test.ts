@@ -95,4 +95,27 @@ describe("EX9-009", () => {
     expect(source.stack).toHaveLength(0);
     expect(source.currentDP).toBe(before);
   });
+
+  it("applies inherited +2000 DP only during its controller's turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX9-009", as: "base" }], hand: [{ card: "ST1-09", as: "stage5" }] },
+    });
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    const host = s.perm("base");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: host.permanentId,
+        instanceId: s.inst("stage5").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(host.topCard.cardId).toBe("ST1-09");
+    expect(host.currentDP).toBe(9000);
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+    expect(host.currentDP).toBe(7000);
+  });
 });

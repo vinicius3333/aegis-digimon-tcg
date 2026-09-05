@@ -2,8 +2,39 @@ import { describe, expect, it } from "vitest";
 import { compiled } from "./EX9-002.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import "../index.js";
 
 describe("EX9-002", () => {
+  it("pays the reduced cost after real Training rather than evolving for free", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX9-015", as: "host", under: ["EX9-002"] }],
+          hand: ["EX9-017"],
+          deck: ["BT1-001", "BT1-048"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    const ability = observe(s.engine).activatableEffects(s.perm("host"))[0]!;
+    expect(ability).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("host").topCard.instanceId,
+        effectKey: ability.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("host").topCard.cardId).toBe("EX9-017");
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("host").stack.some((card) => card.cardId === "EX9-002" && card.faceUp)).toBe(true);
+    expect(s.perm("host").stack.some((card) => card.cardId === "EX9-015" && card.faceUp)).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
   it("inherits a once-per-turn Ver.2 digivolution after adding digivolution cards", () =>
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
       trigger: "YourTurn",
@@ -13,7 +44,7 @@ describe("EX9-002", () => {
           kind: "SubTrigger",
           event: "onAddDigivolutionCards",
           triggerFilter: { isSelfRef: true },
-          actions: [{ kind: "Digivolve", from: ["hand"], reduceCost: 1, optional: true }],
+          actions: [{ kind: "Digivolve", from: ["hand"], reduceCost: 1, payCost: true, optional: true }],
         },
       ],
     }));
@@ -28,7 +59,7 @@ describe("EX9-002", () => {
           hand: ["EX9-017"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 1;
     const host = s.perm("host");
@@ -52,7 +83,7 @@ describe("EX9-002", () => {
           hand: ["EX9-017"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     const host = s.perm("host");
     const added = host.stack.find((card) => card.cardId === "BT1-009")!;
@@ -77,7 +108,7 @@ describe("EX9-002", () => {
           hand: ["EX9-017"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     const otherHost = s.perm("otherHost");
     const added = otherHost.stack[0]!;
@@ -103,7 +134,7 @@ describe("EX9-002", () => {
           hand: ["EX9-053"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     const host = s.perm("host");
     const added = host.stack.find((card) => card.cardId === "BT1-009")!;
@@ -155,7 +186,7 @@ describe("EX9-002", () => {
           hand: ["EX9-018", "EX9-020"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 5;
     const host = s.perm("host");

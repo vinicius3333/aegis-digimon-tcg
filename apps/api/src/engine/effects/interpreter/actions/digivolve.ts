@@ -8,6 +8,7 @@ import {
 import type { EffectContext } from "../../EffectContext.js";
 import { unsupported } from "../errors.js";
 import { scaleFactor } from "../scaling.js";
+import { canPayCost } from "../costs.js";
 import { LooseCandidate, candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
 import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
 import type { Action, CardColor, Filter, Target, ZoneRef } from "@aegis/shared";
@@ -134,6 +135,18 @@ export function canAttemptDigivolve(ctx: EffectContext, action: Extract<Action, 
   if (intoTarget === undefined) return false;
   const allowNoTarget = action.allowNoTarget === true;
   const zones: ZoneRef[] = action.from ?? ["hand", "trash"];
+  // Q4748: paying with a hidden source may create the trash evolution target.
+  // Its identity cannot gate activation before payment reveals it. The resolver
+  // rebuilds the candidate pool and enforces evolution requirements afterward.
+  if (
+    zones.includes("trash") &&
+    action.cost?.kind === "trash" &&
+    action.cost.target?.filter.faceDown === true &&
+    action.cost.target.filter.zone === "digivolutionCards" &&
+    canPayCost(ctx, action.cost) &&
+    candidatePermanents(ctx, action.target).length > 0
+  )
+    return true;
   let pool = filterToTriggeredSource(ctx, action, candidateLooseInstances(ctx, intoTarget, zones));
   if (action.amongPreviousSearch) {
     const searched = new Set((ctx.lastRevealedCards ?? []).map((card) => card.instanceId));

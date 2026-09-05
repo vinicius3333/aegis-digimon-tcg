@@ -26,6 +26,7 @@ export const compiled: CompiledCard = {
           op: "trashTop",
           controller: "opponent",
           amount: 1,
+          optional: true,
           cost: {
             kind: "place",
             targetIsPermanent: true,
@@ -57,6 +58,7 @@ export const compiled: CompiledCard = {
           op: "trashTop",
           controller: "opponent",
           amount: 1,
+          optional: true,
           cost: {
             kind: "place",
             targetIsPermanent: true,

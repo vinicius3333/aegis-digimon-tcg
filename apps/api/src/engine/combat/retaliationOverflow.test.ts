@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { PlayerState } from "@aegis/shared";
 import { MemoryGauge } from "../MemoryGauge.js";
+import { observe } from "../testkit/observe.js";
 import {
   makeInstance as instance,
   makeDigimon as digimon,
@@ -61,8 +62,82 @@ function makeRetaliator(seat: 0 | 1, dp: number): ReturnType<typeof digimon> {
 }
 
 describe("<Retaliation> (Comprehensive Rules §16-13)", () => {
+  it("deletes by effect, allowing outside-battle inherited reactions without chaining Retaliation", async () => {
+    const s = setup(
+      {
+        0: { battleArea: [{ card: "BT2-074", as: "attacker", dp: 9000, under: ["EX4-004", "BT13-079"] }] },
+        1: {
+          battleArea: [{ card: "BT10-078", as: "defender", dp: 4000, suspended: true, under: ["BT21-010"] }],
+          hand: ["BT1-001"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.hand).toHaveLength(0);
+    expect(s.state.memory).toBe(1);
+    expect(
+      s.events.filter((event) => event.kind === "effectTriggered" && event.effectKey === "keyword/retaliation"),
+    ).toHaveLength(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it.each([false, true])(
+    "orders Retaliation with the holder's On Deletion effect (retaliation first=%s)",
+    async (retaliationFirst) => {
+      const s = setup(
+        {
+          0: { battleArea: [{ card: "BT1-024", as: "attacker" }] },
+          1: { battleArea: [{ card: "BT10-078", as: "defender", suspended: true, under: ["BT21-010"] }] },
+        },
+        { autoDeclineOptional: true, autoOrderTriggers: false },
+      );
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+      const decision = s.state.pendingDecision!;
+      expect(decision.kind).toBe("orderTriggers");
+      const payload = JSON.parse(decision.payloadJson) as { triggerKeys: string[] };
+      expect(payload.triggerKeys).toHaveLength(2);
+      const retaliationKey = payload.triggerKeys.find((key) => key.includes("keyword/retaliation"))!;
+      expect(retaliationKey).toBeDefined();
+      const otherKey = payload.triggerKeys.find((key) => key !== retaliationKey)!;
+      const order = [retaliationFirst ? retaliationKey : otherKey];
+      expect(
+        s.engine.applyIntent(1, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "orderTriggers", order },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking());
+      const resolved = s.events.filter(
+        (event) => event.kind === "effectTriggered" && event.sourceCardId === "BT10-078",
+      );
+      expect(resolved).toHaveLength(2);
+      expect(resolved[retaliationFirst ? 0 : 1]).toMatchObject({ effectKey: "keyword/retaliation" });
+      expect(s.state.players[0]!.battleArea).toHaveLength(0);
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
   it("the HOLDER dying in battle triggers Retaliation, deleting the battled opponent too", async () => {
-    const s = setup();
+    const s = setup({ autoOrderTriggers: true, autoDeclineOptional: true });
     const p0 = s.state.players[0] as PlayerState;
     const p1 = s.state.players[1] as PlayerState;
 
@@ -89,7 +164,7 @@ describe("<Retaliation> (Comprehensive Rules §16-13)", () => {
   });
 
   it("the SURVIVOR holding Retaliation does NOT trigger it — the exact inversion being fixed", async () => {
-    const s = setup();
+    const s = setup({ autoOrderTriggers: true, autoDeclineOptional: true });
     const p0 = s.state.players[0] as PlayerState;
     const p1 = s.state.players[1] as PlayerState;
 
@@ -123,7 +198,7 @@ describe("<Retaliation> (Comprehensive Rules §16-13)", () => {
   });
 
   it("both-die tie: Retaliation does not additionally trigger when BOTH combatants die (§16-13-2 'just'/'only')", async () => {
-    const s = setup();
+    const s = setup({ autoOrderTriggers: true, autoDeclineOptional: true });
     const p0 = s.state.players[0] as PlayerState;
     const p1 = s.state.players[1] as PlayerState;
 
@@ -151,7 +226,7 @@ describe("<Retaliation> (Comprehensive Rules §16-13)", () => {
   });
 
   it("ACE/Overflow interaction: a Retaliation kill on an ACE charges the ACE's own controller", async () => {
-    const s = setup();
+    const s = setup({ autoOrderTriggers: true, autoDeclineOptional: true });
     const p0 = s.state.players[0] as PlayerState;
     const p1 = s.state.players[1] as PlayerState;
 

@@ -11,6 +11,7 @@ import { scaleFactor } from "../scaling.js";
 import { targetFateOf } from "../targetFate.js";
 import { DEFAULT_PLAY_ZONES, candidateLooseInstances, zoneList } from "../targeting/loose.js";
 import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
+import { targetAfterSelfPlacementCost } from "../targeting/afterCost.js";
 import { runBoardAction } from "./board.js";
 import { runCombatAction } from "./combat.js";
 import { runControlFlowAction } from "./controlFlow.js";
@@ -19,7 +20,12 @@ import { canAttemptDigivolve } from "./digivolve.js";
 import { runGrantStaticAction } from "./grantStatic.js";
 import { runMetaAction } from "./meta.js";
 import { canAttemptPlaceUnder } from "./placeUnder.js";
-import { applyDecodeHostScope, applyPlayCostCeiling, runPlayAction } from "./play.js";
+import {
+  applyDecodeHostScope,
+  applyPlayCostCeiling,
+  materializeLevelComparisonScaling,
+  runPlayAction,
+} from "./play.js";
 import { canAttemptUseOptionWithoutCost } from "./borrowed.js";
 import { runRemovalAction } from "./removal.js";
 import { runResourceAction } from "./resources.js";
@@ -340,7 +346,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     !placeCostProducesDeleteTarget &&
     !looseCostDefinesDeleteTarget &&
     (!deleteTargetBoundByItsCost || !deleteOwnBoundedTargetAvailable) &&
-    candidatePermanents(ctx, action.target).length === 0
+    candidatePermanents(ctx, targetAfterSelfPlacementCost(ctx, action) ?? action.target).length === 0
   ) {
     return action.abortOnDecline === true;
   }
@@ -426,7 +432,16 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   }
   const costCreatesTrashCandidate =
     structuredCost?.kind === "trashBottomFaceDownUnderTamer" ||
-    structuredCost?.kind === "trashBottomFaceDownUnderDigimon";
+    structuredCost?.kind === "trashBottomFaceDownUnderDigimon" ||
+    // EX9-063: a payable hidden-source cost may itself supply the trash play.
+    // Do not inspect its hidden identity to gate payment; the play resolver
+    // rebuilds and filters the now-public trash pool after the cost resolves.
+    (action.kind === "PlayWithoutCost" &&
+      action.from?.includes("trash") === true &&
+      structuredCost?.kind === "trash" &&
+      structuredCost.target?.filter.zone === "digivolutionCards" &&
+      structuredCost.target.filter.faceDown === true &&
+      canPayCost(ctx, structuredCost));
   const nestedRequiredOptionUse =
     action.kind === "CostGatedBlock" &&
     action.actions.length === 1 &&
@@ -544,7 +559,12 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       action.fromOwnDigivolutionStack !== true
     ) {
       const zones = action.from && action.from.length > 0 ? action.from : DEFAULT_PLAY_ZONES;
-      const costCeilingTarget = applyDecodeHostScope(action, applyPlayCostCeiling(ctx, action, action.target));
+      const levelComparison = action.target.filter.levelComparison;
+      const levelScaledTarget = materializeLevelComparisonScaling(
+        action.target,
+        levelComparison?.scaling === undefined ? 0 : scaleFactor(ctx, levelComparison.scaling),
+      );
+      const costCeilingTarget = applyDecodeHostScope(action, applyPlayCostCeiling(ctx, action, levelScaledTarget));
       const preflightTarget =
         ctx.playLevelCeilingDelta === undefined || ctx.playLevelCeilingDelta === 0
           ? costCeilingTarget

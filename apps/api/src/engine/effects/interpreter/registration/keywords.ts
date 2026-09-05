@@ -24,14 +24,16 @@ type TamerBaseColor = NonNullable<DigivolutionRequirement["baseColors"]>[number]
  * (EX9-016 / EX9-037 / EX9-038 ...). Appended AFTER the compiled effects so existing
  * `${cardId}/ir-<timing>-<i>` keys keep their indices.
  */
-export function trainingActivatedEffect(): CardEffect {
+export function trainingActivatedEffect(isBreeding = false): CardEffect {
   return {
     trigger: "Main",
+    ...(isBreeding ? { isBreeding: true } : {}),
     actions: [
       {
         kind: "PlaceUnder",
         target: { filter: {}, count: 1 },
         fromDeckTop: true,
+        position: "bottom",
         cost: { kind: "suspend", raw: "By suspending this Digimon" },
       } as Action,
     ],

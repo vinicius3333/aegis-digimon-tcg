@@ -918,7 +918,14 @@ export class GameEngine {
       fireSubTrigger: (event, payload) => this.fireSubTrigger(event, payload),
       recomputeContinuousEffects: () => this.recomputeContinuousEffects(),
       finalizeEffectPlayCost: async (instanceId, baseCost, useAsOption, originZone, projectOnly) => {
-        const instance = this.findLooseInstance(instanceId);
+        // A selected security card can still be face down in its origin zone.
+        // Locate only this instance; do not expose hidden security to timing scans.
+        const instance =
+          originZone === "security"
+            ? Array.from(this.state.players)
+                .flatMap((player) => Array.from(player.security))
+                .find((card) => card.instanceId === instanceId)
+            : this.findLooseInstance(instanceId);
         return instance === undefined
           ? baseCost
           : this.fireBeforePayCost(instance, baseCost, useAsOption, originZone, projectOnly);
@@ -1431,6 +1438,7 @@ export class GameEngine {
     for (const permanent of permanents) {
       if (permanent.isSuspended) {
         if (this.continuous.hasRestriction(permanent.permanentId, "unsuspend")) continue;
+        if (this.continuous.hasRestriction(permanent.permanentId, "unsuspendDuringOwnUnsuspendPhase")) continue;
         const handTrashCost = this.continuous.restrictionCount(permanent.permanentId, "unsuspendHandTrashCost");
         if (handTrashCost > 0) {
           if (player.hand.length < handTrashCost) continue;
@@ -1553,6 +1561,7 @@ export class GameEngine {
       adjustedDigivolveCost: (_state, target, base, into, opts) => {
         const reductionsBlocked = this.continuous.blocksCostReduction(target.controllerSeat, "digivolve");
         let cost = base;
+        const intrinsicAlreadyApplied = this.modifiers.hasIntrinsicEvoCostAdjustment(target, into);
         const adj = this.modifiers.evoCostFor(target, into, opts);
         if (adj !== undefined) {
           cost = "fixed" in adj ? adj.fixed : cost + adj.delta;
@@ -1562,7 +1571,8 @@ export class GameEngine {
           hasFired: (key) => this.tracker.count(key, "replacement") > 0,
           markFired: (key) => this.tracker.register(key, "replacement"),
         });
-        const intrinsicReduction = intrinsicDigivolutionCostReduction(into, target);
+        // The shared intrinsic projection is a fallback, not a second copy of a live IR reduction.
+        const intrinsicReduction = intrinsicAlreadyApplied ? 0 : intrinsicDigivolutionCostReduction(into, target);
         return Math.max(0, cost - (reductionsBlocked ? 0 : replReduction + intrinsicReduction));
       },
       prepareDigivolveCost: (_state, _seat, target, evolving) => this.fireBeforeDigivolveCost(evolving, target),
@@ -3174,7 +3184,7 @@ export class GameEngine {
 
   /**
    * Recompute which [Main] activated abilities are currently usable for the turn
-   * player's battle-area permanents and hand cards. The server projects the result
+   * player's battle-area/breeding permanents, hand cards and trash cards. The server projects the result
    * onto each source so the client can render affordances without embedding rules
    * logic. Hand is private state; loose-card projections are cleared before every
    * pass so an ability cannot leak after the card changes zones.
@@ -3190,7 +3200,9 @@ export class GameEngine {
     const turnPlayer = this.state.players[this.state.turnSeat];
     if (!turnPlayer) return;
 
-    for (const perm of turnPlayer.battleArea) {
+    const activatablePermanents = [...turnPlayer.battleArea];
+    if (turnPlayer.breeding !== undefined) activatablePermanents.push(turnPlayer.breeding);
+    for (const perm of activatablePermanents) {
       const entries: { instanceId: string; effectKey: string; description: string }[] = [];
       const candidates = [perm.topCard, ...perm.stack, ...perm.linked].filter(Boolean);
       for (const { source, effect } of this.activatableEffectsFor(candidates)) {
@@ -3791,14 +3803,11 @@ export class GameEngine {
     projectOnly = false,
   ): Promise<number> {
     const source = this.cardSourceOf(instance);
-    // A reduction prohibition does not prohibit paying the optional effect cost
-    // (EX8-074/Q4443), but it cannot justify an otherwise unaffordable declaration
-    // or a speculative projection (Q4442).
-    if (
-      this.continuous.blocksCostReduction(source.ownerSeat, "play") &&
-      (projectOnly || !this.memory.canPay(source.ownerSeat, baseCost))
-    )
-      return baseCost;
+    const reductionBlocked = this.continuous.blocksCostReduction(source.ownerSeat, "play");
+    // A prohibition blocks the reduction, not its optional processing cost.
+    // Projection stays read-only; an unaffordable blocked play cannot start paying
+    // side-effect costs. Free plays enter this window with a zero base (Q4784).
+    if (reductionBlocked && (projectOnly || this.memory.maxCostFor(source.ownerSeat) < baseCost)) return baseCost;
     const effects = effectsOf(EffectTiming.BeforePayCost, source).filter((effect) => effect.costWindow !== "digivolve");
     // Self-targeted "when this card would be played, [by cost / gated by condition], reduce by N"
     // reducers (EX8-074, BT17-068, BT12-112, BT8-043, BT9-097, ...): the runtime record compiled these as
@@ -3831,7 +3840,14 @@ export class GameEngine {
     // Seed `selections` so the interpreter's runEffect does NOT clone the context (it clones only
     // when `selections` is unset). The ReducePlayCost action writes the earned delta onto THIS
     // context's `playCostDelta`; a clone would strand the write and the reduction would be lost.
-    const ctx: EffectContext = { ...this.buildEffectContext(source, {}), selections: new Map() };
+    const ctx: EffectContext = {
+      ...this.buildEffectContext(source, {
+        wouldBePlayedInstanceId: instance.instanceId,
+        wouldBePlayedCardId: instance.cardId,
+        wouldBePlayedAsOption: useAsOption,
+      }),
+      selections: new Map(),
+    };
     const playTarget = new Permanent();
     playTarget.permanentId = `pending-play-${instance.instanceId}`;
     playTarget.controllerSeat = source.ownerSeat;

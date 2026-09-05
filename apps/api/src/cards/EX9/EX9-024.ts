@@ -46,7 +46,6 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenOpponentAttacks",
-          optional: true,
           actions: [
             {
               kind: "EndAttack",
@@ -76,7 +75,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Kyaromon"],
+      namesExact: ["Kyaromon"],
       cost: 0,
       isAlternate: true,
     },

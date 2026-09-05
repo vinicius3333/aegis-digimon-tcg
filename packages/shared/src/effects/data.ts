@@ -58,6 +58,10 @@ if (compiledEffects["ST15-13"] !== undefined) {
 
 /** BT26 is hand-authored while generated effect records are absent. */
 export const ASSEMBLY_REQUIREMENT_OVERRIDES: Record<string, AssemblyRequirement[]> = {
+  // EX9-074: printed Assembly uses seven differently named level-four DM Digimon.
+  "EX9-074": [
+    { reduceCost: 7, materials: [{ count: 7, level: 4, traits: ["DM"], kinds: ["Digimon"], differentNames: true }] },
+  ],
   // EX12-031: one Lv.4-or-lower card with [Aqua]/[Sea Animal] in any trait OR [TB].
   "EX12-031": [
     {
@@ -417,6 +421,36 @@ export const DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES: Record<string, DnaDigivolve
       materials: [
         { color: "Purple", level: 4 },
         { color: "Yellow", level: 4 },
+      ],
+    },
+  ],
+  "EX9-045": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Green", level: 6 },
+        { color: "Blue", level: 6 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Green", level: 6 },
+        { color: "Purple", level: 6 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 6 },
+        { color: "Blue", level: 6 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 6 },
+        { color: "Purple", level: 6 },
       ],
     },
   ],

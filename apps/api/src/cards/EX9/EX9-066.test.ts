@@ -6,6 +6,118 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("EX9-066", () => {
+  it("does not react when the opponent plays a Digimon even with both named own Digimon present", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX9-066", as: "tamer" }, "BT1-015", "BT1-036"] },
+        1: { hand: [{ card: "BT1-009", as: "digimon" }] },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("digimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.perm("tamer").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(8);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+  it.each(["BT1-015", "BT1-036", "BT1-084"])(
+    "returns the independent named branch %s on real play without drawing",
+    async (candidate) => {
+      const s = setupEngine(
+        {
+          0: { hand: [{ card: "EX9-066", as: "card" }], trash: ["BT1-024", candidate], deck: ["BT1-048"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("card").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle();
+      expect(s.state.memory).toBe(6);
+      expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual([candidate]);
+      expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-048"]);
+      expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-024"]);
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
+
+  it("Q4825 draws after explicitly refusing an available named return", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX9-066", as: "card" }], trash: ["BT1-015"], deck: ["BT1-048", "BT1-049"] },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("card").instanceId })).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-048"]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-049"]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-015"]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it.each([
+    { named: [], gain: 0 },
+    { named: ["BT1-015"], gain: 1 },
+    { named: ["BT1-036"], gain: 1 },
+    { named: ["BT1-015", "BT1-036"], gain: 2 },
+  ])("gains $gain memory on a real own Digimon play with $named", async ({ named, gain }) => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX9-066", as: "tamer" }, ...named], hand: [{ card: "BT1-009", as: "digimon" }] },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("digimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(8 + gain);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it.each(["decline", "already suspended", "accept"])(
+    "Q4826 requires paying suspend for both memory clauses on real evolution (%s)",
+    async (choice) => {
+      const suspended = choice === "already suspended";
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "EX9-066", as: "tamer", suspended },
+              "BT1-015",
+              "BT1-036",
+              { card: "BT1-009", as: "host" },
+            ],
+            hand: [{ card: "BT1-016", as: "evo" }],
+            deck: ["BT1-048"],
+          },
+        },
+        { autoDeclineOptional: choice !== "accept", autoAcceptOptional: choice === "accept" },
+      );
+      s.state.memory = 10;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("host").permanentId,
+          instanceId: s.inst("evo").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle();
+      expect(s.perm("host").topCard.cardId).toBe("BT1-016");
+      expect(s.perm("tamer").isSuspended).toBe(suspended || choice === "accept");
+      expect(s.state.memory).toBe(choice === "accept" ? 10 : 8);
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
   it("returns a Greymon, Garurumon, or Omnimon from trash, or draws if none was returned", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")).toMatchObject({
       actions: [
@@ -62,12 +174,20 @@ describe("EX9-066", () => {
   });
   it("draws when no named Digimon is available in trash", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX9-066", as: "source" }], deck: ["BT1-001"] } },
+      { 0: { hand: [{ card: "EX9-066", as: "source" }], deck: ["BT1-046", "BT1-048"], trash: ["BT1-024"] } },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
-    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001"));
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-046"]);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-048"]);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-024"]);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX9-066"]);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
   it.each([
     ["whenPlayed", "whenPlayed"],
@@ -92,15 +212,28 @@ describe("EX9-066", () => {
   );
   it("plays itself from security without paying its cost", async () => {
     const s = setupEngine(
-      { 0: { security: [{ card: "EX9-066", as: "source" }] } },
+      {
+        0: { security: ["EX9-066", "BT1-048"], trash: ["BT1-015"], deck: ["BT1-046"] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
-    s.inst("source").faceUp = true;
-
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("source"));
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-066"));
-
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-066")).toBe(true);
-    expect(s.state.players[0]!.security.some((card) => card.cardId === "EX9-066")).toBe(false);
+    s.state.turnSeat = 1;
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX9-066"]);
+    expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-048"]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-015"]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-046"]);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });

@@ -667,7 +667,9 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const self = ctx.source.permanent();
       if (self === undefined) return false;
       const matchingCards = self.stack.filter(
-        (card) => cond.filter === undefined || definitionMatches(cond.filter, ctx.game.definitionOf(card)),
+        (card) =>
+          card.faceUp === true &&
+          (cond.filter === undefined || definitionMatches(cond.filter, ctx.game.definitionOf(card))),
       );
       const distinctColors = new Set(matchingCards.flatMap((card) => ctx.game.definitionOf(card).colors));
       return compareNumber(distinctColors.size, cond.op, cond.value ?? 0);

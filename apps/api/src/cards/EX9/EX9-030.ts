@@ -97,7 +97,6 @@ export const compiled: CompiledCard = {
             per: 1,
             filter: {
               controllerDefault: "mine",
-              kind: ["Digimon"],
               faceDown: true,
             },
             unit: "digivolutionCards",
@@ -155,7 +154,6 @@ export const compiled: CompiledCard = {
             per: 1,
             filter: {
               controllerDefault: "mine",
-              kind: ["Digimon"],
               faceDown: true,
             },
             unit: "digivolutionCards",
