@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./EX9-013.js";
+import "../index.js";
 
 describe("EX9-013", () => {
   it("has Blast Digivolve, Alliance, and Blocker", () => {
@@ -43,11 +44,20 @@ describe("EX9-013", () => {
       { autoSelectCards: true, autoAcceptOptional: true },
     );
 
+    await s.ready();
     await advance(s.engine).runTurn(0);
-    await settle(() => s.state.players[0]!.battleArea[0]?.topCard.cardId === "EX9-021");
+    await settle();
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(true);
 
-    expect(s.state.players[0]!.battleArea).toHaveLength(1);
-    expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("EX9-021");
+    // Alter-S's End of Attack effect truthfully moves its two DNA materials
+    // back to the battle area and itself to the top of its owner's security.
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(
+      expect.arrayContaining(["EX9-013", "EX9-020"]),
+    );
+    expect(s.state.players[0]!.security[0]!.cardId).toBe("EX9-021");
     expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "EX9-021")).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });
