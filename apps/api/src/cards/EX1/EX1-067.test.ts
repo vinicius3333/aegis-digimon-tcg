@@ -54,4 +54,33 @@ describe("EX1-067 Baptism by Fire!", () => {
 
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === blockerId)).toBe(true);
   });
+
+  it("activates Main and deletes an eligible Blocker during a real security check", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-009", as: "attacker" },
+            { card: "BT1-072", as: "blocker" },
+          ],
+        },
+        1: { security: [{ card: "EX1-067", as: "option" }] },
+      },
+      { autoSelectCards: true },
+    );
+    const blockerId = s.inst("blocker").instanceId;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === blockerId));
+
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === blockerId)).toBe(true);
+  });
 });

@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX1-041.js";
 
@@ -24,41 +23,82 @@ describe("EX1-041 Dinobeemon", () => {
     expect(s.perm("target").isSuspended).toBe(true);
   });
 
-  it("gains 1 memory when an Imperialdramon deletes in battle", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX1-022", as: "host", under: ["EX1-041"] }] } });
+  it("does not suspend a target when the digivolution stack has no Free card", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-070", as: "base" }], hand: [{ card: "EX1-041", as: "evo" }] },
+        1: { battleArea: [{ card: "BT1-070", as: "target", dp: 5000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX1-041");
+    expect(s.perm("target").isSuspended).toBe(false);
+  });
+
+  it("gains 1 memory when a legal Imperialdramon stack wins a real battle", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX1-022", as: "host", under: ["EX1-038", "EX1-041"] }] },
+      1: { battleArea: [{ card: "BT1-070", as: "target", suspended: true, dp: 3000 }] },
+    });
     s.state.memory = 5;
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", { attackerPermanentId: s.perm("host").permanentId });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.memory === 6);
     expect(s.state.memory).toBe(6);
   });
 
-  it("observes another allied Imperialdramon but ignores non-Imperialdramon and opposing winners", async () => {
+  it("does not gain memory when another Digimon wins the battle", async () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT1-081", as: "carrier", under: ["EX1-041"] },
-          { card: "EX1-022", as: "alliedImperialdramon" },
-          { card: "BT1-081", as: "alliedNonImperialdramon" },
+          { card: "EX1-022", as: "host", under: ["EX1-038", "EX1-041"] },
+          { card: "BT1-070", as: "otherAttacker", dp: 4000 },
         ],
       },
-      1: { battleArea: [{ card: "EX1-022", as: "opposingImperialdramon" }] },
+      1: { battleArea: [{ card: "BT1-070", as: "target", suspended: true, dp: 3000 }] },
     });
     s.state.memory = 5;
     await s.ready();
-
-    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", {
-      attackerPermanentId: s.perm("alliedNonImperialdramon").permanentId,
-    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("otherAttacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.state.memory).toBe(5);
+  });
 
-    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", {
-      attackerPermanentId: s.perm("opposingImperialdramon").permanentId,
+  it("does not gain memory when the Imperialdramon host loses the battle", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX1-022", as: "host", under: ["EX1-038", "EX1-041"], dp: 6000 }] },
+      1: { battleArea: [{ card: "BT1-070", as: "target", suspended: true, dp: 10000 }] },
     });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
     expect(s.state.memory).toBe(5);
-
-    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", {
-      attackerPermanentId: s.perm("alliedImperialdramon").permanentId,
-    });
-    expect(s.state.memory).toBe(6);
   });
 });

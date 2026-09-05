@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./EX1-031.js";
@@ -28,9 +29,61 @@ describe("EX1-031 Seraphimon", () => {
   });
 
   it("gives your Security Digimon +5000 DP on opponent's turn while suspended", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX1-031", as: "seraphimon", suspended: true }] } });
-    s.state.turnSeat = 1;
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX1-031", as: "seraphimon" }],
+        security: [{ card: "BT1-009", as: "securityDigimon" }, "BT1-001"],
+        hand: ["BT1-009"],
+        deck: ["BT1-001", "BT1-001"],
+      },
+      1: {
+        security: ["BT1-001", "BT1-001"],
+        hand: ["BT1-009"],
+        deck: ["BT1-001", "BT1-001"],
+      },
+    });
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("seraphimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("seraphimon").isSuspended);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
     await s.ready();
     expect(observe(s.engine).securityDp(0)).toBe(5000);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("does not boost Security Digimon on the opponent's turn while unsuspended", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX1-031", as: "seraphimon" }],
+        security: [{ card: "BT1-009", as: "securityDigimon" }, "BT1-001"],
+        hand: ["BT1-009"],
+        deck: ["BT1-001", "BT1-001"],
+      },
+      1: {
+        security: ["BT1-001", "BT1-001"],
+        hand: ["BT1-009"],
+        deck: ["BT1-001", "BT1-001"],
+      },
+    });
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    await s.ready();
+    expect(s.perm("seraphimon").isSuspended).toBe(false);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    await s.ready();
+    expect(observe(s.engine).securityDp(0)).toBe(0);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

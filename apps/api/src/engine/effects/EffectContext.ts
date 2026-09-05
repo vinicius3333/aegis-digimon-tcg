@@ -166,7 +166,13 @@ export interface TriggerInfo {
     inheritedOnly?: boolean;
   }[];
   /** Named effect grants captured at the same pre-deletion boundary. */
-  customEffectGrantsSnapshot?: readonly { instanceId: string; token: string }[];
+  customEffectGrantsSnapshot?: readonly {
+    grantId?: number;
+    instanceId: string;
+    token: string;
+    /** Live gate for duration-scoped auras whose recipient can gain/lose effect immunity. */
+    isActive?: () => boolean;
+  }[];
   /** On-deletion-at-end-of-attack projections captured before deletion teardown. */
   onDeletionAtEndOfAttackProjectionsSnapshot?: readonly string[];
   /** The play was initiated by an explicitly marked Decode replacement payload. */
@@ -1276,7 +1282,20 @@ export interface Primitives {
    * window (OnDestroyedAnyone for an [On Deletion]) as a printed effect — the grant is not a
    * parallel/inert path. Duration-scoped: lapses at its boundary or when the host leaves play.
    */
-  grantCustomEffect?(instanceId: string, ownerSeat: Seat, token: string, duration: EffectDuration): void;
+  grantCustomEffect?(
+    instanceId: string,
+    ownerSeat: Seat,
+    token: string,
+    duration: EffectDuration,
+    opts?: {
+      /** Shared by every materialization of one resolved grant; distinct resolutions stack. */
+      activationIdentity?: object;
+      /** Re-evaluated when the granted effect would trigger. */
+      isActive?: () => boolean;
+      /** Explicit continuous-pass provenance; avoids ambient async-scope races. */
+      continuous?: boolean;
+    },
+  ): void;
   /** Grant a named effect to every matching current/future permanent controlled by `seat`. */
   grantPlayerCustomEffect?(
     seat: Seat,

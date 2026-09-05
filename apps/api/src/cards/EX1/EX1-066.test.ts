@@ -4,6 +4,18 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX1-066.js";
 
+async function deleteVictimInBattle(s: ReturnType<typeof setupEngine>): Promise<void> {
+  await s.ready();
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("victim").permanentId,
+      target: { kind: "permanent", permanentId: s.perm("wall").permanentId },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("victim").instanceId));
+}
+
 describe("EX1-066 Analog Youth", () => {
   it("reveals 3, adds a Digimon, and trashes the other revealed cards on play", async () => {
     const s = setupEngine(
@@ -58,10 +70,11 @@ describe("EX1-066 Analog Youth", () => {
           ],
           eggDeck: ["BT1-001"],
         },
+        1: { battleArea: [{ card: "BT1-009", as: "wall", dp: 8000, suspended: true }] },
       },
       { autoAcceptOptional: true },
     );
-    await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId], "byEffect");
+    await deleteVictimInBattle(s);
     expect(s.perm("analog").isSuspended).toBe(true);
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.breeding).toBeDefined();
@@ -77,11 +90,12 @@ describe("EX1-066 Analog Youth", () => {
           ],
           eggDeck: ["BT1-001"],
         },
+        1: { battleArea: [{ card: "BT1-009", as: "wall", dp: 8000, suspended: true }] },
       },
       { autoDeclineOptional: true },
     );
 
-    await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId], "byEffect");
+    await deleteVictimInBattle(s);
 
     expect(s.perm("analog").isSuspended).toBe(false);
     expect(s.state.memory).toBe(0);
@@ -99,11 +113,12 @@ describe("EX1-066 Analog Youth", () => {
           ],
           eggDeck: ["BT1-001"],
         },
+        1: { battleArea: [{ card: "BT1-009", as: "wall", dp: 8000, suspended: true }] },
       },
       { autoAcceptOptional: true },
     );
 
-    await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId], "byEffect");
+    await deleteVictimInBattle(s);
 
     expect(s.perm("analog").isSuspended).toBe(false);
     expect(s.state.memory).toBe(0);
@@ -121,11 +136,12 @@ describe("EX1-066 Analog Youth", () => {
           ],
           eggDeck: ["BT1-001"],
         },
+        1: { battleArea: [{ card: "BT1-009", as: "wall", dp: 8000, suspended: true }] },
       },
       { autoAcceptOptional: true },
     );
 
-    await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId], "byEffect");
+    await deleteVictimInBattle(s);
 
     expect(s.perm("analog").isSuspended).toBe(false);
     expect(s.state.memory).toBe(0);
@@ -143,11 +159,12 @@ describe("EX1-066 Analog Youth", () => {
           ],
           eggDeck: ["BT1-001"],
         },
+        1: { battleArea: [{ card: "BT1-009", as: "wall", dp: 8000, suspended: true }] },
       },
       { autoAcceptOptional: true },
     );
 
-    await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId], "byEffect");
+    await deleteVictimInBattle(s);
 
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.breeding).toBeUndefined();
@@ -165,11 +182,12 @@ describe("EX1-066 Analog Youth", () => {
           ],
           eggDeck: ["BT1-001", "BT1-001"],
         },
+        1: { battleArea: [{ card: "BT1-009", as: "wall", dp: 8000, suspended: true }] },
       },
       { autoAcceptOptional: true, autoOrderTriggers: true },
     );
 
-    await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId], "byEffect");
+    await deleteVictimInBattle(s);
 
     expect(s.perm("spentAnalog").isSuspended).toBe(true);
     expect(s.perm("readyAnalog").isSuspended).toBe(true);
@@ -189,11 +207,12 @@ describe("EX1-066 Analog Youth", () => {
           breeding: { card: "BT1-009", as: "raised" },
           eggDeck: ["BT1-001"],
         },
+        1: { battleArea: [{ card: "BT1-009", as: "wall", dp: 8000, suspended: true }] },
       },
       { autoAcceptOptional: true },
     );
 
-    await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId], "byEffect");
+    await deleteVictimInBattle(s);
 
     expect(s.perm("analog").isSuspended).toBe(true);
     expect(s.state.memory).toBe(1);
@@ -206,5 +225,27 @@ describe("EX1-066 Analog Youth", () => {
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("analog"));
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "EX1-066")).toBe(true);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
+  });
+
+  it("plays itself when revealed by a real security check", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      1: { security: [{ card: "EX1-066", as: "analog" }] },
+    });
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("analog").instanceId),
+    );
+
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX1-066")).toBe(true);
   });
 });

@@ -9,7 +9,7 @@ import { unsupported } from "../errors.js";
 import { GRANTED_EFFECT_LIBRARY } from "../grantedEffects.js";
 import { scaleFactor } from "../scaling.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
-import { permanentMatchesFilter } from "../matching/permanent.js";
+import { isPermanentUnaffectable, permanentMatchesFilter } from "../matching/permanent.js";
 import { SUBTRIGGER_EVENT_MAP } from "./subTrigger.js";
 import { EffectDuration } from "@aegis/shared";
 import type { Action, Target } from "@aegis/shared";
@@ -101,18 +101,42 @@ export async function runStaticAction(ctx: EffectContext, action: Action): Promi
           ctx,
           action.target ??
             ({ filter: action.filter ?? { kind: ["Digimon"], controller: "opponent" }, count: "all" } as Target),
+          // A player-wide duration effect still exists while a current recipient is immune.
+          // Preserve that recipient so Q2120 can observe the grant becoming active when its
+          // immunity expires before this aura's own boundary.
+          { preserveUnaffectableSelection: true },
         );
         const grantDuration = toDuration(action.duration ?? "untilOpponentTurnEnd");
-        // The same permanent can be reported by more than one entry producer in a
-        // resolving window. Keep this grant idempotent before it reaches the ledger
-        // (which also deduplicates by instance/token as a defensive second layer).
-        const grantedInstanceIds = new Set<string>();
-        for (const id of ids) {
-          const permanent = ctx.game.permanentById(id);
+        // Each resolved aura is one grant identity. Repeated entry notifications belonging to
+        // this resolution stay idempotent, while a separately resolved copy of the same Option
+        // receives a different identity and therefore stacks (EX1-068/Q3255).
+        const activationIdentity = {};
+        const grantedPermanentIds = new Set<string>();
+        const grantingSourceKinds =
+          ctx.fx.isBeAffectedBySourceKind === undefined
+            ? []
+            : (ctx.effectSourceKinds ?? ctx.source.definition.kinds).filter(
+                (kind) => kind === "Digimon" || kind === "Option",
+              );
+        const grantToPermanent = (grantCtx: EffectContext, permanentId: string): void => {
+          if (grantedPermanentIds.has(permanentId)) return;
+          const permanent = grantCtx.game.permanentById(permanentId);
           const top = permanent?.topCard;
-          if (top === undefined) continue;
-          ctx.fx.grantCustomEffect?.(top.instanceId, ctx.source.ownerSeat, action.effectText, grantDuration);
-          grantedInstanceIds.add(top.instanceId);
+          if (top === undefined) return;
+          grantCtx.fx.grantCustomEffect?.(top.instanceId, ctx.source.ownerSeat, action.effectText!, grantDuration, {
+            activationIdentity,
+            continuous: ctx.continuousPass === true,
+            // Q2120/Q2121: a duration-scoped Option aura is applied only while this Digimon can
+            // be affected by the granting Option. Re-evaluate at trigger collection time.
+            isActive: () => {
+              const current = ctx.game.permanentById(permanentId);
+              return current !== undefined && !isPermanentUnaffectable(ctx, ctx.source, current, grantingSourceKinds);
+            },
+          });
+          grantedPermanentIds.add(permanentId);
+        };
+        for (const id of ids) {
+          grantToPermanent(ctx, id);
         }
         // "All of their Digimon gain ... until the end of their turn" is a timed player-wide
         // grant, not a snapshot of the board. Keep the existing targets and apply the same
@@ -129,6 +153,10 @@ export async function runStaticAction(ctx: EffectContext, action: Action): Promi
             event: "onEnterFieldAnyone",
             activationContext: ctx,
             once: false,
+            // This is a triggered, duration-scoped watcher. Pin it outside the continuous tier
+            // because a concurrent continuous recompute may otherwise make the ambient
+            // `continuousOpt()` flag appear true while this effect is installing it.
+            continuous: false,
             expiresOnTurnEndOf: ctx.game.opponentOf(ctx.source.ownerSeat),
             matches: (subCtx) => {
               const id = subCtx.trigger.subjectPermanentId;
@@ -142,18 +170,7 @@ export async function runStaticAction(ctx: EffectContext, action: Action): Promi
               const id = subCtx.trigger.subjectPermanentId;
               const permanent = id === undefined ? undefined : subCtx.game.permanentById(id);
               const top = permanent?.topCard;
-              if (top !== undefined && !grantedInstanceIds.has(top.instanceId)) {
-                // This exact entry may be visible through several entry producers
-                // in one window. The grant ledger is token/idempotence-aware, but
-                // only invoke it once per watcher/event subject here as well.
-                subCtx.fx.grantCustomEffect?.(
-                  top.instanceId,
-                  subCtx.source.ownerSeat,
-                  action.effectText!,
-                  grantDuration,
-                );
-                grantedInstanceIds.add(top.instanceId);
-              }
+              if (top !== undefined) grantToPermanent(subCtx, id!);
             },
           });
         }

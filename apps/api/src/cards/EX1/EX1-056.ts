@@ -36,6 +36,7 @@ const compiled: CompiledCard = {
             filter: {
               controllerDefault: "mine",
               kind: ["Digimon"],
+              zone: "battleArea",
               nameOrTrait: [
                 {
                   tokens: ["Myotismon"],

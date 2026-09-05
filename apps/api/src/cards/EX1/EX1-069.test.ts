@@ -50,6 +50,36 @@ describe("EX1-069 Ultimate Connection!", () => {
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });
 
+  it("activates Main for its owner during a real security check", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+        1: {
+          security: [{ card: "EX1-069", as: "option" }],
+          hand: [{ card: "EX1-008", as: "cost" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const drawnId = s.inst("drawn").instanceId;
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === drawnId));
+
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
+    expect(s.state.players[1]!.hand.some((card) => card.instanceId === drawnId)).toBe(true);
+  });
+
   it("does not resolve the gain/draw payload when the optional trash cost is declined", async () => {
     const s = setupEngine(
       {
@@ -68,9 +98,36 @@ describe("EX1-069 Ultimate Connection!", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
-    expect(s.state.memory).toBe(-2);
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-069"));
+    expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(false);
+  });
+
+  it("does not offer absent, wrong-level, or wrong-trait cards as the cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX1-069", as: "option" },
+            { card: "EX1-047", as: "wrongLevel" },
+            { card: "BT1-020", as: "wrongTrait" },
+          ],
+          battleArea: [{ card: "EX1-047", as: "blackSource" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 1;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-069"));
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("wrongLevel").instanceId, s.inst("wrongTrait").instanceId]),
+    );
   });
 });

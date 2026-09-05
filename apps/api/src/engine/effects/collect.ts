@@ -71,20 +71,26 @@ export function collectTriggeredEffects(
  */
 export function collectGrantedCustomEffects(
   timing: EffectTiming,
-  grants: readonly { instanceId: string; token: string }[],
+  grants: readonly { grantId?: number; instanceId: string; token: string; isActive?: () => boolean }[],
   sourceForInstance: (instanceId: string) => CardSource | undefined,
   effectsForGrant: (token: string, source: CardSource) => Effect[],
   makeContext: (source: CardSource, effect: Effect) => EffectContext,
   tracker: UseTracker,
 ): CollectedEffect[] {
   const collected: CollectedEffect[] = [];
-  for (const { instanceId, token } of grants) {
+  for (const { grantId, instanceId, token, isActive } of grants) {
+    if (isActive?.() === false) continue;
     const source = sourceForInstance(instanceId);
     if (source === undefined) continue;
     for (const effect of effectsForGrant(token, source)) {
-      const ctx = makeContext(source, effect);
-      if (canTrigger(effect, ctx, tracker)) {
-        collected.push({ source, effect, timing });
+      // Separately resolved copies of the same named grant are separate effects. Give each
+      // materialized ledger entry its own key so trigger de-duplication and UseTracker do not
+      // collapse stacked copies that share a recipient and library token.
+      const grantedEffect =
+        grantId === undefined ? effect : { ...effect, effectKey: `${effect.effectKey}/grant/${grantId}` };
+      const ctx = makeContext(source, grantedEffect);
+      if (canTrigger(grantedEffect, ctx, tracker)) {
+        collected.push({ source, effect: grantedEffect, timing });
       }
     }
   }

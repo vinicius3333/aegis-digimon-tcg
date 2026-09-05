@@ -413,6 +413,10 @@ export class SubTriggerRegistry {
 
   /** Install a replacement effect. Returns its id. */
   subscribeReplacement(sub: DistributiveOmit<ReplacementSubscription, "id">): number {
+    // Only interactive cost reductions can be consumed after activation. Narrow both
+    // discriminated unions before reading that mode-specific field; DNA-memory, instead,
+    // prevent, and redirect replacements intentionally do not carry it.
+    const subConsumesOnActivate = sub.mode === "reduceCost" && sub.consumeOnActivate === true;
     const existing = this.replacements.find(
       (replacement) =>
         replacement.event === sub.event &&
@@ -420,6 +424,8 @@ export class SubTriggerRegistry {
         replacement.sourcePermanentId === sub.sourcePermanentId &&
         replacement.sourceInstanceId === sub.sourceInstanceId &&
         sub.activationIdentity !== undefined &&
+        !subConsumesOnActivate &&
+        !(replacement.mode === "reduceCost" && replacement.consumeOnActivate === true) &&
         replacement.activationIdentity === sub.activationIdentity,
     );
     if (existing !== undefined) return existing.id;

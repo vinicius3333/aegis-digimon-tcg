@@ -2881,6 +2881,7 @@ export class GameEngine {
     );
     for (const { source, effect } of continuousEffects) {
       const ctx = this.buildEffectContext(source, {}, noPromptAsk);
+      ctx.continuousPass = true;
       // Persistent effects re-apply whenever their guard holds; canTrigger here is
       // the builder's on-field/`when` gate (maxPerTurn is irrelevant — uncounted).
       if (!canTrigger(effect, ctx, this.tracker)) continue;
@@ -2905,6 +2906,7 @@ export class GameEngine {
         ...this.buildEffectContext(source, {}, noPromptAsk),
         activeTiming: EffectTiming[EffectTiming.None],
         activeEffectText: effect.description,
+        continuousPass: true,
         conferredToPermanentId,
         conferralGranterInstanceId,
       }),
@@ -2915,6 +2917,7 @@ export class GameEngine {
         ...this.buildEffectContext(source, {}, noPromptAsk),
         activeTiming: EffectTiming[EffectTiming.None],
         activeEffectText: effect.description,
+        continuousPass: true,
         conferredToPermanentId,
         conferralGranterInstanceId,
       };
@@ -2935,6 +2938,7 @@ export class GameEngine {
         ...this.buildEffectContext(source, {}, noPromptAsk),
         activeTiming: EffectTiming[EffectTiming.None],
         activeEffectText: effect.description,
+        continuousPass: true,
       }),
       this.tracker,
     );
@@ -2943,6 +2947,7 @@ export class GameEngine {
         ...this.buildEffectContext(source, {}, noPromptAsk),
         activeTiming: EffectTiming[EffectTiming.None],
         activeEffectText: effect.description,
+        continuousPass: true,
       };
       if (!canActivate(effect, ctx, this.tracker)) continue;
       await effect.resolve(ctx);
@@ -3415,7 +3420,9 @@ export class GameEngine {
     const top = permanent?.topCard;
     if (permanent === undefined || top === undefined) return;
     for (const grant of this.continuous.playerCustomEffectsFor(permanent.permanentId, permanent.controllerSeat)) {
-      this.continuous.addCustomEffectGrant(top.instanceId, top.ownerSeat, grant.token, grant.duration);
+      this.continuous.addCustomEffectGrant(top.instanceId, top.ownerSeat, grant.token, grant.duration, {
+        activationIdentity: grant.activationIdentity,
+      });
     }
   }
 
@@ -3928,6 +3935,7 @@ export class GameEngine {
     return {
       state: this.state,
       fx: this.primitives,
+      fxForSource: (source) => this.effectPrimitives(source.ownerSeat),
       ask: this.decisionApi,
       tracker: this.tracker,
       continuous: this.continuous,
@@ -4813,7 +4821,12 @@ export class GameEngine {
     let activated = false;
     for (const effect of securityEffects) {
       const ctx = {
+        // Security conditions observe the checked card as already removed from the printed
+        // security count while it remains physically present for source lookup (CR 15-14-5,
+        // e.g. EX1-027 Q3211). Preserve the timing provenance here so securityCount predicates
+        // apply the same exclusion in the real attack path as in the SecuritySkill seam.
         ...this.buildEffectContext(source, { securityWasFaceUp }),
+        activeTiming: "SecuritySkill",
         effectSourceKinds: securityEffectSourceKinds,
       };
       if (!canActivate(effect, ctx, this.tracker)) {

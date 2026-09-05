@@ -8,18 +8,12 @@ const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
-          kind: "SubTrigger",
-          event: "whenAttacking",
-          actions: [
-            {
-              kind: "Delete",
-              target: {
-                filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 4000 } },
-                count: 1,
-              },
-              condition: { kind: "attackTargetsPlayer", raw: "when this Digimon attacks a player" },
-            },
-          ],
+          kind: "Delete",
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 4000 } },
+            count: 1,
+          },
+          condition: { kind: "attackTargetsPlayer", raw: "when this Digimon attacks a player" },
         },
       ],
     },

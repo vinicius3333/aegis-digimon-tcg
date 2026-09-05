@@ -307,6 +307,11 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
             mode: "reduceCost",
             amount: Math.abs(action.amount),
             controllerSeat: ownerSeat,
+            appliesTo: (target: Permanent) =>
+              target.controllerSeat === ownerSeat &&
+              !target.inBreeding &&
+              target.topCard !== undefined &&
+              ctx.game.definitionOf(target.topCard).kinds.includes(CardKind.Digimon),
             activationContext: ctx,
             consumeOnActivate: true,
             expiresOnTurnEndOf: ownerSeat,

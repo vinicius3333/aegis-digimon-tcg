@@ -32,6 +32,38 @@ function boardWithOnePermanent(): { state: ReturnType<typeof setupEngine>["state
 }
 
 describe("ContinuousEffectLedger", () => {
+  it("stacks distinct named-effect grants and deduplicates one activation identity", () => {
+    const ledger = new ContinuousEffectLedger();
+    const firstActivation = {};
+    const secondActivation = {};
+
+    ledger.addCustomEffectGrant("INSTANCE", 0 as Seat, "TOKEN", EffectDuration.UntilOpponentTurnEnd, {
+      activationIdentity: firstActivation,
+    });
+    ledger.addCustomEffectGrant("INSTANCE", 0 as Seat, "TOKEN", EffectDuration.UntilOpponentTurnEnd, {
+      activationIdentity: firstActivation,
+    });
+    ledger.addCustomEffectGrant("INSTANCE", 0 as Seat, "TOKEN", EffectDuration.UntilOpponentTurnEnd, {
+      activationIdentity: secondActivation,
+    });
+    ledger.addCustomEffectGrant("INSTANCE", 0 as Seat, "TOKEN", EffectDuration.UntilOpponentTurnEnd);
+    ledger.addCustomEffectGrant("INSTANCE", 0 as Seat, "TOKEN", EffectDuration.UntilOpponentTurnEnd);
+
+    expect(ledger.listCustomEffectGrants()).toHaveLength(4);
+  });
+
+  it("clears continuously re-derived named-effect grants without dropping resolved grants", () => {
+    const ledger = new ContinuousEffectLedger();
+    ledger.addCustomEffectGrant("RESOLVED", 0 as Seat, "TOKEN", EffectDuration.UntilOpponentTurnEnd);
+    ledger.addCustomEffectGrant("CONTINUOUS", 0 as Seat, "TOKEN", EffectDuration.UntilOpponentTurnEnd, {
+      continuous: true,
+    });
+
+    ledger.clearContinuous();
+
+    expect(ledger.listCustomEffectGrants().map((grant) => grant.instanceId)).toEqual(["RESOLVED"]);
+  });
+
   it("suppresses Security effects for every attacker controlled by a seat until turn end", () => {
     const controllers = new Map<string, Seat>([
       ["FIGHTER", 0 as Seat],
