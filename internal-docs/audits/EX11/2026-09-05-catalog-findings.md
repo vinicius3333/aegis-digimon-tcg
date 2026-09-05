@@ -35,8 +35,23 @@ The official Rule trait additions for 013/014/018/030/031/034/035/038/050 are al
 present in committed `types`; they are not new missing engine traits. Reminder
 text and equivalent punctuation differences do not independently prove defects.
 
-## Verification status
+## Special play conditions omitted by the prior catalog
 
-This report records evidence and intended behavior, not completion. Card workers
-own focused proof; coordinator owns catalog and persisted IR synchronization.
-All 74 cards still require current per-card review before final score calculation.
+The official set's separate Special Play Condition field prints Assembly for
+EX11-036 (five green Digimon with Maquinamon in text, reduction 5), EX11-045
+(five black Digimon with Maquinamon in text, reduction 5), and EX11-046 (eight
+cards with Vemmon in text, reduction 6). None was in the committed card text.
+All three headers are now represented in effectText using the catalog's normal
+Assembly notation. Compiled requirements and public Assembly action tests now enforce these clauses.
+Source: https://world.digimoncard.com/cards/?category=522034&search=true
+
+## Additional evolution corrections
+
+Official special evolution fields also restore Machine alongside Cyborg for
+EX11-041 (Lv4, cost3), correct EX11-052's Dark Dragon/Evil Dragon Lv5 cost to4,
+and restore EX11-073 DNA (Green Lv6 + Black Lv6, cost0). All 74 printed DP,
+play-cost, level and color values, plus 48 ordinary evolution rows, were
+compared with the official set listing and matched the catalog. Special Link
+metadata on EX11-027 was already present.
+
+Final implementation and gate results are in the current collection report.

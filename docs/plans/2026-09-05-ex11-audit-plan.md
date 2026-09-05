@@ -5,8 +5,8 @@
 Audit all 74 EX11 cards against the committed catalog and local rules KB, using
 `.agents/skills/verify-card-implementation/SKILL.md` one card at a time.
 Worktree: `audit-ex11-20260905`, based on main `675edc356`.
-Prior 73/74 perfect scores are hypotheses to revalidate. EX11-033's documented
-play-as-link On Play gap must be resolved, along with any newly reproduced gap.
+Prior 73/74 perfect scores are hypotheses to revalidate. Resolve EX11-033's
+documented gap against primary sources, along with any newly reproduced gap.
 Main's uncommitted changes are outside this checkout.
 
 ## Execution
@@ -25,9 +25,11 @@ Workers request shared seams instead of concurrently modifying engine files.
 
 Prefer the smallest reusable compiled-IR seam that implements printed behavior.
 A card-specific callback or a second legacy registration would evade the contract.
-For play-as-link, inspect current engine semantics and Q5850 before selecting a
-representation: it must preserve linked placement while honoring all printed play
-and linking timing. Tests must distinguish this from ordinary linking.
+Official sources disproved the previous play-as-link diagnosis: EX11-033/042
+play Maquinamon from hand or their own link cards. Use ordinary PlayWithoutCost
+with exact names and host scoping, preserving the played card's On Play window.
+EX11-029/033 need WhenMoving rather than OnPlay. Existing engine seams passed
+Q5850/Q5878 rule-check tests; no additional Link mode is warranted.
 
 ## Per-card evidence
 
@@ -51,5 +53,11 @@ Only then mark the Orca worktree completed with:
 
 ## Status
 
-Planning complete; three Luna range audits dispatched. All scores pending current
-verification. Collection completion is unproven.
+All three Luna range reviews and coordinator integration review are recorded in
+the dated reports. Final validation passed 81 files/649 collection tests,
+61 shared-mechanism tests, 106 shared evolution tests, full repository typecheck,
+API typecheck after the final fixtures, lint/format and diff checks.
+All 74 persisted records match, with zero changes outside EX11 in effects.json.
+The recalculated ledger records 74/74 at 10/10. Delivery uses focused planning,
+catalog, Assembly mechanism, card-fidelity and audit-evidence commits, then a
+branch push and review PR. The Orca completion update follows those steps.
