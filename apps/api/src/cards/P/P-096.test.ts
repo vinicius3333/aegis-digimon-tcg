@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "./P-096.js";
 
 describe("P-096 Prism Garrett", () => {
@@ -157,6 +159,22 @@ describe("P-096 Prism Garrett", () => {
     expect(recipient.stack.some((card) => card.instanceId === availableId)).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === availableId)).toBe(true);
     expect(recipient.currentDP).toBe(baseDP);
+    assertNoLoudGap(s);
+  });
+
+  it("Security adds this card to its owner's hand", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "P-096", as: "securityOption" }] } });
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
+    await settle(() =>
+      s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("securityOption").instanceId),
+    );
+
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("securityOption").instanceId)).toBe(true);
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("securityOption").instanceId)).toBe(
+      false,
+    );
     assertNoLoudGap(s);
   });
 });

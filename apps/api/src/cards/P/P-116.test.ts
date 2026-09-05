@@ -45,18 +45,13 @@ describe("P-116 DIGIMON CON 2023", () => {
     });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tamer").instanceId));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tamer").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(0);
   });
 
-  it.each([
-    ["Agumon", "BT1-010"],
-    ["Pulsemon", "BT10-031"],
-    ["Gammamon", "BT8-008"],
-  ])("sets its play cost to zero with only %s present", async (_name, qualifyingCard) => {
+  it("requires all three named Digimon rather than a subset", async () => {
     const s = setupEngine({
       0: {
-        // P-116 is White; keep its normal color requirement satisfied while isolating the
-        // single-name condition under test.
-        battleArea: ["BT17-074", qualifyingCard],
+        battleArea: ["BT17-074", "BT1-010", "BT10-031"],
         hand: [{ card: "P-116", as: "option" }],
         deck: [{ card: "BT10-092", as: "tamer" }, "BT1-009"],
       },
@@ -67,7 +62,7 @@ describe("P-116 DIGIMON CON 2023", () => {
       ok: true,
     });
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT10-092"));
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT10-092")).toBe(true);
+    expect(s.state.memory).toBe(-2);
   });
 
   it("does not set the cost to zero when none of the three names is present", async () => {
@@ -82,6 +77,44 @@ describe("P-116 DIGIMON CON 2023", () => {
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId }).ok).toBe(false);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "P-116")).toBe(true);
+  });
+
+  it("Q4224: combines named Digimon across both players", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: ["BT17-074", "BT1-010"],
+        hand: [{ card: "P-116", as: "option" }],
+        deck: [{ card: "BT10-092", as: "tamer" }, "BT1-009"],
+      },
+      1: { battleArea: ["BT10-031", "BT8-008"] },
+    });
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT10-092"));
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT10-092")).toBe(true);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("requires an exact Agumon name and does not accept Agumon Expert", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: ["BT17-074", "BT1-011", "BT10-031", "BT8-008"],
+        hand: [{ card: "P-116", as: "option" }],
+        deck: [{ card: "BT10-092", as: "tamer" }, "BT1-009"],
+      },
+    });
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT10-092"));
+    expect(s.state.memory).toBe(-2);
   });
 
   it("activates the same reveal effect from security", async () => {

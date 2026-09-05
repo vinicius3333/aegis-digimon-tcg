@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { allCards } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { hasRegisteredCompiledCard, runtimeCompiledCard } from "../../engine/effects/interpreter.js";
@@ -15,6 +17,13 @@ import "./index.js";
 const LM_CARDS = allCards().filter((card) => /^LM-\d+$/.test(card.cardId));
 
 describe("LM collection gate", () => {
+  it.each(LM_CARDS)("registers $cardId exclusively once through compiled IR", ({ cardId }) => {
+    const source = readFileSync(fileURLToPath(new URL(`./${cardId}.ts`, import.meta.url)), "utf8");
+    expect(source).not.toMatch(/\bregisterCard\s*\(/);
+    expect(source.match(/\bregisterIrCard\s*\(/g)).toHaveLength(1);
+    expect(source).toContain(`registerIrCard("${cardId}", compiled)`);
+  });
+
   it("registers all 62 committed catalog cards", () => {
     expect(LM_CARDS).toHaveLength(62);
 

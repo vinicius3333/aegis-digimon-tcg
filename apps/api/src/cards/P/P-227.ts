@@ -67,12 +67,19 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "YourTurn",
+      keywords: [
+        {
+          keyword: "Delay",
+          raw: "＜Delay＞",
+        },
+      ],
       actions: [
         {
           kind: "SubTrigger",
           event: "whenPlayed",
           sourceFilter: {
             controller: "mine",
+            kind: ["Tamer"],
             nameOrTrait: [
               {
                 tokens: ["Ryutaro Williams"],
@@ -82,61 +89,34 @@ const compiled: CompiledCard = {
           },
           actions: [
             {
-              kind: "GainKeyword",
+              kind: "Digivolve",
               target: {
                 filter: {
-                  isSelfRef: true,
+                  controller: "mine",
+                  kind: ["Digimon"],
                 },
                 count: 1,
-                isSelf: true,
               },
-              keyword: {
-                keyword: "Delay",
-                raw: "＜Delay＞",
+              into: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                levelComparison: {
+                  op: "lte",
+                  value: 6,
+                },
+                nameOrTrait: [
+                  {
+                    tokens: ["LIBERATOR"],
+                    match: "trait",
+                  },
+                ],
               },
-              duration: "permanent",
+              from: ["hand"],
+              payCost: true,
+              reduceCost: 3,
+              optional: true,
             },
           ],
-          raw: "When any of your [Ryutaro Williams] are played, grant this card <Delay>",
-        },
-      ],
-    },
-    {
-      trigger: "Main",
-      actions: [
-        {
-          requiresDelayArmed: true,
-          kind: "Digivolve",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-            },
-            count: 1,
-          },
-          into: {
-            controllerDefault: "mine",
-            levelComparison: {
-              op: "lte",
-              value: 6,
-            },
-            nameOrTrait: [
-              {
-                tokens: ["LIBERATOR"],
-                match: "trait",
-              },
-            ],
-          },
-          from: ["hand"],
-          payCost: true,
-          reduceCost: 3,
-          optional: true,
-        },
-      ],
-      keywords: [
-        {
-          keyword: "Delay",
-          raw: "＜Delay＞",
         },
       ],
     },

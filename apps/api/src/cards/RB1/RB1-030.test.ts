@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { type PlayerState, type Seat } from "@aegis/shared";
 import type { GameEngine } from "../../engine/GameEngine.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 // Self-register every card module so the engine drives the REGISTERED RB1-030 IR.
 import "../index.js";
 
@@ -45,6 +46,7 @@ const OPP_L3 = "BT1-009"; // Monodramon, vanilla Lv.3 (3000 DP)
 const OPP_L4 = "BT1-014"; // Kokatorimon, vanilla Lv.4 (4000 DP)
 const OPP_L5 = "BT1-020"; // Groundramon, vanilla Lv.5 (6000 DP)
 const MY_RECIPIENT = "BT1-024"; // MetalTyrannomon, vanilla Lv.5 — the Digimon that gets the grant
+const GAMMAMON_EFFECT_SOURCE = "BT10-078"; // GulusGammamon: [All Turns] Retaliation while Gammamon is in its stack
 
 // The engine surface this A3 drives: the public intent/seat API plus the engine-internal seams
 // that mechanic.test.ts already reaches the same way (recomputeContinuousEffects / primitives /
@@ -138,6 +140,49 @@ async function setupGranted(costCardId: string | undefined) {
 }
 
 describe("A3 RB1-030 — granted '[On Deletion] delete lowest-level opponent Digimon'", () => {
+  it("uses the Lv.4 Gammamon evolution requirement and copies an All Turns effect from a Gammamon-name stack card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: GULUS_LV4, as: "base", under: [GAMMAMON_EFFECT_SOURCE] }],
+          hand: [{ card: RB1_030, as: "evolving" }, GAMMAMON_TEXT_OPTION],
+        },
+        1: { battleArea: [{ card: OPP_L4, as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === RB1_030);
+
+    expect(s.perm("base").topCard?.cardId).toBe(RB1_030);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toContain(GAMMAMON_EFFECT_SOURCE);
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Retaliation")).toBe(true);
+  });
+
+  it("copies Gammamon-name effects through RB1-030's inherited text on a higher host", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "RB1-031", as: "host", under: [GAMMAMON_EFFECT_SOURCE, RB1_030] }] },
+    });
+    await s.engine.recomputeContinuousEffects();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Retaliation")).toBe(true);
+  });
+
+  it("does not copy an effect from a non-Gammamon-name source card", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "RB1-031", as: "host", under: ["BT11-078", RB1_030] }] },
+    });
+    await s.engine.recomputeContinuousEffects();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Retaliation")).toBe(false);
+  });
+
   it("POSITIVE: granted Digimon's deletion deletes the opponent's LOWEST-level Digimon", async () => {
     const { s, engine, p1, recipient, oppL3, oppL4, oppL5, evolvedRB } = await setupGranted(GAMMAMON_TEXT_OPTION);
     expect(evolvedRB).toBe(true);

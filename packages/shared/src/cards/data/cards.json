@@ -94754,7 +94754,7 @@
     "playCost": 2,
     "dp": 0,
     "evoCosts": [],
-    "effectText": "While you have [Agumon]/[Pulsemon]/[Gammamon], this card costs 0.[Main] Reveal the top 2 cards of your deck. Add all Tamer cards with a play cost of 3 or less among them to your hand. Return the rest to the top of the deck.",
+    "effectText": "While you have [Agumon], [Pulsemon], and [Gammamon], this card costs 0.[Main] Reveal the top 2 cards of your deck. Add all Tamer cards with a play cost of 3 or less among them to your hand. Return the rest to the top of the deck.",
     "securityEffectText": "[Security] Activate this card's [Main] effect.",
     "rarity": "SEC",
     "maxCountInDeck": 4,

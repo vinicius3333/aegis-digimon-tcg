@@ -60,4 +60,20 @@ describe("P-213 engine behavior", () => {
     await settle();
     expect(high.perm("aegiomon").currentDP).toBe(highBase);
   });
+
+  it("still permits the optional attack when the three-security bonus condition is false", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "P-213", as: "aegiomon" }], security: 4 },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const base = s.perm("aegiomon").currentDP;
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("aegiomon"));
+    await settle();
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.perm("aegiomon").currentDP).toBe(base);
+  });
 });
