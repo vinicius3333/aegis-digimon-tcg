@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { observe } from "../../engine/testkit/observe.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./P-232.js";
 
@@ -40,57 +39,35 @@ describe("P-232 Unique Emblem: Melting Recital", () => {
     });
   });
 
-  it("grants permanent Delay after a Yuuki is played", () => {
-    expect(runtimeCompiledCard("P-232")!.effects.find((effect) => effect.trigger === "YourTurn")).toMatchObject({
+  it("models the printed reactive Delay bullet", () => {
+    const effect = runtimeCompiledCard("P-232")!.effects.find((entry) => entry.trigger === "YourTurn");
+    expect(effect).toMatchObject({
+      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
       actions: [
         {
           kind: "SubTrigger",
           event: "whenPlayed",
-          sourceFilter: { controller: "mine", nameOrTrait: [{ tokens: ["Yuuki"], match: "name" }] },
           actions: [
             {
-              kind: "GainKeyword",
-              keyword: { keyword: "Delay", raw: "＜Delay＞" },
-              duration: "permanent",
-              target: { count: 1, isSelf: true, filter: { isSelfRef: true } },
+              kind: "Digivolve",
+              from: ["hand", "trash"],
+              reduceCost: 3,
+              payCost: true,
+              optional: true,
+              target: { count: 1, filter: { controller: "mine", kind: ["Digimon"] } },
+              into: {
+                controllerDefault: "mine",
+                levelComparison: { op: "lte", value: 6 },
+                nameOrTrait: [{ tokens: ["LIBERATOR"], match: "trait" }],
+              },
             },
           ],
         },
       ],
     });
   });
-
-  it("exposes a separate Delay Main effect for hand-or-trash LIBERATOR digivolution at -3", () => {
-    expect(
-      runtimeCompiledCard("P-232")!.effects.find(
-        (effect) => effect.trigger === "Main" && effect.keywords?.some((keyword) => keyword.keyword === "Delay"),
-      ),
-    ).toMatchObject({
-      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
-      actions: [
-        {
-          kind: "Digivolve",
-          from: ["hand", "trash"],
-          reduceCost: 3,
-          optional: true,
-          target: { count: 1, filter: { controller: "mine", kind: ["Digimon"] } },
-          into: {
-            controllerDefault: "mine",
-            levelComparison: { op: "lte", value: 6 },
-            nameOrTrait: [{ tokens: ["LIBERATOR"], match: "trait" }],
-          },
-        },
-      ],
-    });
-  });
-
-  it("activates its Main effects from security", () => {
-    expect(runtimeCompiledCard("P-232")!.effects.find((effect) => effect.trigger === "Security")).toMatchObject({
-      isSecurity: true,
-      actions: [{ kind: "ActivateMain" }],
-    });
-  });
 });
+
 describe("P-232 engine behavior", () => {
   it("adds an Evil/Dark Dragon Digimon and LIBERATOR, then places itself", async () => {
     const s = setupEngine(
@@ -126,15 +103,43 @@ describe("P-232 engine behavior", () => {
     expect(s.state.players[0]!.hand.some((c) => c.cardId === "BT12-010")).toBe(true);
   });
 
-  it("arms Delay from a real Yuuki play and reduces a LIBERATOR digivolution by three", async () => {
+  it("reacts to its named Tamer and digivolves at a cost reduced by three", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "P-232", as: "emblem" }, { card: "BT19-052", as: "base" }, "ST6-03"],
           hand: [
             { card: "BT20-090", as: "yuuki" },
+            { card: "BT1-080", as: "nonLiberator" },
             { card: "BT19-053", as: "evolution" },
           ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 20;
+    s.perm("emblem").placedByEffect = true;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("yuuki").instanceId })).toEqual({ ok: true });
+    const memoryBeforeDigivolve = s.state.memory;
+    await settle(() => s.perm("base").topCard.cardId === "BT19-053");
+    expect(s.perm("base").topCard.cardId).toBe("BT19-053");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("nonLiberator").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("emblem").instanceId)).toBe(true);
+    const printedCost = getCardDefinition("BT19-053")!.evoCosts[0]!.memoryCost;
+    expect(s.state.memory).toBe(memoryBeforeDigivolve - Math.max(0, printedCost - 3));
+  });
+
+  it("digivolves from trash through the reactive Delay and trashes the emblem source", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-232", as: "emblem" },
+            { card: "BT19-052", as: "base" },
+          ],
+          hand: [{ card: "BT20-090", as: "yuuki" }],
+          trash: [{ card: "BT19-053", as: "evolution" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -143,22 +148,21 @@ describe("P-232 engine behavior", () => {
     s.perm("emblem").placedByEffect = true;
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("yuuki").instanceId })).toEqual({ ok: true });
-    await settle(() => observe(s.engine).hasKeyword(s.perm("emblem"), "Delay"));
-    const memoryBeforeDelay = s.state.memory;
-    const delay = (
-      observe(s.engine).activatableEffects(s.perm("emblem")) as Array<{ effectKey: string; description?: string }>
-    ).find((entry) => /delay/i.test(entry.description ?? ""));
-    expect(delay).toBeDefined();
+    const memoryBeforeDigivolve = s.state.memory;
+    await settle(() => s.decisions.some(({ req }) => req.kind === "chooseOption"));
+    const route = s.decisions.find(({ req }) => req.kind === "chooseOption")!.req;
     expect(
       s.engine.applyIntent(0, {
-        type: "activateEffect",
-        sourceInstanceId: s.inst("emblem").instanceId,
-        effectKey: delay!.effectKey,
+        type: "respondDecision",
+        decisionId: route.decisionId,
+        response: { kind: "chooseOption", optionIndex: 0 },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT19-053");
     expect(s.perm("base").topCard.cardId).toBe("BT19-053");
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("emblem").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("evolution").instanceId)).toBe(false);
     const printedCost = getCardDefinition("BT19-053")!.evoCosts[0]!.memoryCost;
-    expect(s.state.memory).toBe(memoryBeforeDelay - Math.max(0, printedCost - 3));
+    expect(s.state.memory).toBe(memoryBeforeDigivolve - Math.max(0, printedCost - 3));
   });
 });
