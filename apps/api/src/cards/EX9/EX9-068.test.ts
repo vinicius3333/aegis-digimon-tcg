@@ -7,6 +7,44 @@ import compiled from "./EX9-068.js";
 import "../index.js";
 
 describe("EX9-068", () => {
+  it("can place the mandatory draw when playing its last hand card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX9-068", as: "tamer" }],
+          hand: [{ card: "BT1-024", as: "played" }],
+          deck: ["BT1-048", "BT1-046"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    const playedId = s.inst("played").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: playedId })).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(s.state.players[0]!.battleArea.find(({ topCard }) => topCard.instanceId === playedId)?.stack).toMatchObject([
+      { cardId: "BT1-048", faceUp: false },
+    ]);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-046"]);
+    expect(s.state.memory).toBe(4);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+  it("does not set the opponent's memory at the start of their real turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: ["EX9-068"] },
+      1: { deck: ["BT1-048", "BT1-046"] },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 1;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.memory).toBe(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
   it("may decline placement after paying suspend while retaining the mandatory draw and memory", async () => {
     const s = setupEngine({
       0: {
@@ -78,7 +116,10 @@ describe("EX9-068", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX9-068", as: "tamer" }],
+          battleArea: [
+            { card: "EX9-068", as: "tamer" },
+            { card: "BT1-024", as: "existing" },
+          ],
           hand: [{ card, as: "played" }, "BT1-009"],
           deck: ["BT1-010", "BT1-011"],
         },
@@ -92,6 +133,7 @@ describe("EX9-068", () => {
     const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.instanceId === playedId);
     expect(played?.stack).toHaveLength(1);
     expect(played?.stack[0]).toMatchObject({ cardId: "BT1-009", faceUp: false });
+    expect(s.perm("existing").stack).toHaveLength(0);
     expect(s.perm("tamer").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand.map((instance) => instance.cardId)).toEqual(["BT1-010"]);
     expect(s.state.players[0]!.deck.map((instance) => instance.cardId)).toEqual(["BT1-011"]);
@@ -185,9 +227,12 @@ describe("EX9-068", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX9-068", as: "source" }] } });
     s.state.memory = memory;
 
-    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("source"));
-
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.state.memory).toBe(Math.max(3, memory));
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    expect(s.state.pendingDecision).toBeUndefined();
   });
   it("suspends, draws, gains memory, and places a hand card face-down under a qualifying Digimon", async () => {
     const s = setupEngine(
@@ -237,13 +282,24 @@ describe("EX9-068", () => {
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });
   it("plays itself from security without paying", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "EX9-068", as: "source" }] } });
-    s.inst("source").faceUp = true;
-
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("source"));
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-068"));
-
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-068")).toBe(true);
-    expect(s.state.players[0]!.security.some((card) => card.cardId === "EX9-068")).toBe(false);
+    const s = setupEngine({
+      0: { security: ["EX9-068", "BT1-048"] },
+      1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX9-068"]);
+    expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-048"]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });
