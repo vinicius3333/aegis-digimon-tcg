@@ -35,4 +35,32 @@ describe("ST24-12 Falcomon", () => {
       ],
     });
   });
+
+  it("deletes a level 3 target on a real attack while retaining a level 4 target", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST24-03", as: "host", under: [{ card: "ST24-12" }] }] },
+        1: {
+          battleArea: [
+            { card: "ST24-04", as: "level3", suspended: true },
+            { card: "ST24-05", as: "level4", suspended: true },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const level3Id = s.perm("level3").permanentId;
+    const level4Id = s.perm("level4").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("level4").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(s.events.some((event) => event.kind === "combatResolved")).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === level3Id)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === level4Id)).toBe(true);
+  });
 });
