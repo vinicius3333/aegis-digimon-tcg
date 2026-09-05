@@ -3,6 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./EX9-018.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../index.js";
 
 describe("EX9-018", () => {
   it("reduces its play cost by trashing a Cyborg or Ver.2 card and trashes one opposing digivolution card by placing a trash Digimon underneath", () => {
@@ -47,7 +48,15 @@ describe("EX9-018", () => {
 
   it("trashes an eligible hand card and reduces the play cost by exactly 2", async () => {
     const s = setupEngine(
-      { 0: { hand: [{ card: "EX9-017", as: "payment" }, { card: "EX9-018", as: "source" }] } },
+      {
+        0: {
+          hand: [
+            { card: "EX9-017", as: "payment" },
+            { card: "EX9-018", as: "source" },
+          ],
+          trash: ["EX9-017"],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const before = s.state.memory;
@@ -55,7 +64,6 @@ describe("EX9-018", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-018"));
     expect(before - s.state.memory).toBe(5);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("payment").instanceId)).toBe(false);
-    expect(s.state.players[0]!.battleArea[0]?.stack.some((card) => card.cardId === "EX9-017" && !card.faceUp)).toBe(true);
   });
 
   it("uses one trash Digimon to trash one stack card, then bottoms an opposing Digimon with no stack", async () => {
@@ -64,6 +72,7 @@ describe("EX9-018", () => {
         0: { battleArea: [{ card: "EX9-018", as: "source" }], trash: ["EX9-017"] },
         1: {
           battleArea: [{ card: "BT1-009", as: "stacked", under: ["BT1-001"] }],
+          deck: ["BT1-048"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
@@ -76,7 +85,7 @@ describe("EX9-018", () => {
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX9-017")).toBe(false);
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-009")).toBe(false);
-    expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("BT1-009");
+    expect(s.state.players[1]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-048", "BT1-009"]);
   });
 
   it("does not resolve the then-return when the required trash Digimon cannot be placed", async () => {
@@ -89,9 +98,49 @@ describe("EX9-018", () => {
     );
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
-    await settle(() => s.decisions.length === 0);
+    await settle();
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-009")).toBe(true);
     expect(s.state.players[1]!.deck.at(-1)?.cardId).not.toBe("BT1-009");
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("places its paid source at the bottom during a real normal digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-037", as: "host" }],
+          hand: [{ card: "EX9-018", as: "evo" }],
+          trash: ["BT1-009"],
+          deck: ["BT1-048"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-015", as: "target", under: ["BT1-010"] }],
+          deck: ["BT1-049"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("host").topCard.cardId).toBe("EX9-018");
+    expect(s.perm("host").stack.map(({ cardId, faceUp }) => ({ cardId, faceUp }))).toEqual([
+      { cardId: "BT1-009", faceUp: false },
+      { cardId: "BT1-037", faceUp: true },
+    ]);
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-048"]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-010"]);
+    expect(s.state.players[1]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-049", "BT1-015"]);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });
