@@ -432,7 +432,16 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   }
   const costCreatesTrashCandidate =
     structuredCost?.kind === "trashBottomFaceDownUnderTamer" ||
-    structuredCost?.kind === "trashBottomFaceDownUnderDigimon";
+    structuredCost?.kind === "trashBottomFaceDownUnderDigimon" ||
+    // EX9-063: a payable hidden-source cost may itself supply the trash play.
+    // Do not inspect its hidden identity to gate payment; the play resolver
+    // rebuilds and filters the now-public trash pool after the cost resolves.
+    (action.kind === "PlayWithoutCost" &&
+      action.from?.includes("trash") === true &&
+      structuredCost?.kind === "trash" &&
+      structuredCost.target?.filter.zone === "digivolutionCards" &&
+      structuredCost.target.filter.faceDown === true &&
+      canPayCost(ctx, structuredCost));
   const nestedRequiredOptionUse =
     action.kind === "CostGatedBlock" &&
     action.actions.length === 1 &&
