@@ -125,11 +125,15 @@ describe("AD1-019 Matt Ishida & T.K. Takaishi", () => {
     qualified.state.memory = 0;
     await advance(qualified.engine).fire(EffectTiming.OnStartMainPhase, qualified.perm("tamer"));
     expect(qualified.state.memory).toBe(1);
+  });
 
-    const unqualified = setupEngine({ 0: { battleArea: [{ card: "AD1-019", as: "tamer" }] } });
-    unqualified.state.memory = 0;
-    await advance(unqualified.engine).fire(EffectTiming.StartOfYourMainPhase, unqualified.perm("tamer"));
-    expect(unqualified.state.memory).toBe(0);
+  it("does not gain memory at start of main when the opponent has no Digimon", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "AD1-019", as: "tamer" }] } });
+    s.state.memory = 0;
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tamer"));
+
+    expect(s.state.memory).toBe(0);
   });
 
   it("can decline the optional ADVENTURE play after a qualifying evolution", async () => {

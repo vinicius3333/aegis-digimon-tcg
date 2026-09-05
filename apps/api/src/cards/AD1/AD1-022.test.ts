@@ -102,6 +102,15 @@ describe("AD1-022 Izzy Izumi & Tai Kamiya", () => {
     expect(s.state.memory).toBe(1);
   });
 
+  it("does not gain memory at start of main when the opponent has no Digimon", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "AD1-022", as: "tamer" }] } });
+    s.state.memory = 0;
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tamer"));
+
+    expect(s.state.memory).toBe(0);
+  });
+
   it("does not react when an unrelated non-ADVENTURE card is played", async () => {
     const s = setupEngine(
       {
