@@ -30,3 +30,14 @@ The web CardEffectsDemo builds static GameState fixtures and synthetic events;
 its existing AD1 mentions are cards inside other demonstrations, not executable
 AD1 evolution scenarios. It cannot substitute for engine stack assertions.
 Workers must use real GameEngine intents with observable state and legal stacks.
+
+Additional baseline gates:
+
+- `pnpm typecheck`: passed for shared, API, and web.
+- `pnpm --filter @aegis/api exec vitest run src/engine/conformance --maxWorkers=1`:
+  28 files and 387 tests passed in 12.33 seconds.
+
+Diagnosis lead (not yet a resolved finding): effect-driven evolution can now ask
+`chooseOption` when both printed and alternate requirements match. Some old
+fixtures only auto-answer optional/card selections, leaving that decision open.
+Workers must prove the exact route and payment before accepting any fixture fix.
