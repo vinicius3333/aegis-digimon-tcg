@@ -16,7 +16,7 @@ export const compiled: CompiledCard = {
           condition: {
             kind: "selfHasInDigivolutionCards",
             nameOrTrait: [
-              { tokens: ["Lilithmon"], match: "name" },
+              { tokens: ["Lilithmon"], match: "nameExact" },
               { tokens: ["X Antibody"], match: "trait" },
             ],
           },
@@ -26,7 +26,7 @@ export const compiled: CompiledCard = {
               cost: {
                 kind: "deleteOwn",
                 target: {
-                  filter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] },
+                  filter: { excludeSelf: true, kind: ["Digimon"] },
                   count: 1,
                 },
               },

@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { CardKind, CardColor, EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
@@ -47,9 +50,9 @@ function optionDef(): CardDefinition {
   };
 }
 
-let _seq = 0;
+let instanceSequence = 0;
 function inst(cardId: string, seat: Seat = 0) {
-  return { instanceId: `inst-${++_seq}`, cardId, ownerSeat: seat, faceUp: true };
+  return { instanceId: `inst-${++instanceSequence}`, cardId, ownerSeat: seat, faceUp: true };
 }
 
 function makeSource(): CardSource {
@@ -189,6 +192,58 @@ describe("EX7-072 Seventh Fascination", () => {
   });
 });
 
+describe("EX7-072 public Trash digivolution trigger", () => {
+  it("returns itself to deck bottom and activates Main on an exact Lilithmon (X Antibody) digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-083", as: "base" }],
+          trash: [{ card: "EX7-072", as: "option" }],
+          hand: [{ card: "EX7-061", as: "lilithmonXa" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("lilithmonXa").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.deck.some((card) => card.cardId === "EX7-072"));
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX7-072")).toBe(false);
+    expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("EX7-072");
+  });
+
+  it("does not trigger for the near-name Lilithmon card without X Antibody", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-083", as: "base" }],
+          trash: [{ card: "EX7-072", as: "option" }],
+          hand: [{ card: "BT11-087", as: "lilithmon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("lilithmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "BT11-087");
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX7-072")).toBe(true);
+  });
+});
+
 describe("EX7-072 [Main] grants a delayed self-delete choice to every opponent Digimon", () => {
   const module = getEffectModule("EX7-072");
 
@@ -218,6 +273,40 @@ describe("EX7-072 [Main] grants a delayed self-delete choice to every opponent D
     expect(subs.every((s) => s.once === true)).toBe(true);
     expect(subs.every((s) => s.expiresOnTurnEndOf === 1)).toBe(true);
     expect(subs.map((s) => s.sourcePermanentId).sort()).toEqual(["OPP-1", "OPP-2"]);
+  });
+
+  it("publicly deletes each watched opponent Digimon at the end of that opponent's turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX7-072", as: "option" }],
+          battleArea: [{ card: "EX7-061", as: "purpleSource" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-010", as: "second" },
+          ],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
+    expect(observe(s.engine).subscriptions("endOfOpponentTurn")).toHaveLength(2);
+
+    s.state.turnSeat = 1;
+    const opponentTurn = advance(s.engine).runTurn(1);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
   it("the granted watcher's run() asks the OPPONENT (not this card's owner) to choose and delete 1 of their Digimon", async () => {

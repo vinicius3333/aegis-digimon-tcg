@@ -32,13 +32,11 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "Delete",
+          kind: "SelectBind",
           target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              superlative: "highestLevel",
-            },
+            filter: { isSelfRef: true },
+            isSelf: true,
+            bindAs: "paidBeelstarmonHost",
             count: 1,
           },
           cost: {
@@ -62,15 +60,15 @@ export const compiled: CompiledCard = {
           abortOnDecline: true,
         },
         {
+          kind: "Delete",
+          target: { filter: { controller: "opponent", kind: ["Digimon"], superlative: "highestLevel" }, count: 1 },
+        },
+        {
           kind: "SecurityManipulation",
           op: "trash",
           controller: "opponent",
           amount: 1,
           toTop: true,
-          condition: {
-            kind: "ifThisEffectActed",
-            raw: "this effect trashed the cost",
-          },
         },
       ],
     },
@@ -78,13 +76,11 @@ export const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
-          kind: "Delete",
+          kind: "SelectBind",
           target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              superlative: "highestLevel",
-            },
+            filter: { isSelfRef: true },
+            isSelf: true,
+            bindAs: "paidBeelstarmonHost",
             count: 1,
           },
           cost: {
@@ -108,15 +104,15 @@ export const compiled: CompiledCard = {
           abortOnDecline: true,
         },
         {
+          kind: "Delete",
+          target: { filter: { controller: "opponent", kind: ["Digimon"], superlative: "highestLevel" }, count: 1 },
+        },
+        {
           kind: "SecurityManipulation",
           op: "trash",
           controller: "opponent",
           amount: 1,
           toTop: true,
-          condition: {
-            kind: "ifThisEffectActed",
-            raw: "this effect trashed the cost",
-          },
         },
       ],
     },

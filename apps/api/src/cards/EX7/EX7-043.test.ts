@@ -50,4 +50,36 @@ describe("EX7-043", () => {
     expect(s.perm("target").topCard.cardId).toBe("EX7-011");
     expect(s.perm("target").stack).toHaveLength(0);
   });
+
+  it("uses the same three-card cost on When Digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX7-043", as: "tank" }],
+          hand: ["EX7-066"],
+          trash: ["EX7-070", "EX7-071"],
+        },
+        1: { battleArea: [{ card: "EX7-014", as: "target", under: ["EX7-011"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("tank"));
+    expect(s.perm("target").topCard?.cardId).toBe("EX7-011");
+    expect(s.perm("target").stack).toHaveLength(0);
+  });
+
+  it("does not de-digivolve when fewer than three qualifying cost cards exist", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX7-043", as: "tank" }], hand: ["EX7-066", "BT1-001"] },
+        1: { battleArea: [{ card: "EX7-014", as: "target", under: ["EX7-011"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("tank"));
+    expect(s.perm("target").topCard?.cardId).toBe("EX7-014");
+    expect(s.perm("target").stack).toHaveLength(1);
+  });
 });

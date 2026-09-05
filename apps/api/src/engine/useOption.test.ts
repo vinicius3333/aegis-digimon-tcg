@@ -24,8 +24,8 @@ import { getEffectModule, unregisterCard } from "./effects/registry.js";
  *     `ifThisEffectUsed` Condition reads TRUE and a mandatory "if this effect used" tail runs.
  *   - whenOptionUsed fires on a successful use (arms BT19-040's token watcher) — a consume-site
  *     watcher proves it is not a dead store.
- *   - Eligibility is the SERVER's predicate: a two-color or cost-6 Option (or one under a
- *     CanNotPlayThisOption restriction) is never offered, so an "if used" tail does not run.
+ *   - Eligibility is the SERVER's predicate: a two-color Option or one under a
+ *     CanNotPlayThisOption restriction is never offered, while an uncapped cost-6 Option is valid.
  *
  * SECURITY (T-08-10/T-08-11): the engine fetches the chosen Option's compiled effect via
  * getCompiledCard; the client supplies only a choice among the engine-resolved candidates, never
@@ -339,10 +339,11 @@ describe("use-option-without-cost engine path", () => {
       selfSuspendedDigimon: makePermanent({ controllerSeat: 0 as Seat, isSuspended: true }),
     });
 
-    const effects = irCardModule("X-USER", useOptionThenUnsuspendCompiled()).effectsForTiming(
-      EffectTiming.OnPlay,
-      ctx.source,
-    );
+    const ir = useOptionThenUnsuspendCompiled();
+    const useAction = ir.effects[0]?.actions[0];
+    if (useAction?.kind !== "UseOptionWithoutCost") throw new Error("UseOption action missing");
+    useAction.filter = { ...useAction.filter, playCostLte: 5 };
+    const effects = irCardModule("X-USER", ir).effectsForTiming(EffectTiming.OnPlay, ctx.source);
     await effects[0]!.resolve(ctx);
 
     expect(rec.calls).not.toContain("useOptionFromHand");
@@ -516,7 +517,7 @@ describe("use-option-without-cost engine path", () => {
 
   it("playCostLte on filter raises the cost cap beyond the historical 5", async () => {
     resetStores();
-    // Option with cost 7 — blocked by the default cap of 5, eligible when cap is 10
+    // Option with cost 7 — eligible when the explicit cap is 10
     seedOption("OPT-COST7", { colors: ["Red"] as never, playCost: 7 }, gainMemoryMain());
     const rec: Recorder = { calls: [], memoryDeltas: [], trashed: [], optionUsedSubjects: [] };
     const ctx = makeContext({
@@ -549,7 +550,7 @@ describe("use-option-without-cost engine path", () => {
     expect(rec.trashed).toContain("h-c7");
   });
 
-  it("cost-6 Option is still rejected when no playCostLte declared (historical cap = 5)", async () => {
+  it("allows a cost-6 Option when no play-cost cap is declared", async () => {
     resetStores();
     seedOption("OPT-6", { colors: ["Red"] as never, playCost: 6 }, gainMemoryMain());
     const rec: Recorder = { calls: [], memoryDeltas: [], trashed: [], optionUsedSubjects: [] };
@@ -578,7 +579,41 @@ describe("use-option-without-cost engine path", () => {
     const effects = irCardModule("X-CAP5", ir).effectsForTiming(EffectTiming.OnPlay, ctx.source);
     await effects[0]!.resolve(ctx);
 
-    // No cap declared → default 5, cost-6 rejected
+    // No cap declared → no artificial ceiling, so cost-6 is offered and used.
+    expect(ctx.lastOptionUsed).toBe(true);
+    expect(rec.calls).toContain("useOptionFromHand");
+    expect(rec.trashed).toContain("h-6");
+  });
+
+  it("still rejects a cost-6 Option when an explicit playCostLte 5 is declared", async () => {
+    resetStores();
+    seedOption("OPT-6-CAPPED", { colors: ["Red"] as never, playCost: 6 }, gainMemoryMain());
+    const rec: Recorder = { calls: [], memoryDeltas: [], trashed: [], optionUsedSubjects: [] };
+    const ctx = makeContext({
+      recorder: rec,
+      ownHand: [{ instanceId: "h-6-capped", cardId: "OPT-6-CAPPED", ownerSeat: 0 as Seat, faceUp: true }],
+    });
+
+    const ir: CompiledCard = {
+      coverage: "full",
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "UseOptionWithoutCost",
+              filter: { controller: "mine", kind: ["Option"], playCostLte: 5 },
+              payCost: false,
+              from: ["hand"],
+            },
+          ],
+        },
+      ],
+    } as unknown as CompiledCard;
+
+    const effects = irCardModule("X-CAP5", ir).effectsForTiming(EffectTiming.OnPlay, ctx.source);
+    await effects[0]!.resolve(ctx);
+
     expect(ctx.lastOptionUsed).toBe(false);
     expect(rec.calls).not.toContain("useOptionFromHand");
   });

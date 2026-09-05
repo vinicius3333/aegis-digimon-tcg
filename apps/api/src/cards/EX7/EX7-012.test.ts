@@ -43,4 +43,39 @@ describe("EX7-012 Lavogaritamon", () => {
     await settle(() => gain.state.memory === 4);
     expect(gain.state.memory).toBe(4);
   });
+
+  it("respects the 6000 DP boundary for deletion and memory gain", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX7-012", as: "lava" }] },
+      1: { battleArea: [{ card: "BT1-009", dp: 7000, as: "target" }] },
+    });
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("lava"));
+    await settle(() => false, 20);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+
+    s.state.memory = 3;
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("lava"));
+    await settle(() => false, 20);
+    expect(s.state.memory).toBe(4);
+
+    const blocked = setupEngine({
+      0: { battleArea: [{ card: "EX7-012", as: "lava" }] },
+      1: { battleArea: [{ card: "BT1-009", dp: 6000, as: "target" }] },
+    });
+    await blocked.ready();
+    blocked.state.memory = 3;
+    await advance(blocked.engine).fire(EffectTiming.WhenDigivolving, blocked.perm("lava"));
+    await settle(() => false, 20);
+    expect(blocked.state.memory).toBe(3);
+  });
+
+  it("uses inherited Security Attack +1 to check two security cards", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "attacker", under: ["EX7-012"] }] },
+      1: { security: ["EX7-069", "EX7-069"] },
+    });
+    await s.ready();
+    expect(s.perm("attacker").securityAttack).toBe(2);
+  });
 });

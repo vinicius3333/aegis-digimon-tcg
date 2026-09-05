@@ -38,4 +38,49 @@ describe("EX7-010 Deputymon", () => {
     await settle(() => !s.state.players[0]!.battleArea[0]!.stack.some((card) => card.cardId === "EX7-071"));
     expect(s.state.players[0]!.battleArea[0]!.stack.some((card) => card.cardId === "EX7-071")).toBe(false);
   });
+
+  it("can trash an opponent's stacked Option when attacking", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX7-010", as: "deputy" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", under: ["EX7-071"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("deputy").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea[0]!.stack.length === 0);
+
+    expect(s.state.players[1]!.battleArea[0]!.stack).toHaveLength(0);
+  });
+
+  it("does nothing when no Option is available to trash", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX7-010", as: "deputy" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("deputy"));
+    await settle(() => false, 20);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea[0]!.stack).toHaveLength(0);
+  });
+
+  it("applies inherited +2000 DP to its host", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["EX7-010"] }] },
+    });
+    await s.ready();
+
+    expect(s.perm("host").currentDP).toBe(5000);
+  });
 });

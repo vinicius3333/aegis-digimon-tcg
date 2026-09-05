@@ -5,7 +5,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import "../index.js";
 
-describe("EX7-007 Hina Kurihara", () => {
+describe("EX7-007 Vorvomon", () => {
   it("reveals three for Dragon traits and Hina", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
       kind: "RevealAdd",
@@ -42,5 +42,11 @@ describe("EX7-007 Hina Kurihara", () => {
     );
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT2-011", "EX3-065"]));
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009"]);
+  });
+
+  it("applies the inherited +2000 DP during its controller's turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "host", under: ["EX7-007"] }] } });
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(5000);
   });
 });

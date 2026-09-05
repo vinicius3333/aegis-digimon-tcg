@@ -18,7 +18,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Yuuki"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -28,9 +28,9 @@ export const compiled: CompiledCard = {
           payCost: false,
           condition: {
             kind: "zoneCount",
+            seat: "mine",
+            zone: "battleArea",
             filter: {
-              zone: "battleArea",
-              controller: "mine",
               kind: ["Tamer"],
             },
             op: "lte",

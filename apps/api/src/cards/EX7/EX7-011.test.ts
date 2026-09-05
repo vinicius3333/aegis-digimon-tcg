@@ -41,4 +41,61 @@ describe("EX7-011 Megadramon", () => {
     expect(s.state.players[0]!.battleArea[0]!.stack.some((card) => card.cardId === "EX7-071")).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
+
+  it("also resolves the same replacement on digivolving from an Option in trash", async () => {
+    const s = setupEngine(
+      {
+        0: { trash: ["EX7-071"], battleArea: [{ card: "EX7-011", as: "megadramon" }] },
+        1: { battleArea: [{ card: "BT1-009", dp: 5000, as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("megadramon"));
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea[0]!.stack.some((card) => card.cardId === "EX7-071") &&
+        s.state.players[1]!.battleArea.length === 0,
+    );
+
+    expect(s.state.players[0]!.battleArea[0]!.stack.some((card) => card.cardId === "EX7-071")).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("does not pay the replacement cost or delete above the 6000 DP ceiling", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: ["EX7-071"], battleArea: [{ card: "EX7-011", as: "megadramon" }] },
+        1: { battleArea: [{ card: "BT1-009", dp: 7000, as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("megadramon"));
+    await settle(() => false, 20);
+
+    expect(s.state.players[0]!.battleArea[0]!.stack).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("EX7-071");
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  it("uses inherited Piercing to check security after deleting an opposing battle target", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", dp: 7000, as: "attacker", under: ["EX7-011"] }] },
+      1: { security: ["BT1-009"], battleArea: [{ card: "BT1-009", dp: 3000, suspended: true, as: "defender" }] },
+    });
+    await s.ready();
+    const securityBefore = s.state.players[1]!.security.length;
+    const defender = s.perm("defender");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: defender.permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((perm) => perm.permanentId === defender.permanentId));
+
+    expect(s.state.players[1]!.security).toHaveLength(securityBefore - 1);
+  });
 });

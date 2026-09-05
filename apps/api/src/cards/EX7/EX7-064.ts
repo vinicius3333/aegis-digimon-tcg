@@ -24,7 +24,7 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "GainKeyword",
-          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1, bindAs: "shoto-target" },
           keyword: { keyword: "Piercing", raw: "＜Piercing＞" },
           duration: "untilOpponentTurnEnd",
           cost: {
@@ -41,7 +41,10 @@ export const compiled: CompiledCard = {
         },
         {
           kind: "Unsuspend",
-          target: { sameTarget: true, filter: { nameOrTrait: [{ tokens: ["Vortex Warriors"], match: "trait" }] } },
+          target: {
+            filter: { boundRef: "shoto-target", nameOrTrait: [{ tokens: ["Vortex Warriors"], match: "trait" }] },
+            count: 1,
+          },
         },
       ],
     },

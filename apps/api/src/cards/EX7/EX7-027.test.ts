@@ -27,7 +27,12 @@ describe("EX7-027", () => {
           kind: "Replacement",
           event: "wouldLeavePlay",
           leaveCause: "otherThanYourEffect",
-          cost: { target: { filter: { allowTokens: true } } },
+          actions: [
+            {
+              kind: "Prevent",
+              cost: { kind: "deleteOwn", target: { filter: { allowTokens: true } } },
+            },
+          ],
         },
       ],
     }));
@@ -52,5 +57,25 @@ describe("EX7-027", () => {
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("chap"));
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX7-024"));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX7-024")).toBe(true);
+  });
+
+  it("prevents a non-effect departure by deleting another Puppet", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX7-024", as: "host", under: ["EX7-027"] },
+            { card: "EX7-024", as: "cost" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const hostId = s.perm("host").permanentId;
+    const costId = s.perm("cost").permanentId;
+    await s.ready();
+    expect(await advance(s.engine).verb.deletePermanent([hostId], "byBattle")).toBe(0);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.permanentId === hostId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.permanentId === costId)).toBe(false);
   });
 });

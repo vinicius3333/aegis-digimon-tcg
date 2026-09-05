@@ -9,6 +9,7 @@ export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
+      isInherited: true,
       actions: [
         {
           kind: "SubTrigger",
@@ -24,6 +25,11 @@ export const compiled: CompiledCard = {
             },
           ],
         },
+      ],
+    },
+    {
+      trigger: "Static",
+      actions: [
         {
           kind: "WaiveColorRequirement",
           target: {

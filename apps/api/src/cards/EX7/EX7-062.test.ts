@@ -3,7 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX7-062.js";
-describe("EX7-062 Gulfmon", () => {
+describe("EX7-062 HeavyMetaldramon", () => {
   it("trashes two cards from hand before deleting within its DP", () =>
     expect(compiled.effects?.[0]?.actions).toMatchObject([
       { kind: "Trash", target: { filter: { zone: "hand", controller: "mine" }, count: 2 } },
@@ -15,6 +15,32 @@ describe("EX7-062 Gulfmon", () => {
       from: ["trash"],
       target: { filter: { playCostLte: 8, playCostLteScaling: { subtract: 1, unit: "cards" } } },
     }));
+
+  it("trashes two hand cards and deletes only an opponent at or below its DP", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX7-062", as: "heavy" }],
+          hand: ["BT1-010", "BT1-011"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "within", dp: 13000 },
+            { card: "BT1-010", as: "above", dp: 13001 },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("heavy"));
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("within").instanceId);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toContain(
+      s.inst("above").instanceId,
+    );
+  });
 
   it("plays an isolated card exactly at the reduced cost-6 ceiling", async () => {
     const s = setupEngine(

@@ -1,40 +1,20 @@
 import { describe, it, expect } from "vitest";
-import { Phase } from "@aegis/shared";
+import { EffectTiming, Phase } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./EX7-058.js";
 
 /**
- * A3 — Q1f: EX7-058 (LadyDevimon (X Antibody)) [On Play] [When Digivolving] "1 of your
- * opponent's Digimon gains '[End of Attack] Delete this Digimon.' until the end of their turn."
+ * A3 — Q1f: EX7-058 (LadyDevimon (X Antibody)) grants one opponent Digimon
+ * `[End of Attack] Delete this Digimon.` until the end of that opponent's turn.
  *
- * Same Q1f malformed-`GrantAuraToOpponents`-shape gap as BT6-102/BT15-068/ST15-16/BT12-105/
- * EX1-068/EX8-059/BT8-031 (see BT6-102's header for the full writeup) — with an important
- * DIFFERENCE from those, found while proving this one: `EffectTiming.OnEndAttack` (the window
- * `"[End of Attack]"` compiles to) never actually gets dispatched through a real
- * `applyIntent({type:"attack"})` in this engine today — confirmed independently with a plain,
- * UNCONDITIONAL native `[End of Attack]` card (BT12-016's "gain 2 memory" clause never fires
- * either). That is a separate, pre-existing engine gap, not something this fix can reach or
- * that this test can respectably prove around.
- *
- * What THIS test proves instead: before the fix, the malformed shape's raw fallback path
- * (`SUBTRIGGER_EVENT_MAP[undefined] ?? "whenSuspended"`) installed a bogus watcher on the
- * "whenSuspended" bus — which DOES fire routinely (every attack suspends its own attacker) —
- * with `action.actions === undefined`, so the very next time the recipient attacked (suspending
- * itself), the watcher's `run` callback threw `TypeError: action.actions is not iterable` —
- * caught by `GameEngine`'s combat-error boundary (logged as "combat resolve failed" and surfaced
- * to the client as an `actionRejected` event rather than an unhandled rejection), but the attack
- * resolution itself aborts mid-way. The fix removes that crash: the malformed shape now installs
- * nothing reactive at all (routed to the currently-inert `grantCustomEffect`/`EffectTiming
- * .OnEndAttack` path instead), so the SAME attack completes cleanly to `{ ok: true }`.
- *
- * FAILS-WHEN-REVERTED: reverting the interpreter's routing branch reinstates the bogus
- * "whenSuspended" watcher; confirmed directly (not merely inferred) — reverting and removing
- * this test's install-check assertion reproduces the exact "combat resolve failed: TypeError:
- * action.actions is not iterable" log on the recipient's own attack.
+ * The focused runtime proof below exercises the canonical GrantAuraToOpponents
+ * route through a real play and attack: the granted recipient is deleted at the
+ * end of its attack, while an ungranted Digimon remains unaffected.
  */
 
-describe('A3 EX7-058 — granted "[End of Attack] Delete this Digimon." (malformed-shape crash)', () => {
+describe('A3 EX7-058 — granted "[End of Attack] Delete this Digimon."', () => {
   it("uses the canonical Volée & Zerdrücken token identity in both entry effects", () => {
     const tokenEffects = compiled.effects?.filter(
       (effect) => effect.trigger === "OnPlay" || effect.trigger === "WhenDigivolving",
@@ -46,18 +26,36 @@ describe('A3 EX7-058 — granted "[End of Attack] Delete this Digimon." (malform
     ]);
   });
 
-  it("POSITIVE: the granted recipient's own attack (which suspends it) completes without throwing", async () => {
+  it("accepts an exact LadyDevimon card for the token branch", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX7-058", as: "lady", under: ["EX6-053"] }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("lady"));
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "TOKEN-Volée-&-Zerdrücken"),
+    ).toBe(true);
+  });
+
+  it("POSITIVE: the granted recipient is deleted after its own attack", async () => {
     const s = setupEngine(
       {
         0: {
           hand: [{ card: "EX7-058", as: "ladyDevimon" }],
-          security: ["BT1-001", "BT1-001", "BT1-001"],
+          security: [],
+          battleArea: [{ card: "BT1-010", as: "victim", dp: 1000, suspended: true }],
         },
         1: { battleArea: [{ card: "BT1-009", dp: 3000, as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const attacker = s.perm("attacker");
+    const attackerInstanceId = attacker.topCard!.instanceId;
     const ladyDevimon = s.inst("ladyDevimon");
     const engine = s.engine as unknown as {
       applyIntent: typeof s.engine.applyIntent;
@@ -81,17 +79,17 @@ describe('A3 EX7-058 — granted "[End of Attack] Delete this Digimon." (malform
     s.state.turnSeat = 1;
     s.state.phase = Phase.Main;
     s.state.memory = 3;
-    // Attacking suspends the attacker — this used to fire the malformed shape's bogus
-    // "whenSuspended" fallback watcher and throw. It must now complete cleanly.
+    // The granted EndOfAttack effect must delete the attacking recipient.
     const attackRes = engine.applyIntent(1, {
       type: "attack",
       attackerPermanentId: attacker.permanentId,
-      target: { kind: "player" },
+      target: { kind: "permanent", permanentId: s.perm("victim").permanentId },
     });
     expect(attackRes).toEqual({ ok: true });
 
-    await settle(() => attacker.isSuspended, 1000);
-    expect(attacker.isSuspended).toBe(true);
+    await settle(() => s.state.players[1]!.battleArea.length === 0, 1000);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(attackerInstanceId);
   });
 
   it("NEGATIVE: a Digimon that never received the grant also attacks (and suspends) without incident", async () => {
@@ -99,7 +97,7 @@ describe('A3 EX7-058 — granted "[End of Attack] Delete this Digimon." (malform
       {
         0: {
           hand: [{ card: "EX7-058", as: "ladyDevimon" }],
-          security: ["BT1-001", "BT1-001", "BT1-001"],
+          security: [],
         },
         1: { battleArea: [{ card: "BT1-009", dp: 3000, as: "bystander" }] },
       },

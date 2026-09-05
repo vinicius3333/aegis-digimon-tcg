@@ -9,6 +9,7 @@ export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "AllTurns",
+      isInherited: true,
       actions: [
         {
           kind: "SubTrigger",
@@ -79,22 +80,20 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
-          dpCapModifier: {
-            scaling: {
-              per: 3000,
-              filter: {
-                controller: "mine",
-                kind: ["Digimon"],
-                nameOrTrait: [
-                  {
-                    tokens: ["Three Musketeers"],
-                    match: "trait",
-                  },
-                ],
-                uniqueNames: true,
-              },
-              unit: "cards",
+          dpCeilingScaling: {
+            per: 1,
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Three Musketeers"],
+                  match: "trait",
+                },
+              ],
             },
+            unit: "distinctNames",
+            amount: 3000,
           },
         },
         {

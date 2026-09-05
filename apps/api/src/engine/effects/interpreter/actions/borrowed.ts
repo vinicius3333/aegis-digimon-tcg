@@ -403,17 +403,23 @@ function optionUseCandidates(
     attackerLevelCap ??
     scaledCostCap ??
     filter?.playCostLte ??
-    (exactCosts.length > 0 ? Math.max(...exactCosts) : 5);
+    (exactCosts.length > 0 ? Math.max(...exactCosts) : undefined);
   const candidates: string[] = [];
   const addIfEligible = (candidate: { instanceId: string; cardId: string }) => {
     if (candidates.includes(candidate.instanceId)) return;
     const def = ctx.game.definitionOf({ cardId: candidate.cardId } as never);
     const effectiveFilter =
-      filter === undefined ? undefined : { ...filter, playCostLte: costCap, playCostLteScaling: undefined };
+      filter === undefined
+        ? undefined
+        : {
+            ...filter,
+            ...(costCap === undefined ? {} : { playCostLte: costCap }),
+            playCostLteScaling: undefined,
+          };
     if (effectiveFilter !== undefined && !definitionMatches(effectiveFilter, def)) return;
     if (!def.kinds.includes(CardKind.Option)) return;
     if (action.allowMultiColor !== true && def.colors !== undefined && def.colors.length !== 1) return;
-    if (def.playCost > costCap) return;
+    if (costCap !== undefined && def.playCost > costCap) return;
     if (
       action.waiveColorRequirement !== true &&
       ctx.game.optionColorRequirementMet?.(seat, candidate.instanceId, def) === false
