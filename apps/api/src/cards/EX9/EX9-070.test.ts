@@ -7,6 +7,117 @@ import { compiled } from "./EX9-070.js";
 import "../index.js";
 
 describe("EX9-070", () => {
+  it("Q4742 rejects Meat during EX9-002's Training-triggered evolution and charges that effect's reduced cost", async () => {
+    const options = { autoAcceptOptional: false, autoSelectCards: true, autoChooseOption: true };
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX9-070", as: "meat" },
+            { card: "EX9-015", as: "host", under: ["EX9-002"] },
+          ],
+          hand: ["EX9-017", "BT1-009"],
+          deck: ["BT1-001", "BT1-048"],
+        },
+      },
+      options,
+    );
+    s.perm("meat").placedByEffect = true;
+    s.state.memory = 4;
+    await s.ready();
+    const meatId = s.perm("meat").topCard.instanceId;
+    const meat = observe(s.engine).activatableEffects(s.perm("meat"))[0]!;
+    const training = observe(s.engine).activatableEffects(s.perm("host"))[0]!;
+    expect(meat).toBeDefined();
+    expect(training).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("host").topCard.instanceId,
+        effectKey: training.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const choice = s.state.pendingDecision!;
+    expect(choice.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: meatId, effectKey: meat.effectKey }).ok,
+    ).toBe(false);
+    expect(s.state.pendingDecision?.decisionId).toBe(choice.decisionId);
+    options.autoAcceptOptional = true;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: choice.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("host").topCard.cardId).toBe("EX9-017");
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("meat").topCard.instanceId).toBe(meatId);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX9-070")).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+  it.each([
+    { egg: "EX9-001", evolution: "EX9-009", fromTrash: false },
+    { egg: "EX9-006", evolution: "EX9-010", fromTrash: true },
+  ])(
+    "Q4741/Q4749 reject Meat during the inherited attack evolution from $egg",
+    async ({ egg, evolution, fromTrash }) => {
+      const options = { autoAcceptOptional: false, autoSelectCards: true, autoChooseOption: true };
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "EX9-070", as: "meat" },
+              { card: "EX9-008", as: "host", under: [{ card: "BT1-009", faceUp: false }, egg] },
+            ],
+            hand: [evolution, "BT1-009"],
+            trash: fromTrash ? [evolution] : [],
+            deck: ["BT1-048"],
+          },
+          1: { security: ["BT1-001"] },
+        },
+        options,
+      );
+      s.perm("meat").placedByEffect = true;
+      s.state.memory = 4;
+      await s.ready();
+      const meatId = s.perm("meat").topCard.instanceId;
+      const ability = observe(s.engine).activatableEffects(s.perm("meat"))[0]!;
+      expect(ability).toBeDefined();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("host").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      const choice = s.state.pendingDecision!;
+      expect(choice.kind).toBe("optional");
+      expect(
+        s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: meatId, effectKey: ability.effectKey }).ok,
+      ).toBe(false);
+      expect(s.state.pendingDecision?.decisionId).toBe(choice.decisionId);
+      options.autoAcceptOptional = true;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: choice.decisionId,
+          response: { kind: "optional", accept: true },
+        }),
+      ).toEqual({ ok: true });
+      await settle();
+      expect(s.perm("host").topCard.cardId).toBe(evolution);
+      expect(s.state.memory).toBe(3);
+      expect(s.perm("meat").topCard.instanceId).toBe(meatId);
+      expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX9-070")).toBe(false);
+      expect(s.state.players[1]!.security).toHaveLength(0);
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
   it("Q4831 rejects a second Delay during the first and combines only the intrinsic Ver.4 reduction", async () => {
     const options = {
       autoAcceptOptional: false,
