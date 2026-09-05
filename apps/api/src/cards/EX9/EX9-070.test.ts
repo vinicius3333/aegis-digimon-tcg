@@ -1,6 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX9-070.js";
@@ -139,7 +137,7 @@ describe("EX9-070", () => {
             trash: fromTrash ? [evolution] : [],
             deck: ["BT1-048"],
           },
-          1: { security: ["BT1-001"] },
+          1: { security: ["BT1-046"] },
         },
         options,
       );
@@ -372,15 +370,31 @@ describe("EX9-070", () => {
 
   it("draws and places itself as a battle-area option from security", async () => {
     const s = setupEngine(
-      { 0: { security: [{ card: "EX9-070", as: "option", faceUp: true }], deck: [{ card: "BT1-009", as: "drawn" }] } },
+      {
+        0: { security: [{ card: "EX9-070", as: "option" }, "BT1-048"], deck: ["BT1-009", "BT1-046"] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
       { autoAcceptOptional: true },
     );
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
-
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
-    expect(s.state.players[0]!.battleArea).toHaveLength(1);
-    expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("EX9-070");
+    s.state.turnSeat = 1;
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-046"]);
+    expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-048"]);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX9-070"]);
+    expect(s.perm("option").placedByEffect).toBe(true);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
   it("activates Delay to place a hand card face-down and digivolve a DM Digimon", async () => {
     const options = {
@@ -401,6 +415,7 @@ describe("EX9-070", () => {
             { card: "BT1-009", as: "under" },
             { card: "EX9-010", as: "evo" },
           ],
+          deck: ["BT1-048"],
         },
       },
       options,
@@ -420,9 +435,9 @@ describe("EX9-070", () => {
         effectKey: effect.effectKey,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("host").topCard.cardId === "EX9-010" && s.perm("host").stack.length === 1);
+    await settle();
 
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual([]);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-048"]);
     expect(s.perm("host").topCard.cardId).toBe("EX9-010");
     expect(
       s.state.players[0]!.battleArea.map((permanent) => ({
@@ -431,5 +446,9 @@ describe("EX9-070", () => {
       })),
     ).toEqual([{ top: "EX9-010", stack: ["BT1-009", "EX9-007"] }]);
     expect(s.perm("host").stack.some((card) => card.cardId === "BT1-009" && card.faceUp === false)).toBe(true);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["EX9-070"]);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.memory).toBe(3);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });
