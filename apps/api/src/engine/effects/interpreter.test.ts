@@ -1074,6 +1074,38 @@ describe("wouldBePlayed self-reducer payment feasibility", () => {
   });
 });
 
+describe("suspension cost cardinality", () => {
+  it.each([
+    [1, false, false],
+    [2, false, true],
+    [1, true, true],
+  ] as const)("available %i, upTo %s: payment succeeds %s", async (available, upTo, succeeds) => {
+    const recorder: Recorder = { calls: [] };
+    const ownBattleArea = Array.from({ length: available }, (_, index) =>
+      makeFakePermanent({
+        permanentId: `suspend-cost-${index}`,
+        controllerSeat: 0 as Seat,
+        isSuspended: false,
+        topCard: { instanceId: `suspend-card-${index}`, cardId: "BT2-057", ownerSeat: 0, faceUp: true } as never,
+      }),
+    );
+    const ctx = makeContext({ source: makeSource(), recorder, ownBattleArea });
+    const receipt = { paidCount: 0 };
+    expect(
+      await payCost(
+        ctx,
+        {
+          kind: "suspend",
+          target: { filter: { controller: "mine" }, count: 2, upTo },
+        },
+        receipt,
+      ),
+    ).toBe(succeeds);
+    expect(recorder.calls.filter((call) => call.verb === "suspend")).toHaveLength(succeeds ? 1 : 0);
+    expect(receipt.paidCount).toBe(succeeds ? available : 0);
+  });
+});
+
 describe("attack cost feasibility", () => {
   it("offers only the copy that can legally attack, including a same-turn Rush Digimon", () => {
     const suspended = makeFakePermanent({

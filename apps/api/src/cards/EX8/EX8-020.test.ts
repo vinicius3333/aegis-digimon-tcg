@@ -22,7 +22,7 @@ describe("EX8-020", () => {
   it("draws only once across two attacks at the inclusive seven-card boundary", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-009", as: "host", under: [{ card: "EX8-020", as: "dolphmon" }] }],
+        battleArea: [{ card: "BT1-038", as: "host", under: [{ card: "EX8-020", as: "dolphmon" }] }],
         hand: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006", "BT1-007"],
         deck: ["AD1-001", "AD1-002"],
       },
@@ -38,6 +38,8 @@ describe("EX8-020", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.length === 8);
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    await advance(s.engine).verb.trash([s.state.players[0]!.hand[0]!.instanceId], 0);
+    expect(s.state.players[0]!.hand).toHaveLength(7);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -46,13 +48,13 @@ describe("EX8-020", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
-    expect(s.state.players[0]!.hand).toHaveLength(8);
+    expect(s.state.players[0]!.hand).toHaveLength(7);
   });
 
   it("does not draw above the seven-card boundary", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-009", as: "host", under: ["EX8-020"] }],
+        battleArea: [{ card: "BT1-038", as: "host", under: ["EX8-020"] }],
         hand: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006", "BT1-007", "BT1-008"],
         deck: ["AD1-001"],
       },

@@ -61,6 +61,54 @@ describe("EX8-069", () => {
 
     expect(observe(s.engine).hasKeyword(s.perm("nsp"), "Alliance")).toBe(true);
   });
+  it("does not waive the color requirement while security contains a face-up card", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-030", as: "blue" }],
+        hand: [{ card: "EX8-069", as: "option" }],
+        security: [{ card: "BT1-002", as: "faceUp", faceUp: true }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toMatchObject({
+      ok: false,
+    });
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
+  });
+  it("uses the granted Alliance in a real attack", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX7-015", as: "attacker", dp: 7000 },
+          { card: "BT1-010", as: "ally", dp: 3000 },
+        ],
+        security: [{ card: "EX8-069", as: "source", faceUp: true }],
+      },
+      1: { security: ["BT1-001"] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "alliancePrompt"));
+    expect(s.events.some((event) => event.kind === "alliancePrompt")).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: s.perm("ally").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.find((permanent) => permanent.permanentId === s.perm("ally").permanentId)!
+          .isSuspended,
+    );
+
+    expect(s.perm("ally").isSuspended).toBe(true);
+  });
   it("does not grant Alliance to a non-NSp peer and performs ordered face-up Main placement", async () => {
     const s = setupEngine({
       0: {

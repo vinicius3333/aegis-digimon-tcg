@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
+import { digivolutionRequirementsFor } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
@@ -52,6 +52,75 @@ describe("EX8-054", () => {
     expect(s.perm("xAntibody").currentDP).toBe(14000);
   });
 
+  it("activates the inherited Justimon effect only once across two real attacks", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX8-054", as: "xAntibody", under: ["EX2-038"] }] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "first" },
+            { card: "BT1-011", as: "second" },
+          ],
+          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, preferOptionIndex: 2, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("xAntibody").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-011")).toBe(true);
+
+    await advance(s.engine).verb.unsuspend([s.perm("xAntibody").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("xAntibody").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-011")).toBe(true);
+  });
+
+  it("accepts the alternate Justimon route but rejects an X Antibody base", async () => {
+    const legal = setupEngine({
+      0: { battleArea: [{ card: "EX2-038", as: "base" }], hand: [{ card: "EX8-054", as: "xAntibody" }] },
+    });
+    legal.state.memory = 1;
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("base").permanentId,
+        instanceId: legal.inst("xAntibody").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.perm("base").topCard.cardId === "EX8-054");
+    expect(legal.state.memory).toBe(0);
+
+    const illegal = setupEngine({
+      0: { battleArea: [{ card: "EX8-054", as: "base" }], hand: [{ card: "EX8-054", as: "xAntibody" }] },
+    });
+    illegal.state.memory = 1;
+    expect(
+      illegal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: illegal.perm("base").permanentId,
+        instanceId: illegal.inst("xAntibody").instanceId,
+        useAlternateCost: true,
+      }).ok,
+    ).toBe(false);
+  });
+
   it("attacks a player at end of turn when the opponent has an unsuspended Digimon", async () => {
     const s = setupEngine(
       {
@@ -60,7 +129,7 @@ describe("EX8-054", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("xAntibody"));
+    await advance(s.engine).runTurn(0);
     await settle(() => s.state.players[1]!.security.length === 0);
     expect(s.perm("opponent").isSuspended).toBe(false);
   });

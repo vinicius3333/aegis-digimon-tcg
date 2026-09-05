@@ -8,8 +8,10 @@ import { compiled } from "./EX8-011.js";
 describe("EX8-011", () => {
   it("plays itself from security and gains +3000 DP at the start of the main phase and when digivolving", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Security")?.actions[0]).toMatchObject({
-      kind: "PlayWithoutCost",
-      payCost: false,
+      kind: "SubTrigger",
+      event: "whenSecurityBattleEnded",
+      once: true,
+      actions: [{ kind: "PlayWithoutCost", from: ["trash"], payCost: false }],
     });
     expect(compiled.effects?.find((entry) => entry.trigger === "StartOfYourMainPhase")?.actions[0]).toMatchObject({
       kind: "ModifyDP",
@@ -39,30 +41,49 @@ describe("EX8-011", () => {
 
   it("applies the inherited DP increase only during its controller's turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: [{ card: "EX8-011", as: "tyrannomon" }] }] },
+      0: { battleArea: [{ card: "BT11-053", as: "host", under: [{ card: "EX8-011", as: "tyrannomon" }] }] },
     });
     await s.ready();
-    expect(s.perm("host").currentDP).toBe(5000);
+    expect(s.perm("host").currentDP).toBe(12000);
     s.state.turnSeat = 1;
     await advance(s.engine).recompute();
-    expect(s.perm("host").currentDP).toBe(3000);
+    expect(s.perm("host").currentDP).toBe(10000);
   });
 
   it("plays the revealed card from security without paying its cost", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "EX8-011", as: "tyrannomon" }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      1: { security: [{ card: "EX8-011", as: "tyrannomon" }] },
+    });
     const instanceId = s.inst("tyrannomon").instanceId;
-
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("tyrannomon"));
-
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === instanceId)).toBe(true);
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === instanceId));
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === instanceId)).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === instanceId)).toBe(false);
     expect(s.state.memory).toBe(0);
   });
 
   it("gains +3000 DP at the start of its controller's main phase through the public timing seam", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX8-011", as: "tyrannomon" }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX8-011", as: "tyrannomon" }], deck: ["BT1-046"] },
+      1: { deck: ["BT1-045"] },
+    });
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tyrannomon"));
     expect(s.perm("tyrannomon").currentDP).toBe(8000);
+    s.state.memory = 0;
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("tyrannomon").currentDP).toBe(5000);
   });
 
   it("gains +3000 DP when digivolving through the off-color Reptile route", async () => {

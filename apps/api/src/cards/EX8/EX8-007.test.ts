@@ -21,15 +21,19 @@ describe("EX8-007", () => {
       amount: 2000,
       duration: "permanent",
     }));
-  it("selects Tyrannomon and Ryutaro Williams from the live reveal", async () => {
+  it.each([
+    ["BT1-024", "name-only MetalTyrannomon"],
+    ["BT1-010", "Reptile-only Agumon"],
+    ["AD1-001", "Dinosaur-only Greymon"],
+  ] as const)("selects %s and Ryutaro Williams from the live reveal (%s)", async (candidate, _label) => {
     const s = setupEngine(
       {
         0: {
           hand: [{ card: "EX8-007", as: "agumon" }],
           deck: [
-            { card: "EX8-011", as: "tyrannomon" },
+            { card: candidate, as: "candidate" },
             { card: "EX11-056", as: "ryutaro" },
-            { card: "AD1-001", as: "decoy" },
+            { card: "BT1-045", as: "decoy" },
           ],
         },
       },
@@ -41,13 +45,37 @@ describe("EX8-007", () => {
     });
     await settle(
       () =>
-        s.state.players[0]!.hand.some((card) => card.cardId === "EX8-011") &&
+        s.state.players[0]!.hand.some((card) => card.cardId === candidate) &&
         s.state.players[0]!.hand.some((card) => card.cardId === "EX11-056"),
     );
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(
-      expect.arrayContaining(["EX8-011", "EX11-056"]),
+      expect.arrayContaining([candidate, "EX11-056"]),
     );
-    expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("AD1-001");
+    expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("BT1-045");
+  });
+
+  it("returns a reveal with no matching search cards to the bottom of the deck", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX8-007", as: "agumon" }],
+          deck: [
+            { card: "BT1-045", as: "mammal" },
+            { card: "BT1-046", as: "holyBeast" },
+            { card: "BT1-047", as: "fairy" },
+            { card: "BT1-048", as: "anchor" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("agumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.deck.length === 4);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-048", "BT1-045", "BT1-046", "BT1-047"]);
   });
 
   it("applies its inherited +2000 DP during its controller's turn", async () => {

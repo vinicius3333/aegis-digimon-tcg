@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { digivolutionRequirementsFor } from "@aegis/shared";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./index.js";
 import { compiled } from "./EX8-058.js";
 
@@ -33,16 +34,20 @@ describe("EX8-058", () => {
     expect(s.state.memory).toBe(1);
   });
   it("deletes an exact opposing level 3 target but not a level 4 target", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "AD1-001", as: "host", under: ["EX8-058"] }] },
-      1: {
-        battleArea: [
-          { card: "BT1-009", as: "level3" },
-          { card: "EX8-058", as: "level4" },
-        ],
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "AD1-001", as: "host", under: ["EX8-058"] }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "level3" },
+            { card: "BT1-009", as: "secondLevel3" },
+            { card: "EX8-058", as: "level4" },
+          ],
+        },
       },
-    });
-    const level3InstanceId = s.perm("level3").topCard!.instanceId;
+      { autoSelectCards: true },
+    );
+    const level3InstanceIds = [s.perm("level3").topCard!.instanceId, s.perm("secondLevel3").topCard!.instanceId];
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -50,9 +55,31 @@ describe("EX8-058", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === level3InstanceId));
-    expect(s.state.players[1]!.trash.some((card) => card.instanceId === level3InstanceId)).toBe(true);
+    await settle(() =>
+      level3InstanceIds.some((instanceId) => s.state.players[1]!.trash.some((card) => card.instanceId === instanceId)),
+    );
+    const deletedLevel3Ids = level3InstanceIds.filter((instanceId) =>
+      s.state.players[1]!.trash.some((card) => card.instanceId === instanceId),
+    );
+    expect(deletedLevel3Ids).toHaveLength(1);
+    const remainingLevel3Id = level3InstanceIds.find((instanceId) => !deletedLevel3Ids.includes(instanceId))!;
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === remainingLevel3Id),
+    ).toBe(true);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX8-058")).toBe(true);
+
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === remainingLevel3Id),
+    ).toBe(true);
   });
 
   it("evolves from an off-color DS base and carries its inherited effect into a legal level-5 stack", async () => {

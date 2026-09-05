@@ -67,7 +67,7 @@ describe("EX8-051", () => {
 
   it("de-digivolves an opposing Digimon when trashed from a qualifying host", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX8-048", as: "host", under: [{ card: "EX8-051", as: "discarded" }] }] },
+      0: { battleArea: [{ card: "EX8-053", as: "host", under: [{ card: "EX8-051", as: "discarded" }] }] },
       1: { battleArea: [{ card: "BT1-016", as: "target", under: ["BT1-009", "BT1-010"] }] },
     });
     await s.ready();
@@ -80,7 +80,7 @@ describe("EX8-051", () => {
 
   it("does not de-digivolve when trashed from a non-Mineral/Rock host", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "AD1-001", as: "host", under: [{ card: "EX8-051", as: "discarded" }] }] },
+      0: { battleArea: [{ card: "BT1-080", as: "host", under: [{ card: "EX8-051", as: "discarded" }] }] },
       1: { battleArea: [{ card: "BT1-016", as: "target", under: ["BT1-009", "BT1-010"] }] },
     });
     await s.ready();
@@ -88,5 +88,34 @@ describe("EX8-051", () => {
       byEffectSeat: 0,
     });
     expect(s.perm("target").stack).toHaveLength(2);
+  });
+
+  it("uses Collision to grant Blocker and force an opponent's block", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX8-051", as: "proganomon", dp: 20000 }] },
+      1: {
+        battleArea: [{ card: "BT1-016", as: "blocker", dp: 1000 }],
+        security: ["BT1-001"],
+      },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("proganomon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    const opened = s.events.find((event) => event.kind === "blockWindowOpened");
+    expect(opened && "eligibleBlockerIds" in opened ? opened.eligibleBlockerIds : []).toContain(
+      s.perm("blocker").permanentId,
+    );
+    expect(opened && "mustBlock" in opened ? opened.mustBlock : false).toBe(true);
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
+    ).toEqual({
+      ok: true,
+    });
   });
 });

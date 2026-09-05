@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { digivolutionRequirementsFor, PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "./index.js";
 import { compiled } from "./EX8-056.js";
@@ -49,6 +50,7 @@ describe("EX8-056", () => {
         1: {
           battleArea: [
             { card: "BT1-016", as: "victim", suspended: true },
+            { card: "BT1-016", as: "secondVictim", suspended: true },
             { card: "AD1-001", as: "level4" },
           ],
         },
@@ -57,6 +59,8 @@ describe("EX8-056", () => {
     );
     s.state.turnSeat = 0;
     await s.ready();
+    const firstVictimId = s.perm("victim").topCard.instanceId;
+    const secondVictimId = s.perm("secondVictim").topCard.instanceId;
 
     expect(
       s.engine.applyIntent(0, {
@@ -65,10 +69,25 @@ describe("EX8-056", () => {
         target: { kind: "permanent", permanentId: s.perm("victim").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.every((permanent) => permanent.topCard.cardId !== "BT1-016"));
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === firstVictimId));
 
-    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["AD1-001"]);
-    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-016")).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === firstVictimId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === secondVictimId)).toBe(
+      true,
+    );
+
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === secondVictimId)).toBe(
+      true,
+    );
   });
 
   it("digivolves for 0 from an off-color level-2 DS stack", async () => {

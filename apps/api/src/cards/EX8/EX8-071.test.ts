@@ -77,4 +77,50 @@ describe("EX8-071", () => {
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([topId, optionId]);
     expect(s.state.players[0]!.security[1]!.faceUp).toBe(true);
   });
+  it("does not waive the color requirement while security contains a face-up card", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-010", as: "red" }],
+        hand: [{ card: "EX8-071", as: "option" }],
+        security: [{ card: "BT1-002", as: "faceUp", faceUp: true }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toMatchObject({
+      ok: false,
+    });
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
+  });
+  it("uses the granted Scapegoat to survive a losing battle", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX8-057", as: "nso", suspended: true },
+            { card: "BT1-010", as: "sacrifice" },
+          ],
+          security: [{ card: "EX8-071", as: "source", faceUp: true }],
+        },
+        1: { battleArea: [{ card: "BT1-016", as: "attacker", dp: 20000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("nso").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("sacrifice").instanceId));
+
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("sacrifice").instanceId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("nso").permanentId),
+    ).toBe(true);
+  });
 });

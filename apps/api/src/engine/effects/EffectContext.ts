@@ -151,6 +151,17 @@ export type ReplacementEventName =
 export type RemovalCause = "byEffect" | "byBattle" | "byRule";
 
 /**
+ * Event-time proof that an inherited source was discarded from a live host.
+ * This is deliberately separate from deletion snapshots: discarding a
+ * digivolution card is not a deletion event, but its inherited watcher still
+ * needs a narrowly scoped placement proof after the source leaves the stack.
+ */
+export interface DiscardedStackSourceProof {
+  sourceInstanceId: string;
+  hostPermanentId: string;
+}
+
+/**
  * What happened at the timing window that is firing. TS replacement for the
  * source `Hashtable` carried through effect resolution. Extend per timing as
  * the card implementation surfaces the data each effect reads (card-module contract
@@ -1835,6 +1846,8 @@ export interface SeatScopedDecisionApi {
  */
 export interface EffectContext {
   source: CardSource;
+  /** Placement proof for an inherited source discarded from its live host during this event. */
+  discardedStackSourceProof?: DiscardedStackSourceProof;
   /**
    * Rules identity of the effect currently resolving when it differs from the physical
    * card's combined kinds. For example, a DUAL Digimon directly activating its Option-side

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./index.js";
 import { compiled } from "./EX8-055.js";
@@ -32,7 +32,7 @@ describe("EX8-055", () => {
       { 0: { battleArea: [{ card: "EX8-055", as: "pyramid" }], trash: ["EX8-053", "EX8-005"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("pyramid"));
+    await advance(s.engine).runTurn(0);
 
     expect(s.perm("pyramid").stack.some((card) => card.cardId === "EX8-053")).toBe(true);
     expect(s.perm("pyramid").stack.some((card) => card.cardId === "EX8-005")).toBe(true);
@@ -59,6 +59,33 @@ describe("EX8-055", () => {
     expect(observe(s.engine).keywordAmount(s.perm("pyramid"), "SecurityAttack")).toBe(1);
   });
 
+  it("trashes three sources during a real attack, checks twice, and expires the bonus", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-055", as: "pyramid", under: ["EX8-053", "EX8-051", "EX8-049"] }],
+        },
+        1: { security: ["BT1-001", "BT1-002", "BT1-003"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("pyramid").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+
+    expect(s.perm("pyramid").stack).toHaveLength(0);
+    expect(observe(s.engine).keywordAmount(s.perm("pyramid"), "SecurityAttack")).toBe(1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    await advance(s.engine).runTurn(0);
+    expect(observe(s.engine).keywordAmount(s.perm("pyramid"), "SecurityAttack")).toBe(0);
+  });
+
   it("does nothing when only two qualifying digivolution cards can pay the exact cost (Q3938)", async () => {
     const s = setupEngine(
       {
@@ -72,5 +99,16 @@ describe("EX8-055", () => {
     expect(s.perm("pyramid").isSuspended).toBe(true);
     expect(s.perm("pyramid").stack).toHaveLength(2);
     expect(observe(s.engine).keywordAmount(s.perm("pyramid"), "SecurityAttack")).toBe(0);
+  });
+
+  it("places no cards only when the optional end-turn effect is declined (Q3940)", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX8-055", as: "pyramid" }], trash: ["EX8-053"] } },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).runTurn(0);
+
+    expect(s.perm("pyramid").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX8-053")).toBe(true);
   });
 });

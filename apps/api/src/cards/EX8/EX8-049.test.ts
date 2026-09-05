@@ -57,7 +57,7 @@ describe("EX8-049", () => {
   });
 
   it("grants Blocker to the live evolution host", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "AD1-001", as: "host", under: ["EX8-049"] }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-080", as: "host", under: ["EX8-049"] }] } });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(true);
   });

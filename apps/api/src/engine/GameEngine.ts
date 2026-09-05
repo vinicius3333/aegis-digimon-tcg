@@ -121,6 +121,7 @@ import type { CardSource } from "./effects/CardSource.js";
 import type { Effect } from "./effects/Effect.js";
 import type { CollectedEffect } from "./effects/collect.js";
 import type {
+  DiscardedStackSourceProof,
   EffectContext,
   GameAccess,
   Primitives,
@@ -460,7 +461,11 @@ export class GameEngine {
   }> = [];
   private flushingDeferredSecurityRemovalTriggers = false;
   /** Trigger windows created inside a resolving effect and activated only after that effect ends. */
-  private readonly deferredTimingWindows: Array<{ timing: EffectTiming; trigger: TriggerInfo }> = [];
+  private readonly deferredTimingWindows: Array<{
+    timing: EffectTiming;
+    trigger: TriggerInfo;
+    transientCandidates: readonly CardInstance[];
+  }> = [];
   private flushingDeferredTimingWindows = false;
 
   /**
@@ -527,7 +532,8 @@ export class GameEngine {
     try {
       while (this.deferredTimingWindows.length > 0) {
         const deferred = this.deferredTimingWindows.shift();
-        if (deferred !== undefined) await this.fireTiming(deferred.timing, deferred.trigger);
+        if (deferred !== undefined)
+          await this.fireTiming(deferred.timing, deferred.trigger, deferred.transientCandidates);
       }
     } finally {
       this.flushingDeferredTimingWindows = false;
@@ -766,7 +772,15 @@ export class GameEngine {
       },
       fireSubTrigger: async (event, payload) => this.fireSubTrigger(event, payload),
       prepareSubTrigger: (event, payload) => this.prepareSubTrigger(event, payload),
-      resolveDeletionReactions: async (trigger, candidates) => this.resolveDeletionReactions(trigger, candidates),
+      prepareFrozenSubTrigger: (event, payload) => this.prepareFrozenSubTrigger(event, payload),
+      refreshContinuousEffects: () => this.recomputeContinuousEffects(),
+      resolveDeletionReactions: async (trigger, candidates, transientCandidates = []) =>
+        this.resolveDeletionReactions(
+          trigger,
+          candidates,
+          (deletionTrigger) => this.fireTiming(EffectTiming.OnDestroyedAnyone, deletionTrigger, transientCandidates),
+          transientCandidates,
+        ),
       effectiveColorsOf: (permanentId) => {
         const permanent = this.access.permanentById(permanentId);
         return permanent === undefined ? [] : this.effectiveColorsOf(permanent);
@@ -2006,7 +2020,11 @@ export class GameEngine {
    * triggered DURING resolution (documented behavior). Centralized
    * so every caller (turn machine, actions, security check) shares one seam.
    */
-  private async fireTiming(timing: EffectTiming, trigger: TriggerInfo = {}): Promise<void> {
+  private async fireTiming(
+    timing: EffectTiming,
+    trigger: TriggerInfo = {},
+    transientCandidates: readonly CardInstance[] = [],
+  ): Promise<void> {
     if (timing === EffectTiming.OnDestroyedAnyone) {
       // Every deletion of ONE rule-check pass is simultaneous (§17-1-3), so its [On Deletion]
       // effects join the pass's single pool instead of opening a window per sweep (§15-4-3-3).
@@ -2017,9 +2035,12 @@ export class GameEngine {
           // A deleted Token leaves the match instead of entering trash. Capture its live card
           // instance before movement so its already-triggered [On Deletion] can still join the
           // pooled post-fixpoint window (EX11-012 Q6514).
-          transientCandidates: this.instancesById(trigger.deletedInstanceIds ?? []).filter(
-            (instance) => definitionOf(instance).isToken === true,
-          ),
+          transientCandidates: [
+            ...transientCandidates,
+            ...this.instancesById(trigger.deletedInstanceIds ?? []).filter(
+              (instance) => definitionOf(instance).isToken === true,
+            ),
+          ],
         });
         return;
       }
@@ -2028,16 +2049,20 @@ export class GameEngine {
       // flush time also enforces §15-4-4-3: if that card left trash meanwhile, its pending
       // effect can no longer activate (BT26-016 Q6977).
       if (this.activeWindowToken !== undefined && !this.flushingDeferredTimingWindows) {
-        this.deferredTimingWindows.push({ timing, trigger: { ...trigger } });
+        this.deferredTimingWindows.push({
+          timing,
+          trigger: { ...trigger },
+          transientCandidates: [...transientCandidates],
+        });
         return;
       }
     }
     if (this.shouldDeferNestedTiming() && !this.flushingDeferredTimingWindows) {
       await this.recomputeContinuousEffects();
-      this.deferNestedTimingEffects(timing, trigger, this.listCandidateInstances());
+      this.deferNestedTimingEffects(timing, trigger, [...this.listCandidateInstances(), ...transientCandidates]);
       return;
     }
-    await this.runTimingWindow(timing, trigger);
+    await this.runTimingWindow(timing, trigger, transientCandidates);
   }
 
   /**
@@ -2145,6 +2170,7 @@ export class GameEngine {
     ascensionCandidates: readonly { instanceId: string; seat: Seat }[],
     fire: (deletionTrigger: TriggerInfo) => Promise<void> = (deletionTrigger) =>
       this.fireTiming(EffectTiming.OnDestroyedAnyone, deletionTrigger),
+    transientCandidates: readonly CardInstance[] = [],
   ): Promise<void> {
     // A rule-check pass pools every deletion it performs, Ascension offer included, and
     // resolves them as one simultaneous group once the fixpoint converges (§17-1-3,
@@ -2154,7 +2180,7 @@ export class GameEngine {
       this.ruleTriggerPool.push({
         trigger: { ...trigger },
         ascensionCandidates: [...ascensionCandidates],
-        transientCandidates: [],
+        transientCandidates: [...transientCandidates],
       });
       return;
     }
@@ -2388,6 +2414,65 @@ export class GameEngine {
   }
 
   /**
+   * Capture a SubTrigger's eligibility at the event boundary and defer only its activation.
+   *
+   * Battle deletion has a small but important ordering seam: the losing permanent must leave
+   * the field before continuous effects are refreshed (so a conditional ＜Piercing＞ can become
+   * active), while the battle's `whenBattleWon`/`onDeletionOf` reactions must not be allowed to
+   * mutate that refreshed state before Piercing is captured. The ordinary `prepareSubTrigger`
+   * path intentionally re-checks `matches`/`canFire` when its callback runs; that is correct for
+   * attack watchers, but would make a deletion watcher observe the post-removal board. This
+   * variant freezes those two event predicates and the source context immediately, then runs
+   * the already-armed body later.
+   *
+   * The cloned subscription clears only the live predicates. It retains the original id and all
+   * lifecycle/once fields, so `fireSnapshot` still enforces once-per-turn and once-per-timing
+   * ledgers, while the bound context allows a watcher whose source was just deleted to resolve.
+   */
+  private prepareFrozenSubTrigger(event: SubTriggerEventName, payload: TriggerInfo): () => Promise<void> {
+    let boundPayload = { ...payload };
+    const deletedPermanent =
+      payload.deletedPermanentId === undefined ? undefined : this.access.permanentById(payload.deletedPermanentId);
+    if (deletedPermanent !== undefined) {
+      boundPayload = {
+        deletedControllerSeat: deletedPermanent.controllerSeat,
+        deletedTopCardId: deletedPermanent.topCard?.cardId,
+        deletedDigivolutionCardCount: deletedPermanent.stack.length,
+        ...boundPayload,
+      };
+    }
+
+    const subscriptions = [...this.subTriggers.subscriptionsFor(event)];
+    const contexts = new Map<number, EffectContext>();
+    for (const sub of subscriptions) {
+      const context = this.buildSubTriggerContext(sub, boundPayload);
+      if (context !== undefined) contexts.set(sub.id, context);
+    }
+
+    // `armedSubTriggers` is deliberately called NOW: it evaluates matches/canFire against the
+    // live event state and captures the shared Once Per Turn occurrence. A later continuous
+    // recompute or reaction must not add a watcher to this event or make an unarmed one eligible.
+    const frozen = this.armedSubTriggers(subscriptions, boundPayload, contexts).map((item) => ({
+      ...item,
+      // `runSubTriggersInChosenOrder` performs its normal liveness re-check before every body,
+      // and `fireSnapshot` checks `matches` again. For this event-locked path those predicates
+      // have already been evaluated above; clearing them on the private snapshot preserves the
+      // event result without mutating the registry's original subscription.
+      sub: { ...item.sub, matches: undefined, canFire: undefined },
+      contextAtFireTime: () => item.ctx,
+    }));
+
+    return async () => {
+      if (frozen.length === 0) return;
+      await this.withTriggeredMutations(async () => {
+        const remaining = frozen.filter((item) => !this.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub)));
+        if (remaining.length > 0) await this.runSubTriggersInChosenOrder(remaining);
+      });
+      await this.recomputeContinuousEffects();
+    };
+  }
+
+  /**
    * The watchers in `subs` that ACTUALLY trigger for `payload`, each paired with the context
    * bound at the moment the event fired. Filters what the ordering prompt must not offer: a
    * watcher already consumed by the surrounding timing window, one whose `[Once Per Turn]`
@@ -2585,6 +2670,11 @@ export class GameEngine {
   private subTriggerAsCollected({ sub, ctx }: ArmedSubTrigger): CollectedEffect {
     return {
       source: ctx.source,
+      // The stack resolver re-creates a context for every collected effect. Carry the event
+      // snapshot along with this watcher so placement guards and action filters see the same
+      // exact payload that armed it (especially a stack source already moved to trash).
+      triggerInfo: ctx.trigger,
+      discardedStackSourceProof: ctx.discardedStackSourceProof,
       effect: {
         effectKey: `subtrigger/${sub.id}/${sub.description}`,
         description: sub.description,
@@ -2663,6 +2753,40 @@ export class GameEngine {
     return this.breedingHidesSubjectFrom(sub.event, payload, context.source) ? undefined : context;
   }
 
+  /**
+   * Preserve the placement proof for an inherited source that was just discarded from a live
+   * host. The normal inherited placement guard intentionally rejects an off-field source; these
+   * three discard events are the only seams that carry an exact stack-card identity after the
+   * move. Enrich only the bound context (never the shared payload) and require the card to be in
+   * trash and the event subject to be the anchored host, so a returned/unrelated card cannot be
+   * resurrected as an inherited effect.
+   */
+  private discardedStackSourceContextPayload(
+    sub: SubTriggerSubscription,
+    payload: TriggerInfo,
+  ): { payload: TriggerInfo; proof: DiscardedStackSourceProof } | undefined {
+    const sourceInstanceId = sub.sourceInstanceId;
+    if (sourceInstanceId === undefined) return undefined;
+    if (
+      sub.event !== "onDigiBurstCardDiscarded" &&
+      sub.event !== "onDigivolutionCardsDiscardedBatch" &&
+      sub.event !== "onDigivolutionCardDiscarded"
+    )
+      return undefined;
+    if (payload.subjectPermanentId === undefined) return undefined;
+    if (this.access.permanentById(payload.subjectPermanentId) === undefined) return undefined;
+    if (sub.sourcePermanentId !== undefined && payload.subjectPermanentId !== sub.sourcePermanentId) return undefined;
+    const listed =
+      sub.event === "onDigivolutionCardDiscarded"
+        ? payload.trashedDigivolutionInstanceId === sourceInstanceId
+        : (payload.trashedDigivolutionInstanceIds ?? []).includes(sourceInstanceId);
+    if (!listed || rootZoneOfLooseInstance(this.state, sourceInstanceId) !== "trash") return undefined;
+    return {
+      payload,
+      proof: { sourceInstanceId, hostPermanentId: payload.subjectPermanentId },
+    };
+  }
+
   private buildSubTriggerSourceContext(sub: SubTriggerSubscription, payload: TriggerInfo): EffectContext | undefined {
     if (sub.sourcePermanentId !== undefined) {
       const srcPerm = this.access.permanentById(sub.sourcePermanentId);
@@ -2670,7 +2794,18 @@ export class GameEngine {
       const sourceInstance = [srcPerm.topCard, ...srcPerm.stack, ...srcPerm.linked].find(
         (card) => card.instanceId === sub.sourceInstanceId,
       );
-      if (sub.sourceInstanceId !== undefined && sourceInstance === undefined) return undefined;
+      if (sub.sourceInstanceId !== undefined && sourceInstance === undefined) {
+        // A stack-card watcher can retain the host as its lifecycle anchor while its printed
+        // source has just moved to trash. Rebind only to the exact card named by this discard
+        // event; a generic loose-zone lookup here would resurrect unrelated/returned cards.
+        const discarded = this.discardedStackSourceContextPayload(sub, payload);
+        if (discarded === undefined) return undefined;
+        const discardedSource = this.findLooseInstance(sub.sourceInstanceId);
+        if (discardedSource === undefined) return undefined;
+        const context = this.buildEffectContext(this.cardSourceOf(discardedSource), discarded.payload);
+        context.discardedStackSourceProof = discarded.proof;
+        return context;
+      }
       return this.buildEffectContext(this.cardSourceOf(sourceInstance ?? srcPerm.topCard), payload);
     }
     if (sub.sourceInstanceId !== undefined) {
@@ -2687,7 +2822,10 @@ export class GameEngine {
       if (!activatesFromItsOwnHandTrash && this.looseSourceLeftInstallZone(sub, sub.sourceInstanceId)) return undefined;
       const loose = this.findLooseInstance(sub.sourceInstanceId);
       if (loose === undefined) return undefined;
-      return this.buildEffectContext(this.cardSourceOf(loose), payload);
+      const discarded = this.discardedStackSourceContextPayload(sub, payload);
+      const context = this.buildEffectContext(this.cardSourceOf(loose), discarded?.payload ?? payload);
+      if (discarded !== undefined) context.discardedStackSourceProof = discarded.proof;
+      return context;
     }
     if (sub.activationContext !== undefined) {
       return { ...sub.activationContext, trigger: payload, selections: new Map() };
@@ -3653,7 +3791,14 @@ export class GameEngine {
     projectOnly = false,
   ): Promise<number> {
     const source = this.cardSourceOf(instance);
-    if (this.continuous.blocksCostReduction(source.ownerSeat, "play")) return baseCost;
+    // A reduction prohibition does not prohibit paying the optional effect cost
+    // (EX8-074/Q4443), but it cannot justify an otherwise unaffordable declaration
+    // or a speculative projection (Q4442).
+    if (
+      this.continuous.blocksCostReduction(source.ownerSeat, "play") &&
+      (projectOnly || !this.memory.canPay(source.ownerSeat, baseCost))
+    )
+      return baseCost;
     const effects = effectsOf(EffectTiming.BeforePayCost, source).filter((effect) => effect.costWindow !== "digivolve");
     // Self-targeted "when this card would be played, [by cost / gated by condition], reduce by N"
     // reducers (EX8-074, BT17-068, BT12-112, BT8-043, BT9-097, ...): the runtime record compiled these as
@@ -3818,6 +3963,7 @@ export class GameEngine {
       this.pendingPlayReducerPlacements.set(instance.instanceId, [...pending, ...ctx.pendingSelfReducerPlacements]);
     }
     await this.runCrossPermanentPlayReducers(instance, ctx, crossWatchers);
+    if (this.continuous.blocksCostReduction(source.ownerSeat, "play")) return baseCost;
     const delta = Math.max(0, ctx.playCostDelta ?? 0);
     return Math.max(0, baseCost - delta);
   }
@@ -4926,6 +5072,8 @@ export class GameEngine {
       // current when a play is validated. `controllerSeat` is the seat paying.
       adjustedPlayCost: (_state, seat, definition, base) =>
         this.modifiers.playCostFor({ def: definition, controllerSeat: seat }, base),
+      optionUseCost: (_state, seat, instance, passiveCost) =>
+        this.projectLooseUseCost(instance.instanceId, seat) ?? passiveCost,
       // Seat-level "your opponent can't play <X>" prohibition (RestrictPlay). A manual play
       // is the playing seat's own action, so the prohibition on that seat applies.
       playProhibited: (_state, seat, definition) => this.continuous.isPlayBlocked(seat, definition, "play"),

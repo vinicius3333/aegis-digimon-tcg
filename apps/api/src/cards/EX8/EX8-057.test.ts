@@ -58,6 +58,28 @@ describe("EX8-057", () => {
     expect(player.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT26-062", "BT11-080"]));
     expect(player.deck.map((card) => card.cardId)).toEqual(["BT1-011", "BT1-010"]);
   });
+  it("puts all three revealed cards back on the deck when neither trait matches", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX8-057", as: "source" }],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const player = s.state.players[0] as PlayerState;
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => player.deck.length === 3 && s.state.pendingDecision === undefined);
+
+    expect(player.battleArea.some((permanent) => permanent.topCard.cardId === "EX8-057")).toBe(true);
+    expect(player.hand).toHaveLength(0);
+    expect(player.deck).toHaveLength(3);
+    expect(player.deck.map((card) => card.cardId)).toEqual(["BT1-010", "BT1-011", "BT1-012"]);
+  });
   it("draws and trashes only on the first inherited attack each turn", async () => {
     const s = setupEngine(
       {

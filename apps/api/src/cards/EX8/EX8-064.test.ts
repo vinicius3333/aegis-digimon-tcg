@@ -57,21 +57,27 @@ describe("EX8-064", () => {
     await settle(() => s.perm("first").currentDP === 4000 && s.perm("second").currentDP === 2000);
     expect(s.perm("first").currentDP).toBe(4000);
     expect(s.perm("second").currentDP).toBe(2000);
+    s.state.memory = 0;
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("first").currentDP).toBe(10000);
+    expect(s.perm("second").currentDP).toBe(8000);
   });
   it("de-digivolves the selected opposing stack by exactly 3 before applying the global DP reduction", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX8-064", as: "source" }] },
         1: {
-          battleArea: [{ card: "EX8-064", as: "target", under: ["EX8-063", "EX8-062", "EX8-061", "EX8-060"] }],
+          battleArea: [{ card: "EX8-064", as: "target", under: ["BT10-009", "EX8-060", "EX8-062"] }],
         },
       },
       { autoSelectCards: true },
     );
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
-    await settle(() => s.state.players[1]!.battleArea[0]?.stack.length === 1);
+    await settle(() => s.state.players[1]!.battleArea[0]?.topCard.cardId === "BT10-009");
 
-    expect(s.state.players[1]!.battleArea[0]!.stack).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea[0]!.topCard.cardId).toBe("BT10-009");
+    expect(s.state.players[1]!.battleArea[0]!.stack).toHaveLength(0);
     expect(s.state.players[1]!.battleArea[0]!.currentDP).toBe(s.state.players[1]!.battleArea[0]!.baseDP - 6000);
   });
 

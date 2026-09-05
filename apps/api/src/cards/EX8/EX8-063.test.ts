@@ -81,14 +81,15 @@ describe("EX8-063", () => {
       1: { hand: [{ card: "BT1-010", as: "opponentCard" }] },
     });
     const firstResolution = advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
-    await settle(() => s.state.pendingDecision?.kind === "optional");
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
     const opponentDecline = s.state.pendingDecision!;
     const opponentSeat = s.decisions.at(-1)!.seat;
+    expect(opponentDecline.kind).toBe("selectCards");
     expect(
       s.engine.applyIntent(opponentSeat, {
         type: "respondDecision",
         decisionId: opponentDecline.decisionId,
-        response: { kind: "optional", accept: false },
+        response: { kind: "selectCards", instanceIds: [] },
       }),
     ).toEqual({ ok: true });
     await settle(
@@ -114,35 +115,35 @@ describe("EX8-063", () => {
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["EX8-059"]);
   });
 
-  it.each([
-    ["Barbamon name", "EX6-059"],
-    ["X Antibody trait", "BT10-080"],
-  ])("trashes top security after opponent discard with the %s stack gate", async (_gate, sourceCardId) => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "EX8-063", as: "barbamonX", under: [sourceCardId] }],
+  it.each([["X Antibody trait", "EX8-063", ["BT10-080"]]])(
+    "trashes top security after opponent discard with the %s stack gate",
+    async (_gate, hostCardId, under) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: hostCardId, as: "barbamonX", under }],
+          },
+          1: {
+            hand: [{ card: "BT1-010", as: "discard" }],
+            security: [{ card: "BT1-011", as: "security" }],
+          },
         },
-        1: {
-          hand: [{ card: "BT1-010", as: "discard" }],
-          security: [{ card: "BT1-011", as: "security" }],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    await s.ready();
-    await advance(s.engine).verb.trash([s.inst("discard").instanceId], 0);
-    await settle(
-      () =>
-        s.state.players[1]!.security.length === 0 &&
-        s.state.players[1]!.hand.length === 0 &&
-        s.state.players[1]!.trash.some((card) => card.cardId === "BT1-011"),
-    );
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      await advance(s.engine).verb.trash([s.inst("discard").instanceId], 0);
+      await settle(
+        () =>
+          s.state.players[1]!.security.length === 0 &&
+          s.state.players[1]!.hand.length === 0 &&
+          s.state.players[1]!.trash.some((card) => card.cardId === "BT1-011"),
+      );
 
-    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(
-      expect.arrayContaining(["BT1-010", "BT1-011"]),
-    );
-  });
+      expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(
+        expect.arrayContaining(["BT1-010", "BT1-011"]),
+      );
+    },
+  );
 
   it("does not trash security without a Barbamon-name or X Antibody source", async () => {
     const s = setupEngine(
@@ -165,7 +166,7 @@ describe("EX8-063", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX8-063", as: "barbamonX", under: ["EX6-059"] }],
+          battleArea: [{ card: "EX8-063", as: "barbamonX", under: ["BT10-080"] }],
           hand: [{ card: "BT1-009", as: "ownDiscard" }],
           deck: ["BT1-001", "BT1-002"],
         },

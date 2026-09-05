@@ -238,6 +238,7 @@ export function createEffectContext(parts: {
   activeEffectKey?: string;
   conferredToPermanentId?: string;
   conferralGranterInstanceId?: string;
+  discardedStackSourceProof?: import("./EffectContext.js").DiscardedStackSourceProof;
 }): EffectContext {
   return {
     source: parts.source,
@@ -251,6 +252,7 @@ export function createEffectContext(parts: {
     activeEffectKey: parts.activeEffectKey,
     conferredToPermanentId: parts.conferredToPermanentId,
     conferralGranterInstanceId: parts.conferralGranterInstanceId,
+    discardedStackSourceProof: parts.discardedStackSourceProof,
   };
 }
 

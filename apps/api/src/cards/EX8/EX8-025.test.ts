@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import "../../cards/EX12/EX12-048.js";
 import "./index.js";
 import { compiled } from "./EX8-025.js";
 
@@ -56,7 +57,7 @@ describe("EX8-025", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX8-020", as: "base", under: [{ card: "BT1-001", as: "existing" }] }],
+          battleArea: [{ card: "EX8-020", as: "base", under: [{ card: "EX8-017", as: "existing" }] }],
           hand: [{ card: "EX8-025", as: "whamon" }],
           trash: [{ card: "EX8-017", as: "ds" }],
         },
@@ -90,7 +91,7 @@ describe("EX8-025", () => {
                 { card: "EX8-021", as: "second" },
               ],
             },
-            { card: "BT1-009", as: "otherHost", under: [{ card: "EX8-017", as: "foreign" }] },
+            { card: "BT8-030", as: "otherHost", under: [{ card: "EX8-025", as: "foreign" }] },
           ],
         },
         1: { security: 2 },
@@ -121,12 +122,112 @@ describe("EX8-025", () => {
     expect(s.perm("whamon").stack).toHaveLength(1);
   });
 
+  it("keeps the On Play placement optional when declined", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "EX8-025", as: "whamon" }], trash: [{ card: "EX8-027", as: "ds" }] } },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("whamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX8-025"));
+
+    const whamon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "EX8-025");
+    expect(whamon?.stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX8-027")).toBe(true);
+  });
+
+  it("keeps the End of Attack playback optional when declined", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX8-025", as: "whamon", under: ["EX8-020"] }] },
+        1: { security: 1 },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("whamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.perm("whamon").stack).toHaveLength(1);
+    expect(s.perm("whamon").isSuspended).toBe(true);
+  });
+
   it("applies the inherited attack-target-change restriction only on its controller's turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "host", under: ["EX8-025"] }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT8-030", as: "host", under: ["EX8-025"] }] } });
     await s.ready();
     expect(observe(s.engine).isRestricted(s.perm("host"), "attackTargetChange")).toBe(true);
     s.state.turnSeat = 1;
     await advance(s.engine).recompute();
     expect(observe(s.engine).isRestricted(s.perm("host"), "attackTargetChange")).toBe(false);
+  });
+
+  it("blocks a real Raid redirect after a legal Blue evolution stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-020", as: "base" }],
+          hand: [
+            { card: "EX8-025", as: "whamon" },
+            { card: "EX12-048", as: "seiten" },
+          ],
+          deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "unsuspendedTarget", dp: 15000 }],
+          security: 2,
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 9;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("whamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX8-025");
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["EX8-020"]);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("seiten").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX12-048");
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["EX8-020", "EX8-025"]);
+    expect(observe(s.engine).isRestricted(s.perm("base"), "attackTargetChange")).toBe(true);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    // Raid tried to switch the player attack to the unsuspended Digimon, but Whamon's
+    // inherited restriction rejects that target change. The player therefore loses both
+    // security cards from SeitenGokuumon's printed Security Attack +1, while the otherwise
+    // vulnerable Raid target remains in play.
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(
+      s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("unsuspendedTarget").instanceId),
+    ).toBe(true);
   });
 });

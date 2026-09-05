@@ -82,6 +82,48 @@ describe("EX8-068", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("ds").permanentId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX8-058")).toBe(false);
   });
+  it("does not waive the color requirement while security contains a face-up card", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-010", as: "red" }],
+        hand: [{ card: "EX8-068", as: "option" }],
+        security: [{ card: "BT1-002", as: "faceUp", faceUp: true }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toMatchObject({
+      ok: false,
+    });
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
+  });
+  it("allows battle deletion of a DS Digimon when memory is 0", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX8-058", as: "ds", suspended: true }],
+        security: [{ card: "EX8-068", as: "source", faceUp: true }],
+      },
+      1: { battleArea: [{ card: "BT1-016", as: "attacker", dp: 20000 }] },
+    });
+    s.state.memory = 0;
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("ds").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.every((permanent) => permanent.topCard.cardId !== "EX8-058"));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("ds").permanentId)).toBe(
+      false,
+    );
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX8-058")).toBe(true);
+  });
   it("moves bottom security to hand and places the exact option face-up at the new bottom", async () => {
     const s = setupEngine({
       0: {

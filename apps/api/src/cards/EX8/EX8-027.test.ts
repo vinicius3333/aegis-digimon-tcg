@@ -37,7 +37,7 @@ describe("EX8-027", () => {
         0: {
           battleArea: [
             { card: "EX8-025", as: "whamon", under: [{ card: "EX8-020", as: "own" }] },
-            { card: "BT1-009", as: "other", under: [{ card: "EX8-017", as: "foreign" }] },
+            { card: "BT8-030", as: "other", under: [{ card: "EX8-025", as: "foreign" }] },
           ],
           hand: [{ card: "EX8-027", as: "plesiomon" }],
         },
@@ -59,6 +59,32 @@ describe("EX8-027", () => {
 
     expect(s.perm("other").stack.some((card) => card.instanceId === s.inst("foreign").instanceId)).toBe(true);
     expect(s.state.memory).toBe(0);
+  });
+
+  it("keeps the optional source playback declined during digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-025", as: "whamon", under: [{ card: "EX8-020", as: "own" }] }],
+          hand: [{ card: "EX8-027", as: "plesiomon" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("whamon").permanentId,
+        instanceId: s.inst("plesiomon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("whamon").topCard.cardId === "EX8-027");
+
+    expect(s.perm("whamon").stack).toHaveLength(2);
+    expect(s.perm("whamon").topCard.cardId).toBe("EX8-027");
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
   });
 
   it("triggers from Plesiomon's own play, DNA digivolves into DS, and attacks (Q3894)", async () => {
@@ -124,5 +150,47 @@ describe("EX8-027", () => {
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("aegis").instanceId),
     ).toBe(true);
     expect(s.state.memory).toBe(0);
+  });
+
+  it("offers an order decision when two Plesiomon watchers trigger together (Q3896)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX8-027", as: "first" },
+            { card: "EX8-027", as: "second" },
+            { card: "EX8-020", as: "base" },
+          ],
+          hand: [
+            { card: "EX8-024", as: "evolver" },
+            { card: "EX8-029", as: "aegis" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+    );
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolver").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+
+    const request = s.decisions.findLast(({ req }) => req.kind === "orderTriggers")?.req;
+    expect(request?.options?.triggerCardIds).toEqual(["EX8-027", "EX8-027"]);
+    const firstKey = request?.options?.triggerKeys?.[0];
+    expect(firstKey).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: request!.decisionId,
+        response: { kind: "orderTriggers", order: [firstKey!] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
   });
 });

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { PlayerState } from "@aegis/shared";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./index.js";
 import { compiled } from "./EX8-070.js";
@@ -59,7 +60,7 @@ describe("EX8-070", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX8-047", as: "mineral", under: ["EX8-048"] }],
+          battleArea: [{ card: "EX8-048", as: "mineral", under: ["EX8-047"] }],
           hand: [{ card: "EX8-070", as: "option" }],
         },
       },
@@ -80,11 +81,18 @@ describe("EX8-070", () => {
     expect(observe(s.engine).hasKeyword(s.perm("mineral"), "Reboot")).toBe(true);
     expect(s.perm("mineral").currentDP).toBe(baseDP + 3000);
     expect(observe(s.engine).hasRestriction(s.perm("mineral"), "beReturned")).toBe(true);
+
+    s.state.memory = 0;
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("mineral").currentDP).toBe(baseDP);
+    expect(observe(s.engine).hasKeyword(s.perm("mineral"), "Collision")).toBe(false);
+    expect(observe(s.engine).hasRestriction(s.perm("mineral"), "beReturned")).toBe(false);
   });
   it("may decline without trashing a source or granting any benefit", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "EX8-047", as: "mineral", under: ["EX8-048"] }],
+        battleArea: [{ card: "EX8-048", as: "mineral", under: ["EX8-047"] }],
         hand: [{ card: "EX8-070", as: "option" }],
       },
     });
@@ -106,5 +114,32 @@ describe("EX8-070", () => {
     expect(s.perm("mineral").stack).toHaveLength(1);
     expect(s.perm("mineral").currentDP).toBe(s.perm("mineral").baseDP);
     expect(observe(s.engine).hasKeyword(s.perm("mineral"), "Collision")).toBe(false);
+  });
+  it("blocks an opponent effect from returning the granted host to hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-048", as: "mineral", under: ["EX8-047"] }],
+          hand: [{ card: "EX8-070", as: "option" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasRestriction(s.perm("mineral"), "beReturned"));
+
+    const driver = advance(s.engine);
+    driver.verb.enterEffectResolution(1, ["Digimon"]);
+    await driver.verb.returnToHand([s.perm("mineral").topCard.instanceId]);
+    driver.verb.leaveEffectResolution();
+
+    expect(s.perm("mineral").topCard.cardId).toBe("EX8-048");
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("mineral").permanentId),
+    ).toBe(true);
   });
 });

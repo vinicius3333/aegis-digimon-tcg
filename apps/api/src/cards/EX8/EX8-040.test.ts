@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
@@ -41,15 +40,29 @@ describe("EX8-040", () => {
     );
     expect(s.state.players[1]!.battleArea[0]!.isSuspended).toBe(true);
   });
-  it("suspends an allied Digimon when digivolving", async () => {
+
+  it("does not suspend a Digimon when the optional On Play effect is declined", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "EX8-040", as: "kab" }] }, 1: { battleArea: [{ card: "AD1-001", as: "target" }] } },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kab").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "EX8-040"));
+    expect(s.perm("target").isSuspended).toBe(false);
+  });
+  it("evolves from an off-color NSp rookie and suspends an allied Digimon", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "EX8-040", as: "kab" },
-            { card: "EX8-015", as: "target" },
+            { card: "EX7-015", as: "base" },
+            { card: "BT1-071", as: "target" },
           ],
+          hand: [{ card: "EX8-040", as: "kab" }],
+          deck: ["BT1-045"],
         },
         1: { battleArea: [{ card: "AD1-001", as: "opponent" }] },
       },
@@ -57,19 +70,47 @@ describe("EX8-040", () => {
     );
     preferInstanceIds.push(s.perm("target").permanentId);
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("kab"));
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("kab").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("target").isSuspended);
 
+    expect(s.perm("base").topCard.cardId).toBe("EX8-040");
+    expect(s.perm("base").stack.map((card) => card.cardId)).toContain("EX7-015");
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-045"]);
     expect(s.perm("target").isSuspended).toBe(true);
     expect(s.perm("opponent").isSuspended).toBe(false);
   });
 
-  it("applies its inherited DP grant only during the host controller's turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "AD1-001", as: "host", under: ["EX8-040"] }] } });
+  it("rejects an off-color rookie without NSp", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "base" }], hand: [{ card: "EX8-040", as: "kab" }] },
+    });
     await s.ready();
-    expect(s.perm("host").currentDP).toBe(7000);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("kab").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
+
+  it("applies its inherited DP grant only during the host controller's turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT11-053", as: "host", under: ["EX8-040"] }] } });
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(12000);
     s.state.turnSeat = 1;
     await advance(s.engine).recompute();
-    expect(s.perm("host").currentDP).toBe(5000);
+    expect(s.perm("host").currentDP).toBe(10000);
   });
 });

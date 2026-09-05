@@ -44,6 +44,10 @@ describe("EX8-062", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
     await settle(() => s.perm("target").currentDP === 4000);
     expect(s.perm("target").currentDP).toBe(4000);
+    s.state.memory = 0;
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("target").currentDP).toBe(12000);
   });
   it("distributes the four activations and delays 0-DP deletion until all four finish (Q3948-Q3950)", async () => {
     const s = setupEngine({
@@ -56,12 +60,14 @@ describe("EX8-062", () => {
       },
     });
     const resolution = advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    let zeroTargetPresent = false;
+    let zeroTargetDp = -1;
     for (const [index, target] of ["zeroTarget", "otherTarget", "otherTarget", "otherTarget"].entries()) {
       await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
       const decision = s.state.pendingDecision!;
       if (index === 1) {
-        expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-010")).toBe(true);
-        expect(s.perm("zeroTarget").currentDP).toBe(0);
+        zeroTargetPresent = s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-010");
+        zeroTargetDp = s.perm("zeroTarget").currentDP;
       }
       expect(
         s.engine.applyIntent(0, {
@@ -73,6 +79,8 @@ describe("EX8-062", () => {
       await settle(() => s.state.pendingDecision?.decisionId !== decision.decisionId);
     }
     await resolution;
+    expect(zeroTargetPresent).toBe(true);
+    expect(zeroTargetDp).toBe(0);
     await settle(() => s.state.players[1]!.battleArea.every((permanent) => permanent.topCard.cardId !== "BT1-010"));
 
     expect(s.perm("otherTarget").currentDP).toBe(4000);

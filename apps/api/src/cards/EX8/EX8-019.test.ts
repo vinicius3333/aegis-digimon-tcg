@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
+import { digivolutionRequirementsFor } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -29,17 +29,41 @@ describe("EX8-019", () => {
     await s.ready();
     expect(observe(s.engine).hasEffectiveTrait(s.perm("penguinmon"), "Ice-Snow")).toBe(true);
   });
-  it("reduces an opposing Digimon's Security Attack when the host attacks", async () => {
+  it("reduces an opposing Digimon's Security Attack during a real host attack", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: [{ card: "EX8-019", as: "penguinmon" }] }] },
-      1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      0: {
+        battleArea: [{ card: "BT1-037", as: "host", under: [{ card: "EX8-019", as: "penguinmon" }] }],
+        security: ["BT1-045"],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "opponent" }], security: ["BT1-045"], deck: ["BT1-046"] },
     });
     await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), {
-      subjectPermanentId: s.perm("host").permanentId,
-    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack") === -1);
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
+    await settle(() => !observe(s.engine).isAttacking());
+
+    s.state.memory = 0;
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("opponent").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("opponent").isSuspended).toBe(true);
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-045"]);
+    await advance(s.engine).runTurn(1);
+    expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(0);
   });
 
   it("reduces an Ice-Snow evolution by 1 in the battle area", async () => {
@@ -79,6 +103,28 @@ describe("EX8-019", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("penguinmon").topCard.instanceId === s.inst("frigimon").instanceId);
     expect(s.state.memory).toBe(0);
+  });
+
+  it("does not discount a non-Ice-Snow evolution in the battle area", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX8-019", as: "base" }],
+        hand: [{ card: "BT1-037", as: "gorillamon" }],
+        deck: ["BT1-045"],
+      },
+    });
+    await s.ready();
+    s.state.memory = 2;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gorillamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-045"));
+    expect(s.perm("base").topCard.cardId).toBe("BT1-037");
+    expect(s.state.memory).toBe(1); // Gorillamon's printed cost is 1, with no Ice-Snow discount.
   });
 
   it("uses the Hiyarimon alternate route for 0 and rejects another off-color egg", async () => {
