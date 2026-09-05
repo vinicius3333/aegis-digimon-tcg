@@ -82,4 +82,73 @@ describe("ST21-11", () => {
       ),
     ).toBe(false);
   });
+
+  it("optionally plays a level-4-or-lower Digimon from trash when attacking", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST21-11", as: "host", under: ["ST21-09"] }],
+          trash: [{ card: "ST21-07", as: "fromTrash" }],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("fromTrash").instanceId),
+    );
+    expect(
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("fromTrash").instanceId),
+    ).toBe(true);
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("fromTrash").instanceId)).toBe(
+      false,
+    );
+  });
+
+  it("Blast Digivolves from hand during the opponent's attack without memory cost", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 3000 }] },
+        1: {
+          battleArea: [{ card: "ST21-09", as: "base" }],
+          security: ["BT1-001"],
+          hand: [{ card: "ST21-11", as: "blast" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    s.state.turnSeat = 0;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("counter window did not open");
+    const eligible = opened.eligibleCounters.find((entry) => entry.instanceId === s.inst("blast").instanceId);
+    expect(eligible).toBeDefined();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondCounter",
+        sourceInstanceId: eligible!.instanceId,
+        effectKey: eligible!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "ST21-11");
+    expect(s.perm("base").topCard.cardId).toBe("ST21-11");
+    expect(s.state.memory).toBe(0);
+  });
 });

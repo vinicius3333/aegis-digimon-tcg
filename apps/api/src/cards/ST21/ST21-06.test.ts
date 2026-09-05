@@ -47,4 +47,24 @@ describe("ST21-06", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "ST21-09")).toBe(false);
     expect(s.state.players[1]!.security[0]?.cardId).toBe("ST21-09");
   });
+
+  it("keeps a Digimon above the unscaled 6000 DP boundary in play", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "ST21-06", as: "magna" }] },
+        1: { battleArea: [{ card: "ST21-09", as: "above", dp: 6001 }], security: ["BT1-001"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("magna").instanceId })).toEqual({
+      ok: true,
+    });
+    await (s.engine as unknown as { mainVerbChain: Promise<unknown> }).mainVerbChain;
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("magna").instanceId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === s.perm("above").permanentId)).toBe(
+      true,
+    );
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
 });
