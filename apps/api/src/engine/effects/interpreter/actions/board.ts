@@ -64,7 +64,10 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       // changed orientation, not merely the candidates selected by the player.
       const suspendedIds = suspendResult;
       if ((action as { preventUnsuspend?: string }).preventUnsuspend === "opponentNextUnsuspendPhase") {
-        for (const id of suspendedIds) {
+        // This continuation applies to the chosen Digimon even when it was already suspended.
+        // The printed "that Digimon doesn't unsuspend" still resolves in that state (EX4-013,
+        // Q3451); only "if this effect suspended" conditions use the transition receipt.
+        for (const id of ids) {
           ctx.fx.restrict(id, "unsuspend", toDuration("untilOpponentNextUnsuspendPhase"));
         }
       }
@@ -169,8 +172,8 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         action.target.totalLevels !== undefined;
       if (
         nextOpponentTurnDuration &&
-        (action.playerWide === true ||
-          (action.alsoGainKeywords?.length ?? 0) > 0 ||
+        action.playerWide !== true &&
+        ((action.alsoGainKeywords?.length ?? 0) > 0 ||
           action.continuous === true ||
           ctx.continuousPass === true ||
           action.target.count !== 1 ||
@@ -185,7 +188,19 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         if (controller !== "mine" && controller !== "opponent") return false;
         const seat = controller === "mine" ? ctx.source.ownerSeat : ctx.game.opponentOf(ctx.source.ownerSeat);
         const amount = scale === undefined ? action.amount : action.amount * scale;
-        if (amount !== 0) ctx.fx.modifyPlayerDP(seat, amount, toDuration(action.duration));
+        if (amount !== 0) {
+          ctx.fx.modifyPlayerDP(
+            seat,
+            amount,
+            nextOpponentTurnDuration ? toDuration("untilOpponentTurnEnd") : toDuration(action.duration),
+            nextOpponentTurnDuration
+              ? {
+                  ownerSeat: ctx.source.ownerSeat,
+                  skipsCurrentOpponentTurnEnd: !ctx.source.isOwnersTurn(),
+                }
+              : undefined,
+          );
+        }
         return false;
       }
       const ids = await resolvePermanentTargets(ctx, action.target);

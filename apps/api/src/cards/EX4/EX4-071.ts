@@ -44,7 +44,7 @@ export const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["Ravemon"],
-                      match: "name",
+                      match: "nameExact",
                     },
                   ],
                 },
@@ -52,6 +52,7 @@ export const compiled: CompiledCard = {
                 location: "trash",
                 controller: "mine",
               },
+              from: ["trash"],
               payCost: false,
             },
           ],

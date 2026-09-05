@@ -20,6 +20,25 @@ describe("ModifierLedger DP modifiers", () => {
     expect(future.currentDP).toBe(6000);
   });
 
+  it("frames a player-wide next-opponent-turn delta from its effect owner", () => {
+    const s = setupEngine({ 1: { battleArea: [{ card: "AD1-001", dp: 7000, as: "current" }] } });
+    const ledger = new ModifierLedger();
+    ledger.addPlayerDpModifier(s.state, 1, -5000, EffectDuration.UntilOpponentTurnEnd, {
+      ownerSeat: 0,
+      skipsCurrentOpponentTurnEnd: true,
+    });
+    expect(s.perm("current").currentDP).toBe(2000);
+
+    ledger.sweep(s.state, "eachTurnEnd", 1);
+    ledger.sweep(s.state, "ownerTurnEnd", 1);
+    ledger.sweep(s.state, "opponentTurnEnd", 1);
+    expect(s.perm("current").currentDP).toBe(2000);
+
+    ledger.sweep(s.state, "eachTurnEnd", 0);
+    ledger.sweep(s.state, "eachTurnEnd", 1);
+    expect(s.perm("current").currentDP).toBe(7000);
+  });
+
   it("recomputes currentDP from baseDP plus active deltas", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "AD1-001", dp: 3000, as: "p1" }] } });
     const permanent = s.perm("p1");
@@ -149,7 +168,7 @@ describe("ModifierLedger pierce and evo-cost", () => {
 
     ledger.addEvoCostAdjustment(() => true, -6, false, {
       once: true,
-      onConsume: ({ target }) => consumed.push(target.permanentId),
+      onConsume: ({ target: consumedTarget }) => consumed.push(consumedTarget.permanentId),
     });
 
     expect(ledger.evoCostFor(target)).toEqual({ delta: -6 });
@@ -164,7 +183,7 @@ describe("ModifierLedger pierce and evo-cost", () => {
     const ledger = new ModifierLedger();
     const target = new Permanent();
     target.permanentId = "x";
-    ledger.addEvoCostAdjustment(({ target }) => target.permanentId === "other", -1, false);
+    ledger.addEvoCostAdjustment(({ target: candidate }) => candidate.permanentId === "other", -1, false);
     expect(ledger.evoCostFor(target)).toBeUndefined();
   });
 

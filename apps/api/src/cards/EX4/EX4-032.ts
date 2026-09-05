@@ -60,13 +60,11 @@ export const compiled: CompiledCard = {
                 isSelf: true,
               },
               into: {
-                filter: {
-                  controllerDefault: "mine",
-                  multicolor: true,
-                  colorCount: 2,
-                  colors: ["Green"],
-                },
-                count: 1,
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                multicolor: true,
+                colorCount: 2,
+                colors: ["Green"],
               },
               from: ["hand"],
               payCost: true,

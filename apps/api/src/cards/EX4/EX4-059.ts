@@ -7,7 +7,10 @@ const cardId = "EX4-059";
 export const compiled: CompiledCard = {
   ...compiledEffects[cardId]!,
   effects: [
-    ...compiledEffects[cardId]!.effects.map((effect): CardEffect =>
+    ...compiledEffects[cardId]!.effects.filter(
+      (effect) =>
+        effect.trigger !== "Static" || effect.keywords?.some((keyword) => keyword.keyword === "Alliance") !== true,
+    ).map((effect): CardEffect =>
       effect.trigger === "WhenDigivolving"
         ? {
             ...effect,
@@ -55,20 +58,9 @@ export const compiled: CompiledCard = {
         : effect,
     ),
     {
-      trigger: "WhenAttacking",
-      actions: [
-        {
-          kind: "AddDPFromSuspendedCost",
-          cost: {
-            kind: "suspend",
-            target: { filter: { controller: "mine", kind: ["Digimon"], excludeSelf: true }, count: 1 },
-          },
-          dpSource: { kind: "suspendedTarget" },
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          duration: "forThisAttack",
-          alsoGainKeywords: [{ keyword: "Piercing" }],
-        },
-      ],
+      trigger: "Static",
+      actions: [],
+      keywords: [{ keyword: "Alliance", raw: "＜Alliance＞" }],
     },
   ],
   coverage: "full",

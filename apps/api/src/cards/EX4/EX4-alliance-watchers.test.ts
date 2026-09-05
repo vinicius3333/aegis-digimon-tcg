@@ -25,7 +25,7 @@ describe("EX4 inherited Alliance suspension watchers", () => {
           battleArea: [{ card: "AD1-001", suspended: true, as: "defender" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
     );
     await s.ready();
     await (s.engine as unknown as { recomputeContinuousEffects: () => Promise<void> }).recomputeContinuousEffects();

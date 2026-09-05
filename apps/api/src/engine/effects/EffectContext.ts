@@ -641,7 +641,12 @@ export interface Primitives {
     opts?: { continuous?: boolean; sourceInstanceId?: string; skipsCurrentOpponentTurnEnd?: boolean },
   ): void;
   /** Modify every current and future Digimon controlled by `seat` for the duration. */
-  modifyPlayerDP(seat: Seat, delta: number, duration: EffectDuration): void;
+  modifyPlayerDP(
+    seat: Seat,
+    delta: number,
+    duration: EffectDuration,
+    opts?: { ownerSeat?: Seat; skipsCurrentOpponentTurnEnd?: boolean },
+  ): void;
   /** Restore DP already reduced before a newly gained reduction immunity takes effect (Q1990). */
   restoreDpReductions(permanentId: string): void;
   /**

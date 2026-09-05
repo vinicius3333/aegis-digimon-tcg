@@ -3406,6 +3406,7 @@ export class GameEngine {
       return;
     }
     const entryPermanentId = this.findInstance(sourceInstanceId)?.permanent?.permanentId;
+    const playedEventTrigger = { ...this.playedTrigger(entryPermanentId), entryCause: "play" as const };
     if (entryPermanentId !== undefined) {
       this.materializePlayerCustomEffects(this.access.permanentById(entryPermanentId));
     }
@@ -3417,21 +3418,22 @@ export class GameEngine {
     await this.recomputeContinuousEffects();
     await this.withPendingSubTriggers(
       ["whenPlayed", "onEnterFieldAnyone"],
-      { ...this.playedTrigger(entryPermanentId), entryCause: "play" },
+      playedEventTrigger,
       async () => {
+        // State-based rules run after the card enters and continuous effects apply, before
+        // its triggered On Play effect can activate. Keep the play-event snapshot above so
+        // other when-played watchers still observe the event even if a 0-DP entrant is deleted
+        // here and its own On Play source becomes ineligible (EX4-074 Q3523).
+        await this.ruleProcess();
         await this.fireTimingForInstance(timing, sourceInstanceId, scopedTrigger);
-        const playedPermanentId = this.findInstance(sourceInstanceId)?.permanent?.permanentId;
         await this.fireTiming(EffectTiming.OnEnterFieldAnyone, {
-          ...(playedPermanentId !== undefined ? { subjectPermanentId: playedPermanentId } : {}),
+          ...(entryPermanentId !== undefined ? { subjectPermanentId: entryPermanentId } : {}),
           entryCause: "play",
         });
       },
       {
         onlyInitiallyArmed: true,
-        busTrigger: () => ({
-          ...this.playedTrigger(this.findInstance(sourceInstanceId)?.permanent?.permanentId),
-          entryCause: "play",
-        }),
+        busTrigger: () => playedEventTrigger,
       },
     );
   }

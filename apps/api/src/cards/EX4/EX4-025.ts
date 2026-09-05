@@ -8,40 +8,12 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
-      trigger: "WhenAttacking",
-      actions: [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          kind: "AddDPFromSuspendedCost",
-          cost: {
-            kind: "suspend",
-            target: {
-              filter: {
-                controller: "mine",
-                zone: "battleArea",
-                kind: ["Digimon"],
-                excludeSelf: true,
-              },
-              count: 1,
-            },
-            raw: "by suspending 1 of your other Digimon",
-          },
-          dpSource: {
-            kind: "suspendedTarget",
-          },
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
-          duration: "forThisAttack",
-          alsoGainKeywords: [
-            {
-              keyword: "Rush",
-              raw: "＜Rush＞",
-            },
-          ],
+          keyword: "Alliance",
+          raw: "＜Alliance＞",
         },
       ],
     },

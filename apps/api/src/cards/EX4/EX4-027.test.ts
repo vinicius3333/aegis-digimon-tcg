@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX4-027.js";
@@ -144,5 +145,19 @@ describe("EX4-027 GoldVeedramon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("target").currentDP === 4000);
     expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(true);
+  });
+
+  it("uses Armor Purge to preserve the evolved Digimon by trashing its top card", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX4-027", as: "goldVeedramon", under: ["BT1-009"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("goldVeedramon").permanentId], "byEffect")).toBe(0);
+    expect(s.perm("goldVeedramon").topCard.cardId).toBe("BT1-009");
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("EX4-027");
   });
 });

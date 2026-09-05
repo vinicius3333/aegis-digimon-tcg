@@ -11,15 +11,7 @@ export const compiled: CompiledCard = {
       trigger: "EndOfYourTurn",
       actions: [
         {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
-          payCost: false,
+          kind: "CostGatedBlock",
           cost: {
             kind: "deleteOwn",
             target: {
@@ -40,6 +32,20 @@ export const compiled: CompiledCard = {
           },
           optional: true,
           abortOnDecline: true,
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  isSelfRef: true,
+                },
+                count: 1,
+                isSelf: true,
+              },
+              payCost: false,
+              optional: true,
+            },
+          ],
         },
       ],
       isFromTrash: true,

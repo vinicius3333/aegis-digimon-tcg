@@ -68,4 +68,45 @@ describe("EX4-003 Tsunomon", () => {
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[0]!.deck).toHaveLength(1);
   });
+
+  it("draws only once when multiple other Digimon digivolve in the same turn", async () => {
+    const s = setupEngine({
+      0: {
+        deck: ["BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+        battleArea: [
+          { card: "BT1-009", as: "host", under: ["EX4-003"] },
+          { card: "BT1-009", as: "firstBase" },
+          { card: "BT1-009", as: "secondBase" },
+        ],
+        hand: [
+          { card: "AD1-001", as: "firstEvolution" },
+          { card: "AD1-001", as: "secondEvolution" },
+        ],
+      },
+    });
+    s.state.turnSeat = 0;
+    s.state.memory = 6;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("firstBase").permanentId,
+        instanceId: s.inst("firstEvolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("firstBase").topCard?.cardId === "AD1-001");
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("secondBase").permanentId,
+        instanceId: s.inst("secondEvolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("secondBase").topCard?.cardId === "AD1-001");
+
+    expect(s.state.players[0]!.hand).toHaveLength(3);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+  });
 });

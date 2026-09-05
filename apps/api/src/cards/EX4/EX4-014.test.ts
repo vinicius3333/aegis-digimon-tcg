@@ -1,17 +1,54 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX4-014.js";
 import "../BT10/BT10-024.js";
 import "../index.js";
 
 describe("EX4-014 Gaossmon", () => {
-  it("draws when either player's Blue Flare card is played", () => {
+  it("has the official identity and draws when either player's Blue Flare card is played", () => {
+    expect(getCardDefinition("EX4-014")).toMatchObject({
+      cardId: "EX4-014",
+      nameEn: "Gaossmon",
+      colors: ["Blue"],
+      level: 3,
+      playCost: 3,
+      dp: 1000,
+      evoCosts: [{ color: "Blue", level: 2, memoryCost: 0 }],
+      forms: ["Rookie"],
+      attributes: ["Virus"],
+      types: ["Reptile", "BlueFlare"],
+    });
     expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")?.actions?.[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenPlayed",
       sourceFilter: { nameOrTrait: [{ match: "trait", tokens: ["Blue Flare"] }] },
       actions: [{ kind: "Draw", controller: "mine", amount: 1 }],
     });
+  });
+
+  it("digivolves from a blue level-2 Digi-Egg for 0 and preserves the source", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-003", as: "base" }],
+        hand: [{ card: "EX4-014", as: "gaossmon" }],
+      },
+    });
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gaossmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX4-014");
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT1-003"]);
   });
   it("returns a DigiXros-requirement Digimon when either player's Twilight card is played", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")?.actions?.[1]).toMatchObject({
@@ -48,6 +85,61 @@ describe("EX4-014 Gaossmon", () => {
     await settle(() => s.state.players[0]!.hand.length === 1);
 
     expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+  });
+
+  it("Q3453 draws when the opponent plays Blue Flare during your turn", async () => {
+    const s = setupEngine({
+      0: {
+        deck: ["BT1-010"],
+        battleArea: [{ card: "EX4-014", as: "gaossmon" }],
+      },
+      1: { hand: [{ card: "BT10-018", as: "opponentBlueFlare" }] },
+    });
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    await advance(s.engine).verb.playInstances([s.inst("opponentBlueFlare").instanceId]);
+    await settle(() => s.state.players[0]!.hand.length === 1);
+
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+  });
+
+  it("Q3455 draws from its own Blue Flare play", async () => {
+    const s = setupEngine({
+      0: {
+        deck: ["BT1-010"],
+        hand: [{ card: "EX4-014", as: "gaossmon" }],
+      },
+    });
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gaossmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.length === 1);
+
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+  });
+
+  it("does not react to a Blue Flare play during the opponent's turn", async () => {
+    const s = setupEngine({
+      0: {
+        deck: ["BT1-010"],
+        battleArea: [{ card: "EX4-014", as: "gaossmon" }],
+      },
+      1: { hand: [{ card: "BT10-018", as: "opponentBlueFlare" }] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    await advance(s.engine).verb.playInstances([s.inst("opponentBlueFlare").instanceId]);
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.deck).toHaveLength(1);
   });
 

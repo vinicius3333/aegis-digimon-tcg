@@ -24,7 +24,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Terriermon", "Lopmon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -68,7 +68,7 @@ export const compiled: CompiledCard = {
             digivolutionStackNameOrTrait: [
               {
                 tokens: ["Terriermon", "Lopmon"],
-                match: "name",
+                match: "nameExact",
               },
             ],
           },

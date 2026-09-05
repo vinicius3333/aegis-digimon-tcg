@@ -122,7 +122,10 @@ export const onPlay = (opts: BuilderOptions): Effect =>
     // permanents do not re-fire their own On Play abilities.
     baseGuard: (ctx) => {
       const subjectPermanentId = ctx.trigger.subjectPermanentId;
-      return subjectPermanentId === undefined || opts.source.permanent()?.permanentId === subjectPermanentId;
+      return (
+        onField(ctx) &&
+        (subjectPermanentId === undefined || opts.source.permanent()?.permanentId === subjectPermanentId)
+      );
     },
   });
 

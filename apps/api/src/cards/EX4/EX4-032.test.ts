@@ -45,7 +45,12 @@ describe("EX4-032 Terriermon", () => {
       {
         0: {
           hand: [{ card: "EX4-032", as: "terriermon" }],
-          deck: [{ card: "BT10-055", as: "multicolor" }, { card: "EX2-061", as: "henry" }, "BT1-090", "ST1-16"],
+          deck: [
+            { card: "BT10-055", as: "multicolor" },
+            { card: "EX2-061", as: "henry" },
+            { card: "EX4-007", as: "wrongColor" },
+            { card: "EX2-059", as: "wrongTamer" },
+          ],
         },
       },
       { autoSelectCards: true, autoOrderCards: true },
@@ -60,6 +65,9 @@ describe("EX4-032 Terriermon", () => {
 
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual(
       expect.arrayContaining([multicolorId, henryId]),
+    );
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toEqual(
+      expect.arrayContaining([s.inst("wrongColor").instanceId, s.inst("wrongTamer").instanceId]),
     );
   });
 

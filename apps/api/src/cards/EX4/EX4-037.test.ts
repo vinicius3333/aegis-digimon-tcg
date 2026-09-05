@@ -15,6 +15,9 @@ import { getEffectModule } from "../../engine/effects/registry.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./EX4-037.js";
 
 const card = (id: string): CardInstance =>
@@ -117,5 +120,70 @@ describe("EX4-037 BlackMegaGargomon", () => {
       false,
     );
   });
+
+  it("unsuspends itself once when another Digimon becomes suspended", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-037", as: "host", suspended: true },
+            { card: "BT1-064", as: "other" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.suspend([s.perm("other").permanentId], 0);
+    await settle(() => !s.perm("host").isSuspended);
+    expect(s.perm("host").isSuspended).toBe(false);
+  });
+
+  it("grants Blocker and Reboot only to two-color green-and-black Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-037", as: "host" },
+            { card: "ST17-05", as: "valid" },
+            { card: "BT1-064", as: "singleColor" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireForPermanent(EffectTiming.EndOfYourTurn, s.perm("host"));
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Reboot")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("valid"), "Blocker")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("valid"), "Reboot")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("singleColor"), "Blocker")).toBe(false);
+  });
+
+  it("digivolves from a Rapidmon-named level-5 Digimon for the alternate cost", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "ST17-07", as: "rapidmon" }],
+        hand: [{ card: "EX4-037", as: "blackMegaGargomon" }],
+      },
+    });
+    s.state.memory = 4;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("rapidmon").permanentId,
+        instanceId: s.inst("blackMegaGargomon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("rapidmon").topCard.cardId === "EX4-037");
+    expect(s.perm("rapidmon").topCard.cardId).toBe("EX4-037");
+    expect(s.state.memory).toBe(0);
+  });
+
   ex4CardBehaviorTests("EX4-037");
 });

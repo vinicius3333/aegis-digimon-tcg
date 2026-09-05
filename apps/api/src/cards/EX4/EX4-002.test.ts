@@ -43,4 +43,26 @@ describe("EX4-002 Kokomon", () => {
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.deck).toHaveLength(1);
   });
+
+  it("draws only once when effects suspend multiple Digimon in the same turn", async () => {
+    const s = setupEngine({
+      0: {
+        deck: ["BT1-010", "BT1-011"],
+        battleArea: [
+          { card: "BT1-009", as: "first", under: ["EX4-002"] },
+          { card: "BT1-009", as: "second" },
+        ],
+      },
+    });
+    await s.ready();
+
+    await advance(s.engine).verb.suspend([s.perm("first").permanentId]);
+    await settle(() => s.state.players[0]!.hand.length === 1);
+    await advance(s.engine).verb.unsuspend([s.perm("first").permanentId]);
+    await advance(s.engine).verb.suspend([s.perm("second").permanentId]);
+    await settle();
+
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+  });
 });

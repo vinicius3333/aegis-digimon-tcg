@@ -4,6 +4,7 @@ import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
 import {
   CardKind,
   EffectTiming,
+  getCardDefinition,
   type CardDefinition,
   type CardInstance,
   type GameState,
@@ -13,10 +14,24 @@ import {
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { compiled } from "./EX4-073.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { makeInstance, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { pushOnStack } from "../../engine/state/access.js";
+import "../BT14/BT14-062.js";
 
 describe("EX4-073 Omnimon Alter-B", () => {
   it("registers mandatory When Digivolving and optional When Attacking effects", () => {
+    expect(getCardDefinition("EX4-073")).toMatchObject({
+      cardId: "EX4-073",
+      nameEn: "Omnimon Alter-B",
+      colors: ["Black"],
+      level: 7,
+      playCost: 15,
+      dp: 15000,
+      evoCosts: [{ color: "Black", level: 6, memoryCost: 5 }],
+      forms: ["Mega"],
+      attributes: ["Virus"],
+      types: ["Holy Warrior"],
+    });
     const source = {
       instanceId: "source",
       cardId: "EX4-073",
@@ -53,6 +68,51 @@ describe("EX4-073 Omnimon Alter-B", () => {
       choose: true,
       cardFilter: { kind: ["Digimon"], levelComparison: { op: "gte", value: 6 } },
     });
+  });
+
+  it("digivolves normally from a black level-6 Digimon for 5", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "AD1-004", as: "base" }],
+        hand: [{ card: "EX4-073", as: "alterB" }],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("alterB").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX4-073");
+
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("digivolves from a level-7 Omnimon in name for 2", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-084", as: "omnimon" }],
+        hand: [{ card: "EX4-073", as: "alterB" }],
+      },
+    });
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("omnimon").permanentId,
+        instanceId: s.inst("alterB").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("omnimon").topCard.cardId === "EX4-073");
+
+    expect(s.state.memory).toBe(0);
   });
 
   it("trashes three level-six materials, deletes lowest-cost Digimon/Tamers sequentially, and trashes two security", async () => {
@@ -219,6 +279,76 @@ describe("EX4-073 Omnimon Alter-B", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.security).toHaveLength(2);
     expect(s.state.players[0]!.battleArea[0]!.stack).toHaveLength(0);
+  });
+
+  it("Q3522 retries the protected lowest-cost Datamon instead of deleting the next target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX4-073", as: "attacker", under: ["AD1-004", "AD1-012"] }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT14-062", as: "datamon" },
+            { card: "AD1-003", as: "costSeven" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("attacker"), {
+      attackerPermanentId: s.perm("attacker").permanentId,
+    });
+    await settle(() => s.perm("attacker").stack.length === 0);
+
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId).sort()).toEqual([
+      "AD1-003",
+      "BT14-062",
+    ]);
+  });
+
+  it("Q6033 keeps the three-card security condition local to one activation", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "EX4-073",
+              as: "attacker",
+              under: [{ card: "AD1-004", as: "firstMaterial" }],
+            },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "firstTarget" },
+            { card: "BT1-010", as: "secondTarget" },
+            { card: "BT1-011", as: "thirdTarget" },
+          ],
+          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+        },
+      },
+      { autoAcceptOptional: true, autoOrderTriggers: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("attacker"), {
+      attackerPermanentId: s.perm("attacker").permanentId,
+    });
+    await settle(() => s.perm("attacker").stack.length === 0);
+
+    pushOnStack(s.perm("attacker"), makeInstance("AD1-012", 0, true));
+    pushOnStack(s.perm("attacker"), makeInstance("BT10-067", 0, true));
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("attacker"), {
+      attackerPermanentId: s.perm("attacker").permanentId,
+    });
+    await settle(() => s.perm("attacker").stack.length === 0);
+
+    expect(s.perm("attacker").stack).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(4);
   });
   ex4CardBehaviorTests("EX4-073");
 });

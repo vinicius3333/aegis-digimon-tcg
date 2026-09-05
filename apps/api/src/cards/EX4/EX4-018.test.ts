@@ -74,4 +74,68 @@ describe("EX4-018 MailBirdramon", () => {
       s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("host").permanentId),
     ).toBe(true);
   });
+
+  it("keeps the attack effect on its original target after that target digivolves", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX4-018", as: "mail" }] },
+        1: {
+          deck: ["BT1-010"],
+          hand: [{ card: "AD1-001", as: "evolution" }],
+          battleArea: [
+            { card: "BT1-009", as: "target" },
+            { card: "AD1-001", as: "higher" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("mail"));
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("target").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").topCard?.cardId === "AD1-001");
+
+    const newLowest = s.putOnBoard(1, { card: "BT1-009", as: "newLowest" });
+    s.state.memory = 0;
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("target"), {
+      attackerPermanentId: s.perm("target").permanentId,
+    });
+    expect(s.state.memory).toBe(-2);
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, newLowest, {
+      attackerPermanentId: newLowest.permanentId,
+    });
+    expect(s.state.memory).toBe(-2);
+  });
+
+  it("may Save itself under a Tamer after deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-018", as: "mail" },
+            { card: "BT10-088", as: "tamer" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const savedInstanceId = s.perm("mail").topCard!.instanceId;
+
+    await advance(s.engine).verb.deletePermanent([s.perm("mail").permanentId], "byEffect");
+    await settle(() => s.perm("tamer").stack.some((card) => card.instanceId === savedInstanceId));
+
+    expect(s.perm("tamer").stack.some((card) => card.instanceId === savedInstanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === savedInstanceId)).toBe(false);
+  });
 });

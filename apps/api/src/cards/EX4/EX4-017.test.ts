@@ -39,4 +39,37 @@ describe("EX4-017 Gaogamon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
   });
+
+  it("gains memory only once when effects add multiple opposing cards to hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-030", as: "host", under: ["EX4-017"] },
+            { card: "EX4-017", as: "source" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "firstTarget" },
+            { card: "BT1-009", as: "secondTarget" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.None, s.perm("host"));
+
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("source"));
+    await settle(() => s.state.players[1]!.hand.length === 1);
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("source"));
+    await settle(() => s.state.players[1]!.hand.length === 2);
+
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[1]!.hand).toHaveLength(2);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
 });

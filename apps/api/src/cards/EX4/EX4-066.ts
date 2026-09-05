@@ -23,7 +23,7 @@ export const compiled: CompiledCard = {
                     nameOrTrait: [
                       {
                         tokens: ["Agumon", "Greymon"],
-                        match: "name",
+                        match: "nameExact",
                       },
                     ],
                   },
@@ -34,7 +34,7 @@ export const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["BlitzGreymon"],
-                      match: "name",
+                      match: "nameExact",
                     },
                   ],
                 },
@@ -50,7 +50,7 @@ export const compiled: CompiledCard = {
                     nameOrTrait: [
                       {
                         tokens: ["CresGarurumon"],
-                        match: "name",
+                        match: "nameExact",
                       },
                     ],
                   },
@@ -67,7 +67,7 @@ export const compiled: CompiledCard = {
                     nameOrTrait: [
                       {
                         tokens: ["Gabumon", "Garurumon"],
-                        match: "name",
+                        match: "nameExact",
                       },
                     ],
                   },
@@ -78,7 +78,7 @@ export const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["CresGarurumon"],
-                      match: "name",
+                      match: "nameExact",
                     },
                   ],
                 },
@@ -94,7 +94,7 @@ export const compiled: CompiledCard = {
                     nameOrTrait: [
                       {
                         tokens: ["BlitzGreymon"],
-                        match: "name",
+                        match: "nameExact",
                       },
                     ],
                   },
@@ -117,7 +117,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Gabumon", "Agumon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },

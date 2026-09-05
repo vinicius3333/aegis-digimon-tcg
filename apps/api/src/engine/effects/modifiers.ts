@@ -66,6 +66,10 @@ export interface PlayerDpModifier {
   seat: Seat;
   delta: number;
   duration: EffectDuration;
+  /** Controller of the effect that owns the duration frame; defaults to the affected seat. */
+  ownerSeat?: Seat;
+  /** Ignore only the opponent-turn end already in progress. */
+  skipsCurrentOpponentTurnEnd?: boolean;
 }
 
 /**
@@ -233,8 +237,8 @@ function clearsAt(
       // A genuinely-permanent grant is never cleared by any boundary sweep (WR-03 / ENG-02).
       return false;
     default: {
-      const _exhaustive: never = duration;
-      void _exhaustive;
+      const exhaustive: never = duration;
+      void exhaustive;
       return false;
     }
   }
@@ -285,8 +289,20 @@ export class ModifierLedger {
   }
 
   /** Record a player-wide DP delta and immediately refresh all current affected Digimon. */
-  addPlayerDpModifier(state: GameState, seat: Seat, delta: number, duration: EffectDuration): PlayerDpModifier {
-    const modifier = { seat, delta, duration };
+  addPlayerDpModifier(
+    state: GameState,
+    seat: Seat,
+    delta: number,
+    duration: EffectDuration,
+    opts?: { ownerSeat?: Seat; skipsCurrentOpponentTurnEnd?: boolean },
+  ): PlayerDpModifier {
+    const modifier = {
+      seat,
+      delta,
+      duration,
+      ownerSeat: opts?.ownerSeat,
+      skipsCurrentOpponentTurnEnd: opts?.skipsCurrentOpponentTurnEnd,
+    };
     this.playerDpModifiers.push(modifier);
     for (const permanent of state.players[seat]!.battleArea) this.recomputeDP(state, permanent.permanentId);
     return modifier;
@@ -674,7 +690,14 @@ export class ModifierLedger {
     const touched = new Set<string>();
 
     this.playerDpModifiers = this.playerDpModifiers.filter((modifier) => {
-      const expires = clearsAt(modifier.duration, boundary, modifier.seat, sweepSeat);
+      const ownerSeat = modifier.ownerSeat ?? modifier.seat;
+      if (modifier.skipsCurrentOpponentTurnEnd === true) {
+        if (boundary === "opponentTurnEnd" && ownerSeat !== sweepSeat) {
+          modifier.skipsCurrentOpponentTurnEnd = false;
+        }
+        return true;
+      }
+      const expires = clearsAt(modifier.duration, boundary, ownerSeat, sweepSeat);
       if (expires) {
         for (const permanent of state.players[modifier.seat]!.battleArea) touched.add(permanent.permanentId);
       }
