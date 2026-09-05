@@ -388,7 +388,10 @@ function candidateLooseInstancesIncludingReserved(
         }
         if (cand.hostPermanentId && target.filter.position === "bottom") {
           const host = ctx.game.permanentById(cand.hostPermanentId);
-          const bottomStackCard = host?.stack.at(0);
+          // Q4785: "bottom face-down" skips visible sources below the lowest hidden
+          // source. Unqualified bottom selection still means the physical stack bottom.
+          const bottomStackCard =
+            target.filter.faceDown === true ? host?.stack.find((card) => !card.faceUp) : host?.stack.at(0);
           if (bottomStackCard?.instanceId !== cand.instanceId) continue;
         }
         // withinBottomN: candidate must sit among the bottom N stack positions of its host

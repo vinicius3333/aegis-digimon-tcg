@@ -5641,6 +5641,43 @@ describe("DeleteBudget (budget-multi-delete)", () => {
 // ---------------------------------------------------------------------------
 
 describe("candidateLooseInstances — hostFilter gating", () => {
+  it.each([
+    { faceDown: true, hidden: true, expected: ["lower-hidden"] },
+    { faceDown: undefined, hidden: true, expected: ["visible-bottom"] },
+    { faceDown: true, hidden: false, expected: [] },
+  ])("selects bottom sources with faceDown=$faceDown and hidden=$hidden", ({ faceDown, hidden, expected }) => {
+    const host = makePermWithStack(
+      "host",
+      "DIGIMON",
+      ["Digimon"],
+      [
+        { instanceId: "visible-bottom", cardId: "DIGI-A" },
+        { instanceId: "lower-hidden", cardId: "DIGI-A" },
+        { instanceId: "upper-hidden", cardId: "DIGI-A" },
+      ],
+    );
+    host.controllerSeat = 0;
+    for (const card of host.stack) {
+      card.ownerSeat = 0;
+      card.faceUp = card.instanceId === "visible-bottom" || !hidden;
+    }
+    const ctx = makeContext({
+      source: makeSource(),
+      recorder: { calls: [] },
+      ownBattleArea: [host],
+      definitionOf: (cardId: string) => makeFakeDefinition({ cardId, kinds: [CardKind.Digimon] }),
+    });
+    expect(
+      candidateLooseInstances(
+        ctx,
+        {
+          filter: { controller: "mine", position: "bottom", ...(faceDown === true ? { faceDown: true } : {}) },
+          count: 1,
+        },
+        ["digivolutionCards"],
+      ).map(({ instanceId }) => instanceId),
+    ).toEqual(expected);
+  });
   it.each(["digivolutionCards", "underMyTamers", "underTamers", "underTamer", "digivolutionCardsUnderTamers"] as const)(
     "excludes the imminent play instance from %s while preserving another source",
     (zone) => {
