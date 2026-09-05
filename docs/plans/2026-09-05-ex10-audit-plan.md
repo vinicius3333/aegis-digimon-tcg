@@ -48,14 +48,14 @@ Planning complete; baseline validation and all three Luna audit ranges started.
 - Locked dependency installation succeeded. An initial collection invocation before
   the shared build failed package resolution and ran no tests; it is not card evidence.
 - After building shared, `pnpm --filter @aegis/api exec vitest run src/cards/EX10/
-  --maxWorkers=2`: 75 files passed, one failed; 582 tests passed, one failed.
+--maxWorkers=2`: 75 files passed, one failed; 582 tests passed, one failed.
   EX10-033's Q5097–Q5100 case reads `perm("chosen")` after the 0-DP permanent leaves
   the board. The range owner will verify the behavior and correct the proof.
 - `pnpm typecheck`: shared, API, and web passed.
 - `pnpm --filter @aegis/api exec vitest run src/engine/effects
-  src/engine/subTriggerSeams.test.ts src/engine/continuousLapse.test.ts
-  src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts
-  src/engine/decisions/visibleIdentities.test.ts --maxWorkers=2`: 45 files,
+src/engine/subTriggerSeams.test.ts src/engine/continuousLapse.test.ts
+src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts
+src/engine/decisions/visibleIdentities.test.ts --maxWorkers=2`: 45 files,
   1,126 tests passed.
 - The current `runContinuousPass` clears continuous ledgers and resolves each
   persistent effect once. Q5202 dependency persistence needs a reproduction and a
@@ -70,8 +70,8 @@ Planning complete; baseline validation and all three Luna audit ranges started.
   rendered game client and Colyseus room exercise EX10-006 into EX10-007: the
   alternate 2-memory route is chosen over the printed 3-memory route, memory is
   +1, Agumon remains in the stack, and DP is 8000 (4000 printed + 1000 inherited
-  + 3000 evolution effect). No decision remains. Focused web test: 1/1 passed;
-  changed-file lint/format and diff checks passed.
+  - 3000 evolution effect). No decision remains. Focused web test: 1/1 passed;
+    changed-file lint/format and diff checks passed.
 - Inspection found the specific EX10-059 visibility bypass: generic PlaceUnder
   passes explicit card identities to the picker, overriding ordinary hidden-hand
   enrichment. Worker 051–074 now owns the PlaceUnder/IR seam and card-specific
@@ -122,7 +122,7 @@ Planning complete; baseline validation and all three Luna audit ranges started.
   decision/zone behavior. Independent Luna review accepted the implementation;
   EX10-058 was sent back for refusal/invalid-target cost invariants and a play-ban
   boundary check. The EX10-059 commit is not yet pushed: SSH reports `No user
-  exists for uid 501`, and an HTTPS attempt using the existing credential helper
+exists for uid 501`, and an HTTPS attempt using the existing credential helper
   reports DNS resolution failure for github.com. Earlier commits through
   `0a7b5c6ca` were successfully pushed. This is a temporary publication failure,
   not collection completion or an implementation blocker.
@@ -148,10 +148,48 @@ Planning complete; baseline validation and all three Luna audit ranges started.
   these and worker 051–074 is reviewing the semantics independently.
 - A new concrete EX10-010 negative control exposed a separate player-wide DP
   provenance gap: BT23-035's real compiled security-paid -6000 effect lowers the
-  immune EX10-010 from 15000 to 9000 while an ordinary target correctly becomes
-  4000. `continuousDpImmunity.test.ts` is red-capable; worker 051–074 now owns the
+  immune EX10-010 from 15000 to 9000 while an ordinary target correctly becomes 4000. `continuousDpImmunity.test.ts` is red-capable; worker 051–074 now owns the
   PlayerDpModifier correction, separate from worker 001–025's individual-DP/phase
   work. EX10-010 is not accepted until both paths pass.
 - Independent EX10-064 review confirms that the one-copy effect-play case passes,
   but additive compiled quotas, optional per-Tamer activation and cleanup scope
   remain unresolved. The direct-intent Q5178 test does not prove effect-path parity.
+
+### Current integration checkpoint
+
+- Commits `0e0bd8f1d` (EX10-023 phase restriction) and `fc65b40d3`
+  (EX10-010 continuous DP dependencies and immunity) are pushed. Independent
+  review accepted the corrections. The DP proof includes actual BT23-035
+  player-wide effects, positive and negative provenance, mutual-loop persistence
+  and removal, and continuous base/floor projections.
+- Final focused DP verification passed 7 files / 195 tests; additional continuous
+  mechanisms passed 4 files / 24 tests. Phase verification passed 11 tests and
+  restriction-consumer guards passed 27 tests. The unchanged ch04/interaction
+  regression passed 82 tests; the observable UI evolution scenario passed.
+- Worker 051–074 now owns EX10-064 and its shared DigiXros consumer. Worker
+  026–050 no longer owns edits. Worker 001–025 provides read-only independent
+  review of activation, quotas, pending-play identity and cleanup.
+- A preliminary collection regression excluding EX10-064 and catalog sync passed
+  74 files / 514 tests (`/tmp/ex10-rest-collection-review.log`). This excludes an
+  implementation still under correction and is not the final collection gate.
+- Completion remains pending EX10-064 behavioral and mutation proof, final IR
+  synchronization, full collection/mechanism/typecheck/style gates, recalculated
+  ledgers, atomic delivery commits, branch publication and Orca closeout.
+- The resumed full typecheck passed for shared, API and web. Shared effects,
+  subtrigger and DigiXros regression passed 45 files / 1,126 tests. A broad engine
+  run with per-file isolation is in progress; it is not yet a delivered result.
+- Root review found that the current EX10-064 effect-play test still selects
+  static expanders before `playInstances` activates compiled replacements.
+  Counting ledger entries alone therefore does not prove that the material
+  picker consumes the compiled expansion. The worker must correct this ordering
+  and demonstrate a behaviorally failing mutation with the compiled expansion
+  removed. Passing direct-intent or static-expander tests cannot close this item.
+- The follow-up read-only review independently confirmed the sequencing defect.
+  The new preparation hook must run before material selection, exclude only the
+  compiled sources already offered (preserving other static expanders on a mixed
+  board), and clean pending-play grants on refusal and failure. Current work is
+  still under review; the earlier typecheck result predates this hook.
+- Existing direct-declaration peer suites for BT19-087, EX4-062 and BT19-079
+  passed 3 files / 12 tests (`/tmp/ex10-digixros-peers-current.log`). These provide
+  compatibility evidence, not proof of compiled effect-play activation or peer
+  optionality. Those remain specific requirements for the new hook.
