@@ -7,6 +7,61 @@ import { compiled } from "./EX9-073.js";
 import "../index.js";
 
 describe("EX9-073", () => {
+  it.each(["EX9-010", "BT1-038"])("rejects an ineligible source %s on a real attack", async (candidate) => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX9-073", as: "host" }], hand: [candidate], trash: [candidate] },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.perm("host").stack).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual([candidate]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual([candidate]);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+  it("explicitly declines source placement on attack and preserves the eligible trash card", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX9-073", as: "host" }], trash: ["EX9-041"] },
+      1: { battleArea: [{ card: "BT1-009", as: "target" }], security: ["BT1-001"] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const choice = s.state.pendingDecision!;
+    expect(choice.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: choice.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.perm("host").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["EX9-041"]);
+    expect(s.perm("target").isSuspended).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
   it.each([false, true])(
     "places a Ver.5-only card on real attack with Q4841 On Play suppression=%s",
     async (suppressed) => {
