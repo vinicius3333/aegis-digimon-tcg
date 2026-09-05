@@ -21,7 +21,8 @@ import {
   type CollectedEffect,
 } from "./collect.js";
 import { grantedTokenEffectsForTiming } from "./interpreter.js";
-import { UseTracker } from "./kernel.js";
+import { UseTracker, canTrigger } from "./kernel.js";
+import { onDeletion } from "./builders.js";
 import { linkMax } from "./mindLink.js";
 import { findPermanentInState } from "../state/access.js";
 import { effectiveKinds, effectiveNames, effectiveTraits, type ContinuousEffectLedger } from "./continuous.js";
@@ -479,6 +480,25 @@ export function gatherTriggeredEffects(
     });
 
   const base = collectTriggeredEffects(timing, sources, (s, e) => makeContext(s, e), env.tracker);
+  // Keyword grants disappear when the holder leaves the field. Combat carries
+  // the event-time identity after every prevention so the mandatory reaction
+  // can share the normal On Deletion ordering and effect-deletion semantics.
+  if (timing === EffectTiming.OnDestroyedAnyone && env.triggerInfo?.removalCause === "byBattle") {
+    for (const source of sources) {
+      const target = env.triggerInfo.retaliationTargetsByInstanceId?.[source.instanceId];
+      if (target === undefined || !env.triggerInfo.deletedInstanceIds?.includes(source.instanceId)) continue;
+      const effect = onDeletion({
+        source,
+        effectKey: "keyword/retaliation",
+        description: "＜Retaliation＞: delete the Digimon this Digimon battled.",
+        when: (ctx) => ctx.source.isInTrash?.() === true,
+        resolve: async (ctx) => {
+          await ctx.fx.deletePermanent([target], "byEffect");
+        },
+      });
+      if (canTrigger(effect, makeContext(source, effect), env.tracker)) base.push({ source, effect, timing });
+    }
+  }
 
   const instanceById = (id: string): CardSource | undefined => {
     for (const inst of candidateInstances) {
