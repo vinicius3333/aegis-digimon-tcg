@@ -7,6 +7,57 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("EX9-044", () => {
+  it("shares its DNA limit across evolution and play while the same Hydramon and a second legal pair remain", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-080", as: "green1" },
+            { card: "BT1-044", as: "blue1" },
+            { card: "BT1-080", as: "green2" },
+            { card: "BT1-044", as: "blue2" },
+            { card: "EX9-044", as: "watcher" },
+            { card: "BT21-033", as: "base" },
+          ],
+          hand: ["EX9-045", "EX9-045", { card: "EX9-040", as: "evo" }],
+          trash: [{ card: "BT21-033", as: "later" }],
+          deck: ["BT1-009", "BT1-010", "BT1-046"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const watcherId = s.perm("watcher").topCard.instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evo").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "EX9-045")).toHaveLength(1);
+    expect(s.perm("watcher").topCard.instanceId).toBe(watcherId);
+    expect(s.perm("green2").topCard.cardId).toBe("BT1-080");
+    expect(s.perm("blue2").topCard.cardId).toBe("BT1-044");
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX9-045", "BT1-009", "BT1-010"]);
+    const choicesBefore = s.decisions.filter(({ req }) => req.kind === "optional").length;
+    // Effect-play a WG card from trash after the first DNA has completely resolved.
+    await advance(s.engine).verb.playInstances([s.inst("later").instanceId]);
+    await settle();
+    expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "EX9-045")).toHaveLength(1);
+    expect(s.perm("watcher").topCard.instanceId).toBe(watcherId);
+    expect(s.perm("green2").topCard.cardId).toBe("BT1-080");
+    expect(s.perm("blue2").topCard.cardId).toBe("BT1-044");
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX9-045", "BT1-009", "BT1-010"]);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-046"]);
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(choicesBefore);
+    expect(s.state.memory).toBe(3);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it.each([
     { card: "BT1-046", turn: 0 as const },
     { card: "BT21-033", turn: 1 as const },
