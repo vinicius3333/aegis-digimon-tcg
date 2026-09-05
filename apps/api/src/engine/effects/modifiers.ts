@@ -128,6 +128,8 @@ export interface EvoCostMatch {
  */
 export interface EvoCostAdjustment {
   id: number;
+  /** Destination card whose intrinsic hand-resident reduction this IR modifier implements. */
+  intrinsicCardId?: string;
   match: (m: EvoCostMatch) => boolean;
   delta: number;
   setFixed: boolean;
@@ -505,10 +507,16 @@ export class ModifierLedger {
     match: (m: EvoCostMatch) => boolean,
     delta: number,
     setFixed: boolean,
-    opts?: { continuous?: boolean; once?: boolean; onConsume?: (match: EvoCostMatch) => void },
+    opts?: {
+      continuous?: boolean;
+      once?: boolean;
+      onConsume?: (match: EvoCostMatch) => void;
+      intrinsicCardId?: string;
+    },
   ): EvoCostAdjustment {
     const adjustment: EvoCostAdjustment = {
       id: this.evoCostSeq++,
+      intrinsicCardId: opts?.intrinsicCardId,
       match,
       delta,
       setFixed,
@@ -632,6 +640,18 @@ export class ModifierLedger {
       return { fixed: folded < 0 ? 0 : folded };
     }
     return { delta };
+  }
+
+  /** Whether a live IR modifier already implements this destination's intrinsic reduction. */
+  hasIntrinsicEvoCostAdjustment(target: Permanent, into: CardDefinition | undefined): boolean {
+    if (into === undefined) return false;
+    return this.evoCostAdjustments.some(
+      (adjustment) =>
+        adjustment.intrinsicCardId === into.cardId &&
+        adjustment.delta < 0 &&
+        !adjustment.setFixed &&
+        adjustment.match({ target, into }),
+    );
   }
 
   /** Remove a previously recorded evo-cost adjustment by id (when its source leaves play). */

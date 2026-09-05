@@ -44,6 +44,7 @@ describe("BT22-076 ShinMonzaemon", () => {
       0: { battleArea: [{ card: "BT22-038", as: "monzaemon" }], hand: [{ card: "BT22-076", as: "shin" }] },
     });
     s.state.memory = 10;
+    await s.ready();
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",

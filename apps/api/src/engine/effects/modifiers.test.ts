@@ -1,9 +1,40 @@
 import { describe, it, expect } from "vitest";
-import { EffectDuration, Permanent, type Seat } from "@aegis/shared";
+import { EffectDuration, Permanent, getCardDefinition, type Seat } from "@aegis/shared";
 import { setupEngine } from "../testkit/harness.js";
 import { ModifierLedger } from "./modifiers.js";
 
 describe("ModifierLedger DP modifiers", () => {
+  it("does not identify increases or fixed evo costs as intrinsic reductions", () => {
+    const ledger = new ModifierLedger();
+    const target = new Permanent();
+    const into = getCardDefinition("BT22-076")!;
+    ledger.addEvoCostAdjustment(() => true, 2, false, { intrinsicCardId: "BT22-076" });
+    ledger.addEvoCostAdjustment(() => true, -2, true, { intrinsicCardId: "BT22-076" });
+    expect(ledger.hasIntrinsicEvoCostAdjustment(target, into)).toBe(false);
+  });
+  it("recognizes only a matching live intrinsic evo modifier and drops its provenance on clear", () => {
+    const ledger = new ModifierLedger();
+    const target = new Permanent();
+    target.controllerSeat = 0;
+    const into = getCardDefinition("BT22-076")!;
+    expect(into).toBeDefined();
+    ledger.addEvoCostAdjustment(() => true, -1, false);
+    expect(ledger.hasIntrinsicEvoCostAdjustment(target, into)).toBe(false);
+    ledger.addEvoCostAdjustment((match) => match.target.controllerSeat === 0, -2, false, {
+      continuous: true,
+      intrinsicCardId: "BT22-076",
+    });
+    expect(ledger.hasIntrinsicEvoCostAdjustment(target, into)).toBe(true);
+    expect(ledger.evoCostFor(target, into)).toEqual({ delta: -3 });
+    expect(ledger.hasIntrinsicEvoCostAdjustment(target, getCardDefinition("BT22-061"))).toBe(false);
+    expect(ledger.hasIntrinsicEvoCostAdjustment(target, undefined)).toBe(false);
+    target.controllerSeat = 1;
+    expect(ledger.hasIntrinsicEvoCostAdjustment(target, into)).toBe(false);
+    target.controllerSeat = 0;
+    ledger.clearContinuous(setupEngine({}).state);
+    expect(ledger.hasIntrinsicEvoCostAdjustment(target, into)).toBe(false);
+    expect(ledger.evoCostFor(target, into)).toEqual({ delta: -1 });
+  });
   it("applies player-wide deltas to current and future Digimon until the duration expires", () => {
     const s = setupEngine({ 1: { battleArea: [{ card: "AD1-001", dp: 7000, as: "current" }] } });
     const ledger = new ModifierLedger();

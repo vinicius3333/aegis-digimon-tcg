@@ -470,7 +470,12 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
             });
           };
         }
-        ctx.fx.changeEvoCost(predicate, delta, modifierOpts);
+        ctx.fx.changeEvoCost(predicate, delta, {
+          ...modifierOpts,
+          ...(action.handResident === true && selfRef && !setMode && delta < 0
+            ? { intrinsicCardId: ctx.source.cardId }
+            : {}),
+        });
         return false;
       }
       // An interactive self-reduction resolved in the card's BeforePayCost window must

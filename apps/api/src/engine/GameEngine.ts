@@ -1537,6 +1537,7 @@ export class GameEngine {
       adjustedDigivolveCost: (_state, target, base, into, opts) => {
         const reductionsBlocked = this.continuous.blocksCostReduction(target.controllerSeat, "digivolve");
         let cost = base;
+        const intrinsicAlreadyApplied = this.modifiers.hasIntrinsicEvoCostAdjustment(target, into);
         const adj = this.modifiers.evoCostFor(target, into, opts);
         if (adj !== undefined) {
           cost = "fixed" in adj ? adj.fixed : cost + adj.delta;
@@ -1546,7 +1547,8 @@ export class GameEngine {
           hasFired: (key) => this.tracker.count(key, "replacement") > 0,
           markFired: (key) => this.tracker.register(key, "replacement"),
         });
-        const intrinsicReduction = intrinsicDigivolutionCostReduction(into, target);
+        // The shared intrinsic projection is a fallback, not a second copy of a live IR reduction.
+        const intrinsicReduction = intrinsicAlreadyApplied ? 0 : intrinsicDigivolutionCostReduction(into, target);
         return Math.max(0, cost - (reductionsBlocked ? 0 : replReduction + intrinsicReduction));
       },
       prepareDigivolveCost: (_state, _seat, target, evolving) => this.fireBeforeDigivolveCost(evolving, target),

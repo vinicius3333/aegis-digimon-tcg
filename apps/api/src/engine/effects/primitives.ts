@@ -699,12 +699,19 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   const changeEvoCost = (
     filter: (m: EvoCostMatch) => boolean,
     delta: number,
-    opts?: { setFixed?: boolean; once?: boolean; continuous?: boolean; onConsume?: (match: EvoCostMatch) => void },
+    opts?: {
+      setFixed?: boolean;
+      once?: boolean;
+      continuous?: boolean;
+      onConsume?: (match: EvoCostMatch) => void;
+      intrinsicCardId?: string;
+    },
   ): void => {
     ledger.addEvoCostAdjustment(filter, delta, opts?.setFixed ?? false, {
       ...(opts?.continuous !== undefined ? { continuous: opts.continuous } : (continuousOpt() ?? {})),
       once: opts?.once,
       onConsume: opts?.onConsume,
+      intrinsicCardId: opts?.intrinsicCardId,
     });
   };
 
