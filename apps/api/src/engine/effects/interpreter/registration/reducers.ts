@@ -357,6 +357,7 @@ const VERIFIED_DIGIVOLVE_SELF_REDUCER_CARDS = new Set([
   "EX5-012", // qualifying 3+ source Light Fang/Night Claw/Galaxy stack -> self evo cost -2 (Q3549)
   "BT17-048", // suspend up to 5 Tamers to reduce this card's own evo cost per Tamer
   "EX9-063", // Ver.4 base: this card's own evolution costs -1 per face-down source
+  "EX9-031", // Ver.3 base: this card's own evolution costs -1 per face-down source
 ]);
 
 /**

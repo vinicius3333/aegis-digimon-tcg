@@ -1,9 +1,40 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX9-031.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("EX9-031", () => {
+  it.each([
+    { base: "EX9-029", memory: 2 },
+    { base: "BT1-051", memory: 1 },
+  ])("counts only hidden sources and requires Ver.3 on $base", async ({ base, memory }) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: base, as: "host", under: [{ card: "BT1-009", faceUp: false }, "BT1-045"] }],
+          hand: [{ card: "EX9-031", as: "evo" }],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("host").topCard.cardId).toBe("EX9-031");
+    expect(s.state.memory).toBe(memory);
+    expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual(["BT1-009", "BT1-045", base]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("reduces Ver.3 digivolution cost and has Security A. +1", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Static" && entry.actions.length > 0)).toMatchObject({
       actions: [{ kind: "Replacement", actions: [{ mode: "reduceCost", amount: 1 }] }],
@@ -54,6 +85,7 @@ describe("EX9-031", () => {
           deck: ["BT1-090"],
           security: ["BT1-001"],
         },
+        1: { security: ["BT1-002", "BT1-003"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
@@ -68,5 +100,85 @@ describe("EX9-031", () => {
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
     expect(s.perm("other").stack.map((card) => card.cardId)).toEqual(["BT1-011"]);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
+  it("reduces a real Ver.3 digivolution by one for each face-down source", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "EX9-029",
+              as: "source",
+              under: [
+                { card: "BT1-009", faceUp: false },
+                { card: "BT1-010", faceUp: false },
+              ],
+            },
+          ],
+          hand: [{ card: "EX9-031", as: "evo" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard.cardId === "EX9-031");
+
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("source").stack.map((card) => [card.cardId, card.faceUp])).toEqual([
+      ["BT1-009", false],
+      ["BT1-010", false],
+      ["EX9-029", true],
+    ]);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("inherits -4000 DP on an opposing Digimon when the host removes security", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST3-10", as: "host", under: ["EX9-031"] }], security: ["BT1-090"] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }] },
+      },
+      { autoOrderTriggers: true, autoSelectCards: true },
+    );
+    await advance(s.engine).verb.trashFromSecurity(0, 1);
+    await settle(() => s.perm("target").currentDP !== 5000);
+    expect(s.perm("target").currentDP).toBe(1000);
+  });
+
+  it("applies inherited -4000 only once for two security removals and expires at turn end", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-071", as: "host", under: ["EX9-031"] }], security: ["BT1-090", "BT1-090"] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 6000 }] },
+      },
+      { autoOrderTriggers: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    await advance(s.engine).verb.trashFromSecurity(0, 1);
+    await settle(() => s.perm("target").currentDP !== 6000);
+    expect(s.perm("target").currentDP).toBe(2000);
+
+    await advance(s.engine).verb.trashFromSecurity(0, 1);
+    await settle();
+    expect(s.perm("target").currentDP).toBe(2000);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+
+    await advance(s.engine).runTurn(0);
+    expect(s.perm("target").currentDP).toBe(6000);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });
