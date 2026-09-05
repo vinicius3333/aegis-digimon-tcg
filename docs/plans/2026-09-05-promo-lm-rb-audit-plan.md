@@ -20,3 +20,7 @@ Workers do not commit or edit shared engine/catalog/canonical ledger files. Requ
 ## Validation and delivery
 
 Run focused behavioral proof, affected mechanism regressions, all three collection suites, effects sync/check for changed sets, workspace typecheck, changed-file lint/format and `git diff --check`. Resolve failures; document any independently reproduced unrelated baseline failure. Recalculate each canonical ledger from actual new evidence, preserving below-10 scores for limitations. Completion requires every card at reproducible 10/10, green focused/mechanism/collection tests, atomic commits and pushed branch. Open a review PR without merging. Mark the Orca worktree completed only after the full collection acceptance is proven, with `COLLECTION COMPLETE: P, LM, RB1; 100% 10/10; branch pushed`.
+
+## Delivery authorization
+
+The user subsequently authorized merging into main and pushing when finished. Integrate the latest main without rewriting history, revalidate any shared-engine changes, and merge only after final checks.
