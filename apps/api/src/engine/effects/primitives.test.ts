@@ -2149,6 +2149,20 @@ describe("expandDigiXrosZones", () => {
     // would only use default zones — wrong for BT19-079/BT19-087.
     expect(h.fx.digiXrosExpandedZones!(0)).toEqual([]);
   });
+
+  it("scopes per-play expansions and cleanup to the pending play instance", () => {
+    const h = harness();
+    h.fx.expandDigiXrosZonesForPlay!(0, ["trash"], "Permanent" as never, "play-a");
+    h.fx.expandDigiXrosZonesForPlay!(0, ["underTamers"], "Permanent" as never, "play-b");
+
+    expect(h.fx.digiXrosExpandedZoneCounts!(0, "play-a")).toEqual({ trash: 1 });
+    expect(h.fx.digiXrosExpandedZoneCounts!(0, "play-b")).toEqual({ underTamers: 1 });
+    expect(h.fx.digiXrosPlayExpansionCount!(0, "play-a")).toBe(1);
+
+    h.fx.consumeDigiXrosPlayExpansions!(0, "play-a");
+    expect(h.fx.digiXrosExpandedZoneCounts!(0, "play-a")).toEqual({});
+    expect(h.fx.digiXrosExpandedZoneCounts!(0, "play-b")).toEqual({ underTamers: 1 });
+  });
 });
 
 describe("grantKind + effectiveKinds + payActivationCost (HARD-05)", () => {
@@ -2557,7 +2571,11 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     trashPermanentByRule: true,
     deletionMaxDpBonus: true,
     digivolveFromInstance: true,
+    digiXrosExpandedZoneCounts: true,
     digiXrosExpandedZones: true,
+    digiXrosPlayExpansionCount: true,
+    consumeDigiXrosPlayExpansions: true,
+    prepareDigiXrosPlay: true,
     disableSecurityEffect: true,
     disableSecurityEffectsForSeat: true,
     disableTimingEffect: true,
@@ -2567,6 +2585,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     endAttack: true,
     enterEffectResolution: true,
     expandDigiXrosZones: true,
+    expandDigiXrosZonesForPlay: true,
     fireOnDiscardLibrary: true,
     fireOptionUsed: true,
     fireSuspensionTriggers: true,

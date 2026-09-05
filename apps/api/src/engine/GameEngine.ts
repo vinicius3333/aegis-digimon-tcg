@@ -938,6 +938,7 @@ export class GameEngine {
           ? baseCost
           : this.fireBeforePayCost(instance, baseCost, useAsOption, originZone, projectOnly);
       },
+      prepareDigiXrosPlay: (instanceId) => this.prepareDigiXrosPlay(instanceId),
       finalizeEffectDigivolveCost: async (target, evolvingInstanceId, into, baseCost) => {
         const deps = this.digivolveDeps();
         const adjusted = deps.adjustedDigivolveCost?.(this.state, target, baseCost, into, { consumeOnce: true });
@@ -4073,6 +4074,56 @@ export class GameEngine {
     if (this.continuous.blocksCostReduction(source.ownerSeat, "play")) return baseCost;
     const delta = Math.max(0, ctx.playCostDelta ?? 0);
     return Math.max(0, baseCost - delta);
+  }
+
+  /**
+   * Resolve only `wouldBePlayed` replacements before an effect-driven DigiXros picker.
+   * The ordinary BeforePayCost reducers remain at the canonical payment point; this early seam
+   * exists so a replacement can grant its material zones before the picker builds candidates.
+   */
+  private async prepareDigiXrosPlay(instanceId: string): Promise<string[]> {
+    const instance = this.findLooseInstance(instanceId);
+    if (instance === undefined) return [];
+    const source = this.cardSourceOf(instance);
+    const playTarget = new Permanent();
+    playTarget.permanentId = `pending-play-${instance.instanceId}`;
+    playTarget.controllerSeat = source.ownerSeat;
+    setTopCard(playTarget, instance);
+    playTarget.inBreeding = false;
+    playTarget.baseDP = source.definition.dp ?? 0;
+    playTarget.currentDP = playTarget.baseDP;
+    const sourcePermanentIds: string[] = [];
+    await this.subTriggers.activateInsteadReplacementsFor(
+      "wouldBePlayed",
+      playTarget,
+      (sourcePermanentId, sourceInstanceId) => {
+        const resident =
+          this.access.permanentById(sourcePermanentId) ??
+          (this.state.players[source.ownerSeat]?.breeding?.permanentId === sourcePermanentId
+            ? this.state.players[source.ownerSeat]?.breeding
+            : undefined);
+        const sourceCard = this.findInstance(sourceInstanceId ?? "")?.instance ?? resident?.topCard;
+        if (sourceCard === undefined) return undefined;
+        return {
+          ...this.buildEffectContext(this.cardSourceOf(sourceCard), {
+            wouldBePlayedInstanceId: instance.instanceId,
+            wouldBePlayedCardId: instance.cardId,
+            wouldBePlayedAsOption: false,
+          }),
+          selections: new Map(),
+        };
+      },
+      {
+        hasFired: (key) => this.tracker.count(key, "replacement") > 0,
+        markFired: (key) => this.tracker.register(key, "replacement"),
+      },
+      (replacement) => {
+        // The static picker represents the same printed ability. An offered source stays
+        // handled after refusal so it cannot receive a second activation offer for this play.
+        if (replacement.sourcePermanentId !== undefined) sourcePermanentIds.push(replacement.sourcePermanentId);
+      },
+    );
+    return sourcePermanentIds;
   }
 
   /** Resolve the in-hand half of BeforePayCost for an imminent digivolution. */

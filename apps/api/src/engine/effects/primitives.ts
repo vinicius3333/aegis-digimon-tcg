@@ -168,6 +168,8 @@ export interface PrimitivesEngine {
     originZone?: ZoneRef,
     projectOnly?: boolean,
   ) => Promise<number>;
+  /** Activate matching would-be-played replacements before an effect-driven DigiXros picker. */
+  prepareDigiXrosPlay?(instanceId: string): Promise<string[]>;
   /** Resolve passive and interactive cost reducers for an effect-driven paid digivolution. */
   finalizeEffectDigivolveCost?: (
     target: Permanent,
@@ -424,6 +426,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       duration: EffectDuration;
       activationTurnCount: number;
       activationTurnSeat: Seat;
+      perPlay?: boolean;
+      pendingPlayInstanceId?: string;
     }>
   >();
   const digiXrosExpansionIsActive = (
@@ -455,24 +459,89 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // than leaking it across a turn boundary.
     return currentTurn === entry.activationTurnCount || currentTurnSeat === entry.activationTurnSeat;
   };
-  const digiXrosExpandedZones: Primitives["digiXrosExpandedZones"] = (seat) => {
+  const activeDigiXrosExpansions = (seat: Seat) => {
     const entries = digiXrosZoneExpansions.get(seat) ?? [];
     const active = entries.filter((entry) => digiXrosExpansionIsActive(entry, seat));
     if (active.length !== entries.length) {
       if (active.length === 0) digiXrosZoneExpansions.delete(seat);
       else digiXrosZoneExpansions.set(seat, active);
     }
-    return [...new Set(active.flatMap((entry) => entry.zones))];
+    return active;
   };
-  const expandDigiXrosZones: Primitives["expandDigiXrosZones"] = (seat, zones, duration) => {
+  const digiXrosExpandedZones: Primitives["digiXrosExpandedZones"] = (seat, pendingPlayInstanceId) => {
+    const active = activeDigiXrosExpansions(seat);
+    return [
+      ...new Set(
+        active
+          .filter(
+            (entry) =>
+              entry.perPlay !== true ||
+              pendingPlayInstanceId === undefined ||
+              entry.pendingPlayInstanceId === pendingPlayInstanceId,
+          )
+          .flatMap((entry) => entry.zones),
+      ),
+    ];
+  };
+  const digiXrosExpandedZoneCounts: NonNullable<Primitives["digiXrosExpandedZoneCounts"]> = (
+    seat,
+    pendingPlayInstanceId,
+  ) => {
+    const counts: Partial<Record<ZoneRef, number>> = {};
+    for (const entry of activeDigiXrosExpansions(seat)) {
+      if (
+        entry.perPlay === true &&
+        pendingPlayInstanceId !== undefined &&
+        entry.pendingPlayInstanceId !== pendingPlayInstanceId
+      )
+        continue;
+      for (const zone of entry.zones) counts[zone] = (counts[zone] ?? 0) + 1;
+    }
+    return counts;
+  };
+  const digiXrosPlayExpansionCount: NonNullable<Primitives["digiXrosPlayExpansionCount"]> = (
+    seat,
+    pendingPlayInstanceId,
+  ) =>
+    activeDigiXrosExpansions(seat).filter(
+      (entry) =>
+        entry.perPlay === true &&
+        (pendingPlayInstanceId === undefined || entry.pendingPlayInstanceId === pendingPlayInstanceId),
+    ).length;
+  const addDigiXrosExpansion = (
+    seat: Seat,
+    zones: ZoneRef[],
+    duration: EffectDuration,
+    perPlay = false,
+    pendingPlayInstanceId?: string,
+  ): void => {
     const entries = digiXrosZoneExpansions.get(seat) ?? [];
     entries.push({
       zones: [...new Set(zones)],
       duration,
       activationTurnCount: state.turnCount,
       activationTurnSeat: state.turnSeat,
+      perPlay,
+      ...(pendingPlayInstanceId === undefined ? {} : { pendingPlayInstanceId }),
     });
     digiXrosZoneExpansions.set(seat, entries);
+  };
+  const expandDigiXrosZones: Primitives["expandDigiXrosZones"] = (seat, zones, duration) =>
+    addDigiXrosExpansion(seat, zones, duration);
+  const expandDigiXrosZonesForPlay: Primitives["expandDigiXrosZonesForPlay"] = (
+    seat,
+    zones,
+    duration,
+    pendingPlayInstanceId,
+  ) => addDigiXrosExpansion(seat, zones, duration, true, pendingPlayInstanceId);
+  const consumeDigiXrosPlayExpansions: Primitives["consumeDigiXrosPlayExpansions"] = (seat, pendingPlayInstanceId) => {
+    const remaining = (digiXrosZoneExpansions.get(seat) ?? []).filter(
+      (entry) =>
+        entry.perPlay !== true ||
+        (pendingPlayInstanceId !== undefined && entry.pendingPlayInstanceId !== pendingPlayInstanceId),
+    );
+    if (remaining.length === 0) digiXrosZoneExpansions.delete(seat);
+    else digiXrosZoneExpansions.set(seat, remaining);
   };
 
   // Engine-backed: re-activate one of a permanent's own [On Play] effects (EX3-065). Needs the
@@ -5650,7 +5719,12 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     subscribeSubTrigger,
     subscribeReplacement,
     expandDigiXrosZones,
+    expandDigiXrosZonesForPlay,
     digiXrosExpandedZones,
+    digiXrosExpandedZoneCounts,
+    digiXrosPlayExpansionCount,
+    consumeDigiXrosPlayExpansions,
+    prepareDigiXrosPlay: async (instanceId) => engine.prepareDigiXrosPlay?.(instanceId) ?? [],
     playToken,
     modifySecurityDp,
     addDeletionMaxDp,

@@ -1495,12 +1495,28 @@ export interface Primitives {
    * Optional on the port so faked primitives in tests need no change.
    */
   expandDigiXrosZones?(seat: Seat, zones: ZoneRef[], duration: EffectDuration): void;
+  /** Record a DigiXros expansion for the single pending play that activated it. */
+  expandDigiXrosZonesForPlay?(
+    seat: Seat,
+    zones: ZoneRef[],
+    duration: EffectDuration,
+    pendingPlayInstanceId?: string,
+  ): void;
   /**
    * Read the currently-expanded DigiXros material source zones for `seat`.
-   * Returns the union of all active expansions, or an empty array when none.
+   * Returns the union of all active expansions, or an empty array when none. Legacy callers
+   * that only need presence may use this; quota-aware callers should use the counted reader.
    * Optional on the port so faked primitives in tests need no change.
    */
-  digiXrosExpandedZones?(seat: Seat): ZoneRef[];
+  digiXrosExpandedZones?(seat: Seat, pendingPlayInstanceId?: string): ZoneRef[];
+  /** Read the active expansion quota by source zone, preserving separate Tamer activations. */
+  digiXrosExpandedZoneCounts?(seat: Seat, pendingPlayInstanceId?: string): Partial<Record<ZoneRef, number>>;
+  /** Number of pending-play expansion activations for `seat`, for replacement success accounting. */
+  digiXrosPlayExpansionCount?(seat: Seat, pendingPlayInstanceId?: string): number;
+  /** Consume pending-play expansions after material selection; persistent grants survive. */
+  consumeDigiXrosPlayExpansions?(seat: Seat, pendingPlayInstanceId?: string): void;
+  /** Resolve matching wouldBePlayed replacements before effect-driven DigiXros material selection. */
+  prepareDigiXrosPlay?(instanceId: string): Promise<string[]>;
 
   /** Spawn a token Digimon as a new battle-area permanent. */
   playToken(
@@ -1726,7 +1742,7 @@ export interface ReplacementInstallDnaMemory extends ReplacementInstallBase {
  */
 export interface ReplacementInstallInstead extends ReplacementInstallBase {
   mode: "instead";
-  apply: (ctx: EffectContext) => Promise<void>;
+  apply: (ctx: EffectContext) => Promise<void | boolean>;
   /**
    * For ＜Digisorption＞ redirect (BT3-056): when true, the Replacement's suspend cost
    * is paid by the OPPONENT (opponent's Digimon are suspended), not the controller's.
@@ -1736,6 +1752,8 @@ export interface ReplacementInstallInstead extends ReplacementInstallBase {
   /** Does this apply to `leavingPermanentId`? (self-reaction => only its own source; a filtered
    * reaction => any matching permanent, e.g. BT20-091 "any of your Digimon with [Royal Knight]".) */
   appliesTo?: (ctx: EffectContext, leavingPermanentId: string) => boolean;
+  /** Predicate for a pending `wouldBePlayed` target, which has no live permanent id yet. */
+  appliesToPending?: (ctx: EffectContext, target: Permanent) => boolean;
   /** Stable per-turn key gating this reaction to once per turn (BT20-091 "[Once Per Turn]"). */
   oncePerTurnKey?: string;
 }
