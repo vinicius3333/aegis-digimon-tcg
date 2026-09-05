@@ -7,6 +7,38 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("EX9-042", () => {
+  it.each([
+    { base: "EX9-040", memory: 2 },
+    { base: "BT1-071", memory: 1 },
+  ])(
+    "pays the applicable evolution route from $base and resolves the real digivolving effect",
+    async ({ base, memory }) => {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: base, as: "host" }], hand: [{ card: "EX9-042", as: "evo" }], deck: ["BT1-009"] },
+          1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+      );
+      s.state.memory = 5;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evo").instanceId,
+        useAlternateCost: base === "EX9-040",
+        }),
+      ).toEqual({ ok: true });
+      await settle();
+      expect(s.perm("host").topCard.cardId).toBe("EX9-042");
+      expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual([base]);
+      expect(s.state.memory).toBe(memory);
+      expect(s.perm("target").isSuspended).toBe(true);
+      expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(true);
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
   it("chooses different suspension and restriction targets, then expires the restriction (Q4795)", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "EX9-042", as: "source" }] },
@@ -147,14 +179,52 @@ describe("EX9-042", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("unsuspends an inherited WG at end of its owner's turn", async () => {
+  it.each([true, false])("resolves inherited WG unsuspend at the real turn end, accepted: %s", async (accept) => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX9-044", as: "host", under: ["EX9-042"] }] } },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-080", as: "host", under: ["EX9-042"] },
+            { card: "BT21-033", as: "wg" },
+            { card: "BT1-009", as: "nonWG" },
+          ],
+          deck: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: accept, autoDeclineOptional: !accept, autoSelectCards: true, autoOrderTriggers: true },
     );
-    s.perm("host").isSuspended = true;
-    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("host"));
-    await settle(() => !s.perm("host").isSuspended);
-    expect(s.perm("host").isSuspended).toBe(false);
+    s.state.memory = 3;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.suspend([s.perm("wg").permanentId, s.perm("nonWG").permanentId]);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    expect(s.perm("wg").isSuspended).toBe(!accept);
+    expect(s.perm("nonWG").isSuspended).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("clears an explicitly declined free evolution without moving the hand card", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX9-042", as: "watcher" }], hand: ["EX9-044"] },
+    });
+    const memoryBefore = s.state.memory;
+    const suspension = advance(s.engine).verb.suspend([s.perm("watcher").permanentId]);
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await suspension;
+    await settle();
+    expect(s.perm("watcher").topCard.cardId).toBe("EX9-042");
+    expect(s.perm("watcher").stack).toHaveLength(0);
+    expect(s.perm("watcher").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX9-044"]);
+    expect(s.state.memory).toBe(memoryBefore);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });
