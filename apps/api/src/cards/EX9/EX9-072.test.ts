@@ -2,9 +2,76 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX9-072.js";
 
 describe("EX9-072", () => {
+  it("does not waive White requirements when an own security card is face up", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "EX9-072", as: "source" }], security: [{ card: "BT1-009", faceUp: true }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId }).ok).toBe(false);
+    await settle();
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["EX9-072"]);
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-009"]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+  it.each([
+    { from: "hand", candidate: "EX9-009", accept: true },
+    { from: "trash", candidate: "EX9-009", accept: true },
+    { from: "hand", candidate: "EX9-068", accept: true },
+    { from: "hand", candidate: "EX9-009", accept: false },
+  ])(
+    "Q4839 real face-up security check: $candidate from $from, accept=$accept",
+    async ({ from, candidate, accept }) => {
+      const options = { autoSelectCards: true, autoDeclineOptional: false, preferInstanceIds: [] as string[] };
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+          1: {
+            security: [{ card: "EX9-072", as: "island", faceUp: true }],
+            hand: from === "hand" ? [{ card: candidate, as: "candidate" }] : [],
+            trash: from === "trash" ? [{ card: candidate, as: "candidate" }] : [],
+          },
+        },
+        options,
+      );
+      options.preferInstanceIds.push(s.inst("candidate").instanceId);
+      s.state.memory = 3;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      expect(s.state.pendingDecision?.kind).toBe("optional");
+      const choice = s.state.pendingDecision!;
+      options.autoDeclineOptional = true;
+      expect(
+        s.engine.applyIntent(1, {
+          type: "respondDecision",
+          decisionId: choice.decisionId,
+          response: { kind: "optional", accept },
+        }),
+      ).toEqual({ ok: true });
+      await settle();
+      expect(s.state.pendingDecision).toBeUndefined();
+      expect(observe(s.engine).isAttacking()).toBe(false);
+      expect(s.state.memory).toBe(3);
+      expect(s.state.players[1]!.security).toHaveLength(0);
+      expect(s.state.players[1]!.battleArea.map((card) => card.topCard.cardId)).toEqual(accept ? [candidate] : []);
+      expect(s.state.players[1]!.hand.map((card) => card.cardId)).toEqual(
+        !accept && from === "hand" ? [candidate] : [],
+      );
+      expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["EX9-072"]);
+    },
+  );
   it("waives color requirements when there are no face-up security cards", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "Static")).toMatchObject({
       actions: [{ kind: "WaiveColorRequirement", condition: { kind: "noFaceUpSecurity" } }],
