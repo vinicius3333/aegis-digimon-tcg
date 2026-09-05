@@ -43,7 +43,7 @@ describe("EX9-074", () => {
             { card: "BT1-009", as: "red" },
             { card: "BT1-027", as: "blue" },
           ],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-046", "BT1-048"],
         },
       },
       options,

@@ -2,10 +2,7 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "../BT11/BT11-043.js";
-import "../BT10/BT10-059.js";
-import "../BT8/BT8-084.js";
-import "./EX9-074.js";
+import "../index.js";
 
 function sourceBoard() {
   // A hand-laid six-color source stack keeps these focused tests about EX9-074's
@@ -56,6 +53,7 @@ describe("EX9-074 six-color digivolution stack", () => {
             { card: "EX9-074", as: "evo" },
           ],
           trash: ["BT10-009", "BT10-059"],
+          deck: ["BT1-048", "BT1-046", "BT1-010", "BT1-009"],
         },
         1: {
           battleArea: [
@@ -120,6 +118,8 @@ describe("EX9-074 six-color digivolution stack", () => {
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT10-009"]);
     expect(s.state.players[1]!.battleArea[0]!.stack.map((card) => card.cardId)).toEqual(["BT10-059", "BT10-059"]);
     expect(s.state.memory).toBe(10);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-048", "BT1-046", "BT1-010"]);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 

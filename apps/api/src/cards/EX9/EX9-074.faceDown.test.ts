@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
-import "./EX9-074.js";
+import "../index.js";
 
 describe("EX9-074 face-down digivolution information", () => {
   it("does not count a face-down color for all-turns DP scaling", async () => {
