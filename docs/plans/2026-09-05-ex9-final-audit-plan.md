@@ -3,8 +3,7 @@
 ## Contract and current evidence
 
 Audit all 74 catalog cards EX9-001 through EX9-074 on the existing
-`audit-ex9-card-by-card-20260904` branch. The user requested planning by the
-coordinator and implementation by Luna subagents. Later collections mentioned
+`audit-ex9-card-by-card-20260904` branch. The user requested planning and implementation by Luna subagents. Later collections mentioned
 in historical checkpoints are outside this request.
 
 Preserve the existing implementation and proof where sound. The current ledger
@@ -26,7 +25,7 @@ focused proof, and records a per-card final evidence report. Shared engine
 changes are coordinated centrally to avoid conflicting implementations.
 Workers do not stage, commit, push or edit the shared ledger.
 
-The coordinator owns shared mechanisms, integration, final inventory, scoped
+Final work includes shared mechanisms, integration, final inventory, scoped
 style checks, typecheck, effects synchronization, atomic commits and delivery.
 Preserve the existing EX9-001 comment cleanup and audit ledger edits.
 
@@ -41,5 +40,4 @@ Preserve the existing EX9-001 comment cleanup and audit ledger edits.
 5. Update the ledger with current evidence; commit logical changes separately.
 6. Push the existing branch and verify its remote hash; provide a reviewable PR.
 7. Only with all 74 cards proven complete and all gates green, update the Orca
-   worktree completion status and notify the coordinator with counts, commands,
-   commit, push result and remaining queue.
+   worktree completion status.

@@ -10,7 +10,7 @@ registration index, not a 75th card. Every card module uses IR registration;
 the inventory found no legacy registration or RawUnparsed node.
 
 Two Luna/high workers own ascending ranges 001..037 and 038..074, respectively.
-The coordinator owns cross-card review, shared engine decisions, this ledger,
+Final work includes cross-card review, shared engine decisions, this ledger,
 effects synchronization, and collection delivery. Tests are focused by card
 with one fork; only affected mechanisms and the exact collection run at gates.
 No card score from the historical sections below is adopted without fresh
@@ -26,7 +26,7 @@ EX10 (74), EX11 (74), and EX12 (77); these sets have not begun in this run.
 | EX8-002 | 4/4 | Existing public attack/stack proof reconfirmed; exact-zero memory and same-turn limit, no code change |
 | EX8-003 | 4/4 | `67ad09bb3`: public attacks prove the condition and same-turn limit; turn-end processing restores the target's DP |
 | EX8-004 | 5/5 | Fresh trace and runtime: friendly distinct NSp play, NSp host, optional attack refusal, nonmatching negatives, and same-turn limit |
-| EX8-005 | 5/5 | `7e3aab130`: coordinator replaced direct discard positives with opposing public Frigimon On Play, proving the memory gain from separate legal black Mineral/Rock hosts and no gain from Puppet ToyAgumon. Explicit trash, empty stack, memory and cleared-decision assertions pass against the current shared discarded-source guard; wrong-source fixture now uses a legal level-4 host |
+| EX8-005 | 5/5 | `7e3aab130`: the audit replaced direct discard positives with opposing public Frigimon On Play, proving the memory gain from separate legal black Mineral/Rock hosts and no gain from Puppet ToyAgumon. Explicit trash, empty stack, memory and cleared-decision assertions pass against the current shared discarded-source guard; wrong-source fixture now uses a legal level-4 host |
 | EX8-006 | 7/7 | Fresh trace and runtime: NSo host, exact level-3 target, paid hand trash, refusal, insufficient cost, and same-turn limit; no code change |
 | EX8-007 | 8/8 | `dbf920416`, `b9f1db293`: independent name/Reptile/Dinosaur searches, true nonmatches, unrevealed anchor proving bottom order, inherited turn gate, and evolution legality |
 | EX8-008 | 5/5 | Fresh trace and runtime: memory after actual deletion, inherited DP on/off by turn, off-color NSo evolution and nonmatching rejection; no code change |
@@ -46,13 +46,13 @@ EX10 (74), EX11 (74), and EX12 (77); these sets have not begun in this run.
 | EX8-022 | 8/8 | `838a3f219`, `04b7c19ba`: legal source stacks, actual Ice Clad count-over-DP battle, opposing attack with no security checks under inherited -1, expiry, and alternate-route rejection |
 | EX8-023 | 9/9 | `d1cde8569`: explicit Q3883 security check with a legal Ice Clad winning stack; real On Play paths, legal opposing stacks, frozen battle reactions and post-removal passive refresh. Shared review Ready |
 | EX8-024 | 9/9 | `f5a4e98a8`: actual attacks and restriction attempts, inherited cost refusal/limit, legal stacks and duration checks |
-| EX8-025 | 10/10 | `f1248008c` supersedes the invalid Marsmon setup with actual Blue evolutions into Whamon and EX12-048 SeitenGokuumon. Raid attempts a redirect, Whamon prevents it, and both security checks resolve against the player. Coordinator 025/034 verification: 17/17 |
+| EX8-025 | 10/10 | `f1248008c` supersedes the invalid Marsmon setup with actual Blue evolutions into Whamon and EX12-048 SeitenGokuumon. Raid attempts a redirect, Whamon prevents it, and both security checks resolve against the player. 025/034 verification: 17/17 |
 | EX8-026 | 8/8 | `73e75d431`: actual Counter/Blast Digivolve added to live threshold, Blitz restriction and DS removal proofs |
 | EX8-027 | 8/8 | `458148279`, `12e4ff3b7`: legal foreign-source fixture, optional playback refusal, public DNA timing and Q3896 trigger ordering |
 | EX8-028 | 10/10 | `d97d82b55`: real Ice Clad/Barrier combat, attack activation and added boundary/refusal evidence |
 | EX8-029 | 8/8 | `dff9b4685`: actual return budget up to 14, low-memory On Play suppression, DS immunity, legal source stacks and DNA playback |
 | EX8-030 | 8/8 | `e4df18446`: actual Digimon memory denial and controller control, real Tamer gain, off-color NSo egg evolution/negative, and Q3914 real dual-kind Marcus attack. Combat now uses effective kinds consistently; scoped review Ready |
-| EX8-031 | 9/9 | `9e250cf64` fixes Plug-In name matching. The manual Option-use cost seam is delivered in `fd311f726`. `ff820a23a`: the effect-driven seam now captures intrinsic hand cost before movement: legal Taomon evolution uses BT2-099 at intrinsic cost 1/payment 0 without triggering, while BT11-100 at intrinsic cost 4/payment 2 triggers. Coordinator assertions include legal copy counts, mandatory draw, stack, trash and no pending decision. Card plus both cost/action regressions: 3 files / 40 tests passed |
+| EX8-031 | 9/9 | `9e250cf64` fixes Plug-In name matching. The manual Option-use cost seam is delivered in `fd311f726`. `ff820a23a`: the effect-driven seam now captures intrinsic hand cost before movement: legal Taomon evolution uses BT2-099 at intrinsic cost 1/payment 0 without triggering, while BT11-100 at intrinsic cost 4/payment 2 triggers. assertions include legal copy counts, mandatory draw, stack, trash and no pending decision. Card plus both cost/action regressions: 3 files / 40 tests passed |
 | EX8-032 | 3/3 | `2fbcd5bd2`, `938c60529`: legal yellow level-5 host, two-attack inherited limit and expiry; off-color NSo evolution explicitly proves cost, source retention and draw, with a non-NSo rejection |
 | EX8-033 | 4/4 | `0b79911cc`: legal purple level-6 inherited Recovery host, actual NSo evolution recovery, and On Deletion DP expiry |
 | EX8-034 | 7/7 | `eeeb07233`, `6da0481ef`: deletion Security Attack debuff expiry, two actual inherited attacks with explicit security result and DP expiry, and a resolved optional refusal with no pending decision and preserved host/hand. The earlier security-fixture correction remains sound |
@@ -68,7 +68,7 @@ EX10 (74), EX11 (74), and EX12 (77); these sets have not begun in this run.
 | EX8-044 | 11/11 | `c0a72231d`, `f194ebf92`, `cb4584415`: real Counter evolution, memory counts only opposing new suspensions, refusal, actual Piercing battle, same-turn limit, opponent-turn expiry, and off-color NSp evolution/negative |
 | EX8-045 | 9/9 | `8e0b6d573`, `d1cde8569`: Q3931/Q3932/Q6043, real play/evolution, source-color boundaries and actual checks; Q3883 now passes simultaneously with Fortitude-loss retention |
 | EX8-046 | 7/7 | `449c12085`: legal black EX8-048 inherited host intercepts a real attack with Blocker, survives, deletes the attacker and preserves security |
-| EX8-047 | 9/9 | `8a2ded6aa` proves reveal bottom routing. The explicit discarded-source proof restores public Frigimon discard cases for legal Mineral/Rock hosts. Deferred source-to-hand, reattachment and host-to-breeding cases assert final zones and reject stale activation; coordinator rerun of EX8-005, EX8-047 and the six context tests passed 20/20. Shared changes are delivered in `7e3aab130` |
+| EX8-047 | 9/9 | `8a2ded6aa` proves reveal bottom routing. The explicit discarded-source proof restores public Frigimon discard cases for legal Mineral/Rock hosts. Deferred source-to-hand, reattachment and host-to-breeding cases assert final zones and reject stale activation; rerun of EX8-005, EX8-047 and the six context tests passed 20/20. Shared changes are delivered in `7e3aab130` |
 | EX8-048 | 7/7 | `4ba24b3f7`: test-only legal inherited-host corrections, safely separated from the EX8-031 changes with user authorization |
 | EX8-049 | 5/5 | `329125e59`; current exact-collection execution reconfirms all five cases |
 | EX8-050 | 5/5 | `a078dd670`; exact-collection execution supersedes the historical four-case count |
@@ -95,7 +95,7 @@ EX10 (74), EX11 (74), and EX12 (77); these sets have not begun in this run.
 | EX8-071 | 7/7 | `7bf23bfe3`; exact-collection execution supersedes the historical five-case count |
 | EX8-072 | 13/13 | `a445af204`; current exact-collection execution reconfirms all thirteen cases |
 | EX8-073 | 10/10 | `eeeaa0b43`: legal stack and modifier expiry; current exact-collection execution reconfirms ten cases |
-| EX8-074 | 11/11 | `afff9076f` rejects partial fixed-count suspension costs without changing upTo. `e52970a9e`: payment-window follow-up proves opponent Psychemon at memory 0/1 (Q4442/Q4443), immune-target exclusion (Q6721), opponent-turn reactivation and real legal evolution. Independent scoped reviews Ready. Coordinator rerun with BT9-097 prohibition control: 2 files / 13 tests passed |
+| EX8-074 | 11/11 | `afff9076f` rejects partial fixed-count suspension costs without changing upTo. `e52970a9e`: payment-window follow-up proves opponent Psychemon at memory 0/1 (Q4442/Q4443), immune-target exclusion (Q6721), opponent-turn reactivation and real legal evolution. Independent scoped reviews Ready. rerun with BT9-097 prohibition control: 2 files / 13 tests passed |
 
 ### Intermediate gates — collection not yet closed
 
@@ -158,7 +158,7 @@ and must validate the original battle-area host. The narrow guard now checks the
 source remains in trash before either inherited-placement branch and verifies
 the original host is outside breeding. Worker mutation testing reproduced two
 failures without this guard (source moved to hand and host moved to breeding).
-The coordinator reran the six context cases and both EX8-005/047 card files:
+Final verification reran the six context cases and both EX8-005/047 card files:
 20/20 passed. Independent final lifecycle review is Ready; delivery is still pending.
 
 ### Independent review — Option use-cost projection
@@ -178,7 +178,7 @@ such a future path and is not an EX8 finding.
 ### Resolved shared regression — Piercing acquisition at deletion
 
 The independent review initially reported Ready for `f52180366` and
-`8e0b6d573`. Coordinator cross-card review superseded that verdict with a
+`8e0b6d573`. cross-card review superseded that verdict with a
 reproducer: adding `expect(security).toHaveLength(0)` to EX8-023's existing
 Q3883 battle leaves one security card instead. The focused command with
 `--no-file-parallelism --pool=forks --maxWorkers=1` produced 8 passes and
@@ -223,16 +223,16 @@ review returned Ready with no Critical/Important findings. The first typecheck
 attempt was interrupted by the concurrently edited EX8-060 test's invalid
 `DecisionRequest.payloadJson` reference; the post-correction rerun passed.
 
-EX8-043/044 coordinator verification: 2 files / 22 tests passed (1.37 s),
+EX8-043/044 verification: 2 files / 22 tests passed (1.37 s),
 with one worker and file parallelism disabled; scoped lint/format/diff clean.
-EX8-012/014/017 coordinator verification: 3 files / 29 tests passed (736 ms),
+EX8-012/014/017 verification: 3 files / 29 tests passed (736 ms),
 with the same single-worker configuration. Test counts are not audit scores;
 entries with open review remain unclosed despite green focused runs.
 
 EX8-038's added Retaliation case initially used equal-DP combat, which would
 delete both Digimon without Retaliation. `cf93ab20a` corrects it to an unequal-DP
 loss. The subsequent evolution/stack correction is in `f7cd5c5a5`.
-Coordinator verification of EX8-038/039 together passed 2 files / 14 tests
+verification of EX8-038/039 together passed 2 files / 14 tests
 (488 ms) with `--no-file-parallelism --pool=forks --maxWorkers=1`.
 
 ## Historical evidence inherited at the audit base

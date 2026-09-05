@@ -11,7 +11,7 @@ behavior where applicable. Passing test counts alone do not establish fidelity.
 - Immutable base: `53616a8e464dacbcb4e73dd31deb043ae59f88e0`.
 - Catalog: EX9-001 through EX9-074; every card has a direct IR module and colocated test.
 - All 74 modules register exclusively through `registerIrCard`.
-- Three Luna slices were reconciled by the coordinator; invalid fixtures and
+- Three Luna slices were reconciled; invalid fixtures and
   structural-only proof found during review were replaced before final validation.
 - Final EX9 execution: **77 files / 924 tests passed**, 280.52 seconds.
 - Dynamic inventory: **924 cases in 77 files**, matching execution exactly.
@@ -37,7 +37,7 @@ behavior where applicable. Passing test counts alone do not establish fidelity.
 - [Intrinsic reduction design and red/green evidence](INTRINSIC-EVO-KEY-DESIGN.md).
 
 The three score tables contain exactly 74 unique contiguous card IDs, all 10/10.
-The coordinator inspected the final implementation and corrected causal evidence
+Final review inspected the final implementation and corrected causal evidence
 before accepting those tables.
 
 ## Final corrective evidence
@@ -94,5 +94,5 @@ matching its existing module; its regression passes. Preserved global effects
 format differences in BT25 and EX12 were not rewritten. No UI change is included.
 
 Delivery requires atomic commits, a pushed branch with matching remote hash,
-a review PR and the Orca completion/coordinator notification. These delivery
+a review PR and the Orca completion status. These delivery
 receipts are recorded in the PR and Orca card after verification.

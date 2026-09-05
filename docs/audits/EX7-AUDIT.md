@@ -81,7 +81,7 @@ Current gates:
   after the module corrections and effects projection.
 - Final scoped lint/format and `git diff --check` passed.
 - Independent rereview: Ready; 0 Critical / 0 Important / 0 Minor. Atomic
-  commits are complete. Push and coordinator notification are delivery steps.
+  commits are complete. Push is a delivery step.
 
 | Card | Name | Passing tests |
 | --- | --- | --- |

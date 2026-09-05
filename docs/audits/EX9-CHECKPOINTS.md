@@ -24,9 +24,8 @@ their turn begins; none is claimed reviewed or complete by this EX9 ledger.
 ## Work ownership and verification
 
 The initial worker split assigned EX9-001..025, EX9-026..050 and EX9-051..073;
-those assignments are historical, not current running-worker claims. The
-coordinator owns EX9-074 and the subsequent sequential review follow-ups.
-Each card is handled individually. The coordinator owns shared engine changes,
+those assignments are historical, not current running-worker claims. EX9-074 and subsequent sequential review follow-ups were handled separately.
+Each card is handled individually. Final work includes shared engine changes,
 independent review, this ledger, effects synchronization and all Git staging,
 commits and delivery. Workers never stage or commit shared worktree changes.
 
@@ -90,7 +89,7 @@ effects JSON formatting check reports preserved differences in BT25 records and
 EX12-066/067/068; comparing formatter output by top-level record found no differences
 in EX9 or BT8-084. No unrelated formatting rewrite was performed. The ledger still
 requires final reconciliation, affected-regression consolidation and independent
-review before push and coordinator completion notification.
+review before push.
 
 Latest consolidation: catalog recalculated at 74 cards (EX9-001..074), all with
 colocated tests. Exact collection run with one worker found 77 files / 862 tests:
@@ -207,10 +206,10 @@ still available. Full shared/API/web typecheck and scoped style/diff checks pass
 for these changes. Effects records remain pending synchronization. The listed
 commits are local audit evidence; final push/remote verification remain open.
 
-The coordinator must reconcile the historical ledger, synchronize effects
+Reconcile the historical ledger, synchronize effects
 (including explicit outside-set exceptions), run the final exact collection and
 affected mechanisms, finish type/build/style gates, obtain final review, commit,
-push, verify the remote and notify Orca/coordinator. None of those collection-wide
+push, verify the remote and update Orca. None of those collection-wide
 completion steps is claimed by this checkpoint. The full queue remains
 EX9 → EX10 → EX11 → EX12 → LM → Promo → all STs.
 
@@ -668,5 +667,4 @@ assertion. Those follow-ups are assigned; the earlier 19-test checkpoint is
 not the final closure inventory.
 
 In progress. No collection completion, runtime 10/10 total, final commit or push
-is claimed yet. Upon full verified completion the coordinator must update the
-Orca worktree status and notify the parent coordinator before becoming idle.
+is claimed yet. Upon full verified completion, update the Orca worktree status.
