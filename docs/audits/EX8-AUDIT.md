@@ -14,7 +14,7 @@ The coordinator owns cross-card review, shared engine decisions, this ledger,
 effects synchronization, and collection delivery. Tests are focused by card
 with one fork; only affected mechanisms and the exact collection run at gates.
 No card score from the historical sections below is adopted without fresh
-catalog/KB/runtime/test verification. Current closure status: in progress.
+catalog/KB/runtime/test verification. Current validation status: 74/74 cards at runtime 10/10; delivery recorded below.
 The current catalog's remaining sequential queue after EX8 is EX9 (74 cards),
 EX10 (74), EX11 (74), and EX12 (77); these sets have not begun in this run.
 
@@ -26,7 +26,7 @@ EX10 (74), EX11 (74), and EX12 (77); these sets have not begun in this run.
 | EX8-002 | 4/4 | Existing public attack/stack proof reconfirmed; exact-zero memory and same-turn limit, no code change |
 | EX8-003 | 4/4 | `67ad09bb3`: public attacks prove the condition and same-turn limit; turn-end processing restores the target's DP |
 | EX8-004 | 5/5 | Fresh trace and runtime: friendly distinct NSp play, NSp host, optional attack refusal, nonmatching negatives, and same-turn limit |
-| EX8-005 | 5/5 | Fresh trace and runtime: separate Mineral/Rock hosts, nonmatching host, and wrong discarded source; no code change |
+| EX8-005 | 5/5 | `7e3aab130`: coordinator replaced direct discard positives with opposing public Frigimon On Play, proving the memory gain from separate legal black Mineral/Rock hosts and no gain from Puppet ToyAgumon. Explicit trash, empty stack, memory and cleared-decision assertions pass against the current shared discarded-source guard; wrong-source fixture now uses a legal level-4 host |
 | EX8-006 | 7/7 | Fresh trace and runtime: NSo host, exact level-3 target, paid hand trash, refusal, insufficient cost, and same-turn limit; no code change |
 | EX8-007 | 8/8 | `dbf920416`, `b9f1db293`: independent name/Reptile/Dinosaur searches, true nonmatches, unrevealed anchor proving bottom order, inherited turn gate, and evolution legality |
 | EX8-008 | 5/5 | Fresh trace and runtime: memory after actual deletion, inherited DP on/off by turn, off-color NSo evolution and nonmatching rejection; no code change |
@@ -36,7 +36,7 @@ EX10 (74), EX11 (74), and EX12 (77); these sets have not begun in this run.
 | EX8-012 | 12/12 | `f9e9a4355`, `1d4e77e14`, `5bd07ee85`: separate bonus/effect draws, independent Growlmon/X Antibody recovery conditions, optional refusal, negative and expiry, legal red inherited host, Q3875 |
 | EX8-013 | 4/4 | `8920a9275`, `a2b64c2cc`: real two-check player attack with legal red ST1-10 host; off-color NSo level-4 evolution and nonmatching rejection |
 | EX8-014 | 10/10 | `4d72c362a`, `9d0dbf1c1`, `8877fbda3`: opposing suspension, explicit Fortitude replay/no-source assertions, legal inherited two-check combat, and real play/evolution suspension-deletion positives |
-| EX8-015 | 6/6 | `f5ed535e0`, `56421c1db`, `392adc0ef`: legal red inherited host and two checks, return/DP expiry, conditional deletion boundary and source branches. Explicit collection import ensures Meramon's inherited +2000 participates, giving 13000 DP |
+| EX8-015 | 6/6 | `f5ed535e0`, `56421c1db`, `392adc0ef`, `0fa688ff3`: legal red inherited host, return/DP expiry and deletion boundaries. Shared module registration exposed AD1-004's unrelated optional end-turn attack in the above-threshold fixture. Replacing it with neutral 15000-DP BT1-084 preserves the deletion ceiling and restores focused 6/6 plus EX8-016/015 sequence 16/16; the corrected collection also passes. No engine or timeout change |
 | EX8-016 | 10/10 | `498d52235`, `4a12cb403`, `382e33622`: Q3877 distinct suspension/deletion, Q3878/3879/3880 targeting, actual two checks, Fortitude replay zones/no-source negative, independent named/Dinosaur evolution, real play and evolution continuation after optional refusal |
 | EX8-017 | 7/7 | `17b62628e`, `72440199b`: legal blue level-4 host survives stronger security through Jamming, granted Blocker intercepts an actual attack, and grant expires after the opponent turn |
 | EX8-018 | 8/8 | `15626b460`, `194b0b6b0`: independent DS selection, separate Sea Beast/Plesiosaur runtime cases, unrevealed bottom-order anchor, and second attack restored to seven cards to distinguish the once-per-turn limit |
@@ -52,13 +52,13 @@ EX10 (74), EX11 (74), and EX12 (77); these sets have not begun in this run.
 | EX8-028 | 10/10 | `d97d82b55`: real Ice Clad/Barrier combat, attack activation and added boundary/refusal evidence |
 | EX8-029 | 8/8 | `dff9b4685`: actual return budget up to 14, low-memory On Play suppression, DS immunity, legal source stacks and DNA playback |
 | EX8-030 | 8/8 | `e4df18446`: actual Digimon memory denial and controller control, real Tamer gain, off-color NSo egg evolution/negative, and Q3914 real dual-kind Marcus attack. Combat now uses effective kinds consistently; scoped review Ready |
-| EX8-031 | 5/5; KB follow-up OPEN | `78b370e78`, `9e250cf64`: recovery now matches Plug-In names, including trait-less EX2-066; real Renamon evolution with draw/source assertions, actual cost-1/cost-2 Option uses, second-use limit, and expiry. Adjusted-use-cost mechanism: 2 selected tests passed; Q5512–Q5515 card-level integration coverage is under follow-up |
+| EX8-031 | 9/9 | `9e250cf64` fixes Plug-In name matching. The manual Option-use cost seam is delivered in `fd311f726`. `ff820a23a`: the effect-driven seam now captures intrinsic hand cost before movement: legal Taomon evolution uses BT2-099 at intrinsic cost 1/payment 0 without triggering, while BT11-100 at intrinsic cost 4/payment 2 triggers. Coordinator assertions include legal copy counts, mandatory draw, stack, trash and no pending decision. Card plus both cost/action regressions: 3 files / 40 tests passed |
 | EX8-032 | 3/3 | `2fbcd5bd2`, `938c60529`: legal yellow level-5 host, two-attack inherited limit and expiry; off-color NSo evolution explicitly proves cost, source retention and draw, with a non-NSo rejection |
 | EX8-033 | 4/4 | `0b79911cc`: legal purple level-6 inherited Recovery host, actual NSo evolution recovery, and On Deletion DP expiry |
 | EX8-034 | 7/7 | `eeeb07233`, `6da0481ef`: deletion Security Attack debuff expiry, two actual inherited attacks with explicit security result and DP expiry, and a resolved optional refusal with no pending decision and preserved host/hand. The earlier security-fixture correction remains sound |
-| EX8-035 | 7/7; rereview pending | `7c9a0c483`: worker reports Security debuff expiry, disabled evolution by-cost nonprocessing, and preserved attacking timing with BT10-023. Prior live Security return and memory gates retained |
+| EX8-035 | 7/7 | `7c9a0c483`, `7c370de15`: Security debuff expiry and disabled evolution by-cost nonprocessing; a legal EX8-023 to EX8-028 evolution proves the actual shared evolution/attack once-per-turn effect remains available for attacking after the evolution timing is blocked |
 | EX8-036 | 6/6 | `437235a1f`: public respondDecision(false) replaces the pending pseudo-refusal; explicit no-pending-decision, preserved host, one battle-area permanent and hand candidate assertions accompany hand/trash routes, cost ceiling and recovery |
-| EX8-037 | 7/7; review OPEN | `e361926b3`: real Option use, second-attack once-per-turn gate, no-cost proof, independent X Antibody stack token branch and alternate evolution rejection. Pending: resolved decline, Q4738 evolution during Option resolution, and neither-source token-condition negative |
+| EX8-037 | 9/9 | `8b7b02f05`, `171a7d36e`: explicitly resolved refusal; Q4738 real LM-029 evolution into legal yellow level-7 BT13-020 preserves mandatory unsuspend; legal neutral yellow level-5 evolution with neither Sakuyamon nor X Antibody creates no token or pending choice |
 | EX8-038 | 8/8 | `cf93ab20a`, `f7cd5c5a5`: unequal-DP battle proves inherited Retaliation on a legal green host; named off-color Koromon evolution, nonmatching egg rejection, both suspension controllers, and refusal |
 | EX8-039 | 6/6 | `862783bb9`, `55af3b526`: disjoint Insectoid/NSp selection, unrevealed anchors in positive and all-nonmatching reveals, off-color NSp egg evolution and rejection, legal green inherited host with turn gate |
 | EX8-040 | 7/7 | `4380b4788`: real off-color NSp evolution proves cost, draw and allied suspension; opposing On Play target, refusal, non-NSp rejection and legal inherited host turn gate |
@@ -67,13 +67,35 @@ EX10 (74), EX11 (74), and EX12 (77); these sets have not begun in this run.
 | EX8-043 | 11/11 | `d8f396f00`, `cf8ddcaf5`, `c1abb8927`, `d9dccb781`: two-battle limit on legal inherited host, Q3929, real opposing de-digivolution/return attempts, controller return, protection expiry, Dinosaur alternate and already-suspended continuation after optional refusal |
 | EX8-044 | 11/11 | `c0a72231d`, `f194ebf92`, `cb4584415`: real Counter evolution, memory counts only opposing new suspensions, refusal, actual Piercing battle, same-turn limit, opponent-turn expiry, and off-color NSp evolution/negative |
 | EX8-045 | 9/9 | `8e0b6d573`, `d1cde8569`: Q3931/Q3932/Q6043, real play/evolution, source-color boundaries and actual checks; Q3883 now passes simultaneously with Fortitude-loss retention |
-| EX8-047 | 7 passed / 2 failed; OPEN | `8a2ded6aa` proves reveal bottom routing. Coordinator's uncommitted public Frigimon On Play reproducer loses the discarded-source inherited deletion from both legal Mineral and Rock hosts; the nonmatching Dinosaur control passes. No module fix or closure claimed |
+| EX8-046 | 7/7 | `449c12085`: legal black EX8-048 inherited host intercepts a real attack with Blocker, survives, deletes the attacker and preserves security |
+| EX8-047 | 9/9 | `8a2ded6aa` proves reveal bottom routing. The explicit discarded-source proof restores public Frigimon discard cases for legal Mineral/Rock hosts. Deferred source-to-hand, reattachment and host-to-breeding cases assert final zones and reject stale activation; coordinator rerun of EX8-005, EX8-047 and the six context tests passed 20/20. Shared changes are delivered in `7e3aab130` |
+| EX8-048 | 7/7 | `4ba24b3f7`: test-only legal inherited-host corrections, safely separated from the EX8-031 changes with user authorization |
+| EX8-049 | 5/5 | `329125e59`; current exact-collection execution reconfirms all five cases |
+| EX8-050 | 5/5 | `a078dd670`; exact-collection execution supersedes the historical four-case count |
+| EX8-051 | 7/7 | `28aa445f2`; exact-collection execution supersedes the historical six-case count |
 | EX8-052 | 9/9 | `9eaf58c0b`: independent X Antibody source and trash Device route, no-source negative, actual two-attack inherited security-trash limit |
+| EX8-053 | 9/9 | `36a89903a`; current exact-collection execution reconfirms all nine cases |
 | EX8-054 | 6/6 | `5353d6cce`: two actual attacks prove the inherited Justimon activation limit; legal alternate Justimon evolution and X Antibody-base rejection |
 | EX8-055 | 7/7 | `6f7a45879`: actual attack trashes three sources, performs two security checks and proves expiry; explicit optional refusal for Q3940 |
+| EX8-056 | 6/6 | `d3ba617f9`; current exact-collection execution reconfirms all six cases |
+| EX8-057 | 8/8 | `5994de089`; exact-collection execution supersedes the historical seven-case count |
+| EX8-058 | 7/7 | `fe00e1eab`; current exact-collection execution reconfirms all seven cases |
 | EX8-059 | 10/10 | `c461132bd`: separate On Play/evolution refusals and no-hand cost failure, alongside successful grants and actual inherited attack |
 | EX8-060 | 14/14 | `6519bc573`: legal DNA pair, public optional intents, an additional Digimon before the bound attack, and Q3944 real orderTriggers sequences for the simultaneous group |
-| EX8-074 | 7/7; shared-fix review OPEN | Coordinator replaced the memory -10 pseudo-failure with memory 0 and one available Digimon (Q3986), exposing acceptance of a partial fixed-count suspension cost. Uncommitted shared payment guard restores 7/7; selected shared suspension regressions 7/7 and API typecheck passed. Other KB edges remain subject to final review |
+| EX8-061 | 11/11 | `8d5cd3aa1`: legal inherited host; current exact-collection execution reconfirms eleven cases |
+| EX8-062 | 9/9 | `70a0a5653`: duration expiry; current exact-collection execution reconfirms nine cases |
+| EX8-063 | 12/12 | `c42f08d3e`: Q4739 refusal uses an actual empty card selection; exact-collection execution supersedes the historical thirteen-case count |
+| EX8-064 | 8/8 | `f7f2c163f`: legal stack and expiry; current exact-collection execution reconfirms eight cases |
+| EX8-065 | 7/7 | `fc5bc2e62`; current exact-collection execution reconfirms all seven cases |
+| EX8-066 | 7/7 | `8efef1629`: legal stack; current exact-collection execution reconfirms seven cases |
+| EX8-067 | 7/7 | `36d335ec4`; current exact-collection execution reconfirms all seven cases |
+| EX8-068 | 9/9 | `f7f0fa465`; exact-collection execution supersedes the historical seven-case count |
+| EX8-069 | 8/8 | `e830cc077`; exact-collection execution supersedes the historical six-case count |
+| EX8-070 | 6/6 | `fcb0b947c`: legal Mineral stack; exact-collection execution supersedes the historical five-case count |
+| EX8-071 | 7/7 | `7bf23bfe3`; exact-collection execution supersedes the historical five-case count |
+| EX8-072 | 13/13 | `a445af204`; current exact-collection execution reconfirms all thirteen cases |
+| EX8-073 | 10/10 | `eeeaa0b43`: legal stack and modifier expiry; current exact-collection execution reconfirms ten cases |
+| EX8-074 | 11/11 | `afff9076f` rejects partial fixed-count suspension costs without changing upTo. `e52970a9e`: payment-window follow-up proves opponent Psychemon at memory 0/1 (Q4442/Q4443), immune-target exclusion (Q6721), opponent-turn reactivation and real legal evolution. Independent scoped reviews Ready. Coordinator rerun with BT9-097 prohibition control: 2 files / 13 tests passed |
 
 ### Intermediate gates — collection not yet closed
 
@@ -85,12 +107,42 @@ EX10 (74), EX11 (74), and EX12 (77); these sets have not begun in this run.
   compiled-runtime parity check confirmed 74/74 without repeating the builds.
 - The synchronization command passed shared/API builds. Shared data was copied
   again after synchronization so dist contains the updated effects artifact.
+- Final-path effects check was rerun after the engine corrections: shared/API
+  builds passed, all 74 records remain synchronized, with 59 semantic changes and
+  zero semantic or byte changes outside EX8 against the immutable base.
 - API and web typechecks passed. The subsequent web production build passed;
   Vite reported non-failing mixed-import and chunk-size warnings.
-- Exact collection tests, final scoped style checks, remaining card reviews and
-  delivery/push are still pending. These intermediate gates are not completion.
+- Two exact collection gates: 74 files, 571 tests; 73 files / 570 tests passed in each,
+  with one 15000-ms timeout in EX8-015. Command: `pnpm --filter @aegis/api exec
+  vitest run src/cards/EX8/ --no-file-parallelism --pool=forks --maxWorkers=1`.
+  This executed inventory supersedes historical count discrepancies in the table.
+- After replacing EX8-015's active AD1-004 fixture with neutral BT1-084, the exact
+  collection passed 74/74 files and 571/571 tests (8.67 seconds, single fork).
+  The failure was fixture-dependent module registration, not an engine timeout.
+- Final scoped style check covered 85 TypeScript files: formatting and diff checks
+  passed, with no new lint findings. Baseline warnings are recorded below.
+- Final read-only delivery review found no current-scope Critical or Important
+  behavioral findings. The stale review-status rows were corrected. The latent
+  unsupported opponent-owned Option boundary remains explicitly documented below.
+- The user authorized splitting unpushed `e55e6a2da`. It was preserved on
+  `backup/audit-ex8-e55e6a2da-pre-split`, then separated into `fd311f726` (EX8-031)
+  and `4ba24b3f7` (EX8-048). Their final tree equals the original tree, and all
+  20 in-progress file hashes were unchanged. Follow-up commits are `7e3aab130`
+  (discard lifecycle), `ff820a23a` (effect-driven Option cost), `e52970a9e`
+  (blocked reduction payment), `0fa688ff3` (EX8-015 neutral fixture), and
+  `bca92ae3e` (scoped test style). Remote delivery is verified after this ledger commit.
+- Final API typecheck passed after the Option-cost and discarded-source changes.
+- Consolidated affected mechanisms: `actions/playCard.test.ts`,
+  `effectOptionUseCost.test.ts`, `playReductionProhibition.test.ts`, and
+  `discardedSourceContext.test.ts` passed 4 files / 39 tests. Separately,
+  `subTriggerSeams.test.ts -t 'digivolution|permanent-anchored|stack'` passed
+  6 selected tests with 23 skipped.
+- Scoped style inspection found one formatting issue in EX8-009 (corrected) and
+  two conditional-assertion warnings in EX8-062 (corrected; focused 9/9). Seven
+  conditional-assertion warnings in `engine/actions/playCard.test.ts` occur in
+  unchanged baseline tests; the added Option-cost snapshot test has none.
 
-### Open runtime regression — EX8-047 discarded inherited source
+### Corrected runtime regression — EX8-047 discarded inherited source
 
 Replacing direct primitive calls with a real EX8-022 On Play exposed a missing
 inherited deletion. Frigimon trashes EX8-047 from a legal EX8-048 Mineral host
@@ -98,9 +150,30 @@ or a BT4-070 Rock host over BT2-057, but the opposing cost-4 Digimon remains.
 The source is explicitly present in trash, the host stack is empty, Frigimon's
 memory gain completes, and no decision remains pending. The same discard from
 a nonmatching BT2-057 host correctly causes no deletion. The focused nine-test
-file produced seven passes and two failures; inherited context construction
-after source movement is under investigation. The failing public scenarios
-remain on disk and must pass before this card or the collection can close.
+file initially produced seven passes and two failures. The explicit discarded-source
+proof now preserves event context through collected-effect resolution without
+overloading deletion metadata. Independent review found that a captured proof must
+also reject sources moved from trash before activation, including reattachment,
+and must validate the original battle-area host. The narrow guard now checks the
+source remains in trash before either inherited-placement branch and verifies
+the original host is outside breeding. Worker mutation testing reproduced two
+failures without this guard (source moved to hand and host moved to breeding).
+The coordinator reran the six context cases and both EX8-005/047 card files:
+20/20 passed. Independent final lifecycle review is Ready; delivery is still pending.
+
+### Independent review — Option use-cost projection
+
+The current EX8-031 correction is Ready: the intrinsic hand-use cost is captured
+before movement and payment, separate payment discounts do not change the event
+threshold, and other origin zones retain the supplied use cost. The reviewer
+reran EX8-031 (9/9), the new Option-cost regression (2/2), EX8-047 (9/9), and the
+discarded-source context regression (6/6).
+
+A latent boundary was recorded outside the current card paths: an effect that
+uses an opponent-owned hand Option could require a controller-specific reducer
+context instead of its owner's context. No current catalogued free-Option path
+uses an opponent-owned hand Option. This is not claimed as verified support for
+such a future path and is not an EX8 finding.
 
 ### Resolved shared regression — Piercing acquisition at deletion
 
