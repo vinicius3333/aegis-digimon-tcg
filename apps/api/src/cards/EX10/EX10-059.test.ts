@@ -182,6 +182,57 @@ describe("EX10-059 DarknessBagramon", () => {
     expect(s.perm("ownTamer").stack).toHaveLength(0);
   });
 
+  it("Q5162 keeps opposing hand identities hidden while exposing only opaque pick ids", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: CARD_ID, as: "darkness" }] },
+      1: {
+        hand: [
+          { card: "BT1-009", as: "firstHand", faceUp: false },
+          { card: "BT1-010", as: "secondHand", faceUp: false },
+        ],
+        battleArea: [{ card: "EX10-026", as: "host" }],
+      },
+    });
+    await s.ready();
+    const pending = advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("darkness"));
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+
+    const decision = s.state.pendingDecision;
+    expect(decision?.kind).toBe("selectCards");
+    expect(decision?.seat).toBe(0);
+    const payload = JSON.parse(decision!.payloadJson) as {
+      candidateInstanceIds?: string[];
+      visibleInstanceIds?: string[];
+      visibleCards?: { instanceId: string; cardId: string }[];
+    };
+    expect(payload.candidateInstanceIds).toEqual(
+      expect.arrayContaining([s.inst("firstHand").instanceId, s.inst("secondHand").instanceId]),
+    );
+    expect(payload.visibleInstanceIds).toEqual(payload.candidateInstanceIds);
+    expect(payload.visibleCards ?? []).toEqual([]);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: decision!.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("secondHand").instanceId] },
+      }).ok,
+    ).toBe(false);
+    expect(s.state.pendingDecision?.decisionId).toBe(decision!.decisionId);
+    expect(s.state.players[1]!.hand).toHaveLength(2);
+
+    const accepted = s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: decision!.decisionId,
+      response: { kind: "selectCards", instanceIds: [s.inst("firstHand").instanceId] },
+    });
+    expect(accepted).toEqual({ ok: true });
+    await pending;
+    expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("firstHand").instanceId]);
+    expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("secondHand").instanceId]);
+    expect(s.state.pendingDecision == null).toBe(true);
+  });
+
   it("Q5163 cannot place the opposing hand card under a host that isn't affected by effects", async () => {
     const s = setupEngine(
       {
