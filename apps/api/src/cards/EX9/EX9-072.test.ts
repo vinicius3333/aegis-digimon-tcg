@@ -4,8 +4,41 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX9-072.js";
+import "../index.js";
 
 describe("EX9-072", () => {
+  it("Q4840 a real security search and shuffle hides File Island and removes its DP aura", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX9-007", as: "host", under: [{ card: "BT1-010", faceUp: false }] }],
+          hand: [{ card: "BT1-087", as: "tamer" }],
+          security: [
+            { card: "EX9-072", as: "island", faceUp: true },
+            { card: "BT1-048", faceUp: true },
+            { card: "BT1-009", as: "selected" },
+          ],
+          deck: ["BT1-046"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("selected").instanceId);
+    const base = s.perm("host").currentDP;
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(base + 1000);
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tamer").instanceId })).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]!.security.map(({ cardId }) => cardId).sort()).toEqual(["BT1-048", "EX9-072"]);
+    expect(s.state.players[0]!.security.every(({ faceUp }) => faceUp === false)).toBe(true);
+    expect(s.perm("host").currentDP).toBe(base);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-046"]);
+    expect(s.state.memory).toBe(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
   it("loses its face-up security DP bonus after a real check and excludes face-up, non-DM and opposing sources", async () => {
     const s = setupEngine(
       {
@@ -176,27 +209,34 @@ describe("EX9-072", () => {
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
 
+    s.state.memory = 5;
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.security.at(-1)?.cardId === "EX9-072");
+    await settle();
 
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-010")).toBe(true);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-010"]);
     expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-009", "EX9-072"]);
     expect(s.state.players[0]!.security.at(-1)?.faceUp).toBe(true);
+    expect(s.state.memory).toBe(3);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
   it("places itself face-up at security bottom even when security was empty", async () => {
     const s = setupEngine({ 0: { hand: [{ card: "EX9-072", as: "source" }] } }, { autoOrderTriggers: true });
 
+    s.state.memory = 5;
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.security.at(-1)?.cardId === "EX9-072");
+    await settle();
 
     expect(s.state.players[0]!.security).toHaveLength(1);
     expect(s.state.players[0]!.security[0]).toMatchObject({ cardId: "EX9-072", faceUp: true });
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.memory).toBe(3);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
   it("scales the security DM Digimon DP bonus from its face-down sources", async () => {
     const s = setupEngine({
