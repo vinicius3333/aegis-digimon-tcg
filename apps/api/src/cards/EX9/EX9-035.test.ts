@@ -43,20 +43,40 @@ describe("EX9-035", () => {
     expect(
       s.state.players[0]!.battleArea.some((permanent) => permanent.stack.some((card) => card.faceUp === false)),
     ).toBe(true);
-    expect(s.state.players[0]!.deck[0]?.cardId).toBe("BT1-009");
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-009", "EX9-035"]);
   });
 
-  it("suspends one opposing Digimon from the inherited attack effect", async () => {
+  it("suspends an opponent only on the first attack even when that target is unsuspended again", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX9-034", as: "host", under: ["EX9-035"] }] },
-        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+        0: { battleArea: [{ card: "BT1-071", as: "host", under: ["EX9-035"] }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }], security: ["BT1-009", "BT1-009"] },
       },
       { autoSelectCards: true, autoAcceptOptional: true, autoOrderTriggers: true },
     );
     s.state.turnSeat = 0;
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
-    await settle(() => s.perm("opponent").isSuspended);
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
     expect(s.perm("opponent").isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId, s.perm("opponent").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("opponent").isSuspended).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });
