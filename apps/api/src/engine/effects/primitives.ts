@@ -2683,6 +2683,14 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // selected again by PlaceUnder and creates duplicate identity (BT25-083 Q6396).
     const usedCard = peekLooseInstance(state, usedInstanceId);
     const usedOwner = usedCard === undefined ? undefined : state.players.find((p) => p.seat === usedCard.ownerSeat);
+    // An Option's own "when you would use this card" reduction applies only while the card is
+    // in hand. Capture that zone before removeLooseInstance and project it through the shared
+    // GameAccess seam; Options used from trash, deck, or a digivolution stack keep the caller's
+    // supplied use cost. Payment-only reductions are intentionally excluded from this snapshot.
+    const usedOriginZone = usedCard === undefined ? undefined : looseZoneOfInstance(state, usedInstanceId);
+    const projectedHandUseCost =
+      usedOriginZone === "hand" ? engine.effectiveLooseUseCost?.(usedInstanceId, ctx.source.ownerSeat) : undefined;
+    const notifiedUseCost = projectedHandUseCost ?? usedOptionCost;
     let resolvingCard: CardInstance | undefined;
     let wasUnderCard = false;
     let resolutionError: unknown;
@@ -2800,7 +2808,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       engine.emit({ kind: "cardsMoved", instanceIds: [resolvingCard.instanceId], from: "various", to: Zone.Trash });
       if (wasUnderCard) applyOverflow(engine.memory, [resolvingCard], state.turnSeat);
     }
-    await fireOptionUsed(usedInstanceId, usedOptionCost);
+    await fireOptionUsed(usedInstanceId, notifiedUseCost);
     if (resolutionError !== undefined) throw resolutionError;
     return moved;
   };

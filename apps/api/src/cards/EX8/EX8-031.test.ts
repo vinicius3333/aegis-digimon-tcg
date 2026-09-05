@@ -141,6 +141,11 @@ describe("EX8-031", () => {
         (permanent) => permanent.topCard.instanceId === security.inst("securityOption").instanceId,
       ),
     );
+    expect(
+      security.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === security.inst("securityOption").instanceId,
+      ),
+    ).toBe(true);
     expect(security.perm("target").currentDP).toBe(15000);
 
     const delay = setupEngine(
@@ -171,6 +176,9 @@ describe("EX8-031", () => {
     await settle(() =>
       delay.state.players[0]!.trash.some((card) => card.instanceId === delay.inst("delay").instanceId),
     );
+    expect(delay.state.players[0]!.trash.some((card) => card.instanceId === delay.inst("delay").instanceId)).toBe(true);
+    expect(delay.state.memory).toBe(2);
+    expect(delay.state.pendingDecision).toBeUndefined();
     expect(delay.perm("target").currentDP).toBe(15000);
   });
 
@@ -204,6 +212,7 @@ describe("EX8-031", () => {
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("crimsonBlaze").instanceId));
 
     expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT8-097")).toBe(true);
     expect(s.perm("target").currentDP).toBe(7000);
   });
 

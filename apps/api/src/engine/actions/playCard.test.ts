@@ -329,17 +329,25 @@ describe("applyPlayCard - Option resolve then trash", () => {
     expect(eventCost).toBe(1);
   });
 
-  it("passes the hand instance to the pre-resolution Option use-cost seam", async () => {
+  it("captures Option use cost before finalization and Main change the board", async () => {
     const state = makeState([OPTION_COST]);
     state.memory = 1;
     const id = firstInstanceId(state, 0);
     let adjustedInstance: CardInstance | undefined;
     let eventCost: number | undefined;
+    let projectedCost = 1;
     const { deps } = makeDeps({
       adjustedPlayCost: () => 1,
       optionUseCost: (_state, _seat, adjustedCard) => {
         adjustedInstance = adjustedCard;
+        return projectedCost;
+      },
+      finalizePlayCost: async () => {
+        projectedCost = 2;
         return 1;
+      },
+      fireTiming: async () => {
+        projectedCost = 3;
       },
       fireOptionUsed: async (_instanceId, usedOptionCost) => {
         eventCost = usedOptionCost;
@@ -349,6 +357,7 @@ describe("applyPlayCard - Option resolve then trash", () => {
     expect((await applyPlayCard(state, 0, playIntent(id), deps)).ok).toBe(true);
     expect(adjustedInstance?.instanceId).toBe(id);
     expect(eventCost).toBe(1);
+    expect(projectedCost).toBe(3);
     expect(state.memory).toBe(0);
   });
 
