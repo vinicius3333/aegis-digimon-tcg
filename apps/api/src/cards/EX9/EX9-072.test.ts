@@ -50,7 +50,7 @@ describe("EX9-072", () => {
     expect(s.perm("host").currentDP).toBe(base);
     expect(s.perm("host").stack).toHaveLength(3);
   });
-  it.each(["EX9-012", "BT1-009"])("does not play an ineligible Security candidate %s", async (candidate) => {
+  it.each(["EX9-013", "BT1-009"])("does not play an ineligible Security candidate %s", async (candidate) => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
