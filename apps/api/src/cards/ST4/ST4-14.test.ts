@@ -59,4 +59,27 @@ describe("ST4-14 Izzy Izumi", () => {
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("izzy"));
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("izzy").instanceId)).toBe(true);
   });
+
+  it("may decline the optional memory gain after an opposing Digimon suspends", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST4-14", as: "izzy" }], hand: [{ card: "ST4-15", as: "option" }] },
+        1: { battleArea: [{ card: "ST4-08", as: "target" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "ST4-14") &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "ST4-14")).toBe(true);
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.perm("izzy").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(1);
+  });
 });
