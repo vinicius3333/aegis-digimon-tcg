@@ -7,6 +7,72 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("EX9-045", () => {
+  it.each([
+    ["BT1-080", "BT1-044"],
+    ["BT1-080", "BT10-082"],
+    ["BT1-062", "BT1-044"],
+    ["BT1-062", "BT10-082"],
+    ["EX9-044", "EX9-044"],
+  ])("DNA digivolves eligible level-6 %s + %s for zero memory", async (left, right) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: left, as: "green", suspended: true },
+            { card: right, as: "blue", suspended: true },
+          ],
+          hand: [{ card: "EX9-045", as: "dna" }],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("green").permanentId, s.perm("blue").permanentId],
+        instanceId: s.inst("dna").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX9-045"]);
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.battleArea[0]!.isSuspended).toBe(false);
+    expect(s.state.players[0]!.battleArea[0]!.stack.map(({ cardId }) => cardId).sort()).toEqual([left, right].sort());
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+  it.each([
+    ["EX9-044", "EX9-042"],
+    ["BT1-080", "BT1-080"],
+    ["BT1-044", "BT10-082"],
+  ])("rejects DNA materials with wrong level or color: %s + %s", async (left, right) => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: left, as: "left" },
+          { card: right, as: "right" },
+        ],
+        hand: [{ card: "EX9-045", as: "dna" }],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("left").permanentId, s.perm("right").permanentId],
+        instanceId: s.inst("dna").instanceId,
+      }).ok,
+    ).toBe(false);
+    await settle();
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([left, right]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX9-045"]);
+    expect(s.state.memory).toBe(5);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
   it("has Alliance and Blocker", () => {
     const statics = compiled.effects?.filter((entry) => entry.keywords?.length);
     expect(statics?.flatMap((entry) => entry.keywords)).toEqual(

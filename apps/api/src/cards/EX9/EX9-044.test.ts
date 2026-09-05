@@ -7,6 +7,51 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("EX9-044", () => {
+  it.each(["play", "digivolve"] as const)(
+    "responds to its own %s with real zero-cost DNA (Q4799/Q4800)",
+    async (mode) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea:
+              mode === "play"
+                ? [{ card: "BT1-044", as: "partner" }]
+                : [
+                    { card: "BT1-044", as: "partner" },
+                    { card: "EX9-042", as: "base" },
+                  ],
+            hand: [{ card: "EX9-044", as: "hydra" }, "EX9-045"],
+            deck: ["BT1-009", "BT1-009"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+      );
+      s.state.memory = 5;
+      await s.ready();
+      const result =
+        mode === "play"
+          ? s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hydra").instanceId })
+          : s.engine.applyIntent(0, {
+              type: "digivolve",
+              permanentId: s.perm("base").permanentId,
+              instanceId: s.inst("hydra").instanceId,
+              useAlternateCost: true,
+            });
+      expect(result).toEqual({ ok: true });
+      await settle();
+      expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX9-045"]);
+      const merged = s.state.players[0]!.battleArea[0]!;
+      expect(merged.isSuspended).toBe(false);
+      expect(merged.stack.map(({ cardId }) => cardId).sort()).toEqual(
+        mode === "play" ? ["BT1-044", "EX9-044"] : ["BT1-044", "EX9-042", "EX9-044"],
+      );
+      expect(s.state.memory).toBe(mode === "play" ? -6 : 2);
+      expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(
+        mode === "play" ? ["BT1-009"] : ["BT1-009", "BT1-009"],
+      );
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
   it("reduces play cost by suspending an own WG Digimon", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "Static")).toMatchObject({
       actions: [{ actions: [{ mode: "reduceCost", amount: 4, cost: { kind: "suspend" } }] }],
@@ -82,7 +127,7 @@ describe("EX9-044", () => {
           0: {
             battleArea: [
               { card: "EX9-044", as: "source" },
-              { card: "EX9-042", as: "played" },
+              { card: "EX9-044", as: "played" },
             ],
             hand: [
               { card: "EX9-045", as: "dna" },
