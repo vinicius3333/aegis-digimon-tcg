@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./EX9-054.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./EX9-051.js";
+import "../index.js";
 
 describe("EX9-054", () => {
   it("Q4808 combines one trash Negamon and one surviving host's source to play level five but not six", async () => {
@@ -82,7 +82,7 @@ describe("EX9-054", () => {
   it("unsuspends a real Abbadomon host when its attack is redirected by Blocker", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX9-055", as: "host", dp: 12000, under: ["EX9-054"] }], security: ["BT1-090"] },
+        0: { battleArea: [{ card: "EX9-055", as: "host", under: ["EX9-054"] }], security: ["BT1-090"] },
         1: { battleArea: [{ card: "BT2-058", as: "blocker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
@@ -118,7 +118,7 @@ describe("EX9-054", () => {
       },
       1: {
         battleArea: [{ card: "EX9-055", as: "host", under: ["EX9-051", "EX9-054"] }],
-        security: ["BT1-001"],
+        security: ["BT1-010"],
       },
     });
     await s.ready();
@@ -162,18 +162,51 @@ describe("EX9-054", () => {
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.pendingDecision).toBeUndefined();
   });
-  it("de-digivolves an opposing stack when digivolving", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "EX9-054", as: "source" }] },
-      1: { battleArea: [{ card: "EX9-055", as: "target", under: ["EX9-054"] }] },
-    });
-
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
-
-    expect(s.perm("target").stack).toHaveLength(0);
-    expect(s.perm("target").topCard.cardId).toBe("EX9-054");
-    expect(s.state.pendingDecision).toBeUndefined();
-  });
+  it.each([false, true])(
+    "de-digivolves only one opposing stack through a public intent (digivolve=%s)",
+    async (digivolve) => {
+      const preferred: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: digivolve ? [{ card: "EX9-048", as: "source" }] : [],
+            hand: [{ card: "EX9-054", as: "evo" }],
+            deck: ["BT1-010"],
+          },
+          1: {
+            battleArea: [
+              { card: "BT10-065", as: "target", under: ["BT10-062"] },
+              { card: "BT2-064", as: "peer", under: ["BT10-064"] },
+            ],
+          },
+        },
+        { autoSelectCards: true, preferInstanceIds: preferred },
+      );
+      preferred.push(s.perm("target").permanentId);
+      s.state.memory = 10;
+      expect(
+        s.engine.applyIntent(
+          0,
+          digivolve
+            ? { type: "digivolve", permanentId: s.perm("source").permanentId, instanceId: s.inst("evo").instanceId }
+            : { type: "playCard", instanceId: s.inst("evo").instanceId },
+        ),
+      ).toEqual({ ok: true });
+      await settle();
+      expect(s.perm("target").stack).toHaveLength(0);
+      expect(s.perm("target").topCard.cardId).toBe("BT10-062");
+      expect(s.perm("peer").topCard.cardId).toBe("BT2-064");
+      expect(s.perm("peer").stack.map(({ cardId }) => cardId)).toEqual(["BT10-064"]);
+      expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["BT10-065"]);
+      expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("EX9-054");
+      expect(s.state.players[0]!.battleArea[0]!.stack.map(({ cardId }) => cardId)).toEqual(
+        digivolve ? ["EX9-048"] : [],
+      );
+      expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(digivolve ? ["BT1-010"] : []);
+      expect(s.state.memory).toBe(digivolve ? 7 : 3);
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
   it("plays a qualifying Negamon-text Digimon from hand when deleted", async () => {
     const s = setupEngine(
       {
