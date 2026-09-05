@@ -358,6 +358,7 @@ const VERIFIED_DIGIVOLVE_SELF_REDUCER_CARDS = new Set([
   "BT17-048", // suspend up to 5 Tamers to reduce this card's own evo cost per Tamer
   "EX9-063", // Ver.4 base: this card's own evolution costs -1 per face-down source
   "EX9-031", // Ver.3 base: this card's own evolution costs -1 per face-down source
+  "EX9-041", // Ver.5 base: this card's own evolution costs -1 per face-down source
 ]);
 
 /**
