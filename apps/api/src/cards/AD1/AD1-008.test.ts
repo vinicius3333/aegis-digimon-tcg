@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "../../cards/index.js";
 
 describe("AD1-008 Gallantmon", () => {
@@ -84,6 +86,21 @@ describe("AD1-008 Gallantmon", () => {
     });
     await unqualified.ready();
     expect(unqualified.perm("unqualified").currentDP).toBe(12000);
+  });
+
+  it("is unaffected by opponent effects only during its controller's turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "AD1-008", as: "protected", under: ["BT12-089"] }] },
+    });
+    await s.ready();
+
+    expect(observe(s.engine).hasRestriction(s.perm("protected"), "beAffected")).toBe(true);
+    expect(s.perm("protected").currentDP).toBe(17000);
+
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
+    expect(observe(s.engine).hasRestriction(s.perm("protected"), "beAffected")).toBe(false);
+    expect(s.perm("protected").currentDP).toBe(12000);
   });
 
   it("uses Rush, Raid, and Piercing together after being played", async () => {

@@ -547,7 +547,7 @@ describe("§8-4-2 App Fusion Rules (comprehensive-0135)", () => {
     expect(s.state.memory).toBe(memoryBefore); // AD1-005's requirement prints Cost 0
   });
 
-  it("NOW MET: the App Fusion procedure should draw the player 1 card", async () => {
+  it("8-4-3-3: the App Fusion procedure draws the player 1 card", async () => {
     const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
     const p0 = s.state.players[0]!;
     p0.deck.push(instance("AD1-001", 0, false)); // non-empty deck: a real draw would be observable
@@ -561,10 +561,11 @@ describe("§8-4-2 App Fusion Rules (comprehensive-0135)", () => {
     const perm = await primitivesOf(s).appFuseInto(fuser.permanentId, gaiamon.instanceId);
     expect(perm).toBeDefined();
 
-    // DIVERGENCE: `appFuseInto` (effects/primitives.ts) never calls the draw primitive, unlike
-    // the standard `digivolve` action. Rule 8-4-3-3: "...places it on top of the Digimon card
-    // to app fuse, draws 1 card, and the app fusion process is resolved." Today: hand size
-    // drops by exactly 1 (the played fusion-target leaving hand), with no offsetting draw.
+    // Rule 8-4-3-3: "...places it on top of the Digimon card to app fuse, draws 1 card,
+    // and the app fusion process is resolved." The result card leaves hand and the deck card
+    // enters hand, so the hand-size invariant proves that the shared App Fusion procedure draws.
     expect(p0.hand.length).toBe(handSizeBefore);
+    expect(p0.hand.map((card) => card.cardId)).toEqual(["AD1-001"]);
+    expect(p0.deck).toHaveLength(0);
   });
 });

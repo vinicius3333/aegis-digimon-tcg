@@ -43,6 +43,50 @@ describe("AD1-009 BlitzGreymon", () => {
     ]);
   });
 
+  it("protects only itself and one friendly Garurumon from opponent Digimon effects", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "AD1-009", as: "blitz" }],
+        battleArea: [
+          { card: "BT1-036", as: "garurumon" },
+          { card: "BT1-010", as: "other" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT1-010", as: "opponent" }] },
+    });
+    s.state.memory = 12;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blitz").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "AD1-009"));
+
+    expect(observe(s.engine).hasRestriction(s.perm("blitz"), "beAffected", "Digimon")).toBe(true);
+    expect(observe(s.engine).hasRestriction(s.perm("garurumon"), "beAffected", "Digimon")).toBe(true);
+    expect(observe(s.engine).hasRestriction(s.perm("other"), "beAffected", "Digimon")).toBe(false);
+  });
+
+  it("expires both protections when the opponent's turn ends", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "AD1-009", as: "blitz" }],
+        battleArea: [{ card: "BT1-040", as: "garurumon" }],
+      },
+      1: { battleArea: [{ card: "BT1-010", as: "opponent" }] },
+    });
+    s.state.memory = 12;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blitz").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "AD1-009"));
+    expect(observe(s.engine).hasRestriction(s.perm("blitz"), "beAffected", "Digimon")).toBe(true);
+
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    expect(observe(s.engine).hasRestriction(s.perm("blitz"), "beAffected", "Digimon")).toBe(false);
+    expect(observe(s.engine).hasRestriction(s.perm("garurumon"), "beAffected", "Digimon")).toBe(false);
+  });
+
   it("uses either printed alternate level-5 route for cost 3", async () => {
     for (const baseCard of ["BT1-021", "ST21-04"]) {
       const s = setupEngine({

@@ -1,11 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { Zone, EffectTiming, getCardDefinition, getCompiledCard } from "@aegis/shared";
+import { Zone, EffectTiming, appFusionCostFor, getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import "../../cards/index.js";
 
 describe("AD1-005 Gaiamon", () => {
+  it("publishes the exact zero-cost Globemon and Charismon App Fusion requirement", () => {
+    const compiled = registeredCompiledCards.get("AD1-005") ?? getCompiledCard("AD1-005");
+    expect(compiled?.appFusionRequirement).toEqual([{ names: ["Globemon", "Charismon"], cost: 0 }]);
+    expect(appFusionCostFor("AD1-005", { topName: "Globemon", linkedNames: ["Charismon"] })).toBe(0);
+    expect(appFusionCostFor("AD1-005", { topName: "Globemon", linkedNames: ["Globemon"] })).toBeUndefined();
+  });
+
   it("deletes an opposing Digimon within its DP ceiling when played", async () => {
     const s = setupEngine(
       {
@@ -66,6 +73,45 @@ describe("AD1-005 Gaiamon", () => {
 
     expect(gaiamon.linked).toHaveLength(2);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === lateLink.instanceId)).toBe(true);
+  });
+
+  it("can Blast Digivolve from hand for zero memory when its red level-5 route is legal", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+        1: {
+          battleArea: [{ card: "BT1-021", as: "base" }],
+          hand: [{ card: "AD1-005", as: "gaiamon" }],
+          security: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"), 5000);
+    const counter = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (counter?.kind !== "counterWindowOpened") throw new Error("counter window did not open");
+    const eligible = counter.eligibleCounters.find((entry) => entry.instanceId === s.inst("gaiamon").instanceId);
+    expect(eligible).toBeDefined();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondCounter",
+        sourceInstanceId: eligible!.instanceId,
+        effectKey: eligible!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "AD1-005", 5000);
+    expect(s.perm("base").topCard?.cardId).toBe("AD1-005");
+    expect(s.state.memory).toBe(0);
   });
 
   it("rejects play when memory is below the printed cost", () => {
