@@ -10,6 +10,16 @@ import "../index.js";
 const cardId = "EX11-045";
 
 describe("EX11-045 Metatromon", () => {
+  it("captures the official Assembly -5 recipe", () => {
+    expect(runtimeCompiledCard(cardId)?.assemblyRequirement).toEqual([
+      {
+        reduceCost: 5,
+        materials: [
+          { kinds: ["Digimon"], colors: ["Black"], nameOrTrait: [{ tokens: ["Maquinamon"], match: "text" }], count: 5 },
+        ],
+      },
+    ]);
+  });
   it("preserves printed stats, text evolution, Blocker, and event-scoped inherited deletion", () => {
     expect(getCardDefinition(cardId)).toMatchObject({
       nameEn: "Metatromon",

@@ -26,7 +26,7 @@ describe("EX11-020 Hanimon", () => {
     });
     const compiled = runtimeCompiledCard(cardId)!;
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Kyaromon"], cost: 0, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Kyaromon"], cost: 0, isAlternate: true }]);
     expect(digivolutionRequirementsFor(cardId)).toEqual(compiled.digivolutionRequirement);
     expect(compiled.effects[0]).toMatchObject({
       trigger: "OnDeletion",
@@ -34,7 +34,7 @@ describe("EX11-020 Hanimon", () => {
         {
           kind: "PlayWithoutCost",
           target: {
-            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Shoemon"], match: "name" }] },
+            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Shoemon"], match: "nameExact" }] },
             count: 1,
           },
           from: ["hand"],

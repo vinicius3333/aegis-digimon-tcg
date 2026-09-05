@@ -23,7 +23,7 @@ describe("EX11-037 Espimon", () => {
     });
     const compiled = runtimeCompiledCard(cardId)!;
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Kapurimon"], cost: 0, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Kapurimon"], cost: 0, isAlternate: true }]);
     expect(digivolutionRequirementsFor(cardId)).toEqual(compiled.digivolutionRequirement);
     for (const trigger of ["WhenMoving", "OnPlay"]) {
       const effect = compiled.effects.find((candidate) => candidate.trigger === trigger)!;

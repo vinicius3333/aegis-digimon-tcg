@@ -16,7 +16,7 @@ describe("EX11-009 Tyrannomon", () => {
           payCost: false,
           optional: true,
           target: expect.objectContaining({
-            filter: expect.objectContaining({ nameOrTrait: [{ match: "name", tokens: ["Ryutaro Williams"] }] }),
+            filter: expect.objectContaining({ nameOrTrait: [{ match: "nameExact", tokens: ["Ryutaro Williams"] }] }),
             count: 1,
           }),
           condition: {

@@ -55,7 +55,7 @@ describe("EX11-028 Galemon", () => {
       sourceFilter: { controller: "mine", kind: ["Digimon"] },
     });
     expect(allTurns.actions[0]).toMatchObject({
-      actions: [{ target: { filter: { nameOrTrait: [{ tokens: ["Shoto Kazama"], match: "name" }] } } }],
+      actions: [{ target: { filter: { nameOrTrait: [{ tokens: ["Shoto Kazama"], match: "nameExact" }] } } }],
     });
   });
 

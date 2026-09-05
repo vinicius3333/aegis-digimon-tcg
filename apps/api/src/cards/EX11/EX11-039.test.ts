@@ -35,7 +35,7 @@ describe("EX11-039 HoverEspimon", () => {
       payCost: false,
       condition: { kind: "permanentCount", op: "lte", value: 1, filter: { kind: ["Tamer"] } },
     });
-    expect(irNode(effect.actions[0]!).target.filter.nameOrTrait).toEqual([{ tokens: ["Altea"], match: "name" }]);
+    expect(irNode(effect.actions[0]!).target.filter.nameOrTrait).toEqual([{ tokens: ["Altea"], match: "nameExact" }]);
     expect(compiled.effects).toContainEqual(
       expect.objectContaining({
         trigger: "Static",

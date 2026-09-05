@@ -29,6 +29,11 @@ const OPPONENT_COSTLY = "AD1-004"; // playCost 12 — the highest, must survive
 const DECOY = "P-094"; // Destromon — Black Lv.5, NOT named [Galacticmon]
 
 describe("EX11-046 — [When Digivolving] mass-delete spares the highest-play-cost opponent Digimon", () => {
+  it("captures the official Assembly -6 recipe", () => {
+    expect(runtimeCompiledCard("EX11-046")?.assemblyRequirement).toEqual([
+      { reduceCost: 6, materials: [{ nameOrTrait: [{ tokens: ["Vemmon"], match: "text" }], count: 8 }] },
+    ]);
+  });
   it("preserves the printed card and only its two text evolution requirements", () => {
     expect(getCardDefinition(GALACTICMON)).toMatchObject({
       nameEn: "Galacticmon",
@@ -42,14 +47,14 @@ describe("EX11-046 — [When Digivolving] mass-delete spares the highest-play-co
     const compiled = runtimeCompiledCard(GALACTICMON)!;
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["Snatchmon"], cost: 9, isAlternate: true },
-      { names: ["Galacticmon"], cost: 5, isAlternate: true },
+      { namesExact: ["Snatchmon"], cost: 9, isAlternate: true },
+      { namesExact: ["Galacticmon"], cost: 5, isAlternate: true },
     ]);
     expect(digivolutionRequirementsFor(GALACTICMON)).toEqual(compiled.digivolutionRequirement);
     expect(compiled.effects.find(({ trigger }) => trigger === "EndOfOpponentsTurn")?.actions).toMatchObject([
       {
         kind: "Digivolve",
-        into: { nameOrTrait: [{ tokens: ["Galacticmon"], match: "name" }] },
+        into: { nameOrTrait: [{ tokens: ["Galacticmon"], match: "nameExact" }] },
         from: ["hand", "trash"],
         payCost: false,
         ignoreRequirements: true,
@@ -157,7 +162,7 @@ describe("EX11-046 — [When Digivolving] mass-delete spares the highest-play-co
 
   /**
    * FAILS-WHEN-REVERTED: the [End of Opponent's Turn] destination was encoded as
-   * `into: { names: ["Galacticmon"] }`, and `names` is not a Filter field — the interpreter
+   * `into: { namesExact: ["Galacticmon"] }`, and `names` is not a Filter field — the interpreter
    * ignored it and offered every card in hand and trash (Snatchmon, Destromon, ...).
    */
   it("only digivolves into a card named [Galacticmon] at the end of the opponent's turn", async () => {

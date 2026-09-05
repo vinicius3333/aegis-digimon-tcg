@@ -1,7 +1,7 @@
 import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { assertNoLoudGap, setupEngine } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
@@ -23,7 +23,9 @@ describe("EX11-041 Oblivimon", () => {
     });
     const compiled = runtimeCompiledCard(cardId)!;
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
-    expect(compiled.digivolutionRequirement).toEqual([{ level: 4, traits: ["Cyborg"], cost: 3, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 4, traits: ["Cyborg", "Machine"], cost: 3, isAlternate: true },
+    ]);
     expect(digivolutionRequirementsFor(cardId)).toEqual(compiled.digivolutionRequirement);
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       const effect = compiled.effects.find((candidate) => candidate.trigger === trigger)!;
@@ -97,6 +99,53 @@ describe("EX11-041 Oblivimon", () => {
     expect(opponent.topCard.cardId).toBe("BT1-009");
     expect(s.perm("source").topCard.cardId).toBe("EX11-043");
     assertNoLoudGap(s);
+  });
+
+  it("pays 3 from a Machine-only level-4 base and the ordinary 4 from a non-Machine base", async () => {
+    const valid = setupEngine({
+      0: {
+        battleArea: [{ card: "BT12-086", as: "machineBase" }],
+        hand: [{ card: cardId, as: "oblivimon" }],
+        deck: ["BT1-001", "BT1-002"],
+      },
+    });
+    await valid.ready();
+    valid.state.memory = 3;
+    expect(
+      valid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: valid.perm("machineBase").permanentId,
+        instanceId: valid.inst("oblivimon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => valid.perm("machineBase").topCard.cardId === cardId);
+    expect(valid.perm("machineBase").topCard.cardId).toBe(cardId);
+    expect(valid.state.memory).toBe(0);
+    expect(valid.perm("machineBase").stack.map((card) => card.cardId)).toEqual(["BT12-086"]);
+
+    const invalid = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-037", as: "wrongBase" }],
+        hand: [{ card: cardId, as: "oblivimon" }],
+        deck: ["BT1-001", "BT1-002"],
+      },
+    });
+    await invalid.ready();
+    invalid.state.memory = 3;
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("wrongBase").permanentId,
+        instanceId: invalid.inst("oblivimon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => invalid.perm("wrongBase").topCard.cardId === cardId);
+    expect(invalid.state.memory).toBe(-1);
+    expect(invalid.perm("wrongBase").stack.map((card) => card.cardId)).toEqual(["BT1-037"]);
+    assertNoLoudGap(valid);
+    assertNoLoudGap(invalid);
   });
 
   /**

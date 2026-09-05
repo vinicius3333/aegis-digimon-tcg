@@ -19,7 +19,7 @@ describe("EX11-006 Flickmon", () => {
       frequency: "OncePerTurn",
       condition: {
         kind: "selfLinkedMatchesFilter",
-        filter: { nameOrTrait: [{ tokens: ["Maquinamon"], match: "name" }] },
+        filter: { nameOrTrait: [{ tokens: ["Maquinamon"], match: "nameExact" }] },
       },
     });
     expect(effect.actions[0]).toMatchObject({
@@ -108,7 +108,7 @@ describe("EX11-006 Flickmon", () => {
     assertNoLoudGap(s);
   });
 
-  it("does not fire when the only link card merely mentions Maquinamon in its text", async () => {
+  it("does not fire when the only link card is ExMaquinamon (exact-name boundary)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -117,7 +117,7 @@ describe("EX11-006 Flickmon", () => {
               card: "EX11-027",
               as: "host",
               under: ["EX11-006"],
-              linked: [{ card: "EX11-029", as: "textOnlyLink" }],
+              linked: [{ card: "EX11-073", as: "exMaquinamonLink" }],
             },
           ],
           hand: [{ card: "EX11-029", as: "turbomon" }],
@@ -141,7 +141,7 @@ describe("EX11-006 Flickmon", () => {
     expect(s.perm("host").topCard.cardId).toBe("EX11-027");
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("turbomon").instanceId);
     expect(s.state.memory).toBe(10);
-    expect(s.perm("host").linked.map((card) => card.instanceId)).toContain(s.inst("textOnlyLink").instanceId);
+    expect(s.perm("host").linked.map((card) => card.instanceId)).toContain(s.inst("exMaquinamonLink").instanceId);
     assertNoLoudGap(s);
   });
 

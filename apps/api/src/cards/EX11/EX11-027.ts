@@ -11,7 +11,7 @@ export const compiled: CompiledCard = {
           revealCount: 3,
           add: [
             {
-              filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Maquinamon"], match: "name" }] },
+              filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Maquinamon"], match: "nameExact" }] },
               count: 1,
               to: "hand",
             },
@@ -27,7 +27,7 @@ export const compiled: CompiledCard = {
           kind: "Link",
           target: {
             filter: { isSelfRef: true },
-            orFilters: [{ controller: "mine", nameOrTrait: [{ tokens: ["Maquinamon"], match: "name" }] }],
+            orFilters: [{ controller: "mine", nameOrTrait: [{ tokens: ["Maquinamon"], match: "nameExact" }] }],
             count: 1,
           },
           recipient: {

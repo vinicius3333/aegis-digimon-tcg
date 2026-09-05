@@ -3,8 +3,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
   digivolutionRequirement: [
-    { names: ["Snatchmon"], cost: 9, isAlternate: true },
-    { names: ["Galacticmon"], cost: 5, isAlternate: true },
+    { namesExact: ["Snatchmon"], cost: 9, isAlternate: true },
+    { namesExact: ["Galacticmon"], cost: 5, isAlternate: true },
   ],
   effects: [
     {
@@ -43,7 +43,7 @@ const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Vemmon"],
-                match: "name",
+                match: "nameExact",
               },
             ],
             op: "gte",
@@ -71,7 +71,7 @@ const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Vemmon"],
-                match: "name",
+                match: "nameExact",
               },
             ],
             op: "gte",
@@ -116,7 +116,7 @@ const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Vemmon"],
-                match: "name",
+                match: "nameExact",
               },
             ],
             op: "gte",
@@ -144,7 +144,7 @@ const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Vemmon"],
-                match: "name",
+                match: "nameExact",
               },
             ],
             op: "gte",
@@ -170,7 +170,7 @@ const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Galacticmon"],
-                match: "name",
+                match: "nameExact",
               },
             ],
           },
@@ -184,6 +184,9 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  assemblyRequirement: [
+    { reduceCost: 6, materials: [{ nameOrTrait: [{ tokens: ["Vemmon"], match: "text" }], count: 8 }] },
+  ],
 };
 
 registerIrCard("EX11-046", compiled);
