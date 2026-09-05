@@ -6,6 +6,77 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX9-072.js";
 
 describe("EX9-072", () => {
+  it("loses its face-up security DP bonus after a real check and excludes face-up, non-DM and opposing sources", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX9-007", as: "attacker", under: [{ card: "BT1-009", faceUp: false }] }] },
+        1: {
+          security: [{ card: "EX9-072", faceUp: true }],
+          battleArea: [
+            {
+              card: "EX9-007",
+              as: "host",
+              under: [
+                { card: "BT1-048", faceUp: false },
+                { card: "BT1-046", faceUp: false },
+                { card: "EX9-001", faceUp: true },
+              ],
+            },
+            { card: "BT1-009", as: "nonDM", under: [{ card: "BT1-048", faceUp: false }] },
+          ],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    const base = s.perm("host").currentDP;
+    const attackerBase = s.perm("attacker").currentDP;
+    const nonDMBase = s.perm("nonDM").currentDP;
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(base + 2000);
+    expect(s.perm("attacker").currentDP).toBe(attackerBase);
+    expect(s.perm("nonDM").currentDP).toBe(nonDMBase);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["EX9-072"]);
+    expect(s.perm("host").currentDP).toBe(base);
+    expect(s.perm("host").stack).toHaveLength(3);
+  });
+  it.each(["EX9-012", "BT1-009"])("does not play an ineligible Security candidate %s", async (candidate) => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+        1: {
+          security: [{ card: "EX9-072", faceUp: true }],
+          hand: [candidate],
+          trash: [candidate],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.hand.map((card) => card.cardId)).toEqual([candidate]);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual([candidate, "EX9-072"]);
+  });
   it("does not waive White requirements when an own security card is face up", async () => {
     const s = setupEngine({
       0: { hand: [{ card: "EX9-072", as: "source" }], security: [{ card: "BT1-009", faceUp: true }] },
