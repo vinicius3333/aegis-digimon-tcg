@@ -42,3 +42,24 @@ while an older runtime report claims 74/74. Neither proves current completion.
 ## Status
 
 Planning complete; baseline validation and all three Luna audit ranges started.
+
+## Baseline evidence
+
+- Locked dependency installation succeeded. An initial collection invocation before
+  the shared build failed package resolution and ran no tests; it is not card evidence.
+- After building shared, `pnpm --filter @aegis/api exec vitest run src/cards/EX10/
+  --maxWorkers=2`: 75 files passed, one failed; 582 tests passed, one failed.
+  EX10-033's Q5097–Q5100 case reads `perm("chosen")` after the 0-DP permanent leaves
+  the board. The range owner will verify the behavior and correct the proof.
+- `pnpm typecheck`: shared, API, and web passed.
+- `pnpm --filter @aegis/api exec vitest run src/engine/effects
+  src/engine/subTriggerSeams.test.ts src/engine/continuousLapse.test.ts
+  src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts
+  src/engine/decisions/visibleIdentities.test.ts --maxWorkers=2`: 45 files,
+  1,126 tests passed.
+- The current `runContinuousPass` clears continuous ledgers and resolves each
+  persistent effect once. Q5202 dependency persistence needs a reproduction and a
+  shared correction. Worker 001–025 owns this seam after coordinator assignment.
+- Opponent face-down hand identities are already withheld by
+  `decisions/visibleIdentities.ts`; EX10-059's historical visibility exception must
+  be verified against actual decision serialization before introducing new IR.
