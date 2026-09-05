@@ -23,6 +23,8 @@ export const compiled: CompiledCard = {
         {
           kind: "PlaceUnder",
           faceDown: true,
+          from: ["hand"],
+          position: "bottom",
           target: {
             filter: {
               controller: "mine",
@@ -69,6 +71,8 @@ export const compiled: CompiledCard = {
         {
           kind: "PlaceUnder",
           faceDown: true,
+          from: ["hand"],
+          position: "bottom",
           target: {
             filter: {
               controller: "mine",
