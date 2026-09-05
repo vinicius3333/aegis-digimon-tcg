@@ -24,8 +24,9 @@ describe("ST10-01 Nyaromon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.deck.length === 0 && s.state.players[0]!.trash.length === 1);
-    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
     expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("discard").instanceId]);
   });
 
   it("counts its own yellow host as the yellow Digimon", async () => {
@@ -49,7 +50,8 @@ describe("ST10-01 Nyaromon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.deck.length === 0 && s.state.players[0]!.trash.length === 1);
-    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("discard").instanceId]);
   });
 
   it("does not trash from hand when the conditional draw cannot draw", async () => {

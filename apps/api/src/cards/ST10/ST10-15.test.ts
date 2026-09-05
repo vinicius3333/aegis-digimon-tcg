@@ -22,6 +22,8 @@ describe("ST10-15 Darkness Wave", () => {
     });
     await settle(() => s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("returned").instanceId));
     expect(s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("returned").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash).toHaveLength(3);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("returned").instanceId)).toBe(false);
   });
 
   it("activates its Main effect from security", async () => {
@@ -38,6 +40,8 @@ describe("ST10-15 Darkness Wave", () => {
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
     await settle(() => s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("returned").instanceId));
     expect(s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("returned").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash).toHaveLength(2);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("returned").instanceId)).toBe(false);
   });
 
   it("does not return a trashed Digimon when no yellow Digimon is in play", async () => {
