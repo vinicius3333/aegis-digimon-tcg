@@ -307,6 +307,26 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       }
       const kw = keyword.keyword;
       const duration = toDuration(action.duration);
+      if (action.cost?.kind === "attack") {
+        const ids = await resolvePermanentTargets(ctx, action.target);
+        if (ids.length === 0) return false;
+        const grantProvenance = {
+          sourceSeat: ctx.source.ownerSeat,
+          sourceKinds: [...ctx.source.definition.kinds],
+        };
+        let declared = false;
+        for (const id of ids) {
+          await ctx.fx.forceAttack(id, {
+            attackPlayer: true,
+            afterAttackDeclaration: async () => {
+              declared = true;
+              ctx.fx.grantKeyword(id, kw, duration, keyword.amount, grantProvenance);
+            },
+          });
+        }
+        ctx.lastEffectActed = declared;
+        return false;
+      }
       if (action.playerWide === true) {
         const seat =
           action.target.filter.controller === "opponent"

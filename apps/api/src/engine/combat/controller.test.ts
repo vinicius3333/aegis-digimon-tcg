@@ -214,6 +214,52 @@ describe("CombatController.resolveAttack — Digimon vs Digimon", () => {
     );
   });
 
+  it("runs an attack-cost callback after declaration and before suspension watchers", async () => {
+    const h = harness();
+    const attacker = digimon(0, 9000);
+    const defender = digimon(1, 4000, { suspended: true, cardId: DIGIMON_B });
+    h.state.players[0]?.battleArea.push(attacker);
+    h.state.players[1]?.battleArea.push(defender);
+
+    await h.combat.resolveAttack(
+      0,
+      attacker,
+      { kind: "permanent", permanentId: defender.permanentId },
+      {
+        afterAttackDeclaration: async () => {
+          h.timeline.push(`attack-cost:${h.combat.isAttacking}`);
+        },
+      },
+    );
+
+    expect(h.timeline).toContain("attack-cost:true");
+    expect(h.timeline.indexOf("attack-cost:true")).toBeLessThan(h.timeline.indexOf("sub:whenSuspended"));
+    expect(h.combat.isAttacking).toBe(false);
+  });
+
+  it("cleans up an in-flight attack when an attack-cost callback rejects", async () => {
+    const h = harness();
+    const attacker = digimon(0, 9000);
+    const defender = digimon(1, 4000, { suspended: true, cardId: DIGIMON_B });
+    h.state.players[0]?.battleArea.push(attacker);
+    h.state.players[1]?.battleArea.push(defender);
+
+    await expect(
+      h.combat.resolveAttack(
+        0,
+        attacker,
+        { kind: "permanent", permanentId: defender.permanentId },
+        {
+          afterAttackDeclaration: async () => {
+            throw new Error("attack-cost failed");
+          },
+        },
+      ),
+    ).rejects.toThrow("attack-cost failed");
+    expect(h.combat.isAttacking).toBe(false);
+    expect(h.combat.currentAttackerId).toBeUndefined();
+  });
+
   it("attacker with higher DP deletes the defender and suspends the attacker", async () => {
     const h = harness();
     const attacker = digimon(0, 9000);

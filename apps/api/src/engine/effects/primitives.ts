@@ -328,6 +328,8 @@ export interface CombatPort {
     opts?: {
       withoutTap?: boolean;
       attackMechanic?: string;
+      /** Resolve an attack-cost payload after attack declaration and before declaration-triggered effects. */
+      afterAttackDeclaration?: () => Promise<void>;
       afterAttackTriggers?: () => Promise<void>;
       drainTimingWindow?: () => Promise<void>;
     },
@@ -5329,6 +5331,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       attackPlayer?: boolean;
       attackPlayerOnly?: boolean;
       attackMechanic?: string;
+      afterAttackDeclaration?: () => Promise<void>;
       afterAttackTriggers?: () => Promise<void>;
       drainTimingWindow?: () => Promise<void>;
     },
@@ -5393,6 +5396,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     await combat.resolveAttack(controllerSeat, attacker, target, {
       withoutTap: opts?.withoutSuspending ?? false,
       attackMechanic: opts?.attackMechanic,
+      afterAttackDeclaration: opts?.afterAttackDeclaration,
       afterAttackTriggers: opts?.afterAttackTriggers,
       drainTimingWindow: opts?.drainTimingWindow,
     });
