@@ -4,6 +4,7 @@ import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./EX9-054.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "./EX9-051.js";
 
 describe("EX9-054", () => {
   it("Q4808 combines one trash Negamon and one surviving host's source to play level five but not six", async () => {
@@ -106,6 +107,60 @@ describe("EX9-054", () => {
 
     expect(s.perm("host").isSuspended).toBe(false);
     expect(s.state.players[0]!.security).toHaveLength(1);
+  });
+  it("unsuspends only after the first of two real Blocker target switches in one turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-009", as: "first" },
+          { card: "BT1-010", as: "second" },
+        ],
+      },
+      1: {
+        battleArea: [{ card: "EX9-055", as: "host", under: ["EX9-051", "EX9-054"] }],
+        security: ["BT1-001"],
+      },
+    });
+    await s.ready();
+    const host = s.perm("host");
+    expect(observe(s.engine).hasKeyword(host, "Blocker")).toBe(true);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("first").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).blockingSeat() === 1);
+    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: host.permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        !s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT1-009"),
+    );
+    expect(host.isSuspended).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === host.permanentId)).toBe(true);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("second").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).blockingSeat() === 1);
+    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: host.permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[0]!.battleArea.length === 0);
+
+    expect(host.isSuspended).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === host.permanentId)).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
   it("de-digivolves an opposing stack when digivolving", async () => {
     const s = setupEngine({
