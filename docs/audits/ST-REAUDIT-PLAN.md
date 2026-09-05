@@ -8,31 +8,31 @@ Reaudit all 343 committed cards across 23 ST sets. ST11 has no distinct card IDs
 
 Three gpt-5.6-luna workers share this isolated worktree, with disjoint card/report ownership. The coordinator owns planning, shared engine changes, integration, final validation, atomic commits and pushing the branch. Workers do not commit or alter shared files without coordination.
 
-| Set  | Cards | Luna worker | Current status                                     |
-| ---- | ----: | ----------- | -------------------------------------------------- |
-| ST1  |    16 | st01_08     | Luna evidence received; coordinator review pending |
-| ST2  |    16 | st01_08     | Luna evidence received; coordinator review pending |
-| ST3  |    16 | st01_08     | Luna evidence received; coordinator review pending |
-| ST4  |    16 | st01_08     | Luna evidence received; coordinator review pending |
-| ST5  |    16 | st01_08     | Luna evidence received; coordinator review pending |
-| ST6  |    16 | st01_08     | Luna evidence received; coordinator review pending |
-| ST7  |    12 | st01_08     | Luna evidence received; coordinator review pending |
-| ST8  |    12 | st01_08     | Luna evidence received; coordinator review pending |
-| ST9  |    15 | st09_17     | Baseline failures under correction                 |
-| ST10 |    15 | st09_17     | Baseline failures under correction                 |
-| ST12 |    16 | st09_17     | Baseline failures under correction                 |
-| ST13 |    16 | st09_17     | Baseline failures under correction                 |
-| ST14 |    12 | st09_17     | Baseline failures under correction                 |
-| ST15 |    16 | st09_17     | Baseline failures under correction                 |
-| ST16 |    16 | st09_17     | Baseline failures under correction                 |
-| ST17 |    13 | st09_17     | Baseline failures under correction                 |
-| ST18 |    15 | st18_24     | Proof gaps recorded at 8–9/10; strengthening       |
-| ST19 |    15 | st18_24     | Initial tests green; detailed proof review queued  |
-| ST20 |    15 | st18_24     | Initial tests green; detailed proof review queued  |
-| ST21 |    15 | st18_24     | Initial tests green; detailed proof review queued  |
-| ST22 |    14 | st18_24     | Initial tests green; detailed proof review queued  |
-| ST23 |    15 | st18_24     | Initial tests green; detailed proof review queued  |
-| ST24 |    15 | st18_24     | Initial tests green; detailed proof review queued  |
+| Set  | Cards | Luna worker | Current status                                             |
+| ---- | ----: | ----------- | ---------------------------------------------------------- |
+| ST1  |    16 | coordinator | Reviewed 16/16 at 10/10; 45 tests; pushed 2ae4cde25        |
+| ST2  |    16 | st01_08     | Luna evidence received; coordinator review pending         |
+| ST3  |    16 | st01_08     | Luna evidence received; coordinator review pending         |
+| ST4  |    16 | st01_08     | Luna evidence received; coordinator review pending         |
+| ST5  |    16 | st01_08     | Luna evidence received; coordinator review pending         |
+| ST6  |    16 | st01_08     | Luna evidence received; coordinator review pending         |
+| ST7  |    12 | st01_08     | Luna evidence received; coordinator review pending         |
+| ST8  |    12 | st01_08     | Luna evidence received; coordinator review pending         |
+| ST9  |    15 | st09_17     | Proof batch green; coordinator corrections in progress     |
+| ST10 |    15 | st09_17     | Baseline failures under correction                         |
+| ST12 |    16 | st09_17     | Solarmon activation fixed in 3241ceb87; collection pending |
+| ST13 |    16 | st09_17     | Baseline failures under correction                         |
+| ST14 |    12 | st09_17     | Baseline failures under correction                         |
+| ST15 |    16 | st09_17     | Baseline failures under correction                         |
+| ST16 |    16 | st09_17     | Baseline failures under correction                         |
+| ST17 |    13 | st09_17     | Baseline failures under correction                         |
+| ST18 |    15 | st18_24     | Proof gaps recorded at 8–9/10; strengthening               |
+| ST19 |    15 | reviewer    | Reviewed proof batch; 76 tests; pushed 3be2d8628           |
+| ST20 |    15 | reviewer    | Security/Delay/Counter proofs; Alliance validation active  |
+| ST21 |    15 | st18_24     | Initial tests green; detailed proof review queued          |
+| ST22 |    14 | st18_24     | Initial tests green; detailed proof review queued          |
+| ST23 |    15 | st18_24     | Initial tests green; detailed proof review queued          |
+| ST24 |    15 | st18_24     | Initial tests green; detailed proof review queued          |
 
 ## Execution and evidence
 
@@ -75,7 +75,7 @@ The baseline does not certify the other cards' full printed contracts. Luna clau
 ## Current correction checkpoint
 
 - Effect-deletion grant activation is fixed in pushed commit b4fdb4071; 23 affected files / 217 tests passed. See ST16-15-DELETION-AUDIT.md. Battle deletion follow-up is delivered in 6e50b8246; four focused ST16-15 tests and 56 combat regression tests passed.
-- ST12-03 cost-reduction activation remains in review. ST15-10 asynchronous evolution proof is corrected in 8387fa337 with observable inherited Reboot; focused 3/3 passed.
+- ST12-03 cost-reduction activation is delivered in 3241ceb87: ten card cases, direct/nested reducer controls, breeding and free-play coverage. See ST12-03-COST-AUDIT.md. ST15-10 asynchronous evolution proof is corrected in 8387fa337 with observable inherited Reboot; focused 3/3 passed.
 - ST18 has an explicit conservative per-card 8–9/10 proof ledger (ST18-PROOF-AUDIT.md). Added equality/optionality/conditional-result tests passed, but remaining behavioral gaps are still being closed; no ST18 completion claim is accepted.
 - User requested care with tests: keep targeted single-worker runs, inspect results, and avoid repeating broad suites without changed scope or a concrete unresolved failure.
-- Entire scope remains 343 cards / 23 collections, ST18 and ST19 detailed proof work remains active; ST20–ST24 detailed proof work is queued.
+- Entire scope remains 343 cards / 23 collections. ST1 and ST19 reviewed batches are pushed; ST9, ST18 and ST20 proof work is active; other detailed reviews remain pending. Shared-engine conformance passed 28 files / 387 tests after the Solarmon fix; shared/web/API typechecks passed after correcting ST20 test typing.
