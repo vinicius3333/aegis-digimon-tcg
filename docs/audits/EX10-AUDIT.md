@@ -7,8 +7,8 @@ Base: `675edc356bf351b852e64da1b38cd45c5123c35f`.
 
 All 74 EX10 cards have individually reviewed contract, IR, behavioral, peer/stack and
 validation evidence. The recalculated [card ledger](../../apps/api/src/cards/EX10/AUDIT.md)
-records 74/74 at 10/10. Final branch publication and worktree closeout are delivery gates;
-they are not inferred from this score table.
+records 74/74 at 10/10. Integration PR: [#4714](https://github.com/vinicius3333/aegis-digimon-tcg/pull/4714).
+The branch includes the current EX11/EX12 audits from main, with their records preserved.
 
 The work followed `.agents/skills/verify-card-implementation/SKILL.md`. The coordinator
 planned and integrated the audit; workers audited 001–025, 026–050 and 051–074. The latter
@@ -61,8 +61,8 @@ outside this resident-source preparation seam.
 | Unchanged ch04 and interaction regression                            | 82/82 passed on the correction and the isolated baseline                                     |
 | React/Colyseus evolution scenario                                    | 1/1 passed with actual alternate cost, inherited stack and final DP                          |
 | Persisted IR                                                         | All 74 records synchronized; only 023, 055, 056, 058, 059 and 064 differ from the audit base |
-| Typecheck                                                            | Shared/API/web passed on the reviewed candidate; final delivery repetition is recorded below |
-| Static style and diff                                                | Changed-file Oxlint/Oxfmt and `git diff --check` are delivery gates                          |
+| Typecheck                                                            | Shared/API/web passed after integrating main with workspace concurrency limited to one       |
+| Static style and diff                                                | All 41 changed TypeScript files pass Oxlint/Oxfmt; `git diff --check` passes                 |
 
 Primary commands:
 
@@ -83,12 +83,36 @@ EX10 collection and affected-mechanism runs above are complete. An earlier broad
 also superseded after the DP corrections and is not used as passing evidence.
 
 A later parallel `pnpm typecheck` repetition was killed by the system (exit 137), without a
-TypeScript diagnostic. The final retry limits workspace concurrency to one; its result must be
-recorded before delivery. No blanket suppressions or weakened regression assertions were used.
+TypeScript diagnostic. The final retry limits workspace concurrency to one and passed on the integrated tree. No blanket suppressions or weakened regression assertions were used.
 
 ## Delivery
 
 - `0e0bd8f1d`: EX10-023 phase correction, pushed.
 - `fc65b40d3`: EX10-010 DP dependencies and immunity, pushed.
 - `bd1f36b29`: EX10-055/056/058 material caps and persisted IR, pushed.
-- EX10-064 shared seam, final reports, PR and Orca closeout: pending final validation/publication.
+- `800417986`: EX10-064 compiled preparation, optional quota behavior and mutation/peer proofs.
+- `cf56eb601`: recalculated 74-card ledger and range reports.
+- `ef6971aa8`: current main integrated without conflicts; EX11 and EX12 IR records preserved.
+- Integration PR: [#4714](https://github.com/vinicius3333/aegis-digimon-tcg/pull/4714); merge to main was explicitly requested by the user.
+
+## Final integrated-tree checks
+
+The tree at `ef6971aa8` passed all integration checks; subsequent changes only finalize these
+reports. The coordinator independently verified the six intentional EX10 persisted-record
+changes and zero semantic differences in the EX11/EX12 records from the main parent.
+
+- `npm_config_workspace_concurrency=1 pnpm typecheck`: passed for shared, API and web.
+- `pnpm --filter @aegis/api exec vitest run src/cards/EX10 src/cards/EX11 src/cards/EX12 --maxWorkers=1`: **236 files, 2,118 tests passed** (225 per-card suites plus 11 set guards/auxiliary suites).
+- Effects, subtriggers, DigiXros, continuous DP/lifecycle, phase restrictions, interaction, ch04/ch15 and assembly-color mechanisms: **60 files, 1,253 tests passed**.
+- `pnpm --filter @aegis/web exec vitest run test/ex10EvolutionStack.scenario.test.tsx --maxWorkers=1`: **1/1 passed**.
+- Oxlint and Oxfmt: **41 changed TypeScript files passed**. Diff validation passed.
+
+Exact final mechanism command:
+
+```sh
+pnpm --filter @aegis/api exec vitest run src/engine/effects src/engine/subTriggerSeams.test.ts src/engine/subTriggerEmptyActions.test.ts src/engine/digiXrosOrMaterials.test.ts src/engine/digiXrosTraitContains.test.ts src/engine/digiXrosExactNames.test.ts src/engine/digiXrosPreparation.test.ts src/engine/continuous src/engine/unsuspendPhaseRestriction.test.ts src/engine/interactionAudit.test.ts src/engine/conformance/ch04-basic-terminology.test.ts src/engine/conformance/ch15-04-continuous-and-static.test.ts src/engine/actions/assemblyColors.test.ts --maxWorkers=1
+```
+
+Local run logs: `/tmp/ex10-merged-typecheck.log`, `/tmp/ex10-merged-collections.log`,
+`/tmp/ex10-merged-mechanisms.log`, and `/tmp/ex10-merged-ui.log`. The commands and committed
+tests above are the reproducible evidence; these temporary logs are not required to rerun it.

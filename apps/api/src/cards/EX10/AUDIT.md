@@ -39,7 +39,7 @@ all five component scores, the final score, and direct links to its module and f
 - Affected effects, subtrigger and DigiXros mechanisms plus peer cards passed; exact commands and counts are in the collection report.
 - EX10-064 focused proof: 11 tests passed, including a nested compiled-action mutation, two-copy material quotas and independent refusal.
 - The real React/Colyseus evolution scenario passed: `pnpm --filter @aegis/web exec vitest run test/ex10EvolutionStack.scenario.test.tsx --maxWorkers=1`.
-- Full `pnpm typecheck`, changed-file Oxlint/Oxfmt and `git diff --check` are required delivery gates.
+- Full typecheck (one workspace at a time), changed-file Oxlint/Oxfmt and `git diff --check` passed after integrating current main.
 - Inventory: 74 catalog IDs, 74 direct modules, 74 focused suites, 74 exclusive `registerIrCard` registrations and no legacy `registerCard` registrations.
 
 ## Card scores

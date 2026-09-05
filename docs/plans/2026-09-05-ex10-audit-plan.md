@@ -193,3 +193,24 @@ exists for uid 501`, and an HTTPS attempt using the existing credential helper
   passed 3 files / 12 tests (`/tmp/ex10-digixros-peers-current.log`). These provide
   compatibility evidence, not proof of compiled effect-play activation or peer
   optionality. Those remain specific requirements for the new hook.
+
+## Final integration and requested merge
+
+The user subsequently requested merge to main and push. All 74 rows were recalculated to
+10/10 from individual evidence. The newly discovered EX10-055/056/058 two-material caps
+failed three boundary tests before correction and passed all 28 focused cases afterward
+(commit `bd1f36b29`). EX10-064's preparation required continuous replacement registration
+before the material picker; compiled mutation, independent refusal, two-copy quotas and
+BT19-087 peer cases now pass (`800417986`).
+
+Main's EX11/EX12 audits were integrated without conflicts at `ef6971aa8`; independent review
+confirmed that their IR records and Fortitude behavior are preserved. Final verification:
+236 collection files / 2,118 tests; 60 mechanism files / 1,253 tests; UI 1/1; full sequential
+workspace typecheck; 41 changed TypeScript files clean under Oxlint/Oxfmt; clean diff check.
+The optional full-catalog engine matrix was intentionally stopped while making progress and
+is not claimed as a green result. A parallel typecheck was system-killed; the final sequential
+run passed. Earlier intermediate failures and ownership checkpoints above are historical.
+
+Integration PR: https://github.com/vinicius3333/aegis-digimon-tcg/pull/4714. Final delivery
+requires publishing this evidence, merging that PR with a merge commit, syncing main, and
+setting the audit worktree's required completion status/comment.
