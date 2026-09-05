@@ -1,8 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { PlayerState } from "@aegis/shared";
+import { EffectTiming, PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "./index.js";
+import "../BT8/BT8-097.js";
+import "../BT17/BT17-035.js";
+import "../BT24/BT24-085.js";
+import "../BT24/BT24-092.js";
+import "../BT10/BT10-100.js";
 import "../ST3/ST3-13.js";
 import "../ST3/ST3-15.js";
 import { compiled } from "./EX8-031.js";
@@ -115,5 +121,135 @@ describe("EX8-031", () => {
     s.state.turnSeat = 1;
     await advance(s.engine).runTurn(1);
     expect(s.perm("target").currentDP).toBe(3000);
+  });
+
+  it("does not treat Security or Delay activation as using an Option (Q5512)", async () => {
+    const security = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-051", as: "host", under: ["EX8-031"] }],
+          security: [{ card: "BT10-100", as: "securityOption" }],
+        },
+        1: { battleArea: [{ card: "BT1-084", as: "target", dp: 15000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    await security.ready();
+    await advance(security.engine).fireForInstance(EffectTiming.SecuritySkill, security.inst("securityOption"));
+    await settle(() =>
+      security.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === security.inst("securityOption").instanceId,
+      ),
+    );
+    expect(security.perm("target").currentDP).toBe(15000);
+
+    const delay = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-051", as: "host", under: ["EX8-031"] },
+            { card: "BT10-100", as: "delay" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-084", as: "target", dp: 15000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    delay.perm("delay").placedByEffect = true;
+    delay.state.turnCount += 1;
+    delay.state.memory = 0;
+    await delay.ready();
+    const delayEffects = observe(delay.engine).activatableEffects(delay.perm("delay")) as Array<{ effectKey: string }>;
+    expect(delayEffects).toHaveLength(1);
+    expect(
+      delay.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: delay.inst("delay").instanceId,
+        effectKey: delayEffects[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      delay.state.players[0]!.trash.some((card) => card.instanceId === delay.inst("delay").instanceId),
+    );
+    expect(delay.perm("target").currentDP).toBe(15000);
+  });
+
+  it("uses the card-level cost reduction for the threshold, not the printed cost (Q5513)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-051", as: "host", under: ["EX8-031"] },
+            { card: "BT1-009", as: "redSource" },
+          ],
+          hand: [{ card: "BT8-097", as: "crimsonBlaze" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "target", dp: 7000 },
+            { card: "BT1-009", dp: 7000 },
+            { card: "BT1-009", dp: 7000 },
+            { card: "BT1-009", dp: 7000 },
+            { card: "BT1-009", dp: 7000 },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 1;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("crimsonBlaze").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("crimsonBlaze").instanceId));
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("target").currentDP).toBe(7000);
+  });
+
+  it("triggers when an effect reduces only the paid amount (Q5514)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-051", as: "host", under: ["EX8-031"] },
+            { card: "BT17-035", as: "taomon" },
+          ],
+          hand: [{ card: "BT1-102", as: "option" }],
+        },
+        1: { battleArea: [{ card: "BT1-084", as: "target", dp: 15000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("taomon"));
+    await settle(() => s.perm("target").currentDP === 13000);
+
+    expect(s.perm("target").currentDP).toBe(13000);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
+  });
+
+  it("triggers when an effect uses an Option without paying its cost (Q5515)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-051", as: "host", under: ["EX8-031"] },
+            { card: "BT24-085", as: "tamer" },
+          ],
+          hand: [{ card: "BT24-092", as: "option" }],
+        },
+        1: { battleArea: [{ card: "BT1-084", as: "target", dp: 15000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = -3;
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("tamer"));
+    await settle(() => s.state.players[0]!.hand.every((card) => card.instanceId !== s.inst("option").instanceId));
+
+    expect(s.state.memory).toBe(-3);
+    expect(s.perm("target").currentDP).toBe(7000);
   });
 });

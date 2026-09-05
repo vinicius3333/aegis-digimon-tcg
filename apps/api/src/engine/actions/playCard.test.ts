@@ -329,6 +329,29 @@ describe("applyPlayCard - Option resolve then trash", () => {
     expect(eventCost).toBe(1);
   });
 
+  it("passes the hand instance to the pre-resolution Option use-cost seam", async () => {
+    const state = makeState([OPTION_COST]);
+    state.memory = 1;
+    const id = firstInstanceId(state, 0);
+    let adjustedInstance: CardInstance | undefined;
+    let eventCost: number | undefined;
+    const { deps } = makeDeps({
+      adjustedPlayCost: () => 1,
+      optionUseCost: (_state, _seat, adjustedCard) => {
+        adjustedInstance = adjustedCard;
+        return 1;
+      },
+      fireOptionUsed: async (_instanceId, usedOptionCost) => {
+        eventCost = usedOptionCost;
+      },
+    });
+
+    expect((await applyPlayCard(state, 0, playIntent(id), deps)).ok).toBe(true);
+    expect(adjustedInstance?.instanceId).toBe(id);
+    expect(eventCost).toBe(1);
+    expect(state.memory).toBe(0);
+  });
+
   it("holds the option on resolvingOption (not trash) during fireTiming, per §9-1-4", async () => {
     const state = makeState([OPTION_FREE]);
     const id = firstInstanceId(state, 0);

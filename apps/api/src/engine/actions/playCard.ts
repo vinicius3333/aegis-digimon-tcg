@@ -162,6 +162,12 @@ export interface PlayCardDeps {
   /** Notify armed watchers after a genuine Option use finishes resolving its [Main] effect. */
   fireOptionUsed?(usedInstanceId: string, usedOptionCost?: number): Promise<void>;
   /**
+   * Project the Option's rules-relevant use cost before payment and its [Main] effect resolve.
+   * This is separate from the paid play cost: intrinsic card-level reductions affect this value,
+   * while payment-only reductions do not. Optional and only consulted for Option plays.
+   */
+  optionUseCost?(state: GameState, seat: Seat, instance: CardInstance, passiveCost: number): number;
+  /**
    * Pay-time interactive cost FINALIZATION (the BeforePayCost hook). After the synchronous
    * `validatePlayCard` produced the passive-modifier cost for the immediate IntentResult, the
    * async apply path calls this BEFORE spending memory: it fires the in-hand card's
@@ -347,6 +353,10 @@ export async function applyPlayCard(
   // synchronously above, and placement stays in the same microtask (no behavioral/timing change).
   const needsFinalize =
     deps.finalizePlayCost !== undefined && (deps.hasBeforePayCost === undefined || deps.hasBeforePayCost(handInstance));
+  const optionUseCost =
+    mode === "option" && deps.optionUseCost !== undefined
+      ? Math.max(0, deps.optionUseCost(state, seat, handInstance, passiveCost))
+      : passiveCost;
   const cost = needsFinalize
     ? Math.max(0, await deps.finalizePlayCost!(state, seat, handInstance, definition, passiveCost, mode))
     : passiveCost;
@@ -504,7 +514,7 @@ export async function applyPlayCard(
   // Carry the rules-relevant use cost: continuous/card-level modifiers have
   // already produced `passiveCost`, while BeforePayCost changes only payment.
   // This distinction implements BT10-032 Q1956/Q1957.
-  await deps.fireOptionUsed?.(instance.instanceId, passiveCost);
+  await deps.fireOptionUsed?.(instance.instanceId, optionUseCost);
 
   return {
     ok: true,

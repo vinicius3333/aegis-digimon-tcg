@@ -4966,6 +4966,8 @@ export class GameEngine {
       // current when a play is validated. `controllerSeat` is the seat paying.
       adjustedPlayCost: (_state, seat, definition, base) =>
         this.modifiers.playCostFor({ def: definition, controllerSeat: seat }, base),
+      optionUseCost: (_state, seat, instance, passiveCost) =>
+        this.projectLooseUseCost(instance.instanceId, seat) ?? passiveCost,
       // Seat-level "your opponent can't play <X>" prohibition (RestrictPlay). A manual play
       // is the playing seat's own action, so the prohibition on that seat applies.
       playProhibited: (_state, seat, definition) => this.continuous.isPlayBlocked(seat, definition, "play"),
