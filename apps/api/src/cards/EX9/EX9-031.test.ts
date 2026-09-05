@@ -5,6 +5,144 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("EX9-031", () => {
+  it("resolves Security and the active player's check effect before the inherited choice (Q4786)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "ST3-10", as: "host", under: ["EX9-031"] }],
+        security: ["ST2-13"],
+      },
+      1: {
+        battleArea: [
+          { card: "BT16-033", as: "attacker" },
+          { card: "BT1-009", as: "peer" },
+        ],
+        security: ["BT1-045", "BT1-046", "BT1-010"],
+      },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    expect(s.state.pendingDecision?.kind).toBe("chooseTargets");
+    expect(s.decisions.at(-1)?.seat).toBe(0);
+    // Hammer Spark gives the defender 2; Harpymon gives the active player 1.
+    expect(s.state.memory).toBe(2);
+    expect(s.events.filter((event) => event.kind === "memoryChanged").map(({ from, to }) => [from, to])).toEqual([
+      [3, 1],
+      [1, 2],
+    ]);
+    expect(s.perm("attacker").currentDP).toBe(5000);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("attacker").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("attacker").currentDP).toBe(1000);
+    expect(s.perm("peer").currentDP).toBe(3000);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["ST2-13"]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it.each([
+    { base: "BT3-063", cost: 3, legal: true },
+    { base: "EX9-039", cost: 4, legal: true },
+    { base: "BT1-071", cost: 0, legal: false },
+    { base: "BT13-065", cost: 0, legal: false },
+  ])("checks the independent alternate route from $base", async ({ base, cost, legal }) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: base, as: "host" }],
+          hand: [{ card: "EX9-031", as: "evo" }],
+          deck: ["BT1-046"],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evo").instanceId,
+        useAlternateCost: true,
+      }).ok,
+    ).toBe(legal);
+    await settle();
+    expect(s.perm("host").topCard.cardId).toBe(legal ? "EX9-031" : base);
+    expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual(legal ? [base] : []);
+    expect(s.state.memory).toBe(5 - cost);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(legal ? ["BT1-046"] : ["EX9-031"]);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(legal ? [] : ["BT1-046"]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("shares paid recovery between real digivolution and attack despite a second payable source", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT1-051",
+              as: "host",
+              under: [
+                { card: "BT1-009", faceUp: false },
+                { card: "BT1-012", faceUp: false },
+              ],
+            },
+          ],
+          hand: [{ card: "EX9-031", as: "evo" }],
+          deck: ["BT1-046", "BT1-045", "BT1-010"],
+        },
+        1: { security: ["BT1-045", "BT1-046"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-046"]);
+    expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-045"]);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("host").stack.map(({ cardId, faceUp }) => [cardId, faceUp])).toEqual([
+      ["BT1-012", false],
+      ["BT1-051", true],
+    ]);
+    expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-045"]);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-010"]);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it.each([
     { base: "EX9-029", memory: 2 },
     { base: "BT1-051", memory: 1 },
