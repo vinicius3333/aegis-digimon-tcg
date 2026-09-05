@@ -5,6 +5,55 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX9-071.js";
 
 describe("EX9-071", () => {
+  it("explicitly declines the Delay payload without trashing sources or unsuspending", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX9-071", as: "protein" },
+          {
+            card: "EX9-007",
+            as: "target",
+            suspended: true,
+            under: [
+              { card: "BT1-009", as: "bottomOne", faceUp: false },
+              { card: "BT1-048", as: "bottomTwo", faceUp: false },
+            ],
+          },
+        ],
+      },
+    });
+    s.perm("protein").placedByEffect = true;
+    await s.ready();
+    const effect = JSON.parse(s.perm("protein").activatableEffectsJson || "[]").find(
+      (entry: { description?: string }) => /Delay/i.test(entry.description ?? ""),
+    );
+    expect(effect).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("protein").instanceId,
+        effectKey: effect.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.perm("target").stack.map((card) => card.instanceId)).toEqual([
+      s.inst("bottomOne").instanceId,
+      s.inst("bottomTwo").instanceId,
+    ]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["EX9-071"]);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+  });
   it("waives color requirements with a DM card and draws before entering the battle area", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Static")).toMatchObject({
       actions: [{ kind: "WaiveColorRequirement", condition: { kind: "anyOf" } }],
