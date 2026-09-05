@@ -13,7 +13,7 @@ const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       condition: {
         kind: "selfLinkedMatchesFilter",
-        filter: { nameOrTrait: [{ tokens: ["Maquinamon"], match: "name" }] },
+        filter: { nameOrTrait: [{ tokens: ["Maquinamon"], match: "nameExact" }] },
         raw: "This Digimon linked with [Maquinamon]",
       },
       actions: [

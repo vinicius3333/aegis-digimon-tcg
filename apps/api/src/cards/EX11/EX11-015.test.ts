@@ -24,7 +24,7 @@ describe("EX11-015 Frigimon", () => {
             filter: { controllerDefault: "mine", kind: ["Tamer"] },
           },
           target: {
-            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Suzune Kazuki"], match: "name" }] },
+            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Suzune Kazuki"], match: "nameExact" }] },
             count: 1,
           },
         },

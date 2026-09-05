@@ -17,7 +17,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //     every stack this seat controls, so the self scope is stated as
 //     `hostFilter: { isSelfRef: true }`, which constrains only the hosted zone
 const compiled: CompiledCard = {
-  digivolutionRequirement: [{ names: ["Maquinamon"], cost: 2, isAlternate: true }],
+  digivolutionRequirement: [{ namesExact: ["Maquinamon"], cost: 2, isAlternate: true }],
   effects: [
     {
       trigger: "OnPlay",
@@ -31,7 +31,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Maquinamon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
               hostFilter: { isSelfRef: true },
@@ -63,7 +63,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Maquinamon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
               hostFilter: { isSelfRef: true },
@@ -101,7 +101,7 @@ const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["Unchained"],
-                      match: "name",
+                      match: "nameExact",
                     },
                   ],
                 },

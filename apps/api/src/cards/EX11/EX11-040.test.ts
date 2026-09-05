@@ -21,7 +21,7 @@ describe("EX11-040 Mulemon", () => {
     });
     const compiled = runtimeCompiledCard(cardId)!;
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Maquinamon"], cost: 2, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Maquinamon"], cost: 2, isAlternate: true }]);
     expect(digivolutionRequirementsFor(cardId)).toEqual(compiled.digivolutionRequirement);
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       expect(compiled.effects).toContainEqual(

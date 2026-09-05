@@ -2,7 +2,7 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // [Digivolve] [Maquinamon]: Cost 2
-// [On Play] [When Digivolving]: You may link 1 [Maquinamon] from your hand or this Digimon's
+// [When Moving] [When Digivolving]: You may link 1 [Maquinamon] from your hand or this Digimon's
 //   digivolution cards to 1 of your Digimon without paying the cost.
 // [Your Turn][Once Per Turn]: When this Digimon gets linked (KB Q5832: NOT for <Mind Link>),
 //   if you have 1 or fewer Tamers, you may play 1 [Unchained] from your hand or trash without
@@ -11,14 +11,14 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   digivolutionRequirement: [
     {
-      names: ["Maquinamon"],
+      namesExact: ["Maquinamon"],
       cost: 2,
       isAlternate: true,
     },
   ],
   effects: [
     {
-      trigger: "OnPlay",
+      trigger: "WhenMoving",
       actions: [
         {
           kind: "Link",
@@ -28,9 +28,10 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Maquinamon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
+              hostFilter: { isSelfRef: true },
             },
             count: 1,
           },
@@ -58,9 +59,10 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Maquinamon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
+              hostFilter: { isSelfRef: true },
             },
             count: 1,
           },
@@ -98,7 +100,7 @@ const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["Unchained"],
-                      match: "name",
+                      match: "nameExact",
                     },
                   ],
                 },

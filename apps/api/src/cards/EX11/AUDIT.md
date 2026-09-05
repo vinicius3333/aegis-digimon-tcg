@@ -1,74 +1,41 @@
 # EX11 Card Audit Ledger
 
-Overall completion: **73/74 cards (98.6%) at 10/10**.
+Overall completion: **74/74 cards (100%) at 10/10**.
 
-This versioned ledger records the card-by-card re-audit delivered on branch
-`audit-ex11-luna` and revalidated on `audit/ex11-card-by-card-20260901`. Three Luna agents reviewed contiguous ranges in ascending order:
-EX11-001–025, EX11-026–050, and EX11-051–074. It complements executable evidence; it
-does not replace the catalog, local knowledge-base rulings, direct IR inspection, or
-behavioral tests.
+Recalculated on 2026-09-05 in `audit-ex11-20260905`, based on `675edc356`.
+Three Luna workers reviewed 001–025, 026–050, and 051–074. The coordinator
+checked official source discrepancies, shared mechanisms, negative fixtures,
+and collection integration. Historical reports are superseded by the dated
+reports in `internal-docs/audits/EX11/` and `docs/audits/EX11-AUDIT.md`.
 
 ## Scoring rubric
 
-Each card receives two points in each independently reviewed area:
+Each card receives two points for each independently reviewed area:
 
-- **Contract and rules (2/2):** every printed clause was reconciled with the committed catalog and applicable local knowledge-base material, with no unresolved ambiguity.
-- **IR trace (2/2):** every clause maps to executable compiled IR, with exclusive `registerIrCard` registration, `coverage: "full"`, and no residual behavior.
-- **Behavioral proof (2/2):** existing focused tests were retained for correct cards; tests were added or corrected only where the audit exposed a behavioral gap or invalid proof.
-- **Peer and stack proof (2/2):** applicable trait, neighboring-card, ownership, source-zone, and realistic evolution-stack risks were checked.
-- **Delivery gates (2/2):** focused, mechanism, collection, typecheck, style, and diff validation passed on the delivered branch.
+- Contract/rules: printed clauses, catalog metadata and applicable KB rulings.
+- IR trace: executable clause mapping, exclusive `registerIrCard`, full coverage and no residual.
+- Behavioral proof: observable positive and negative focused cases for applicable clauses.
+- Peer/stack: applicable name, trait, ownership, zone and evolution-stack boundaries.
+- Gates: focused, mechanism, collection, persisted IR, typecheck, style and diff checks.
 
-## Revalidation 2026-09-01
-
-Branch `audit/ex11-card-by-card-20260901` re-audited every card with eight independent batch
-auditors and treated the previous 10/10 ledger as a claim to falsify. Range reports with per-card
-evidence live in `internal-docs/audits/EX11/`; the collection ledger is `docs/audits/EX11-AUDIT.md`.
-Corrections delivered:
-
-- Dead or inverted clauses: EX11-006 (invented condition kind left the When Attacking clause dead),
-  EX11-058 (no card carries a bare [Aqua] trait, so half the card never matched), EX11-072 (＜Delay＞
-  free and repeatable; a misspelled match mode accepted any LIBERATOR-text Digimon), EX11-027
-  (printed link effect missing), EX11-032 (host trait gate missing), EX11-041 and EX11-043 (whole
-  permanent left instead of its top card), EX11-025 and EX11-063 (face-up security card taken).
-- Scope defects: EX11-029 (board-wide whenLinked), EX11-033, EX11-040, EX11-042, EX11-070 (plays or
-  links from every controlled stack instead of this Digimon's), EX11-031 and EX11-034 (dead fields).
-- Rules defects: EX11-021 and EX11-066 (memory gain gated on a draw), EX11-026 (exact trait match
-  and wrong condition; invented colorless alternate route removed from the shared overrides),
-  EX11-044 (unpayable cost still offered), EX11-045 (＜Blocker＞ never registered), EX11-053
-  (mandatory placement declinable), EX11-065 and EX11-058 (Digi-Egg cards excluded from "cards").
-- Engine and shared seams: `selfLinkedMatchesFilter` condition; two live SubTrigger events added to
-  the shared union; unknown `nameOrTrait` match modes now fail closed; the persisted-record and
-  ledger gates added; `// @ts-nocheck` removed from all 74 modules and every type error resolved.
-- Baseline: five EX11 suites already failed on `main` (022, 049, 053, 064, 069); all were test
-  fixture defects (unanswered evolution-route prompt, all-gated partner, auto-selected deletion).
-- Persistence: 69 of 74 `effects.json` records were stale generator output; all 74 regenerated
-  from the modules and `EX11-catalog-sync.test.ts` now enforces equality.
+Structural inventory and green tests alone do not establish card fidelity.
+The range reports provide clause maps; the collection report documents defects
+and supplemental public-action/rule-check evidence.
 
 ## Exceptions
 
-- **EX11-033 Maneuvermon, 9/10 (IR trace 1/2).** The printed "play 1 [Maquinamon] ... to 1 of your
-  Digimon" is a play whose card then links (Q5850 keeps its On Play live). The interpreter's link
-  path cannot open the linked card's own On Play window, so the module links without that window.
-  Recorded as an engine seam in `docs/audits/EX11-AUDIT.md`.
-
-## Corrections delivered
-
-- EX11-017 marks both Skadimon suspend restrictions as combat-facing and corrects Barrier proof to its battle-only rules scope.
-- EX11-020 and EX11-021 prove deletion-cost failure with explicit deletion prevention instead of incorrectly treating Barrier as effect-deletion protection.
-- EX11-032 pays the printed 3 memory for its hand Main digivolution route and proves the resulting stack and memory.
-- EX11-035, EX11-038, EX11-044, and EX11-048 align stale empty-requirement assertions with the current shared API.
-- EX11-045 adds missing executable proof for inherited lowest-play-cost deletion.
-- EX11-053 correctly accepts Omnimon (X Antibody) from hand or from under King Drasil and proves both source paths.
-- EX11-058 and EX11-073 correct stale observable restriction and move-destination assertions.
-- EX11-059 and EX11-066 gain memory only when their optional discard action actually occurs.
-- EX11-060 uses the executable level-comparison field for its level-4-or-lower Puppet filter and proves the level-5 boundary.
+None remains in the audited EX11 scope. The previous EX11-033 play-as-link
+exception came from incorrect catalog text. Official printed text and Japanese
+Q5850 require ordinary play from hand or this Digimon's link cards. EX11-033
+uses When Moving; EX11-042 uses On Play. Both preserve Maquinamon's own On Play
+and the intervening DP rule check through the existing PlayWithoutCost seam.
 
 ## Reproducible collection evidence
 
-- Catalog and registration inventory: 74 catalog IDs, 74 direct modules, 74 focused suites, 74 exclusive `registerIrCard` registrations, and 0 `registerCard` registrations.
-- Focused collection: `pnpm --filter @aegis/api exec vitest run src/cards/EX11` — 75 files and 431 tests passed (425 card-focused tests plus 6 supplemental Vortex tests).
-- Shared mechanisms: `builders.test.ts` and `kernel.test.ts` — 29 tests passed.
-- Static verification: `pnpm typecheck`, targeted Oxlint/Oxfmt, and `git diff --check` passed.
+See `docs/audits/EX11-AUDIT.md` for commands and final gate results.
+Inventory: 74 catalog IDs, 74 modules, 74 colocated suites, 74 exclusive
+`registerIrCard` registrations, no legacy registration or RawUnparsed node.
+All 74 persisted EX11 records match their executable modules.
 
 ## Card scores
 
@@ -106,7 +73,7 @@ Corrections delivered:
 | EX11-030 | ForgeBeemon                    |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX11-030.ts`](./EX11-030.ts) · [`EX11-030.test.ts`](./EX11-030.test.ts) |
 | EX11-031 | Vespamon                       |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX11-031.ts`](./EX11-031.ts) · [`EX11-031.test.ts`](./EX11-031.test.ts) |
 | EX11-032 | GrandGalemon                   |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX11-032.ts`](./EX11-032.ts) · [`EX11-032.test.ts`](./EX11-032.test.ts) |
-| EX11-033 | Maneuvermon                    |            2/2 |      1/2 |              2/2 |        2/2 |   2/2 |  9/10 | [`EX11-033.ts`](./EX11-033.ts) · [`EX11-033.test.ts`](./EX11-033.test.ts) |
+| EX11-033 | Maneuvermon                    |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX11-033.ts`](./EX11-033.ts) · [`EX11-033.test.ts`](./EX11-033.test.ts) |
 | EX11-034 | QueenBeemon                    |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX11-034.ts`](./EX11-034.ts) · [`EX11-034.test.ts`](./EX11-034.test.ts) |
 | EX11-035 | Zephagamon                     |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX11-035.ts`](./EX11-035.ts) · [`EX11-035.test.ts`](./EX11-035.test.ts) |
 | EX11-036 | Dalphomon                      |            2/2 |      2/2 |              2/2 |        2/2 |   2/2 | 10/10 | [`EX11-036.ts`](./EX11-036.ts) · [`EX11-036.test.ts`](./EX11-036.test.ts) |

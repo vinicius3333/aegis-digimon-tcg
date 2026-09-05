@@ -21,9 +21,9 @@ describe("EX11-029 Turbomon", () => {
     });
     const compiled = runtimeCompiledCard(cardId)!;
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Maquinamon"], cost: 2, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Maquinamon"], cost: 2, isAlternate: true }]);
     expect(digivolutionRequirementsFor(cardId)).toEqual(compiled.digivolutionRequirement);
-    for (const trigger of ["OnPlay", "WhenDigivolving"]) {
+    for (const trigger of ["WhenMoving", "WhenDigivolving"]) {
       expect(compiled.effects).toContainEqual(
         expect.objectContaining({
           trigger,
@@ -34,7 +34,11 @@ describe("EX11-029 Turbomon", () => {
               payCost: false,
               optional: true,
               target: {
-                filter: { controller: "mine", nameOrTrait: [{ tokens: ["Maquinamon"], match: "name" }] },
+                filter: {
+                  controller: "mine",
+                  nameOrTrait: [{ tokens: ["Maquinamon"], match: "nameExact" }],
+                  hostFilter: { isSelfRef: true },
+                },
                 count: 1,
               },
               recipient: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
@@ -67,7 +71,7 @@ describe("EX11-029 Turbomon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    await advance(s.engine).fire(EffectTiming.WhenMoving, s.perm("source"));
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(
       s.state.players[0]!.battleArea.some(({ linked }) => linked.some(({ cardId: id }) => id === "EX11-027")),

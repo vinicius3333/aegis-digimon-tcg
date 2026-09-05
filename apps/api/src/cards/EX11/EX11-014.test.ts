@@ -8,7 +8,7 @@ describe("EX11-014 Penguinmon", () => {
   it("encodes both reveal categories, deck-bottom remainder, alternate evolution, and inherited Jamming", () => {
     const compiled = runtimeCompiledCard("EX11-014")!;
 
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Hiyarimon"], cost: 0, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Hiyarimon"], cost: 0, isAlternate: true }]);
     expect(compiled.effects[0]).toMatchObject({
       trigger: "OnPlay",
       actions: [
@@ -17,7 +17,7 @@ describe("EX11-014 Penguinmon", () => {
           revealCount: 3,
           rest: "deckBottom",
           add: [
-            { count: 1, to: "hand", filter: { nameOrTrait: [{ tokens: ["Suzune Kazuki"], match: "name" }] } },
+            { count: 1, to: "hand", filter: { nameOrTrait: [{ tokens: ["Suzune Kazuki"], match: "nameExact" }] } },
             {
               count: 1,
               to: "hand",

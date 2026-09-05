@@ -11,7 +11,7 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
-          kind: "Link",
+          kind: "PlayWithoutCost",
           target: {
             filter: {
               controllerDefault: "mine",
@@ -19,18 +19,17 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Maquinamon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
-              // "from your hand or THIS Digimon's digivolution cards": hostFilter narrows only
+              // "from your hand or THIS Digimon's link cards": hostFilter narrows only
               // the hosted-card zone, so the hand half stays open while another Digimon's stack
               // is excluded.
               hostFilter: { isSelfRef: true },
             },
             count: 1,
           },
-          from: ["hand", "digivolutionCards"],
-          recipient: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+          from: ["hand", "linked"],
           payCost: false,
           optional: true,
         },
@@ -40,7 +39,7 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "Link",
+          kind: "PlayWithoutCost",
           target: {
             filter: {
               controllerDefault: "mine",
@@ -48,18 +47,17 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Maquinamon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
-              // "from your hand or THIS Digimon's digivolution cards": hostFilter narrows only
+              // "from your hand or THIS Digimon's link cards": hostFilter narrows only
               // the hosted-card zone, so the hand half stays open while another Digimon's stack
               // is excluded.
               hostFilter: { isSelfRef: true },
             },
             count: 1,
           },
-          from: ["hand", "digivolutionCards"],
-          recipient: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+          from: ["hand", "linked"],
           payCost: false,
           optional: true,
         },
