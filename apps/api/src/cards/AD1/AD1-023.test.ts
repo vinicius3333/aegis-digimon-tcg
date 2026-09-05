@@ -146,6 +146,91 @@ describe("AD1-023 J.P., Koji, & Koichi", () => {
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-101")).toBe(true);
   });
 
+  it("prevents a Ten Warriors Digimon from leaving by adding the top security card to hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT12-032", as: "host", under: [CARD_ID] }],
+          security: [{ card: "BT1-101", as: "security" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-101");
+  });
+
+  it("allows declining the inherited replacement without paying security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT12-032", as: "host", under: [CARD_ID] }],
+          security: [{ card: "BT1-101", as: "security" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+  });
+
+  it("does not replace a matching host's leave when its security is empty", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT12-032", as: "host", under: [CARD_ID] }], security: [] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+  });
+
+  it("does not protect a non-Hybrid, non-Ten Warriors host", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-010", as: "host", under: [CARD_ID] }],
+          security: [{ card: "BT1-101", as: "security" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+  });
+
+  it("uses the inherited replacement only once per turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT12-032", as: "host", under: [CARD_ID] }],
+          security: ["BT1-101", "BT1-101"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const driver = advance(s.engine);
+
+    expect(await driver.verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(0);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(await driver.verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+  });
+
   it("plays itself from security without paying the cost", async () => {
     const s = setupEngine(
       { 0: { security: [{ card: CARD_ID, as: "tamer", faceUp: true }] } },

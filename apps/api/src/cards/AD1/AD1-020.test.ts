@@ -90,6 +90,20 @@ describe("AD1-020 Tommy, Takuya, & Zoe", () => {
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
 
+  it("makes its qualifying Ten Warriors host attack with Security Attack +1 at end of turn", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT12-032", as: "host", under: ["AD1-020"] }] },
+        1: { security: ["BT1-001", "BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).runTurn(0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
   it("does not grant the inherited attack effect to a non-Hybrid host", async () => {
     const s = setupEngine(
       {
