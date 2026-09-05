@@ -1422,6 +1422,7 @@ export class GameEngine {
     for (const permanent of permanents) {
       if (permanent.isSuspended) {
         if (this.continuous.hasRestriction(permanent.permanentId, "unsuspend")) continue;
+        if (this.continuous.hasRestriction(permanent.permanentId, "unsuspendDuringOwnUnsuspendPhase")) continue;
         const handTrashCost = this.continuous.restrictionCount(permanent.permanentId, "unsuspendHandTrashCost");
         if (handTrashCost > 0) {
           if (player.hand.length < handTrashCost) continue;

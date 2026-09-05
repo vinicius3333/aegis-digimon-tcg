@@ -38,6 +38,7 @@ export type EnforcedRestriction =
   | "cantBeBlockedByNoDigivolution"
   | "suspend"
   | "unsuspend"
+  | "unsuspendDuringOwnUnsuspendPhase"
   | "unsuspendHandTrashCost"
   | "beDeletedInBattle"
   | "beDeleted"

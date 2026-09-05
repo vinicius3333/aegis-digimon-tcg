@@ -16,6 +16,7 @@ export type RestrictionKind =
   | "cantBeBlocked" // on the ATTACKER
   | "suspend"
   | "unsuspend" // "doesn't unsuspend"
+  | "unsuspendDuringOwnUnsuspendPhase" // effect-driven unsuspend and opponent-turn Reboot remain legal
   | "beDeletedInBattle"
   | "beDeleted"
   | "beTrashed"
