@@ -114,6 +114,8 @@ const compiled: CompiledCard = {
       names: ["Siriusmon"],
       cost: 3,
       isAlternate: true,
+      minNameStackCount: 1,
+      minNameStackNames: ["Arcturusmon"],
     },
   ],
 };

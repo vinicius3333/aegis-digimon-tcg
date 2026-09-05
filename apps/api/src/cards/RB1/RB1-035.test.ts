@@ -1,9 +1,19 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("RB1-035 Hokuto Amanokawa", () => {
+  it("plays itself from Security without paying its cost", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "RB1-035", as: "securityHokuto" }] }, 1: {} });
+    const securityCard = s.inst("securityHokuto");
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, securityCard);
+    expect(s.state.players[0]!.security.some((c) => c.instanceId === securityCard.instanceId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === securityCard.instanceId)).toBe(true);
+  });
+
   it("gains 1 memory at the start of its turn when the opponent has 3 Tamers", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "RB1-035", as: "hokuto" }] },
