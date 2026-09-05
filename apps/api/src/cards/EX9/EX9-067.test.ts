@@ -6,6 +6,35 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("EX9-067", () => {
+  it("does not return Mirai or play a card when an opposing Puppet digivolves", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX9-067", as: "tamer" }], hand: ["BT13-035"] },
+        1: {
+          battleArea: [{ card: "BT1-046", as: "host" }],
+          hand: [{ card: "BT13-039", as: "evo" }],
+          deck: ["BT1-048"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("host").topCard.cardId).toBe("BT13-039");
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX9-067"]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT13-035"]);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
   it.each([
     { evolution: "BT13-039", cost: 3, decline: true },
     { evolution: "BT1-051", cost: 2, decline: false },
@@ -44,6 +73,7 @@ describe("EX9-067", () => {
     },
   );
   it.each([
+    { copies: 1, played: "BT13-035", cost: 0 },
     { copies: 1, played: "BT13-039", cost: 2 },
     { copies: 2, played: "BT13-039", cost: 2 },
     { copies: 1, played: "EX11-060", cost: 1 },
@@ -218,15 +248,28 @@ describe("EX9-067", () => {
   });
   it("plays itself from security without paying", async () => {
     const s = setupEngine(
-      { 0: { security: [{ card: "EX9-067", as: "source" }] } },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+      {
+        0: { security: ["EX9-067", "BT1-048"], deck: ["BT1-009", "BT13-035", "BT1-010", "BT1-046"] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, autoOrderCards: true },
     );
-    s.inst("source").faceUp = true;
-
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("source"));
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-067"));
-
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-067")).toBe(true);
-    expect(s.state.players[0]!.security.some((card) => card.cardId === "EX9-067")).toBe(false);
+    s.state.turnSeat = 1;
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX9-067"]);
+    expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-048"]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT13-035"]);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-046", "BT1-009", "BT1-010"]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });
