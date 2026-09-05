@@ -522,4 +522,29 @@ describe("EX3-024 Slayerdramon", () => {
 
     expect(s.state.memory).toBe(0);
   });
+
+  it.each(["BT1-038", "BT1-075"])(
+    "digivolves from the printed blue or green level 5 route using %s",
+    async (baseCard) => {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: baseCard, as: "base" }],
+          hand: [{ card: "EX3-024", as: "slayerdramon" }],
+        },
+      });
+      s.state.memory = 4;
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("slayerdramon").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard.instanceId === s.inst("slayerdramon").instanceId);
+
+      expect(s.state.memory).toBe(0);
+    },
+  );
 });

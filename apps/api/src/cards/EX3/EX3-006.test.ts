@@ -71,6 +71,7 @@ describe("EX3-006 Flarerizamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.length === 1);
 
+    expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.decisions).toHaveLength(0);
   });
 

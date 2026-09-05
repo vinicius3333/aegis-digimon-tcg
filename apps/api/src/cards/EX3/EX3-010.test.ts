@@ -84,11 +84,14 @@ describe("EX3-010 Paildramon", () => {
     assertNoLoudGap(s);
   });
 
-  it("does not offer Dinobeemon after an ordinary digivolution", async () => {
+  it.each([
+    ["red", "EX3-008"],
+    ["purple", "EX3-058"],
+  ])("digivolves normally from a %s level 4 and does not offer Dinobeemon", async (_color, baseCardId) => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX3-008", as: "base" }],
+          battleArea: [{ card: baseCardId, as: "base" }],
           hand: [{ card: "EX3-010", as: "paildramon" }],
           trash: [{ card: "EX3-061", as: "dinobeemon" }],
         },
@@ -196,6 +199,48 @@ describe("EX3-010 Paildramon", () => {
 
     expect(s.decisions.some(({ req }) => req.sourceCardId === "EX3-010" && req.kind === "optional")).toBe(true);
     expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("veemon").instanceId)).toBe(true);
+  });
+
+  it("offers exact Veemon but excludes ExVeemon and DemiVeemon from the On Deletion play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX3-010", as: "paildramon" }],
+          trash: [
+            { card: "EX3-004", as: "veemon" },
+            { card: "ST8-04", as: "otherVeemon" },
+            { card: "ST9-04", as: "exVeemon" },
+            { card: "BT12-002", as: "demiVeemon" },
+          ],
+        },
+      },
+      { autoSelectCards: false },
+    );
+    await s.ready();
+
+    const deletion = advance(s.engine).verb.deletePermanent([s.perm("paildramon").permanentId], "byEffect");
+    await settle(() => s.state.pendingDecision?.kind === "optional", 5000);
+    respond(s, { kind: "optional", accept: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards", 5000);
+
+    const request = s.decisions.at(-1)!.req;
+    expect(request).toMatchObject({
+      kind: "selectCards",
+      sourceCardId: "EX3-010",
+      options: {
+        candidateInstanceIds: [s.inst("veemon").instanceId, s.inst("otherVeemon").instanceId],
+        visibleInstanceIds: expect.arrayContaining([
+          s.inst("veemon").instanceId,
+          s.inst("otherVeemon").instanceId,
+          s.inst("exVeemon").instanceId,
+          s.inst("demiVeemon").instanceId,
+        ]),
+      },
+    });
+    respond(s, { kind: "selectCards", instanceIds: [s.inst("veemon").instanceId] });
+    await deletion;
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX3-004"));
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("grants Security Attack +1 only while inherited by an Imperialdramon", async () => {

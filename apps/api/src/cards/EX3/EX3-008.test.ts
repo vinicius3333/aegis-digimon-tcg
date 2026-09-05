@@ -24,6 +24,33 @@ describe("EX3-008 Flamedramon", () => {
     expect(getCardDefinition("EX3-008")!.effectText).toContain("Activate 1 of the effects below");
   });
 
+  it.each([
+    ["red", "BT1-009"],
+    ["purple", "BT10-071"],
+  ])("digivolves from a %s level 3 for the printed cost", async (_color, baseCardId) => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: baseCardId, as: "base" }],
+        hand: [{ card: "EX3-008", as: "flamedramon" }],
+      },
+    });
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("flamedramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX3-008");
+
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toContain(baseCardId);
+    expect(s.state.memory).toBe(2);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("offers only executable modal branches with printed labels and allows declining the chosen may-effect", async () => {
     const s = setupEngine({
       0: {

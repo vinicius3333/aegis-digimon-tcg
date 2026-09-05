@@ -160,6 +160,28 @@ describe("EX3-040 Parasaurmon", () => {
     expect(s.decisions.filter(({ req }) => req.sourceCardId === "EX3-040")).toHaveLength(0);
   });
 
+  it("does not reduce the opponent's green Digimon during the opponent's turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX3-040", as: "parasaurmon" }] },
+      1: { hand: [{ card: "BT1-064", as: "opponentGreenDigimon" }] },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "playCard",
+        instanceId: s.inst("opponentGreenDigimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT1-064"));
+
+    expect(s.perm("parasaurmon").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(8);
+    expect(s.decisions.filter(({ req }) => req.sourceCardId === "EX3-040")).toHaveLength(0);
+  });
+
   it("does not reduce green Tamer or Option play costs", async () => {
     const s = setupEngine({
       0: {

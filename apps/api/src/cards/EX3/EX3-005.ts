@@ -19,7 +19,6 @@ const compiled: CompiledCard = {
               },
             ],
           },
-          raw: "When you play a [Hina Kurihara]",
           actions: [
             {
               kind: "Delete",
@@ -36,6 +35,7 @@ const compiled: CompiledCard = {
               },
             },
           ],
+          raw: "When you play a [Hina Kurihara]",
         },
       ],
       frequency: "OncePerTurn",

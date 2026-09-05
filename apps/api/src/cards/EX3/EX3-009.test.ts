@@ -23,9 +23,34 @@ describe("EX3-009 Volcdramon", () => {
     const condition = effect?.actions[0]?.condition;
     expect(condition).toMatchObject({
       kind: "selfHasTrait",
-      filter: { nameOrTrait: expect.arrayContaining([{ tokens: ["saur"], match: "trait" }]) },
+      filter: { nameOrTrait: expect.arrayContaining([{ tokens: ["saur"], match: "traitContains" }]) },
     });
   });
+
+  it("digivolves from a red level 4 for the printed cost", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX3-008", as: "base" }],
+        hand: [{ card: "EX3-009", as: "volcdramon" }],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("volcdramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX3-009");
+
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toContain("EX3-008");
+    expect(s.state.memory).toBe(2);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("draws once when its attacking carrier has the Dragonkin trait", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "EX3-008", under: ["EX3-009"], as: "attacker" }], deck: ["BT1-009"] },
@@ -62,6 +87,7 @@ describe("EX3-009 Volcdramon", () => {
 
   it.each([
     ["Dragon", "BT11-022"],
+    ["saur", "AD1-001"],
     ["Ceratopsian", "BT10-050"],
     ["Dragonkin (Q3376)", "EX3-008"],
   ])("draws for the %s trait family", async (_family, carrier) => {
