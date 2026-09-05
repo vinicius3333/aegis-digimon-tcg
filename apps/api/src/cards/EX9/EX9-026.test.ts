@@ -65,11 +65,33 @@ describe("EX9-026", () => {
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });
 
+  it("preserves a payable hand card when the optional On Play cost is declined", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX9-026", as: "source" }, "BT1-001"], security: ["BT1-090"] },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 5000 }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+
+    expect(s.perm("source").stack).toHaveLength(0);
+    expect(s.perm("target").currentDP).toBe(5000);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-001"]);
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.state.memory).toBe(5);
+  });
+
   it("recovers the top deck card only at three or fewer security", async () => {
     const atMostThree = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-010", as: "host", under: ["EX9-026"] }],
+          battleArea: [{ card: "BT1-057", as: "host", under: ["EX9-026"] }],
           deck: ["BT1-001"],
           security: ["BT1-090", "BT1-090", "BT1-090"],
         },
@@ -83,7 +105,7 @@ describe("EX9-026", () => {
     const four = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-010", as: "host", under: ["EX9-026"] }],
+          battleArea: [{ card: "BT1-057", as: "host", under: ["EX9-026"] }],
           deck: ["BT1-001"],
           security: ["BT1-090", "BT1-090", "BT1-090", "BT1-090"],
         },
