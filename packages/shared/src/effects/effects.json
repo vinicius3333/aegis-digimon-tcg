@@ -208928,8 +208928,16 @@
         "trigger": "WhenAttacking",
         "actions": [
           {
-            "kind": "ReactivateEffect",
-            "fromTrigger": "WhenDigivolving",
+            "kind": "ActivateForeignEffect",
+            "zone": "digivolutionCards",
+            "fromTriggers": ["WhenDigivolving"],
+            "filter": {
+              "controllerDefault": "mine",
+              "kind": ["Digimon"],
+              "levels": [4],
+              "nameOrTrait": [{ "tokens": ["Pulsemon"], "match": "text" }]
+            },
+            "lastPlacedOnly": true,
             "count": 1,
             "cost": {
               "kind": "place",

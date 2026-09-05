@@ -2,17 +2,22 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenAttacking",
       actions: [
         {
-          kind: "ReactivateEffect",
-          fromTrigger: "WhenDigivolving",
+          kind: "ActivateForeignEffect",
+          zone: "digivolutionCards",
+          fromTriggers: ["WhenDigivolving"],
+          filter: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            levels: [4],
+            nameOrTrait: [{ tokens: ["Pulsemon"], match: "text" }],
+          },
+          lastPlacedOnly: true,
           count: 1,
           cost: {
             kind: "place",
@@ -21,12 +26,7 @@ const compiled: CompiledCard = {
                 zone: "hand",
                 controller: "mine",
                 levels: [4],
-                nameOrTrait: [
-                  {
-                    tokens: ["Pulsemon"],
-                    match: "text",
-                  },
-                ],
+                nameOrTrait: [{ tokens: ["Pulsemon"], match: "text" }],
               },
               count: 1,
               from: ["hand"],
