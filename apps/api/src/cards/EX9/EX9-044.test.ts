@@ -7,6 +7,60 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("EX9-044", () => {
+  it.each([
+    { card: "BT1-046", turn: 0 as const },
+    { card: "BT21-033", turn: 1 as const },
+  ])("does not DNA after effect-playing $card on seat $turn's turn", async ({ card, turn }) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX9-044", as: "watcher" },
+            { card: "BT1-044", as: "partner" },
+          ],
+          hand: ["EX9-045", { card, as: "played" }],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.turnSeat = turn;
+    s.state.memory = 3;
+    await s.ready();
+    // Effect play is permitted on either turn; a normal play intent cannot open the off-turn case.
+    await advance(s.engine).verb.playInstances([s.inst("played").instanceId]);
+    await settle();
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX9-044", "BT1-044", card]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX9-045"]);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+    expect(s.state.memory).toBe(3);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("declines DNA after its real play without consuming either material or the hand candidate", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-044", as: "partner" }],
+          hand: [{ card: "EX9-044", as: "hydra" }, "EX9-045"],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hydra").instanceId })).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT1-044", "EX9-044"]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX9-045"]);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+    expect(s.state.memory).toBe(-6);
+    // The play-time reduction offer and the later DNA offer were both declined.
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(2);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it.each(["play", "digivolve"] as const)(
     "responds to its own %s with real zero-cost DNA (Q4799/Q4800)",
     async (mode) => {
@@ -143,9 +197,9 @@ describe("EX9-044", () => {
     },
   );
 
-  it("allows the suspend and restriction clauses to choose independent targets", async () => {
+  it("allows independent Digimon and Tamer targets on a real play (Q4798)", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX9-044", as: "source" }] },
+      0: { hand: [{ card: "EX9-044", as: "source" }] },
       1: {
         battleArea: [
           { card: "BT1-009", as: "digimon" },
@@ -154,9 +208,22 @@ describe("EX9-044", () => {
         deck: ["BT1-009", "BT1-009"],
       },
     });
-    const resolution = advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.decisions.length >= 1);
-    const first = s.decisions[0]!.req;
+    expect(s.state.pendingDecision?.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const first = s.state.pendingDecision!;
     expect(first.kind).toBe("chooseTargets");
     expect(
       s.engine.applyIntent(0, {
@@ -165,8 +232,11 @@ describe("EX9-044", () => {
         response: { kind: "chooseTargets", instanceIds: [s.perm("digimon").permanentId] },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.decisions.length >= 2);
-    const second = s.decisions[1]!.req;
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "chooseTargets" && s.state.pendingDecision.decisionId !== first.decisionId,
+    );
+    const second = s.state.pendingDecision!;
     expect(second.kind).toBe("chooseTargets");
     expect(
       s.engine.applyIntent(0, {
@@ -175,7 +245,20 @@ describe("EX9-044", () => {
         response: { kind: "chooseTargets", instanceIds: [s.perm("tamer").permanentId] },
       }),
     ).toEqual({ ok: true });
-    await resolution;
+    await settle();
+    expect(s.state.memory).toBe(-6);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    // Its own play also opens the optional DNA response after On Play resolves.
+    expect(s.state.pendingDecision?.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.pendingDecision).toBeUndefined();
     expect(s.perm("digimon").isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("tamer"), "unsuspend")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("digimon"), "unsuspend")).toBe(false);
