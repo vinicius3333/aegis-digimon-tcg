@@ -109,7 +109,7 @@ export const compiled: CompiledCard = {
               filter: {
                 zone: "trash",
                 controller: "mine",
-                excludeKind: ["Digi-Egg"],
+                excludeKind: ["DigiEgg"],
               },
               count: 2,
               to: "deckBottom",

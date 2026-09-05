@@ -40,6 +40,7 @@ export const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: "scaling",
+            upTo: true,
           },
           scaling: {
             per: 1,
@@ -81,6 +82,7 @@ export const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: "scaling",
+            upTo: true,
           },
           scaling: {
             per: 1,

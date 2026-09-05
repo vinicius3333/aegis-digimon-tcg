@@ -14,39 +14,20 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
-      trigger: "Static",
+      trigger: "BeforePayCost",
       actions: [
         {
-          kind: "Replacement",
-          event: "wouldBePlayed",
-          sourceFilter: {
-            isSelfRef: true,
-          },
-          actions: [
-            {
-              kind: "Replacement",
-              event: "wouldBePlayed",
-              mode: "reduceCost",
-              amount: 5,
-              raw: "reduce the play cost by 5",
-              condition: {
-                kind: "allOf",
-                conditions: [
-                  {
-                    kind: "playedFromZone",
-                    zone: "hand",
-                    raw: "this card is played from the hand",
-                  },
-                  {
-                    kind: "totalSecurityCount",
-                    op: "lte",
-                    value: 6,
-                    raw: "there're 6 or fewer total cards in both players' security stacks",
-                  },
-                ],
-              },
+          kind: "ReducePlayCost",
+          payment: {
+            kind: "automatic",
+            condition: {
+              kind: "totalSecurityCount",
+              op: "lte",
+              value: 6,
+              raw: "there're 6 or fewer total cards in both players' security stacks",
             },
-          ],
+          },
+          amount: { kind: "fixed", value: 5 },
         },
       ],
     },

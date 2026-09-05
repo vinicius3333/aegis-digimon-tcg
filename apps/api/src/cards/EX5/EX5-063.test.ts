@@ -22,6 +22,74 @@ import "../index.js";
  *
  */
 describe("EX5-063 [All Turns] gain 1 memory per opponent Digimon deleted (KB Q6037/Q6038)", () => {
+  it("deletes highest then lowest through public When Digivolving and counts both deletions", async () => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [{ card: "EX5-060", as: "base" }],
+          hand: [{ card: "EX5-063", as: "evolving" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-020", dp: 9000, as: "highest" },
+            { card: "BT1-009", dp: 2000, as: "lowest" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    const p1 = s.state.players[1] as PlayerState;
+    const highestId = s.perm("highest").permanentId;
+    const lowestId = s.perm("lowest").permanentId;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => p1.battleArea.length === 0);
+    expect(p1.battleArea.some((p) => p.permanentId === highestId)).toBe(false);
+    expect(p1.battleArea.some((p) => p.permanentId === lowestId)).toBe(false);
+    expect(s.state.memory).toBe(2);
+  });
+
+  it("still deletes the lowest when the opponent has fewer total Digimon and Tamers", async () => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-009", as: "own1" },
+            { card: "BT1-010", as: "own2" },
+            { card: "BT1-011", as: "own3" },
+          ],
+          hand: [{ card: "EX5-063", as: "source" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-020", dp: 9000, as: "highest" },
+            { card: "BT1-009", dp: 2000, as: "lowest" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 13;
+    const p1 = s.state.players[1] as PlayerState;
+    const highestId = s.perm("highest").permanentId;
+    const lowestId = s.perm("lowest").permanentId;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !p1.battleArea.some((p) => p.permanentId === lowestId));
+    expect(p1.battleArea.some((p) => p.permanentId === highestId)).toBe(true);
+    expect(p1.battleArea.some((p) => p.permanentId === lowestId)).toBe(false);
+    expect(s.state.memory).toBe(1);
+  });
+
   it("its own [On Play] deletes 2 opponent Digimon in one batch -> +2 memory", async () => {
     const s = setup(
       {

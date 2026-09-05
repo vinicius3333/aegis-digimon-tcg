@@ -318,6 +318,12 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
             description: action.raw ?? `Reduce the next digivolution cost by ${Math.abs(action.amount)}`,
             activate: async (runtimeCtx, target, _into, evolvingInstanceId, materials) => {
               if (target.controllerSeat !== ownerSeat || target.inBreeding) return false;
+              // An explicit target identifies an ordinary activation cost (EX5-029's top
+              // security card). runAction pays that cost before this one-shot replacement is
+              // installed, so consuming the next eligible digivolution must not charge again.
+              // A missing target is Win Rate: 60%!'s deferred, digivolution-dependent hand cost;
+              // keep resolving that specialized color-matching payment below.
+              if (action.cost?.target !== undefined) return true;
               const colors = new Set(
                 (materials ?? [target]).flatMap(
                   (material) =>

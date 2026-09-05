@@ -21,7 +21,7 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           controller: "opponent",
-          suspend: true,
+          suspended: true,
           from: ["trash"],
           payCost: false,
           suppressOnPlayEffects: true,
@@ -42,27 +42,10 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           controller: "opponent",
-          suspend: true,
+          suspended: true,
           from: ["trash"],
           payCost: false,
           suppressOnPlayEffects: true,
-        },
-      ],
-    },
-    {
-      trigger: "OnPlay",
-      actions: [
-        {
-          kind: "GrantStatic",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
-          grant: "suppressOnPlayEffects",
-          duration: "permanent",
         },
       ],
     },

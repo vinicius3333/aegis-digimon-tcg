@@ -52,7 +52,7 @@ export const compiled: CompiledCard = {
             target: {
               filter: {
                 kind: ["Digimon"],
-                orFilters: [
+                or: [
                   {
                     nameOrTrait: [
                       {
@@ -103,7 +103,7 @@ export const compiled: CompiledCard = {
             target: {
               filter: {
                 kind: ["Digimon"],
-                orFilters: [
+                or: [
                   {
                     nameOrTrait: [
                       {

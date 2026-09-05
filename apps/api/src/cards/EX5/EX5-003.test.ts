@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-003.js";
+import "../index.js";
 
 describe("EX5-003 Nyaromon", () => {
   it("gets 1000 DP while suspended on all turns", () => {
@@ -14,5 +16,17 @@ describe("EX5-003 Nyaromon", () => {
         },
       ],
     });
+  });
+
+  it("applies the inherited DP bonus while suspended and removes it when it becomes active", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["EX5-003"], suspended: true }] },
+    });
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 1000);
+
+    s.perm("host").isSuspended = false;
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
   });
 });

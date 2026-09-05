@@ -21,15 +21,7 @@ export const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
-          kind: "Return",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
-          to: "hand",
+          kind: "AddToHandSelf",
           cost: {
             kind: "trash",
             target: {

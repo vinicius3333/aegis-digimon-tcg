@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { type PlayerState } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./EX5-040.js";
@@ -67,5 +68,17 @@ describe("EX5-040 [On Play] play a [Deva] from hand without cost into the breedi
         },
       ],
     });
+  });
+
+  it("draws through the public suspension seam when an opponent Digimon is suspended", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX5-040", as: "kumbhi" }], deck: ["BT1-009"] },
+      1: { battleArea: [{ card: "BT1-021", as: "opponent" }] },
+    });
+    await s.ready();
+    const deckBefore = s.state.players[0]!.deck.length;
+    await advance(s.engine).verb.suspend([s.perm("opponent").permanentId]);
+    await settle(() => s.state.players[0]!.deck.length < deckBefore);
+    expect(s.state.players[0]!.deck.length).toBe(deckBefore - 1);
   });
 });

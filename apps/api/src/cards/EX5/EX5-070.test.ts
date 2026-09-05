@@ -1,11 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { requireCardDefinition } from "@aegis/shared";
-import { permanentMatchesFilter } from "../../engine/effects/interpreter.js";
-import { candidateLooseInstances } from "../../engine/effects/interpreter/targeting/loose.js";
-import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-070.js";
 import "./EX5-070.js";
+import "../index.js";
 
 describe("EX5-070 X Antibody Proto Form", () => {
   it("registers static color waiver, security return, and Main X Antibody evolution effects", () => {
@@ -17,9 +16,15 @@ describe("EX5-070 X Antibody Proto Form", () => {
     expect(compiled.effects.find((effect) => effect.trigger === "Main")?.actions[0]).toMatchObject({
       target: {
         filter: {
-          digivolutionStackNameOrTrait: [{ tokens: ["X Antibody"], match: "trait", negate: true }],
+          digivolutionStackNameOrTrait: [{ tokens: ["X Antibody"], match: "nameExact", negate: true }],
         },
       },
+      bindResultAs: "ex5-070-digivolved",
+    });
+    expect(compiled.effects.find((effect) => effect.trigger === "Main")?.actions[1]).toMatchObject({
+      kind: "PlaceUnder",
+      position: "bottom",
+      underFilter: { controller: "mine", boundRef: "ex5-070-digivolved" },
     });
     expect(compiled.effects.find((effect) => effect.trigger === "Rule")?.actions[0]).toMatchObject({
       kind: "GrantStatic",
@@ -40,7 +45,7 @@ describe("EX5-070 X Antibody Proto Form", () => {
               kind: "SecurityManipulation",
               source: {
                 filter: {
-                  nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }],
+                  nameOrTrait: [{ tokens: ["X Antibody"], match: "nameExact" }],
                 },
               },
             },
@@ -60,62 +65,76 @@ describe("EX5-070 X Antibody Proto Form", () => {
     expect(replacement.actions[1]).toMatchObject({ kind: "SecurityManipulation", op: "addTop" });
   });
 
-  it("excludes a stack carrying Proto Form itself from the Main evolution target, per Q3679", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT1-010", as: "withProto", under: ["EX5-070", "BT1-009"] },
-          { card: "BT1-010", as: "withoutProto", under: ["BT1-011"] },
-        ],
+  it("digivolves through the public Main intent and places Proto Form under the new Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-064", as: "other" },
+            { card: "BT1-010", as: "base" },
+          ],
+          hand: [
+            { card: "EX5-070", as: "option" },
+            { card: "BT9-011", as: "candidate" },
+          ],
+        },
       },
-    });
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 1;
     await s.ready();
-    const targetFilter = compiled.effects
-      .find((effect) => effect.trigger === "Main")
-      ?.actions.find((action) => action.kind === "Digivolve");
-    expect(targetFilter).toMatchObject({ kind: "Digivolve" });
-    if (targetFilter?.kind !== "Digivolve") throw new Error("EX5-070 Main Digivolve action missing");
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("base").topCard?.cardId === "BT9-011");
+    expect(s.perm("base").topCard?.cardId).toBe("BT9-011");
+    expect(s.perm("base").stack.map((card) => card.cardId)).toContain("EX5-070");
+    expect(s.perm("other").stack.map((card) => card.cardId)).not.toContain("EX5-070");
+    expect(s.state.memory).toBe(0);
+  });
 
-    const ctx = {
-      source: {
-        instanceId: "EX5-070-source",
-        cardId: "EX5-070",
-        ownerSeat: 0,
-        definition: requireCardDefinition("EX5-070"),
-        permanent: () => s.perm("withProto"),
-        isOnBattleArea: () => false,
-        isOwnersTurn: () => true,
-        hasColor: () => false,
+  it("rejects a Proto Form stack as a Main target through the public intent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-010", as: "base", under: ["EX5-070"] }],
+          hand: [
+            { card: "EX5-070", as: "option" },
+            { card: "BT9-011", as: "candidate" },
+          ],
+        },
       },
-      trigger: {},
-      game: {
-        state: s.state,
-        player: (seat: 0 | 1) => s.state.players[seat]!,
-        opponentOf: (seat: 0 | 1) => (seat === 0 ? 1 : 0),
-        permanentById: (id: string) =>
-          [...s.state.players[0]!.battleArea, ...s.state.players[1]!.battleArea].find(
-            (permanent) => permanent.permanentId === id,
-          ),
-        definitionOf: (card: { cardId: string }) => requireCardDefinition(card.cardId),
-        linkMax: () => 1,
-      },
-      fx: {},
-      ask: {},
-      selections: new Map(),
-    } as unknown as EffectContext;
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 1;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.perm("base").topCard?.cardId).toBe("BT1-010");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT9-011");
+  });
 
-    expect(permanentMatchesFilter(ctx, s.perm("withProto"), targetFilter.target.filter, ctx.source)).toBe(false);
-    expect(permanentMatchesFilter(ctx, s.perm("withoutProto"), targetFilter.target.filter, ctx.source)).toBe(true);
+  it("returns a Digimon stack card and places Proto Form in security on a public leave", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT1-010", as: "host", under: ["EX5-070", "BT1-009"] }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const hostId = s.perm("host").permanentId;
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([hostId], "byBattle");
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009"));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-009");
+    expect(s.state.players[0]!.security[0]?.cardId).toBe("EX5-070");
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
+  });
 
-    const inherited = compiled.effects.find((effect) => effect.trigger === "AllTurns")!;
-    const replacement = inherited.actions.find((action) => action.kind === "Replacement");
-    if (replacement?.kind !== "Replacement") throw new Error("EX5-070 inherited replacement missing");
-    if (replacement.actions === undefined) throw new Error("EX5-070 replacement actions missing");
-    const returnAction = replacement.actions.find((action) => action.kind === "Return")!;
-    if (returnAction.kind !== "Return") throw new Error("EX5-070 inherited return missing");
-
-    const returnCandidates = candidateLooseInstances(ctx, returnAction.target, ["digivolutionCards"]);
-    expect(returnCandidates.map((candidate) => candidate.hostPermanentId)).toEqual([s.perm("withProto").permanentId]);
-    expect(returnCandidates.map((candidate) => candidate.cardId)).toEqual(["BT1-009"]);
+  it("returns Proto Form from security through its public Security timing", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "EX5-070", as: "securityProto" }] } });
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityProto"));
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "EX5-070"));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("EX5-070");
   });
 });

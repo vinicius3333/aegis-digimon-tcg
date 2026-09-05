@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { makeInstance, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-025.js";
+import "../index.js";
 
 describe("EX5-025 Dianamon", () => {
   it("has Blocker and once-per-turn shared When Digivolving/When Attacking effects", () => {
@@ -78,5 +79,32 @@ describe("EX5-025 Dianamon", () => {
     await advance(s.engine).recompute();
 
     expect(observe(s.engine).isRestricted(s.perm("bare").permanentId, "beSuspended")).toBe(false);
+  });
+
+  it("trashes one source per own digivolution card, restricts bare opponents, and shares once-per-turn", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX5-025", as: "dianamon", under: ["BT1-009", "BT1-010"], suspended: true }] },
+        1: {
+          battleArea: [
+            { card: "BT1-030", as: "first", under: ["BT1-009", "BT1-010"] },
+            { card: "BT1-031", as: "second", under: ["BT1-009"] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("dianamon"));
+    await settle(() => s.perm("first").stack.length + s.perm("second").stack.length === 1);
+    expect(s.perm("first").stack.length + s.perm("second").stack.length).toBe(1);
+    expect(
+      ["first", "second"].filter((name) => observe(s.engine).isRestricted(s.perm(name).permanentId, "beSuspended")),
+    ).toHaveLength(1);
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("dianamon"));
+    await settle();
+    expect(s.perm("first").stack.length + s.perm("second").stack.length).toBe(1);
   });
 });

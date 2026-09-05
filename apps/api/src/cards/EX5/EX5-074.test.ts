@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { type PlayerState } from "@aegis/shared";
+import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
@@ -23,7 +24,10 @@ describe("EX5-074 [When Attacking] trashes opponent security equal to owner's [F
             { card: FOUR_SOVS, dp: 12000 },
           ],
         },
-        1: { security: [VANILLA, VANILLA, VANILLA] },
+        1: {
+          battleArea: [{ card: OPP_DIGIMON, as: "opponent", dp: 10000, suspended: true }],
+          security: [VANILLA, VANILLA, VANILLA],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -34,14 +38,35 @@ describe("EX5-074 [When Attacking] trashes opponent security equal to owner's [F
       s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("fanglongmon").permanentId,
-        target: { kind: "player" },
+        target: { kind: "permanent", permanentId: s.perm("opponent").permanentId },
       }),
     ).toEqual({ ok: true });
 
-    await settle(() => p1.security.length <= secBefore - 2);
+    await settle(() => p1.security.length === secBefore - 2);
 
-    // 2 [Four Sovereigns] → 2 security cards trashed in addition to normal security check.
-    expect(secBefore - p1.security.length).toBeGreaterThanOrEqual(2);
+    // 2 [Four Sovereigns] → exactly 2 security cards trashed while attacking a Digimon.
+    expect(secBefore - p1.security.length).toBe(2);
+  });
+
+  it("does not trash security when no own [Four Sovereigns] Digimon are present", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: FANGLONGMON, as: "fanglongmon", dp: 15000 }] },
+      1: {
+        battleArea: [{ card: OPP_DIGIMON, as: "opponent", dp: 10000, suspended: true }],
+        security: [VANILLA, VANILLA],
+      },
+    });
+    const p1 = s.state.players[1] as PlayerState;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("fanglongmon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("opponent").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => p1.battleArea.length === 0);
+    expect(p1.security).toHaveLength(2);
   });
 });
 
@@ -74,5 +99,51 @@ describe("EX5-074 [On Play] returns Deva/FourSovereigns from trash to deck, -400
     // Trash should now be empty (returned to deck bottom).
     expect(p0.trash.some((c) => c.instanceId === s.inst("trashDeva").instanceId)).toBe(false);
     expect(p0.trash.some((c) => c.instanceId === s.inst("trashFourSovs").instanceId)).toBe(false);
+  });
+
+  it("returns a qualifying card during an attack and applies its one-card DP reduction", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: FANGLONGMON, as: "fanglongmon", dp: 15000 }],
+          trash: [{ card: DEVA, as: "trashDeva" }],
+        },
+        1: { battleArea: [{ card: OPP_DIGIMON, dp: 20000, as: "oppDigimon", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const p0 = s.state.players[0] as PlayerState;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("fanglongmon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("oppDigimon").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("oppDigimon").currentDP === 16000);
+
+    expect(s.perm("oppDigimon").currentDP).toBe(16000);
+    expect(p0.trash.some((card) => card.instanceId === s.inst("trashDeva").instanceId)).toBe(false);
+  });
+
+  it("is unaffected by an opponent Digimon effect", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: FANGLONGMON, as: "fanglongmon", dp: 15000 }] },
+        1: { hand: [{ card: "EX5-032", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 7;
+    await s.ready();
+    expect(observe(s.engine).hasRestriction(s.perm("fanglongmon"), "beAffected", "Digimon")).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("attacker").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX5-032"));
+
+    expect(s.perm("fanglongmon").currentDP).toBe(15000);
   });
 });

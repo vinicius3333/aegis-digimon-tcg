@@ -103,6 +103,7 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "ST9-09", // condition: you have a blue Digimon in play -> -1
   "EX2-045", // condition: you have Guilmon/Terriermon/Renamon/Impmon in play -> -2
   "EX5-012", // qualifying 3+ source Light Fang/Night Claw/Galaxy stack -> self play cost -2 (Q3549)
+  "EX5-020", // qualifying 3+ source Night Claw/Light Fang/Galaxy stack -> self play cost -2 (Q3569)
   "EX5-072", // -1 per distinct Deva/Four Sovereigns name in trash -> self Option cost reduction
   "BT9-112", // scaling: -3 per opponent Digimon/Tamer in play (KB Q1928)
   "BT10-098", // condition: opponent has 2+ Digimon -> Option use cost -2
@@ -337,6 +338,7 @@ export function wouldBePlayedSelfReducersFor(cardId: string): WouldBePlayedSelfR
 
 export interface WouldDigivolveSelfReducer {
   cost?: Cost;
+  condition?: Condition;
   scaling?: Scaling;
   sourceFilter?: import("@aegis/shared").Filter;
   sourceStackFilter?: import("@aegis/shared").Filter;
@@ -356,6 +358,7 @@ const VERIFIED_DIGIVOLVE_SELF_REDUCER_CARDS = new Set([
   "BT7-051", // RhinoKabuterimon: this card's own digivolution cost -2 with a Tamer source
   "BT11-059", // -1 per green/black Tamer when one of your Digimon digivolves into this card (Q2092)
   "EX5-012", // qualifying 3+ source Light Fang/Night Claw/Galaxy stack -> self evo cost -2 (Q3549)
+  "EX5-020", // qualifying 3+ source Night Claw/Light Fang/Galaxy stack -> self evo cost -2 (Q3569)
   "BT17-048", // suspend up to 5 Tamers to reduce this card's own evo cost per Tamer
 ]);
 
@@ -400,6 +403,7 @@ export function collectWouldDigivolveSelfReducers(cardId: string, effects: reado
         ) {
           reducers.push({
             ...(action.cost !== undefined ? { cost: action.cost } : {}),
+            ...(action.condition !== undefined ? { condition: action.condition } : {}),
             ...(action.scaling !== undefined ? { scaling: action.scaling } : {}),
             ...(outer.sourceFilter !== undefined ? { sourceFilter: outer.sourceFilter } : {}),
             ...(outer.condition?.kind === "selfDigivolutionStackMatchesFilter" && outer.condition.filter !== undefined
@@ -436,6 +440,7 @@ export function potentialWouldDigivolveSelfReduction(
   reducer: WouldDigivolveSelfReducer,
   target?: Permanent,
 ): number {
+  if (reducer.condition !== undefined && !evaluateCondition(ctx, reducer.condition)) return 0;
   if (
     reducer.sourceFilter !== undefined &&
     (target === undefined || !permanentMatchesFilter(ctx, target, reducer.sourceFilter, ctx.source))

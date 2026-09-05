@@ -5,6 +5,7 @@ import { getEffectModule } from "../../engine/effects/registry.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-065.js";
 import "./EX5-065.js";
+import "../index.js";
 
 describe("EX5-065 Sayo & Koh", () => {
   it("registers the your-turn add-digivolution memory effect and opponent-turn start effect", () => {
@@ -83,6 +84,34 @@ describe("EX5-065 Sayo & Koh", () => {
 
     expect(s.perm("sayo").isSuspended).toBe(true);
     expect(s.state.memory).toBe(memoryBefore + 1);
+  });
+
+  it("reacts to a public Koh & Sayo top-card placement, not a synthetic bus event", async () => {
+    const preferredIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX5-065", as: "sayo" },
+            { card: "EX5-017", as: "placementHost", under: ["BT1-009"] },
+            { card: "BT1-019", as: "evoBase" },
+          ],
+          hand: [
+            { card: "EX5-064", as: "koh" },
+            { card: "EX5-020", as: "evolving" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredIds },
+    );
+    preferredIds.push(s.perm("evoBase").topCard!.instanceId);
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("koh").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("evoBase").topCard?.cardId === "EX5-020");
+    expect(s.perm("sayo").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(7);
+    expect(s.perm("placementHost").topCard?.cardId).toBe("BT1-009");
   });
 
   it("does not trigger for ordinary digivolution-card addition, per Q3669", async () => {

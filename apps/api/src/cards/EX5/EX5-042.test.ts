@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-042.js";
 
 describe("EX5-042 Merukimon", () => {
@@ -40,5 +41,43 @@ describe("EX5-042 Merukimon", () => {
         filter: { controller: "mine", kind: ["Digimon"], digivolutionCards: "none", keywords: ["Fortitude"] },
       },
     });
+  });
+
+  it("plays a revealed Fortitude Digimon from the deck on public On Play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX5-042", as: "source" }],
+          deck: [{ card: "EX5-039", as: "fortitude" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 12;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX5-039"));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX5-039")).toBe(true);
+  });
+
+  it("returns a revealed non-Fortitude Digimon to hand instead of playing it", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX5-042", as: "source" }],
+          deck: [{ card: "BT10-079", as: "ineligible" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 12;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT10-079")).toBe(false);
   });
 });

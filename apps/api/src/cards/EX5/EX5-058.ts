@@ -11,56 +11,30 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
-          kind: "Modal",
-          choose: 1,
-          options: [
-            [
-              {
-                kind: "PlayToken",
-                tokens: [{ name: "Fujitsumon Token", kind: "Digimon", color: "Purple", dp: 3000 }],
-                count: 1,
-                payCost: false,
-                suspended: true,
-              },
-            ],
-            [
-              {
-                kind: "PlayToken",
-                tokens: [{ name: "Fujitsumon Token", kind: "Digimon", color: "Purple", dp: 3000 }],
-                count: 1,
-                payCost: false,
-                suspended: true,
-                placedAs: "opponentDigimon",
-              },
-            ],
+          kind: "ConditionalBranch",
+          ifTrue: [
+            {
+              kind: "PlayToken",
+              tokens: [{ name: "Fujitsumon Token", kind: "Digimon", color: "Purple", dp: 3000 }],
+              count: 1,
+              payCost: false,
+              suspended: true,
+            },
+          ],
+          ifFalse: [
+            {
+              kind: "PlayToken",
+              tokens: [{ name: "Fujitsumon Token", kind: "Digimon", color: "Purple", dp: 3000 }],
+              count: 1,
+              payCost: false,
+              suspended: true,
+              placedAs: "opponentDigimon",
+            },
           ],
           condition: {
-            kind: "countCompare",
-            count: {
-              kind: "count",
-              filter: {
-                type: "Digimon",
-                zone: ["battleArea"],
-                includeTokens: true,
-              },
-              controller: "both",
-            },
-            operator: ">=",
+            kind: "totalDigimonCount",
+            op: ">=",
             value: 4,
-          },
-          elseCondition: {
-            kind: "countCompare",
-            count: {
-              kind: "count",
-              filter: {
-                type: "Digimon",
-                zone: ["battleArea"],
-                includeTokens: true,
-              },
-              controller: "both",
-            },
-            operator: "<=",
-            value: 3,
           },
         },
       ],
@@ -69,56 +43,30 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "Modal",
-          choose: 1,
-          options: [
-            [
-              {
-                kind: "PlayToken",
-                tokens: [{ name: "Fujitsumon Token", kind: "Digimon", color: "Purple", dp: 3000 }],
-                count: 1,
-                payCost: false,
-                suspended: true,
-              },
-            ],
-            [
-              {
-                kind: "PlayToken",
-                tokens: [{ name: "Fujitsumon Token", kind: "Digimon", color: "Purple", dp: 3000 }],
-                count: 1,
-                payCost: false,
-                suspended: true,
-                placedAs: "opponentDigimon",
-              },
-            ],
+          kind: "ConditionalBranch",
+          ifTrue: [
+            {
+              kind: "PlayToken",
+              tokens: [{ name: "Fujitsumon Token", kind: "Digimon", color: "Purple", dp: 3000 }],
+              count: 1,
+              payCost: false,
+              suspended: true,
+            },
+          ],
+          ifFalse: [
+            {
+              kind: "PlayToken",
+              tokens: [{ name: "Fujitsumon Token", kind: "Digimon", color: "Purple", dp: 3000 }],
+              count: 1,
+              payCost: false,
+              suspended: true,
+              placedAs: "opponentDigimon",
+            },
           ],
           condition: {
-            kind: "countCompare",
-            count: {
-              kind: "count",
-              filter: {
-                type: "Digimon",
-                zone: ["battleArea"],
-                includeTokens: true,
-              },
-              controller: "both",
-            },
-            operator: ">=",
+            kind: "totalDigimonCount",
+            op: ">=",
             value: 4,
-          },
-          elseCondition: {
-            kind: "countCompare",
-            count: {
-              kind: "count",
-              filter: {
-                type: "Digimon",
-                zone: ["battleArea"],
-                includeTokens: true,
-              },
-              controller: "both",
-            },
-            operator: "<=",
-            value: 3,
           },
         },
       ],

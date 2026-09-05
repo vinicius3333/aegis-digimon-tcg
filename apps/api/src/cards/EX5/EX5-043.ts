@@ -11,6 +11,7 @@ export const compiled: CompiledCard = structuredClone(generated);
 const playTrigger = compiled.effects.find((effect) => effect.trigger === "YourTurn" && !effect.isInherited);
 for (const effect of compiled.effects ?? []) {
   if (effect.trigger !== "Main" && effect.trigger !== "WhenDigivolving") continue;
+  effect.sharedUseKey = "ir-shared-0";
   effect.actions = effect.actions.filter((action) => action.kind !== "Replacement");
   const play = effect.actions.find((action) => action.kind === "PlayWithoutCost");
   if (play?.kind === "PlayWithoutCost") {
@@ -19,7 +20,12 @@ for (const effect of compiled.effects ?? []) {
       amount: 3,
       condition: {
         kind: "selfDigivolutionStackHasTrait",
-        filter: { nameOrTrait: [{ tokens: ["Leopardmon"], match: "name" }, { tokens: ["X Antibody"], match: "trait" }] },
+        filter: {
+          nameOrTrait: [
+            { tokens: ["Leopardmon"], match: "name" },
+            { tokens: ["X Antibody"], match: "nameExact" },
+          ],
+        },
         raw: "a card with [Leopardmon] in its name or [X Antibody] is in this Digimon's digivolution cards",
       },
     };

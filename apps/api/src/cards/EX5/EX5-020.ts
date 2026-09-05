@@ -22,9 +22,9 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
-              kind: "CostModifier",
-              mode: "reduce",
-              costType: "play",
+              kind: "Replacement",
+              event: "wouldBePlayed",
+              mode: "reduceCost",
               amount: 2,
               condition: {
                 kind: "youHave",
@@ -37,7 +37,7 @@ export const compiled: CompiledCard = {
                       match: "trait",
                     },
                   ],
-                  digivolutionCardCountMin: 3,
+                  digivolutionCardsAtLeast: 3,
                 },
                 raw: "you have a Digimon with 3 or more digivolution cards and the [Night Claw]/[Light Fang]/[Galaxy] trait",
               },
@@ -46,15 +46,12 @@ export const compiled: CompiledCard = {
         },
         {
           kind: "Replacement",
-          event: "wouldBeDigivolvedInto",
-          sourceFilter: {
-            isSelfRef: true,
-          },
+          event: "wouldDigivolve",
           actions: [
             {
-              kind: "CostModifier",
-              mode: "reduce",
-              costType: "digivolve",
+              kind: "Replacement",
+              event: "wouldDigivolve",
+              mode: "reduceCost",
               amount: 2,
               condition: {
                 kind: "youHave",
@@ -67,7 +64,7 @@ export const compiled: CompiledCard = {
                       match: "trait",
                     },
                   ],
-                  digivolutionCardCountMin: 3,
+                  digivolutionCardsAtLeast: 3,
                 },
                 raw: "you have a Digimon with 3 or more digivolution cards and the [Night Claw]/[Light Fang]/[Galaxy] trait",
               },

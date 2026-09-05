@@ -114,7 +114,7 @@ export const compiled: CompiledCard = {
       trigger: "AllTurns",
       actions: [
         {
-          kind: "GainKeyword",
+          kind: "Aura",
           target: {
             filter: {
               controller: "mine",
@@ -123,11 +123,13 @@ export const compiled: CompiledCard = {
             },
             count: "all",
           },
-          keyword: {
-            keyword: "Barrier",
-            raw: "＜Barrier＞",
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "Barrier",
+              raw: "＜Barrier＞",
+            },
           },
-          duration: "permanent",
         },
       ],
     },

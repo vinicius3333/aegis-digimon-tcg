@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-038.js";
 
 describe("EX5-038 Vikaralamon", () => {
@@ -37,5 +39,54 @@ describe("EX5-038 Vikaralamon", () => {
         },
       ],
     });
+  });
+
+  it("draws and plays a Deva into breeding through the public On Play path", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX5-038", as: "vikaralamon" },
+            { card: "BT10-079", as: "deva" },
+          ],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vikaralamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === "BT10-079");
+    expect(s.state.players[0]!.breeding?.topCard?.cardId).toBe("BT10-079");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("deva").instanceId)).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
+  });
+
+  it("unsuspends itself after its Digimon wins a battle, but only once per turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX5-038", as: "source", suspended: true },
+          { card: "BT1-010", as: "attacker" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT1-021", as: "opponent", suspended: true }] },
+    });
+    await s.ready();
+    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", {
+      attackerPermanentId: s.perm("attacker").permanentId,
+      deletedPermanentId: s.perm("opponent").permanentId,
+    });
+    await settle(() => !s.perm("source").isSuspended);
+    expect(s.perm("source").isSuspended).toBe(false);
+    await advance(s.engine).verb.suspend([s.perm("source").permanentId]);
+    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", {
+      attackerPermanentId: s.perm("attacker").permanentId,
+      deletedPermanentId: s.perm("opponent").permanentId,
+    });
+    expect(s.perm("source").isSuspended).toBe(true);
   });
 });

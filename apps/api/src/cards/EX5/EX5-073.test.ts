@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import { dnaDigivolutionRequirementsFor, requireCardDefinition } from "@aegis/shared";
 import { canPayCost } from "../../engine/effects/interpreter/costs.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-073.js";
+import "../index.js";
 
 describe("EX5-073 GraceNovamon", () => {
   it("has its printed Security Attack plus one and Blocker keywords", () => {
@@ -27,6 +29,7 @@ describe("EX5-073 GraceNovamon", () => {
       {
         kind: "TrashDigivolution",
         amount: 8,
+        scope: "acrossDigimon",
         condition: { kind: "isDnaDigivolving" },
         target: { count: "any", filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" } },
       },
@@ -112,6 +115,81 @@ describe("EX5-073 GraceNovamon", () => {
       throw new Error("EX5-073 prevention missing");
 
     expect(canPayCost(ctx, replacement.actions[0].cost!)).toBe(false);
+  });
+
+  it("DNA digivolves for zero, trashes eight cards across opponent stacks, then deletes an eligible Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX5-014", as: "apollo" },
+            { card: "EX5-025", as: "diana" },
+          ],
+          hand: [{ card: "EX5-073", as: "grace" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-024", as: "eligible", under: ["BT1-010", "BT1-011"] },
+            {
+              card: "BT1-024",
+              as: "other",
+              under: [
+                "BT1-010",
+                "BT1-011",
+                "BT1-012",
+                "BT1-013",
+                "BT1-014",
+                "BT1-010",
+                "BT1-011",
+                "BT1-012",
+                "BT1-013",
+                "BT1-014",
+                "BT1-010",
+                "BT1-011",
+              ],
+            },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("apollo").permanentId, s.perm("diana").permanentId],
+        instanceId: s.inst("grace").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    const opponentBattle = s.state.players[1]!.battleArea;
+    await settle(() => opponentBattle.length === 1 && s.state.players[1]!.trash.length >= 8);
+    expect(opponentBattle).toHaveLength(1);
+    expect(opponentBattle[0]!.topCard?.instanceId).toBe(s.inst("other").instanceId);
+    expect(opponentBattle[0]!.stack).toHaveLength(6);
+    expect(s.state.players[1]!.trash).toHaveLength(9); // 8 trashed sources plus the deleted Digimon.
+  });
+
+  it("prevents an opponent-effect deletion by trashing two same-level cards from its own stack", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX5-073", as: "grace", under: ["BT1-010", "BT1-011"] }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const graceId = s.perm("grace").permanentId;
+    await s.ready();
+
+    const driver = advance(s.engine);
+    driver.verb.enterEffectResolution(1, ["Digimon"]);
+    const removed = await driver.verb.deletePermanent([graceId], "byEffect");
+    driver.verb.leaveEffectResolution();
+    expect(removed).toBe(0);
+    await settle(() => s.state.players[0]!.trash.length >= 2);
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === graceId)).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT1-010", "BT1-011"]),
+    );
   });
 
   it("still deletes an eligible opponent when attacking without DNA digivolving, per Q3687/Q3688", async () => {
