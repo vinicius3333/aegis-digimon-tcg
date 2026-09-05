@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../BT11/BT11-061.js";
+import "../index.js";
 
 describe("EX9-051", () => {
   it("does not expose or accept an ordinary Main ability in breeding alongside the Training exception", async () => {
@@ -11,7 +12,7 @@ describe("EX9-051", () => {
       0: {
         battleArea: [{ card: "BT11-061", as: "field" }],
         breeding: { card: "BT11-061", as: "raising" },
-        deck: ["BT1-001", "BT1-002", "BT1-003"],
+        deck: ["BT1-010", "BT1-048", "BT1-046"],
       },
     });
     await s.ready();
@@ -37,7 +38,7 @@ describe("EX9-051", () => {
           ...(breeding
             ? { breeding: { card: "EX9-051", as: "host", under: ["EX9-046"] } }
             : { battleArea: [{ card: "EX9-051", as: "host", under: ["EX9-046"] }] }),
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-010", "BT1-048"],
         },
       });
       await s.ready();
@@ -51,9 +52,9 @@ describe("EX9-051", () => {
       ).toEqual({ ok: true });
       await settle();
       expect(s.perm("host").isSuspended).toBe(true);
-      expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT1-001", "EX9-046"]);
+      expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT1-010", "EX9-046"]);
       expect(s.perm("host").stack[0]!.faceUp).toBe(false);
-      expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-002"]);
+      expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-048"]);
       expect(
         s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId, effectKey: ability!.effectKey }).ok,
       ).toBe(false);
@@ -69,7 +70,7 @@ describe("EX9-051", () => {
           ...(breeding
             ? { breeding: { card: "EX9-051", as: "host", under: ["EX9-046"] } }
             : { battleArea: [{ card: "EX9-051", as: "host", under: ["EX9-046"] }] }),
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["BT1-010", "BT1-048"],
         },
       });
       await s.ready();
@@ -84,7 +85,7 @@ describe("EX9-051", () => {
         s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId, effectKey: ability!.effectKey }),
       ).toEqual({ ok: true });
       await settle(() => source.stack.length === 2 && s.state.players[0]!.deck.length === 1);
-      expect(source.stack.map((card) => card.cardId)).toEqual(["BT1-001", "EX9-046"]);
+      expect(source.stack.map((card) => card.cardId)).toEqual(["BT1-010", "EX9-046"]);
 
       await advance(s.engine).verb.unsuspend([source.permanentId]);
       expect(source.isSuspended).toBe(false);
@@ -94,7 +95,7 @@ describe("EX9-051", () => {
       await settle(() => source.stack.length === 3 && s.state.players[0]!.deck.length === 0);
 
       expect(source.isSuspended).toBe(true);
-      expect(source.stack.map((card) => card.cardId)).toEqual(["BT1-002", "BT1-001", "EX9-046"]);
+      expect(source.stack.map((card) => card.cardId)).toEqual(["BT1-048", "BT1-010", "EX9-046"]);
       expect(source.stack[0]!.faceUp).toBe(false);
       expect(source.stack[1]!.faceUp).toBe(false);
       expect(s.state.pendingDecision).toBeUndefined();
@@ -104,7 +105,7 @@ describe("EX9-051", () => {
   it.each(["EX9-008", "BT1-009"])("enforces the off-color level-three DM route for %s", async (base) => {
     const legal = base === "EX9-008";
     const s = setupEngine({
-      0: { battleArea: [{ card: base, as: "host" }], hand: [{ card: "EX9-051", as: "evo" }], deck: ["BT1-001"] },
+      0: { battleArea: [{ card: base, as: "host" }], hand: [{ card: "EX9-051", as: "evo" }], deck: ["BT1-010"] },
     });
     s.state.memory = 5;
     expect(
@@ -156,7 +157,7 @@ describe("EX9-051", () => {
   it("places a hand card face-down underneath and de-digivolves an opposing Digimon on play", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "EX9-051", as: "play" }, "BT1-001"] },
+        0: { hand: [{ card: "EX9-051", as: "play" }, "BT1-010"] },
         1: { battleArea: [{ card: "BT1-016", as: "target", under: ["BT1-009"] }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -169,7 +170,7 @@ describe("EX9-051", () => {
     const source = s.state.players[0]!.battleArea[0]!;
     expect(source.topCard.cardId).toBe("EX9-051");
     expect(source.stack).toHaveLength(1);
-    expect(source.stack[0]?.cardId).toBe("BT1-001");
+    expect(source.stack[0]?.cardId).toBe("BT1-010");
     expect(source.stack[0]?.faceUp).toBe(false);
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.perm("target").stack).toHaveLength(0);
@@ -181,8 +182,8 @@ describe("EX9-051", () => {
   it.each([true, false])("pays or explicitly declines the attack cost (accept=%s)", async (accept) => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX9-051", as: "source", under: ["EX9-046"] }], hand: ["BT1-001"] },
-        1: { battleArea: [{ card: "BT1-016", as: "target", under: ["BT1-009"] }], security: ["BT1-002"] },
+        0: { battleArea: [{ card: "EX9-051", as: "source", under: ["EX9-046"] }], hand: ["BT1-010"] },
+        1: { battleArea: [{ card: "BT1-016", as: "target", under: ["BT1-009"] }], security: ["BT1-048"] },
       },
       { autoAcceptOptional: accept, autoDeclineOptional: !accept, autoSelectCards: true },
     );
@@ -194,7 +195,7 @@ describe("EX9-051", () => {
       }),
     ).toEqual({ ok: true });
     await settle();
-    expect(s.perm("source").stack.map((card) => card.cardId)).toEqual(accept ? ["BT1-001", "EX9-046"] : ["EX9-046"]);
+    expect(s.perm("source").stack.map((card) => card.cardId)).toEqual(accept ? ["BT1-010", "EX9-046"] : ["EX9-046"]);
     expect(s.perm("source").stack[0]!.faceUp).toBe(!accept);
     expect(s.state.players[0]!.hand).toHaveLength(accept ? 0 : 1);
     expect(s.perm("target").topCard.cardId).toBe(accept ? "BT1-009" : "BT1-016");
@@ -218,9 +219,31 @@ describe("EX9-051", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
+  it("explicitly declines the payable On Play cost", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX9-051", as: "source" }, "BT1-010"] },
+        1: { battleArea: [{ card: "BT1-016", as: "target", under: ["BT1-009"] }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.perm("source").topCard.cardId).toBe("EX9-051");
+    expect(s.perm("source").stack).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-010"]);
+    expect(s.perm("target").topCard.cardId).toBe("BT1-016");
+    expect(s.perm("target").stack.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+    expect(s.state.memory).toBe(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("inherits Blocker on a legal black level-five host and intercepts a real attack", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT2-063", as: "host", under: ["EX9-051"] }], security: ["BT1-001"] },
+      0: { battleArea: [{ card: "BT2-063", as: "host", under: ["EX9-051"] }], security: ["BT1-010"] },
       1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
     });
     s.state.turnSeat = 1;
