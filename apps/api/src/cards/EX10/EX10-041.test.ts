@@ -101,7 +101,10 @@ describe("EX10-041 Wizardmon", () => {
       {
         0: {
           battleArea: [{ card: CARD_ID, as: "wizard" }],
-          security: [{ card: "BT1-009", as: "security" }],
+          security: [
+            { card: "BT1-009", as: "security" },
+            { card: "BT1-010", as: "bottomSecurity" },
+          ],
           deck: [
             { card: "BT1-009", as: "mill1" },
             { card: "BT1-010", as: "mill2" },
@@ -118,7 +121,8 @@ describe("EX10-041 Wizardmon", () => {
     );
     await s.ready();
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("wizard"));
-    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("bottomSecurity").instanceId);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(
       expect.arrayContaining([s.inst("security").instanceId, s.inst("mill1").instanceId, s.inst("mill2").instanceId]),
     );

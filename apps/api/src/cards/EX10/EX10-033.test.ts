@@ -100,13 +100,13 @@ describe("EX10-033 Pyramidimon", () => {
         0: {
           battleArea: [
             { card: "EX10-033", as: "pyramid" },
-            { card: "EX10-028", as: "firstHost", under: [{ card: "EX10-025", as: "first" }] },
+            { card: "EX10-028", as: "firstHost", under: [{ card: "BT10-062", as: "first" }] },
             {
               card: "EX10-028",
               as: "secondHost",
               under: [
-                { card: "EX10-028", as: "second" },
-                { card: "EX10-003", as: "third" },
+                { card: "BT10-064", as: "second" },
+                { card: "BT13-061", as: "third" },
               ],
             },
           ],

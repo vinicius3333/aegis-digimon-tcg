@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { registerIrCard, runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { compiled } from "./EX10-031.js";
 import "../index.js";
 
@@ -130,6 +131,74 @@ describe("EX10-031 DarkKnightmon", () => {
     advance(s.engine).ledgers.modifiers.sweep(s.state, "ownerTurnEnd", 1);
     await s.engine.recomputeContinuousEffects();
     expect(s.perm("chosen").currentDP).toBe(baseDp);
+  });
+
+  it("blocks opposing De-Digivolve but allows the controller's own effect", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "source" },
+            { card: "EX10-028", as: "protected", under: ["BT1-009"] },
+            { card: "EX10-028", as: "unprotected", under: ["BT1-009"] },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT19-073", as: "opponentSource", under: ["BT19-070"] }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("protected").permanentId);
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("source"));
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("protected"), "cantBeDeDigivolved", "Digimon")).toBe(true);
+    expect(
+      advance(s.engine).ledgers.continuous.hasRestriction(
+        s.perm("protected").permanentId,
+        "cantBeDeDigivolved",
+        undefined,
+        {
+          byOpponentEffect: false,
+        },
+      ),
+    ).toBe(false);
+
+    // Aim the opponent's real De-Digivolve at the protected stack first. This is the
+    // controller-scope assertion: the effect attempts the selected target, but cannot peel it.
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("opponentSource"));
+    expect(s.perm("protected").stack).toHaveLength(1);
+
+    // The same opponent effect succeeds against a level-4 control without the protection.
+    preferred.length = 0;
+    preferred.push(s.perm("unprotected").permanentId);
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("opponentSource"));
+    expect(s.perm("unprotected").stack).toHaveLength(0);
+
+    // No printed EX10 card in this range De-Digivolves one of its own Digimon. Add the smallest
+    // neutral IR mechanism to the already-registered EX10-031 record so the production
+    // primitive receives the controller's seat, then remove it immediately after this proof.
+    const ownEffect = {
+      trigger: "WhenDigivolving" as const,
+      actions: [
+        {
+          kind: "DeDigivolve" as const,
+          target: { filter: { controller: "mine" as const, kind: ["Digimon"] }, count: 1 as const },
+          amount: 1,
+        },
+      ],
+    };
+    const originalRuntime = runtimeCompiledCard(CARD_ID)!;
+    registerIrCard(CARD_ID, { ...originalRuntime, effects: [...originalRuntime.effects, ownEffect] });
+    try {
+      preferred.length = 0;
+      preferred.push(s.perm("protected").permanentId);
+      await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("source"));
+      expect(s.perm("protected").stack).toHaveLength(0);
+    } finally {
+      registerIrCard(CARD_ID, originalRuntime);
+    }
   });
 
   it("plays only a cost-4-or-lower source from ITS OWN stack for free when leaving, then leaves", async () => {
