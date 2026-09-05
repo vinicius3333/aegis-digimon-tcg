@@ -47,6 +47,9 @@ export interface DpModifier {
   duration: EffectDuration;
   /** Card instance whose continued presence sustains this modifier. */
   sourceInstanceId?: string;
+  /** Controller and card kinds of the effect that produced this delta. */
+  sourceSeat?: Seat;
+  sourceKinds?: string[];
   /** Ignore only the canonical opponent-turn end already in progress. */
   skipsCurrentOpponentTurnEnd?: boolean;
   /**
@@ -68,6 +71,9 @@ export interface PlayerDpModifier {
   duration: EffectDuration;
   /** Controller of the effect that owns the duration frame; defaults to the affected seat. */
   ownerSeat?: Seat;
+  /** Controller and card kinds of the effect that produced this player-wide delta. */
+  sourceSeat?: Seat;
+  sourceKinds?: string[];
   /** Ignore only the opponent-turn end already in progress. */
   skipsCurrentOpponentTurnEnd?: boolean;
 }
@@ -277,7 +283,13 @@ export class ModifierLedger {
     permanentId: string,
     delta: number,
     duration: EffectDuration,
-    opts?: { continuous?: boolean; sourceInstanceId?: string; skipsCurrentOpponentTurnEnd?: boolean },
+    opts?: {
+      continuous?: boolean;
+      sourceInstanceId?: string;
+      sourceSeat?: Seat;
+      sourceKinds?: string[];
+      skipsCurrentOpponentTurnEnd?: boolean;
+    },
   ): DpModifier {
     const modifier: DpModifier = {
       permanentId,
@@ -285,6 +297,8 @@ export class ModifierLedger {
       duration,
       continuous: opts?.continuous,
       sourceInstanceId: opts?.sourceInstanceId,
+      sourceSeat: opts?.sourceSeat,
+      sourceKinds: opts?.sourceKinds,
       skipsCurrentOpponentTurnEnd: opts?.skipsCurrentOpponentTurnEnd,
     };
     this.dpModifiers.push(modifier);
@@ -298,13 +312,20 @@ export class ModifierLedger {
     seat: Seat,
     delta: number,
     duration: EffectDuration,
-    opts?: { ownerSeat?: Seat; skipsCurrentOpponentTurnEnd?: boolean },
+    opts?: {
+      ownerSeat?: Seat;
+      sourceSeat?: Seat;
+      sourceKinds?: string[];
+      skipsCurrentOpponentTurnEnd?: boolean;
+    },
   ): PlayerDpModifier {
-    const modifier = {
+    const modifier: PlayerDpModifier = {
       seat,
       delta,
       duration,
       ownerSeat: opts?.ownerSeat,
+      sourceSeat: opts?.sourceSeat,
+      sourceKinds: opts?.sourceKinds,
       skipsCurrentOpponentTurnEnd: opts?.skipsCurrentOpponentTurnEnd,
     };
     this.playerDpModifiers.push(modifier);
@@ -318,22 +339,96 @@ export class ModifierLedger {
   }
 
   /** Sum of active DP deltas on a permanent. */
-  dpDeltaOf(permanentId: string): number {
+  dpDeltaOf(permanentId: string, state?: GameState, includeContinuous = true): number {
     let sum = 0;
     for (const m of this.dpModifiers) {
-      if (m.permanentId === permanentId) sum += m.delta;
+      if (m.permanentId !== permanentId) continue;
+      if (!includeContinuous && m.continuous === true) continue;
+      if (state !== undefined && this.dpModifierIsSuppressed(state, m)) continue;
+      sum += m.delta;
     }
     return sum;
   }
 
-  private playerDpDeltaOf(permanent: Permanent): number {
+  private dpModifierIsSuppressed(state: GameState, modifier: DpModifier): boolean {
+    if (modifier.sourceSeat === undefined || modifier.sourceKinds === undefined || this.continuous === undefined) {
+      return false;
+    }
+    const permanent = findPermanentInState(state, modifier.permanentId);
+    if (permanent === undefined || permanent.controllerSeat === modifier.sourceSeat) return false;
+    const sourceKinds = modifier.sourceKinds.length > 0 ? modifier.sourceKinds : [undefined];
+    return sourceKinds.some((kind) =>
+      this.continuous!.hasRestriction(permanent.permanentId, "beAffected", kind, { byOpponentEffect: true }),
+    );
+  }
+
+  /**
+   * Return the prior continuous contribution to a permanent's resolved DP. This includes
+   * continuous deltas, absolute base-DP overrides, and minimum-DP floors by comparing the
+   * resolved value with a projection that excludes only the continuous entries. The projection
+   * is taken before clearContinuous(), so a changed printed/base value can still be re-seeded
+   * against the fresh baseline in the next pass.
+   */
+  continuousDpSeed(state: GameState, permanentId: string): number {
+    const permanent = findPermanentInState(state, permanentId);
+    if (permanent === undefined) return 0;
+    const baseline = this.nonContinuousDp(state, permanent);
+    return permanent.currentDP - baseline;
+  }
+
+  /** Whether this permanent currently has a continuous DP-layer entry to carry forward. */
+  hasContinuousDp(permanentId: string): boolean {
+    return (
+      this.dpModifiers.some((modifier) => modifier.permanentId === permanentId && modifier.continuous === true) ||
+      this.baseDpOverrides.some((override) => override.permanentId === permanentId && override.continuous === true) ||
+      this.minDpFloors.some((floor) => floor.permanentId === permanentId && floor.continuous === true)
+    );
+  }
+
+  private nonContinuousDp(state: GameState, permanent: Permanent): number {
+    let base = permanent.baseDP;
+    let latest: BaseDpOverride | undefined;
+    for (const override of this.baseDpOverrides) {
+      if (override.permanentId !== permanent.permanentId || override.continuous === true) continue;
+      if (latest === undefined || override.activatedAt > latest.activatedAt) latest = override;
+    }
+    if (latest !== undefined) base = latest.value;
+    const delta = this.dpDeltaOf(permanent.permanentId, state, false);
+    const playerDelta = this.playerDpDeltaOf(permanent, state);
+    let computed = base + this.linkDpOf(permanent) + delta + playerDelta;
+    let floor: number | undefined;
+    for (const entry of this.minDpFloors) {
+      if (entry.permanentId !== permanent.permanentId || entry.continuous === true) continue;
+      if (floor === undefined || entry.floor > floor) floor = entry.floor;
+    }
+    if (floor !== undefined && computed < floor) computed = floor;
+    return computed < 0 ? 0 : computed;
+  }
+
+  private playerDpDeltaOf(permanent: Permanent, state?: GameState): number {
     let sum = 0;
     for (const modifier of this.playerDpModifiers) {
       if (modifier.seat !== permanent.controllerSeat) continue;
+      // `dpImmune` is a reduction-only rule and predates source provenance, so it must
+      // continue to suppress every negative player-wide delta, including legacy callers.
       if (modifier.delta < 0 && this.continuous?.hasRestriction(permanent.permanentId, "dpImmune")) continue;
+      // `beAffected` is broader than DP-reduction immunity: an opposing effect of any
+      // sign cannot change the protected Digimon's DP.
+      if (state !== undefined && this.playerDpModifierIsSuppressed(permanent, modifier)) continue;
       sum += modifier.delta;
     }
     return sum;
+  }
+
+  private playerDpModifierIsSuppressed(permanent: Permanent, modifier: PlayerDpModifier): boolean {
+    if (modifier.sourceSeat === undefined || modifier.sourceKinds === undefined || this.continuous === undefined) {
+      return false;
+    }
+    if (permanent.controllerSeat === modifier.sourceSeat) return false;
+    const sourceKinds = modifier.sourceKinds.length > 0 ? modifier.sourceKinds : [undefined];
+    return sourceKinds.some((kind) =>
+      this.continuous!.hasRestriction(permanent.permanentId, "beAffected", kind, { byOpponentEffect: true }),
+    );
   }
 
   /** Remove active DP reductions when an effect makes that Digimon immune to DP reduction. */
@@ -458,8 +553,8 @@ export class ModifierLedger {
     const next =
       this.baseDpOf(permanent) +
       this.linkDpOf(permanent) +
-      this.dpDeltaOf(permanentId) +
-      this.playerDpDeltaOf(permanent);
+      this.dpDeltaOf(permanentId, state) +
+      this.playerDpDeltaOf(permanent, state);
     permanent.currentDP = this.applyDpFloor(permanentId, next);
   }
 
@@ -489,8 +584,8 @@ export class ModifierLedger {
     const computed =
       this.baseDpOf(permanent) +
       this.linkDpOf(permanent) +
-      this.dpDeltaOf(permanentId) +
-      this.playerDpDeltaOf(permanent);
+      this.dpDeltaOf(permanentId, state) +
+      this.playerDpDeltaOf(permanent, state);
     const floor = this.minDpFloorOf(permanentId);
     return floor !== undefined && computed < floor ? floor : computed;
   }

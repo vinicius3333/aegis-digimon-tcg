@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { EffectDuration, Permanent, getCardDefinition, type Seat } from "@aegis/shared";
+import { advance } from "../testkit/advance.js";
 import { setupEngine } from "../testkit/harness.js";
 import { ModifierLedger } from "./modifiers.js";
 
@@ -117,6 +118,46 @@ describe("ModifierLedger DP modifiers", () => {
     ledger.sweep(s.state, "eachTurnEnd", 0);
     ledger.sweep(s.state, "eachTurnEnd", 1);
     expect(s.perm("current").currentDP).toBe(7000);
+  });
+
+  it("retains reduction immunity for legacy player-wide modifiers without provenance", () => {
+    const s = setupEngine({ 1: { battleArea: [{ card: "AD1-001", dp: 7000, as: "target" }] } });
+    const ledgers = advance(s.engine).ledgers;
+    ledgers.continuous.addRestriction(s.perm("target").permanentId, "dpImmune", EffectDuration.Permanent);
+
+    ledgers.modifiers.addPlayerDpModifier(s.state, 1, -3000, EffectDuration.UntilEachTurnEnd);
+
+    expect(s.perm("target").currentDP).toBe(7000);
+  });
+
+  it("suppresses an opposing player-wide DP buff through beAffected but permits a friendly buff", () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "AD1-001", dp: 7000, as: "friendly" }] },
+      1: { battleArea: [{ card: "AD1-001", dp: 7000, as: "protected" }] },
+    });
+    const ledgers = advance(s.engine).ledgers;
+    ledgers.continuous.addRestriction(s.perm("protected").permanentId, "beAffected", EffectDuration.Permanent, {
+      fromSourceKind: ["Digimon"],
+      byOpponentEffectsOnly: true,
+    });
+
+    ledgers.modifiers.addPlayerDpModifier(s.state, 1, 3000, EffectDuration.UntilEachTurnEnd, {
+      sourceSeat: 0,
+      sourceKinds: ["Digimon"],
+    });
+    expect(s.perm("protected").currentDP).toBe(7000);
+
+    ledgers.modifiers.addPlayerDpModifier(s.state, 1, 3000, EffectDuration.UntilEachTurnEnd, {
+      sourceSeat: 1,
+      sourceKinds: ["Digimon"],
+    });
+    expect(s.perm("protected").currentDP).toBe(10000);
+
+    ledgers.modifiers.addPlayerDpModifier(s.state, 0, 3000, EffectDuration.UntilEachTurnEnd, {
+      sourceSeat: 0,
+      sourceKinds: ["Digimon"],
+    });
+    expect(s.perm("friendly").currentDP).toBe(10000);
   });
 
   it("recomputes currentDP from baseDP plus active deltas", () => {
