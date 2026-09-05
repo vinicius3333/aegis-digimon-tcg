@@ -13,6 +13,7 @@ const compiled: CompiledCard = {
         {
           kind: "CostModifier",
           costType: "play",
+          handResident: true,
           mode: "set",
           amount: 0,
           target: {
@@ -24,18 +25,14 @@ const compiled: CompiledCard = {
           },
           duration: "permanent",
           condition: {
-            kind: "anyOf",
+            kind: "allOf",
             conditions: [
               {
                 kind: "youHave",
                 filter: {
                   controller: "any",
-                  nameOrTrait: [
-                    {
-                      tokens: ["Agumon"],
-                      match: "name",
-                    },
-                  ],
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Agumon"], match: "nameExact" }],
                 },
                 raw: "you have [Agumon]",
               },
@@ -43,12 +40,8 @@ const compiled: CompiledCard = {
                 kind: "youHave",
                 filter: {
                   controller: "any",
-                  nameOrTrait: [
-                    {
-                      tokens: ["Pulsemon"],
-                      match: "name",
-                    },
-                  ],
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Pulsemon"], match: "nameExact" }],
                 },
                 raw: "you have [Pulsemon]",
               },
@@ -56,17 +49,13 @@ const compiled: CompiledCard = {
                 kind: "youHave",
                 filter: {
                   controller: "any",
-                  nameOrTrait: [
-                    {
-                      tokens: ["Gammamon"],
-                      match: "name",
-                    },
-                  ],
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Gammamon"], match: "nameExact" }],
                 },
                 raw: "you have [Gammamon]",
               },
             ],
-            raw: "you have [Agumon]/[Pulsemon]/[Gammamon]",
+            raw: "you have [Agumon], [Pulsemon], and [Gammamon]",
           },
         },
       ],

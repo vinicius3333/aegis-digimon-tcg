@@ -5342,17 +5342,17 @@ describe("CostModifier mode:set (absolute cost set)", () => {
                 conditions: [
                   {
                     kind: "youHave",
-                    filter: { controller: "mine", nameOrTrait: [{ tokens: ["Agumon"], match: "name" }] },
+                    filter: { controller: "any", nameOrTrait: [{ tokens: ["Agumon"], match: "nameExact" }] },
                     count: 1,
                   },
                   {
                     kind: "youHave",
-                    filter: { controller: "mine", nameOrTrait: [{ tokens: ["Pulsemon"], match: "name" }] },
+                    filter: { controller: "any", nameOrTrait: [{ tokens: ["Pulsemon"], match: "nameExact" }] },
                     count: 1,
                   },
                   {
                     kind: "youHave",
-                    filter: { controller: "mine", nameOrTrait: [{ tokens: ["Gammamon"], match: "name" }] },
+                    filter: { controller: "any", nameOrTrait: [{ tokens: ["Gammamon"], match: "nameExact" }] },
                     count: 1,
                   },
                 ],
@@ -5364,8 +5364,8 @@ describe("CostModifier mode:set (absolute cost set)", () => {
     };
   }
 
-  function namedPermanent(permanentId: string, cardId: string): Permanent {
-    return makeFakePermanent({ permanentId, controllerSeat: 0 as Seat, topCard: { cardId } as never });
+  function namedPermanent(permanentId: string, cardId: string, controllerSeat: Seat = 0): Permanent {
+    return makeFakePermanent({ permanentId, controllerSeat, topCard: { cardId } as never });
   }
 
   const namesById: Record<string, string> = {
@@ -5408,6 +5408,24 @@ describe("CostModifier mode:set (absolute cost set)", () => {
     for (const e of module.effectsForTiming(EffectTiming.None, source)) await e.resolve(ctx);
 
     expect(recorder.calls.filter((c) => c.verb === "changePlayCost")).toHaveLength(0);
+  });
+
+  it("sets the cost across both controllers when each exact name is present", async () => {
+    const module = irCardModule("P-116", p116Card());
+    const source = makeSource({ cardId: "P-116" });
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({
+      source,
+      recorder,
+      ownBattleArea: [namedPermanent("ag", "AG")],
+      opponentBattleArea: [namedPermanent("pu", "PU", 1), namedPermanent("ga", "GA", 1)],
+      definitionOf: defByName,
+    });
+    for (const e of module.effectsForTiming(EffectTiming.None, source)) await e.resolve(ctx);
+
+    const calls = recorder.calls.filter((c) => c.verb === "changePlayCost");
+    expect(calls).toHaveLength(1);
+    expect(calls[0]!.args[1]).toBe(0);
   });
 });
 

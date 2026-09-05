@@ -207083,6 +207083,7 @@
           {
             "kind": "CostModifier",
             "costType": "play",
+            "handResident": true,
             "mode": "set",
             "amount": 0,
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
@@ -207092,26 +207093,33 @@
               "conditions": [
                 {
                   "kind": "youHave",
-                  "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Agumon"], "match": "name" }] },
-                  "count": 1
+                  "filter": {
+                    "controller": "any",
+                    "kind": ["Digimon"],
+                    "nameOrTrait": [{ "tokens": ["Agumon"], "match": "nameExact" }]
+                  },
+                  "raw": "you have [Agumon]"
                 },
                 {
                   "kind": "youHave",
                   "filter": {
-                    "controllerDefault": "mine",
-                    "nameOrTrait": [{ "tokens": ["Pulsemon"], "match": "name" }]
+                    "controller": "any",
+                    "kind": ["Digimon"],
+                    "nameOrTrait": [{ "tokens": ["Pulsemon"], "match": "nameExact" }]
                   },
-                  "count": 1
+                  "raw": "you have [Pulsemon]"
                 },
                 {
                   "kind": "youHave",
                   "filter": {
-                    "controllerDefault": "mine",
-                    "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "name" }]
+                    "controller": "any",
+                    "kind": ["Digimon"],
+                    "nameOrTrait": [{ "tokens": ["Gammamon"], "match": "nameExact" }]
                   },
-                  "count": 1
+                  "raw": "you have [Gammamon]"
                 }
-              ]
+              ],
+              "raw": "you have [Agumon], [Pulsemon], and [Gammamon]"
             }
           }
         ]
