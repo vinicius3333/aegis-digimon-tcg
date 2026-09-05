@@ -6,7 +6,6 @@ import "./P-177.js";
 import "../BT21/BT21-064.js";
 import "../BT21/BT21-068.js";
 import "../BT21/BT21-076.js";
-import "../BT21/BT21-064.js";
 
 describe("P-177 Gigimon", () => {
   it("encodes its optional inherited On Deletion return of a named Growlmon or Gallantmon", () => {
