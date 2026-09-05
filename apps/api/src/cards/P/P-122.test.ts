@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./P-122.js";
 
 describe("P-122 Patamon", () => {
@@ -100,5 +101,51 @@ describe("P-122 Patamon", () => {
     await settle(() => s.state.players[0]!.security.length === 2 && s.state.pendingDecision === undefined);
     expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("candidate").instanceId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("candidate").instanceId)).toBe(false);
+  });
+
+  it("inherited effect lowers only opposing Security Digimon and changes a real security battle", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "P-122", as: "base" }],
+        hand: [{ card: "BT1-051", as: "evolution" }],
+        security: [{ card: "BT1-051", as: "ownSecurity" }],
+      },
+      1: {
+        battleArea: [{ card: "BT1-009", as: "battleAreaDigimon" }],
+        security: [{ card: "BT1-051", as: "securityDigimon" }],
+      },
+    });
+    s.state.memory = 10;
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT1-051");
+
+    expect(observe(s.engine).securityDp(1)).toBe(-2000);
+    expect(s.perm("battleAreaDigimon").currentDP).toBe(3000);
+    expect(observe(s.engine).securityDp(0)).toBe(0);
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(observe(s.engine).securityDp(1)).toBe(0);
+    s.state.turnSeat = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("base").permanentId)).toBe(true);
   });
 });
