@@ -6,6 +6,58 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("EX9-041", () => {
+  it("evolves from non-DM Raremon for three and pays the return cost in the real timing", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT3-084", as: "host", under: [{ card: "BT1-009", faceUp: false }] }],
+          hand: [{ card: "EX9-041", as: "evo" }],
+          deck: ["BT1-048"],
+        },
+        1: { battleArea: [{ card: "BT1-064", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("host").topCard.cardId).toBe("EX9-041");
+    expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual(["BT3-084"]);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-048"]);
+    expect(s.state.players[1]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-064"]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it.each(["EX9-029", "BT1-037"])("requires DM for the unnamed off-color level-4 route: %s", async (base) => {
+    const s = setupEngine({
+      0: { breeding: { card: base, as: "host" }, hand: [{ card: "EX9-041", as: "evo" }], deck: ["BT1-009"] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    const eligible = base === "EX9-029";
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }).ok,
+    ).toBe(eligible);
+    await settle();
+    expect(s.state.memory).toBe(eligible ? 1 : 5);
+    expect(s.perm("host").topCard.cardId).toBe(eligible ? "EX9-041" : base);
+    expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual(eligible ? [base] : []);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
   it.each([true, false])("Fortitude replays a fresh permanent only when a source existed: %s", async (hasSource) => {
     const s = setupEngine(
       {
@@ -134,12 +186,15 @@ describe("EX9-041", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("trashes the opponent's top security when the inherited host deletes in battle", async () => {
+  it("trashes security only on the first of two inherited-host battle wins in one turn", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-080", as: "host", dp: 10000, under: ["EX9-041"] }] },
+        0: { battleArea: [{ card: "BT1-080", as: "host", under: ["EX9-041"] }] },
         1: {
-          battleArea: [{ card: "BT1-010", as: "target", dp: 1000, suspended: true }],
+          battleArea: [
+            { card: "BT1-010", as: "target", suspended: true },
+            { card: "BT1-009", as: "second", suspended: true },
+          ],
           security: ["BT1-011", "BT1-012"],
         },
       },
@@ -153,10 +208,22 @@ describe("EX9-041", () => {
         target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 0);
-
+    await settle();
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-011")).toBe(true);
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("second").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-012"]);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("keeps the face-down source card when the optional return cost is declined", async () => {
