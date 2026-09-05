@@ -2,9 +2,138 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX9-070.js";
+import "../index.js";
 
 describe("EX9-070", () => {
+  it("Q4831 rejects a second Delay during the first and combines only the intrinsic Ver.4 reduction", async () => {
+    const options = {
+      autoAcceptOptional: false,
+      autoSelectCards: true,
+      autoOrderTriggers: true,
+      preferInstanceIds: [] as string[],
+    };
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX9-070", as: "first" },
+            { card: "EX9-070", as: "second" },
+            { card: "EX9-038", as: "host" },
+          ],
+          hand: [
+            { card: "BT1-009", as: "cost" },
+            { card: "EX9-063", as: "evo" },
+          ],
+          deck: ["BT1-048"],
+        },
+      },
+      options,
+    );
+    options.preferInstanceIds.push(s.inst("cost").instanceId);
+    // Established Delay Options were placed by their effects on an earlier turn.
+    s.perm("first").placedByEffect = true;
+    s.perm("second").placedByEffect = true;
+    s.state.memory = 3;
+    await s.ready();
+    const first = observe(s.engine).activatableEffects(s.perm("first"))[0]!;
+    const second = observe(s.engine).activatableEffects(s.perm("second"))[0]!;
+    const secondId = s.perm("second").topCard.instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("first").topCard.instanceId,
+        effectKey: first.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision!;
+    expect(decision.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: secondId, effectKey: second.effectKey }).ok,
+    ).toBe(false);
+    expect(s.state.pendingDecision?.decisionId).toBe(decision.decisionId);
+    expect(s.perm("second").topCard.instanceId).toBe(secondId);
+    options.autoAcceptOptional = true;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("host").topCard.cardId).toBe("EX9-063");
+    // Base 4, one face-down source reduces by 1, this Meat reduces by 2.
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("second").topCard.instanceId).toBe(secondId);
+    expect(s.state.players[0]!.trash.filter((card) => card.cardId === "EX9-070")).toHaveLength(1);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-048"]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+  it.each([
+    { card: "EX9-068", breeding: false, opponent: false, legal: true },
+    { card: "EX9-015", breeding: false, opponent: false, legal: true },
+    { card: "EX9-015", breeding: true, opponent: false, legal: true },
+    { card: "EX9-024", breeding: false, opponent: false, legal: false },
+    { card: "BT1-030", breeding: false, opponent: false, legal: false },
+    { card: "EX9-015", breeding: false, opponent: true, legal: false },
+  ])(
+    "Q4832 enforces color waiver for $card (breeding=$breeding, opponent=$opponent)",
+    async ({ card, breeding, opponent, legal }) => {
+      const s = setupEngine({
+        0: {
+          battleArea: !breeding && !opponent ? [card] : [],
+          ...(breeding ? { breeding: { card } } : {}),
+          hand: [{ card: "EX9-070", as: "option" }],
+          deck: ["BT1-009"],
+        },
+        1: { battleArea: opponent ? [card] : [] },
+      });
+      s.state.memory = 5;
+      await s.ready();
+      const optionId = s.inst("option").instanceId;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId }).ok).toBe(legal);
+      await settle();
+      expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === optionId)).toBe(legal);
+      expect(s.state.players[0]!.hand.map((instance) => instance.cardId)).toEqual(legal ? ["BT1-009"] : ["EX9-070"]);
+      expect(s.state.memory).toBe(legal ? 3 : 5);
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
+  it("declining Delay's placement cost preserves the host and hand but trashes the activated Option", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX9-070", as: "option" },
+            { card: "EX9-007", as: "host" },
+          ],
+          hand: ["BT1-009", "EX9-010"],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const effect = observe(s.engine).activatableEffects(s.perm("option"))[0];
+    expect(effect).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("option").topCard.instanceId,
+        effectKey: effect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("host").topCard.cardId).toBe("EX9-007");
+    expect(s.perm("host").stack).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-009", "EX9-010"]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["EX9-070"]);
+    expect(s.state.memory).toBe(3);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
   it("waives its color requirement while a DM Digimon or Tamer is present", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "Static")).toMatchObject({
       actions: [{ kind: "WaiveColorRequirement", condition: { kind: "youHave" } }],
@@ -24,6 +153,7 @@ describe("EX9-070", () => {
             fromSelectionRef: "paidHost",
           },
           reduceCost: 2,
+          payCost: true,
           cost: {
             kind: "place",
             host: "target",
@@ -62,6 +192,9 @@ describe("EX9-070", () => {
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX9-070")).toBe(true);
+    expect(s.perm("option").placedByEffect).toBe(true);
+    expect(observe(s.engine).activatableEffects(s.perm("option"))).toEqual([]);
+    expect(s.state.memory).toBe(0);
   });
 
   it("draws and places itself as a battle-area option from security", async () => {
@@ -81,6 +214,7 @@ describe("EX9-070", () => {
       autoAcceptOptional: true,
       autoSelectCards: true,
       autoOrderTriggers: true,
+      autoChooseOption: true,
       preferInstanceIds: [] as string[],
     };
     const s = setupEngine(
