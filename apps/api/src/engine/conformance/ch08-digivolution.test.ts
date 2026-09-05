@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming, PendingDecision, type Permanent as PermanentType } from "@aegis/shared";
-import { cite, markNotTestable } from "./_kb.js";
+import { cite } from "./_kb.js";
 import "./not-testable.js";
 import {
   setupEngine as setup,
@@ -345,7 +345,7 @@ describe("§8-2-3-1 DNA Digivolution Rules (comprehensive-0130)", () => {
   it("8-2-3-2: the DNA digivolution cost is paid off the shared memory gauge", async () => {
     cite(
       "comprehensive-0130",
-      "8-2-3-2 the digivolution cost specified in the chosen DNA digivolution " + "requirement is paid",
+      "8-2-3-2 the digivolution cost specified in the chosen DNA digivolution requirement is paid",
     );
 
     const s = setup();
