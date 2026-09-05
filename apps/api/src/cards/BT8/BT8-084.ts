@@ -21,6 +21,7 @@ const compiled: CompiledCard = {
             count: 1,
           },
           from: ["trash"],
+          position: "bottom",
           optional: true,
         },
         {

@@ -1774,6 +1774,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       // watchers. No co-located EffectTiming analogue (a fresh fire point per RESEARCH A1).
       // The permanent that GAINED the cards is the event subject; a watcher's sourceFilter
       // ("under one of YOUR Digimon") gates on it.
+      // Continuous properties derived from the new stack must be live before
+      // placement reactions and the next action read them (BT8-084 colors).
+      await engine.recomputeContinuousEffects?.();
       await engine.fireSubTrigger?.("onAddDigivolutionCards", {
         subjectPermanentId: targetPermanentId,
         addedDigivolutionCardInstanceIds: placed.map((card) => card.instanceId),
