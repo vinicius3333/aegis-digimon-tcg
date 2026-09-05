@@ -2,10 +2,126 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX9-063.js";
 import "../index.js";
 
 describe("EX9-063", () => {
+  it("does not grant its incoming-card reduction to a different evolution while already in play", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX9-063", as: "resident", under: [{ card: "BT1-001", faceUp: false }] },
+          { card: "EX9-051", as: "host", under: [{ card: "BT1-002", faceUp: false }] },
+        ],
+        hand: [{ card: "BT2-063", as: "evo" }],
+        deck: ["BT1-048"],
+      },
+    });
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("host").topCard.cardId).toBe("BT2-063");
+    expect(s.state.memory).toBe(7);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("inherits Alliance on a legal purple level-six host for two security checks and attack-only DP", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT3-089", as: "host", under: ["EX9-063"] },
+          { card: "BT1-024", as: "ally" },
+        ],
+      },
+      1: { security: ["BT1-084", "BT1-002"] },
+    });
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(12000);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "alliancePrompt"));
+    expect(s.events.find((event) => event.kind === "alliancePrompt")).toMatchObject({
+      eligibleAllyIds: [s.perm("ally").permanentId],
+    });
+    expect(s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: s.perm("ally").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("ally").isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-084", "BT1-002"]);
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+    expect(s.perm("host").currentDP).toBe(12000);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+  it.each([0, 1, 2, 5])(
+    "reduces a real Ver.4 evolution by the %s face-down sources, floored at zero",
+    async (count) => {
+      const hidden = ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"].slice(0, count);
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "EX9-038", as: "host", under: hidden.map((card) => ({ card, faceUp: false })) }],
+            hand: [{ card: "EX9-063", as: "evo" }],
+            deck: ["BT1-048"],
+          },
+        },
+        { autoDeclineOptional: true },
+      );
+      s.state.memory = 10;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("host").permanentId,
+          instanceId: s.inst("evo").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle();
+      expect(s.perm("host").topCard.cardId).toBe("EX9-063");
+      expect(s.state.memory).toBe(10 - Math.max(0, 4 - count));
+      expect(s.perm("host").stack.map((card) => card.cardId)).toEqual([...hidden, "EX9-038"]);
+      expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-048"]);
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
+
+  it("does not apply the Ver.4 reduction to a name-only Nanimon evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT6-058", as: "host", under: [{ card: "BT1-001", faceUp: false }] }],
+          hand: [{ card: "EX9-063", as: "evo" }],
+          deck: ["BT1-048"],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("host").topCard.cardId).toBe("EX9-063");
+    expect(s.state.memory).toBe(7);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT1-001", "BT6-058"]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
   it("has Scapegoat and reduces Ver.4 digivolution cost by one per source", () => {
     expect(
       compiled.effects?.find((entry) => entry.keywords?.some((keyword) => keyword.keyword === "Scapegoat"))?.keywords,
