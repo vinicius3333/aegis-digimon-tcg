@@ -140,7 +140,7 @@ export function validateAssembly(
     materialDefs.push(definitionOf(inTrash.cardId));
   }
 
-  if (!materialsSatisfyAssemblyRecipe(materialDefs, requirement.materials)) {
+  if (!materialsSatisfyAssemblyRecipe(materialDefs, requirement.materials, definition)) {
     return { ok: false, reason: "invalid-material" };
   }
 
@@ -211,7 +211,11 @@ export async function applyAssembly(
 // --- pure helpers ---
 
 /** Whether a material's definition satisfies a single Assembly slot (name/trait AND level gates). */
-function materialMatchesAssemblySlot(def: CardDefinition, slot: AssemblyMaterial): boolean {
+function materialMatchesAssemblySlot(
+  def: CardDefinition,
+  slot: AssemblyMaterial,
+  destination?: CardDefinition,
+): boolean {
   // A desc-only slot (no structured `names`/`namesExact`/`traits`/`nameOrTrait`) can't be matched precisely —
   // reject rather than accept an unconstrained material. See the module doc comment (IR coverage).
   // A level bound alone is never sufficient: it must anchor a name/trait gate, or it would accept
@@ -241,11 +245,15 @@ function materialMatchesAssemblySlot(def: CardDefinition, slot: AssemblyMaterial
   if (slot.nameOrTrait && slot.nameOrTrait.length > 0) {
     if (!slot.nameOrTrait.some((ref) => matchNameOrTrait(def, ref))) return false;
   }
-  const assemblyLevel = def.cardId === "EX9-062" ? 4 : def.level;
-  if (slot.level !== undefined && assemblyLevel !== slot.level) return false;
-  if (slot.levelMin !== undefined && (assemblyLevel === undefined || assemblyLevel < slot.levelMin)) return false;
-  if (slot.levelMax !== undefined && (assemblyLevel === undefined || assemblyLevel > slot.levelMax)) return false;
-  return true;
+  // "Also treated as level 4" is an additional permission for Kimeramon only;
+  // it neither changes the catalog definition nor removes SkullGreymon's printed level.
+  const levels = def.cardId === "EX9-062" && destination?.nameEn === "Kimeramon" ? [def.level, 4] : [def.level];
+  return levels.some(
+    (level) =>
+      (slot.level === undefined || level === slot.level) &&
+      (slot.levelMin === undefined || (level !== undefined && level >= slot.levelMin)) &&
+      (slot.levelMax === undefined || (level !== undefined && level <= slot.levelMax)),
+  );
 }
 
 /**
@@ -258,12 +266,16 @@ function materialMatchesAssemblySlot(def: CardDefinition, slot: AssemblyMaterial
  * in the current corpus, so kept as a straightforward per-slot partition rather than a full
  * bipartite search.
  */
-export function materialsSatisfyAssemblyRecipe(materials: CardDefinition[], slots: AssemblyMaterial[]): boolean {
+export function materialsSatisfyAssemblyRecipe(
+  materials: CardDefinition[],
+  slots: AssemblyMaterial[],
+  destination?: CardDefinition,
+): boolean {
   if (materials.length === 0 || slots.length === 0) return false;
   if (slots.length === 1) {
     const slot = slots[0]!;
     if (materials.length !== slot.count) return false;
-    if (!materials.every((m) => materialMatchesAssemblySlot(m, slot))) return false;
+    if (!materials.every((m) => materialMatchesAssemblySlot(m, slot, destination))) return false;
     if (slot.differentLevels === true) {
       const levels = materials.map((m) => m.level);
       if (levels.some((l) => l === undefined)) return false;
@@ -281,7 +293,7 @@ export function materialsSatisfyAssemblyRecipe(materials: CardDefinition[], slot
   for (const slot of slots) {
     let claimed = 0;
     for (let i = remaining.length - 1; i >= 0 && claimed < slot.count; i--) {
-      if (materialMatchesAssemblySlot(remaining[i]!, slot)) {
+      if (materialMatchesAssemblySlot(remaining[i]!, slot, destination)) {
         remaining.splice(i, 1);
         claimed += 1;
       }
