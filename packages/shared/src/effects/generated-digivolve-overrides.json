@@ -756,7 +756,8 @@
     {
       "traits": ["DM"],
       "cost": 3,
-      "isAlternate": true
+      "isAlternate": true,
+      "level": 4
     }
   ]
 }

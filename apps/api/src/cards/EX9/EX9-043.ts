@@ -177,6 +177,7 @@ export const compiled: CompiledCard = {
       cost: 3,
       isAlternate: true,
       traits: ["DM"],
+      level: 4,
     },
   ],
 };
