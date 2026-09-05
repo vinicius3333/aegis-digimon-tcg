@@ -8,6 +8,102 @@ import "../index.js";
 
 describe("EX9-045", () => {
   it.each([
+    { leaving: "BT1-009", decline: false },
+    { leaving: "EX9-040", decline: true },
+  ])(
+    "preserves the hand candidate for a non-WG departure or refusal: $leaving / $decline",
+    async ({ leaving, decline }) => {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "EX9-045" }, { card: leaving, as: "leaving" }], hand: ["EX9-040"] },
+        },
+        { autoAcceptOptional: !decline, autoDeclineOptional: decline, autoSelectCards: true },
+      );
+      await advance(s.engine).verb.deletePermanent([s.perm("leaving").permanentId]);
+      await settle();
+      expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX9-045"]);
+      expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX9-040"]);
+      expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual([leaving]);
+      expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(decline ? 1 : 0);
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
+
+  it("does not play a WG replacement after a real losing security battle", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX9-045" }, { card: "BT21-033", as: "attacker" }], hand: ["EX9-040"] },
+        1: { security: ["BT1-019"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX9-045"]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX9-040"]);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT21-033"]);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it.each([false, true])("resolves free WG play and the return tail after real evolution, DNA: %s", async (dna) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-080", as: "base" }, ...(dna ? [{ card: "BT1-044", as: "partner" }] : [])],
+          hand: [{ card: "EX9-045", as: "evo" }, "EX9-040", "EX9-044", "BT1-009"],
+          deck: ["BT1-046"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-010", as: "second" },
+          ],
+          deck: ["BT1-045"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(
+        0,
+        dna
+          ? {
+              type: "dnaDigivolve",
+              materialPermanentIds: [s.perm("base").permanentId, s.perm("partner").permanentId],
+              instanceId: s.inst("evo").instanceId,
+            }
+          : {
+              type: "digivolve",
+              permanentId: s.perm("base").permanentId,
+              instanceId: s.inst("evo").instanceId,
+            },
+      ),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX9-045", "EX9-040"]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX9-044", "BT1-009", "BT1-046"]);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.memory).toBe(dna ? 5 : 0);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(
+      dna ? [] : ["BT1-009", "BT1-010"],
+    );
+    expect(s.state.players[1]!.deck.map(({ cardId }) => cardId)).toEqual(
+      dna ? ["BT1-045", "BT1-009", "BT1-010"] : ["BT1-045"],
+    );
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it.each([
     ["BT1-080", "BT1-044"],
     ["BT1-080", "BT10-082"],
     ["BT1-062", "BT1-044"],
@@ -118,7 +214,7 @@ describe("EX9-045", () => {
     expect(player.battleArea.some((permanent) => permanent.topCard.cardId === "EX9-040")).toBe(true);
   });
 
-  it("rescues an own WG that would leave play by playing a WG from hand", async () => {
+  it("plays one replacement WG without preventing either departure and cannot repeat that turn", async () => {
     const s = setupEngine(
       {
         0: {
@@ -126,21 +222,29 @@ describe("EX9-045", () => {
             { card: "EX9-045", as: "source" },
             { card: "EX9-042", as: "leaving" },
           ],
-          hand: ["EX9-040"],
+          hand: ["EX9-040", "EX9-040"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
     await advance(s.engine).verb.deletePermanent([s.perm("leaving").permanentId]);
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-040"));
+    await settle();
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-040")).toBe(true);
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX9-040")).toBe(false);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX9-040"]);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["EX9-042"]);
+    const played = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "EX9-040")!;
+    await advance(s.engine).verb.deletePermanent([played.permanentId]);
+    await settle();
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX9-045"]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX9-040"]);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["EX9-042", "EX9-040"]);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("uses printed Blocker to intercept an attack and preserve its controller's security", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "attacker" }], security: ["BT1-001"] },
-      1: { battleArea: [{ card: "EX9-045", as: "blocker" }], security: ["BT1-001"] },
+      0: { battleArea: [{ card: "BT1-009", as: "attacker" }], security: ["BT1-045"] },
+      1: { battleArea: [{ card: "EX9-045", as: "blocker" }], security: ["BT1-045"] },
     });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("blocker"), "Blocker")).toBe(true);
@@ -169,11 +273,11 @@ describe("EX9-045", () => {
           { card: "EX9-045", as: "attacker" },
           { card: "BT1-009", as: "ally" },
         ],
-        security: ["BT1-001"],
+        security: ["BT1-045"],
       },
       1: {
         battleArea: [{ card: "BT10-086", as: "defender", suspended: true }],
-        security: ["BT1-001"],
+        security: ["BT1-045"],
       },
     });
     await s.ready();
