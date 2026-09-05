@@ -92,6 +92,27 @@ describe("EX10-044 Damemon", () => {
     );
   });
 
+  it("rejects a non-Bagra Army hand card as the placement cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "damemon" },
+            { card: "EX10-064", as: "tamer" },
+          ],
+          hand: [{ card: "BT1-009", as: "wrong" }],
+          deck: [{ card: "BT1-010", as: "draw" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("damemon"));
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("wrong").instanceId);
+    expect(s.perm("tamer").stack).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("draw").instanceId);
+  });
+
   it("On Deletion may play a cost-7 Tuwarmon from under a Tamer, then may Save", async () => {
     const preferred: string[] = [];
     const s = setupEngine(

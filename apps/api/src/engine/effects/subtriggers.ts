@@ -268,10 +268,12 @@ export interface ReplacementSubscriptionInstead extends ReplacementSubscriptionB
    * that class of bug into a compile error instead of a runtime no-op (see
    * `ReplacementSubscriptionPrevent`).
    */
-  apply: (ctx: EffectContext) => Promise<void>;
+  apply: (ctx: EffectContext) => Promise<void | boolean>;
   /** Does this reaction apply to `leavingPermanentId`? Absent => applies whenever the event
    * fires for the anchored source (self-reaction shape, e.g. ＜Decode＞). */
   appliesTo?: (ctx: EffectContext, leavingPermanentId: string) => boolean;
+  /** Predicate for a pending `wouldBePlayed` target, which has no live permanent id yet. */
+  appliesToPending?: (ctx: EffectContext, target: Permanent) => boolean;
   /** Stable per-turn key gating this reaction to ONCE PER TURN (BT20-091 "[Once Per Turn]"). */
   oncePerTurnKey?: string;
 }
@@ -770,6 +772,40 @@ export class SubTriggerRegistry {
         r.mode !== "reduceCost" &&
         (sourcePermanentId === undefined || r.sourcePermanentId === sourcePermanentId),
     );
+  }
+
+  /** Resolve `instead` replacements at the pay-time `wouldBePlayed` seam. */
+  async activateInsteadReplacementsFor(
+    event: ReplacementEventName,
+    target: Permanent,
+    buildContext: (sourcePermanentId: string, sourceInstanceId?: string) => EffectContext | undefined,
+    turnBudget?: SubTriggerTurnLedger,
+    onApplicable?: (replacement: ReplacementSubscriptionInstead) => void,
+  ): Promise<number> {
+    if (event !== "wouldBePlayed") return 0;
+    const candidates = this.replacements.filter(
+      (replacement): replacement is ReplacementSubscriptionInstead =>
+        replacement.event === event && replacement.mode === "instead",
+    );
+    let activated = 0;
+    for (const replacement of candidates) {
+      const sourcePermanentId = replacement.sourcePermanentId;
+      if (sourcePermanentId === undefined) continue;
+      const ctx = buildContext(sourcePermanentId, replacement.sourceInstanceId);
+      if (ctx === undefined) continue;
+      if (replacement.appliesToPending !== undefined) {
+        if (!replacement.appliesToPending(ctx, target)) continue;
+      } else if (replacement.appliesTo !== undefined && !replacement.appliesTo(ctx, target.permanentId)) {
+        continue;
+      }
+      onApplicable?.(replacement);
+      if (replacement.oncePerTurnKey !== undefined && turnBudget?.hasFired(replacement.oncePerTurnKey)) continue;
+      const result = await replacement.apply(ctx);
+      if (result === false) continue;
+      activated += 1;
+      if (replacement.oncePerTurnKey !== undefined) turnBudget?.markFired(replacement.oncePerTurnKey);
+    }
+    return activated;
   }
 
   /** Drop every subscription anchored to a permanent (when it leaves the field). */

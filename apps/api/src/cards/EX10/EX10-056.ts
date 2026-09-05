@@ -102,7 +102,7 @@ const compiled: CompiledCard = {
   // No `digivolutionRequirement`: the catalog's Purple/Lv.5/cost-5 row is the PRINTED EvoCost,
   // and `matchingAlternateDigivolutionRequirement` treats every entry here as an ALTERNATE
   // route. Restating the printed row registered a second, unprinted route.
-  digiXrosRequirement: [{ materials: [{ traits: ["Bagra Army"] }], count: 2, costReduction: 2 }],
+  digiXrosRequirement: [{ materials: [{ traits: ["Bagra Army"] }], count: 2, costReduction: 2, maxMaterials: 2 }],
 };
 
 registerIrCard("EX10-056", compiled);

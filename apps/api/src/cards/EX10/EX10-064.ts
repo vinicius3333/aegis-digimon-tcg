@@ -52,6 +52,7 @@ export const compiled: CompiledCard = {
             hasDigiXrosRequirement: true,
           },
           mode: "instead",
+          optional: true,
           actions: [
             {
               kind: "DigiXrosMaterialZoneExpansion",

@@ -66,7 +66,7 @@ const compiled: CompiledCard = {
         {
           kind: "Restrict",
           target: { filter: { controllerDefault: "any", excludeSelf: true, kind: ["Digimon", "Tamer"] }, count: "all" },
-          restriction: "unsuspend",
+          restriction: "unsuspendDuringUnsuspendPhase",
           duration: "forTheTurn",
         },
       ],

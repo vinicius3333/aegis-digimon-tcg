@@ -133,4 +133,22 @@ describe("EX10-060 Lucemon: Satan Mode", () => {
     await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("satan"));
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
+
+  it("lets the opponent delete a Tamer, including a level-less permanent", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: CARD_ID, as: "satan" }] },
+        1: { battleArea: [{ card: "EX10-062", as: "opponentTamer" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const tamerId = s.perm("opponentTamer").permanentId;
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("satan"));
+    await settle(() => s.state.players[1]!.battleArea.every(({ permanentId }) => permanentId !== tamerId));
+
+    // The [When Digivolving] opponent-choice target is "1 of their Digimon or Tamers". A Tamer
+    // has no level, so this proves the target kind boundary rather than only another Digimon.
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === tamerId)).toBe(false);
+  });
 });

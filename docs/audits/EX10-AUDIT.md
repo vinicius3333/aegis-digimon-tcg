@@ -1,75 +1,118 @@
 # EX10 Card Implementation Audit
 
-Branch `audit/ex10-card-by-card-20260901`, stacked on the EX12 branch and merged with the EX11
-branch so every engine fix from those audits is present. Every one of the 74 EX10 cards was
-re-audited against `.agents/skills/verify-card-implementation/SKILL.md` by eight independent batch
-auditors. The previous ledger, which already claimed 74/74 at 10/10, was treated as a claim to
-falsify. Per-card evidence is in the eight range reports under `internal-docs/audits/EX10/`.
+Revalidation date: 2026-09-05. Branch: `audit-ex10-20260905`.
+Base: `675edc356bf351b852e64da1b38cd45c5123c35f`.
 
 ## Result
 
-70 of 74 cards at 10/10. Four cards hold 9/10 with a named, unresolved risk: EX10-010 (the
-continuous pass has no fixpoint, so Q5202's mutual loop diverges), EX10-059 (no blind-selection
-primitive for "without looking"), EX10-062 (the once-per-turn limit cannot be isolated by the
-harness), EX10-064 (the ledger-side DigiXros zone expansion has no single-card fixture).
+All 74 EX10 cards have individually reviewed contract, IR, behavioral, peer/stack and
+validation evidence. The recalculated [card ledger](../../apps/api/src/cards/EX10/AUDIT.md)
+records 74/74 at 10/10. Integration PR: [#4714](https://github.com/vinicius3333/aegis-digimon-tcg/pull/4714).
+The branch includes the current EX11/EX12 audits from main, with their records preserved.
 
-## What the previous ledger missed
+The work followed `.agents/skills/verify-card-implementation/SKILL.md`. The coordinator
+planned and integrated the audit; workers audited 001–025, 026–050 and 051–074. The latter
+two were requested as Luna. The first worker inherited the coordinator model; it was not
+verified as Luna. Independent review covered the shared engine corrections.
 
-| Class                               | Cards                        | Finding                                                                                                                                                                                                                                                                                  |
-| ----------------------------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Dead clauses                        | 025, 057, 064                | An inherited watcher with no gate fired on every stack trash (025); "can only digivolve into [Apocalymon]" was an unread node so Piedmon could digivolve into anything (057); a zone name the interpreter never reads killed the under-Tamers half of a DigiXros (064).                  |
-| Fabricated or invented content      | 029, 030, 015, 056, 058      | An invented alternate route with a nonexistent trait (029); a link effect the card does not print, granting free trash recursion on every attack (030); restated EvoCost rows registered as unprinted routes (015, 056, 058).                                                            |
-| Free or forced effects              | 009, 013, 034, 060, 071, 074 | A free unsuspended extra attack (009); a mandatory "by returning 5 cards" that could not be declined (013, CR 15-7-4), likewise 060, 071; an uncapped DigiXros discount and a granted attack with no subject (034).                                                                      |
-| Scope and targets                   | 001, 022, 031, 032, 044, 059 | Board-wide link-trash watcher (001); a Rage Mode host satisfied its own Sleep Mode gate through text matching (022); protection and DP buff on two different targets, plays from any stack (031); placement under the opponent's copy (032); "any opposing permanent" host filter (059). |
-| Rules                               | 003, 004, 023, 041, 065, 069 | Digi-Egg cards excluded from "cards" (003, 065); memory gain gated on a draw (004); a debuff lasting through the opponent's turn instead of the turn (041); a trait pair read as OR instead of AND (069); Use Req. counting only Tamers (023).                                           |
-| Dead fields hidden by `@ts-nocheck` | 24 modules                   | 49 type errors; several were live defects (031, 034, 057, 059, 064).                                                                                                                                                                                                                     |
-| Persisted IR                        | 66 records                   | Stale generator output. All 74 records regenerated from the modules; `EX10-catalog-sync.test.ts` now enforces equality.                                                                                                                                                                  |
-| Structural-only suite               | 058                          | The old test never ran the engine; replaced with an eight-case behavioral suite.                                                                                                                                                                                                         |
+## Card-by-card evidence
 
-## Engine and shared changes on this branch
+- [EX10-001–025](EX10-20260905-001-025.md): catalog clauses, KB references, named focused tests, DP and phase integration evidence.
+- [EX10-026–050](EX10-20260905-026-050.md): individual clauses, comparative targeting, duration and realistic stack proofs.
+- [EX10-051–074](EX10-20260905-051-074.md): individual clauses, cost/zone/visibility behavior and the final DigiXros correction.
+- [EX10-062/064 adversarial proof](EX10-20260905-062-064-proof.md): once-per-turn/reset and compiled-expansion mutations.
+- [Audit plan and checkpoints](../plans/2026-09-05-ex10-audit-plan.md): baseline findings, ownership and integration decisions.
 
-| Commit      | Change                                                                                                                   |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `11a373a47` | `whenSecurityBattleEnded` added to the shared SubTrigger union                                                           |
-| `d7db03755` | `ReplacementAction.amountPerPlaced` declared; `GrantStaticAction.copyTrigger` confers only one printed trigger's effects |
-| `62dccef0e` | `DeleteByDPBudgetAction.upTo` declared                                                                                   |
-| `1dc162593` | rule-based link trashes (`byRule`) no longer fire `whenLinkTrashed` watchers (Q5088, Q5172, Q5188)                       |
-| `84f0fcdb9` | merge of the EX11 branch: link-identity condition, fail-closed match modes, EX11-026 override removal                    |
-| `435e424c9` | `EX10-catalog-sync.test.ts` and an honest `EX10.audit.test.ts`                                                           |
+All 74 direct modules register behavior exclusively through `registerIrCard`. The collection
+invariant checks exact catalog inventory, module imports, complete IR, no residual/RawUnparsed
+nodes, no legacy registration, per-card test presence and consistent ledger arithmetic.
+Behavioral suites and the range reports supply the evidence beyond those structural guards.
 
-## Pre-existing failures found on main
+## Corrections and strengthened proof
 
-`EX10-042.test.ts > mills 2, places only a Gammamon-name trash card at stack bottom, and triggers
-the reduced Regulusmon evolution` failed on the untouched branch: an unanswered evolution-route
-`chooseOption` prompt. Fixture defect; the module was right.
+| Cards                | Verified correction or proof                                                                                                                                                                                                                                                                                                                                               |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| EX10-010             | Continuous DP dependencies converge for Q5202 in both seat orders; seed removal and repeated passes remain stable. Opposing individual and player-wide effects obey immunity while friendly effects and dormant-grant revival retain their provenance. Real BT23-035 supplies the opposing player-wide DP control.                                                         |
+| EX10-023             | Quartzmon prevents unsuspension during the unsuspend phase, including effect-driven start-of-turn unsuspension and Reboot, while permitting Main-phase effect unsuspension.                                                                                                                                                                                                |
+| EX10-031/033/041/044 | Stronger behavioral fixtures cover opponent-only De-Digivolve protection, correct source/host identity, turn duration and optional/refusal boundaries.                                                                                                                                                                                                                     |
+| EX10-055/056/058     | Each printed DigiXros recipe permits at most two materials. Three independent third-material tests failed before the cap was added, then passed without memory loss or zone movement. Existing two-material behavior remains green.                                                                                                                                        |
+| EX10-058             | A source trashed as the processing cost becomes an eligible play target. Refusal, invalid targets and play prohibition preserve unpaid resources; a paid Damemon that moves into play loses its pending inherited activation.                                                                                                                                              |
+| EX10-059             | Opposing hand choice is blind. The controller receives opaque choices, the opposing seat cannot answer the decision, and final hand/stack zones are exact.                                                                                                                                                                                                                 |
+| EX10-060             | The real When Digivolving effect can choose an opposing Tamer, including a target without a level.                                                                                                                                                                                                                                                                         |
+| EX10-062             | A distinct second legal host/card proves the shared once-per-turn limit. The production turn machine resets usage; removing frequency fails the second-host assertion.                                                                                                                                                                                                     |
+| EX10-064             | Continuous replacement registration arms the compiled effect before material selection. Each accepted copy supplies its own quota, refusal is independent, handled sources cannot be offered again through the legacy picker, and temporary grants are isolated and cleaned by pending play instance. Removing the nested compiled expansion fails the material assertion. |
 
-## Delivered gates
+The EX10-064 shared seam also preserves BT19-087's optional processing cost. A dedicated
+peer scenario exercises acceptance and refusal through effect-driven play. The replacement
+turn ledger records successful activation and preserves the budget after refusal; an exhausted
+source remains excluded from a duplicate static-pick offer. Unanchored replacements are
+outside this resident-source preparation seam.
 
-| Gate                                                                                             | Result                                                                                              |
-| ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
-| `pnpm --filter @aegis/api exec vitest run src/cards/EX10/`                                       | 76 files, 583 tests passed                                                                          |
-| `EX10.audit.test.ts` + `EX10-catalog-sync.test.ts`                                               | passed; 74 modules equal their persisted records                                                    |
-| `pnpm --filter @aegis/api exec vitest run src/engine/effects src/engine/subTriggerSeams.test.ts` | 38 files, 1052 tests passed                                                                         |
-| `pnpm typecheck`                                                                                 | passed for EX10 and all changed seams; 14 pre-existing errors in two engine sync test files on main |
-| `oxlint`, `oxfmt --check`, `git diff --check`                                                    | passed on every changed file                                                                        |
+## Reproducible validation
 
-## Open items outside EX10
+| Gate                                                                 | Evidence                                                                                     |
+| -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Full EX10 collection and both audit guards                           | 76 files, 604 tests passed                                                                   |
+| Affected effects/subtrigger/DigiXros mechanisms and three peer cards | 50 files, 1,142 tests passed, including the replacement-budget suite                         |
+| Independent EX10-064 and BT19-087 effect-play review                 | 13/13 passed                                                                                 |
+| Independent primitive/play/modifier review                           | 178/178 passed                                                                               |
+| DP focused integration                                               | 7 files, 195 tests passed; additional continuous mechanisms 4 files, 24 tests passed         |
+| Phase integration                                                    | 11 focused tests plus 27 restriction-consumer guards passed                                  |
+| Unchanged ch04 and interaction regression                            | 82/82 passed on the correction and the isolated baseline                                     |
+| React/Colyseus evolution scenario                                    | 1/1 passed with actual alternate cost, inherited stack and final DP                          |
+| Persisted IR                                                         | All 74 records synchronized; only 023, 055, 056, 058, 059 and 064 differ from the audit base |
+| Typecheck                                                            | Shared/API/web passed after integrating main with workspace concurrency limited to one       |
+| Static style and diff                                                | All 41 changed TypeScript files pass Oxlint/Oxfmt; `git diff --check` passes                 |
 
-- `matchingAlternateDigivolutionRequirement` treats every `digivolutionRequirement` entry as an
-  alternate route regardless of `isAlternate`; restated EvoCost rows register unprinted routes.
-- `digivolutionRequirementsFor` reads only the persisted records and override tables.
-- `CardEffect.timing` is read by no interpreter file (EX8-035, ST20-05 rely on it).
-- `DigiXrosMaterial` has no `kind`, so "Digimon cards" materials accept Tamers (015, 034).
-- The continuous pass resolves each effect exactly once with no fixpoint iteration, so mutual
-  continuous grants never converge (EX10-010, Q5202).
-- `Restriction` has one unscoped `unsuspend` member shared by the unsuspend phase and effect
-  unsuspends, so EX10-023 over-blocks mid-turn effect unsuspends.
-- `primitives.ts` reads `cantBeDeDigivolved` without `byOpponentEffect` (031 over-blocks).
-- `"place"` is absent from `STRUCTURED_REDUCER_COSTS`, so two spellings of "reduce per card paid"
-  diverge (061).
-- `observe().keywordAmount` sums `amount ?? 0` while the consumer reads `amount ?? 1`.
-- No blind-selection flag exists for "without looking" choices (059).
-- EX10-030's lower-box text sits in `inheritedEffectText` although the rulings call it the link
-  effect (Q5086, Q5089); catalog data question.
-- `DigiXrosMaterialZoneExpansion.zones` tokens are not validated at registration (064's dead
-  `tamerCards` went unnoticed).
+Primary commands:
+
+```sh
+pnpm --filter @aegis/api exec vitest run src/cards/EX10 --maxWorkers=1
+pnpm --filter @aegis/api exec vitest run src/engine/effects src/engine/subTriggerSeams.test.ts src/engine/subTriggerEmptyActions.test.ts src/engine/digiXrosOrMaterials.test.ts src/engine/digiXrosTraitContains.test.ts src/engine/digiXrosExactNames.test.ts src/engine/digiXrosPreparation.test.ts src/cards/BT19/BT19-087.test.ts src/cards/EX4/EX4-062.test.ts src/cards/BT19/BT19-079.test.ts --maxWorkers=1
+pnpm --filter @aegis/web exec vitest run test/ex10EvolutionStack.scenario.test.tsx --maxWorkers=1
+pnpm effects:check:set -- --set EX10
+npm_config_workspace_concurrency=1 pnpm typecheck
+git diff --check
+```
+
+The optional full-engine run was intentionally stopped (exit 143), not counted as green.
+Read-only inspector evidence identified its long-running file as `deckCardTimingMatrix.test.ts`,
+which advances through more than 1,000 cards across other collections with repeated fixed
+settle drains. It was making sequential progress, not proven stuck in the new DP loop. The
+EX10 collection and affected-mechanism runs above are complete. An earlier broad run was
+also superseded after the DP corrections and is not used as passing evidence.
+
+A later parallel `pnpm typecheck` repetition was killed by the system (exit 137), without a
+TypeScript diagnostic. The final retry limits workspace concurrency to one and passed on the integrated tree. No blanket suppressions or weakened regression assertions were used.
+
+## Delivery
+
+- `0e0bd8f1d`: EX10-023 phase correction, pushed.
+- `fc65b40d3`: EX10-010 DP dependencies and immunity, pushed.
+- `bd1f36b29`: EX10-055/056/058 material caps and persisted IR, pushed.
+- `800417986`: EX10-064 compiled preparation, optional quota behavior and mutation/peer proofs.
+- `cf56eb601`: recalculated 74-card ledger and range reports.
+- `ef6971aa8`: current main integrated without conflicts; EX11 and EX12 IR records preserved.
+- Integration PR: [#4714](https://github.com/vinicius3333/aegis-digimon-tcg/pull/4714); merge to main was explicitly requested by the user.
+
+## Final integrated-tree checks
+
+The tree at `ef6971aa8` passed all integration checks; subsequent changes only finalize these
+reports. The coordinator independently verified the six intentional EX10 persisted-record
+changes and zero semantic differences in the EX11/EX12 records from the main parent.
+
+- `npm_config_workspace_concurrency=1 pnpm typecheck`: passed for shared, API and web.
+- `pnpm --filter @aegis/api exec vitest run src/cards/EX10 src/cards/EX11 src/cards/EX12 --maxWorkers=1`: **236 files, 2,118 tests passed** (225 per-card suites plus 11 set guards/auxiliary suites).
+- Effects, subtriggers, DigiXros, continuous DP/lifecycle, phase restrictions, interaction, ch04/ch15 and assembly-color mechanisms: **60 files, 1,253 tests passed**.
+- `pnpm --filter @aegis/web exec vitest run test/ex10EvolutionStack.scenario.test.tsx --maxWorkers=1`: **1/1 passed**.
+- Oxlint and Oxfmt: **41 changed TypeScript files passed**. Diff validation passed.
+
+Exact final mechanism command:
+
+```sh
+pnpm --filter @aegis/api exec vitest run src/engine/effects src/engine/subTriggerSeams.test.ts src/engine/subTriggerEmptyActions.test.ts src/engine/digiXrosOrMaterials.test.ts src/engine/digiXrosTraitContains.test.ts src/engine/digiXrosExactNames.test.ts src/engine/digiXrosPreparation.test.ts src/engine/continuous src/engine/unsuspendPhaseRestriction.test.ts src/engine/interactionAudit.test.ts src/engine/conformance/ch04-basic-terminology.test.ts src/engine/conformance/ch15-04-continuous-and-static.test.ts src/engine/actions/assemblyColors.test.ts --maxWorkers=1
+```
+
+Local run logs: `/tmp/ex10-merged-typecheck.log`, `/tmp/ex10-merged-collections.log`,
+`/tmp/ex10-merged-mechanisms.log`, and `/tmp/ex10-merged-ui.log`. The commands and committed
+tests above are the reproducible evidence; these temporary logs are not required to rerun it.

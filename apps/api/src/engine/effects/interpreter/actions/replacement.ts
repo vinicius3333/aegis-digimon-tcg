@@ -599,10 +599,41 @@ export async function runReplacement(
       }
       return true;
     },
+    ...(event === "wouldBePlayed"
+      ? {
+          appliesToPending: (subCtx: EffectContext, target: import("@aegis/shared").Permanent): boolean => {
+            const filter = action.sourceFilter ?? action.target?.filter;
+            if (filter === undefined) return true;
+            if (filter.controller === "mine" && target.controllerSeat !== subCtx.source.ownerSeat) return false;
+            if (filter.controller === "opponent" && target.controllerSeat === subCtx.source.ownerSeat) return false;
+            return permanentMatchesFilter(subCtx, target, filter, subCtx.source);
+          },
+        }
+      : {}),
     apply: async (subCtx) => {
+      const tracksDigiXrosExpansion = (action.actions ?? []).some(
+        (nested) => nested.kind === "DigiXrosMaterialZoneExpansion",
+      );
+      // A material-zone expansion's "by" payment remains optional even when an older
+      // compiled module omits the outer optional flag (BT19-087, CR 15-7-4).
+      const hasOptionalDigiXrosCost = (action.actions ?? []).some(
+        (nested) => nested.kind === "DigiXrosMaterialZoneExpansion" && nested.cost !== undefined,
+      );
+      if (
+        (action.actions ?? []).some(
+          (nested) =>
+            nested.kind === "DigiXrosMaterialZoneExpansion" &&
+            nested.cost !== undefined &&
+            !canPayCost(subCtx, nested.cost),
+        )
+      )
+        return false;
+      const expansionCountBefore = tracksDigiXrosExpansion
+        ? subCtx.fx.digiXrosPlayExpansionCount?.(subCtx.source.ownerSeat, subCtx.trigger.wouldBePlayedInstanceId)
+        : undefined;
       if ((action as { delayArmedIntrinsic?: boolean }).delayArmedIntrinsic === true) {
         const delaySource = subCtx.source.permanent();
-        if (delaySource === undefined || delaySource.enterFieldTurnCount === subCtx.game.state.turnCount) return;
+        if (delaySource === undefined || delaySource.enterFieldTurnCount === subCtx.game.state.turnCount) return false;
         const dnaDigivolveActions = (action.actions ?? []).filter(
           (candidate): candidate is Extract<Action, { kind: "DnaDigivolve" }> => candidate.kind === "DnaDigivolve",
         );
@@ -610,19 +641,29 @@ export async function runReplacement(
           dnaDigivolveActions.length > 0 &&
           !dnaDigivolveActions.some((candidate) => canAttemptDnaDigivolve(subCtx, candidate))
         )
-          return;
+          return false;
         if (!(await subCtx.ask.optional(subCtx, action.raw ?? "Trash this card to activate its ＜Delay＞ effect?"))) {
-          return;
+          return false;
         }
         const trashed = await subCtx.fx.deletePermanent([delaySource.permanentId]);
-        if (trashed <= 0 && subCtx.source.permanent() !== undefined) return;
-      } else if (action.optional === true && !(await subCtx.ask.optional(subCtx, action.raw ?? "Use this effect?"))) {
-        return;
+        if (trashed <= 0 && subCtx.source.permanent() !== undefined) return false;
+      } else if (
+        (action.optional === true || hasOptionalDigiXrosCost) &&
+        !(await subCtx.ask.optional(subCtx, action.raw ?? "Use this effect?"))
+      ) {
+        return false;
       }
       for (const a of action.actions ?? []) {
         const abort = await runAction(subCtx, a);
         if (abort) break;
       }
+      if (tracksDigiXrosExpansion && expansionCountBefore !== undefined) {
+        return (
+          (subCtx.fx.digiXrosPlayExpansionCount?.(subCtx.source.ownerSeat, subCtx.trigger.wouldBePlayedInstanceId) ??
+            expansionCountBefore) > expansionCountBefore
+        );
+      }
+      return true;
     },
   });
 }

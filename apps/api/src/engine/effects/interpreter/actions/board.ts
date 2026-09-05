@@ -188,6 +188,14 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         if (controller !== "mine" && controller !== "opponent") return false;
         const seat = controller === "mine" ? ctx.source.ownerSeat : ctx.game.opponentOf(ctx.source.ownerSeat);
         const amount = scale === undefined ? action.amount : action.amount * scale;
+        const effectSourceKinds = ctx.effectSourceKinds ?? ctx.source.definition.kinds;
+        const sourceProvenance =
+          effectSourceKinds.length > 0
+            ? {
+                sourceSeat: ctx.source.ownerSeat,
+                sourceKinds: [...effectSourceKinds],
+              }
+            : {};
         if (amount !== 0) {
           ctx.fx.modifyPlayerDP(
             seat,
@@ -196,9 +204,10 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
             nextOpponentTurnDuration
               ? {
                   ownerSeat: ctx.source.ownerSeat,
+                  ...sourceProvenance,
                   skipsCurrentOpponentTurnEnd: !ctx.source.isOwnersTurn(),
                 }
-              : undefined,
+              : sourceProvenance,
           );
         }
         return false;
@@ -211,6 +220,10 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       const skipsCurrentOpponentTurnEnd = nextOpponentTurnDuration && !ctx.source.isOwnersTurn();
       const duration = nextOpponentTurnDuration ? toDuration("untilOpponentTurnEnd") : toDuration(action.duration);
       const effectSourceBound = (action as Action & { effectSourceBound?: boolean }).effectSourceBound === true;
+      const sourceProvenance = {
+        sourceSeat: ctx.source.ownerSeat,
+        sourceKinds: [...(ctx.effectSourceKinds ?? ctx.source.definition.kinds)],
+      };
       for (const id of ids) {
         const targetScale =
           action.scaling?.unit === "targetFaceDownDigivolutionCards"
@@ -227,13 +240,18 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
           duration,
           action.continuous === undefined
             ? ctx.continuousPass === true
-              ? { continuous: true, ...(effectSourceBound ? { sourceInstanceId: ctx.source.instanceId } : {}) }
+              ? {
+                  continuous: true,
+                  ...sourceProvenance,
+                  ...(effectSourceBound ? { sourceInstanceId: ctx.source.instanceId } : {}),
+                }
               : effectSourceBound
-                ? { sourceInstanceId: ctx.source.instanceId, skipsCurrentOpponentTurnEnd }
-                : { skipsCurrentOpponentTurnEnd }
+                ? { ...sourceProvenance, sourceInstanceId: ctx.source.instanceId, skipsCurrentOpponentTurnEnd }
+                : { ...sourceProvenance, skipsCurrentOpponentTurnEnd }
             : {
                 continuous: action.continuous,
                 skipsCurrentOpponentTurnEnd,
+                ...sourceProvenance,
                 ...(effectSourceBound ? { sourceInstanceId: ctx.source.instanceId } : {}),
               },
         );

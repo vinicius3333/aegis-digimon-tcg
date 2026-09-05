@@ -33,6 +33,7 @@ import { runRestrictionAction } from "./restrictions.js";
 import { runRevealAction } from "./reveal.js";
 import { runSecurityAction } from "./security.js";
 import { runStaticAction } from "./statics.js";
+import { CardKind } from "@aegis/shared";
 import type { Action, Cost, Target, ZoneRef } from "@aegis/shared";
 
 function isCostBearingAction(action: Action): boolean {
@@ -46,6 +47,55 @@ function isCostBearingAction(action: Action): boolean {
     (action.additionalCosts?.length ?? 0) > 0 ||
     (action.costOptions?.length ?? 0) > 0
   );
+}
+
+/**
+ * Some effects pay by trashing a card from a stack and then play a matching card from trash
+ * (EX10-058 Q5160). The paid card is not in the play zone during the normal optional-play
+ * preflight, but it becomes a legal target atomically after payment. Keep this exception narrow:
+ * only a trash cost sourced from digivolution cards can create a subsequent trash play target.
+ */
+function trashCostCanCreatePlayTarget(
+  ctx: EffectContext,
+  action: Extract<Action, { kind: "PlayWithoutCost" }>,
+  cost: Cost,
+): boolean {
+  if (
+    !action.from?.includes("trash") ||
+    cost.kind !== "trash" ||
+    cost.target === undefined ||
+    cost.target.filter.zone !== "digivolutionCards"
+  ) {
+    return false;
+  }
+  const payable = candidateLooseInstances(ctx, cost.target, ["digivolutionCards"]);
+  if (payable.length === 0 || !canPayCost(ctx, cost)) return false;
+  // The target is evaluated against the post-payment trash zone. Ignore a literal zone marker
+  // while matching the prospective stack card against the target's definition predicates.
+  const prospectiveTarget = {
+    ...action.target,
+    filter: { ...action.target.filter, zone: undefined },
+  };
+  // Match the same playability boundary as runPlayAction before allowing the cost prompt.
+  // In particular, an effect-play prohibition is checked only after the cost in the normal
+  // resolver; admitting a prohibited source here would make this exception pay a cost for a
+  // play that can never happen. Keep Option-only cards out of a kind-less play target too,
+  // matching playableCandidates in play.ts.
+  const requestedKinds = [
+    ...(prospectiveTarget.filter.kind ?? []),
+    ...(prospectiveTarget.orFilters ?? []).flatMap((filter) => filter.kind ?? []),
+    ...(prospectiveTarget.filter.orFilters ?? []).flatMap((filter) => filter.kind ?? []),
+  ];
+  const potentialTargets = candidateLooseInstances(ctx, prospectiveTarget, ["digivolutionCards"]).filter(
+    (candidate) => {
+      if (ctx.fx.isPlayProhibited?.(ctx.source.ownerSeat, candidate.cardId, "play") === true) return false;
+      if (requestedKinds.length > 0) return true;
+      const kinds = ctx.game.definitionOf({ cardId: candidate.cardId } as never).kinds;
+      return !kinds.includes(CardKind.Option) || kinds.includes(CardKind.Digimon) || kinds.includes(CardKind.Tamer);
+    },
+  );
+  const payableIds = new Set(payable.map(({ instanceId }) => instanceId));
+  return potentialTargets.some((candidate) => payableIds.has(candidate.instanceId));
 }
 
 /**
@@ -440,8 +490,8 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       action.from?.includes("trash") === true &&
       structuredCost?.kind === "trash" &&
       structuredCost.target?.filter.zone === "digivolutionCards" &&
-      structuredCost.target.filter.faceDown === true &&
-      canPayCost(ctx, structuredCost));
+      ((structuredCost.target.filter.faceDown === true && canPayCost(ctx, structuredCost)) ||
+        trashCostCanCreatePlayTarget(ctx, action, structuredCost)));
   const nestedRequiredOptionUse =
     action.kind === "CostGatedBlock" &&
     action.actions.length === 1 &&

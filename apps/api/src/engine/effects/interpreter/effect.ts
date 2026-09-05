@@ -65,10 +65,14 @@ function timingForTrigger(effect: CardEffect): EffectTiming | undefined {
   // nor effects of the hand card being played, so BeforePayCost is their only consuming seam.
   if (
     (effect.trigger === "YourTurn" || effect.trigger === "AllTurns") &&
-    effect.actions.some((action) => action.kind === "Replacement" && action.event === "wouldBePlayed")
+    effect.actions.some(
+      (action) => action.kind === "Replacement" && action.event === "wouldBePlayed" && action.mode !== "instead",
+    )
   ) {
     return EffectTiming.BeforePayCost;
   }
+  // An `instead` listener can authorize DigiXros materials before payment. Arm it through
+  // the ordinary continuous trigger so prepareDigiXrosPlay can consult it before the picker.
   // A printed [Your Turn] clause whose payload is an effect-driven digivolution is a
   // player-declared ability, not a continuous modifier. Keep the turn ownership guard from
   // the original trigger, but surface it in the Main-phase activation window so the player can
