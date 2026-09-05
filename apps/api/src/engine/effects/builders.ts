@@ -185,6 +185,14 @@ export const onDeletion = (opts: BuilderOptions): Effect =>
       const deleted = ctx.trigger?.deletedInstanceIds;
       if (deleted === undefined) return true;
       if (!deleted.includes(ctx.source.instanceId)) return false;
+      // Q6866: replaying a deleted host strands its pending effects, including those
+      // inherited from cards that still remain in trash. The replay is a new Digimon.
+      const deletedHost = ctx.trigger.deletedHostInstanceByInstanceId?.[ctx.source.instanceId];
+      if (
+        deletedHost !== undefined &&
+        !ctx.game.state.players.some((player) => player.trash.some((card) => card.instanceId === deletedHost))
+      )
+        return false;
       // A non-inherited effect only exists while its card is the top card of a
       // Digimon. The deletion window carries the stack-card subset captured
       // before movement, so do not collect ordinary effects from cards that
