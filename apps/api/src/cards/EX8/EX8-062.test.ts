@@ -60,12 +60,14 @@ describe("EX8-062", () => {
       },
     });
     const resolution = advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    let zeroTargetPresent = false;
+    let zeroTargetDp = -1;
     for (const [index, target] of ["zeroTarget", "otherTarget", "otherTarget", "otherTarget"].entries()) {
       await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
       const decision = s.state.pendingDecision!;
       if (index === 1) {
-        expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-010")).toBe(true);
-        expect(s.perm("zeroTarget").currentDP).toBe(0);
+        zeroTargetPresent = s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-010");
+        zeroTargetDp = s.perm("zeroTarget").currentDP;
       }
       expect(
         s.engine.applyIntent(0, {
@@ -77,6 +79,8 @@ describe("EX8-062", () => {
       await settle(() => s.state.pendingDecision?.decisionId !== decision.decisionId);
     }
     await resolution;
+    expect(zeroTargetPresent).toBe(true);
+    expect(zeroTargetDp).toBe(0);
     await settle(() => s.state.players[1]!.battleArea.every((permanent) => permanent.topCard.cardId !== "BT1-010"));
 
     expect(s.perm("otherTarget").currentDP).toBe(4000);

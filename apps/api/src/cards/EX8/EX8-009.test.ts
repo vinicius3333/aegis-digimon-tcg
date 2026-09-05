@@ -129,14 +129,12 @@ describe("EX8-009", () => {
   });
 
   it("uses the Gigimon alternate for 0", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          breeding: { card: "BT12-001", as: "gigimon" },
-          hand: [{ card: "EX8-009", as: "guilmon" }],
-        },
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT12-001", as: "gigimon" },
+        hand: [{ card: "EX8-009", as: "guilmon" }],
       },
-    );
+    });
     s.state.memory = 0;
     await s.ready();
     expect(
@@ -147,9 +145,7 @@ describe("EX8-009", () => {
         useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
-    await settle(
-      () => s.perm("gigimon").topCard.instanceId === s.inst("guilmon").instanceId,
-    );
+    await settle(() => s.perm("gigimon").topCard.instanceId === s.inst("guilmon").instanceId);
     expect(s.state.memory).toBe(0);
     expect(s.perm("gigimon").topCard.cardId).toBe("EX8-009");
   });
