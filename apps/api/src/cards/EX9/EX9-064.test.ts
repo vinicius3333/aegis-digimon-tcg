@@ -7,6 +7,79 @@ import { compiled } from "./EX9-064.js";
 import "../index.js";
 
 describe("EX9-064", () => {
+  it("pays the normal Purple evolution cost and explicitly declines the placement effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT2-073", as: "host" }],
+          hand: [{ card: "EX9-064", as: "evo" }],
+          deck: ["BT1-046"],
+          trash: ["BT1-009"],
+        },
+        1: { battleArea: ["BT1-018"] },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("host").topCard.cardId).toBe("EX9-064");
+    expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual(["BT2-073"]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-046"]);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT1-018"]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+  it("declines inherited unsuspension after a real attack without deleting the lowest-level ally", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT3-089", as: "host", under: ["EX9-064"] }, "BT1-009"] },
+        1: { security: ["BT1-046", "BT1-048"] },
+      },
+      { autoDeclineOptional: true },
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT3-089", "BT1-009"]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[1]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-048"]);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(observe(s.engine).isAttacking()).toBe(false);
+  });
+  it("includes the newly paid face-down source when both deletion targets initially exceed the ceiling", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX9-064", as: "card" }], trash: ["BT1-009"] },
+        1: { battleArea: ["BT1-024", "BT1-018", "EX9-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("card").instanceId })).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]!.battleArea[0]!.stack.map(({ cardId, faceUp }) => ({ cardId, faceUp }))).toEqual([
+      { cardId: "BT1-009", faceUp: false },
+    ]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT1-024"]);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-018", "EX9-009"]);
+    expect(s.state.memory).toBe(3);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
   it.each(["BT10-020", "EX9-038", "BT1-016"])(
     "enforces independent off-color Cyborg/DM evolution and resolves the real trigger for %s",
     async (base) => {
@@ -14,7 +87,7 @@ describe("EX9-064", () => {
       const s = setupEngine(
         {
           0: {
-            battleArea: [{ card: base, as: "host", under: [{ card: "BT1-001", faceUp: false }] }],
+            battleArea: [{ card: base, as: "host", under: [{ card: "BT1-046", faceUp: false }] }],
             hand: [{ card: "EX9-064", as: "evo" }],
             trash: ["BT1-009"],
             deck: ["BT1-048"],
@@ -35,7 +108,7 @@ describe("EX9-064", () => {
       expect(s.perm("host").topCard.cardId).toBe(legal ? "EX9-064" : base);
       expect(s.state.memory).toBe(legal ? 7 : 10);
       expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(
-        legal ? ["BT1-009", "BT1-001", base] : ["BT1-001"],
+        legal ? ["BT1-009", "BT1-046", base] : ["BT1-046"],
       );
       expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(
         legal ? ["BT1-024"] : ["BT1-018", "EX9-009", "BT1-024"],
@@ -53,11 +126,11 @@ describe("EX9-064", () => {
             {
               card: "EX9-073",
               as: "host",
-              under: [{ card: "BT1-001", faceUp: false }, { card: "BT1-002", faceUp: false }, "EX9-064"],
+              under: [{ card: "BT1-046", faceUp: false }, { card: "BT1-048", faceUp: false }, "EX9-064"],
             },
           ],
         },
-        1: { security: ["BT1-003", "BT1-004"] },
+        1: { security: ["BT1-010", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -73,7 +146,7 @@ describe("EX9-064", () => {
     expect(s.perm("host").topCard.cardId).toBe("EX9-073");
     expect(s.perm("host").isSuspended).toBe(false);
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["EX9-064"]);
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-001", "BT1-002"]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-046", "BT1-048"]);
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -143,7 +216,7 @@ describe("EX9-064", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT3-089", as: "host", under: ["EX9-064"] }, "BT1-009", "BT1-010"] },
-        1: { security: ["BT1-001", "BT1-002", "BT1-003"] },
+        1: { security: ["BT1-046", "BT1-048", "BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
