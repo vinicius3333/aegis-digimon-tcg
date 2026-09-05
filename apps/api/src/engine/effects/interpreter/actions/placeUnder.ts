@@ -479,7 +479,7 @@ export async function runPlaceUnder(
     scopedCandidates,
     undefined,
     ctx.ask,
-    scopedCandidates.map((candidate) => candidate.instanceId),
+    action.blind === true ? undefined : scopedCandidates.map((candidate) => candidate.instanceId),
   );
   if (action.order === "any" && chosen.length > 1 && ctx.ask.orderCards !== undefined) {
     chosen = await ctx.ask.orderCards(ctx, {

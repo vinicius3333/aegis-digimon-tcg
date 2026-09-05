@@ -147,7 +147,20 @@ export async function runDigivolutionAction(ctx: EffectContext, action: Action, 
       // Records per-seat zone expansion for `duration`; the DigiXros material-picking
       // code in the play-card path reads it. For v1 the record is the deliverable.
       const duration = toDuration(action.duration);
-      ctx.fx.expandDigiXrosZones?.(ctx.source.ownerSeat, action.zones, duration);
+      if (ctx.trigger?.wouldBePlayedInstanceId === undefined) {
+        ctx.fx.expandDigiXrosZones?.(ctx.source.ownerSeat, action.zones, duration);
+      } else {
+        if (ctx.fx.expandDigiXrosZonesForPlay !== undefined) {
+          ctx.fx.expandDigiXrosZonesForPlay(
+            ctx.source.ownerSeat,
+            action.zones,
+            duration,
+            ctx.trigger.wouldBePlayedInstanceId,
+          );
+        } else {
+          ctx.fx.expandDigiXrosZones?.(ctx.source.ownerSeat, action.zones, duration);
+        }
+      }
       return false;
     }
     case "AllowDigiXrosMaterialsFromTrash":

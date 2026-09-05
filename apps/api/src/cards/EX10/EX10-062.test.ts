@@ -163,6 +163,7 @@ describe("A3 EX10-062 — whenLinkTrashed consumer: suspend this Tamer to <Draw 
   });
 
   it("[Once Per Turn] app fuses only once even with a second legal host and hand card", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -175,21 +176,43 @@ describe("A3 EX10-062 — whenLinkTrashed consumer: suspend this Tamer to <Draw 
             { card: "EX10-019", as: "firstWarudamon" },
             { card: "EX10-019", as: "secondWarudamon" },
           ],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
+        1: { deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     await s.ready();
 
+    // Pin both inputs so a broken frequency/shared-use guard cannot simply fuse the first
+    // host a second time and still leave the second host untouched.
+    preferred.push(s.perm("firstHost").topCard!.instanceId, s.inst("firstWarudamon").instanceId);
     await advance(s.engine).fireForPermanent(EffectTiming.OnEndTurn, s.perm("tamer"));
     await settle(() => s.perm("firstHost").topCard?.cardId === "EX10-019");
 
-    // Second activation in the SAME turn: the per-turn use ledger must refuse it.
+    preferred.length = 0;
+    preferred.push(s.perm("secondHost").topCard!.instanceId, s.inst("secondWarudamon").instanceId);
+    // Second activation in the SAME turn, aimed at a different legal pair: the per-turn use
+    // ledger must refuse it rather than passing because the resolver picked the first pair again.
     await advance(s.engine).fireForPermanent(EffectTiming.OnEndTurn, s.perm("tamer"));
     await settle(() => false, 30);
 
+    expect(s.perm("firstHost").topCard?.cardId).toBe("EX10-019");
     expect(s.perm("secondHost").topCard?.cardId).toBe("EX10-017");
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("secondWarudamon").instanceId,
+    );
+
+    // Drive the next complete turn through the production state machine. Its start-turn
+    // boundary must reset the use ledger and its end-turn window must offer the second pair.
+    // The direct timing seam above does not itself advance the turn machine.
+    expect(s.state.turnSeat).toBe(0);
+    const previousTurnCount = s.state.turnCount;
+    await advance(s.engine).runTurn(0);
+    expect(s.state.turnCount).toBe(previousTurnCount + 1);
+    await settle(() => s.perm("secondHost").topCard?.cardId === "EX10-019");
+    expect(s.perm("secondHost").topCard?.instanceId).toBe(s.inst("secondWarudamon").instanceId);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(
       s.inst("secondWarudamon").instanceId,
     );
   });

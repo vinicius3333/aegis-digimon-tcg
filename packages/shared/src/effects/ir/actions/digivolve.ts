@@ -120,6 +120,11 @@ export interface DigivolveViaPlacementAction extends Omit<ActionBase, "cost"> {
 
 export interface PlaceUnderAction extends ActionBase {
   kind: "PlaceUnder";
+  /**
+   * Suppress card identities in the selection decision while retaining opaque instance ids.
+   * Used for effects that choose from a hidden zone "without looking" (EX10-059).
+   */
+  blind?: boolean;
   /** Cards placed as digivolution cards or under a Tamer. */
   target: Target;
   /** When sourcing from under Tamers, restrict the selected cards to one Tamer host. */

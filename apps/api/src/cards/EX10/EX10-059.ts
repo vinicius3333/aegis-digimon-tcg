@@ -41,6 +41,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlaceUnder",
+          blind: true,
           target: {
             filter: {
               isOpponentHand: true,
@@ -67,6 +68,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlaceUnder",
+          blind: true,
           target: {
             filter: {
               isOpponentHand: true,

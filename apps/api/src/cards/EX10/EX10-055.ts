@@ -140,6 +140,7 @@ const compiled: CompiledCard = {
       ],
       count: 2,
       costReduction: 2,
+      maxMaterials: 2,
     },
   ],
 };

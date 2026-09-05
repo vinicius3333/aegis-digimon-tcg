@@ -197,6 +197,12 @@ import {
   type RespondCounterIntent,
 } from "./actions/index.js";
 
+function sameNumericMap(left: ReadonlyMap<string, number>, right: ReadonlyMap<string, number>): boolean {
+  if (left.size !== right.size) return false;
+  for (const [key, value] of left) if (right.get(key) !== value) return false;
+  return true;
+}
+
 /**
  * Hooks the engine uses to talk back to the room (and thus to clients) without
  * importing Colyseus transport concerns. Supplied by AegisRoom.onCreate.
@@ -622,6 +628,8 @@ export class GameEngine {
    * applied.
    */
   private readonly justLinked = new Set<string>();
+  /** Last resolved continuous DP contribution, used only to preserve dependency inputs between passes. */
+  private readonly continuousDpSeedState = new Map<string, number>();
 
   /**
    * Which tier the code running RIGHT HERE belongs to, carried down the async call chain
@@ -935,6 +943,7 @@ export class GameEngine {
           ? baseCost
           : this.fireBeforePayCost(instance, baseCost, useAsOption, originZone, projectOnly);
       },
+      prepareDigiXrosPlay: (instanceId) => this.prepareDigiXrosPlay(instanceId),
       finalizeEffectDigivolveCost: async (target, evolvingInstanceId, into, baseCost) => {
         const deps = this.digivolveDeps();
         const adjusted = deps.adjustedDigivolveCost?.(this.state, target, baseCost, into, { consumeOnce: true });
@@ -1443,7 +1452,11 @@ export class GameEngine {
     for (const permanent of permanents) {
       if (permanent.isSuspended) {
         if (this.continuous.hasRestriction(permanent.permanentId, "unsuspend")) continue;
-        if (this.continuous.hasRestriction(permanent.permanentId, "unsuspendDuringOwnUnsuspendPhase")) continue;
+        if (
+          this.continuous.hasRestriction(permanent.permanentId, "unsuspendDuringOwnUnsuspendPhase") ||
+          this.continuous.hasRestriction(permanent.permanentId, "unsuspendDuringUnsuspendPhase")
+        )
+          continue;
         const handTrashCost = this.continuous.restrictionCount(permanent.permanentId, "unsuspendHandTrashCost");
         if (handTrashCost > 0) {
           if (player.hand.length < handTrashCost) continue;
@@ -1478,6 +1491,7 @@ export class GameEngine {
     for (const permanent of player.battleArea) {
       if (!permanent.isSuspended) continue;
       if (this.continuous.hasRestriction(permanent.permanentId, "unsuspend")) continue;
+      if (this.continuous.hasRestriction(permanent.permanentId, "unsuspendDuringUnsuspendPhase")) continue;
       if (!this.continuous.hasKeyword(permanent.permanentId, "Reboot")) continue;
       permanent.isSuspended = false;
       flipped.push(permanent.permanentId);
@@ -1485,7 +1499,8 @@ export class GameEngine {
     if (
       player.breeding?.isSuspended &&
       this.continuous.hasKeyword(player.breeding.permanentId, "Reboot") &&
-      !this.continuous.hasRestriction(player.breeding.permanentId, "unsuspend")
+      !this.continuous.hasRestriction(player.breeding.permanentId, "unsuspend") &&
+      !this.continuous.hasRestriction(player.breeding.permanentId, "unsuspendDuringUnsuspendPhase")
     ) {
       player.breeding.isSuspended = false;
       flipped.push(player.breeding.permanentId);
@@ -2949,10 +2964,31 @@ export class GameEngine {
         this.recomputeQueued = false;
         this.continuousMode = true;
         try {
-          // Everything this pass records is a continuous effect, and the tier tag has to follow
+          // Everything each pass records is a continuous effect, and the tier tag has to follow
           // THIS async chain: a timing window resolving concurrently (a play whose trailing
           // recompute is still in flight) must not read the tag from a shared field.
-          await this.continuousScope.run(true, () => this.runContinuousPass(noPromptAsk));
+          //
+          // A continuous gate may read a value produced by another continuous effect (for
+          // example, EX10-010's DP threshold on two facing copies). Re-derive from a clean tier
+          // each time so stale grants and duplicate watchers cannot accumulate, but seed each
+          // pass with the previous pass's DP deltas so the dependency chain can reach a fixpoint.
+          // The cap protects the resolver from a genuinely oscillating set of card effects.
+          const maxFixpointPasses = 32;
+          let seed = this.continuousDpSeeds();
+          let converged = false;
+          for (let pass = 0; pass < maxFixpointPasses; pass++) {
+            await this.continuousScope.run(true, () => this.runContinuousPass(noPromptAsk, seed));
+            this.updateContinuousDpSeeds();
+            const next = this.continuousDpSeeds();
+            if (sameNumericMap(seed, next)) {
+              converged = true;
+              break;
+            }
+            seed = next;
+          }
+          if (!converged) {
+            throw new Error(`continuous effects did not converge after ${maxFixpointPasses} passes`);
+          }
         } finally {
           this.continuousMode = false;
         }
@@ -2970,6 +3006,45 @@ export class GameEngine {
       await task;
     } finally {
       if (this.recomputeInFlight === task) this.recomputeInFlight = undefined;
+    }
+  }
+
+  /** Capture continuous DP deltas without including one-shot duration modifiers. */
+  private continuousDpSeeds(): Map<string, number> {
+    const seeds = new Map<string, number>();
+    const liveIds = new Set<string>();
+    for (const player of this.state.players) {
+      const permanents = player.breeding === undefined ? player.battleArea : [...player.battleArea, player.breeding];
+      for (const permanent of permanents) {
+        liveIds.add(permanent.permanentId);
+        const seed = this.continuousDpSeedState.get(permanent.permanentId);
+        if (seed !== undefined && seed !== 0) seeds.set(permanent.permanentId, seed);
+      }
+    }
+    for (const permanentId of this.continuousDpSeedState.keys()) {
+      if (!liveIds.has(permanentId)) this.continuousDpSeedState.delete(permanentId);
+    }
+    return seeds;
+  }
+
+  private updateContinuousDpSeeds(): void {
+    const liveIds = new Set<string>();
+    for (const player of this.state.players) {
+      const permanents = player.breeding === undefined ? player.battleArea : [...player.battleArea, player.breeding];
+      for (const permanent of permanents) {
+        const permanentId = permanent.permanentId;
+        liveIds.add(permanentId);
+        if (!this.modifiers.hasContinuousDp(permanentId)) {
+          this.continuousDpSeedState.delete(permanentId);
+          continue;
+        }
+        const contribution = this.modifiers.continuousDpSeed(this.state, permanentId);
+        if (contribution === 0) this.continuousDpSeedState.delete(permanentId);
+        else this.continuousDpSeedState.set(permanentId, contribution);
+      }
+    }
+    for (const permanentId of this.continuousDpSeedState.keys()) {
+      if (!liveIds.has(permanentId)) this.continuousDpSeedState.delete(permanentId);
     }
   }
 
@@ -3024,8 +3099,21 @@ export class GameEngine {
    * "gains all effects" grant, and the named custom-effect grants. Always run inside the
    * continuous scope (see {@link recomputeContinuousEffects}).
    */
-  private async runContinuousPass(noPromptAsk: DecisionApi): Promise<void> {
+  private async runContinuousPass(
+    noPromptAsk: DecisionApi,
+    seed: ReadonlyMap<string, number> = new Map(),
+  ): Promise<void> {
     this.modifiers.clearContinuous(this.state);
+    // clearContinuous recomputes each touched permanent from the non-continuous layer. Reapply
+    // only the previous pass's continuous deltas, so gates can observe the prior derived value
+    // while this pass still rebuilds a clean ledger.
+    for (const player of this.state.players) {
+      const permanents = player.breeding === undefined ? player.battleArea : [...player.battleArea, player.breeding];
+      for (const permanent of permanents) {
+        const delta = seed.get(permanent.permanentId);
+        if (delta !== undefined) permanent.currentDP += delta;
+      }
+    }
     this.continuous.clearContinuous();
     this.memory.clearTurnEndMinMemoryOverrides();
     // The SubTrigger registry holds CONTINUOUS Static/[Breeding] Replacement (reduceCost) and
@@ -3133,6 +3221,10 @@ export class GameEngine {
     // resolve) because the exempt set is a computed exclusion over the live board, recomputed each
     // pass so it tracks plays/digivolves/removals (KB Q5250/Q5252; Q6025/Q6026 all-restricted).
     this.applySuspendRestrictionRecompute();
+
+    // A seed is only an input to this pass. Recompute every seeded permanent from the rebuilt
+    // ledgers so a gate that stopped matching cannot leave the seed's stale DP visible.
+    for (const permanentId of seed.keys()) this.modifiers.recomputeDP(this.state, permanentId);
   }
 
   /**
@@ -3987,6 +4079,56 @@ export class GameEngine {
     if (this.continuous.blocksCostReduction(source.ownerSeat, "play")) return baseCost;
     const delta = Math.max(0, ctx.playCostDelta ?? 0);
     return Math.max(0, baseCost - delta);
+  }
+
+  /**
+   * Resolve only `wouldBePlayed` replacements before an effect-driven DigiXros picker.
+   * The ordinary BeforePayCost reducers remain at the canonical payment point; this early seam
+   * exists so a replacement can grant its material zones before the picker builds candidates.
+   */
+  private async prepareDigiXrosPlay(instanceId: string): Promise<string[]> {
+    const instance = this.findLooseInstance(instanceId);
+    if (instance === undefined) return [];
+    const source = this.cardSourceOf(instance);
+    const playTarget = new Permanent();
+    playTarget.permanentId = `pending-play-${instance.instanceId}`;
+    playTarget.controllerSeat = source.ownerSeat;
+    setTopCard(playTarget, instance);
+    playTarget.inBreeding = false;
+    playTarget.baseDP = source.definition.dp ?? 0;
+    playTarget.currentDP = playTarget.baseDP;
+    const sourcePermanentIds: string[] = [];
+    await this.subTriggers.activateInsteadReplacementsFor(
+      "wouldBePlayed",
+      playTarget,
+      (sourcePermanentId, sourceInstanceId) => {
+        const resident =
+          this.access.permanentById(sourcePermanentId) ??
+          (this.state.players[source.ownerSeat]?.breeding?.permanentId === sourcePermanentId
+            ? this.state.players[source.ownerSeat]?.breeding
+            : undefined);
+        const sourceCard = this.findInstance(sourceInstanceId ?? "")?.instance ?? resident?.topCard;
+        if (sourceCard === undefined) return undefined;
+        return {
+          ...this.buildEffectContext(this.cardSourceOf(sourceCard), {
+            wouldBePlayedInstanceId: instance.instanceId,
+            wouldBePlayedCardId: instance.cardId,
+            wouldBePlayedAsOption: false,
+          }),
+          selections: new Map(),
+        };
+      },
+      {
+        hasFired: (key) => this.tracker.count(key, "replacement") > 0,
+        markFired: (key) => this.tracker.register(key, "replacement"),
+      },
+      (replacement) => {
+        // The static picker represents the same printed ability. An offered source stays
+        // handled after refusal so it cannot receive a second activation offer for this play.
+        if (replacement.sourcePermanentId !== undefined) sourcePermanentIds.push(replacement.sourcePermanentId);
+      },
+    );
+    return sourcePermanentIds;
   }
 
   /** Resolve the in-hand half of BeforePayCost for an imminent digivolution. */

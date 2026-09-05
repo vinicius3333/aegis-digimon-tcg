@@ -77,6 +77,7 @@ const compiled: CompiledCard = {
       materials: [{ traits: ["Bagra Army"] }],
       count: 2,
       costReduction: 2,
+      maxMaterials: 2,
     },
   ],
 };
