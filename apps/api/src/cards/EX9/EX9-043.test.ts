@@ -5,6 +5,29 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("EX9-043", () => {
+  it.each(["BT1-021", "EX9-039"])(
+    "preserves an eligible %s when the Before Pay Cost reducer is declined",
+    async (payment) => {
+      const s = setupEngine(
+        { 0: { hand: [{ card: "EX9-043", as: "metal" }, payment, "BT1-009"] } },
+        { autoDeclineOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("metal").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle();
+      expect(s.state.memory).toBe(3);
+      expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual([payment, "BT1-009"]);
+      expect(s.state.players[0]!.trash).toHaveLength(0);
+      expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("EX9-043");
+      expect(s.state.players[0]!.battleArea[0]!.stack).toHaveLength(0);
+      expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
+
   it("can pay the hand-trash reducer while being played for free after a real battle (Q4796)", async () => {
     const s = setupEngine(
       {
@@ -84,10 +107,7 @@ describe("EX9-043", () => {
       const s = setupEngine(
         {
           0: {
-            hand: [
-              { card: "EX9-043", as: "metal" },
-              { card: payment, as: "payment" },
-            ],
+            hand: [{ card: "EX9-043", as: "metal" }, { card: payment, as: "payment" }, "BT1-009"],
           },
         },
         { autoAcceptOptional: true, autoSelectCards: true },
@@ -100,6 +120,7 @@ describe("EX9-043", () => {
       await settle();
       expect(before - s.state.memory).toBe(5);
       expect(player.hand.find((card) => card.instanceId === paymentId)).toBeUndefined();
+      expect(player.hand.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
       expect(player.battleArea[0]!.stack.map(({ cardId, faceUp }) => [cardId, faceUp])).toEqual([[payment, false]]);
       expect(s.state.pendingDecision).toBeUndefined();
     },
@@ -109,7 +130,7 @@ describe("EX9-043", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT1-080", as: "host", under: inherited ? ["EX9-043"] : [] }] },
-        1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true }], security: ["BT1-009"] },
       },
       { autoSelectCards: true, autoOrderTriggers: true },
     );
@@ -171,12 +192,28 @@ describe("EX9-043", () => {
 
   it.each([
     ["Tyrannomon name", "BT2-044"],
-    ["DM trait", "EX9-039"],
-  ])("digivolves through the %s alternate route", async (_route, base) => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: base, as: "base" }], hand: [{ card: "EX9-043", as: "metal" }] },
-    });
+    ["Tyrannomon substring", "BT1-019"],
+    ["DM trait without Tyrannomon name", "EX9-029"],
+  ])("resolves scaled cleanup through the %s alternate route", async (_route, base) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: base, as: "base", under: [{ card: "BT1-009", faceUp: false }] }],
+          hand: [{ card: "EX9-043", as: "metal" }],
+          trash: ["BT1-012"],
+          deck: ["BT1-046"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-026", as: "target", under: ["BT1-009", "BT1-015", "BT1-024"] },
+            { card: "BT1-009", as: "small" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
     s.state.memory = 5;
+    await s.ready();
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -188,7 +225,63 @@ describe("EX9-043", () => {
     await settle();
     expect(s.perm("base").topCard.cardId).toBe("EX9-043");
     expect(s.state.memory).toBe(2);
+    expect(s.perm("base").stack.map(({ cardId, faceUp }) => ({ cardId, faceUp }))).toEqual([
+      { cardId: "BT1-012", faceUp: false },
+      { cardId: "BT1-009", faceUp: false },
+      { cardId: base, faceUp: true },
+    ]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-046"]);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT1-015"]);
+    expect(s.perm("target").stack.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+    expect(s.perm("target").currentDP).toBe(4000);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-026", "BT1-024", "BT1-009"]);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
+
+  it.each([
+    { base: "BT2-058", alternate: false, legal: true },
+    { base: "BT1-015", alternate: true, legal: false },
+  ])(
+    "checks the route from $base and declines available When Digivolving placement",
+    async ({ base, alternate, legal }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: base, as: "base" }],
+            hand: [{ card: "EX9-043", as: "metal" }],
+            trash: ["BT1-012"],
+            deck: ["BT1-046"],
+          },
+          1: { battleArea: [{ card: "BT1-015", as: "target", under: ["BT1-009"] }, { card: "BT1-009" }] },
+        },
+        { autoDeclineOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 5;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("metal").instanceId,
+          useAlternateCost: alternate,
+        }).ok,
+      ).toBe(legal);
+      await settle();
+      expect(s.state.memory).toBe(legal ? 1 : 5);
+      expect(s.perm("base").topCard.cardId).toBe(legal ? "EX9-043" : base);
+      expect(s.perm("base").stack.map(({ cardId, faceUp }) => ({ cardId, faceUp }))).toEqual(
+        legal ? [{ cardId: base, faceUp: true }] : [],
+      );
+      expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(legal ? ["BT1-046"] : ["EX9-043"]);
+      expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(legal ? [] : ["BT1-046"]);
+      expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-012"]);
+      expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT1-015", "BT1-009"]);
+      expect(s.perm("target").stack.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
 
   it("resolves the When Digivolving cleanup after a legal normal evolution", async () => {
     const s = setupEngine(
@@ -197,6 +290,7 @@ describe("EX9-043", () => {
           battleArea: [{ card: "EX9-039", as: "base" }],
           hand: [{ card: "EX9-043", as: "metal" }],
           trash: ["BT1-012"],
+          deck: ["BT1-046"],
         },
         1: { battleArea: [{ card: "BT1-015", as: "target", under: ["BT1-009"] }] },
       },
@@ -216,6 +310,8 @@ describe("EX9-043", () => {
     expect(s.perm("base").stack.some((card) => card.cardId === "BT1-012" && !card.faceUp)).toBe(true);
     expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-012", "EX9-039"]);
     expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-046"]);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(
       expect.arrayContaining(["BT1-015", "BT1-009"]),
     );
