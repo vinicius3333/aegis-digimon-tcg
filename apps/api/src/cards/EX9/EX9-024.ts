@@ -46,7 +46,6 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenOpponentAttacks",
-          optional: true,
           actions: [
             {
               kind: "EndAttack",
