@@ -1,6 +1,8 @@
 // @ts-nocheck
 // EX9-018 MetalMamemon — hand-fixed IR.
 // KB Q4760: trash digivolution cards from exactly 1 opponent Digimon (count:1 enforces this).
+// KB Q4761: the placement cost gates the "then" return; the trash operation itself may be a
+// no-op when the chosen opponent Digimon has no sources, after which the return still resolves.
 // Scaling counts THIS Digimon's face-down digivolution cards.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
@@ -51,18 +53,9 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
-          kind: "TrashDigivolution",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              digivolutionCards: "hasAny",
-            },
-            count: 1,
-            upTo: false,
-          },
-          amount: 1,
-          choose: true,
+          kind: "ConditionalBranch",
+          condition: { kind: "true" },
+          optional: true,
           abortOnDecline: true,
           cost: {
             kind: "place",
@@ -81,27 +74,43 @@ export const compiled: CompiledCard = {
             host: "self",
             faceDown: true,
           },
-          scaling: {
-            per: 1,
-            filter: {
-              controllerDefault: "mine",
-              kind: ["Digimon"],
-              faceDown: true,
+          ifTrue: [
+            {
+              kind: "TrashDigivolution",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  digivolutionCards: "hasAny",
+                },
+                count: 1,
+                upTo: false,
+              },
+              amount: 1,
+              choose: true,
+              scaling: {
+                per: 1,
+                filter: {
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  faceDown: true,
+                },
+                unit: "selfFaceDownDigivolutionCards",
+              },
             },
-            unit: "selfFaceDownDigivolutionCards",
-          },
-        },
-        {
-          kind: "Return",
-          target: {
-            filter: {
-              digivolutionCards: "none",
-              controllerDefault: "opponent",
-              kind: ["Digimon"],
+            {
+              kind: "Return",
+              target: {
+                filter: {
+                  digivolutionCards: "none",
+                  controllerDefault: "opponent",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+              },
+              to: "deckBottom",
             },
-            count: 1,
-          },
-          to: "deckBottom",
+          ],
         },
       ],
     },
@@ -109,18 +118,9 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "TrashDigivolution",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              digivolutionCards: "hasAny",
-            },
-            count: 1,
-            upTo: false,
-          },
-          amount: 1,
-          choose: true,
+          kind: "ConditionalBranch",
+          condition: { kind: "true" },
+          optional: true,
           abortOnDecline: true,
           cost: {
             kind: "place",
@@ -139,27 +139,43 @@ export const compiled: CompiledCard = {
             host: "self",
             faceDown: true,
           },
-          scaling: {
-            per: 1,
-            filter: {
-              controllerDefault: "mine",
-              kind: ["Digimon"],
-              faceDown: true,
+          ifTrue: [
+            {
+              kind: "TrashDigivolution",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  digivolutionCards: "hasAny",
+                },
+                count: 1,
+                upTo: false,
+              },
+              amount: 1,
+              choose: true,
+              scaling: {
+                per: 1,
+                filter: {
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  faceDown: true,
+                },
+                unit: "selfFaceDownDigivolutionCards",
+              },
             },
-            unit: "selfFaceDownDigivolutionCards",
-          },
-        },
-        {
-          kind: "Return",
-          target: {
-            filter: {
-              digivolutionCards: "none",
-              controllerDefault: "opponent",
-              kind: ["Digimon"],
+            {
+              kind: "Return",
+              target: {
+                filter: {
+                  digivolutionCards: "none",
+                  controllerDefault: "opponent",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+              },
+              to: "deckBottom",
             },
-            count: 1,
-          },
-          to: "deckBottom",
+          ],
         },
       ],
     },
