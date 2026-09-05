@@ -180,7 +180,10 @@ export function looseCardsInZone(ctx: EffectContext, seat: Seat, zone: ZoneRef):
     default:
       break;
   }
-  return out;
+  // CR 7-1-3 / 15-15-3-1: the imminent card cannot pay a cost from its origin
+  // zone. Apply this uniformly to loose zones, hosted cards and their aliases.
+  const imminentId = ctx.trigger?.wouldBePlayedInstanceId;
+  return imminentId === undefined ? out : out.filter((card) => card.instanceId !== imminentId);
 }
 
 /**

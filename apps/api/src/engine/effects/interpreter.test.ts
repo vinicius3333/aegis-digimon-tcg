@@ -5641,6 +5641,44 @@ describe("DeleteBudget (budget-multi-delete)", () => {
 // ---------------------------------------------------------------------------
 
 describe("candidateLooseInstances — hostFilter gating", () => {
+  it.each(["digivolutionCards", "underMyTamers", "underTamers", "underTamer", "digivolutionCardsUnderTamers"] as const)(
+    "excludes the imminent play instance from %s while preserving another source",
+    (zone) => {
+      const tamer = makePermWithStack(
+        "host",
+        "TAMER",
+        ["Tamer"],
+        [
+          { instanceId: "imminent", cardId: "DIGI-A" },
+          { instanceId: "other", cardId: "DIGI-A" },
+        ],
+      );
+      tamer.controllerSeat = 0;
+      for (const card of tamer.stack) card.ownerSeat = 0;
+      const ctx = makeContext({
+        source: makeSource(),
+        recorder: { calls: [] },
+        ownBattleArea: [tamer],
+        definitionOf: (cardId: string) =>
+          makeFakeDefinition({
+            cardId,
+            kinds: cardId === "TAMER" ? [CardKind.Tamer] : [CardKind.Digimon],
+          }),
+      });
+      ctx.trigger = { wouldBePlayedInstanceId: "imminent" };
+      expect(
+        candidateLooseInstances(ctx, { filter: { controller: "mine" }, count: "all" }, [zone]).map(
+          (card) => card.instanceId,
+        ),
+      ).toEqual(["other"]);
+      ctx.trigger = {};
+      expect(
+        candidateLooseInstances(ctx, { filter: { controller: "mine" }, count: "all" }, [zone]).map(
+          (card) => card.instanceId,
+        ),
+      ).toEqual(["imminent", "other"]);
+    },
+  );
   function makePermWithStack(
     permanentId: string,
     topCardId: string,
