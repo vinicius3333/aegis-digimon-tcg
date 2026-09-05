@@ -26,6 +26,8 @@ export interface Effect {
   maxPerTurn: number;
   /** Narrows the overloaded BeforePayCost timing to a play or digivolve declaration. */
   costWindow?: "play" | "digivolve";
+  /** True when this pay-time effect is itself a play-cost reducer. */
+  isPlayCostReduction?: boolean;
   /**
    * Ordering tier inside a continuous recomputation. Effects that read a keyword
    * granted by another continuous effect run after ordinary providers, so their

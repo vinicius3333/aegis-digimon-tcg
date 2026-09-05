@@ -3909,9 +3909,10 @@ export class GameEngine {
   ): Promise<number> {
     const source = this.cardSourceOf(instance);
     const reductionBlocked = this.continuous.blocksCostReduction(source.ownerSeat, "play");
-    // A prohibition blocks the reduction, not its optional processing cost.
-    // Projection stays read-only; an unaffordable blocked play cannot start paying
-    // side-effect costs. Free plays enter this window with a zero base (Q4784).
+    // A prohibition prevents the reducer from activating, including its optional
+    // processing cost (ST12-03 Q755). Projection stays read-only; an unaffordable
+    // blocked play cannot start paying side-effect costs. Free plays enter this
+    // window with a zero base (Q4784).
     if (reductionBlocked && (projectOnly || this.memory.maxCostFor(source.ownerSeat) < baseCost)) return baseCost;
     const effects = effectsOf(EffectTiming.BeforePayCost, source).filter((effect) => effect.costWindow !== "digivolve");
     // Self-targeted "when this card would be played, [by cost / gated by condition], reduce by N"
@@ -3979,6 +3980,7 @@ export class GameEngine {
       return Math.max(0, baseCost - selfReduction - interactiveReduction);
     }
     for (const effect of effects) {
+      if (reductionBlocked && effect.isPlayCostReduction === true) continue;
       if (!canTrigger(effect, ctx, this.tracker)) continue;
       if (!canActivate(effect, ctx, this.tracker)) continue;
       await effect.resolve(ctx);
@@ -3988,6 +3990,7 @@ export class GameEngine {
     // card identity is carried in TriggerInfo. This lets independent copies resolve and
     // account OPT separately while accumulating their reductions in the shared cost window.
     for (const { effect, source: residentSource } of residentEffects) {
+      if (reductionBlocked && effect.isPlayCostReduction === true) continue;
       const residentCtx: EffectContext = {
         ...this.buildEffectContext(residentSource, {
           wouldBePlayedInstanceId: instance.instanceId,
@@ -4011,6 +4014,7 @@ export class GameEngine {
     // module cannot host the watcher). Resolve these against the same shared
     // play-cost context so their reductions are paid before memory is charged.
     for (const { effect, source: residentSource } of breedingResidentEffects) {
+      if (reductionBlocked && effect.isPlayCostReduction === true) continue;
       const residentCtx: EffectContext = {
         ...this.buildEffectContext(residentSource, {
           wouldBePlayedInstanceId: instance.instanceId,
@@ -4032,36 +4036,38 @@ export class GameEngine {
     // Resolve interactive would-be-played subscriptions only after resident effects have run:
     // inherited [Breeding] reducers live in the breeding stack and install their subscription
     // during this very pay-time pass, so consulting earlier would miss the current play entirely.
-    const interactiveReduction = await this.subTriggers.activateInteractiveReductionsFor(
-      "wouldBePlayed",
-      source.ownerSeat,
-      playTarget,
-      source.definition,
-      undefined,
-      (sourcePermanentId, sourceInstanceId) => {
-        const resident =
-          this.access.permanentById(sourcePermanentId) ??
-          (this.state.players[source.ownerSeat]?.breeding?.permanentId === sourcePermanentId
-            ? this.state.players[source.ownerSeat]?.breeding
-            : undefined);
-        return resident?.topCard === undefined
-          ? undefined
-          : this.buildEffectContext(
-              this.cardSourceOf(this.findInstance(sourceInstanceId ?? "")?.instance ?? resident.topCard),
-              {
-                wouldBePlayedInstanceId: instance.instanceId,
-                wouldBePlayedCardId: instance.cardId,
-                wouldBePlayedAsOption: useAsOption,
-              },
-            );
-      },
-      {
-        hasFired: (key) => this.tracker.count(key, "replacement") > 0,
-        markFired: (key) => this.tracker.register(key, "replacement"),
-      },
-      undefined,
-      originZone,
-    );
+    const interactiveReduction = reductionBlocked
+      ? 0
+      : await this.subTriggers.activateInteractiveReductionsFor(
+          "wouldBePlayed",
+          source.ownerSeat,
+          playTarget,
+          source.definition,
+          undefined,
+          (sourcePermanentId, sourceInstanceId) => {
+            const resident =
+              this.access.permanentById(sourcePermanentId) ??
+              (this.state.players[source.ownerSeat]?.breeding?.permanentId === sourcePermanentId
+                ? this.state.players[source.ownerSeat]?.breeding
+                : undefined);
+            return resident?.topCard === undefined
+              ? undefined
+              : this.buildEffectContext(
+                  this.cardSourceOf(this.findInstance(sourceInstanceId ?? "")?.instance ?? resident.topCard),
+                  {
+                    wouldBePlayedInstanceId: instance.instanceId,
+                    wouldBePlayedCardId: instance.cardId,
+                    wouldBePlayedAsOption: useAsOption,
+                  },
+                );
+          },
+          {
+            hasFired: (key) => this.tracker.count(key, "replacement") > 0,
+            markFired: (key) => this.tracker.register(key, "replacement"),
+          },
+          undefined,
+          originZone,
+        );
     if (interactiveReduction > 0) ctx.playCostDelta = (ctx.playCostDelta ?? 0) + interactiveReduction;
     const passiveReduction = this.continuous.blocksCostReduction(source.ownerSeat, "play")
       ? 0
@@ -4071,7 +4077,9 @@ export class GameEngine {
           markFired: (key) => this.tracker.register(key, "replacement"),
         });
     if (passiveReduction > 0) ctx.playCostDelta = (ctx.playCostDelta ?? 0) + passiveReduction;
-    for (const reducer of selfReducers) await applyWouldBePlayedSelfReducer(ctx, reducer);
+    if (!reductionBlocked) {
+      for (const reducer of selfReducers) await applyWouldBePlayedSelfReducer(ctx, reducer);
+    }
     // A self-reducer's cost body may have selected a permanent (BT12-112's chosen [Shoutmon]) to
     // relocate under the played card's own permanent — which does not exist yet at this point. Stash
     // it for `placePendingDigivolution` to relocate once it does (see `pendingSelfReducerRelocations`).
@@ -4083,7 +4091,7 @@ export class GameEngine {
       const pending = this.pendingPlayReducerPlacements.get(instance.instanceId) ?? [];
       this.pendingPlayReducerPlacements.set(instance.instanceId, [...pending, ...ctx.pendingSelfReducerPlacements]);
     }
-    await this.runCrossPermanentPlayReducers(instance, ctx, crossWatchers);
+    if (!reductionBlocked) await this.runCrossPermanentPlayReducers(instance, ctx, crossWatchers);
     if (this.continuous.blocksCostReduction(source.ownerSeat, "play")) return baseCost;
     const delta = Math.max(0, ctx.playCostDelta ?? 0);
     return Math.max(0, baseCost - delta);
