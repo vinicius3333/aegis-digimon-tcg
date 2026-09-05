@@ -7,6 +7,130 @@ import { compiled } from "./EX9-063.js";
 import "../index.js";
 
 describe("EX9-063", () => {
+  it("cannot pay the attack cost with a face-up own source or another Digimon's face-down source", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX9-063", as: "host", under: ["EX9-038"] },
+            { card: "BT1-009", as: "other", under: [{ card: "BT1-001", faceUp: false }] },
+          ],
+          trash: ["EX9-010"],
+        },
+        1: { security: ["BT1-002", "BT1-003"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["EX9-038"]);
+    expect(s.perm("other").stack.map((card) => card.cardId)).toEqual(["BT1-001"]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["EX9-010"]);
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+  it("shares the free-play once-per-turn use between real digivolution and a later attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "EX9-038",
+              as: "host",
+              under: [
+                { card: "BT1-001", faceUp: false },
+                { card: "BT1-002", faceUp: false },
+              ],
+            },
+          ],
+          hand: [{ card: "EX9-063", as: "evo" }],
+          trash: ["BT1-016", "EX9-009", "EX9-010", "EX9-010"],
+          deck: ["BT1-048"],
+        },
+        1: { security: ["BT1-003", "BT1-004"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.memory).toBe(8);
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "EX9-010")).toHaveLength(
+      1,
+    );
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT1-002", "EX9-038"]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "EX9-010")).toHaveLength(
+      1,
+    );
+    expect(s.state.players[0]!.trash.filter((card) => card.cardId === "EX9-010")).toHaveLength(1);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-016", "EX9-009", "EX9-010", "BT1-001"]);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT1-002", "EX9-038"]);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it.each(["accept", "decline", "no ally"] as const)("resolves Scapegoat in a losing battle (%s)", async (choice) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX9-063", as: "host", suspended: true },
+            ...(choice === "no ally" ? [] : [{ card: "BT1-009", as: "ally" }]),
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-024", as: "attacker" }] },
+      },
+      { autoSelectCards: choice === "accept" },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("host").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    if (choice === "decline") {
+      await settle(() => s.state.pendingDecision?.kind === "selectCards");
+      const decision = s.state.pendingDecision!;
+      const response = s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      });
+      if (!response.ok) throw new Error("Scapegoat refusal was rejected");
+    }
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(
+      choice === "accept" ? ["EX9-063"] : choice === "decline" ? ["BT1-009"] : [],
+    );
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      choice === "accept" ? ["BT1-009"] : ["EX9-063"],
+    );
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
   it("does not grant its incoming-card reduction to a different evolution while already in play", async () => {
     const s = setupEngine({
       0: {
@@ -191,7 +315,7 @@ describe("EX9-063", () => {
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX9-015")).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-010")).toBe(true);
   });
-  it("preserves the source stack and trash when the optional Scapegoat effect is declined", async () => {
+  it("preserves the source stack and trash when the optional free-play effect is declined", async () => {
     const s = setupEngine(
       {
         0: {
