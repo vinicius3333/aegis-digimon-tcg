@@ -65,4 +65,20 @@ describe("P-141 MameTyramon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("mame"), "Blocker")).toBe(true);
     expect(observe(s.engine).effectiveNames(s.perm("mame"))).toEqual(expect.arrayContaining(["mamemon", "tyrannomon"]));
   });
+
+  it("runs the inherited unsuspend trigger through a higher host", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "host", suspended: true, under: [{ card: "P-141", as: "inherited" }] }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.suspend([s.perm("opponent").permanentId], 1);
+    await settle();
+    expect(s.perm("host").isSuspended).toBe(false);
+  });
 });

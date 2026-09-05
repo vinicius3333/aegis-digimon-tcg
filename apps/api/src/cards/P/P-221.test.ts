@@ -6,6 +6,32 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 
 describe("P-221 engine behavior", () => {
+  it("naturally DNA digivolves from Yellow and Purple Lv.6 materials and records DNA immunity", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT16-013", as: "yellowMaterial" },
+            { card: "BT16-065", as: "purpleMaterial" },
+          ],
+          hand: [{ card: "P-221", as: "chaosmon" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("yellowMaterial").permanentId, s.perm("purpleMaterial").permanentId],
+        instanceId: s.inst("chaosmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "P-221"));
+    const result = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "P-221")!;
+    expect(observe(s.engine).isRestricted(result, "beAffected")).toBe(true);
+  });
+
   it("reduces an opposing Digimon by exactly 10000 DP on When Digivolving", async () => {
     const s = setupEngine(
       {
@@ -39,6 +65,27 @@ describe("P-221 engine behavior", () => {
     ).toEqual({ ok: true });
     await settle();
     expect(s.perm("target").currentDP).toBe(5000);
+  });
+
+  it("can choose an immune opposing Digimon, but its DP is not changed (Q5766)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "P-221", as: "source" }] },
+      1: { battleArea: [{ card: "P-221", as: "immuneTarget", dp: 15000 }] },
+    });
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("immuneTarget"), {
+      isDnaDigivolve: true,
+    });
+    const before = s.perm("immuneTarget").currentDP;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("immuneTarget").currentDP).toBe(before);
   });
 });
 import "./P-221.js";

@@ -30,4 +30,32 @@ describe("P-163 Dokugumon", () => {
     });
     expect(compiled.digivolutionRequirement).toEqual([{ level: 3, traits: ["NSo"], cost: 2, isAlternate: true }]);
   });
+
+  it("uses the alternate NSo evolution path and suspends on When Digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-030", as: "nsoHost" }],
+          hand: [{ card: "P-163", as: "dokugumon" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("nsoHost").permanentId,
+        instanceId: s.inst("dokugumon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("nsoHost").topCard.cardId === "P-163");
+    expect(s.perm("nsoHost").topCard.cardId).toBe("P-163");
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(8);
+    assertNoLoudGap(s);
+  });
 });

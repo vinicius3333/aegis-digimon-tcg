@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "./P-194.js";
 
 describe("P-194 Aegiomon", () => {
@@ -33,5 +34,47 @@ describe("P-194 Aegiomon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "host", under: ["P-194"] }] } });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Barrier")).toBe(true);
+  });
+
+  it("uses inherited Barrier to survive a battle deletion after the stack evolves", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-009", as: "host" }],
+        hand: [
+          { card: "P-194", as: "aegio" },
+          { card: "BT1-057", as: "higher" },
+        ],
+        security: ["BT1-001", "BT1-002"],
+      },
+    });
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("aegio").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "P-194");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("higher").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "BT1-057");
+    expect(s.perm("host").stack.some((card) => card.cardId === "P-194")).toBe(true);
+    const hostId = s.perm("host").permanentId;
+    const deletion = advance(s.engine).verb.deletePermanent([hostId], "byBattle");
+    await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
+    expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: hostId, accept: true })).toEqual({
+      ok: true,
+    });
+    expect(await deletion).toBe(0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.security).toHaveLength(1);
   });
 });

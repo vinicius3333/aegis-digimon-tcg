@@ -58,6 +58,44 @@ describe("P-185 EmperorGreymon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("emperor"), "Blocker")).toBe(true);
   });
 
+  it("legally digivolves from Takuya with five Hybrid cards under the Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT7-085",
+              as: "takuya",
+              under: ["BT7-008", "BT7-011", "BT7-019", "BT7-021", "BT7-035"],
+            },
+          ],
+          hand: [{ card: "P-185", as: "emperor" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("takuya").permanentId,
+        instanceId: s.inst("emperor").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("takuya").topCard.instanceId === s.inst("emperor").instanceId);
+    expect(s.perm("takuya").topCard.instanceId).toBe(s.inst("emperor").instanceId);
+    expect(s.perm("takuya").stack).toHaveLength(6);
+    expect(
+      s
+        .perm("takuya")
+        .stack.filter((card) => ["BT7-008", "BT7-011", "BT7-019", "BT7-021", "BT7-035"].includes(card.cardId)),
+    ).toHaveLength(5);
+    expect(s.state.memory).toBe(6);
+  });
+
   it("deletes at its DP boundary, scales its DP by allied colors, and unsuspends at turn end", async () => {
     const s = setupEngine(
       {
