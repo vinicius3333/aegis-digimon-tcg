@@ -502,7 +502,7 @@ pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-011.test.ts src/eng
   PASS (4 files, 53 tests)
 ```
 
-No unresolved card-text ambiguity remains. No implementation or test change was required, no duplicate legacy registration exists, and no push was made. The BT26-011 audit evidence is left uncommitted for coordinator review.
+No unresolved card-text ambiguity remains. No implementation or test change was required, no duplicate legacy registration exists, and no push was made. The BT26-011 audit evidence is left uncommitted for review.
 
 ## BT26-012 — Manekimon — 10/10
 
@@ -654,7 +654,7 @@ git diff --check
   PASS
 ```
 
-No card implementation or test change was required. The BT26-014 audit evidence is left uncommitted for coordinator review; no push was made.
+No card implementation or test change was required. The BT26-014 audit evidence is left uncommitted for review; no push was made.
 
 ## BT26-015 — Butenmon — 10/10
 
@@ -705,7 +705,7 @@ git diff --check
   PASS
 ```
 
-No card implementation or test change was necessary. Only this BT26-015 ledger section was added for coordinator review; no commit or push was made.
+No card implementation or test change was necessary. Only this BT26-015 ledger section was added for review; no commit or push was made.
 
 ## BT26-016 — Chronomon: Holy Mode — 10/10
 
@@ -760,7 +760,7 @@ git diff --check
   PASS
 ```
 
-No card implementation change was necessary. Two focused tests were added to prove the positive When Digivolving and When Attacking paths. Only this BT26-016 ledger section and its focused test additions are left uncommitted for coordinator review; no commit or push was made.
+No card implementation change was necessary. Two focused tests were added to prove the positive When Digivolving and When Attacking paths. Only this BT26-016 ledger section and its focused test additions are left uncommitted for review; no commit or push was made.
 
 ## BT26-017 — Zanbamon — 10/10
 
@@ -809,7 +809,7 @@ git diff --check
   PASS
 ```
 
-No card implementation change was necessary. One focused test was added to prove the inclusive cost-5 Tamer branch and own-trash controller boundary. Only this BT26-017 ledger section and its focused test addition are left uncommitted for coordinator review; no commit or push was made.
+No card implementation change was necessary. One focused test was added to prove the inclusive cost-5 Tamer branch and own-trash controller boundary. Only this BT26-017 ledger section and its focused test addition are left uncommitted for review; no commit or push was made.
 
 ## BT26-018 — Sangomon — 10/10
 
@@ -859,7 +859,7 @@ git diff --check
   PASS
 ```
 
-The card implementation and focused tests were adjusted to correct the Aqua/Sea Animal substring matching and to encode the printed Rule line as a Rule effect. Only this BT26-018 section and its focused proof additions are left uncommitted for coordinator review; no commit or push was made.
+The card implementation and focused tests were adjusted to correct the Aqua/Sea Animal substring matching and to encode the printed Rule line as a Rule effect. Only this BT26-018 section and its focused proof additions are left uncommitted for review; no commit or push was made.
 
 ## BT26-019 — Mailmon — 10/10
 
@@ -903,7 +903,7 @@ git diff --check
   PASS
 ```
 
-A broader exploratory command over 10 files and 400 tests also reproduced three unrelated pre-existing failures in `BT26-031.test.ts`, `BT26-084.test.ts`, and `BT26-086.test.ts`; none of those cards/tests is touched by this audit, and the directly affected BT26-019, suspend-normalization peers, Link, interpreter, primitive, and combat-legality suites pass. This card's implementation and focused proof were adjusted for the real suspend-regression cause. Only this BT26-019 section and its minimal shared-seam/card/test changes are left uncommitted for coordinator review; no commit or push was made.
+A broader exploratory command over 10 files and 400 tests also reproduced three unrelated pre-existing failures in `BT26-031.test.ts`, `BT26-084.test.ts`, and `BT26-086.test.ts`; none of those cards/tests is touched by this audit, and the directly affected BT26-019, suspend-normalization peers, Link, interpreter, primitive, and combat-legality suites pass. This card's implementation and focused proof were adjusted for the real suspend-regression cause. Only this BT26-019 section and its minimal shared-seam/card/test changes are left uncommitted for review; no commit or push was made.
 
 ## BT26-020 — ShellNumemon — 10/10
 
@@ -950,7 +950,7 @@ git diff --check
   PASS
 ```
 
-Only this BT26-020 ledger section is left uncommitted for coordinator review; no code/test change, commit, or push was made.
+Only this BT26-020 ledger section is left uncommitted for review; no code/test change, commit, or push was made.
 
 ## BT26-021 — Gekomon — 10/10
 
@@ -997,7 +997,7 @@ git diff --check
   PASS
 ```
 
-Only this BT26-021 ledger section is left uncommitted for coordinator review; no code/test change, commit, or push was made.
+Only this BT26-021 ledger section is left uncommitted for review; no code/test change, commit, or push was made.
 
 ## BT26-022 — Sorcermon — 10/10
 
@@ -1043,7 +1043,7 @@ git diff --check
   PASS
 ```
 
-The card module, focused proof, Barrier seam correction, and its adjusted shared regression assertions remain uncommitted for coordinator review; no commit or push was made.
+The card module, focused proof, Barrier seam correction, and its adjusted shared regression assertions remain uncommitted for review; no commit or push was made.
 
 ## BT26-023 — Mojyamon — 10/10
 
@@ -1093,7 +1093,7 @@ git diff --check
   PASS
 ```
 
-No unresolved card-text ambiguity remains. No implementation, shared-engine, or test changes were needed, and no commit or push was made, per the audit task instructions. Only this BT26-023 ledger section is left uncommitted for coordinator review.
+No unresolved card-text ambiguity remains. No implementation, shared-engine, or test changes were needed, and no commit or push was made, per the audit task instructions. Only this BT26-023 ledger section is left uncommitted for review.
 
 ## BT26-024 — Tinkermon — 10/10
 
@@ -1123,7 +1123,7 @@ The focused `apps/api/src/cards/BT26/BT26-024.test.ts` suite has 11 passing test
 
 The affected regression run passed 8 files and 213 tests: BT26-027, BT26-034, EX9-042, digivolution candidate legality, ch08 digivolution, ch16c deletion/advanced keywords, primitives, and BT26-024. `pnpm typecheck` passed the shared build plus shared/API/web typechecks. `pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-024.ts apps/api/src/cards/BT26/BT26-024.test.ts` and `git diff --check` both passed.
 
-One stale pre-audit assertion incorrectly expected Barrier to prevent effect deletion; it was corrected to the printed battle-only behavior and a separate negative effect-deletion assertion was added. No card-text ambiguity remains. Changes are intentionally uncommitted and unpushed for coordinator review.
+One stale pre-audit assertion incorrectly expected Barrier to prevent effect deletion; it was corrected to the printed battle-only behavior and a separate negative effect-deletion assertion was added. No card-text ambiguity remains. Changes are intentionally uncommitted and unpushed for review.
 
 ## BT26-025 — Liollmon — 10/10
 
@@ -1169,7 +1169,7 @@ git diff --check
   PASS
 ```
 
-No unresolved ambiguity or unsupported behavior remains. Changes are intentionally uncommitted and unpushed for coordinator review; this audit is limited to BT26-025.
+No unresolved ambiguity or unsupported behavior remains. Changes are intentionally uncommitted and unpushed for review; this audit is limited to BT26-025.
 
 ## BT26-026 — Cougarmon — 10/10
 
@@ -1218,7 +1218,7 @@ git diff --check
   PASS
 ```
 
-No card-specific ambiguity or unsupported behavior remains. The BT26-031 peer failure is outside this card's files and unchanged by this audit. Changes are intentionally uncommitted and unpushed for coordinator review; this audit is limited to BT26-026.
+No card-specific ambiguity or unsupported behavior remains. The BT26-031 peer failure is outside this card's files and unchanged by this audit. Changes are intentionally uncommitted and unpushed for review; this audit is limited to BT26-026.
 
 ## BT26-027 — Petermon — 10/10
 
@@ -1247,7 +1247,7 @@ The focused `apps/api/src/cards/BT26/BT26-027.test.ts` suite has 6 passing tests
 
 The affected regression run passed 8 files and 391 tests: BT26-027, BT26-024/025/026/034, `interpreter.test.ts`, `primitives.test.ts`, and `ch16c-deletion-and-advanced-keywords.test.ts`. `pnpm typecheck` passed the shared build plus shared/API/web typechecks. `pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-027.ts apps/api/src/cards/BT26/BT26-027.test.ts` and `git diff --check` both passed.
 
-No implementation, shared-engine, or test changes were needed. No card-text ambiguity or unsupported behavior remains. Changes are intentionally uncommitted and unpushed for coordinator review; this audit is limited to BT26-027.
+No implementation, shared-engine, or test changes were needed. No card-text ambiguity or unsupported behavior remains. Changes are intentionally uncommitted and unpushed for review; this audit is limited to BT26-027.
 
 ## BT26-028 — Medicmon — 10/10
 
@@ -1384,7 +1384,7 @@ git diff --check
   PASS
 ```
 
-No unresolved BT26-030 ambiguity or unsupported clause remains. No implementation, shared-engine, or test changes were needed. Changes are intentionally uncommitted and unpushed for coordinator review; this audit is limited to BT26-030 and does not mark the collection complete.
+No unresolved BT26-030 ambiguity or unsupported clause remains. No implementation, shared-engine, or test changes were needed. Changes are intentionally uncommitted and unpushed for review; this audit is limited to BT26-030 and does not mark the collection complete.
 
 ## BT26-031 — Murasamemon / Gonozan: Murashigure — 10/10
 
@@ -1951,7 +1951,7 @@ pnpm --filter @aegis/api exec vitest run --pool=forks --poolOptions.forks.single
 pnpm --filter @aegis/api exec vitest run --pool=forks --poolOptions.forks.singleFork=true src/cards/BT26/BT26-038.test.ts src/cards/BT26/BT26-039.test.ts src/cards/BT26/BT26-040.test.ts src/cards/BT26/BT26-041.test.ts src/cards/BT26/BT26-042.test.ts src/cards/BT26/BT26-043.test.ts src/cards/BT26/BT26-044.test.ts src/cards/BT26/BT26-045.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/restrictionEnforcement.test.ts src/engine/actions/digivolve.test.ts src/engine/effects/digivolveCandidateLegality.test.ts
   PASS (14 files, 464 tests)
 typecheck, Oxlint/Oxfmt, and git diff --check
-  Not rerun after the focused/regression gates per coordinator instruction to stop additional commands; no implementation/shared-engine files changed.
+  Not rerun after the focused/regression gates per instruction to stop additional commands; no implementation/shared-engine files changed.
 ```
 
 No unresolved BT26-043 ambiguity or unsupported printed clause remains. Only `apps/api/src/cards/BT26/BT26-043.test.ts` and this appended audit section were changed; the implementation and shared engine required no correction. Changes are intentionally uncommitted and unpushed, and this audit is limited to BT26-043; the collection is not marked complete.

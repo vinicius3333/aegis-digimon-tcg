@@ -15,7 +15,7 @@ The eleven range reports under `internal-docs/audits/BT21/` and the prior intern
 - All 102 modules register only through `registerIrCard(cardId, compiled)`; no BT21 production module contains a legacy `registerCard` registration.
 - All 99 inherited `// @ts-nocheck` directives were removed. The 102 direct modules pass the API typecheck without suppressions.
 - Exact module-to-catalog equality is enforced by `BT21-catalog-sync.test.ts`. The scoped generator reports 86 BT21 records differing semantically from `origin/main` and proves zero semantic or byte changes outside the collection.
-- Tests were run only by the coordinator, serially with one fork, no file parallelism, and explicit hard timeouts.
+- Tests were run only, serially with one fork, no file parallelism, and explicit hard timeouts.
 
 ## Score model
 

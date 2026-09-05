@@ -11,7 +11,7 @@ the immutable committed card-catalog blob.
 
 This ledger follows the repository's `verify-card-implementation` protocol
 and the chronological campaign plan. BT19 workers may prepare static range
-evidence in five parallel Luna lanes. BT18 static coverage is now recorded,
+Evidence in five parallel Luna lanes. BT18 static coverage is now recorded,
 so accepted BT19 ranges may be integrated in strict ascending order. Detailed English reports belong under
 `internal-docs/audits/BT19/`.
 
@@ -23,17 +23,17 @@ provisional and capped at 8/10.
 
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
-| BT19-001–010 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-001-010.md` | Yes |
-| BT19-011–020 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-011-020.md` | Yes |
-| BT19-021–030 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-021-030.md` | Yes |
-| BT19-031–040 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-031-040.md` | Yes |
-| BT19-041–050 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-041-050.md` | Yes |
-| BT19-051–060 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-051-060.md` | Yes |
-| BT19-061–070 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-061-070.md` | Yes |
-| BT19-071–080 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-071-080.md` | Yes |
-| BT19-081–090 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-081-090.md` | Yes |
-| BT19-091–100 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-091-100.md` | Yes |
-| BT19-101–102 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-101-102.md` | Yes |
+| BT19-001–010 | Reviewed | `internal-docs/audits/BT19/BT19-001-010.md` | Yes |
+| BT19-011–020 | Reviewed | `internal-docs/audits/BT19/BT19-011-020.md` | Yes |
+| BT19-021–030 | Reviewed | `internal-docs/audits/BT19/BT19-021-030.md` | Yes |
+| BT19-031–040 | Reviewed | `internal-docs/audits/BT19/BT19-031-040.md` | Yes |
+| BT19-041–050 | Reviewed | `internal-docs/audits/BT19/BT19-041-050.md` | Yes |
+| BT19-051–060 | Reviewed | `internal-docs/audits/BT19/BT19-051-060.md` | Yes |
+| BT19-061–070 | Reviewed | `internal-docs/audits/BT19/BT19-061-070.md` | Yes |
+| BT19-071–080 | Reviewed | `internal-docs/audits/BT19/BT19-071-080.md` | Yes |
+| BT19-081–090 | Reviewed | `internal-docs/audits/BT19/BT19-081-090.md` | Yes |
+| BT19-091–100 | Reviewed | `internal-docs/audits/BT19/BT19-091-100.md` | Yes |
+| BT19-101–102 | Reviewed | `internal-docs/audits/BT19/BT19-101-102.md` | Yes |
 
 ## Score model
 

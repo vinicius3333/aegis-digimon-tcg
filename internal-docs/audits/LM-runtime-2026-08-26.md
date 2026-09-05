@@ -90,6 +90,5 @@ runtime validation as the rest of the collection.
 ## Required closeout
 
 Run one explicit `LM-<id>.test.ts` process at a time with forks/single-fork/no file
-parallelism after the unrelated root-worktree Vitest process clears.  Ask the
-coordinator before the final collection gate, then run typecheck, inventory and
+parallelism after the unrelated root-worktree Vitest process clears. Run the final collection gate, then run typecheck, inventory and
 `git diff --check`; only then may the rows be promoted to reproducible 10/10.

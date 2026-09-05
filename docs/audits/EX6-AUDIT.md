@@ -597,7 +597,7 @@ is the unrelated Vitest PID 82901.
 
 - Catalog/KB evidence: Main optionally places a Seven Great Demon Lords card from hand/trash under a breeding Gate, then places itself in battle; deletion arms Delay to optionally play one such Digimon specifically from that Gate's digivolution cards. Q3819 permits the Main Option placement even without a source card.
 - Defects corrected: the Delay play could enumerate unrelated own stacks, and the Main placement defaulted directly below the stack top rather than the printed bottom. Its `hostFilter` now explicitly restricts digivolution-card candidates to a controller-owned `Gate of Deadly Sins` in `breeding`, and Main explicitly sets `position: "bottom"`.
-- Focused execution: coordinator ran `EX6-070.test.ts` in the first authorized serial window using forks, `singleFork`, and no file parallelism. After correcting the test-only registry import to `../../engine/effects/registry.js`, it passed reproducibly: 1 file, 2/2 tests, 7.53s.
+- Focused execution: the audit ran `EX6-070.test.ts` in the first authorized serial window using forks, `singleFork`, and no file parallelism. After correcting the test-only registry import to `../../engine/effects/registry.js`, it passed reproducibly: 1 file, 2/2 tests, 7.53s.
 - Status: focused proof is green; collection and broader mechanism gates remain queued, so this is not collection completion or a 10/10 claim.
 
 ## EX6-070 — Phantom Pain — evidence in progress

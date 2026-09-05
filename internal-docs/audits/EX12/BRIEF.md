@@ -9,7 +9,7 @@ your batch, in ascending order. Read the skill file first.
 ## What you must not trust
 
 `apps/api/src/cards/EX12/AUDIT.md` already scores every EX12 card 10/10. Treat that as a claim
-to falsify. The coordinator already proved two gaps the ledger missed:
+to falsify. The audit established two gaps the ledger missed:
 
 - 35 of 77 persisted records in `packages/shared/src/effects/effects.json` differ from the
   direct module. Your batch's drift list is in your task prompt. For each drifted card, read
@@ -58,7 +58,7 @@ to falsify. The coordinator already proved two gaps the ledger missed:
   and the test that proves the need into your report, score the card below 10/10, and move on.
 - Never add `registerCard`. Keep exactly one `registerIrCard("<ID>", compiled)` call.
 - Keep `coverage: "full"` and `residual: []` honest. If a clause is not executable, say so.
-- Do not run vitest, typecheck, lint, or formatters. The coordinator runs every gate once at
+- Do not run vitest, typecheck, lint, or formatters. Verification executes every gate once at
   the end. Keep test code compilable by reading neighboring tests and the harness types.
 - No git commands of any kind. No pushes. Nothing outside the worktree.
 

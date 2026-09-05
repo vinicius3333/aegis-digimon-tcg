@@ -30,7 +30,7 @@ Existing ledgers are prior evidence, not permission to skip a collection. Each c
 
 The durable integration branch is `audit-bt-card-by-card`. Only one collection is active at a time. Its cards are divided into contiguous, non-overlapping ranges and assigned to three child worktrees running Codex Luna. A worker processes its assigned range in ascending card-ID order and makes one atomic commit per audited card whenever code or proof changes. Documentation-only findings may be grouped only when no card implementation or behavioral proof changes.
 
-Workers own disjoint card modules, colocated tests, and range reports. Shared engine changes are isolated in their originating branch and called out in the worker completion report so the coordinator can serialize merges. The coordinator integrates completed branches without rebasing or squashing, resolves shared-seam conflicts, assembles the collection ledger in ascending card order, and starts the next collection only after the active one reaches an honest terminal state.
+Workers own disjoint card modules, colocated tests, and range reports. Shared engine changes are isolated in their originating branch. Completed branches are integrated sequentially without rebasing or squashing, with shared-seam conflicts resolved and the collection ledger assembled in ascending card order. The next collection starts only after the active one reaches an honest terminal state.
 
 The first BT1 wave is:
 
@@ -67,7 +67,7 @@ Each active collection gets one canonical ledger named `docs/audits/BT<N>-AUDIT.
 - explicit ambiguities, unsupported engine behavior, and tests not run;
 - aggregate totals for audited, corrected, provisional, blocked, and verified 10/10 cards.
 
-Range reports under `internal-docs/audits/BT<N>/` preserve worker detail and make parallel work mergeable. The coordinator folds them into the canonical ledger; a range report never proves collection completion by itself.
+Range reports under `internal-docs/audits/BT<N>/` preserve worker detail and make parallel work mergeable. Their evidence is consolidated into the canonical ledger; a range report never proves collection completion by itself.
 
 ## Validation policy for this pass
 
@@ -82,7 +82,7 @@ Consequences:
 
 ## Integration and completion gates
 
-After a wave reports completion, the coordinator reviews every diff and range report, merges non-conflicting branches into `audit-bt-card-by-card`, reconciles shared engine changes, and updates the canonical collection ledger. A fresh Luna wave receives the next unassigned ranges. This repeats until the collection has a record for every catalog card.
+After a wave completes, every diff and range report is reviewed, non-conflicting branches are merged into `audit-bt-card-by-card`, shared engine changes are reconciled, and the canonical collection ledger is updated. A fresh Luna wave receives the next unassigned ranges. This repeats until the collection has a record for every catalog card.
 
 When test execution is later authorized, the collection closeout requires focused tests for every card, every affected engine-mechanism suite, the collection audit suite, `pnpm typecheck`, formatting/lint required by the repository, and `git diff --check`. Only then may every supported card become 10/10, the branch be pushed, and the required Orca completion notification be sent. Any ambiguity or unsupported engine behavior keeps the affected card below 10/10 and the collection open.
 

@@ -1,7 +1,6 @@
 # LM serial low-RAM queue
 
-Do not start this queue while broad Vitest PID/PGID 82901 is active. After it exits, wait for a
-fresh explicit coordinator authorization that reopens the one-test slot. Run exactly one listed
+Do not start this queue while broad Vitest PID/PGID 82901 is active. After it exits, run exactly one listed
 file per process, in order, with no file parallelism:
 
 ```sh
@@ -9,8 +8,7 @@ pnpm --filter @aegis/api exec vitest run src/cards/LM/<CARD-ID>.test.ts --pool=f
 ```
 
 Do not wrap these paths in a shell loop or pass multiple files to one process. After all focused
-files and applicable mechanism files are green, request coordinator permission before the single
-collection gate.
+files and applicable mechanism files are green, run the single collection gate.
 
 Before executing LM-050–053, update this worktree from `origin/main` after EX6 commit
 `d1082a712` has merged. That commit is the generic Delay-engine integration dependency; the LM

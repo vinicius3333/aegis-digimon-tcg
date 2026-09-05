@@ -11,7 +11,7 @@ This campaign ledger follows the repository's `verify-card-implementation`
 protocol and the chronological execution plan in
 `docs/plans/2026-08-27-bt-card-by-card-audit.md`. Detailed clause traces are
 written in English under `internal-docs/audits/BT16/` and integrated here only
-after coordinator review. Every card must be reread independently against the
+after review. Every card must be reread independently against the
 immutable catalog, current KB, direct module, compiled IR and shared runtime,
 useful peers, and behavior-driving source proof.
 
@@ -25,17 +25,17 @@ collection-complete claim is valid.
 
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
-| BT16-001–010 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-001-010.md` | Yes |
-| BT16-011–020 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-011-020.md` | Yes |
-| BT16-021–030 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-021-030.md` | Yes |
-| BT16-031–040 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-031-040.md` | Yes |
-| BT16-041–050 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-041-050.md` | Yes |
-| BT16-051–060 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-051-060.md` | Yes |
-| BT16-061–070 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-061-070.md` | Yes |
-| BT16-071–080 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-071-080.md` | Yes |
-| BT16-081–090 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-081-090.md` | Yes |
-| BT16-091–100 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-091-100.md` | Yes |
-| BT16-101–102 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-101-102.md` | Yes |
+| BT16-001–010 | Reviewed | `internal-docs/audits/BT16/BT16-001-010.md` | Yes |
+| BT16-011–020 | Reviewed | `internal-docs/audits/BT16/BT16-011-020.md` | Yes |
+| BT16-021–030 | Reviewed | `internal-docs/audits/BT16/BT16-021-030.md` | Yes |
+| BT16-031–040 | Reviewed | `internal-docs/audits/BT16/BT16-031-040.md` | Yes |
+| BT16-041–050 | Reviewed | `internal-docs/audits/BT16/BT16-041-050.md` | Yes |
+| BT16-051–060 | Reviewed | `internal-docs/audits/BT16/BT16-051-060.md` | Yes |
+| BT16-061–070 | Reviewed | `internal-docs/audits/BT16/BT16-061-070.md` | Yes |
+| BT16-071–080 | Reviewed | `internal-docs/audits/BT16/BT16-071-080.md` | Yes |
+| BT16-081–090 | Reviewed | `internal-docs/audits/BT16/BT16-081-090.md` | Yes |
+| BT16-091–100 | Reviewed | `internal-docs/audits/BT16/BT16-091-100.md` | Yes |
+| BT16-101–102 | Reviewed | `internal-docs/audits/BT16/BT16-101-102.md` | Yes |
 
 Process note: during BT16-011 inspection, the worker accidentally invoked one
 scoped `git diff --check -- <files>` command. It returned no output, was

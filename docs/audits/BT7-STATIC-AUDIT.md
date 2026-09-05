@@ -11,12 +11,12 @@ This campaign ledger follows the repository's `verify-card-implementation`
 protocol and the chronological execution plan in
 `docs/plans/2026-08-27-bt-card-by-card-audit.md`. Detailed clause traces are
 written in English under `internal-docs/audits/BT7/` and integrated here only
-after coordinator review.
+after review.
 
 ## Current execution state
 
 The range reports preserve their original static-pass observations, while
-this coordinator ledger records the completed integration and execution
+this ledger records the completed integration and execution
 gates. The committed snapshot is generated from the authoritative card
 modules with `pnpm effects:sync:set -- --set BT7 --base origin/main`; check
 mode proves idempotence and byte-for-byte stability outside BT7.

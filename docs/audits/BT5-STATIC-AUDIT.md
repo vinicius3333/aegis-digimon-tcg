@@ -10,7 +10,7 @@ This campaign ledger follows the repository's `verify-card-implementation` proto
 
 ## Current execution state
 
-Three Luna/high workers completed the static card-by-card review in disjoint ranges without running local gates. The coordinator then integrated the results, reconciled all 112 persisted records through the scoped generator, corrected the remaining private-look and exact-name boundaries, and ran every applicable gate serially with one Vitest fork and no file parallelism. The archival range reports preserve worker-stage observations; this ledger supersedes their deferred-gate and stale-snapshot statements.
+Three Luna/high workers completed the static card-by-card review in disjoint ranges without running local gates. The integration pass incorporated the results, reconciled all 112 persisted records through the scoped generator, corrected the remaining private-look and exact-name boundaries, and ran every applicable gate serially with one Vitest fork and no file parallelism. The archival range reports preserve worker-stage observations; this ledger supersedes their deferred-gate and stale-snapshot statements.
 
 | Range       | Worker state   | Range report                              | Integrated |
 | ----------- | -------------- | ----------------------------------------- | ---------- |

@@ -3,11 +3,11 @@
 Status: all 2,792 catalog cards have integrated provisional static evidence;
 delivery gates remain unexecuted
 
-Audit date: 2026-08-29  
+Audit date: 2026-08-29
 Catalog authority: `packages/shared/src/cards/data/cards.json` blob
 `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
-This is the coordinator's aggregate reconciliation of the card-by-card static
+This is aggregate reconciliation of the card-by-card static
 campaign for BT1 through BT26. The authoritative detailed evidence is the 299
 range reports under `internal-docs/audits/BT1/` through
 `internal-docs/audits/BT26/`, together with the current per-set static ledgers.
@@ -139,7 +139,7 @@ reconciliation uses the immutable `efbecc...` blob stated above.
 
 ## Remaining delivery work
 
-Static audit coverage and coordinator integration are reconciled for every
+Static audit coverage and integration are reconciled for every
 BT1–BT26 catalog card. Reproducible 10/10 evidence, green focused/mechanism/
 collection tests, typecheck, lint/formatting, browser/UI validation where
 applicable, and clean delivery-gate execution remain deliberately outside this
@@ -151,7 +151,7 @@ notification or Orca completed status is justified.
 The aggregate reconciliation and BT25 arithmetic correction were committed in
 `2f0c31e2180256723b2abc3d67892b79f3cb5f80` and pushed normally to
 `origin/audit-bt-card-by-card`. After removing an unrelated zero-byte,
-untracked `direct` artifact that appeared during coordination, ordinary status
+untracked `direct` artifact that appeared during the audit, ordinary status
 was clean; local HEAD and upstream were exact at that commit and divergence
 was `0 0`.
 

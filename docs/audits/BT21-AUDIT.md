@@ -8,7 +8,7 @@ Status: complete — 102/102 cards verified at 10/10
 
 The audit reconciled every card from `BT21-001` through `BT21-102` against the committed card catalog, the local rules knowledge base, its direct TypeScript module, colocated behavioral tests, representative peer and stack paths, shared interpreter mechanisms, and the persisted effects catalog.
 
-Three Luna/high agents reviewed non-overlapping ranges under a resource-constrained workflow. Tests were reserved for the coordinator and executed serially with one fork, no file parallelism, and explicit hard timeouts. The same three auditors challenged the final typed production diff; their Security timing, DigiXros, and missing Security-branch findings were corrected and rechecked. Findings were promoted only after catalog or KB confirmation and observable regression proof.
+Three Luna/high agents reviewed non-overlapping ranges under a resource-constrained workflow. Tests were reserved and executed serially with one fork, no file parallelism, and explicit hard timeouts. The same three auditors challenged the final typed production diff; their Security timing, DigiXros, and missing Security-branch findings were corrected and rechecked. Findings were promoted only after catalog or KB confirmation and observable regression proof.
 
 The historical range reports under `internal-docs/audits/BT21/` and the prior internal collection ledger are superseded by this report and `docs/audits/BT21-STATIC-AUDIT.md`.
 

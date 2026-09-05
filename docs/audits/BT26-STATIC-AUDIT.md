@@ -9,7 +9,7 @@ static-only campaign and its 765/1040 subtotal. Each card was rechecked against
 the committed catalog, its local rules/knowledge-base entry, the direct
 TypeScript module, the relevant shared engine semantics, and observable
 behavioral tests. Three Luna/high workers performed independent bounded
-inspection batches; the coordinator integrated every result in card-ID order
+inspection batches; the integration pass incorporated every result in card-ID order
 and ran all tests serially with explicit timeouts.
 
 All 104 direct modules in `apps/api/src/cards/BT26/` register executable

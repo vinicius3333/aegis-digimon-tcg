@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./EX9-025.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 
@@ -84,5 +85,21 @@ describe("EX9-025", () => {
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.state.players[1]!.deck).toHaveLength(1);
     expect(target.currentDP).toBe(5000);
+  });
+
+  it("evolves legally and resolves inherited Barrier against a real attack", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX9-025", as: "host" }], hand: [{ card: "BT1-057", as: "evo" }], security: ["BT1-001"] }, 1: { battleArea: [{ card: "BT1-015", as: "attacker" }] } });
+    s.state.memory = 5;
+    await s.ready();
+    const host = s.perm("host");
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: host.permanentId, instanceId: s.inst("evo").instanceId })).toEqual({ ok: true });
+    await settle(() => host.topCard.cardId === "BT1-057");
+    expect(observe(s.engine).hasKeyword(host, "Barrier")).toBe(true);
+    s.state.turnSeat = 1;
+    expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "permanent", permanentId: host.permanentId } })).toEqual({ ok: true });
+    await settle(() => s.events.some(({ kind }) => kind === "barrierPrompt"));
+    expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: host.permanentId, accept: true })).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === host.permanentId)).toBe(true);
   });
 });

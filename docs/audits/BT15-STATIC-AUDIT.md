@@ -11,7 +11,7 @@ This campaign ledger follows the repository's `verify-card-implementation`
 protocol and the chronological execution plan in
 `docs/plans/2026-08-27-bt-card-by-card-audit.md`. Detailed clause traces are
 written in English under `internal-docs/audits/BT15/` and integrated here only
-after coordinator review. The prior `internal-docs/audits/BT15-runtime-2026-08-25.md`
+after review. The prior `internal-docs/audits/BT15-runtime-2026-08-25.md`
 report is supporting evidence only; every card must be reread against the
 immutable catalog, current KB, direct module, shared runtime, and
 behavior-driving source.
@@ -26,17 +26,17 @@ collection-complete claim is valid.
 
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
-| BT15-001–010 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-001-010.md` | Yes |
-| BT15-011–020 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-011-020.md` | Yes |
-| BT15-021–030 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-021-030.md` | Yes |
-| BT15-031–040 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-031-040.md` | Yes |
-| BT15-041–050 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-041-050.md` | Yes |
-| BT15-051–060 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-051-060.md` | Yes |
-| BT15-061–070 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-061-070.md` | Yes |
-| BT15-071–080 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-071-080.md` | Yes |
-| BT15-081–090 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-081-090.md` | Yes |
-| BT15-091–100 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-091-100.md` | Yes |
-| BT15-101–102 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-101-102.md` | Yes |
+| BT15-001–010 | Reviewed | `internal-docs/audits/BT15/BT15-001-010.md` | Yes |
+| BT15-011–020 | Reviewed | `internal-docs/audits/BT15/BT15-011-020.md` | Yes |
+| BT15-021–030 | Reviewed | `internal-docs/audits/BT15/BT15-021-030.md` | Yes |
+| BT15-031–040 | Reviewed | `internal-docs/audits/BT15/BT15-031-040.md` | Yes |
+| BT15-041–050 | Reviewed | `internal-docs/audits/BT15/BT15-041-050.md` | Yes |
+| BT15-051–060 | Reviewed | `internal-docs/audits/BT15/BT15-051-060.md` | Yes |
+| BT15-061–070 | Reviewed | `internal-docs/audits/BT15/BT15-061-070.md` | Yes |
+| BT15-071–080 | Reviewed | `internal-docs/audits/BT15/BT15-071-080.md` | Yes |
+| BT15-081–090 | Reviewed | `internal-docs/audits/BT15/BT15-081-090.md` | Yes |
+| BT15-091–100 | Reviewed | `internal-docs/audits/BT15/BT15-091-100.md` | Yes |
+| BT15-101–102 | Reviewed | `internal-docs/audits/BT15/BT15-101-102.md` | Yes |
 
 ## Score model
 

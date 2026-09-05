@@ -12,10 +12,9 @@
 
 ## Audit Child Worktree Completion
 
-- An audit child worktree must not finish silently. Only after its entire collection is recalculated and every card has reproducible 10/10 evidence, green focused/mechanism/collection tests, clean `git diff --check`, atomic commits, and pushed branches, it must notify the coordinator before becoming idle.
-- The completion notification must update the Orca card and comment:
+- An audit child worktree may only be marked complete after its entire collection is recalculated and every card has reproducible 10/10 evidence, green focused/mechanism/collection tests, clean `git diff --check`, atomic commits, and pushed branches.
+- Completion must update the Orca card and comment:
 
   `orca worktree set --worktree active --workspace-status completed --comment "COLLECTION COMPLETE: <SET>; 100% 10/10; branch pushed" --json`
 
-- It must also send a coordinator message containing the collection, card count, test results, latest commit, push result, and remaining queue. Prefer `orca orchestration send --type status` when a Run is bound; otherwise use `orca terminal send` to the coordinator terminal handle from the active orchestration context.
-- After notifying, the worker must remain available for coordinator instructions and must not claim completion from a single card, checkpoint, timeout, or partial regression.
+- The worker must not claim completion from a single card, checkpoint, timeout, or partial regression.

@@ -17,7 +17,7 @@ protocol and the chronological execution plan in
 card-by-card coverage but remains open for its deferred execution gates and
 recorded limitations; BT17 integration begins only after that static coverage
 was recorded. Detailed clause traces are written in English under
-`internal-docs/audits/BT17/` and integrated here only after coordinator review.
+`internal-docs/audits/BT17/` and integrated here only after review.
 
 ## Current execution state
 
@@ -29,17 +29,17 @@ collection-complete claim is valid.
 
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
-| BT17-001–010 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-001-010.md` | Yes |
-| BT17-011–020 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-011-020.md` | Yes |
-| BT17-021–030 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-021-030.md` | Yes |
-| BT17-031–040 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-031-040.md` | Yes |
-| BT17-041–050 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-041-050.md` | Yes |
-| BT17-051–060 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-051-060.md` | Yes |
-| BT17-061–070 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-061-070.md` | Yes |
-| BT17-071–080 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-071-080.md` | Yes |
-| BT17-081–090 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-081-090.md` | Yes |
-| BT17-091–100 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-091-100.md` | Yes |
-| BT17-101–102 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-101-102.md` | Yes |
+| BT17-001–010 | Reviewed | `internal-docs/audits/BT17/BT17-001-010.md` | Yes |
+| BT17-011–020 | Reviewed | `internal-docs/audits/BT17/BT17-011-020.md` | Yes |
+| BT17-021–030 | Reviewed | `internal-docs/audits/BT17/BT17-021-030.md` | Yes |
+| BT17-031–040 | Reviewed | `internal-docs/audits/BT17/BT17-031-040.md` | Yes |
+| BT17-041–050 | Reviewed | `internal-docs/audits/BT17/BT17-041-050.md` | Yes |
+| BT17-051–060 | Reviewed | `internal-docs/audits/BT17/BT17-051-060.md` | Yes |
+| BT17-061–070 | Reviewed | `internal-docs/audits/BT17/BT17-061-070.md` | Yes |
+| BT17-071–080 | Reviewed | `internal-docs/audits/BT17/BT17-071-080.md` | Yes |
+| BT17-081–090 | Reviewed | `internal-docs/audits/BT17/BT17-081-090.md` | Yes |
+| BT17-091–100 | Reviewed | `internal-docs/audits/BT17/BT17-091-100.md` | Yes |
+| BT17-101–102 | Reviewed | `internal-docs/audits/BT17/BT17-101-102.md` | Yes |
 
 ## Score model
 

@@ -14,14 +14,13 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 ### Deferred validation checklist
 
 - Do not start any validation while either external PGID `82901` or `97051` exists. Once both are
-  absent, obtain coordinator authorization before starting the next single focused file.
+  absent, start the next single focused file.
 - Run only one explicit card file per process, using
   `pnpm --filter @aegis/api exec vitest run src/cards/LM/LM-###.test.ts --pool=forks
   --poolOptions.forks.singleFork=true --no-file-parallelism`; record the exact card, command, and
   result in this ledger before advancing to the next card.
-- Run the applicable mechanism tests only after its focused proof is green. Request a separate
-  coordinator decision gate before the collection test; do not infer collection authorization from
-  a focused or mechanism pass.
+- Run the applicable mechanism tests only after its focused proof is green. Run the collection
+  test after all focused and applicable mechanism tests pass.
 - Re-run `git diff --check`, commit any audit changes atomically, and push normally before any
   collection-complete notification. LM-029's former KB association conflict was resolved by the
   category-aware Q&A parser; it remains below 10/10 only pending the same complete validation
@@ -56,7 +55,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 
 - Q3989/Q3990 require live hand-count re-evaluation across simultaneous copies; direct Main and
   inherited attack Draw actions each gate on hand at seven-or-fewer. Focused cases include the
-  two-copy threshold and inherited-host timing. The coordinator independently ran the serialized
+  two-copy threshold and inherited-host timing. The audit independently ran the serialized
   focused command on 2026-08-26; `LM-002.test.ts` passed 1/1 file and 7/7 tests in 3.14s. LM-002
   remains below 10/10 pending relevant mechanism and collection gates.
 
@@ -452,7 +451,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 - Static audit found no catalog, Q&A, direct-IR, registration, shared-primitive, or focused-fixture
   gap: the self-bound blue alternative preserves the printed Green requirement, the reveal filter
   is Green-or-Blue Digimon, and Main Delay/Security remain independent. Tests are deliberately
-  unrun per coordinator instruction, so LM-036 remains below 10/10.
+  unrun per instruction, so LM-036 remains below 10/10.
 
 ## LM-037 — Sepia Memory Boost! — static audit complete; pending focused authorization
 
@@ -466,7 +465,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 - Static audit found no catalog, Q&A, direct-IR, registration, shared-primitive, or focused-fixture
   gap: the self-bound yellow alternative preserves the printed Black requirement, the reveal
   filter is Black-or-Yellow Digimon, and Main Delay/Security remain independent. Tests are
-  deliberately unrun per coordinator instruction, so LM-037 remains below 10/10.
+  deliberately unrun per instruction, so LM-037 remains below 10/10.
 
 ## LM-038 — Grape Memory Boost! — static audit complete; pending focused authorization
 
@@ -477,7 +476,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 - Focused behavior covers the native/alternative colour-source paths, breeding ruling, rejection,
   search resolution, and Security. Shared Delay proof covers lifecycle behavior, and the stale
   card-comment citations are corrected to Q4073/Q4074.
-- Static audit found no catalog, Q&A, direct-IR, registration, shared-primitive, or focused-fixture gap: the self-bound green alternative preserves the printed Purple requirement, the reveal filter is Purple-or-Green Digimon, and Main Delay/Security remain independent. Tests are deliberately unrun per coordinator instruction, so LM-038 remains below 10/10.
+- Static audit found no catalog, Q&A, direct-IR, registration, shared-primitive, or focused-fixture gap: the self-bound green alternative preserves the printed Purple requirement, the reveal filter is Purple-or-Green Digimon, and Main Delay/Security remain independent. Tests are deliberately unrun per instruction, so LM-038 remains below 10/10.
 
 ## LM-039 — Valkyrimon — static audit complete; pending focused authorization
 
@@ -494,7 +493,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   snapshot when the card module is loaded, while an isolated shared-artifact consumer would not
   preserve the fallback semantics. This shared-artifact mismatch is a static audit gap; the
   focused fixture covers the direct module path, and tests remain deliberately unrun per
-  coordinator instruction, so LM-039 remains below 10/10.
+  instruction, so LM-039 remains below 10/10.
 
 ## LM-040 — Vikemon — static audit complete; pending focused authorization
 
@@ -513,8 +512,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   and encodes the mandatory Security-Digimon debuff as permanent `ModifyDP` rather than
   `ModifySecurityDP`. `registerIrCard` overwrites the snapshot when the direct module is loaded,
   so the focused fixture exercises the corrected direct path; an isolated shared-artifact consumer
-  would not. This is a static shared-artifact gap. Tests remain deliberately unrun per coordinator
-  instruction, so LM-040 remains below 10/10.
+  would not. This is a static shared-artifact gap. Tests remain deliberately unrun per instruction, so LM-040 remains below 10/10.
 
 ## LM-041 — Regalecusmon — pending focused execution
 

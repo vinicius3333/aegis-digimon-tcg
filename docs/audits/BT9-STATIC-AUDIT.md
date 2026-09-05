@@ -13,7 +13,7 @@ protocol and the chronological execution plan in
 `docs/audits/BT9-AUDIT.md` is retained intact as historical verification evidence; this
 pass independently revalidates the current direct implementations. Detailed
 clause traces are written in English under `internal-docs/audits/BT9/` and
-integrated here only after coordinator review.
+integrated here only after review.
 
 ## Current execution state
 
@@ -26,18 +26,18 @@ zero semantic or byte changes outside BT9.
 
 | Range       | Worker state         | Range report                              | Integrated |
 | ----------- | -------------------- | ----------------------------------------- | ---------- |
-| BT9-001–010 | Coordinator reviewed | `internal-docs/audits/BT9/BT9-001-010.md` | Yes        |
-| BT9-011–020 | Coordinator reviewed | `internal-docs/audits/BT9/BT9-011-020.md` | Yes        |
-| BT9-021–030 | Coordinator reviewed | `internal-docs/audits/BT9/BT9-021-030.md` | Yes        |
-| BT9-031–040 | Coordinator reviewed | `internal-docs/audits/BT9/BT9-031-040.md` | Yes        |
-| BT9-041–050 | Coordinator reviewed | `internal-docs/audits/BT9/BT9-041-050.md` | Yes        |
-| BT9-051–060 | Coordinator reviewed | `internal-docs/audits/BT9/BT9-051-060.md` | Yes        |
-| BT9-061–070 | Coordinator reviewed | `internal-docs/audits/BT9/BT9-061-070.md` | Yes        |
-| BT9-071–080 | Coordinator reviewed | `internal-docs/audits/BT9/BT9-071-080.md` | Yes        |
-| BT9-081–090 | Coordinator reviewed | `internal-docs/audits/BT9/BT9-081-090.md` | Yes        |
-| BT9-091–100 | Coordinator reviewed | `internal-docs/audits/BT9/BT9-091-100.md` | Yes        |
-| BT9-101–110 | Coordinator reviewed | `internal-docs/audits/BT9/BT9-101-110.md` | Yes        |
-| BT9-111–112 | Coordinator reviewed | `internal-docs/audits/BT9/BT9-111-112.md` | Yes        |
+| BT9-001–010 | Reviewed | `internal-docs/audits/BT9/BT9-001-010.md` | Yes        |
+| BT9-011–020 | Reviewed | `internal-docs/audits/BT9/BT9-011-020.md` | Yes        |
+| BT9-021–030 | Reviewed | `internal-docs/audits/BT9/BT9-021-030.md` | Yes        |
+| BT9-031–040 | Reviewed | `internal-docs/audits/BT9/BT9-031-040.md` | Yes        |
+| BT9-041–050 | Reviewed | `internal-docs/audits/BT9/BT9-041-050.md` | Yes        |
+| BT9-051–060 | Reviewed | `internal-docs/audits/BT9/BT9-051-060.md` | Yes        |
+| BT9-061–070 | Reviewed | `internal-docs/audits/BT9/BT9-061-070.md` | Yes        |
+| BT9-071–080 | Reviewed | `internal-docs/audits/BT9/BT9-071-080.md` | Yes        |
+| BT9-081–090 | Reviewed | `internal-docs/audits/BT9/BT9-081-090.md` | Yes        |
+| BT9-091–100 | Reviewed | `internal-docs/audits/BT9/BT9-091-100.md` | Yes        |
+| BT9-101–110 | Reviewed | `internal-docs/audits/BT9/BT9-101-110.md` | Yes        |
+| BT9-111–112 | Reviewed | `internal-docs/audits/BT9/BT9-111-112.md` | Yes        |
 
 ## Score model
 

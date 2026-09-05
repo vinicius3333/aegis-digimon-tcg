@@ -11,7 +11,7 @@ This campaign ledger follows the repository's `verify-card-implementation`
 protocol and the chronological execution plan in
 `docs/plans/2026-08-27-bt-card-by-card-audit.md`. Detailed clause traces are
 written in English under `internal-docs/audits/BT8/` and integrated here only
-after coordinator review.
+after review.
 
 ## Current execution state
 
@@ -24,18 +24,18 @@ zero semantic or byte changes outside BT8.
 
 | Range       | Worker state         | Range report                              | Integrated |
 | ----------- | -------------------- | ----------------------------------------- | ---------- |
-| BT8-001–010 | Coordinator reviewed | `internal-docs/audits/BT8/BT8-001-010.md` | Yes        |
-| BT8-011–020 | Coordinator reviewed | `internal-docs/audits/BT8/BT8-011-020.md` | Yes        |
-| BT8-021–030 | Coordinator reviewed | `internal-docs/audits/BT8/BT8-021-030.md` | Yes        |
-| BT8-031–040 | Coordinator reviewed | `internal-docs/audits/BT8/BT8-031-040.md` | Yes        |
-| BT8-041–050 | Coordinator reviewed | `internal-docs/audits/BT8/BT8-041-050.md` | Yes        |
-| BT8-051–060 | Coordinator reviewed | `internal-docs/audits/BT8/BT8-051-060.md` | Yes        |
-| BT8-061–070 | Coordinator reviewed | `internal-docs/audits/BT8/BT8-061-070.md` | Yes        |
-| BT8-071–080 | Coordinator reviewed | `internal-docs/audits/BT8/BT8-071-080.md` | Yes        |
-| BT8-081–090 | Coordinator reviewed | `internal-docs/audits/BT8/BT8-081-090.md` | Yes        |
-| BT8-091–100 | Coordinator reviewed | `internal-docs/audits/BT8/BT8-091-100.md` | Yes        |
-| BT8-101–110 | Coordinator reviewed | `internal-docs/audits/BT8/BT8-101-110.md` | Yes        |
-| BT8-111–112 | Coordinator reviewed | `internal-docs/audits/BT8/BT8-111-112.md` | Yes        |
+| BT8-001–010 | Reviewed | `internal-docs/audits/BT8/BT8-001-010.md` | Yes        |
+| BT8-011–020 | Reviewed | `internal-docs/audits/BT8/BT8-011-020.md` | Yes        |
+| BT8-021–030 | Reviewed | `internal-docs/audits/BT8/BT8-021-030.md` | Yes        |
+| BT8-031–040 | Reviewed | `internal-docs/audits/BT8/BT8-031-040.md` | Yes        |
+| BT8-041–050 | Reviewed | `internal-docs/audits/BT8/BT8-041-050.md` | Yes        |
+| BT8-051–060 | Reviewed | `internal-docs/audits/BT8/BT8-051-060.md` | Yes        |
+| BT8-061–070 | Reviewed | `internal-docs/audits/BT8/BT8-061-070.md` | Yes        |
+| BT8-071–080 | Reviewed | `internal-docs/audits/BT8/BT8-071-080.md` | Yes        |
+| BT8-081–090 | Reviewed | `internal-docs/audits/BT8/BT8-081-090.md` | Yes        |
+| BT8-091–100 | Reviewed | `internal-docs/audits/BT8/BT8-091-100.md` | Yes        |
+| BT8-101–110 | Reviewed | `internal-docs/audits/BT8/BT8-101-110.md` | Yes        |
+| BT8-111–112 | Reviewed | `internal-docs/audits/BT8/BT8-111-112.md` | Yes        |
 
 ## Score model
 
