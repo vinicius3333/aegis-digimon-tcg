@@ -61,8 +61,15 @@ function registeredBorrowedEffect(ctx: EffectContext, borrowed: BorrowableEffect
   )[borrowed.triggerOrdinal];
 }
 
-function availableBorrowedEffects(ctx: EffectContext, effects: BorrowableEffect[]): BorrowableEffect[] {
+function availableBorrowedEffects(
+  ctx: EffectContext,
+  effects: BorrowableEffect[],
+  stackHostId?: string,
+): BorrowableEffect[] {
   return effects.filter((borrowed) => {
+    // A stack card lends its printed effect, but the host activates it (EX9-073 Q4841).
+    // Keep this timing identity separate from lender registration and usage identity.
+    const timingPermanentId = borrowed.sourcePermanentId ?? stackHostId;
     const disabledTiming =
       borrowed.effect.trigger === "WhenDigivolving"
         ? "whenDigivolving"
@@ -71,9 +78,9 @@ function availableBorrowedEffects(ctx: EffectContext, effects: BorrowableEffect[
           : undefined;
     if (
       disabledTiming !== undefined &&
-      borrowed.sourcePermanentId !== undefined &&
-      (ctx.fx.isTimingEffectDisabled?.(borrowed.sourcePermanentId, disabledTiming) ??
-        ctx.game.isTimingEffectDisabled?.(borrowed.sourcePermanentId, disabledTiming)) === true
+      timingPermanentId !== undefined &&
+      (ctx.fx.isTimingEffectDisabled?.(timingPermanentId, disabledTiming) ??
+        ctx.game.isTimingEffectDisabled?.(timingPermanentId, disabledTiming)) === true
     ) {
       return false;
     }
@@ -197,7 +204,11 @@ function collectForeignCandidates(
         );
       }
     }
-    const available = availableBorrowedEffects(ctx, borrowable);
+    const available = availableBorrowedEffects(
+      ctx,
+      borrowable,
+      action.zone === "digivolutionCards" ? ctx.source.permanent()?.permanentId : undefined,
+    );
     if (available.length === 0) continue;
     out.push({ instanceId: src.instanceId, cardId: src.cardId, permanentId: src.permanentId, borrowable: available });
   }
