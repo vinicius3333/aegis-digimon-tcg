@@ -15,3 +15,22 @@ The deletion primitive now captures the activation result alongside each deleted
 - Affected regression command: `pnpm --filter @aegis/api exec vitest run src/cards/ST16/ src/cards/BT12/BT12-072.test.ts src/cards/EX1/EX1-068.test.ts src/engine/effects/collect.test.ts src/engine/effects/grantAuraOwnership.test.ts src/engine/effects/grantedEffectLibrary.test.ts src/engine/effects/primitives.test.ts --maxWorkers=1 --no-file-parallelism`: 23 files, 217 tests passed; log `/tmp/aegis-st-grant-regression.log`.
 
 This fixes the identified Q824 failure. It does not certify the entire ST16 collection's printed clauses or the broader ST audit. Independent review accepted this effect-deletion fix and identified an adjacent battle-deletion path that still needs its own snapshot. A Luna worker owns that follow-up. API typecheck, targeted lint/format, and diff validation passed. Surviving recipients retain their live gates; only deleted recipients are frozen.
+
+## Battle deletion follow-up
+
+The same live-gate problem also affected combat's separate raw deletion path.
+Combat now prepares Material Save before capturing departing card identities,
+requests a snapshot of their grant activation state while they are still live,
+and forwards that snapshot to the deletion trigger. The GameEngine hook freezes
+only departing recipients; surviving recipients keep live activation gates.
+
+The new focused regression attacks a suspended 8000-DP opponent with the printed
+5000-DP Garurumon after granting ST16-15. It requires the original permanent to
+leave and the same physical card to return as a different permanent, so a check
+that merely sees the original pre-battle card cannot pass. The test failed
+before the snapshot hook was wired and passed afterward.
+
+- ST16-15 plus battleDeletionSnapshot: 6 tests passed (Luna focused run).
+- Combat controller and advanced keywords (including battle Material Save):
+  2 files, 56 tests passed; `/tmp/aegis-st-battle-regression.log`.
+- Targeted lint and formatting passed. API typecheck passed after this hook wiring.

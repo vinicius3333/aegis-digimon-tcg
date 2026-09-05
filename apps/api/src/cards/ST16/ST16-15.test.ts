@@ -76,6 +76,52 @@ describe("ST16-15 Lament of Friendship", () => {
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT10-079")).toBe(false);
   });
 
+  it("plays the granted Garurumon after it loses a battle", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST16-08", as: "garurumon" }],
+          hand: [{ card: "ST16-15", as: "option" }],
+          trash: [{ card: "ST16-02", as: "recover" }],
+        },
+        1: { battleArea: [{ card: "ST16-11", as: "opponent", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        (
+          s.engine as unknown as { continuous: { listCustomEffectGrants(): readonly unknown[] } }
+        ).continuous.listCustomEffectGrants().length > 0,
+    );
+
+    const originalPermanentId = s.perm("garurumon").permanentId;
+    const originalInstanceId = s.perm("garurumon").topCard!.instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("garurumon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("opponent").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[0]!.battleArea.some((p) => p.permanentId === originalPermanentId) &&
+        s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === originalInstanceId),
+    );
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === originalPermanentId)).toBe(false);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.perm("opponent").topCard.cardId).toBe("ST16-11");
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === originalInstanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "ST16-08")).toBe(false);
+  });
+
   it("activates its complete main effect from security", async () => {
     const s = setupEngine(
       {

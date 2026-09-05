@@ -758,6 +758,7 @@ export class GameEngine {
               deletedLinkHostInstanceByLinkedInstanceId: trigger.deletedLinkHostInstanceByLinkedInstanceId,
               fortitudeInstanceIds: trigger.fortitudeInstanceIds,
               deletedHostInstanceByInstanceId: trigger.deletedHostInstanceByInstanceId,
+              customEffectGrantsSnapshot: trigger.customEffectGrantsSnapshot,
               battleOpponentPermanentIdByInstanceId: trigger.battleOpponentPermanentIdByInstanceId,
             });
             return;
@@ -785,6 +786,7 @@ export class GameEngine {
           deletedLinkHostInstanceByLinkedInstanceId: trigger.deletedLinkHostInstanceByLinkedInstanceId,
           fortitudeInstanceIds: trigger.fortitudeInstanceIds,
           deletedHostInstanceByInstanceId: trigger.deletedHostInstanceByInstanceId,
+          customEffectGrantsSnapshot: trigger.customEffectGrantsSnapshot,
           battleOpponentPermanentIdByInstanceId: trigger.battleOpponentPermanentIdByInstanceId,
         });
       },
@@ -805,6 +807,12 @@ export class GameEngine {
       },
       consultLeavePrevention: async (permanentIds) => this.consultLeavePrevention(permanentIds, "byBattle"),
       dropPermanentSubscriptions: (permanentId) => this.dropPermanentSubscriptions(permanentId),
+      snapshotCustomEffectGrants: (departingInstanceIds) =>
+        this.continuous.listCustomEffectGrants().map((grant) => {
+          if (!departingInstanceIds.includes(grant.instanceId)) return grant;
+          const activeAtDeletion = grant.isActive?.() ?? true;
+          return { ...grant, isActive: () => activeAtDeletion };
+        }),
       checkSecurity: async (defenderSeat, attackerPermanentId, reason) =>
         this.runSecurityCheck(defenderSeat, attackerPermanentId, reason),
       // The pierce read seam: combat consults both the temporary modifier ledger and
