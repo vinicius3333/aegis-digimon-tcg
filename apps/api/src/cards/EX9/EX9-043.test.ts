@@ -5,6 +5,31 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("EX9-043", () => {
+  it("can pay the hand-trash reducer while being played for free after a real battle (Q4796)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT19-065", as: "machine" }], trash: ["EX9-043"], hand: ["BT1-021"] },
+        1: { security: ["ST1-10"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("machine").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX9-043"]);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-021");
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
   it("rejects the alternate DM route from a level-3 base", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "EX9-007", as: "base" }], hand: [{ card: "EX9-043", as: "metal" }] },
