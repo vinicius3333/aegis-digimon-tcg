@@ -86,16 +86,12 @@ describe("EX9-016", () => {
       instanceId: s.inst("evo").instanceId,
       useAlternateCost: true,
     });
-    if (egg === "EX9-001") {
-      expect(result).toEqual({ ok: true });
-      await settle();
-      expect(s.perm("base").topCard.cardId).toBe("EX9-016");
-      expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual([egg]);
-    } else {
-      expect(result).toEqual({ ok: false, reason: "invalid-evolution" });
-      expect(s.perm("base").topCard.cardId).toBe(egg);
-      expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX9-016"]);
-    }
+    const legal = egg === "EX9-001";
+    expect(result).toEqual(legal ? { ok: true } : { ok: false, reason: "invalid-evolution" });
+    await settle();
+    expect(s.perm("base").topCard.cardId).toBe(legal ? "EX9-016" : egg);
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(legal ? [egg] : []);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(legal ? ["BT1-009"] : ["EX9-016"]);
     expect(s.state.memory).toBe(3);
     expect(s.state.pendingDecision).toBeUndefined();
   });
