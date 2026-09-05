@@ -75,9 +75,10 @@ describe("EX11-070 Unchained", () => {
           battleArea: [
             { card: "EX11-070", as: "unchained" },
             { card: "EX11-034", as: "firstMaterial" },
-            { card: "EX11-029", as: "secondMaterial" },
+            { card: "EX11-045", as: "secondMaterial" },
           ],
           hand: [{ card: "EX11-073", as: "result" }],
+          deck: ["BT1-001", "BT1-002", "BT1-003"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -88,9 +89,9 @@ describe("EX11-070 Unchained", () => {
 
     expect(s.perm("result").topCard.cardId).toBe("EX11-073");
     expect(s.perm("result").stack.map(({ cardId }) => cardId)).toEqual(
-      expect.arrayContaining(["EX11-034", "EX11-029"]),
+      expect.arrayContaining(["EX11-034", "EX11-045"]),
     );
-    expect(s.state.memory).toBe(2);
+    expect(s.state.memory).toBe(7);
     assertNoLoudGap(s);
   });
 

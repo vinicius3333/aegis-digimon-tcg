@@ -170,6 +170,14 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  assemblyRequirement: [
+    {
+      reduceCost: 5,
+      materials: [
+        { kinds: ["Digimon"], colors: ["Green"], nameOrTrait: [{ tokens: ["Maquinamon"], match: "text" }], count: 5 },
+      ],
+    },
+  ],
 };
 
 registerIrCard("EX11-036", compiled);

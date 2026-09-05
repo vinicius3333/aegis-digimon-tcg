@@ -2,7 +2,7 @@ import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@a
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { assertNoLoudGap, setupEngine } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 const cardId = "EX11-052";
@@ -24,7 +24,7 @@ describe("EX11-052 HeavyMetaldramon", () => {
     const compiled = runtimeCompiledCard(cardId)!;
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.digivolutionRequirement).toEqual([
-      { level: 5, traits: ["Dark Dragon", "Evil Dragon"], cost: 3, isAlternate: true },
+      { level: 5, traits: ["Dark Dragon", "Evil Dragon"], cost: 4, isAlternate: true },
     ]);
     expect(digivolutionRequirementsFor(cardId)).toEqual(compiled.digivolutionRequirement);
     for (const trigger of ["OnPlay", "WhenDigivolving", "EndOfAttack"]) {
@@ -134,6 +134,31 @@ describe("EX11-052 HeavyMetaldramon", () => {
     await advance(s.engine).verb.deletePermanent([s.perm("second").permanentId]);
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[1]!.trash).toHaveLength(1);
+    assertNoLoudGap(s);
+  });
+  it.each(["BT4-058", "RB1-030"])("pays the printed 4 memory for the alternate route from %s", async (baseCard) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: baseCard, as: "base", under: ["BT1-009"] }],
+          hand: [{ card: cardId, as: "heavy" }],
+          deck: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        instanceId: s.inst("heavy").instanceId,
+        permanentId: s.perm("base").permanentId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === cardId && s.state.players[0]!.hand.length === 0, 600);
+    expect(s.state.memory).toBe(6);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT1-009", baseCard]);
     assertNoLoudGap(s);
   });
 });

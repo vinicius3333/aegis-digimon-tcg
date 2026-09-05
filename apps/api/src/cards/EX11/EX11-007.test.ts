@@ -8,7 +8,7 @@ import "./EX11-007.js";
 describe("EX11-007 Agumon", () => {
   it("binds one eligible Digimon for both turn-long keyword grants on play or moving", () => {
     const compiled = runtimeCompiledCard("EX11-007")!;
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Koromon"], cost: 0, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Koromon"], cost: 0, isAlternate: true }]);
     for (const trigger of ["WhenMoving", "OnPlay"]) {
       const effect = compiled.effects.find((entry) => entry.trigger === trigger)!;
       expect(effect.actions).toEqual([

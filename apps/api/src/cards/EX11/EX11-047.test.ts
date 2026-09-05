@@ -23,7 +23,7 @@ describe("EX11-047 Impmon", () => {
     });
     const compiled = runtimeCompiledCard(cardId)!;
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Yaamon"], cost: 0, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Yaamon"], cost: 0, isAlternate: true }]);
     expect(digivolutionRequirementsFor(cardId)).toEqual(compiled.digivolutionRequirement);
     expect(compiled.effects.find(({ trigger }) => trigger === "StartOfYourMainPhase")?.actions).toMatchObject([
       { kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: 1 } },
@@ -61,7 +61,7 @@ describe("EX11-047 Impmon", () => {
    * evoCost and the alternate `[Yaamon]: Cost 0` — so per CR 8-1-2-1 the declaring player picks
    * one. The manual digivolve intent carries that declaration in `useAlternateCost` (the
    * `chooseOption` route prompt exists only on the effect-driven path).
-   * FAILS-WHEN-REVERTED: dropping `{ names: ["Yaamon"], cost: 0 }` makes the alternate route
+   * FAILS-WHEN-REVERTED: dropping `{ namesExact: ["Yaamon"], cost: 0 }` makes the alternate route
    * unavailable, so the alternate case falls back to the printed cost and reads -1, not 0.
    */
   it("digivolves from a [Yaamon] Digi-Egg by either route, charging 0 or 1, and keeps Yaamon as its source", async () => {

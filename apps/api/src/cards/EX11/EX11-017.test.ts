@@ -51,7 +51,7 @@ describe("EX11-017 Skadimon", () => {
               count: 1,
               filter: {
                 controller: "mine",
-                nameOrTrait: [{ tokens: ["Suzune Kazuki"], match: "name" }],
+                nameOrTrait: [{ tokens: ["Suzune Kazuki"], match: "nameExact" }],
               },
               orFilters: [
                 {

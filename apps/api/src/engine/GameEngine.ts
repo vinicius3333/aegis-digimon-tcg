@@ -350,7 +350,8 @@ export function mergeRuleDeletions(pool: readonly PooledRuleDeletion[]): PooledR
         | "deletedInstanceIds"
         | "deletedWasStackInstanceIds"
         | "deletedWasLinkedInstanceIds"
-        | "deletedByDpZeroInstanceIds",
+        | "deletedByDpZeroInstanceIds"
+        | "fortitudeInstanceIds",
     ): string[] => [...(into[key] ?? []), ...(trigger[key] ?? [])];
     return {
       ...trigger,
@@ -359,6 +360,11 @@ export function mergeRuleDeletions(pool: readonly PooledRuleDeletion[]): PooledR
       deletedWasStackInstanceIds: union("deletedWasStackInstanceIds"),
       deletedWasLinkedInstanceIds: union("deletedWasLinkedInstanceIds"),
       deletedByDpZeroInstanceIds: union("deletedByDpZeroInstanceIds"),
+      fortitudeInstanceIds: union("fortitudeInstanceIds"),
+      deletedHostInstanceByInstanceId: {
+        ...trigger.deletedHostInstanceByInstanceId,
+        ...into.deletedHostInstanceByInstanceId,
+      },
       deletedLinkHostInstanceByLinkedInstanceId: {
         ...trigger.deletedLinkHostInstanceByLinkedInstanceId,
         ...into.deletedLinkHostInstanceByLinkedInstanceId,
@@ -750,6 +756,8 @@ export class GameEngine {
               deletedWasStackInstanceIds: trigger.deletedWasStackInstanceIds,
               deletedWasLinkedInstanceIds: trigger.deletedWasLinkedInstanceIds,
               deletedLinkHostInstanceByLinkedInstanceId: trigger.deletedLinkHostInstanceByLinkedInstanceId,
+              fortitudeInstanceIds: trigger.fortitudeInstanceIds,
+              deletedHostInstanceByInstanceId: trigger.deletedHostInstanceByInstanceId,
               battleOpponentPermanentIdByInstanceId: trigger.battleOpponentPermanentIdByInstanceId,
             });
             return;
@@ -775,6 +783,8 @@ export class GameEngine {
           deletedWasStackInstanceIds: trigger.deletedWasStackInstanceIds,
           deletedWasLinkedInstanceIds: trigger.deletedWasLinkedInstanceIds,
           deletedLinkHostInstanceByLinkedInstanceId: trigger.deletedLinkHostInstanceByLinkedInstanceId,
+          fortitudeInstanceIds: trigger.fortitudeInstanceIds,
+          deletedHostInstanceByInstanceId: trigger.deletedHostInstanceByInstanceId,
           battleOpponentPermanentIdByInstanceId: trigger.battleOpponentPermanentIdByInstanceId,
         });
       },
@@ -831,11 +841,6 @@ export class GameEngine {
           options: { candidateInstanceIds, min: 0, max: 1 },
         });
         return response.kind === "selectCards" ? response.instanceIds[0] : undefined;
-      },
-      // ＜Fortitude＞'s mandatory replay-on-deletion (§16-27): the instance is already loose in
-      // trash by the time this fires (the combat deletion loop moved it there).
-      replayFromTrash: async (instanceId) => {
-        await this.primitives.playInstances([instanceId]);
       },
       // ＜Fragment＞'s "choose exactly N, or decline" cost decision (§16-37): the same
       // selectCards decision channel as selectOptionalInstance, but requiring the full count

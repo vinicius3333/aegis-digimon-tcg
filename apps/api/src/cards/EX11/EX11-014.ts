@@ -19,7 +19,7 @@ const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Suzune Kazuki"],
-                    match: "name",
+                    match: "nameExact",
                   },
                 ],
               },
@@ -61,7 +61,7 @@ const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Hiyarimon"],
+      namesExact: ["Hiyarimon"],
       cost: 0,
       isAlternate: true,
     },

@@ -1,10 +1,6 @@
 import { describe, it, expect } from "vitest";
 import cards from "../cards/data/cards.json" with { type: "json" };
-import {
-  digivolutionRequirementsFor,
-  dnaDigivolutionRequirementsFor,
-  tamerOntoDigivolveLevel,
-} from "./data.js";
+import { digivolutionRequirementsFor, dnaDigivolutionRequirementsFor, tamerOntoDigivolveLevel } from "./data.js";
 import { digiXrosRequirementFor, digiXrosTrashNameAllowanceFor } from "./data.js";
 
 // Regression for the corresponding regression coverage finding 1: BT26 is hand-implemented
@@ -39,7 +35,9 @@ describe("digivolutionRequirementsFor / BT26 alternate digivolve coverage", () =
   });
 
   it("keeps only EX11-029's named Maquinamon alternate route", () => {
-    expect(digivolutionRequirementsFor("EX11-029")).toEqual([{ names: ["Maquinamon"], cost: 2, isAlternate: true }]);
+    expect(digivolutionRequirementsFor("EX11-029")).toEqual([
+      { namesExact: ["Maquinamon"], cost: 2, isAlternate: true },
+    ]);
   });
 
   it("keeps only EX11-030's Royal Base alternate route", () => {
@@ -54,7 +52,7 @@ describe("digivolutionRequirementsFor / BT26 alternate digivolve coverage", () =
         namesExact: ["GrandGalemon"],
         cost: 6,
         isAlternate: true,
-        controllerControls: { kind: ["Tamer"], namesExact: ["Shoto Kazama"], min: 1 },
+        controllerControls: { kind: ["Digimon", "Tamer"], namesExact: ["Shoto Kazama"], min: 1 },
       },
     ]);
   });

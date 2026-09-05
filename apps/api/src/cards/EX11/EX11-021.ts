@@ -19,7 +19,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Mirai Kinosaki"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },

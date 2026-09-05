@@ -26,7 +26,7 @@ describe("EX11-074 Vortexdramon", () => {
         namesExact: ["GrandGalemon"],
         cost: 6,
         isAlternate: true,
-        controllerControls: { kind: ["Tamer"], namesExact: ["Shoto Kazama"], min: 1 },
+        controllerControls: { kind: ["Digimon", "Tamer"], namesExact: ["Shoto Kazama"], min: 1 },
       },
     ]);
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });

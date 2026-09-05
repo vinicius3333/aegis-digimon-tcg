@@ -27,7 +27,7 @@ import { normalizeCost, placePermanent } from "./digiXros.js";
  *     the player's own declaration order when the requirement is a single repeated slot (§7-3-2-6)
  *
  * IR coverage: `AssemblyMaterial` carries `names`/`namesExact`/`traits`/`nameOrTrait`/`level`/`levelMin`/
- * `levelMax`/`differentLevels`/`differentNames`, all enforced below. `nameOrTrait` mirrors
+ * `levelMax`/`colors`/`differentLevels`/`differentNames`, all enforced below. `nameOrTrait` mirrors
  * `DigiXrosMaterial.nameOrTrait` for a genuine cross-kind disjunction the compiler can't flatten
  * into one AND-combined `names`+`traits` slot (e.g. EX12-016/-017's "in name or ... trait",
  * BT26-073's "in text or ... trait"). It also preserves alternatives with different trait
@@ -228,6 +228,10 @@ function materialMatchesAssemblySlot(
   if (!hasNameOrTrait) return false;
 
   if (slot.kinds && slot.kinds.length > 0 && !slot.kinds.some((kind) => def.kinds.includes(kind as never))) {
+    return false;
+  }
+
+  if (slot.colors && slot.colors.length > 0 && !slot.colors.some((color) => def.colors.includes(color as never))) {
     return false;
   }
 

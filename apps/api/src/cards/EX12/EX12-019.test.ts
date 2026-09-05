@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor } from "@aegis/shared";
+import { EffectDuration, digivolutionRequirementsFor } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import "../index.js";
+import "../BT16/BT16-042.js";
 
 describe("EX12-019 Nezhamon", () => {
   it("gains Digimon-source immunity and +4000 when an attack target switches, once per turn", async () => {
@@ -24,10 +25,61 @@ describe("EX12-019 Nezhamon", () => {
     expect(s.perm("source").currentDP).toBe(16000);
     expect(observe(s.engine).isRestrictedByEffect(s.perm("source"), "beAffected", "Digimon")).toBe(true);
     expect(observe(s.engine).isRestrictedByEffect(s.perm("source"), "beAffected", "Option")).toBe(false);
+
+    const sourceId = s.perm("source").permanentId;
+    advance(s.engine).verb.enterEffectResolution(0, ["Digimon"]);
+    await advance(s.engine).verb.modifyDP(sourceId, 1000, EffectDuration.UntilOpponentTurnEnd);
+    advance(s.engine).verb.leaveEffectResolution();
+    expect(s.perm("source").currentDP).toBe(17000);
+
+    advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
+    await advance(s.engine).verb.modifyDP(sourceId, -1000, EffectDuration.UntilOpponentTurnEnd);
+    advance(s.engine).verb.leaveEffectResolution();
+    expect(s.perm("source").currentDP).toBe(17000);
+
+    advance(s.engine).verb.enterEffectResolution(1, ["Option"]);
+    await advance(s.engine).verb.modifyDP(sourceId, -1000, EffectDuration.UntilOpponentTurnEnd);
+    advance(s.engine).verb.leaveEffectResolution();
+    expect(s.perm("source").currentDP).toBe(16000);
+
     await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
       attackerPermanentId: s.perm("other").permanentId,
     });
     expect(s.perm("source").currentDP).toBe(16000);
+  });
+
+  it("allows a real friendly Digimon effect while blocking opposing Digimon effects", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX12-019", as: "source", dp: 12000 },
+            { card: "BT1-009", as: "other" },
+          ],
+          hand: [{ card: "BT16-042", as: "blade" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("source").topCard!.instanceId);
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
+      attackerPermanentId: s.perm("other").permanentId,
+    });
+    expect(s.perm("source").currentDP).toBe(16000);
+
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blade").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("source").currentDP === 19000);
+    expect(s.perm("source").currentDP).toBe(19000);
+
+    advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
+    await advance(s.engine).verb.modifyDP(s.perm("source").permanentId, -1000, EffectDuration.UntilOpponentTurnEnd);
+    advance(s.engine).verb.leaveEffectResolution();
+    expect(s.perm("source").currentDP).toBe(19000);
   });
 
   it("unsuspends itself when its controller's security is removed, once per turn", async () => {
@@ -157,6 +209,7 @@ describe("EX12-019 Nezhamon", () => {
               kind: "Restrict",
               restriction: "beAffected",
               fromSourceKind: ["Digimon"],
+              byOpponentEffectsOnly: true,
               duration: "untilOpponentTurnEnd",
             },
             { kind: "ModifyDP", amount: 4000, duration: "untilOpponentTurnEnd" },

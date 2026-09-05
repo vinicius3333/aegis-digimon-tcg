@@ -13,6 +13,15 @@ const selfLinkScale: Scaling = {
 };
 
 export const compiled: CompiledCard = {
+  dnaDigivolveRequirement: [
+    {
+      cost: 0,
+      materials: [
+        { color: "Green", level: 6 },
+        { color: "Black", level: 6 },
+      ],
+    },
+  ],
   effects: [
     {
       trigger: "Static",

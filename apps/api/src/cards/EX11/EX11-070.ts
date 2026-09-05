@@ -27,7 +27,7 @@ export const compiled: CompiledCard = {
           into: {
             controllerDefault: "mine",
             kind: ["Digimon"],
-            nameOrTrait: [{ tokens: ["ExMaquinamon"], match: "name" }],
+            nameOrTrait: [{ tokens: ["ExMaquinamon"], match: "nameExact" }],
           },
           payCost: true,
           optional: true,
@@ -73,7 +73,7 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Tamer"],
-              nameOrTrait: [{ tokens: ["Unchained"], match: "name" }],
+              nameOrTrait: [{ tokens: ["Unchained"], match: "nameExact" }],
               // "from THIS Digimon's digivolution cards". The engine only auto-scopes a
               // `digivolutionCards` play to its host for ＜Decode＞ (play.ts applyDecodeHostScope),
               // so without this the clause pooled every Unchained under any of the controller's

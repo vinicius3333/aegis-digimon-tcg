@@ -29,6 +29,8 @@ export interface AppFusionRequirement {
 
 /** One Assembly material slot: `count` cards matching its name/trait predicates. */
 export interface AssemblyMaterial {
+  /** At least one printed color must match (EX11-036 green / EX11-045 black). */
+  colors?: ("Red" | "Blue" | "Yellow" | "Green" | "White" | "Black" | "Purple")[];
   /** Card kinds allowed as materials when the header says, for example, "Digimon cards". */
   kinds?: ("Digimon" | "Tamer" | "Option" | "DigiEgg")[];
   /** Name substrings for headers that explicitly say "in name". */

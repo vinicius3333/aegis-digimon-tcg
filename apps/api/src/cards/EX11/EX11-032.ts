@@ -32,7 +32,7 @@ const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
-              nameOrTrait: [{ tokens: ["Pteromon"], match: "name" }],
+              nameOrTrait: [{ tokens: ["Pteromon"], match: "nameExact" }],
             },
             count: 1,
           },
@@ -44,7 +44,7 @@ const compiled: CompiledCard = {
             kind: "youHave",
             filter: {
               controllerDefault: "mine",
-              nameOrTrait: [{ tokens: ["Shoto Kazama"], match: "name" }],
+              nameOrTrait: [{ tokens: ["Shoto Kazama"], match: "nameExact" }],
             },
             raw: "you have [Shoto Kazama]",
           },
@@ -54,7 +54,7 @@ const compiled: CompiledCard = {
               filter: {
                 zone: "trash",
                 controller: "mine",
-                nameOrTrait: [{ tokens: ["Galemon"], match: "name" }],
+                nameOrTrait: [{ tokens: ["Galemon"], match: "nameExact" }],
               },
               count: 1,
               from: ["trash"],
@@ -63,7 +63,7 @@ const compiled: CompiledCard = {
             underFilter: {
               controller: "mine",
               kind: ["Digimon"],
-              nameOrTrait: [{ tokens: ["Pteromon"], match: "name" }],
+              nameOrTrait: [{ tokens: ["Pteromon"], match: "nameExact" }],
             },
             destination: "digivolutionStack",
             position: "bottom",

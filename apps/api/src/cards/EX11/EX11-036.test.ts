@@ -9,6 +9,16 @@ import "../index.js";
 const cardId = "EX11-036";
 
 describe("EX11-036 Dalphomon", () => {
+  it("captures the official Assembly -5 recipe", () => {
+    expect(runtimeCompiledCard(cardId)?.assemblyRequirement).toEqual([
+      {
+        reduceCost: 5,
+        materials: [
+          { kinds: ["Digimon"], colors: ["Green"], nameOrTrait: [{ tokens: ["Maquinamon"], match: "text" }], count: 5 },
+        ],
+      },
+    ]);
+  });
   it("preserves printed stats, text evolution, Vortex, and self-scoped linking", () => {
     expect(getCardDefinition(cardId)).toMatchObject({
       nameEn: "Dalphomon",

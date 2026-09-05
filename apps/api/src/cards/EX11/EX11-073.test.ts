@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { EffectTiming, dnaDigivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -21,6 +21,67 @@ describe("EX11-073 ExMaquinamon", () => {
       types: ["Unique", "LIBERATOR"],
     });
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    expect(compiled.dnaDigivolveRequirement).toEqual([
+      {
+        cost: 0,
+        materials: [
+          { color: "Green", level: 6 },
+          { color: "Black", level: 6 },
+        ],
+      },
+    ]);
+    expect(dnaDigivolutionRequirementsFor("EX11-073")).toEqual(compiled.dnaDigivolveRequirement);
+  });
+
+  it("DNA digivolves from one green Lv.6 and one black Lv.6 at cost 0", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-080", as: "green" },
+          { card: "BT10-067", as: "black" },
+        ],
+        hand: [{ card: "EX11-073", as: "result" }],
+        deck: ["BT1-001", "BT1-002", "BT1-003"],
+      },
+    });
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("green").permanentId, s.perm("black").permanentId],
+        instanceId: s.inst("result").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    expect(s.perm("result").topCard?.cardId).toBe("EX11-073");
+    expect(s.perm("result").stack.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["BT1-080", "BT10-067"]));
+    expect(s.state.memory).toBe(0);
+    assertNoLoudGap(s);
+  });
+
+  it.each([
+    ["wrong colors", "BT1-080", "BT1-081"],
+    ["wrong level", "BT1-080", "AD1-011"],
+  ])("rejects DNA digivolution with %s", async (_label, first, second) => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: first, as: "first" },
+          { card: second, as: "second" },
+        ],
+        hand: [{ card: "EX11-073", as: "result" }],
+      },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("first").permanentId, s.perm("second").permanentId],
+        instanceId: s.inst("result").instanceId,
+      }).ok,
+    ).toBe(false);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("EX11-073");
   });
 
   it("has Security Attack +1 and Blocker while on the field", async () => {
@@ -64,7 +125,7 @@ describe("EX11-073 ExMaquinamon", () => {
           battleArea: [
             { card: "EX11-070", as: "unchained" },
             { card: "EX11-034", as: "first", linked: [{ card: "EX11-027", as: "materialLink" }] },
-            { card: "EX11-029", as: "second" },
+            { card: "BT10-067", as: "second" },
           ],
           hand: [{ card: "EX11-073", as: "result" }],
         },
@@ -85,7 +146,7 @@ describe("EX11-073 ExMaquinamon", () => {
       ),
     ).toBe(true);
     expect(s.perm("result").stack.map(({ cardId }) => cardId)).toEqual(
-      expect.arrayContaining(["EX11-034", "EX11-029", "EX11-070"]),
+      expect.arrayContaining(["EX11-034", "BT10-067"]),
     );
     assertNoLoudGap(s);
   });

@@ -68,7 +68,9 @@ export const compiled: CompiledCard = {
       namesExact: ["GrandGalemon"],
       cost: 6,
       isAlternate: true,
-      controllerControls: { kind: ["Tamer"], namesExact: ["Shoto Kazama"], min: 1 },
+      // CR 16-4-2/16-4-3: controllerControls checks the card's effective kinds;
+      // Shoto Kazama is both a Tamer and a Digimon card in the catalog.
+      controllerControls: { kind: ["Digimon", "Tamer"], namesExact: ["Shoto Kazama"], min: 1 },
     },
   ],
 };

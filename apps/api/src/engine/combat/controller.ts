@@ -126,6 +126,10 @@ export interface CombatTrigger {
   battleOpponentPermanentIdByInstanceId?: Record<string, string>;
   /** Retaliation holders actually deleted in battle, paired with their battled opponent. */
   retaliationTargetsByInstanceId?: Record<string, string>;
+  /** Event-time Fortitude holders that had digivolution cards when deleted. */
+  fortitudeInstanceIds?: string[];
+  /** Deleted host top-card identity for every card moved with it; pending effects require that host in trash. */
+  deletedHostInstanceByInstanceId?: Record<string, string>;
 }
 
 /**
@@ -244,13 +248,6 @@ export interface CombatHooks {
     promptText: string,
   ) => Promise<string | undefined>;
   /**
-   * Replay a loose card instance (already moved to trash by the caller) as a fresh
-   * battle-area permanent, without paying its cost. Backs ＜Fortitude＞'s mandatory
-   * replay-on-deletion (§16-27). Optional so the combat unit tests (minimal hooks) leave a
-   * Fortitude-holder's deletion a no-op replay (matching the pre-existing base behavior).
-   */
-  replayFromTrash?: (instanceId: string) => Promise<void>;
-  /**
    * Ask `seat` to optionally choose exactly `count` of `candidateInstanceIds`, or decline
    * (anything short of `count` is a decline — the choice is all-or-nothing). Backs ＜Fragment
    * (N)＞'s "choose and trash N digivolution cards" cost (§16-37). Optional so the combat unit
@@ -266,7 +263,7 @@ export interface CombatHooks {
    * Pay ＜Armor Purge＞'s cost on an already-accepted decision: trash this permanent's own
    * current top card, promoting the digivolution card beneath it to the new top (§16-19).
    * Optional so the combat unit tests (minimal hooks) leave it a no-op (the deletion is
-   * already excluded from `toDelete` source by the same optional-hook pattern as Fortitude).
+   * already excluded from `toDelete` source by the same optional-hook pattern as Fragment).
    */
   armorPurge?: (permanentId: string) => Promise<void>;
   /**
@@ -281,7 +278,7 @@ export interface CombatHooks {
   /**
    * Place a card instance already loose in trash at the top of its owner's security stack, on
    * an already-accepted decision. Backs ＜Ascension＞'s reaction (§16-43). Optional, mirrors
-   * `replayFromTrash`.
+   * `armorPurge`.
    */
   ascendToSecurity?: (instanceId: string) => Promise<void>;
   /**
@@ -289,7 +286,7 @@ export interface CombatHooks {
    * one atomic step (unlike Armor Purge/Fragment/Ascension, its decision tree has an internal
    * branch — a Tamer to place under — that does not fit the generic accept/decline hooks).
    * Must be called BEFORE the permanent's cards move to trash. Optional, mirrors
-   * `replayFromTrash`.
+   * `armorPurge`.
    */
   materialSave?: (permanentId: string) => Promise<void>;
   /**
@@ -1303,6 +1300,8 @@ export class CombatController {
       const sacrifice = candidates.find((p) => p.topCard?.instanceId === chosenInstanceId);
       if (sacrifice === undefined) continue;
       const sacrificeStackIds = sacrifice.stack.map((c) => c.instanceId);
+      const sacrificeHostInstanceId = sacrifice.topCard!.instanceId;
+      const sacrificeHasFortitude = sacrificeStackIds.length > 0 && this.hasKeyword(sacrifice.permanentId, "Fortitude");
       const sacrificeMoved = this.access.deletePermanent(sacrifice.permanentId);
       this.hooks.dropPermanentSubscriptions?.(sacrifice.permanentId);
       if (sacrificeMoved.length > 0) {
@@ -1321,6 +1320,11 @@ export class CombatController {
             : [],
           deletedInstanceIds: sacrificeMoved,
           deletedWasStackInstanceIds: sacrificeStackIds,
+          fortitudeInstanceIds: sacrificeHasFortitude ? [sacrificeHostInstanceId] : [],
+          deletedHostInstanceByInstanceId: getCardDefinition(sacrifice.topCard!.cardId)?.isToken
+            ? {}
+            : Object.fromEntries(sacrificeMoved.map((instanceId) => [instanceId, sacrificeHostInstanceId])),
+          removalCause: "byEffect",
         });
       }
       scapegoatSavedIds.add(permanentId);
@@ -1433,6 +1437,7 @@ export class CombatController {
     const deletedWasStackInstanceIds: string[] = [];
     const deletedWasLinkedInstanceIds: string[] = [];
     const deletedLinkHostInstanceByLinkedInstanceId: Record<string, string> = {};
+    const deletedHostInstanceByInstanceId: Record<string, string> = {};
     const battleOpponentPermanentIdByInstanceId: Record<string, string> = {};
     const deletedEffectiveColorsByInstanceId: Record<string, CardColor[]> = {};
     const tokenDeletionCandidates = postCardPreventionDeletedIds.flatMap((permanentId) => {
@@ -1462,6 +1467,9 @@ export class CombatController {
       deletedWasStackInstanceIds.push(...stackIds);
       deletedWasLinkedInstanceIds.push(...linkedIds);
       if (hostInstanceId !== undefined) {
+        if (!tokenDeletionCandidates.some((card) => card.instanceId === hostInstanceId)) {
+          for (const instanceId of moved) deletedHostInstanceByInstanceId[instanceId] = hostInstanceId;
+        }
         for (const linkedInstanceId of linkedIds) {
           deletedLinkHostInstanceByLinkedInstanceId[linkedInstanceId] = hostInstanceId;
         }
@@ -1479,13 +1487,6 @@ export class CombatController {
     const piercingTriggered = allowPiercing && this.hooks.hasPierce?.(attacker.permanentId) === true;
     if (winningSeat === attacker.controllerSeat) await resolveBattleWon();
     for (const resolveReaction of deletionReactions) await resolveReaction();
-
-    // ＜Fortitude＞ replay: only for cards that actually left the field, each as its own fresh
-    // permanent (top card only — the digivolution stack stays trashed as loose cards).
-    for (const [permanentId, instanceId] of fortitudeReplayInstanceIds) {
-      if (!deleted.includes(permanentId)) continue;
-      await this.hooks.replayFromTrash?.(instanceId);
-    }
 
     // ＜Ascension＞ reaction: only for cards that actually left the field (in deletedInstanceIds).
     for (const [instanceId, seat] of this.hooks.resolveDeletionReactions ? [] : ascensionCandidates) {
@@ -1521,6 +1522,10 @@ export class CombatController {
         deletedWasStackInstanceIds,
         deletedWasLinkedInstanceIds,
         deletedLinkHostInstanceByLinkedInstanceId,
+        deletedHostInstanceByInstanceId,
+        fortitudeInstanceIds: [...fortitudeReplayInstanceIds.values()].filter((instanceId) =>
+          deletedInstanceIds.includes(instanceId),
+        ),
         deletedEffectiveColorsByInstanceId,
         battleOpponentPermanentIdByInstanceId,
         retaliationTargetsByInstanceId,

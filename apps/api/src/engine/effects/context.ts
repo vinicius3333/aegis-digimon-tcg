@@ -504,6 +504,24 @@ export function gatherTriggeredEffects(
     }
   }
 
+  // Fortitude is a mandatory triggered effect, not a post-window replay. Its event-time
+  // snapshot retains granted keywords and stack eligibility after the holder leaves play.
+  if (timing === EffectTiming.OnDestroyedAnyone) {
+    for (const source of sources) {
+      if (!env.triggerInfo?.fortitudeInstanceIds?.includes(source.instanceId)) continue;
+      const effect = onDeletion({
+        source,
+        effectKey: "keyword/fortitude",
+        description: "＜Fortitude＞: play this card without paying the cost.",
+        when: (ctx) => ctx.source.isInTrash?.() === true,
+        resolve: async (ctx) => {
+          await ctx.fx.playInstances([source.instanceId], { payCost: false });
+        },
+      });
+      if (canTrigger(effect, makeContext(source, effect), env.tracker)) base.push({ source, effect, timing });
+    }
+  }
+
   const instanceById = (id: string): CardSource | undefined => {
     for (const inst of candidateInstances) {
       if (inst.instanceId === id) return createCardSource(inst, lookup);

@@ -247,6 +247,10 @@ export interface TriggerInfo {
   battleOpponentPermanentIdByInstanceId?: Record<string, string>;
   /** Snapshot of effective battle-deletion Retaliation holders and their opponents. */
   retaliationTargetsByInstanceId?: Record<string, string>;
+  /** Event-time Fortitude holders that had digivolution cards when deleted. */
+  fortitudeInstanceIds?: string[];
+  /** Deleted host top-card identity for every card moved with it; pending effects require that host in trash. */
+  deletedHostInstanceByInstanceId?: Record<string, string>;
   /** Why the cards in this deletion window left play. */
   removalCause?: RemovalCause;
   /** Named procedure that caused the deletion, when the rules distinguish it. */
