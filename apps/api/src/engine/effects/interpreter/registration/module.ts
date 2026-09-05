@@ -43,7 +43,16 @@ import {
 } from "./reducers.js";
 import { normalizeCompiledCard } from "./normalize.js";
 import { compiledEffects, EffectTiming, getCardDefinition, isOption } from "@aegis/shared";
-import type { CardEffect, CompiledCard } from "@aegis/shared";
+import type { Action, CardEffect, CompiledCard } from "@aegis/shared";
+
+function containsPlayCostReduction(actions: Action[]): boolean {
+  return actions.some((action) => {
+    if (action.kind === "ReducePlayCost") return true;
+    if (action.kind === "CostModifier" && action.costType === "play" && action.mode === "reduce") return true;
+    // Cost-gated bodies execute now; subscriptions and granted effects execute later.
+    return action.kind === "CostGatedBlock" && containsPlayCostReduction(action.actions);
+  });
+}
 
 /** Preserve a collected conferral key while still giving nested effects their own identity. */
 function runtimeEffectKey(ctx: Parameters<Effect["resolve"]>[0], effectKey: string): string {
@@ -131,9 +140,13 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
     const timings = timingsForTrigger(effect, isOptionPlayBody);
     if (timings.length === 0) continue;
     const build = builderForTrigger(effect);
+    const markedBuild = (options: BuilderOptions): Effect => {
+      const built = build(options);
+      return containsPlayCostReduction(effect.actions) ? { ...built, isPlayCostReduction: true } : built;
+    };
     for (const timing of timings) {
       const list = byTiming.get(timing) ?? [];
-      list.push({ effect, build });
+      list.push({ effect, build: markedBuild });
       byTiming.set(timing, list);
     }
     index++;

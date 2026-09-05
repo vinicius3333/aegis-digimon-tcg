@@ -21,6 +21,20 @@ describe("ST19-14 Arisa Kinosaki", () => {
     expect(s.state.memory).toBe(3);
   });
 
+  it("does not reset memory that is already above 2", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "ST19-14", as: "arisa" }] }, 1: {} });
+    s.state.memory = 4;
+    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("arisa"));
+    expect(s.state.memory).toBe(4);
+  });
+
+  it("plays itself from security without paying its cost", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "ST19-14", as: "arisa" }] }, 1: {} });
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("arisa"));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST19-14")).toBe(true);
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("arisa").instanceId)).toBe(false);
+  });
+
   it("suspends to grant Rush to a Familiar Token played by an effect", async () => {
     const s = setupEngine(
       {
@@ -72,6 +86,22 @@ describe("ST19-14 Arisa Kinosaki", () => {
       ok: true,
     });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST19-07"));
+    const puppet = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "ST19-07");
+    expect(puppet).toBeDefined();
+    expect(observe(s.engine).hasKeyword(puppet!, "Rush")).toBe(false);
+    expect(s.perm("arisa").isSuspended).toBe(false);
+  });
+
+  it("may decline the Rush cost when an effect plays a Puppet", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST19-14", as: "arisa" }], hand: [{ card: "ST19-07", as: "puppet" }] },
+        1: {},
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).verb.playInstances([s.inst("puppet").instanceId], "ST19-14");
+    expect(s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "ST19-14")).toBe(true);
     const puppet = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "ST19-07");
     expect(puppet).toBeDefined();
     expect(observe(s.engine).hasKeyword(puppet!, "Rush")).toBe(false);

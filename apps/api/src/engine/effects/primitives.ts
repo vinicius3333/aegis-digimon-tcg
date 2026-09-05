@@ -3473,7 +3473,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // continuous ledgers; the post-removal timing window consumes this immutable event snapshot.
     const deletionGrantSnapshot = {
       stackEffectConferralsSnapshot: [...continuous.listStackEffectConferrals()],
-      customEffectGrantsSnapshot: [...continuous.listCustomEffectGrants()],
+      customEffectGrantsSnapshot: continuous.listCustomEffectGrants().map((grant) => {
+        if (!topInstanceIdsByPermanent.includes(grant.instanceId)) return grant;
+        // Aura immunity gates consult the live recipient. Preserve their event-time
+        // result before removal makes that recipient unavailable (ST16-15 Q824).
+        const activeAtDeletion = grant.isActive?.() ?? true;
+        return { ...grant, isActive: () => activeAtDeletion };
+      }),
       onDeletionAtEndOfAttackProjectionsSnapshot: continuous
         .listOnDeletionAtEndOfAttackProjections()
         .map((projection) => projection.permanentId),

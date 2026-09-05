@@ -8,4 +8,17 @@ describe("ST9-01 Minomon", () => {
     await s.engine.recomputeContinuousEffects();
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 1000);
   });
+
+  it("does not buff its host when no blue Digimon is in play", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "host", under: ["ST9-01"] }] } });
+    await s.engine.recomputeContinuousEffects();
+    expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
+  });
+
+  it("does not buff its host during the opponent's turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "ST9-05", as: "host", under: ["ST9-01"] }] } });
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+    expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
+  });
 });
