@@ -73,7 +73,7 @@ const compiled: CompiledCard = {
           kind: "SubTrigger",
           event: "whenPlayed",
           sourceFilter: {
-            controllerDefault: "mine",
+            controllerDefault: "any",
             kind: ["Digimon"],
           },
           actions: [
@@ -120,9 +120,9 @@ const compiled: CompiledCard = {
         },
         {
           kind: "SubTrigger",
-          event: "whenOneOfYoursDigivolves",
+          event: "whenAnyDigivolves",
           sourceFilter: {
-            controllerDefault: "mine",
+            controllerDefault: "any",
             kind: ["Digimon"],
           },
           actions: [
