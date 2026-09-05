@@ -44,4 +44,33 @@ describe("EX9-007", () => {
     expect(s.perm("target").stack.some((card) => card.cardId === "EX9-009" && card.faceUp === false)).toBe(true);
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-010"]);
   });
+
+  it("applies inherited +2000 DP to the evolved host during its controller's turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX9-007", as: "base" }],
+        hand: [{ card: "BT1-015", as: "stage4" }],
+        deck: ["BT1-009"],
+      },
+    });
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("stage4").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("base").topCard.cardId).toBe("BT1-015");
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["EX9-007"]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+    expect(s.state.memory).toBe(8);
+    expect(s.perm("base").currentDP).toBe(6000);
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+    expect(s.perm("base").currentDP).toBe(4000);
+  });
 });

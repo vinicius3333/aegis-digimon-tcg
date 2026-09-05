@@ -120,4 +120,57 @@ describe("EX9-010", () => {
     expect(s.perm("source").stack).toHaveLength(2);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-011")).toBe(true);
   });
+
+  it("inherits Raid through a legal EX9-007 to EX9-010 to neutral host stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX9-007", as: "base" }],
+          hand: [
+            { card: "EX9-010", as: "source" },
+            { card: "ST1-09", as: "host" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-021", as: "highest", dp: 9000 },
+            { card: "BT1-010", as: "lower", dp: 4000 },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX9-010");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("host").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "ST1-09");
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["EX9-007", "EX9-010"]);
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT1-021") &&
+        s.state.players[0]!.battleArea.length === 0,
+    );
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT1-010"]);
+  });
 });
