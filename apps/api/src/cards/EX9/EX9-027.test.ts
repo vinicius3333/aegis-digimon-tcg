@@ -36,7 +36,7 @@ describe("EX9-027", () => {
   it("trashes the hand card and reduces one opposing Digimon when digivolving", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX9-027", as: "source" }], hand: ["BT1-001"] },
+        0: { battleArea: [{ card: "EX9-027", as: "source" }], hand: ["BT1-001"], deck: ["BT1-009", "BT1-009"] },
         1: { battleArea: [{ card: "BT1-010", as: "target", dp: 5000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
@@ -46,6 +46,25 @@ describe("EX9-027", () => {
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
     expect(s.perm("target").currentDP).toBe(1000);
+    await advance(s.engine).runTurn(0);
+    expect(s.perm("target").currentDP).toBe(5000);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("does not trash the hand card or reduce DP when the optional digivolution cost is declined", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX9-027", as: "source" }], hand: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 5000 }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("source"));
+
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.perm("target").currentDP).toBe(5000);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("deletes another Digimon and ends an opponent's attack before the security check", async () => {
@@ -53,7 +72,7 @@ describe("EX9-027", () => {
       {
         0: {
           battleArea: [
-            { card: "BT1-032", as: "host", under: ["EX9-027"] },
+            { card: "BT8-041", as: "host", under: ["EX9-027"] },
             { card: "BT1-009", as: "fodder" },
           ],
           security: ["BT1-010"],
@@ -73,10 +92,11 @@ describe("EX9-027", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === fodderId));
+    await settle();
 
     expect(s.state.players[0]!.security).toHaveLength(1);
     expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === fodderId)).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("trashes the hand card and reduces one opposing Digimon on deletion", async () => {
