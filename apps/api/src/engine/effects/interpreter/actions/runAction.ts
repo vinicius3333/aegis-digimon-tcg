@@ -19,7 +19,12 @@ import { canAttemptDigivolve } from "./digivolve.js";
 import { runGrantStaticAction } from "./grantStatic.js";
 import { runMetaAction } from "./meta.js";
 import { canAttemptPlaceUnder } from "./placeUnder.js";
-import { applyDecodeHostScope, applyPlayCostCeiling, runPlayAction } from "./play.js";
+import {
+  applyDecodeHostScope,
+  applyPlayCostCeiling,
+  materializeLevelComparisonScaling,
+  runPlayAction,
+} from "./play.js";
 import { canAttemptUseOptionWithoutCost } from "./borrowed.js";
 import { runRemovalAction } from "./removal.js";
 import { runResourceAction } from "./resources.js";
@@ -543,7 +548,12 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       action.fromOwnDigivolutionStack !== true
     ) {
       const zones = action.from && action.from.length > 0 ? action.from : DEFAULT_PLAY_ZONES;
-      const costCeilingTarget = applyDecodeHostScope(action, applyPlayCostCeiling(ctx, action, action.target));
+      const levelComparison = action.target.filter.levelComparison;
+      const levelScaledTarget = materializeLevelComparisonScaling(
+        action.target,
+        levelComparison?.scaling === undefined ? 0 : scaleFactor(ctx, levelComparison.scaling),
+      );
+      const costCeilingTarget = applyDecodeHostScope(action, applyPlayCostCeiling(ctx, action, levelScaledTarget));
       const preflightTarget =
         ctx.playLevelCeilingDelta === undefined || ctx.playLevelCeilingDelta === 0
           ? costCeilingTarget

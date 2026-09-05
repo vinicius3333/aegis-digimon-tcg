@@ -56,6 +56,30 @@ export function playCostScalingDelta(scaling: Scaling, factor: number): number {
   return factor;
 }
 
+/**
+ * Materialize a dynamic level ceiling before matching loose cards.
+ *
+ * Permanent matching evaluates `levelComparison.scaling` against live permanents,
+ * but loose-card matching delegates to `definitionMatches`, which intentionally only
+ * understands static filters. Play effects therefore need to turn the dynamic ceiling
+ * into a static value before resolving hand/trash candidates (EX9-054).
+ */
+export function materializeLevelComparisonScaling(target: Target, factor: number): Target {
+  const comparison = target.filter.levelComparison;
+  if (comparison?.value === undefined || comparison.scaling === undefined) return target;
+  const { scaling: _scaling, ...staticComparison } = comparison;
+  return {
+    ...target,
+    filter: {
+      ...target.filter,
+      levelComparison: {
+        ...staticComparison,
+        value: comparison.value + factor,
+      },
+    },
+  };
+}
+
 function paidReduction(ctx: EffectContext, action: Extract<Action, { kind: "PlayWithoutCost" }>): number | undefined {
   const base = action.reduceCostBy;
   const scaling = action.reduceCostByScaling === undefined ? 0 : scaleFactor(ctx, action.reduceCostByScaling);
@@ -419,7 +443,12 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
       // Counts cards matching filter.zone/controller across all applicable seats, then computes:
       //   ceiling = base + Math.floor(totalCards / per) * raise
       // and overrides the target filter's playCostLte with the result. (CAP-E16, BT21-079)
-      const adjustedTarget = applyDecodeHostScope(action, applyPlayCostCeiling(ctx, action, scaledCostAdjustedTarget));
+      const levelComparison = scaledCostAdjustedTarget.filter.levelComparison;
+      const levelScaledTarget = materializeLevelComparisonScaling(
+        scaledCostAdjustedTarget,
+        levelComparison?.scaling === undefined ? 0 : scaleFactor(ctx, levelComparison.scaling),
+      );
+      const adjustedTarget = applyDecodeHostScope(action, applyPlayCostCeiling(ctx, action, levelScaledTarget));
       const playCostAdjustedTarget =
         action.ignorePlayCostLimit === true
           ? {
