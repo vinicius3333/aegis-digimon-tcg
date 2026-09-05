@@ -92,8 +92,11 @@ describe("AD1-013 ZeigGreymon", () => {
   it("scopes the replacement play to this ZeigGreymon's own stack and does not add DigiXros materials", () => {
     const compiled = registeredCompiledCards.get("AD1-013") ?? getCompiledCard("AD1-013");
     if (compiled === undefined) throw new Error("AD1-013 must publish compiled IR");
-    const replacement = compiled.effects.find((effect) => effect.trigger === "AllTurns" && effect.actions[0]?.kind === "Replacement");
-    const play = replacement?.actions[0]?.kind === "Replacement" ? replacement.actions[0].actions[0] : undefined;
+    const replacement = compiled.effects.find(
+      (effect) => effect.trigger === "AllTurns" && effect.actions[0]?.kind === "Replacement",
+    );
+    const replacementAction = replacement?.actions[0];
+    const play = replacementAction?.kind === "Replacement" ? replacementAction.actions?.[0] : undefined;
     expect(play).toMatchObject({ kind: "PlayFromZone", from: ["digivolutionCards"] });
     expect(play).not.toHaveProperty("digiXrosMaterialsFrom");
     expect(play).toMatchObject({ target: { filter: { hostFilter: { isSelfRef: true } } } });
