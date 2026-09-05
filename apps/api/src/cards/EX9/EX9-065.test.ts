@@ -1,12 +1,48 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX9-065.js";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("EX9-065", () => {
+  it.each([
+    ["BT2-075", false, 4, true],
+    ["EX9-030", true, 3, true],
+    ["BT1-024", true, 3, false],
+  ] as const)(
+    "validates real evolution from %s and declines optional revival",
+    async (base, alternate, cost, legal) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: base, as: "host" }],
+            hand: [{ card: "EX9-065", as: "evo" }],
+            deck: ["BT1-048"],
+            trash: ["EX9-037"],
+          },
+        },
+        { autoDeclineOptional: true },
+      );
+      s.state.memory = 5;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("host").permanentId,
+          instanceId: s.inst("evo").instanceId,
+          useAlternateCost: alternate,
+        }).ok,
+      ).toBe(legal);
+      await settle();
+      expect(s.perm("host").topCard.cardId).toBe(legal ? "EX9-065" : base);
+      expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual(legal ? [base] : []);
+      expect(s.state.memory).toBe(legal ? 5 - cost : 5);
+      expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(legal ? ["BT1-048"] : ["EX9-065"]);
+      expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["EX9-037"]);
+      expect(s.state.players[0]!.battleArea).toHaveLength(1);
+      expect(s.state.pendingDecision).toBeUndefined();
+    },
+  );
   it("Blast Digivolves on an off-color DM level five, plays only an eligible trash card and then blocks", async () => {
     const s = setupEngine(
       {
@@ -16,7 +52,7 @@ describe("EX9-065", () => {
           hand: [{ card: "EX9-065", as: "ace" }],
           deck: ["BT1-048"],
           trash: ["BT1-016", "EX9-063", "EX9-010"],
-          security: ["BT1-001"],
+          security: ["BT1-046"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -77,7 +113,7 @@ describe("EX9-065", () => {
           { card: "EX9-065", as: "source" },
           { card: "EX9-035", as: "ally" },
         ],
-        security: ["BT1-001"],
+        security: ["BT1-046"],
       },
       1: { battleArea: [{ card: "BT1-024", as: "attacker" }] },
     });
@@ -215,31 +251,56 @@ describe("EX9-065", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "EX9-065", as: "source" },
-            { card: "EX9-035", as: "ver4" },
-          ],
-          trash: ["EX9-037"],
+          battleArea: [{ card: "EX9-035", as: "ver4" }],
+          hand: [{ card: "EX9-065", as: "card" }],
+          trash: ["BT1-016", "EX9-063", "EX9-001", "EX9-037"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX9-037"));
-    expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX9-037")).toBe(false);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("card").instanceId })).toEqual({ ok: true });
+    await settle();
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-016", "EX9-063", "EX9-001"]);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([
+      "EX9-035",
+      "EX9-065",
+      "EX9-037",
+    ]);
+    expect(s.state.pendingDecision).toBeUndefined();
     expect(observe(s.engine).hasKeyword(s.perm("ver4"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("ver4"), "Retaliation")).toBe(true);
   });
-  it("plays the same qualifying DM Digimon from trash when digivolving", async () => {
+  it("plays a level-four DM Digimon from trash after a real normal digivolution", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX9-065", as: "source" }], trash: ["EX9-037"] } },
+      {
+        0: {
+          battleArea: [{ card: "BT2-075", as: "source" }],
+          hand: [{ card: "EX9-065", as: "evo" }],
+          deck: ["BT1-048"],
+          trash: ["EX9-059"],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
 
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("source"));
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX9-037"));
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
 
-    expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX9-037")).toBe(false);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX9-037")).toBe(true);
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("source").topCard.cardId).toBe("EX9-065");
+    expect(s.perm("source").stack.map(({ cardId }) => cardId)).toEqual(["BT2-075"]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-048"]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX9-065", "EX9-059"]);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });
