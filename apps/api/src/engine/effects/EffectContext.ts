@@ -1448,6 +1448,7 @@ export interface Primitives {
       ignoreSummoningSickness?: boolean;
       attackPlayer?: boolean;
       attackPlayerOnly?: boolean;
+      vortex?: boolean;
       attackMechanic?: string;
       afterAttackTriggers?: () => Promise<void>;
       drainTimingWindow?: () => Promise<void>;

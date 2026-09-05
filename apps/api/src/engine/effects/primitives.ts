@@ -5334,6 +5334,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       ignoreSummoningSickness?: boolean;
       attackPlayer?: boolean;
       attackPlayerOnly?: boolean;
+      vortex?: boolean;
       attackMechanic?: string;
       afterAttackTriggers?: () => Promise<void>;
       drainTimingWindow?: () => Promise<void>;
@@ -5351,7 +5352,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         controllerSeat,
         attacker,
         continuous,
-        false,
+        opts?.vortex,
         opts?.withoutSuspending,
         opts?.ignoreSummoningSickness,
       ) !== null
@@ -5375,12 +5376,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
             attacker,
             { kind: "permanent", permanentId: permanent.permanentId },
             continuous,
+            opts?.vortex,
           ) === null,
       )
       .map((permanent) => permanent.permanentId);
     const candidates = [
       ...(opts?.attackPlayer !== false &&
-      canAttackTarget(access, controllerSeat, attacker, playerTarget, continuous) === null
+      canAttackTarget(access, controllerSeat, attacker, playerTarget, continuous, opts?.vortex) === null
         ? [PLAYER]
         : []),
       ...(opts?.attackPlayerOnly === true ? [] : legalEnemyIds),
