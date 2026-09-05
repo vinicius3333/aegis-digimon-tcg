@@ -157,7 +157,8 @@ export interface PrimitivesEngine {
   recomputeContinuousEffects?: () => Promise<void>;
   /**
    * Resolve the played loose card's own pay-time reducers ("when this card would be
-   * played") before an effect-driven paid play charges memory.
+   * played") before effect-driven play. Free play runs the same window with a
+   * zero base and ignores the result, preserving optional processing costs.
    */
   finalizeEffectPlayCost?: (
     instanceId: string,
@@ -847,8 +848,14 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       const cost = await effectDrivenPlayCost(instanceId, definition, owner.seat, 0, false, undefined, "security");
       if (engine.memory.maxCostFor(owner.seat) < cost) return undefined;
       if (cost > 0) engine.memory.pay(owner.seat, cost, "playCard");
+    } else {
+      // Free security-origin plays retain optional would-be-played costs (Q4784).
+      await engine.finalizeEffectPlayCost?.(instanceId, 0, false, "security");
     }
-    const instance = extractCardAt(owner, Zone.Security, index)!;
+    // Payment windows may reorder security; remove the selected instance, not a stale index.
+    const currentIndex = owner.security.findIndex((card) => card.instanceId === instanceId);
+    if (currentIndex < 0) return undefined;
+    const instance = extractCardAt(owner, Zone.Security, currentIndex)!;
     instance.faceUp = true;
     const permanent = placePermanent(engine, owner, instance, definition, false);
     engine.emit({
@@ -953,6 +960,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         );
         if (engine.memory.maxCostFor(ownerPlayer.seat) < cost) continue;
         if (cost > 0) engine.memory.pay(ownerPlayer.seat, cost, "playCard");
+      } else {
+        // A free play still opens the would-be-played window (EX9-030 Q4784).
+        // Optional processing costs may be paid, but its result cannot charge memory.
+        await engine.finalizeEffectPlayCost?.(instanceId, 0, false, originByInstance.get(instanceId));
       }
       // Preserve the resolved host when moving stack material.  A material selected from
       // the breeding stack must be detached from that exact permanent before the new

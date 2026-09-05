@@ -902,7 +902,14 @@ export class GameEngine {
       fireSubTrigger: (event, payload) => this.fireSubTrigger(event, payload),
       recomputeContinuousEffects: () => this.recomputeContinuousEffects(),
       finalizeEffectPlayCost: async (instanceId, baseCost, useAsOption, originZone, projectOnly) => {
-        const instance = this.findLooseInstance(instanceId);
+        // A selected security card can still be face down in its origin zone.
+        // Locate only this instance; do not expose hidden security to timing scans.
+        const instance =
+          originZone === "security"
+            ? Array.from(this.state.players)
+                .flatMap((player) => Array.from(player.security))
+                .find((card) => card.instanceId === instanceId)
+            : this.findLooseInstance(instanceId);
         return instance === undefined
           ? baseCost
           : this.fireBeforePayCost(instance, baseCost, useAsOption, originZone, projectOnly);
@@ -3625,7 +3632,11 @@ export class GameEngine {
     projectOnly = false,
   ): Promise<number> {
     const source = this.cardSourceOf(instance);
-    if (this.continuous.blocksCostReduction(source.ownerSeat, "play")) return baseCost;
+    const reductionBlocked = this.continuous.blocksCostReduction(source.ownerSeat, "play");
+    // A prohibition blocks the reduction, not its optional processing cost.
+    // Projection stays read-only; an unaffordable blocked play cannot start paying
+    // side-effect costs. Free plays enter this window with a zero base (Q4784).
+    if (reductionBlocked && (projectOnly || this.memory.maxCostFor(source.ownerSeat) < baseCost)) return baseCost;
     const effects = effectsOf(EffectTiming.BeforePayCost, source).filter((effect) => effect.costWindow !== "digivolve");
     // Self-targeted "when this card would be played, [by cost / gated by condition], reduce by N"
     // reducers (EX8-074, BT17-068, BT12-112, BT8-043, BT9-097, ...): the runtime record compiled these as
@@ -3658,7 +3669,14 @@ export class GameEngine {
     // Seed `selections` so the interpreter's runEffect does NOT clone the context (it clones only
     // when `selections` is unset). The ReducePlayCost action writes the earned delta onto THIS
     // context's `playCostDelta`; a clone would strand the write and the reduction would be lost.
-    const ctx: EffectContext = { ...this.buildEffectContext(source, {}), selections: new Map() };
+    const ctx: EffectContext = {
+      ...this.buildEffectContext(source, {
+        wouldBePlayedInstanceId: instance.instanceId,
+        wouldBePlayedCardId: instance.cardId,
+        wouldBePlayedAsOption: useAsOption,
+      }),
+      selections: new Map(),
+    };
     const playTarget = new Permanent();
     playTarget.permanentId = `pending-play-${instance.instanceId}`;
     playTarget.controllerSeat = source.ownerSeat;
@@ -3782,6 +3800,7 @@ export class GameEngine {
       this.pendingPlayReducerPlacements.set(instance.instanceId, [...pending, ...ctx.pendingSelfReducerPlacements]);
     }
     await this.runCrossPermanentPlayReducers(instance, ctx, crossWatchers);
+    if (this.continuous.blocksCostReduction(source.ownerSeat, "play")) return baseCost;
     const delta = Math.max(0, ctx.playCostDelta ?? 0);
     return Math.max(0, baseCost - delta);
   }

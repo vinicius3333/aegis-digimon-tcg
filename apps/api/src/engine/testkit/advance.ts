@@ -195,6 +195,12 @@ export function advance(engine: GameEngine) {
         await internals.primitives.returnToHand(instanceIds);
         await internals.recomputeContinuousEffects();
       },
+      /** Exercise the dedicated security-origin play route, including its entry windows. */
+      async playFromSecurity(instanceId: string): Promise<void> {
+        await internals.primitives.playFromSecurity(instanceId);
+        await internals.recomputeContinuousEffects();
+      },
+
       async playInstances(
         instanceIds: string[],
         effectSourceCardId?: string,

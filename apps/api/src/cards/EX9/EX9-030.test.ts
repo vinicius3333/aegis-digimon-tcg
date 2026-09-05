@@ -6,6 +6,82 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("EX9-030", () => {
+  it.each([false, true])("Q4784 offers optional payment from security for free (faceUp=%s)", async (faceUp) => {
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "EX9-030", as: "source", faceUp }], hand: ["EX9-023"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const before = s.state.memory;
+    await advance(s.engine).verb.playFromSecurity(s.inst("source").instanceId);
+    await settle();
+    expect(s.state.memory).toBe(before);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("EX9-030");
+    expect(s.state.players[0]!.battleArea[0]!.stack.map((card) => card.cardId)).toEqual(["EX9-023"]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+  it("digivolves from a legal yellow level four, places the cost at the bottom and expires after the opponent turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-051", as: "host" }],
+          hand: [{ card: "EX9-030", as: "evo" }],
+          trash: ["BT1-009"],
+          deck: ["BT1-048", "BT1-049", "BT1-050"],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 10000 }], deck: ["BT1-048", "BT1-049"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.memory).toBe(6);
+    expect(s.perm("host").topCard.cardId).toBe("EX9-030");
+    expect(s.perm("host").stack.map((card) => [card.cardId, card.faceUp])).toEqual([
+      ["BT1-009", false],
+      ["BT1-051", true],
+    ]);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-048"]);
+    expect(s.perm("target").currentDP).toBe(5000);
+    await advance(s.engine).runTurn(0);
+    expect(s.perm("target").currentDP).toBe(5000);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("target").currentDP).toBe(10000);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("explicitly declines both optional costs on real play without discarding or reducing DP", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX9-030", as: "source" }, "EX9-023"], trash: ["BT1-009"] },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 10000 }] },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["EX9-023"]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-009"]);
+    expect(s.state.players[0]!.battleArea[0]!.stack).toHaveLength(0);
+    expect(s.perm("target").currentDP).toBe(10000);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
   it("reduces its play cost by 2 by trashing a Cyborg or Ver.3 card", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Static")).toMatchObject({
       actions: [
@@ -62,27 +138,94 @@ describe("EX9-030", () => {
     expect(source.currentDP).toBe(7000);
   });
 
-  it("trashes an eligible hand card and reduces the play cost by exactly 2", async () => {
+  it.each(["EX9-023", "BT1-024"])(
+    "trashes independent Ver.3/Cyborg payment %s and reduces play cost by exactly 2",
+    async (payment) => {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [
+              { card: payment, as: "payment" },
+              { card: "EX9-030", as: "source" },
+            ],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      const before = s.state.memory;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId }).ok).toBe(true);
+      await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-030"));
+
+      expect(before - s.state.memory).toBe(5);
+      expect(s.state.players[0]!.hand.some((card) => card.cardId === payment)).toBe(false);
+      expect(s.state.players[0]!.battleArea[0]?.stack.some((card) => card.cardId === payment && !card.faceUp)).toBe(
+        true,
+      );
+    },
+  );
+
+  it("Q4784 can pay the optional trash when an effect plays this card for free", async () => {
     const s = setupEngine(
       {
         0: {
           hand: [
-            { card: "EX9-023", as: "payment" },
             { card: "EX9-030", as: "source" },
+            { card: "EX9-023", as: "payment" },
           ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const before = s.state.memory;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId }).ok).toBe(true);
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-030"));
+    // Supply the external free-play effect while preserving the real payment and On Play lifecycle.
+    await advance(s.engine).verb.playInstances([s.inst("source").instanceId]);
+    await settle();
+    expect(s.state.memory).toBe(before);
+    expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("EX9-030");
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea[0]!.stack.map((card) => card.cardId)).toEqual(["EX9-023"]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
 
-    expect(before - s.state.memory).toBe(5);
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX9-023")).toBe(false);
-    expect(s.state.players[0]!.battleArea[0]?.stack.some((card) => card.cardId === "EX9-023" && !card.faceUp)).toBe(
-      true,
+  it.each([false, true])("cannot consume the imminent card itself as a hand cost (free=%s)", async (free) => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "EX9-030", as: "source" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
+    const sourceId = s.inst("source").instanceId;
+    if (free) await advance(s.engine).verb.playInstances([sourceId]);
+    const declared = free ? undefined : s.engine.applyIntent(0, { type: "playCard", instanceId: sourceId });
+    expect(declared).toEqual(free ? undefined : { ok: true });
+    await settle();
+    expect(s.state.memory).toBe(free ? 10 : 3);
+    expect(s.state.players[0]!.battleArea[0]!.topCard.instanceId).toBe(sourceId);
+    expect(s.state.players[0]!.battleArea[0]!.stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it.each([false, true])("may pay the trash cost under Psychemon without reducing payment (free=%s)", async (free) => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX9-030", as: "source" }, "EX9-023"] },
+        1: { battleArea: [{ card: "BT8-071", as: "psychemon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    if (free) await advance(s.engine).verb.playInstances([s.inst("source").instanceId]);
+    const declared = free
+      ? undefined
+      : s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId });
+    expect(declared).toEqual(free ? undefined : { ok: true });
+    await settle();
+    expect(s.state.memory).toBe(free ? 10 : 3);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("EX9-030");
+    expect(s.state.players[0]!.battleArea[0]!.stack.map((card) => card.cardId)).toEqual(["EX9-023"]);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it.each(["BT1-009", "BT1-001", "BT1-091"])(
