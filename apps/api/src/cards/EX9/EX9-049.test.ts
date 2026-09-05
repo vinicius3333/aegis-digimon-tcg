@@ -4,8 +4,95 @@ import { compiled } from "./EX9-049.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../BT8/BT8-104.js";
+import "../index.js";
 
 describe("EX9-049", () => {
+  it("does not reactivate after security De-Digivolve restores the same Sukamon in the same turn", async () => {
+    const options = { autoSelectCards: true, autoOrderTriggers: true, autoChooseOption: true };
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX9-049", as: "source" },
+            { card: "BT1-009", as: "decoy" },
+          ],
+          trash: ["EX9-023", "EX9-034", "EX9-029", "EX9-023", "EX9-034", "EX9-029"],
+          hand: ["EX9-074"],
+          deck: ["BT1-010", "BT1-048"],
+        },
+        1: { security: ["BT8-104"] },
+      },
+      options,
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const originalCardId = s.perm("source").topCard.instanceId;
+    const activation = advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("source"));
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard.cardId === "EX9-074" && s.state.pendingDecision?.kind === "optional");
+    // Decline Kimeramon's optional top-source placement so De-Digivolve restores Sukamon itself.
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await activation;
+    await settle();
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("source").stack).toHaveLength(4);
+    options.autoSelectCards = false;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("source").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.perm("source").topCard.cardId === "EX9-049" && s.state.pendingDecision?.kind === "chooseTargets",
+    );
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("decoy").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("source").topCard.instanceId).toBe(originalCardId);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    const beforeStack = s.perm("source").stack.map(({ instanceId }) => instanceId);
+    const beforeTrash = s.state.players[0]!.trash.map(({ instanceId }) => instanceId);
+    expect(beforeStack).toHaveLength(3);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["EX9-023", "EX9-034", "EX9-029", "EX9-074"]),
+    );
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("source"));
+    await settle();
+    expect(s.perm("source").topCard.instanceId).toBe(originalCardId);
+    expect(s.perm("source").stack.map(({ instanceId }) => instanceId)).toEqual(beforeStack);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(beforeTrash);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
   it("once per turn digivolves at end of turn by placing three Ver.3 Digimon from trash underneath", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "EndOfYourTurn")).toMatchObject({
       frequency: "OncePerTurn",
@@ -96,7 +183,7 @@ describe("EX9-049", () => {
             deck: ["BT1-009", "BT1-010", "BT1-048"],
           },
         },
-        { autoAcceptOptional: true, autoSelectCards: true },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
       );
       s.state.memory = 5;
 
