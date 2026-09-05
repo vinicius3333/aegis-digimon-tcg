@@ -59,3 +59,15 @@ Three gpt-5.6-luna workers share this isolated worktree, with disjoint card/repo
 - Catalog-driven static inspection: all 343 cards have direct modules and colocated tests; all use direct `registerIrCard` and none contain a `registerCard(...)` call. This does not certify effect fidelity.
 - Historical Vitest `--poolOptions.forks.singleFork=true` is rejected by installed Vitest 5. Current serial invocation is `--pool=forks --maxWorkers=1 --no-file-parallelism`.
 - Engine conformance baseline: `pnpm --filter @aegis/api exec vitest run src/engine/conformance --pool=forks --maxWorkers=1 --no-file-parallelism` passed: 28 files, 387 tests, exit 0. Log `/tmp/aegis-st-reaudit-conformance.log`. Card-specific mechanisms and future changes still require their own regression coverage.
+
+## Full ST baseline run
+
+`pnpm --filter @aegis/api exec vitest run src/cards/ST --pool=forks --maxWorkers=1 --no-file-parallelism` on the audit checkout exited 1: **384 files passed, 3 failed; 1082 tests passed, 3 failed**. The 387 files include individual card proofs and supplementary collection/interaction suites. Log: `/tmp/aegis-st-reaudit-all-st.log`.
+
+| Card    | Failing behavioral assertion                                                         | Owner / next action                                                                                                            |
+| ------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| ST12-03 | Q755: Togemon still suspends to pay for a prohibited green Tamer play-cost reduction | st09_17: diagnose and fix shared wouldBePlayed reduction activation seam; exclusive shared-file ownership granted for this fix |
+| ST15-10 | After de-digivolution the target is ST15-12, expected ST15-11                        | st09_17: determine implementation versus fixture cause                                                                         |
+| ST16-15 | Q824: deleted Digimon is not played after the granted host digivolves                | st09_17: determine implementation versus fixture cause                                                                         |
+
+The baseline does not certify the other cards' full printed contracts. Luna clause review and proof-gap correction remain in progress across all 23 collections.
