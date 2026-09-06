@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { Zone, EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
@@ -78,7 +78,7 @@ describe("BT21-037 compiled implementation", () => {
     s.state.turnSeat = 1;
     await advance(s.engine).recompute();
     expect(s.perm("veemon").currentDP).toBe(8000);
-    s.give(1, "deck", "BT1-001");
+    s.give(1, Zone.Deck, "BT1-001");
     await advance(s.engine).runTurn(1);
     expect(s.perm("veemon").currentDP).toBe(6000);
     s.state.turnSeat = 0;

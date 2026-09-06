@@ -1,3 +1,4 @@
+import { Zone } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -172,7 +173,7 @@ describe("BT21-043 compiled implementation", () => {
     s.state.turnSeat = 1;
     await advance(s.engine).recompute();
     expect(s.perm("target").currentDP).toBe(3000);
-    s.give(1, "deck", "BT1-001");
+    s.give(1, Zone.Deck, "BT1-001");
     await advance(s.engine).runTurn(1);
     expect(s.perm("target").currentDP).toBe(5000);
   });
