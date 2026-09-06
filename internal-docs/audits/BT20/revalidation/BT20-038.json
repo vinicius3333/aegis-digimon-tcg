@@ -1,6 +1,6 @@
 {
   "cardId": "BT20-038",
-  "status": "awaiting-lead-review",
+  "status": "lead-verified",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
@@ -12,9 +12,38 @@
     "apps/api/src/cards/BT20/BT20-038.ts",
     "apps/api/src/cards/BT20/BT20-038.test.ts",
     "internal-docs/audits/BT20/revalidation/BT20-038.md",
-    "014-040-results.json"
+    "014-040-results.json",
+    "BT20-038.test.ts: legal public battle-area Falcomon to non-ACCEL BT17-034 evolution pays the full cost, proving the ACCEL destination gate",
+    "Lead independently reviewed current clauses and legal stacks; final894 collection,543 affected mechanisms, typecheck, scoped sync/style and meaningful restored runtime mutation pass. Delivery credit is hash-bound in acceptance.json after push."
   ],
   "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-final-collection-results.json",
+      "result": "5/5 colocated cases pass; full collection/mechanism894/894."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/overallTimingRestrictions.test.ts src/engine/effects/continuous.test.ts src/engine/effects/primitives.test.ts src/engine/effects/interpreter.test.ts src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/effects/restrictionEnforcement.test.ts src/engine/effects/restrictionConsumers.guard.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/combat/restrictionProjection.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-affected-results.json",
+      "result": "543/543 affected cases pass."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "Pass; round4-final-typecheck.log"
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-038",
+      "result": "2 meaningful assertion failures with registered effects disabled; original module restored. Runtime-disabled JSON/log and aggregate result retained."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "102 records already synchronized; round4-scoped-check.log"
+    },
+    {
+      "command": "Changed-file oxlint/oxfmt and git diff --check",
+      "result": "Pass; round4-gates.json and exact paths in round4-style-paths.json."
+    }
+  ],
+  "gaps": [],
+  "historicalCommands": [
     {
       "command": "node tools/kb/query.mjs card BT20-038",
       "result": "Q4355 retrieved"
@@ -32,8 +61,11 @@
       "result": "4 tests passed for this card; 160 total passed; 014-040-results.json"
     }
   ],
-  "gaps": [
-    "lead focused/mechanism/collection Vitest, typecheck, lint, and diff gates pending"
-  ],
-  "reviewStatus": "Focused execution passed; clause-by-clause lead acceptance remains pending. Provisional worker scores do not contribute to the ledger."
+  "executedCases": [
+    "BT20-038 Falcomon reduces qualifying ACCEL digivolution only from the battle area",
+    "BT20-038 Falcomon reduces the ACCEL alternate evolution in battle but not in breeding",
+    "BT20-038 Falcomon does not reduce a legal non-ACCEL evolution from the battle area",
+    "BT20-038 Falcomon grants Piercing from the inherited source stack",
+    "BT20-038 Falcomon reaches Falcomon from a legal Pinamon egg through a public zero-cost evolution"
+  ]
 }
