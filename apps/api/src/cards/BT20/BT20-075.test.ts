@@ -137,6 +137,42 @@ describe("BT20-075 Loudmon", () => {
     expect(observe(s.engine).hasPierce(s.perm("ally"))).toBe(true);
   });
 
+  it("uses the public granted Raid and Piercing in a battle", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-069", as: "ally" }],
+          hand: [
+            { card: "BT20-075", as: "loudmon" },
+            { card: "BT20-047", as: "first" },
+            { card: "BT20-063", as: "second" },
+          ],
+          security: ["BT1-001"],
+        },
+        1: { battleArea: [{ card: "BT20-010", dp: 4000, as: "target" }], security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 8;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("loudmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () => observe(s.engine).hasKeyword(s.perm("ally"), "Raid") && observe(s.engine).hasPierce(s.perm("ally")),
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ally").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
   it("inherits Security Attack +1 for both trait arms only at the 4-card owner-turn boundary", async () => {
     const s = setupEngine({
       0: {
