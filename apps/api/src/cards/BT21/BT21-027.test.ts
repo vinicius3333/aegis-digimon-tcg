@@ -93,6 +93,31 @@ describe("BT21-027 compiled implementation", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === highId)).toBe(true);
   });
 
+  it("publicly DigiXroses OmniShoutmon and ZeigGreymon with the printed -3 per material", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "BT21-027", as: "superior" },
+          { card: "BT21-021", as: "omni" },
+          { card: "AD1-013", as: "zeig" },
+        ],
+      },
+    });
+    s.state.memory = 7;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("superior").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("omni").instanceId, s.inst("zeig").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-027"));
+    const fused = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT21-027")!;
+    expect(s.state.memory).toBe(1);
+    expect(fused.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT21-021", "AD1-013"]));
+  });
+
   it.each([
     { base: "AD1-013", expectedCost: 2 },
     { base: "BT21-021", expectedCost: 3 },
