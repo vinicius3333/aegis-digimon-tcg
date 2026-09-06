@@ -1,7 +1,7 @@
 # BT21 independent revalidation ledger
 
 Status: **incomplete**. 0/102 cards at 10/10 (0.00%).
-Current independently accepted points: 509/1020; average 4.99/10.
+Current independently accepted points: 512/1020; average 5.02/10.
 
 Baseline: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Historical scores are not current proof. Zero means unverified in this campaign, not necessarily defective.
 
@@ -67,7 +67,7 @@ Recalculate with `node docs/audits/BT21-revalidation/recalculate.mjs`. See [chec
 | [BT21-054](cards/BT21-054.md) | Shotmon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs; Final collection delivery gates pending |
 | [BT21-055](cards/BT21-055.md) | Sunarizamon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs; Final collection delivery gates pending |
 | [BT21-056](cards/BT21-056.md) | Vemmon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs; Final collection delivery gates pending |
-| [BT21-057](cards/BT21-057.md) | Greymon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
+| [BT21-057](cards/BT21-057.md) | Greymon | 2 / 2 / 2 / 2 / 0 | 8/10 | integration-review | Final collection delivery gates pending |
 | [BT21-058](cards/BT21-058.md) | Snatchmon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs; Final collection delivery gates pending |
 | [BT21-059](cards/BT21-059.md) | Timemon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs; Final collection delivery gates pending |
 | [BT21-060](cards/BT21-060.md) | Destromon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs; Final collection delivery gates pending |

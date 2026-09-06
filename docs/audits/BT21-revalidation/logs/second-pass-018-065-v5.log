@@ -1,0 +1,66 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > exposes complete effect coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > preserves Rush, Raid, and the once-per-turn attack after linking 1ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > links to an Appmon for 2, grants 3000 DP, and lets the host attack 15ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > publicly links DoGatchmon and resolves its When Linking attack 8ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > attacks immediately after a public play because of Rush 9ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > uses Raid to redirect an attack to the opponent's highest-DP unsuspended Digimon 6ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > publicly links onto DoGatchmon and resolves only one self-linked attack 6ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > publicly links Gatchmon plus Navimon and fuses through Haru's watcher 11ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > supports the Gatchmon plus Navimon App Fusion pair 7ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > supports the Gatchmon plus Tweetmon App Fusion pair 6ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > supports the Navimon plus Gatchmon App Fusion pair 6ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > supports the Navimon plus Tweetmon App Fusion pair 5ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > supports the Tweetmon plus Gatchmon App Fusion pair 5ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > supports the Tweetmon plus Navimon App Fusion pair 5ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > rejects the same-name App Fusion pair after a public link 2ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > rejects the non-recipe App Fusion pair after a public link 2ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > attacks once when its own stack gets publicly linked and ignores another stack 9ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > does not attack a second time in the same turn after a public unsuspend 13ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > may decline both link-granted attack paths 3ms
+ ✓ src/cards/BT21/BT21-018.test.ts > BT21-018 DoGatchmon > gets a second public linked attack after the next real turn unsuspends it 23ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > preserves Blocker, App Fusion, and Appmon Link requirements 0ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > de-digivolves one opponent Digimon once per turn when linked 0ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > de-digivolves one opposing Digimon when this linked card links 0ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > links for 2, grants 3000 DP, and resolves its linked De-Digivolve 6ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > refuses the paid link requirement for a non-Appmon card without spending memory 1ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > de-digivolves once when Timemon itself receives a real link card 4ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > does not repeat Timemon's Your Turn linked trigger on a second public link 3ms
+ ✓ src/cards/BT21/BT21-059.test.ts > BT21-059 Timemon > App Fuses the two available distinct recipe names through the production verb 3ms
+ ✓ src/cards/BT21/BT21-065.test.ts > BT21-065 Ghostmon > preserves complete residual-free coverage 0ms
+ ✓ src/cards/BT21/BT21-065.test.ts > BT21-065 Ghostmon > reduces Ghost digivolution cost on your turn and gains memory on deletion 0ms
+ ✓ src/cards/BT21/BT21-065.test.ts > BT21-065 Ghostmon > reduces a Ghost evolution by exactly 1 through the public intent 2ms
+ ✓ src/cards/BT21/BT21-065.test.ts > BT21-065 Ghostmon > does not reduce an evolution into a non-Ghost card 2ms
+ ✓ src/cards/BT21/BT21-065.test.ts > BT21-065 Ghostmon > does not reduce a Ghost evolution from the breeding area (Q4573) 1ms
+ ✓ src/cards/BT21/BT21-065.test.ts > BT21-065 Ghostmon > rejects a Ghost evolution during the opponent's turn before card-specific processing 0ms
+ ✓ src/cards/BT21/BT21-065.test.ts > BT21-065 Ghostmon > pays the reduced Ghost evolution from zero memory through the shared negative gauge 2ms
+ ✓ src/cards/BT21/BT21-065.test.ts > BT21-065 Ghostmon > gains 1 memory when a realistic host carrying Ghostmon is deleted 3ms
+ ✓ src/cards/BT21/BT21-065.test.ts > BT21-065 Ghostmon > gains 1 memory when a public battle deletes a legal Ghost host stack 2ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > preserves both zero-cost alternate Digivolution requirements 0ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > draws two after the printed Guilmon-family or Hero hand-trash cost 0ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > pays with a Guilmon-family card and draws exactly two 2ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > pays with a Hero card and draws exactly two 2ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > does not offer the hand-trash cost when the hand has no matching name or Hero trait 2ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > declining the hand-trash cost does not draw 1ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > gains 1 memory when a realistic host carrying Guilmon is deleted 2ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > gains inherited memory from a public battle deletion 6ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > zero-cost evolves through alternate route 0 2ms
+ ✓ src/cards/BT21/BT21-064.test.ts > BT21-064 Guilmon > zero-cost evolves through alternate route 1 2ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > preserves both zero-cost alternate Digivolution requirements and inherited DP gain 0ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > requires trashing a Save-text or Hero card to draw two 0ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > pays with a Save-text card and draws exactly two 3ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > pays with a Hero card and draws exactly two 1ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > does not draw or trash a nonmatching hand card 1ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > publicly uses the zero-cost Save-text alternate evolution route 1ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > refuses both zero-cost alternates from a neutral level-2 without Save text or Hero trait 1ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > publicly uses the zero-cost Hero alternate evolution route 2ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > executes Save by placing itself under an own Tamer on deletion 4ms
+ ✓ src/cards/BT21/BT21-063.test.ts > BT21-063 Gumdramon > gives its evolution host +2000 DP only during its controller's turn 0ms
+
+ Test Files  5 passed (5)
+      Tests  58 passed (58)
+   Start at  18:03:55
+   Duration  6.80s (transform 82%, import 15%, tests 3%)

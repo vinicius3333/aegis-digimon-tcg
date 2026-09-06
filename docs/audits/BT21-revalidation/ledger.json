@@ -638,11 +638,17 @@
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-018.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
           "result": "20/20",
           "log": "logs/collection-mechanisms-second-pass-v4.log"
+        },
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-018.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "21/21",
+          "log": "logs/second-pass-018-065-v6.log"
         }
       ],
       "deliveryCommits": [
         "0edef5803",
-        "21b86844b"
+        "21b86844b",
+        "116372d96"
       ]
     },
     {
@@ -2038,10 +2044,16 @@
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-056.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
           "result": "8/8",
           "log": "logs/collection-mechanisms-second-pass-v4.log"
+        },
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-056.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/second-pass-018-065-v6.log"
         }
       ],
       "deliveryCommits": [
-        "bc2284dec"
+        "bc2284dec",
+        "2b14bfcb0"
       ]
     },
     {
@@ -2050,18 +2062,18 @@
       "status": "integration-review",
       "scores": [
         2,
-        1,
-        1,
-        1,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-057.md",
       "gaps": [
-        "Full clause-by-clause fidelity review pending",
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
-        "61077ebf2"
+        "61077ebf2",
+        "b6c88bb40"
       ],
       "commands": [
         {
@@ -2073,6 +2085,11 @@
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-057.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
           "result": "8/8",
           "log": "logs/collection-mechanisms-second-pass-v4.log"
+        },
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-057.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/second-pass-018-065-v6.log"
         }
       ]
     },
@@ -2102,10 +2119,16 @@
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-058.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
           "result": "6/6",
           "log": "logs/collection-mechanisms-second-pass-v4.log"
+        },
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-058.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/second-pass-018-065-v6.log"
         }
       ],
       "deliveryCommits": [
-        "98a07cfb0"
+        "98a07cfb0",
+        "80918a43e"
       ]
     },
     {
@@ -2134,10 +2157,16 @@
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-059.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
           "result": "7/7",
           "log": "logs/collection-mechanisms-second-pass-v4.log"
+        },
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-059.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "8/8",
+          "log": "logs/second-pass-018-065-v6.log"
         }
       ],
       "deliveryCommits": [
-        "33bc0c5e3"
+        "33bc0c5e3",
+        "50fcffd1a"
       ]
     },
     {
@@ -2166,10 +2195,16 @@
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-060.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
           "result": "9/9",
           "log": "logs/collection-mechanisms-second-pass-v4.log"
+        },
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-060.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "11/11",
+          "log": "logs/second-pass-018-065-v6.log"
         }
       ],
       "deliveryCommits": [
-        "10417ed45"
+        "10417ed45",
+        "2a4a62735"
       ]
     },
     {
@@ -2198,10 +2233,16 @@
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-061.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
           "result": "7/7",
           "log": "logs/collection-mechanisms-second-pass-v4.log"
+        },
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-061.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/second-pass-018-065-v6.log"
         }
       ],
       "deliveryCommits": [
-        "969b44852"
+        "969b44852",
+        "3639b253b"
       ]
     },
     {
@@ -2224,7 +2265,15 @@
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-062.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
           "result": "11/11",
           "log": "logs/collection-mechanisms-second-pass-v4.log"
+        },
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-062.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "13/13",
+          "log": "logs/second-pass-018-065-v6.log"
         }
+      ],
+      "deliveryCommits": [
+        "f1709caae"
       ]
     },
     {
@@ -2244,7 +2293,8 @@
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
-        "f05a5893f"
+        "f05a5893f",
+        "594f11e49"
       ],
       "commands": [
         {
@@ -2256,6 +2306,11 @@
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-063.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
           "result": "8/8",
           "log": "logs/collection-mechanisms-second-pass-v4.log"
+        },
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-063.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/second-pass-018-065-v6.log"
         }
       ]
     },
@@ -2276,7 +2331,8 @@
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
-        "6681e89dc"
+        "6681e89dc",
+        "dd1427de6"
       ],
       "commands": [
         {
@@ -2288,6 +2344,11 @@
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-064.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
           "result": "8/8",
           "log": "logs/collection-mechanisms-second-pass-v4.log"
+        },
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-064.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/second-pass-018-065-v6.log"
         }
       ]
     },
@@ -2308,7 +2369,8 @@
         "Final collection delivery gates pending"
       ],
       "deliveryCommits": [
-        "ea28b12ca"
+        "ea28b12ca",
+        "eb853825b"
       ],
       "commands": [
         {
@@ -2320,6 +2382,11 @@
           "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-065.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
           "result": "7/7",
           "log": "logs/collection-mechanisms-second-pass-v4.log"
+        },
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-065.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/second-pass-018-065-v6.log"
         }
       ]
     },
@@ -3467,9 +3534,9 @@
   "deliveryGates": {
     "status": "pending",
     "collection": "1819/1819 assertions pass across 121 files in logs/collection-mechanisms-second-pass-v4.log, including all 102 cards and affected mechanism suites. Final proof review is still incomplete.",
-    "typecheck": "Shared/API/web passed in logs/typecheck-second-pass-v3.log.",
+    "typecheck": "Shared/API/web passed in logs/typecheck-second-pass-v4.log after public proof additions through065.",
     "sync": "All 102 BT21 records already synchronized; 15 semantic changes against baseline, zero semantic or byte changes outside BT21 (logs/effects-check-second-pass-v3.log).",
-    "review": "Draft review PR https://github.com/vinicius3333/aegis-digimon-tcg/pull/4722; branch pushed through 1fe1f2ef5; final clause review remains incomplete.",
+    "review": "Draft PR https://github.com/vinicius3333/aegis-digimon-tcg/pull/4722; atomic public proof commits through eb853825b; final clause review incomplete.",
     "style": "All 133 touched code paths pass scoped Oxfmt/Oxlint checks; git diff --check clean (logs/style-second-pass-v2.log)."
   }
 }
