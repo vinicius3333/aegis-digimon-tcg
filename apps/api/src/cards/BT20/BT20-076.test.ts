@@ -145,6 +145,41 @@ describe("BT20-076 Imperialdramon: Dragon Mode", () => {
     }
   });
 
+  it("may decline Blast DNA in the public counter window and leaves Dragon Mode in hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-074", as: "dinobeemon" }],
+          hand: [
+            { card: "BT20-076", as: "dragon" },
+            { card: "BT20-016", as: "paildramon" },
+            { card: "BT20-020", as: "fighter" },
+          ],
+          security: ["BT1-001"],
+          deck: ["BT20-047", "BT20-048"],
+        },
+        1: { battleArea: [{ card: "BT20-069", dp: 4000, as: "attacker" }], security: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    expect(s.engine.applyIntent(0, { type: "respondCounter" })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("dragon").instanceId);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT20-074"]);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+  });
+
   it("charges Overflow -4 when the ACE leaves battle", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT20-076", as: "dragon" }] } });
     s.state.memory = 0;

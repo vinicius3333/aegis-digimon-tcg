@@ -1,6 +1,6 @@
 {
   "cardId": "BT20-076",
-  "status": "ready-for-coordinator-verification",
+  "status": "lead-verified",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
@@ -9,12 +9,52 @@
     "deliveryGates": 0
   },
   "evidence": [
-    "BT20-076.test.ts: public normal entry deletion boundary",
-    "BT20-076.test.ts: public opponent attack Blast DNA counter with hand/trash Fighter Mode",
-    "BT20-076.test.ts: exact materials and Overflow",
-    "current-collection-green-results.json"
+    "apps/api/src/cards/BT20/BT20-076.ts",
+    "apps/api/src/cards/BT20/BT20-076.test.ts",
+    "node tools/kb/query.mjs card BT20-076",
+    "round5-final-collection-results.json",
+    "round5-mechanism-results.json",
+    "BT20-076-runtime-disabled.json",
+    "round5-gates.json"
   ],
   "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-final-collection-results.json",
+      "result": "8/8 colocated cases pass; 968/968 full collection/mechanism cases."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/effects/interpreter/actions/play.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/builders.test.ts src/engine/actions/activateEffect.test.ts src/engine/actions/playCard.test.ts src/engine/useOption.test.ts src/engine/effectOptionUseCost.test.ts src/engine/decisions/minEnforcement.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/primitives.test.ts src/cards/BT7/BT7-063.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-mechanism-results.json",
+      "result": "465/465 affected mechanism cases pass."
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-076",
+      "result": "2 meaningful assertion failures with runtime effects disabled; original production module restored. Per-card JSON/log and aggregate retained."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "PASS; round5-final-typecheck.log. Final API test-source check also passes in round5-final-api-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "PASS; all 102 records synchronized, round5-scoped-check.log."
+    },
+    {
+      "command": "Changed-file oxlint/oxfmt --check and git diff --check",
+      "result": "PASS; round5-gates.json, round5-style-paths.json and final style logs."
+    }
+  ],
+  "gaps": [],
+  "executedCases": [
+    "BT20-076 Imperialdramon: Dragon Mode provides Blast DNA Digivolve from hand",
+    "BT20-076 Imperialdramon: Dragon Mode deletes one opposing Digimon at 11000 DP or less on play and digivolving",
+    "BT20-076 Imperialdramon: Dragon Mode only on DNA digivolving may digivolve this Digimon into Fighter Mode from hand or trash",
+    "BT20-076 Imperialdramon: Dragon Mode publishes the printed ACE stats, evolution routes, and Overflow -4",
+    "BT20-076 Imperialdramon: Dragon Mode normal play and evolution delete 11000 DP but preserve 12000 and do not evolve to Fighter Mode",
+    "BT20-076 Imperialdramon: Dragon Mode Blast DNA accepts exact materials and free-evolves into Fighter Mode from hand or trash",
+    "BT20-076 Imperialdramon: Dragon Mode may decline Blast DNA in the public counter window and leaves Dragon Mode in hand",
+    "BT20-076 Imperialdramon: Dragon Mode charges Overflow -4 when the ACE leaves battle"
+  ],
+  "historicalCommands": [
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-076.test.ts --maxWorkers=1 --no-file-parallelism",
       "result": "not run by worker; coordinator owns Vitest"
@@ -28,8 +68,5 @@
       "result": "PASS: 7 cases for BT20-076;734 total tests. See current-collection-green-results.json."
     }
   ],
-  "gaps": [
-    "Coordinator focused/collection and final mechanism gates pending"
-  ],
-  "reviewStatus": "Full collection execution passed at this draft checkpoint. Strict clause acceptance, sensitivity and final delivery review remain pending; provisional scores do not count in the ledger."
+  "reviewStatus": "Current printed clauses, KB/errata, exclusive IR registration, legal public paths and negative controls independently reviewed. Delivery credit requires the pushed, hash-bound acceptance record."
 }
