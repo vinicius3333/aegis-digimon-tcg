@@ -104,6 +104,45 @@ describe("BT24-016 Lamiamon", () => {
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("trashed").instanceId);
   });
 
+  it("lets the opponent choose which of their hand cards becomes their bottom security", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT24-016", as: "lamiamon" }] },
+      1: {
+        hand: [
+          { card: "BT4-022", as: "kept" },
+          { card: "BT4-022", as: "placed" },
+        ],
+        security: [{ card: "BT4-022", as: "trashed" }],
+      },
+    });
+    await s.ready();
+
+    const resolution = advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("lamiamon"));
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const decision = s.state.pendingDecision!;
+    expect(decision.seat).toBe(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("placed").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await resolution;
+
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toEqual([s.inst("kept").instanceId]);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([s.inst("placed").instanceId]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([s.inst("trashed").instanceId]);
+    // The count ends where it began, so the seat on the add is all a client has to narrate it.
+    expect(s.events).toContainEqual({
+      kind: "cardsMoved",
+      instanceIds: [s.inst("placed").instanceId],
+      from: "various",
+      to: "security",
+      seat: 1,
+    });
+  });
+
   it("shares one security-manipulation use between digivolving and attacking", async () => {
     const s = setupEngine(
       {

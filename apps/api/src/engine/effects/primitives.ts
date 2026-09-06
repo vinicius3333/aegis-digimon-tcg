@@ -1779,7 +1779,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     if (removed === undefined) return false;
     removed.faceUp = false;
     insertCard(player(removed.ownerSeat), Zone.Security, removed, "top");
-    engine.emit({ kind: "cardsMoved", instanceIds: [removed.instanceId], from: Zone.Trash, to: Zone.Security });
+    engine.emit({
+      kind: "cardsMoved",
+      instanceIds: [removed.instanceId],
+      from: Zone.Trash,
+      to: Zone.Security,
+      seat: removed.ownerSeat,
+    });
     if (engine.fireSubTrigger) {
       await engine.fireSubTrigger("whenAddSecurity", {
         addedToSecuritySeat: removed.ownerSeat,
@@ -4671,11 +4677,16 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       });
     }
     if (added.length > 0) {
+      // The stack is face-down and the cards may have come from a hidden hand, so the
+      // seat is the only thing a client can narrate the growth from: a net-zero patch
+      // ("place 1 card as bottom security, then trash the top card", BT24-016) shows no
+      // count change at all.
       engine.emit({
         kind: "cardsMoved",
         instanceIds: added.map((c) => c.instanceId),
         from: "various",
         to: Zone.Security,
+        seat,
       });
       // SubTrigger bus: "when cards are added to security" —
       // PlaceToSecurityEffect runs through the same IAddSecurity.AddSecurity seam as ＜Recovery＞.

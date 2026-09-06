@@ -583,7 +583,11 @@ async function runSecurityAdd(
       upTo: action.optional === true,
     };
     const candidates = candidateLooseInstances(ctx, target, zones);
-    const chosen = await pickLoose(ctx, target, candidates);
+    // "Your opponent places 1 card from their hand as the bottom security card" (BT24-016,
+    // BT21-024): the OWNER of the hand picks the card. The effect's controller cannot see
+    // that hand, so a pick routed through ctx.ask would be a blind choice among card backs.
+    const asker = ownController === "opponent" ? requireOpponentAsk(ctx) : ctx.ask;
+    const chosen = await pickLoose(ctx, target, candidates, undefined, asker);
     if (chosen.length > 0) await ctx.fx.addSecurity(seat, chosen, opts);
     return;
   }

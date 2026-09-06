@@ -201,7 +201,11 @@ export type ServerEvent =
        * panel can name the cards without racing the state patch.
        */
       cardIds?: string[];
-      /** The seat whose zone the cards left, when `cardIds` is present. */
+      /**
+       * The seat whose zone the movement is about, when the event names one: the stack
+       * the cards left (with `cardIds`, an effect trashing security cards) or the stack
+       * they joined (an effect adding to security, whose face-down cards stay unnamed).
+       */
       seat?: Seat;
     }
   | { kind: "turnEnded"; endingSeat: Seat; nextSeat: Seat; turnCount: number } // turn transition overlay
