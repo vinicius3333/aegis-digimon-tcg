@@ -45,3 +45,32 @@ Raw executable results: `/tmp/bt25-audit-logs/initial-collection.log` and `/tmp/
 - `pnpm effects:check:set -- --set BT25 --base a924de971` — **PASS**, 104 records already synchronized, zero semantic or byte changes outside BT25. Log: `/tmp/bt25-audit-logs/first-wave-effects-check.log`.
 - Astra focused integration reruns: 002/004 **16/16**, 001/003/006/007/008 **36/36**, 009–012 **41/41**. Logs: `/tmp/bt25-audit-logs/integration-002-004.log`, `integration-eggs-rookies.log`, `integration-trait-unions.log`. Targeted Oxlint and Oxfmt passed.
 - Testkit caution: `settle(predicate)` drains microtasks and silently returns when its tick budget is exhausted; it does not assert the predicate. Each claimed outcome must have an explicit state assertion afterward. The 017 color fixtures failed this review despite a green focused count and remain incomplete pending repair.
+
+## Second-wave integration checkpoint
+
+- Shared ordinary count defect corrected in `915722212`; see `ENGINE-COUNT-REGRESSION.md` for the red reproduction and 444 affected mechanism passes.
+- Focused integration results: 005 **8**, 013 **12**, 014 **7**, 015 **9**, 016 **13**, 017 **13**, 018 **11**, 019 **16**, 020 **16**, 021 **10** passed. Gaomon's older Thomas name-only regression failed before the catalog/IR correction and passed afterward.
+- BT25-only sync: **104 records**, **24 semantic changes** against base and **zero outside-set changes**. This precedes the newly discovered 024 zone correction; sync/check will run again after that edit.
+- Full BT25 integration: **832 passed, 2 failed, 107 files**. Both failures were concurrent, newly added 022 tests; this is not a final green collection result. Log: `/tmp/bt25-audit-logs/second-wave-collection.log`.
+- Workspace typecheck reached shared/web success, then failed on concurrent 022 security `dp` fixture and 025 event/callback types. Owners received the exact errors. Log: `/tmp/bt25-audit-logs/second-wave-typecheck.log`.
+- Targeted Oxlint/Oxfmt on 005 and 013–021 passed after replacing 020's untyped mock with the actual effect-context signature. `git diff --check` and ledger accounting check passed.
+- Luna workers temporarily hit account usage limits. A later bounded retry succeeded; the authorized three-Luna workflow resumed. Root retained all edits and continued shared-engine integration during the interruption.
+- Official English verification exposed committed-catalog errors in 021/023 (Thomas name versus trait) and 024 (Crescemon trash versus hand). The official source is https://world.digimoncard.com/cards/?category=522036&search=true. Correct source-zone proof takes precedence over a green test of the wrong contract.
+
+The ledger now records 21 provisional cards, 185 assigned points, and **0/104 final 10/10 approvals**. Remaining proof gaps are explicit per card. Later generated ledger totals supersede this checkpoint's totals.
+
+## Green integration gate and first independent card approvals
+
+At checkpoint `5e8f6113c` plus the explicitly in-progress 023/025–028 test edits:
+
+- `pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts --maxWorkers=1 --no-file-parallelism`: **108 files, 874 tests passed**. `/tmp/bt25-audit-logs/third-wave-collection.log`.
+- `pnpm typecheck`: **PASS** for shared, API and web. `/tmp/bt25-audit-logs/third-wave-typecheck.log`.
+- `pnpm effects:check:set -- --set BT25 --base a924de971`: **PASS**, 104 synchronized records, 24 semantic changes against base, zero semantic or byte changes outside BT25. `/tmp/bt25-audit-logs/third-wave-effects-check.log`.
+- `pnpm exec oxlint apps/api/src/cards/BT25`: exit 0; warnings remain in queued cards 038 and later. Reviewed 001–024 have no current lint findings. `/tmp/bt25-audit-logs/third-wave-lint.log`.
+- `pnpm exec oxfmt --check --threads=1 apps/api/src/cards/BT25`: **PASS** after formatting-only corrections to 030/036. `/tmp/bt25-audit-logs/third-wave-format.log`.
+- `git diff --check`: **PASS**.
+- No matching open GitHub issues found with `gh issue list --search 'BT25 in:title' --state open --limit 20 --json number,title,url`.
+
+Astra independently accepts the clause, IR, public behavior and legal-stack evidence for 001–018, 021 and 022. Each has its recorded focused pass, affected mechanism coverage, green integration gates above, and an atomic committed implementation/test result. The current approval section in each report supersedes its historical provisional score. These **20 card approvals do not complete the collection**. Cards 019/020 have explicit remaining mechanism/ordering proof; 023–028 remain under review, and later cards retain queued audits and official-source discrepancies. The Piercing/direct-battle investigation is currently a hypothesis, not a confirmed engine defect or passing proof.
+
+The 874 count includes in-progress neighboring tests. Reproduction from a later commit may have a larger test count as those audits expand; each approved card's focused count and command remain separately recorded. Final closeout must rerun the full collection and affected mechanisms after all 104 audits.

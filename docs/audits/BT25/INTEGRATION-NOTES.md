@@ -69,3 +69,16 @@ These are review findings and queued work, not scores or passing evidence.
   multiple battles in one attack; Q6283 covers security battles; Q6284–Q6286
   require correct ordering and a win even when deletion is prevented. Keep TS
   winner gating and once-per-turn suppression causal with a second legal win.
+
+## Current work after the 874-test integration pass
+
+- 001–018, 021, 022: independent per-card approval recorded in the ledger. Revalidate after any affected shared change and again at final collection closeout.
+- 019: root is tracing the existing 444-test immunity mechanism results to Q6272–Q6277; actual memory/source-kind effects, Reboot, Blocker and expiry already pass. Keep below 10 until that review closes.
+- 020: Luna D owns a public Q6280/Q6281 regression. `combat/controller.ts` currently disables Piercing for all direct effect battles. A direct battle during the same attack may need to preserve eligibility until the ordinary battle ends; root owns any fix. No defect is yet confirmed by a red regression.
+- 023: latest 12 focused tests add exact one-own-Tamer versus opponent-Tamer counting and legal neutral inheritance. Root final review pending.
+- 024: official trash-source correction and causal bonus-versus-effect draw proof committed; 15 focused and full integration tests passed. Final card review pending.
+- 025: 14 focused tests now use legal Lv6 inherited hosts. Q6289 pauses at the inherited choice and asserts the revealed Security effect already resolved. Actual Blocker behavior remains to be checked; metadata alone does not prove it.
+- 026: Luna E owns exact public Blocker rejection during an open window, control without the inheritance, complete attack, optional trash-evolution refusal, hand-zone negative, actual blue-to-red evolution, restriction use and expiry.
+- 027: initial worker edits were paused before root review. Not approved.
+- 028: Luna C is replacing illegal opponent and inherited stacks, separating accepted-once from decline/retry, proving dynamic restrictions and Q6293 pending-entry ordering, and inherited Digimon/Tamer targets and duration. Its DNA trigger is All Turns on play/evolution, not end of turn.
+- 029: queued after 028; official name-family discrepancy is in `OFFICIAL-SOURCE-CHECK.md` and awaits serialized catalog correction.
