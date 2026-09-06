@@ -1,5 +1,6 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, it, expect } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 // Self-register every card module so the engine drives the REGISTERED BT20-065 IR.
@@ -36,6 +37,26 @@ describe("A3 BT20-065 — granted '[On Deletion] Lose 1 memory.' (costed)", () =
       trigger: "Static",
       keywords: [{ keyword: "Retaliation" }],
     });
+  });
+
+  it("evolves publicly from a legal level-2 Purple source at zero cost", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT20-006", as: "demimeramon" }],
+        hand: [{ card: "BT20-065", as: "wormmon" }],
+      },
+    });
+    s.state.memory = 0;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("demimeramon").permanentId,
+        instanceId: s.inst("wormmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("demimeramon").topCard.cardId === "BT20-065");
+    expect(s.perm("demimeramon").stack.map((card) => card.cardId)).toEqual(["BT20-006"]);
+    expect(s.state.memory).toBe(0);
   });
 
   it("POSITIVE: paying the trash cost grants the effect; deleting the recipient costs 1 memory", async () => {
@@ -126,5 +147,61 @@ describe("A3 BT20-065 — granted '[On Deletion] Lose 1 memory.' (costed)", () =
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Retaliation")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("standalone"), "Retaliation")).toBe(false);
+  });
+
+  it("expires the opponent deletion-loss grant after the real opponent turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-010", dp: 5000, as: "attacker" }],
+          hand: [
+            { card: "BT20-065", as: "wormmon" },
+            { card: "BT1-085", as: "fodder" },
+          ],
+          deck: ["BT20-001", "BT20-002"],
+          security: ["BT20-001", "BT20-002"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", dp: 3000, suspended: true, as: "recipient" }],
+          deck: ["BT20-001", "BT20-002"],
+          hand: ["BT20-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wormmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("fodder").instanceId));
+
+    s.state.turnSeat = 1;
+    s.state.memory = 5;
+    const recipientId = s.perm("recipient").permanentId;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, { type: "attack", attackerPermanentId: recipientId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 5;
+    const nextOwnTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: recipientId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === recipientId));
+    expect(s.state.memory).toBe(5);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextOwnTurn;
   });
 });
