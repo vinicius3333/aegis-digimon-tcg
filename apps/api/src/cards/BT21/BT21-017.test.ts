@@ -142,7 +142,7 @@ describe("BT21-017 Dimetromon", () => {
 
   it("gains memory once only for opponent security removal", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT21-015", as: "host", under: ["BT21-017"] }] },
+      0: { battleArea: [{ card: "BT21-024", as: "host", under: ["BT21-017"] }] },
     });
     s.state.memory = 0;
     await s.ready();
@@ -150,6 +150,29 @@ describe("BT21-017 Dimetromon", () => {
     expect(s.state.memory).toBe(0);
     await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 1 });
     await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 1 });
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("gains memory from a public attack that removes the opponent's security", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT21-024", as: "host", under: ["BT21-017"] },
+          { card: "BT21-011", as: "attacker" },
+        ],
+      },
+      1: { security: ["BT1-001"] },
+    });
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && s.state.memory === 1);
     expect(s.state.memory).toBe(1);
   });
 });
