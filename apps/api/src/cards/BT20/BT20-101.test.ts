@@ -102,4 +102,22 @@ describe("BT20-101 Zephagamon", () => {
     await settle();
     expect(s.perm("zephagamon").isSuspended).toBe(false);
   });
+
+  it("uses the printed cost-1 Vortex Warriors alternate evolution", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX11-035", as: "vortexMega" }], hand: [{ card: "BT20-101", as: "zephagamon" }] },
+    });
+    s.state.memory = 1;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("vortexMega").permanentId,
+        instanceId: s.inst("zephagamon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("vortexMega").topCard.cardId === "BT20-101" && s.state.pendingDecision === undefined);
+    expect(s.perm("vortexMega").stack.map((card) => card.cardId)).toEqual(["EX11-035"]);
+    expect(s.state.memory).toBe(0);
+  });
 });
