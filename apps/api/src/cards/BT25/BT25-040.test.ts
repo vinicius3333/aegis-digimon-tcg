@@ -99,6 +99,31 @@ describe("BT25-040 MagnaAngemon", () => {
     expect(s.decisions.some((decision) => decision.req.kind === "chooseOption")).toBe(false);
   });
 
+  it("can choose the bottom security card while preserving the middle card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT25-040", as: "magna" }],
+          security: [
+            { card: "BT1-010", as: "top" },
+            { card: "BT1-011", as: "middle" },
+            { card: "BT1-012", as: "bottom" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 12000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 1 },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("magna").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-040"));
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toContain("BT1-011");
+    expect(s.state.players[0]!.trash).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("bottom").instanceId }),
+    );
+  });
+
   it("may decline the security cost without applying the DP reduction", async () => {
     const s = setupEngine(
       {
@@ -126,7 +151,8 @@ describe("BT25-040 MagnaAngemon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT25-040", as: "magna", under: ["BT1-009"] }],
+          battleArea: [{ card: "BT25-034", as: "magna" }],
+          hand: [{ card: "BT25-040", as: "next" }],
           security: [{ card: "BT1-010", as: "securityTop" }],
         },
         1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 12000 }] },
@@ -135,9 +161,16 @@ describe("BT25-040 MagnaAngemon", () => {
     );
 
     await s.ready();
-    const fire = advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("magna"));
-    await settle(() => s.decisions.some((decision) => decision.req.kind === "chooseOption"));
-    await fire;
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("magna").permanentId,
+        instanceId: s.inst("next").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("magna").topCard.cardId === "BT25-040");
 
     expect(s.perm("opponent").currentDP).toBe(4000);
     expect(s.state.players[0]!.security).toHaveLength(0);
@@ -161,11 +194,55 @@ describe("BT25-040 MagnaAngemon", () => {
     expect(s.perm("angel").topCard?.cardId).toBe("BT10-035");
   });
 
+  it("does not fire from ordinary trash and does not play a non-Angel/non-Iliad near match", async () => {
+    const ordinary = setupEngine({
+      0: { hand: [{ card: "BT25-040", as: "magna" }] },
+    });
+    await ordinary.ready();
+    await advance(ordinary.engine).verb.trash([ordinary.inst("magna").instanceId], 0);
+    expect(ordinary.state.players[0]!.battleArea).toHaveLength(0);
+
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT25-040", as: "magna" }],
+          hand: [
+            { card: "BT10-035", as: "angel" },
+            { card: "BT1-009", as: "nearMatch" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).verb.trash([s.inst("magna").instanceId], 0);
+    await settle(() => s.perm("angel").topCard?.cardId === "BT10-035");
+    expect(s.state.players[0]!.hand).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("nearMatch").instanceId }),
+    );
+  });
+
+  it("can decline the security-trash play before any placement choice", async () => {
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "BT25-040", as: "magna" }], hand: [{ card: "BT10-035", as: "angel" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).verb.trash([s.inst("magna").instanceId], 0);
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.security.length === 0);
+    expect(s.state.players[0]!.trash).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("magna").instanceId }),
+    );
+    expect(s.state.players[0]!.hand).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("angel").instanceId }),
+    );
+  });
+
   it("applies the inherited DP reduction only for own security removal and once per turn", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-009", as: "host", under: ["BT25-040"] }],
+          battleArea: [{ card: "BT1-062", as: "host", under: ["BT25-040"] }],
           security: ["BT1-010"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 10000 }] },
@@ -183,5 +260,26 @@ describe("BT25-040 MagnaAngemon", () => {
 
     await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
     expect(s.perm("opponent").currentDP).toBe(6000);
+  });
+
+  it("reacts to a real own security removal, suppresses the second removal, and expires at turn end", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "host", under: ["BT25-040"] }],
+        security: ["BT1-010", "BT1-011"],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 10000 }] },
+    });
+    s.state.turnSeat = 0;
+    await s.ready();
+    await advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
+    expect(s.perm("opponent").currentDP).toBe(6000);
+    await advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
+    expect(s.perm("opponent").currentDP).toBe(6000);
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    expect(s.perm("opponent").currentDP).toBe(10000);
   });
 });
