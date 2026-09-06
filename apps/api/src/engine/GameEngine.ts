@@ -4545,6 +4545,10 @@ export class GameEngine {
         this.ruleProcessing = false;
       }
     }
+    // A link is protected only through the rule-check boundary that immediately
+    // follows its linking action. Sequential later links must be able to replace
+    // this card once that boundary has completed.
+    this.justLinked.clear();
   }
 
   /**

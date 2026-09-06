@@ -2343,13 +2343,19 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // permanent (whose link card this is) is carried as `subjectPermanentId` so a watcher can gate
     // on "this Digimon" / "an opponent's Digimon".
     const linkTrashed: { instanceId: string; hostPermanentId: string }[] = [];
+    // Rule-based link-limit cleanup suppresses whenLinkTrashed, but removing the old link
+    // still changes the host's observable DP and linked keywords. Keep the host identity
+    // separately so refreshing those values does not depend on emitting a subtrigger.
+    const linkedHostsToRefresh = new Set<string>();
+    const linkedHostByInstance = new Map<string, string>();
     const optionBattleAreaTrashed: string[] = [];
     // CR 4-9-5's over-limit sweep is rule processing, not an effect: a watcher reading "when
     // effects trash any of this Digimon's link cards" must not see it (Q5088, Q5172, Q5188).
-    if (engine.fireSubTrigger && opts?.byRule !== true) {
-      for (const instanceId of instanceIds) {
-        const host = hostOfLinkedInstance(state, instanceId);
-        if (host !== undefined) linkTrashed.push({ instanceId, hostPermanentId: host });
+    for (const instanceId of instanceIds) {
+      const host = hostOfLinkedInstance(state, instanceId);
+      if (host !== undefined) {
+        linkedHostByInstance.set(instanceId, host);
+        if (engine.fireSubTrigger && opts?.byRule !== true) linkTrashed.push({ instanceId, hostPermanentId: host });
       }
     }
     // <Overflow> (CR §4-18) eligibility, recorded BEFORE removal: this verb also trashes loose
@@ -2429,8 +2435,22 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         to: Zone.Trash,
       });
     }
-    // Fire AFTER the move, gated to instances that actually left the linked list.
+    // Identify only linked instances that actually moved; restricted or missing ids must not
+    // cause an unrelated host refresh.
     const movedIds = new Set(moved.map((c) => c.instanceId));
+    for (const instanceId of movedIds) {
+      const host = linkedHostByInstance.get(instanceId);
+      if (host !== undefined) linkedHostsToRefresh.add(host);
+    }
+    // A by-rule link removal intentionally emits no whenLinkTrashed event. Refresh the
+    // affected host DP directly after movement so the stale linkDp contribution cannot remain
+    // observable; the continuous layer is refreshed immediately below without firing the
+    // suppressed whenLinkTrashed watcher.
+    for (const hostPermanentId of linkedHostsToRefresh) {
+      if (findPermanentInState(state, hostPermanentId) !== undefined) ledger.recomputeDP(state, hostPermanentId);
+    }
+    if (linkedHostsToRefresh.size > 0) await engine.recomputeContinuousEffects?.();
+    // Fire AFTER the move, gated to instances that actually left the linked list.
     for (const entry of linkTrashed) {
       if (!movedIds.has(entry.instanceId)) continue;
       await engine.fireSubTrigger!("whenLinkTrashed", { subjectPermanentId: entry.hostPermanentId });
