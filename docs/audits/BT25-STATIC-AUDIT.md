@@ -1,5 +1,9 @@
 # BT25 Executed Card Implementation Audit
 
+Historical report. The 2026-09-06 independent campaign is **INCOMPLETE**;
+see [the current evidence ledger](./BT25/REAUDIT-LEDGER.md). The completion
+claims and command results below have not been accepted as fresh evidence.
+
 Status: complete for all 104 catalog cards (`BT25-001` through `BT25-104`).
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
