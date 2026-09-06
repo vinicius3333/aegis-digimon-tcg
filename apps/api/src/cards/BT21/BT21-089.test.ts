@@ -151,12 +151,28 @@ describe("BT21-089 Takato Matsuki", () => {
   });
 
   it("plays itself from Security without paying cost", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "BT21-089", as: "takato" }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-032", as: "attacker", dp: 2000 }] },
+      1: { security: [{ card: "BT21-089", as: "takato" }] },
+    });
     s.state.memory = 0;
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("takato"));
-    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("takato").instanceId),
+    );
     expect(s.state.memory).toBe(0);
+    expect(
+      s.events.some(
+        (event) => event.kind === "attackDeclared" && event.attackerPermanentId === s.perm("takato").permanentId,
+      ),
+    ).toBe(false);
   });
 });
