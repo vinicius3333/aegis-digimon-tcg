@@ -150,6 +150,38 @@ describe("BT20-034 Boutmon", () => {
     expect(observe(s.engine).isRestricted(s.perm("selected"), "cannotActivateWhenDigivolving")).toBe(false);
   });
 
+  it("suppresses a restricted target's When Digivolving effect on a public evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-034", as: "boutmon" }],
+          hand: [{ card: "BT20-085", as: "tamer" }],
+        },
+        1: {
+          battleArea: [{ card: "BT20-071", as: "target" }],
+          hand: [{ card: "BT20-035", as: "evolution" }],
+          security: ["BT20-001", "BT20-002", "BT20-003"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.placeUnder(s.perm("boutmon").permanentId, [s.inst("tamer").instanceId]);
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "cannotActivateWhenDigivolving"));
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("target").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").topCard.cardId === "BT20-035");
+    expect(s.perm("boutmon").isSuspended).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(3);
+  });
+
   it("inherits one opposing top-security trash after its host deletes in battle", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT20-035", as: "host", under: ["BT20-034"] }] },
