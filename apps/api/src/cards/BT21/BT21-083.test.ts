@@ -143,6 +143,23 @@ describe("BT21-083 module registration", () => {
     expect(s.perm("taiki").isSuspended).toBe(false);
   });
 
+  it("does not react when the opponent plays a qualifying Xros Heart Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: TAIKI, as: "taiki" }] },
+      1: { hand: [{ card: XROS_HEART_DIGIMON, as: "opponentShoutmon" }] },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentShoutmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === XROS_HEART_DIGIMON));
+    expect(s.perm("taiki").isSuspended).toBe(false);
+    expect(s.perm("opponentShoutmon").isSuspended).toBe(false);
+  });
+
   it("suspends to make a newly digivolved Hero attack", async () => {
     const s = setupEngine(
       {
