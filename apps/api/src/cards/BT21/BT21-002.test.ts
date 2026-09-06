@@ -34,12 +34,12 @@ describe("BT21-002 Gurimon", () => {
   });
 
   it.each([
-    ["Hero trait", "BT21-011"],
-    ["Gammamon in text", "BT10-011"],
-  ])("draws when the attacking host qualifies by %s", async (_label, hostCard) => {
+    ["Hero trait", "BT21-011", ["BT21-002"]],
+    ["Gammamon in text", "BT21-019", ["BT21-002", "BT21-010"]],
+  ])("draws when the attacking host qualifies by %s", async (_label, hostCard, under) => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: hostCard, as: "host", under: ["BT21-002"] }],
+        battleArea: [{ card: hostCard, as: "host", under }],
         deck: [{ card: "BT1-001", as: "drawn" }],
       },
       1: { security: ["BT1-002"] },
@@ -54,6 +54,38 @@ describe("BT21-002 Gurimon", () => {
     await settle(() => s.state.players[0]!.hand.length === 1);
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
+  });
+
+  it("builds the Gammamon-text branch through public evolution", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-002", as: "host" }],
+        hand: [
+          { card: "BT21-010", as: "lv3" },
+          { card: "BT21-019", as: "lv4" },
+        ],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("lv3").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "BT21-010");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("lv4").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "BT21-019");
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT21-002", "BT21-010"]);
+    expect(s.state.memory).toBe(7);
   });
 
   it("does not draw for a near-match-free non-Hero host", async () => {
@@ -80,7 +112,7 @@ describe("BT21-002 Gurimon", () => {
   it("draws only once across repeated attacks in the same turn", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT21-028", as: "host", under: ["BT21-002"] }],
+        battleArea: [{ card: "BT21-019", as: "host", under: ["BT21-002", "BT21-010"] }],
         deck: [
           { card: "BT1-001", as: "first" },
           { card: "BT1-002", as: "second" },
