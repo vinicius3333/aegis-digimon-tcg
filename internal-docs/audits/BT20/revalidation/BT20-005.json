@@ -1,0 +1,31 @@
+{
+  "cardId": "BT20-005",
+  "status": "in-progress",
+  "scores": {
+    "catalogRules": 2,
+    "irTrace": 1,
+    "behavioralProof": 1,
+    "peerStackProof": 2,
+    "deliveryGates": 0
+  },
+  "evidence": [
+    "BT20-005.md",
+    "security-priority.md",
+    "security-mechanism-1.log",
+    "security-affected-1.log",
+    "005-security-priority.log"
+  ],
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/security/revealTriggerPriority.test.ts src/engine/security/securityCheck.test.ts src/engine/subTriggerSeams.test.ts src/cards/BT20/BT20-005.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+      "result": "4 files / 59 tests passed; security-mechanism-1.log"
+    },
+    {
+      "command": "pnpm --filter @aegis/api typecheck",
+      "result": "exit0; typecheck-integration-2.log"
+    }
+  ],
+  "gaps": [
+    "Cross-family simultaneous ordering: reveal watchers, OnSecurityCheck and OnLoseSecurity remain separate pools (Q4284)."
+  ]
+}

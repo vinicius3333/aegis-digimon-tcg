@@ -5074,6 +5074,19 @@ export class GameEngine {
           addedToSecuritySeat: info.seat,
           addedToSecurityInstanceIds: [info.instanceId],
         }),
+      prepareRevealTriggers: (info) => {
+        const event = info.wasAlreadyFaceUp ? "whenCheckedFaceUpSecurity" : "whenFaceUpCardsAddedToOpponentSecurity";
+        const payload: TriggerInfo = info.wasAlreadyFaceUp
+          ? { attackerPermanentId: info.attackerPermanentId, securityInstanceId: info.securityInstanceId }
+          : { addedToSecuritySeat: info.defenderSeat, addedToSecurityInstanceIds: [info.securityInstanceId] };
+        // Arm before the immediate Security effect, retaining live source checks for
+        // activation: a source removed by Security no longer has a pending effect.
+        const armed = this.armedSubTriggers([...this.subTriggers.subscriptionsFor(event)], payload);
+        return async () => {
+          await this.withTriggeredMutations(async () => this.runSubTriggersInChosenOrder(armed));
+          await this.recomputeContinuousEffects();
+        };
+      },
       resolveSecurityEffect: async (card, resolvingAttackerId, wasFaceUp) =>
         this.resolveSecurityEffect(card, resolvingAttackerId, wasFaceUp),
       // Reveal hint only: true whenever the card HAS a [Security] effect that would

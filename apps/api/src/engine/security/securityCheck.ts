@@ -139,6 +139,14 @@ export interface SecurityCheckDeps {
    */
   fireFaceUpSecurityAdded?(info: { seat: Seat; instanceId: string }): Promise<void>;
 
+  /** Capture reveal watchers now; activate them after the immediate [Security] effect. */
+  prepareRevealTriggers?(info: {
+    attackerPermanentId: string;
+    securityInstanceId: string;
+    defenderSeat: Seat;
+    wasAlreadyFaceUp: boolean;
+  }): () => Promise<void>;
+
   /**
    * Resolve the revealed card's [Security] effect, if any. Returns true when a
    * security effect existed and was resolved. A Digimon still battles afterward unless
@@ -245,7 +253,7 @@ export async function runSecurityCheck(
     const revealed = defender.security[0];
     if (revealed === undefined) break;
 
-    // A pre-existing face-up security card fires whenCheckedFaceUpSecurity BEFORE the reveal
+    // A pre-existing face-up security card triggers whenCheckedFaceUpSecurity at the reveal
     // (KB BT20-055: "when your Digimon checks a face-up security card"). Check the flag now,
     // before the reveal sets it, so a face-down card never triggers the event.
     const wasAlreadyFaceUp = revealed.faceUp === true;
@@ -277,20 +285,14 @@ export async function runSecurityCheck(
       ...hints,
     });
 
-    if (wasAlreadyFaceUp) {
-      await deps.fireSubTrigger?.("whenCheckedFaceUpSecurity", {
-        attackerPermanentId: attacker.permanentId,
-        securityInstanceId: revealed.instanceId,
-      });
-    } else {
-      // The check just flipped a face-down card face-up — the other half of
-      // "whenFaceUpCardsAddedToOpponentSecurity" (KB Q5789 binding: a security check revealing
-      // a card counts as a face-up card being "added", not just an effect-driven add). Fires
-      // for defenderSeat's stack; the interpreter gate matches a watcher only when defenderSeat
-      // is THAT watcher's own opponent (so the defender's own copy of this card does not react
-      // to its own security being checked).
-      await deps.fireFaceUpSecurityAdded?.({ seat: defenderSeat, instanceId: revealed.instanceId });
-    }
+    // Freeze eligibility at the reveal so a watcher installed by the [Security] effect
+    // cannot react retroactively. Its activation must wait (BT20-005/Q4284).
+    const activateRevealTriggers = deps.prepareRevealTriggers?.({
+      attackerPermanentId: attacker.permanentId,
+      securityInstanceId: revealed.instanceId,
+      defenderSeat,
+      wasAlreadyFaceUp,
+    });
 
     // Resolve the card's own [Security] effect FIRST — before the triggers this check
     // fired. Comprehensive Rules 15-16-10-2: a [Security] effect activates immediately
@@ -302,6 +304,18 @@ export async function runSecurityCheck(
     // stack), so a [Security] "play this card" effect (playFromSecurity) can locate it
     // there. The battle, if any, happens after the removal triggers below.
     const securityEffectActivated = await deps.resolveSecurityEffect(revealed, attacker.permanentId, wasAlreadyFaceUp);
+
+    if (activateRevealTriggers !== undefined) {
+      await activateRevealTriggers();
+    } else if (wasAlreadyFaceUp) {
+      await deps.fireSubTrigger?.("whenCheckedFaceUpSecurity", {
+        attackerPermanentId: attacker.permanentId,
+        securityInstanceId: revealed.instanceId,
+      });
+    } else {
+      // Q5789: revealing a face-down card also counts as adding a face-up card.
+      await deps.fireFaceUpSecurityAdded?.({ seat: defenderSeat, instanceId: revealed.instanceId });
+    }
 
     // Triggers that watch the check / the security loss.
     await deps.fireTiming(EffectTiming.OnSecurityCheck, {
