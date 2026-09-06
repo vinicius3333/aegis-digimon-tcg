@@ -16,6 +16,8 @@ export type Intent =
       permanentId: string;
       instanceId: string;
       useAlternateCost?: boolean;
+      /** Declare App Fusion using this linked partner instead of a normal evolution requirement. */
+      appFusionLinkedInstanceId?: string;
       /** Explicit index in digivolutionRequirementsFor(cardId); server revalidates every gate. */
       alternateRequirementIndex?: number;
       /** Explicitly use the card's Blast Digivolve waiver; omitted for a normal evolution. */

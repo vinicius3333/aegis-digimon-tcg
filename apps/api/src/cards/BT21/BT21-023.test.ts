@@ -161,12 +161,23 @@ describe("BT21-023 Globemon", () => {
           hand: [{ card: "BT21-023", as: "globemon" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     await s.ready();
-    await advance(s.engine).verb.appFuseInto(s.perm("host").permanentId, s.inst("globemon").instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("globemon").instanceId,
+        appFusionLinkedInstanceId: s.inst("timemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard.cardId === "BT21-023");
     expect(s.perm("host").topCard.cardId).toBe("BT21-023");
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT21-018", "BT21-059"]);
+    expect(s.perm("host").linked).toHaveLength(0);
+    expect(s.state.memory).toBe(0);
   });
 
   it("rejects linkless and level-5 cards and permits declining a legal link", async () => {

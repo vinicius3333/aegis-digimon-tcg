@@ -192,12 +192,18 @@ describe("BT21-059 Timemon", () => {
     );
     await s.ready();
 
-    const fused = await advance(s.engine).verb.appFuseInto(
-      s.perm("watchmon").permanentId,
-      s.inst("timemon").instanceId,
-    );
-    expect(fused?.topCard.cardId).toBe("BT21-059");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("watchmon").permanentId,
+        instanceId: s.inst("timemon").instanceId,
+        appFusionLinkedInstanceId: s.inst("calendamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("watchmon").topCard.cardId === "BT21-059");
     expect(s.perm("watchmon").topCard.cardId).toBe("BT21-059");
+    expect(s.perm("watchmon").stack.map((card) => card.cardId)).toEqual(["BT21-053", "BT21-041"]);
+    expect(s.perm("watchmon").linked).toHaveLength(0);
+    expect(s.state.memory).toBe(0);
   });
 });

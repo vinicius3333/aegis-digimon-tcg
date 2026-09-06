@@ -404,13 +404,18 @@ describe("BT21-073 Charismon", () => {
     await s.ready();
     s.state.memory = 0;
 
-    const fused = await advance(s.engine).verb.appFuseInto(
-      s.perm("sociamon").permanentId,
-      s.inst("charismon").instanceId,
-    );
-    expect(fused?.topCard.cardId).toBe("BT21-073");
-    expect(fused?.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT21-043"]));
-    expect(fused?.linked.map((card) => card.cardId)).toContain("BT21-070");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("sociamon").permanentId,
+        instanceId: s.inst("charismon").instanceId,
+        appFusionLinkedInstanceId: s.inst("gossipmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("sociamon").topCard.cardId === "BT21-073" && s.state.pendingDecision === undefined);
+    expect(s.perm("sociamon").topCard.cardId).toBe("BT21-073");
+    expect(s.perm("sociamon").stack.map((card) => card.cardId)).toEqual(["BT21-043", "BT21-070"]);
+    expect(s.perm("sociamon").linked).toHaveLength(0);
     expect(s.state.memory).toBe(0);
   });
 });

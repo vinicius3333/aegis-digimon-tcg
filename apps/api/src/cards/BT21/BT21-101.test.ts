@@ -193,16 +193,14 @@ describe("BT21-101 Gaiamon", () => {
       ).toEqual({ ok: true });
       await settle(() => s.perm("host").topCard.cardId === "BT21-101");
       expect(s.perm("host").topCard.cardId).toBe("BT21-101");
-      // App Fusion puts the old top under Gaiamon and retains the linked partner.
-      // Its accepted When Digivolving effect then links that old top as well.
-      await settle(() => s.perm("host").linked.length === 2);
-      expect(s.perm("host").stack).toHaveLength(0);
-      expect(
-        s
-          .perm("host")
-          .linked.map((card) => card.cardId)
-          .sort(),
-      ).toEqual([hostCard, linkCard].sort());
+      // App Fusion stacks both materials; Gaiamon's accepted evolution effect then
+      // links one of those two sources. The unchosen material remains in the stack.
+      await settle(() => s.perm("host").linked.length === 1);
+      expect(s.perm("host").stack).toHaveLength(1);
+      expect(s.perm("host").linked).toHaveLength(1);
+      expect([...s.perm("host").stack, ...s.perm("host").linked].map((card) => card.cardId).sort()).toEqual(
+        [hostCard, linkCard].sort(),
+      );
       expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("gaiamon").instanceId)).toBe(false);
       expect(s.state.memory).toBe(0);
     },

@@ -50,7 +50,7 @@ describe("BT22-039 Ouranosmon", () => {
     expect(allTurns?.actions[0]).not.toHaveProperty("sourceFilter.excludeSelf");
   });
 
-  it("implements Q4892 by playing an Appmon on attack and linking an eligible stack card", async () => {
+  it("Q4892 does not relink App Fusion materials without Link after playing an Appmon", async () => {
     const s = setupEngine(
       {
         0: {
@@ -60,33 +60,16 @@ describe("BT22-039 Ouranosmon", () => {
             { card: "BT22-009", as: "effecmon" },
           ],
         },
-        1: { security: ["BT1-001"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
     await advance(s.engine).verb.appFuseInto(s.perm("ouranosmon").permanentId, s.inst("fusion").instanceId);
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("ouranosmon").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-009"));
-    await settle(() =>
-      s.state.players[0]!.battleArea.some((permanent) => permanent.linked.some((card) => card.cardId === "BT22-035")),
-    );
-    await settle();
-
-    expect(s.perm("ouranosmon").stack.some((card) => card.cardId === "BT22-035")).toBe(true);
-    expect(
-      s.state.players[0]!.battleArea.some((permanent) => permanent.linked.some((card) => card.cardId === "BT22-035")),
-    ).toBe(false);
-    expect(
-      s.state.players[0]!.battleArea.some((permanent) => permanent.linked.some((card) => card.cardId === "BT22-075")),
-    ).toBe(true);
+    // When Digivolving plays Effecmon and reaches the All Turns watcher. Neither
+    // recipe material has Link; Q4892 therefore excludes both, despite their Appmon trait.
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT22-009")).toBe(true);
+    expect(s.perm("ouranosmon").stack.map((card) => card.cardId)).toEqual(["BT22-035", "BT22-075"]);
+    expect(s.state.players[0]!.battleArea.every((permanent) => permanent.linked.length === 0)).toBe(true);
   });
 
   it("does not link an eligible Appmon from another Digimon's evolution stack", async () => {

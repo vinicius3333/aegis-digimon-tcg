@@ -1616,9 +1616,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
 
   /**
    * App Fusion: play the fusion-target card `resultInstanceId` (a loose card in trash/hand)
-   * ON TOP of the battle-area Digimon `sourcePermanentId`, the source's prior top card sliding
-   * under it as a digivolution card — the same placement as `digivolveFromInstance`, NOT
-   * DnaDigivolve (no permanent is consumed off the field).
+   * ON TOP of the battle-area Digimon `sourcePermanentId` and its selected linked partner.
+   * CR 8-4-3-3 places the partner above the prior top, below the result. Other linked cards
+   * stay linked; no permanent leaves the field and no link card is trashed by this procedure.
    *
    * `appFusionCondition` produced by `AddAppfuseMethodByName`): the fusing permanent's top
    * card plus its linked cards must collectively cover >= 2 distinct required names (with the
@@ -1633,12 +1633,52 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     if (peek === undefined) return undefined;
     const definition = requireCardDefinition(peek.cardId);
     if (!definition.kinds.includes(CardKind.Digimon)) return undefined;
+    if (
+      permanent.inBreeding ||
+      continuous.hasRestriction(sourcePermanentId, "digivolve") ||
+      !continuous.digivolveIntoAllowed(sourcePermanentId, definition) ||
+      (definition.level === 7 && continuous.hasRestriction(sourcePermanentId, "digivolveToLevel7")) ||
+      (!permanent.isSuspended && continuous.isUnsuspendedDigivolveProhibited(permanent.controllerSeat))
+    )
+      return undefined;
     // Enforce the fusion-target's app-fusion legality + read its cost (server-authoritative).
     const topName = requireCardDefinition(permanent.topCard.cardId).nameEn;
-    const linkedNames = Array.from(permanent.linked).map((c) => requireCardDefinition(c.cardId).nameEn);
-    const cost = appFusionCostFor(peek.cardId, { topName, linkedNames });
-    if (cost === undefined) return undefined;
     const seat = permanent.controllerSeat;
+    const partners = Array.from(permanent.linked).filter(
+      (card) =>
+        appFusionCostFor(peek.cardId, {
+          topName,
+          linkedNames: [requireCardDefinition(card.cardId).nameEn],
+        }) !== undefined,
+    );
+    if (partners.length === 0) return undefined;
+    const selected =
+      partners.length === 1
+        ? [partners[0]!.instanceId]
+        : await engine.ask.selectInstances(
+            seat,
+            partners.map((card) => card.instanceId),
+            1,
+            1,
+            "Choose the linked card to use for App Fusion.",
+          );
+    const partner = partners.find((card) => card.instanceId === selected[0]);
+    if (partner === undefined) return undefined;
+    const printedCost = appFusionCostFor(peek.cardId, {
+      topName,
+      linkedNames: [requireCardDefinition(partner.cardId).nameEn],
+    });
+    if (printedCost === undefined) return undefined;
+    // CR 8-4-2-3: digivolution cost effects also modify App Fusion. Resolve them
+    // before moving the pair, while "no digivolution cards" still describes the base.
+    const cost = Math.max(
+      0,
+      engine.finalizeEffectDigivolveCost !== undefined
+        ? await engine.finalizeEffectDigivolveCost(permanent, resultInstanceId, definition, printedCost)
+        : adjustedEvoCost(seat, permanent, printedCost, definition),
+    );
+    const partnerIndex = permanent.linked.findIndex((card) => card.instanceId === partner.instanceId);
+    if (partnerIndex < 0) return undefined;
     if (engine.memory.maxCostFor(seat) < cost) return undefined;
     if (cost > 0) engine.memory.pay(seat, cost, "appFusion");
     const instance = removeLooseInstance(state, resultInstanceId);
@@ -1647,6 +1687,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const carriedSuspended = permanent.isSuspended;
     const priorTop = permanent.topCard;
     pushOnStack(permanent, priorTop);
+    permanent.linked.splice(partnerIndex, 1);
+    pushOnStack(permanent, partner);
     setTopCard(permanent, instance);
     continuous.reanchorCustomEffectGrants(priorTop.instanceId, instance.instanceId);
     const dp = definition.dp;

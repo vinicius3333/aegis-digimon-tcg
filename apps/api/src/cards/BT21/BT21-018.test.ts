@@ -234,10 +234,9 @@ describe("BT21-018 DoGatchmon", () => {
         targetPermanentId: s.perm("host").permanentId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("host").linked.some((card) => card.instanceId === s.inst("navimon").instanceId));
     await settle(() => s.perm("host").topCard.cardId === "BT21-018");
-    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT21-009"]);
-    expect(s.perm("host").linked.map((card) => card.cardId)).toContain("BT21-047");
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT21-009", "BT21-047"]);
+    expect(s.perm("host").linked).toHaveLength(0);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("fusionDraw").instanceId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("dogatchmon").instanceId);
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
@@ -279,8 +278,8 @@ describe("BT21-018 DoGatchmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard.cardId === "BT21-018");
-    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual([hostCard]);
-    expect(s.perm("host").linked.map((card) => card.cardId)).toContain(linkCard);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual([hostCard, linkCard]);
+    expect(s.perm("host").linked).toHaveLength(0);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("fusion").instanceId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
     expect(s.perm("haru").isSuspended).toBe(true);

@@ -114,8 +114,8 @@ describe("A3 EX10-073 — whenLinkTrashed consumer: delete opponent's lowest-pla
 
     expect(fused).toBeDefined();
     expect(s.perm("warudamon").topCard.cardId).toBe("EX10-073");
-    expect(s.perm("warudamon").stack.map(({ cardId }) => cardId)).toEqual(["EX10-019"]);
-    expect(s.perm("warudamon").linked.map(({ cardId }) => cardId)).toEqual(["EX10-030"]);
+    expect(s.perm("warudamon").stack.map(({ cardId }) => cardId)).toEqual(["EX10-019", "EX10-030"]);
+    expect(s.perm("warudamon").linked).toHaveLength(0);
     // Cost 0: no memory was spent. CR 8-4-3-3: the fusion procedure itself draws 1.
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.hand).toHaveLength(1);

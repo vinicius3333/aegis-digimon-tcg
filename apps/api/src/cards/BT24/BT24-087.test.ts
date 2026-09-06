@@ -169,9 +169,9 @@ describe("BT24-087 Rei Katsura public behavior", () => {
     expect(s.state.players[0]!.hand.map((instance) => instance.instanceId)).toContain(s.inst("drawn").instanceId);
     expect(s.state.players[0]!.trash.map((instance) => instance.instanceId)).toContain(s.inst("discard").instanceId);
     // Biomon's own [When Digivolving] then free-links Docmon from the new stack. Biomon's
-    // printed ＜Link +1＞ raises its capacity, so the existing Medicmon link remains attached.
+    // App Fusion also stacked Medicmon; it stays a digivolution source after Docmon is linked.
     expect(s.perm("fuser").linked.map((instance) => instance.cardId)).toContain(DOCMON);
-    expect(s.perm("fuser").linked.map((instance) => instance.cardId)).toContain(MEDICMON);
+    expect(s.perm("fuser").stack.map((instance) => instance.cardId)).toContain(MEDICMON);
   });
 
   it("does not trigger when an opponent's Digimon gets linked", async () => {
