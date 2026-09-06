@@ -48,20 +48,22 @@ describe("BT21-049 Woodmon", () => {
   });
 
   it("enters through the public play intent with its optional On Play effect registered", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       { 0: { hand: [{ card: "BT21-049", as: "woodmon" }] }, 1: { battleArea: [{ card: "BT1-009", as: "target" }] } },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.perm("target").topCard.instanceId);
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("woodmon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() =>
-      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("woodmon").instanceId),
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("woodmon").instanceId) &&
+        s.perm("target").isSuspended,
     );
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("woodmon").instanceId)).toBe(
-      true,
-    );
+    expect(s.perm("target").isSuspended).toBe(true);
   });
 
   it("retains complete compiled coverage and Piercing as a keyword surface", async () => {
@@ -77,7 +79,10 @@ describe("BT21-049 Woodmon", () => {
         0: { battleArea: [{ card: "BT21-049", as: "woodmon" }] },
         1: {
           battleArea: [{ card: "BT1-009", as: "target" }],
-          hand: [{ card: "P-163", as: "dokugumon" }],
+          hand: [
+            { card: "P-163", as: "dokugumon" },
+            { card: "BT1-010", as: "secondPlayed" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
@@ -93,6 +98,50 @@ describe("BT21-049 Woodmon", () => {
     await settle(() => s.perm("woodmon").isSuspended && s.perm("target").isSuspended);
 
     expect(s.perm("woodmon").isSuspended).toBe(true);
+    expect(s.perm("target").isSuspended).toBe(true);
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("secondPlayed").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-010"));
+    expect(s.perm("secondPlayed").isSuspended).toBe(false);
+  });
+
+  it("publicly declines the optional On Play suspension and preserves the target", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "BT21-049", as: "woodmon" }] }, 1: { battleArea: [{ card: "BT1-009", as: "target" }] } },
+      { autoDeclineOptional: true },
+    );
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("woodmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-049"));
+    expect(s.perm("target").isSuspended).toBe(false);
+  });
+
+  it("publicly suspends a Digimon through the alternate WG evolution", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-048", as: "base" }], hand: [{ card: "BT21-049", as: "woodmon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("target").topCard.instanceId);
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("woodmon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT21-049" && s.perm("target").isSuspended);
+    expect(s.state.memory).toBe(1);
     expect(s.perm("target").isSuspended).toBe(true);
   });
 
