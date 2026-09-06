@@ -118,4 +118,64 @@ describe("BT20-030 Liollmon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("first").instanceId);
     expect(s.state.players[0]!.deck).toHaveLength(3);
   });
+
+  it("resolves each reveal category independently when only one category is available", async () => {
+    for (const [qualifying, absent] of [
+      ["digimonOnly", "optionOnly"],
+      ["optionOnly", "digimonOnly"],
+    ] as const) {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [{ card: "BT20-030", as: "liollmon" }],
+            deck: [
+              { card: qualifying === "digimonOnly" ? "BT20-031" : "BT20-099", as: qualifying },
+              { card: "BT20-010", as: absent },
+              { card: "BT20-011", as: "other" },
+            ],
+          },
+        },
+        { autoSelectCards: true },
+      );
+      s.state.memory = 3;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("liollmon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.deck.length === 2);
+      expect(s.state.players[0]!.hand).toContainEqual(
+        expect.objectContaining({ instanceId: s.inst(qualifying).instanceId }),
+      );
+      expect(s.state.players[0]!.hand).not.toContainEqual(
+        expect.objectContaining({ instanceId: s.inst(absent).instanceId }),
+      );
+      expect(s.state.players[0]!.deck).toHaveLength(2);
+    }
+  });
+
+  it.each([true, false])("uses or refuses inherited Barrier during a losing battle (accept %s)", async (accept) => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT20-031", dp: 5000, suspended: true, as: "host", under: ["BT20-030"] }],
+        security: ["BT20-010"],
+      },
+      1: { battleArea: [{ card: "BT20-010", dp: 9000, as: "attacker" }] },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: hostId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "barrierPrompt" && event.permanentId === hostId));
+    expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: hostId, accept })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(accept);
+    expect(s.state.players[0]!.security).toHaveLength(accept ? 0 : 1);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT20-031")).toBe(!accept);
+  });
 });
