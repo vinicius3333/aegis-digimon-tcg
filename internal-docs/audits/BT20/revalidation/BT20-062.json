@@ -1,0 +1,39 @@
+{
+  "cardId": "BT20-062",
+  "status": "ready-for-focused-run",
+  "scores": {
+    "catalogRules": 2,
+    "irTrace": 2,
+    "behavioralProof": 2,
+    "peerStackProof": 2,
+    "deliveryGates": 0
+  },
+  "evidence": [
+    "apps/api/src/cards/BT20/BT20-062.ts",
+    "apps/api/src/cards/BT20/BT20-062.test.ts",
+    "internal-docs/audits/BT20/revalidation/BT20-062.md",
+    "current-collection-green-results.json"
+  ],
+  "commands": [
+    {
+      "command": "node tools/kb/query.mjs card BT20-062",
+      "result": "no knowledge-base entries"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-062.test.ts --maxWorkers=1 --no-file-parallelism",
+      "result": "pending lead execution"
+    },
+    {
+      "command": "git diff --check",
+      "result": "pending lead validation"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/current-collection-green-results.json",
+      "result": "PASS: 6 cases for BT20-062;734 total tests. See current-collection-green-results.json."
+    }
+  ],
+  "gaps": [
+    "Lead focused/mechanism/collection execution and delivery gates pending."
+  ],
+  "reviewStatus": "Full collection execution passed at this draft checkpoint. Strict clause acceptance, sensitivity and final delivery review remain pending; provisional scores do not count in the ledger."
+}
