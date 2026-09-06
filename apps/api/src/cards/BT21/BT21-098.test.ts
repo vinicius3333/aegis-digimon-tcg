@@ -76,6 +76,85 @@ describe("BT21-098 Ragnarok Cannon", () => {
     expect(security?.actions[1]).toEqual({ kind: "AddToHandSelf" });
   });
 
+  it("Q4623 naturally deletes the lowest-cost Digimon when Galacticmon attacks", async () => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-062", as: "galacticmon" },
+            { card: "BT21-098", as: "option" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "low" },
+            { card: "BT1-010", as: "high" },
+          ],
+          security: ["BT1-001", "BT1-002"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const lowId = s.perm("low").permanentId;
+    const highId = s.perm("high").permanentId;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("galacticmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === lowId));
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === highId)).toBe(true);
+  });
+
+  it("Q4624 trashes security to one when the Delay deletion is prevented", async () => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-062", as: "galacticmon" },
+            { card: "BT21-098", as: "option" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "AD1-007", as: "protected", under: ["BT21-001", "BT21-010", "BT21-069", "BT21-022"] }],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const protectedId = s.perm("protected").permanentId;
+    const optionId = s.perm("option").topCard.instanceId;
+    s.perm("option").enterFieldTurnCount = s.state.turnCount - 1;
+    s.perm("option").placedByEffect = true;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("galacticmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === protectedId)).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
+
+    // The one-card fallback must resolve before the attack's ordinary security checks.
+    // Otherwise Galacticmon's normal checks could also explain the reduction from three
+    // security cards to one without proving the Delay branch.
+    const firstSecurityCheck = s.events.findIndex((event) => event.kind === "securityChecked");
+    const firstSecurityTrash = s.events.findIndex(
+      (event) => event.kind === "cardsMoved" && event.from === "security" && event.to === "trash",
+    );
+    expect(firstSecurityTrash).toBeGreaterThanOrEqual(0);
+    // The public settle point can precede the attack's eventual ordinary check. If
+    // that check is already present, its event must follow the fallback move.
+    expect(firstSecurityCheck === -1 || firstSecurityTrash < firstSecurityCheck).toBe(true);
+  });
+
   /**
    * FAILS-WHEN-REVERTED: the Security filter named no card kind, so the "play 1 card with
    * [Vemmon] in its text" prompt also offered Option cards. Only Digimon and Tamers are
@@ -106,7 +185,8 @@ describe("BT21-098 Ragnarok Cannon", () => {
   it("Security plays a cost-6-or-less Vemmon-text card from trash and adds itself to hand", async () => {
     const s = setup(
       {
-        0: {
+        0: { battleArea: [{ card: "BT21-032", as: "attacker", dp: 2000 }] },
+        1: {
           security: [{ card: "BT21-098", as: "option" }],
           trash: [{ card: "BT11-065", as: "vemmon" }],
         },
@@ -116,9 +196,15 @@ describe("BT21-098 Ragnarok Cannon", () => {
     s.state.memory = 0;
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
-    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId));
-    expect(s.state.players[0]!.battleArea[0]!.topCard.instanceId).toBe(s.inst("vemmon").instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("option").instanceId));
+    expect(s.state.players[1]!.battleArea[0]!.topCard.instanceId).toBe(s.inst("vemmon").instanceId);
     expect(s.state.memory).toBe(0);
   });
 });
