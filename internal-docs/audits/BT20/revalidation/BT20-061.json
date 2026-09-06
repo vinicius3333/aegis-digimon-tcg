@@ -1,6 +1,6 @@
 {
   "cardId": "BT20-061",
-  "status": "ready-for-focused-run",
+  "status": "awaiting-lead-acceptance",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
@@ -9,12 +9,17 @@
     "deliveryGates": 0
   },
   "evidence": [
-    "apps/api/src/cards/BT20/BT20-061.ts",
-    "apps/api/src/cards/BT20/BT20-061.test.ts",
-    "internal-docs/audits/BT20/revalidation/BT20-061.md",
-    "current-collection-green-results.json"
+    "Exact Yuuki reveal selection no longer accepts LM-018 Gyuukimon merely because its name contains that substring. The before-fix test adds Gyuukimon incorrectly; the corrected test retains it in the ordered bottom-deck remainder.",
+    "Public Punkmon-trait reveal selection, exact hand/deck destinations and the nonmatching name comparison are integrated.",
+    "collection-after-reactive-delay-results.json",
+    "reactive-movement-gates.json"
   ],
-  "commands": [
+  "gaps": [
+    "Final independent clause acceptance and runtime sensitivity remain pending.",
+    "Atomic pushed delivery and final independent acceptance pending."
+  ],
+  "reviewStatus": "Current lead corrections supersede historical report prose; this card is not accepted at10/10.",
+  "historicalCommands": [
     {
       "command": "node tools/kb/query.mjs card BT20-061",
       "result": "no knowledge-base entries"
@@ -29,11 +34,25 @@
     },
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/current-collection-green-results.json",
-      "result": "PASS: 6 cases for BT20-061;734 total tests. See current-collection-green-results.json."
+      "result": "Prior snapshot: PASS: 6 cases for BT20-061;734 total tests. New exact-name case is not included and remains unexecuted. See current-collection-green-results.json."
     }
   ],
-  "gaps": [
-    "Lead focused/mechanism/collection execution and delivery gates pending."
-  ],
-  "reviewStatus": "Full collection execution passed at this draft checkpoint. Strict clause acceptance, sensitivity and final delivery review remain pending; provisional scores do not count in the ledger."
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+      "result": "7 cases passed for BT20-061; 836 total passed, zero failed."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "Passed shared/API/web; reactive-movement-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "All102 synchronized; see reactive-movement-gates.json for the temporary watchdog adjustment and restored script."
+    },
+    {
+      "command": "Commands in reactive-movement-gates.json",
+      "result": "552 affected mechanism cases and changed-file lint/format passed without warnings."
+    }
+  ]
 }

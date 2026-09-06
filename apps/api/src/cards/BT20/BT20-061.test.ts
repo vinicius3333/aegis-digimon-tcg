@@ -19,7 +19,7 @@ describe("BT20-061 Impmon", () => {
               count: 1,
               to: "hand",
             },
-            { filter: { nameOrTrait: [{ tokens: ["Yuuki"], match: "name" }] }, count: 1, to: "hand" },
+            { filter: { nameOrTrait: [{ tokens: ["Yuuki"], match: "nameExact" }] }, count: 1, to: "hand" },
           ],
         },
       ],
@@ -105,6 +105,32 @@ describe("BT20-061 Impmon", () => {
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT20-047", "BT20-048", "BT20-049"]);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).not.toContain("BT20-047");
+  });
+
+  it("does not treat Gyuukimon's near-match name as the separate Yuuki card", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT20-061", as: "impmon" }],
+          deck: [
+            { card: "BT20-069", as: "trait" },
+            { card: "LM-018", as: "near" },
+            { card: "BT20-047", as: "filler" },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("trait").instanceId);
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("impmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.deck.length === 2 && s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT20-069"]);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("near").instanceId)).toBe(false);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["LM-018", "BT20-047"]);
   });
 
   it("applies inherited DP only on its controller's turn and only while underneath a host", async () => {

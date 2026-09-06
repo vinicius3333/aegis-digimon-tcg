@@ -17,7 +17,7 @@ describe("BT20-053 Grademon", () => {
         payCost: false,
         optional: true,
         target: {
-          filter: { controller: "mine", nameOrTrait: [{ tokens: ["Dorumon", "Ryudamon"], match: "name" }] },
+          filter: { controller: "mine", nameOrTrait: [{ tokens: ["Dorumon", "Ryudamon"], match: "nameExact" }] },
           count: 1,
         },
       });

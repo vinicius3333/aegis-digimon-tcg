@@ -1,6 +1,6 @@
 {
   "cardId": "BT20-084",
-  "status": "awaiting-lead-review",
+  "status": "awaiting-lead-acceptance",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
@@ -9,13 +9,18 @@
     "deliveryGates": 0
   },
   "evidence": [
-    "BT20-084.test.ts: public trash-triggered Sistermon Ciel evolution",
-    "BT20-084.test.ts: On Play and When Digivolving opposing suspend lock",
-    "BT20-084.test.ts: top stacked card moves to top security at End of All Turns",
-    "BT20-084.ts: exclusive registerIrCard and exact trash/entry/security IR",
-    "current-collection-green-results.json"
+    "Exact Sistermon Ciel target excludes already-Awakened Ciel. The before-fix regression incorrectly stacked another Awakened card.",
+    "Public optional trash evolution/refusal and Tamer non-trigger, Q4413/Q4414 trigger order/source invalidation, and natural End of All Turns security placement are integrated.",
+    "collection-after-reactive-delay-results.json",
+    "reactive-movement-gates.json"
   ],
-  "commands": [
+  "gaps": [
+    "Actual Tamer suspension-lock expiry and legal source-stack correction remain under strict review.",
+    "Final independent clause acceptance and runtime sensitivity remain pending.",
+    "Atomic pushed delivery and final independent acceptance pending."
+  ],
+  "reviewStatus": "Current lead corrections supersede historical report prose; this card is not accepted at10/10.",
+  "historicalCommands": [
     {
       "command": "node tools/kb/query.mjs card BT20-084",
       "result": "Q4412-Q4414 retrieved"
@@ -33,8 +38,22 @@
       "result": "PASS: 6 cases for BT20-084;734 total tests. See current-collection-green-results.json."
     }
   ],
-  "gaps": [
-    "Lead focused/collection execution, typecheck, lint, and delivery gates pending"
-  ],
-  "reviewStatus": "Full collection execution passed at this draft checkpoint. Strict clause acceptance, sensitivity and final delivery review remain pending; provisional scores do not count in the ledger."
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+      "result": "10 cases passed for BT20-084; 836 total passed, zero failed."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "Passed shared/API/web; reactive-movement-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "All102 synchronized; see reactive-movement-gates.json for the temporary watchdog adjustment and restored script."
+    },
+    {
+      "command": "Commands in reactive-movement-gates.json",
+      "result": "552 affected mechanism cases and changed-file lint/format passed without warnings."
+    }
+  ]
 }

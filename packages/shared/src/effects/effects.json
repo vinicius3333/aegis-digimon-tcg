@@ -64736,7 +64736,7 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "nameOrTrait": [{ "tokens": ["Dorumon", "Ryudamon"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Dorumon", "Ryudamon"], "match": "nameExact" }]
               },
               "count": 1
             },
@@ -64774,7 +64774,7 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "nameOrTrait": [{ "tokens": ["Dorumon", "Ryudamon"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Dorumon", "Ryudamon"], "match": "nameExact" }]
               },
               "count": 1
             },
@@ -67059,7 +67059,7 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Kota Domoto"], "match": "name" }] },
+              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Kota Domoto"], "match": "nameExact" }] },
               "count": 1
             },
             "from": ["hand"],
@@ -67161,7 +67161,7 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "nameOrTrait": [{ "tokens": ["Dorumon", "Ryudamon"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Dorumon", "Ryudamon"], "match": "nameExact" }]
               },
               "count": 1
             },
@@ -67196,7 +67196,7 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "nameOrTrait": [{ "tokens": ["Dorumon", "Ryudamon"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Dorumon", "Ryudamon"], "match": "nameExact" }]
               },
               "count": 1
             },
@@ -67778,7 +67778,10 @@
                 "to": "hand"
               },
               {
-                "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Yuuki"], "match": "name" }] },
+                "filter": {
+                  "controllerDefault": "mine",
+                  "nameOrTrait": [{ "tokens": ["Yuuki"], "match": "nameExact" }]
+                },
                 "count": 1,
                 "to": "hand"
               }
@@ -69172,7 +69175,7 @@
                 "target": {
                   "filter": {
                     "controller": "mine",
-                    "nameOrTrait": [{ "tokens": ["Sistermon Ciel"], "match": "name" }]
+                    "nameOrTrait": [{ "tokens": ["Sistermon Ciel"], "match": "nameExact" }]
                   },
                   "count": 1
                 },

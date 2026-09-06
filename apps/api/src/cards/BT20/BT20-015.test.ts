@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -18,7 +18,7 @@ describe("BT20-015 Hisyaryumon", () => {
         optional: true,
         breeding: true,
         requiresEmpty: "breedingArea",
-        target: { filter: { nameOrTrait: [{ tokens: ["Dorumon", "Ryudamon"], match: "name" }] } },
+        target: { filter: { nameOrTrait: [{ tokens: ["Dorumon", "Ryudamon"], match: "nameExact" }] } },
       });
       expect(effect?.actions.slice(1)).toMatchObject([
         {
@@ -57,7 +57,7 @@ describe("BT20-015 Hisyaryumon", () => {
             { card: "BT20-010", as: "ryudamon" },
           ],
         },
-        1: { security: ["BT20-001", "BT20-001", "BT20-001"] },
+        1: { security: ["BT1-010", "BT1-010", "BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -75,18 +75,76 @@ describe("BT20-015 Hisyaryumon", () => {
     expect(observe(s.engine).keywordAmount(s.perm("attacker"), "SecurityAttack")).toBe(1);
   });
 
+  it("publicly plays into empty breeding, chooses exact Dorumon or Ryudamon, and excludes distractors", async () => {
+    for (const [candidate, distractors] of [
+      ["dorumon", ["BT20-010", "BT20-007", "BT20-009", "BT20-012"]],
+      ["ryudamon", ["BT20-048", "BT20-007", "BT20-009", "BT20-012"]],
+    ] as const) {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [
+              { card: "BT20-015", as: "hisyaryumon" },
+              { card: candidate === "dorumon" ? "BT20-048" : "BT20-010", as: candidate },
+              ...distractors.map((card, index) => ({ card, as: `distractor${index}` })),
+            ],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: [] },
+      );
+      s.state.memory = 7;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hisyaryumon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(
+        () => s.state.players[0]!.breeding?.topCard.cardId === (candidate === "dorumon" ? "BT20-048" : "BT20-010"),
+      );
+      expect(s.state.players[0]!.breeding?.topCard.cardId).toBe(candidate === "dorumon" ? "BT20-048" : "BT20-010");
+      expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining([...distractors]));
+    }
+  });
+
+  it("does not grant the attack-only boost when entry resolves outside an attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-012", as: "existing" }],
+          hand: [
+            { card: "BT20-015", as: "hisyaryumon" },
+            { card: "BT20-010", as: "candidate" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hisyaryumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.breeding?.topCard.cardId === "BT20-010");
+    const hisyaryumon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT20-015")!;
+    expect(hisyaryumon.currentDP).toBe(getCardDefinition("BT20-015")!.dp);
+    expect(observe(s.engine).keywordAmount(hisyaryumon, "SecurityAttack")).toBe(0);
+  });
+
   it("does not play into occupied breeding and suppresses checked Option Security effects only on your turn", async () => {
     const s = setupEngine(
       {
         0: {
           breeding: { card: "BT20-010", as: "existing" },
-          battleArea: [{ card: "BT20-015", as: "hisyaryumon" }],
-          hand: [{ card: "BT20-010", as: "candidate" }],
+          hand: [
+            { card: "BT20-015", as: "hisyaryumon" },
+            { card: "BT20-048", as: "candidate" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("hisyaryumon"));
+    s.state.memory = 7;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hisyaryumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-015"));
     expect(s.state.players[0]!.breeding!.topCard.instanceId).toBe(s.perm("existing").topCard.instanceId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("candidate").instanceId);
 
@@ -151,7 +209,7 @@ describe("BT20-015 Hisyaryumon", () => {
           hand: [{ card: "BT20-015", as: "hisyaryumon" }, { card: "BT20-010", as: "ryudamon" }, "BT20-007"],
           deck: ["BT20-007", "BT20-007"],
         },
-        1: { security: ["BT20-001", "BT20-001", "BT20-001"], deck: ["BT20-010"], hand: ["BT20-010"] },
+        1: { security: ["BT1-010", "BT1-010", "BT1-010"], deck: ["BT20-010"], hand: ["BT20-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
