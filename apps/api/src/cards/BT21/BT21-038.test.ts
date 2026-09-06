@@ -209,4 +209,86 @@ describe("BT21-038 compiled implementation", () => {
       expect(observe(s.engine).isRestricted(s.perm("host"), "attackTargetChange")).toBe(turnSeat === 0);
     }
   });
+
+  it("blocks a public Raid redirect when BT21-038 is inherited", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT23-012", as: "grantRaid" },
+            { card: "BT9-029", as: "evolution" },
+          ],
+          deck: ["BT1-001"],
+          battleArea: [{ card: "BT21-038", as: "host", under: ["BT21-033", "BT21-034"] }],
+          security: ["BT1-001"],
+        },
+        1: { battleArea: [{ card: "BT10-055", as: "highest" }], security: ["BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    preferred.push(s.perm("host").permanentId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "BT9-029");
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT21-033", "BT21-034", "BT21-038"]);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("grantRaid").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("host"), "Raid"));
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.perm("highest").topCard.cardId).toBe("BT10-055");
+  });
+
+  it("publicly redirects Raid to the highest unsuspended Digimon without the inherited lock", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT9-029", as: "raid", under: ["BT1-036", "BT1-039"] }],
+          hand: [{ card: "BT23-012", as: "grantRaid" }],
+          security: ["BT1-001"],
+        },
+        1: { battleArea: [{ card: "BT10-055", as: "highest" }], security: ["BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    preferred.push(s.perm("raid").permanentId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("grantRaid").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("raid"), "Raid"));
+    const attackerId = s.inst("raid").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("raid").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === attackerId)).toBe(true);
+    expect(s.perm("highest").topCard.cardId).toBe("BT10-055");
+  });
 });
