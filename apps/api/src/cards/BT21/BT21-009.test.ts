@@ -91,29 +91,50 @@ describe("BT21-009 Gatchmon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT21-009", as: "gatchmon", under: ["BT21-005"] },
+            { card: "BT21-005", as: "appmonEgg" },
             ...tamers.map((card, index) => ({ card, as: `tamer${index}` })),
           ],
-          hand: [{ card: "BT21-084", as: "haru" }],
+          hand: [
+            { card: "BT21-009", as: "gatchmon" },
+            { card: "BT21-018", as: "link" },
+            { card: "BT21-084", as: "haru" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 3;
+    s.state.memory = 4;
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenLinked", { subjectPermanentId: s.perm("gatchmon").permanentId });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("appmonEgg").permanentId,
+        instanceId: s.inst("gatchmon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("appmonEgg").topCard.cardId === "BT21-009");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("appmonEgg").permanentId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-084"));
     expect(s.state.players[0]!.hand).toHaveLength(0);
-    expect(s.state.memory).toBe(3);
+    // The public DoGatchmon link costs 2; Gatchmon's selected Appmon/Hero alternate costs 0.
+    expect(s.state.memory).toBe(2);
   });
 
   it("plays Haru from a naturally linked Gatchmon stack", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT21-009", as: "gatchmon", under: ["BT21-005"] }],
+          battleArea: [{ card: "BT21-005", as: "appmonEgg" }],
           hand: [
-            { card: "BT21-009", as: "link" },
+            { card: "BT21-009", as: "gatchmon" },
+            { card: "BT21-018", as: "link" },
             { card: "BT21-084", as: "haru" },
           ],
         },
@@ -125,15 +146,25 @@ describe("BT21-009 Gatchmon", () => {
 
     expect(
       s.engine.applyIntent(0, {
+        type: "digivolve",
+        instanceId: s.inst("gatchmon").instanceId,
+        permanentId: s.perm("appmonEgg").permanentId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("appmonEgg").topCard.cardId === "BT21-009");
+    expect(
+      s.engine.applyIntent(0, {
         type: "linkCard",
         instanceId: s.inst("link").instanceId,
-        targetPermanentId: s.perm("gatchmon").permanentId,
+        targetPermanentId: s.perm("appmonEgg").permanentId,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-084"));
 
     expect(s.state.players[0]!.hand).toHaveLength(0);
-    expect(s.state.memory).toBe(3);
+    // The public DoGatchmon link costs 2; Gatchmon's selected Appmon/Hero alternate costs 0.
+    expect(s.state.memory).toBe(2);
   });
 
   it("does not play Haru with two Tamers or when another Digimon gets linked", async () => {
