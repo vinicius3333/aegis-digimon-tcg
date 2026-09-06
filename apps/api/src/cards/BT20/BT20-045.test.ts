@@ -55,6 +55,28 @@ describe("BT20-045 Examon ACE", () => {
     expect(observe(s.engine).hasKeyword(s.perm("examon"), "Evade")).toBe(true);
   });
 
+  it("charges printed Overflow -5 when Examon leaves the battle area in a public battle", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-045", dp: 1000, as: "examon" }] },
+        1: { battleArea: [{ card: "BT20-010", dp: 5000, suspended: true, as: "target" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("examon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.memory).toBe(-5);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT20-045");
+  });
+
   it("rejects ordinary DNA routing because Examon only has the Blast DNA route", async () => {
     const s = setupEngine(
       {

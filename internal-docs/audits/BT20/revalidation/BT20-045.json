@@ -10,7 +10,7 @@
   },
   "evidence": [
     "apps/api/src/cards/BT20/BT20-045.ts",
-    "apps/api/src/cards/BT20/BT20-045.test.ts",
+    "apps/api/src/cards/BT20/BT20-045.test.ts: public ACE Overflow -5 battle outcome",
     "internal-docs/audits/BT20/revalidation/BT20-045.md",
     "blast-dna-resolution.md",
     "blast-dna-affected-suites.log"
@@ -31,6 +31,10 @@
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/engine/blastDnaCounter.test.ts src/engine/dnaDigivolve.test.ts src/engine/conformance/ch16c-deletion-and-advanced-keywords.test.ts src/cards/BT20/BT20-011.test.ts src/cards/BT20/BT20-012.test.ts src/cards/BT20/BT20-013.test.ts src/cards/BT20/BT20-045.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
       "result": "70/70 passed; 11 card tests"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-final-collection-results.json",
+      "result": "All current colocated cases pass within894/894; final independent acceptance remains pending."
     }
   ],
   "gaps": [
