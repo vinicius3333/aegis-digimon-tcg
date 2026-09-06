@@ -105,6 +105,65 @@ describe("BT21-079 Megidramon", () => {
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("opponent").instanceId)).toBe(true);
   });
 
+  it("publicly revives a qualifying Guilmon after Megidramon loses its attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-079", as: "megidramon" }],
+          trash: [{ card: "BT12-007", as: "guilmon" }],
+        },
+        1: { battleArea: [{ card: "BT1-084", as: "omnimon", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const megidramonId = s.perm("megidramon").permanentId;
+    const guilmonId = s.inst("guilmon").instanceId;
+    const omnimonId = s.perm("omnimon").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: megidramonId,
+        target: { kind: "permanent", permanentId: omnimonId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === guilmonId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === megidramonId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === omnimonId)).toBe(true);
+  });
+
+  it("publicly declines the optional On Deletion revival and preserves the trash card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-079", as: "megidramon" }],
+          trash: [{ card: "BT12-007", as: "guilmon" }],
+        },
+        1: { battleArea: [{ card: "BT1-084", as: "omnimon", suspended: true }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const guilmonId = s.inst("guilmon").instanceId;
+    const omnimonId = s.perm("omnimon").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("megidramon").permanentId,
+        target: { kind: "permanent", permanentId: omnimonId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === guilmonId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === guilmonId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === omnimonId)).toBe(true);
+  });
+
   it("does not let an opponent-owned BT21-079 wipe after our other Digimon attacks", async () => {
     const s = setupEngine(
       {
