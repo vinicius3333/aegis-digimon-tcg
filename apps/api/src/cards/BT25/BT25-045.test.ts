@@ -18,6 +18,7 @@ import { createCardSource, type CardStateLookup } from "../../engine/cards/CardS
 import { createGameAccess, createEffectContext } from "../../engine/effects/context.js";
 import { irCardModule } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 // The REAL authored IR (a hand-override exports it so the A3 asserts against the on-disk source).
 import { compiled as BT25_045 } from "./BT25-045.js";
 // Boot side-effect: self-register every compiled-IR card module (so BT25-045's real IR loads).
@@ -377,6 +378,67 @@ describe("BT25-045 Onmon — recipient-scoped link-cost reduction", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("onmon").linked.length === 1);
     expect(s.state.memory).toBe(2);
+  });
+
+  it("resets the link reduction budget on a real next turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-045", as: "onmon" }],
+          hand: [
+            { card: "BT21-009", as: "first" },
+            { card: "BT21-009", as: "second" },
+            { card: "BT21-009", as: "third" },
+          ],
+          deck: ["BT1-001", "BT1-001"],
+        },
+        1: { deck: ["BT1-002", "BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("first").instanceId,
+        targetPermanentId: s.perm("onmon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("onmon").linked.length === 1);
+    expect(s.state.memory).toBe(4);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("second").instanceId,
+        targetPermanentId: s.perm("onmon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("onmon").linked.length === 2);
+    expect(s.state.memory).toBe(3);
+
+    s.state.turnSeat = 1;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = 1;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("third").instanceId,
+        targetPermanentId: s.perm("onmon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("onmon").linked.length === 3);
+    expect(s.state.memory).toBe(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextTurn;
   });
 
   it("naturally allows declining the optional reduction while still linking", async () => {
