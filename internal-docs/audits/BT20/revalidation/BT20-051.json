@@ -1,0 +1,90 @@
+{
+  "cardId": "BT20-051",
+  "status": "lead-verified",
+  "scores": {
+    "catalogRules": 2,
+    "irTrace": 2,
+    "behavioralProof": 2,
+    "peerStackProof": 2,
+    "deliveryGates": 0
+  },
+  "evidence": [
+    "apps/api/src/cards/BT20/BT20-051.ts",
+    "apps/api/src/cards/BT20/BT20-051.test.ts",
+    "node tools/kb/query.mjs card BT20-051",
+    "round5-final-collection-results.json",
+    "round5-mechanism-results.json",
+    "BT20-051-runtime-disabled.json",
+    "round5-gates.json"
+  ],
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-final-collection-results.json",
+      "result": "6/6 colocated cases pass; 968/968 full collection/mechanism cases."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/effects/interpreter/actions/play.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/builders.test.ts src/engine/actions/activateEffect.test.ts src/engine/actions/playCard.test.ts src/engine/useOption.test.ts src/engine/effectOptionUseCost.test.ts src/engine/decisions/minEnforcement.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/primitives.test.ts src/cards/BT7/BT7-063.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-mechanism-results.json",
+      "result": "465/465 affected mechanism cases pass."
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-051",
+      "result": "2 meaningful assertion failures with runtime effects disabled; original production module restored. Per-card JSON/log and aggregate retained."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "PASS; round5-final-typecheck.log. Final API test-source check also passes in round5-final-api-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "PASS; all 102 records synchronized, round5-scoped-check.log."
+    },
+    {
+      "command": "Changed-file oxlint/oxfmt --check and git diff --check",
+      "result": "PASS; round5-gates.json, round5-style-paths.json and final style logs."
+    }
+  ],
+  "gaps": [],
+  "executedCases": [
+    "BT20-051 Raptordramon optionally plays Kota Domoto when there is at most one own Tamer",
+    "BT20-051 Raptordramon grants inherited +2000 DP during the opponent's turn",
+    "BT20-051 Raptordramon plays Kota at zero or one Tamer but not at two across both alternate routes",
+    "BT20-051 Raptordramon allows the optional Kota play to be declined",
+    "BT20-051 Raptordramon grants its inherited host +2000 DP only during the opponent's turn",
+    "BT20-051 Raptordramon does not treat the Kota Domoto & Yuji Musya variant as exact Kota Domoto"
+  ],
+  "historicalCommands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-051.test.ts --maxWorkers=1 --no-file-parallelism",
+      "result": "not run by worker; coordinator owns Vitest"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/current-collection-green-results.json",
+      "result": "Prior snapshot: PASS: 5 cases for BT20-051;734 total tests. New exact-name case is not included and remains unexecuted. See current-collection-green-results.json."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+      "result": "6 cases passed for BT20-051; 836 total passed, zero failed."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "Passed shared/API/web; reactive-movement-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "All102 synchronized; see reactive-movement-gates.json for the temporary watchdog adjustment and restored script."
+    },
+    {
+      "command": "Commands in reactive-movement-gates.json",
+      "result": "552 affected mechanism cases and changed-file lint/format passed without warnings."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-final-collection-results.json",
+      "result": "All current colocated cases pass within894/894; final independent acceptance remains pending."
+    }
+  ],
+  "reviewStatus": "Current printed clauses, KB/errata, exclusive IR registration, legal public paths and negative controls independently reviewed. Delivery credit requires the pushed, hash-bound acceptance record."
+}

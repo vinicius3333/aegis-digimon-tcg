@@ -1,0 +1,71 @@
+{
+  "cardId": "BT20-039",
+  "status": "lead-verified",
+  "scores": {
+    "catalogRules": 2,
+    "irTrace": 2,
+    "behavioralProof": 2,
+    "peerStackProof": 2,
+    "deliveryGates": 0
+  },
+  "evidence": [
+    "apps/api/src/cards/BT20/BT20-039.ts",
+    "apps/api/src/cards/BT20/BT20-039.test.ts",
+    "BT20-039.test.ts: legal ordinary BT20-038 Lv3 to BT20-039 evolution pays full printed cost 3 and preserves source stack",
+    "internal-docs/audits/BT20/revalidation/BT20-039.md",
+    "014-040-results.json",
+    "Lead independently reviewed current clauses and legal stacks; final894 collection,543 affected mechanisms, typecheck, scoped sync/style and meaningful restored runtime mutation pass. Delivery credit is hash-bound in acceptance.json after push."
+  ],
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-final-collection-results.json",
+      "result": "5/5 colocated cases pass; full collection/mechanism894/894."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/overallTimingRestrictions.test.ts src/engine/effects/continuous.test.ts src/engine/effects/primitives.test.ts src/engine/effects/interpreter.test.ts src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/effects/restrictionEnforcement.test.ts src/engine/effects/restrictionConsumers.guard.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/combat/restrictionProjection.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-affected-results.json",
+      "result": "543/543 affected cases pass."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "Pass; round4-final-typecheck.log"
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-039",
+      "result": "1 meaningful assertion failures with registered effects disabled; original module restored. Runtime-disabled JSON/log and aggregate result retained."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "102 records already synchronized; round4-scoped-check.log"
+    },
+    {
+      "command": "Changed-file oxlint/oxfmt and git diff --check",
+      "result": "Pass; round4-gates.json and exact paths in round4-style-paths.json."
+    }
+  ],
+  "gaps": [],
+  "historicalCommands": [
+    {
+      "command": "node tools/kb/query.mjs card BT20-039",
+      "result": "no knowledge-base entries"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-039.test.ts --maxWorkers=1 --no-file-parallelism",
+      "result": "pending lead execution"
+    },
+    {
+      "command": "git diff --check",
+      "result": "pending lead validation"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-014.test.ts src/cards/BT20/BT20-015.test.ts src/cards/BT20/BT20-016.test.ts src/cards/BT20/BT20-017.test.ts src/cards/BT20/BT20-018.test.ts src/cards/BT20/BT20-019.test.ts src/cards/BT20/BT20-020.test.ts src/cards/BT20/BT20-021.test.ts src/cards/BT20/BT20-022.test.ts src/cards/BT20/BT20-023.test.ts src/cards/BT20/BT20-024.test.ts src/cards/BT20/BT20-025.test.ts src/cards/BT20/BT20-026.test.ts src/cards/BT20/BT20-027.test.ts src/cards/BT20/BT20-028.test.ts src/cards/BT20/BT20-029.test.ts src/cards/BT20/BT20-030.test.ts src/cards/BT20/BT20-031.test.ts src/cards/BT20/BT20-032.test.ts src/cards/BT20/BT20-033.test.ts src/cards/BT20/BT20-034.test.ts src/cards/BT20/BT20-035.test.ts src/cards/BT20/BT20-036.test.ts src/cards/BT20/BT20-037.test.ts src/cards/BT20/BT20-038.test.ts src/cards/BT20/BT20-039.test.ts src/cards/BT20/BT20-040.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/014-040-results.json",
+      "result": "5 tests passed for this card; 160 total passed; 014-040-results.json"
+    }
+  ],
+  "executedCases": [
+    "BT20-039 Diatrymon suspends one opposing Digimon on both entry triggers and inherits Piercing",
+    "BT20-039 Diatrymon suspends exactly one opposing Digimon on play and on ACCEL evolution",
+    "BT20-039 Diatrymon does not suspend an allied Digimon or invent a target when the opponent has none",
+    "BT20-039 Diatrymon grants inherited Piercing to a stronger host",
+    "BT20-039 Diatrymon rejects an unrelated color level-3 base for both ordinary and alternate evolution"
+  ]
+}

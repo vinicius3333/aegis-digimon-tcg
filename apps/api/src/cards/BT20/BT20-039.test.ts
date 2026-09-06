@@ -37,6 +37,7 @@ describe("BT20-039 Diatrymon", () => {
     );
     await settle(() => played.perm("chosen").isSuspended);
     expect(played.perm("other").isSuspended).toBe(false);
+    expect(played.state.memory).toBe(6);
 
     const evolved = setupEngine(
       {
@@ -60,6 +61,39 @@ describe("BT20-039 Diatrymon", () => {
     ).toEqual({ ok: true });
     await settle(() => evolved.perm("target").isSuspended);
     expect(evolved.state.memory).toBe(2);
+    expect(evolved.perm("base").stack.map((card) => card.cardId)).toEqual(["BT20-038"]);
+
+    const ordinary = setupEngine({
+      0: { battleArea: [{ card: "BT20-038", as: "base" }], hand: [{ card: "BT20-039", as: "diatrymon" }] },
+    });
+    ordinary.state.memory = 3;
+    await ordinary.ready();
+    expect(
+      ordinary.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: ordinary.perm("base").permanentId,
+        instanceId: ordinary.inst("diatrymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => ordinary.perm("base").topCard.cardId === "BT20-039" && ordinary.state.pendingDecision === undefined,
+    );
+    expect(ordinary.perm("base").stack.map((card) => card.cardId)).toEqual(["BT20-038"]);
+    expect(ordinary.state.memory).toBe(1); // Printed 3 minus Falcomon's 1.
+  });
+
+  it("does not suspend an allied Digimon or invent a target when the opponent has none", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "BT20-039", as: "diatrymon" }], battleArea: [{ card: "BT20-010", as: "ally" }] },
+      1: { hand: [{ card: "BT20-011", as: "control" }] },
+    });
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("diatrymon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-039"));
+    expect(s.perm("ally").isSuspended).toBe(false);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("control").instanceId);
   });
 
   it("grants inherited Piercing to a stronger host", async () => {
@@ -67,9 +101,10 @@ describe("BT20-039 Diatrymon", () => {
       0: { battleArea: [{ card: "BT20-041", dp: 6000, under: ["BT20-039"], as: "host" }] },
       1: {
         battleArea: [{ card: "BT20-010", dp: 1000, suspended: true, as: "target" }],
-        security: ["BT20-001"],
+        security: ["BT1-010"],
       },
     });
+    await s.ready();
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -77,6 +112,34 @@ describe("BT20-039 Diatrymon", () => {
         target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.players[1]!.security.length === 0);
+    await settle(
+      () => s.events.some((event) => event.kind === "securityChecked") && s.state.pendingDecision === undefined,
+    );
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
+  it("rejects an unrelated color level-3 base for both ordinary and alternate evolution", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-010", as: "redBase" }], hand: [{ card: "BT20-039", as: "diatrymon" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("redBase").permanentId,
+        instanceId: s.inst("diatrymon").instanceId,
+        useAlternateCost: true,
+      }).ok,
+    ).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("redBase").permanentId,
+        instanceId: s.inst("diatrymon").instanceId,
+      }).ok,
+    ).toBe(false);
+    expect(s.perm("redBase").topCard.cardId).toBe("BT20-010");
   });
 });

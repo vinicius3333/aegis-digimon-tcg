@@ -1,0 +1,37 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api
+
+ ❯ src/cards/BT20/BT20-050.test.ts (7 tests | 1 failed | 6 skipped) 41ms
+   ❯ BT20-050 HoverEspimon (7)
+     × draws once across two public attacks, then draws again after the next turn 40ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT20/BT20-050.test.ts > BT20-050 HoverEspimon > draws once across two public attacks, then draws again after the next turn
+AssertionError: expected ArraySchema{ items: [ …(3) ], …(5) } to have a length of 2 but got 3
+
+- Expected
++ Received
+
+- 2
++ 3
+
+ ❯ src/cards/BT20/BT20-050.test.ts:143:38
+    141|     })).toEqual({ ok: true });
+    142|     await settle(() => s.events.filter((event) => event.kind === "comb…
+    143|     expect(s.state.players[0]!.hand).toHaveLength(2);
+       |                                      ^
+    144|
+    145|     s.state.turnSeat = 1;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 6 skipped (7)
+   Start at  13:10:48
+   Duration  598ms (import 55%, transform 36%, tests 8%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT20/BT20-050.test.ts --testNamePattern draws once across two public attacks --maxWorkers=1 --no-file-parallelism --testTimeout=15000

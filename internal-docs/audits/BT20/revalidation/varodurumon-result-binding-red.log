@@ -1,0 +1,37 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api
+
+ ❯ src/engine/effects/pendingDnaAttackTriggers.test.ts (2 tests | 1 failed | 1 skipped) 64ms
+   ❯ deferred triggers from a DNA attack (2)
+     × BT20-043 lets only the DNA result attack and resolves its WD/WA effects once 63ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/engine/effects/pendingDnaAttackTriggers.test.ts > deferred triggers from a DNA attack > BT20-043 lets only the DNA result attack and resolves its WD/WA effects once
+AssertionError: expected [] to have a length of 1 but got +0
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ src/engine/effects/pendingDnaAttackTriggers.test.ts:115:21
+    113|
+    114|     const attacks = s.events.filter((event): event is Attack => event.…
+    115|     expect(attacks).toHaveLength(1);
+       |                     ^
+    116|     const result = s.state.players[0]!.battleArea.find((permanent) => …
+    117|     expect(result).toBeDefined();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 skipped (2)
+   Start at  11:15:49
+   Duration  1.00s (transform 48%, import 45%, tests 7%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/engine/effects/pendingDnaAttackTriggers.test.ts -t BT20-043 --maxWorkers=1 --no-file-parallelism --testTimeout=15000

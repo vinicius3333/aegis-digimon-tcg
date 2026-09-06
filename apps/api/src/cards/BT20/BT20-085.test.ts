@@ -4,6 +4,9 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-085.js";
 import "./index.js";
+import "../BT1/BT1-013.js";
+import "./BT20-047.js";
+import "../ST18/ST18-10.js";
 
 describe("BT20-085 Shoto Kazama", () => {
   it("models the Start of Main Phase bottom-deck cost and gated follow-up", () => {
@@ -103,19 +106,55 @@ describe("BT20-085 Shoto Kazama", () => {
         0: {
           battleArea: [
             { card: "BT20-085", as: "shoto" },
-            { card: "EX7-034", dp: 7000, as: "vortex" },
+            { card: "ST18-10", dp: 7000, as: "vortex" },
           ],
+          deck: ["BT20-010", "BT20-010"],
         },
-        1: { battleArea: [{ card: "BT20-047", as: "opponent" }] },
+        1: { battleArea: [{ card: "BT20-047", as: "opponent" }], deck: ["BT20-010", "BT20-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    // Isolate this Tamer's end-turn clause from the partner's separate Vortex attack.
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("shoto"));
+    // Drive the real turn loop. The partner has the Vortex Warriors trait but no Vortex
+    // keyword, so its presence cannot open an unrelated end-of-turn attack decision.
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
 
     expect(s.perm("shoto").isSuspended).toBe(true);
     expect(s.perm("opponent").isSuspended).toBe(true);
     expect(s.perm("vortex").currentDP).toBe(9000);
+
+    // The printed duration is through the opponent's turn, so use a real turn
+    // boundary before asserting that the inherited DP returns to its base value.
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    expect(s.perm("vortex").currentDP).toBe(7000);
+  });
+
+  it("plays the exact Shoto instance from a public security check without cost", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-010", as: "attacker" }], deck: ["BT1-010"] },
+      1: { security: [{ card: "BT20-085", as: "securityShoto" }], deck: ["BT1-010"] },
+    });
+    const shotoId = s.inst("securityShoto").instanceId;
+    await s.ready();
+    const beforeMemory = s.state.memory;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === shotoId));
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === shotoId)).toBe(true);
+    expect(s.state.memory).toBe(beforeMemory);
   });
 });

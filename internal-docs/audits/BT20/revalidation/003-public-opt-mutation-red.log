@@ -1,0 +1,39 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api
+
+ ❯ src/cards/BT20/BT20-003.test.ts (6 tests | 1 failed | 5 skipped) 494ms
+   ❯ BT20-003 Bibimon (6)
+     × proves same-turn OPT after a public memory-gain reopening of Main and End of Your Turn 486ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT20/BT20-003.test.ts > BT20-003 Bibimon > proves same-turn OPT after a public memory-gain reopening of Main and End of Your Turn
+AssertionError: expected [ 'BT14-087', 'BT20-003' ] to deeply equal [ 'BT20-003' ]
+
+- Expected
++ Received
+
+  [
++   "BT14-087",
+    "BT20-003",
+  ]
+
+ ❯ src/cards/BT20/BT20-003.test.ts:181:61
+    179|     await settle(() => s.state.pendingDecision === undefined);
+    180|     await turn;
+    181|     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["…
+       |                                                             ^
+    182|     expect(s.state.players[0]!.battleArea.some((permanent) => permanen…
+    183|     expect(s.events.filter((event) => event.kind === "effectResolved" …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 5 skipped (6)
+   Start at  12:37:17
+   Duration  4.46s (transform 54%, import 33%, tests 12%, worker 1%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT20/BT20-003.test.ts -t public memory-gain --maxWorkers=1 --no-file-parallelism --testTimeout=15000

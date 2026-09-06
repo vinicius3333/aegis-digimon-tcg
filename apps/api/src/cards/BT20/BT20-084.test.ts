@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -82,6 +81,107 @@ describe("BT20-084 Sistermon Ciel (Awakened)", () => {
     expect(s.perm("ciel").topCard.cardId).toBe("BT20-084");
   });
 
+  it("matches plain Sistermon Ciel but not already Awakened Sistermon Ciel", async () => {
+    for (const target of ["plain", "awakened"] as const) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: target === "plain" ? "BT6-084" : "BT20-084", as: "target" }],
+            hand: [{ card: "BT20-047", as: "played" }],
+            trash: [{ card: "BT20-084", as: "awakened" }],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 7;
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.pendingDecision === undefined);
+      expect(s.perm("target").topCard.cardId).toBe("BT20-084");
+      expect(s.perm("target").stack).toHaveLength(target === "plain" ? 1 : 0);
+      expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("awakened").instanceId)).toBe(
+        target === "awakened",
+      );
+    }
+  });
+
+  it("can refuse the optional trash evolution while leaving the plain Ciel and source in place", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT6-084", as: "target" }],
+          hand: [{ card: "BT20-047", as: "played" }],
+          trash: [{ card: "BT20-084", as: "awakened" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("target").topCard.cardId).toBe("BT6-084");
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("awakened").instanceId);
+  });
+
+  it("does not trigger the trash effect when a Tamer is played", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT6-084", as: "target" }],
+          hand: [{ card: "BT20-085", as: "tamer" }],
+          trash: [{ card: "BT20-084", as: "awakened" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tamer").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-085"));
+    expect(s.perm("target").topCard.cardId).toBe("BT6-084");
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("awakened").instanceId);
+  });
+
+  it("resolves plain Ciel On Play and the trash reaction in either order without re-triggering", async () => {
+    for (const first of ["plain", "trash"] as const) {
+      const s = setupEngine(
+        {
+          0: { hand: [{ card: "BT6-084", as: "played" }], trash: [{ card: "BT20-084", as: "awakened" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+      );
+      s.state.memory = 7;
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+      const decision = s.state.pendingDecision!;
+      const request = s.decisions.find(({ req }) => req.decisionId === decision.decisionId)!.req;
+      const key = request.options!.triggerKeys!.find((candidate) =>
+        candidate.includes(s.inst(first === "plain" ? "played" : "awakened").instanceId),
+      );
+      expect(key).toBeDefined();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "orderTriggers", order: [key!] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision === undefined);
+      expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("BT20-084");
+      expect(s.state.memory).toBe(first === "plain" ? 4 : 3);
+    }
+  });
+
   it("moves its top stack card to the top of security at End of All Turns", async () => {
     const s = setupEngine({
       0: {
@@ -90,10 +190,81 @@ describe("BT20-084 Sistermon Ciel (Awakened)", () => {
       },
     });
     await s.ready();
-    await advance(s.engine).fireGlobal(EffectTiming.EndOfAllTurns);
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
     await settle(() => s.state.players[0]!.security[0]?.instanceId === s.inst("stackTop").instanceId);
 
     expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("stackTop").instanceId);
     expect(s.perm("awakened").stack).toHaveLength(0);
+  });
+
+  it("locks one opposing Digimon for both public entry routes until opponent turn end", async () => {
+    for (const route of ["play", "evolve"] as const) {
+      const s =
+        route === "play"
+          ? setupEngine(
+              {
+                0: { hand: [{ card: "BT20-084", as: "awakened" }] },
+                1: { battleArea: [{ card: "BT20-010", as: "target" }] },
+              },
+              { autoAcceptOptional: true, autoSelectCards: true },
+            )
+          : setupEngine(
+              {
+                0: { battleArea: [{ card: "BT6-084", as: "ciel" }], hand: [{ card: "BT20-084", as: "awakened" }] },
+                1: { battleArea: [{ card: "BT20-010", as: "target" }] },
+              },
+              { autoAcceptOptional: true, autoSelectCards: true },
+            );
+      s.state.memory = route === "play" ? 5 : 1;
+      const result =
+        route === "play"
+          ? s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("awakened").instanceId })
+          : s.engine.applyIntent(0, {
+              type: "digivolve",
+              permanentId: s.perm("ciel").permanentId,
+              instanceId: s.inst("awakened").instanceId,
+            });
+      expect(result).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.events.some(
+            (event) =>
+              event.kind === "effectResolved" &&
+              event.sourceCardId === "BT20-084" &&
+              (event.timing === "OnPlay" || event.timing === "WhenDigivolving"),
+          ) && s.state.pendingDecision === undefined,
+      );
+      await advance(s.engine).verb.suspend([s.perm("target").permanentId], 0);
+      expect(s.perm("target").isSuspended).toBe(false);
+    }
+  });
+
+  it("releases the opposing suspend lock after that opponent's real turn ends", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT20-084", as: "awakened" }] },
+        1: { battleArea: [{ card: "BT20-010", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("awakened").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("target").isSuspended).toBe(false);
+
+    // The lock lasts through the opponent's turn, then expires at its end.
+    s.state.turnSeat = 1;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    await advance(s.engine).verb.suspend([s.perm("target").permanentId], 0);
+    expect(s.perm("target").isSuspended).toBe(true);
   });
 });

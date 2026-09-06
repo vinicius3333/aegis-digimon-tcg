@@ -14,7 +14,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q4436: DNA digivolve via <Delay> doesn't leave the battle area.
 // Audit: cost reduction is part of the play (reduceCostBy:3, not separate Replacement).
 // Audit: Replacement leaveCause:otherThanBattle gates "other than in battle."
-// Audit: DnaDigivolve is the <Delay> option — separate effect with Delay keyword.
+// Q4436: resolve reactive Delay before departure so the threatened Digimon can be DNA material.
 // Audit: PlaceInBattleAreaSelf is mandatory after optional play (optional:false).
 export const compiled: CompiledCard = {
   effects: [
@@ -48,6 +48,7 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "AllTurns",
+      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
       actions: [
         {
           kind: "Replacement",
@@ -57,64 +58,21 @@ export const compiled: CompiledCard = {
             controller: "mine",
             kind: ["Digimon"],
             zone: "battleArea",
-            nameOrTrait: [
-              {
-                tokens: ["Dracomon", "Examon"],
-                match: "text",
-              },
-            ],
+            nameOrTrait: [{ tokens: ["Dracomon", "Examon"], match: "text" }],
           },
           actions: [
             {
-              kind: "GainKeyword",
-              target: {
-                filter: {
-                  isSelfRef: true,
-                },
-                count: 1,
-                isSelf: true,
+              kind: "DnaDigivolve",
+              materials: { filter: { controller: "mine", kind: ["Digimon"] }, count: 2 },
+              into: {
+                controllerDefault: "mine",
+                nameOrTrait: [{ tokens: ["Examon"], match: "nameExact" }],
+                zone: "hand",
               },
-              keyword: {
-                keyword: "Delay",
-                raw: "＜Delay＞",
-              },
-              duration: "permanent",
+              payCost: true,
+              optional: true,
             },
           ],
-        },
-      ],
-    },
-    {
-      trigger: "Main",
-      keywords: [
-        {
-          keyword: "Delay",
-          raw: "＜Delay＞",
-        },
-      ],
-      actions: [
-        {
-          requiresDelayArmed: true,
-          kind: "DnaDigivolve",
-          materials: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-            },
-            count: 2,
-          },
-          into: {
-            controllerDefault: "mine",
-            nameOrTrait: [
-              {
-                tokens: ["Examon"],
-                match: "nameExact",
-              },
-            ],
-            zone: "hand",
-          },
-          payCost: true,
-          optional: true,
         },
       ],
     },

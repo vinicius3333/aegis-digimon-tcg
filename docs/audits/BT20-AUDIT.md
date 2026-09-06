@@ -1,5 +1,9 @@
 # BT20 Final Card Audit
 
+> Historical claims below are undergoing independent revalidation as of 2026-09-06.
+> The collection is currently incomplete. Current evidence lives in
+> `internal-docs/audits/BT20/revalidation/PLAN.md` and `ledger.json`.
+
 Status: typed revalidation complete on 2026-09-02
 
 ## Outcome

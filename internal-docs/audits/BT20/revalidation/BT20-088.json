@@ -1,0 +1,66 @@
+{
+  "cardId": "BT20-088",
+  "status": "lead-verified",
+  "scores": {
+    "catalogRules": 2,
+    "irTrace": 2,
+    "behavioralProof": 2,
+    "peerStackProof": 2,
+    "deliveryGates": 0
+  },
+  "evidence": [
+    "apps/api/src/cards/BT20/BT20-088.ts",
+    "apps/api/src/cards/BT20/BT20-088.test.ts",
+    "node tools/kb/query.mjs card BT20-088",
+    "round5-final-collection-results.json",
+    "round5-mechanism-results.json",
+    "BT20-088-runtime-disabled.json",
+    "round5-gates.json"
+  ],
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-final-collection-results.json",
+      "result": "6/6 colocated cases pass; 968/968 full collection/mechanism cases."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/effects/interpreter/actions/play.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/builders.test.ts src/engine/actions/activateEffect.test.ts src/engine/actions/playCard.test.ts src/engine/useOption.test.ts src/engine/effectOptionUseCost.test.ts src/engine/decisions/minEnforcement.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/primitives.test.ts src/cards/BT7/BT7-063.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-mechanism-results.json",
+      "result": "465/465 affected mechanism cases pass."
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-088",
+      "result": "2 meaningful assertion failures with runtime effects disabled; original production module restored. Per-card JSON/log and aggregate retained."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "PASS; round5-final-typecheck.log. Final API test-source check also passes in round5-final-api-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "PASS; all 102 records synchronized, round5-scoped-check.log."
+    },
+    {
+      "command": "Changed-file oxlint/oxfmt --check and git diff --check",
+      "result": "PASS; round5-gates.json, round5-style-paths.json and final style logs."
+    }
+  ],
+  "gaps": [],
+  "executedCases": [
+    "BT20-088 Violet Inboots gains memory only when the opponent has a Digimon",
+    "BT20-088 Violet Inboots gates the reduced Ghost digivolution on suspending this Tamer",
+    "BT20-088 Violet Inboots naturally evolves a Digimon after an own Ghost is deleted (accept=true)",
+    "BT20-088 Violet Inboots naturally evolves a Digimon after an own Ghost is deleted (accept=false)",
+    "BT20-088 Violet Inboots does not offer the Ghost evolution when an own non-Ghost Digimon is deleted",
+    "plays the exact BT20-088 security instance for free after a public check"
+  ],
+  "historicalCommands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-088.test.ts --maxWorkers=1 --no-file-parallelism",
+      "result": "not run by worker"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/current-collection-green-results.json",
+      "result": "PASS: 3 cases for BT20-088;734 total tests. See current-collection-green-results.json."
+    }
+  ],
+  "reviewStatus": "Current printed clauses, KB/errata, exclusive IR registration, legal public paths and negative controls independently reviewed. Delivery credit requires the pushed, hash-bound acceptance record."
+}

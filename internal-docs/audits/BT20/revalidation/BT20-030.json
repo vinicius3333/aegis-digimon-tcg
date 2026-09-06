@@ -1,0 +1,84 @@
+{
+  "cardId": "BT20-030",
+  "status": "lead-verified",
+  "scores": {
+    "catalogRules": 2,
+    "irTrace": 2,
+    "behavioralProof": 2,
+    "peerStackProof": 2,
+    "deliveryGates": 0
+  },
+  "evidence": [
+    "Public play pays3 and reveals three; independently adds one ACCEL or Chaosmon-name Digimon and one ACCEL Option; exact remaining cards go to deck bottom. Mixed-pool, single-category and no-match cases distinguish the branches.",
+    "Public breeding evolution proves independent ACCEL Pinamon and named non-ACCEL Frimon alternatives cost0; a nonmatching red egg is refused.",
+    "Barrier exists only in a legal inherited position; actual losing-battle acceptance spends one security and saves the host, while refusal deletes the host and leaves security.",
+    "Colocated public behavioral test and committed card-specific KB query.",
+    "028-032-final-focused-results.json; runtime-disabled artifacts must be renewed after final changes.",
+    "Lead independently reviewed current clauses and legal stacks; final894 collection,543 affected mechanisms, typecheck, scoped sync/style and meaningful restored runtime mutation pass. Delivery credit is hash-bound in acceptance.json after push."
+  ],
+  "gaps": [],
+  "historicalCommands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-030.test.ts --maxWorkers=1 --no-file-parallelism",
+      "result": "pending lead execution"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-014.test.ts src/cards/BT20/BT20-015.test.ts src/cards/BT20/BT20-016.test.ts src/cards/BT20/BT20-017.test.ts src/cards/BT20/BT20-018.test.ts src/cards/BT20/BT20-019.test.ts src/cards/BT20/BT20-020.test.ts src/cards/BT20/BT20-021.test.ts src/cards/BT20/BT20-022.test.ts src/cards/BT20/BT20-023.test.ts src/cards/BT20/BT20-024.test.ts src/cards/BT20/BT20-025.test.ts src/cards/BT20/BT20-026.test.ts src/cards/BT20/BT20-027.test.ts src/cards/BT20/BT20-028.test.ts src/cards/BT20/BT20-029.test.ts src/cards/BT20/BT20-030.test.ts src/cards/BT20/BT20-031.test.ts src/cards/BT20/BT20-032.test.ts src/cards/BT20/BT20-033.test.ts src/cards/BT20/BT20-034.test.ts src/cards/BT20/BT20-035.test.ts src/cards/BT20/BT20-036.test.ts src/cards/BT20/BT20-037.test.ts src/cards/BT20/BT20-038.test.ts src/cards/BT20/BT20-039.test.ts src/cards/BT20/BT20-040.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/014-040-results.json",
+      "result": "5 tests passed for this card; 160 total passed; 014-040-results.json"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-name-fix-results.json",
+      "result": "8 cases pass for BT20-030; all 790/790 pass. Final independent clause acceptance/delivery still pending."
+    },
+    {
+      "command": "pnpm --filter @aegis/api typecheck",
+      "result": "Passed; public-followups-typecheck.log"
+    },
+    {
+      "command": "pnpm exec oxlint <changed public-proof test files>; pnpm exec oxfmt <same files>; git diff --check",
+      "result": "Passed changed-file style and diff gates."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-030.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+      "result": "Current final checkpoint execution pending; earlier focused passes are historical after later changes."
+    }
+  ],
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-final-collection-results.json",
+      "result": "10/10 colocated cases pass; full collection/mechanism894/894."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/overallTimingRestrictions.test.ts src/engine/effects/continuous.test.ts src/engine/effects/primitives.test.ts src/engine/effects/interpreter.test.ts src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/effects/restrictionEnforcement.test.ts src/engine/effects/restrictionConsumers.guard.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/combat/restrictionProjection.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-affected-results.json",
+      "result": "543/543 affected cases pass."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "Pass; round4-final-typecheck.log"
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-030",
+      "result": "5 meaningful assertion failures with registered effects disabled; original module restored. Runtime-disabled JSON/log and aggregate result retained."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "102 records already synchronized; round4-scoped-check.log"
+    },
+    {
+      "command": "Changed-file oxlint/oxfmt and git diff --check",
+      "result": "Pass; round4-gates.json and exact paths in round4-style-paths.json."
+    }
+  ],
+  "executedCases": [
+    "BT20-030 Liollmon reveals three and independently adds one qualifying Digimon and one ACCEL Option",
+    "BT20-030 Liollmon adds one qualifying Digimon and one ACCEL Option, then bottoms the rest",
+    "BT20-030 Liollmon grants Barrier only when Liollmon is an inherited source",
+    "BT20-030 Liollmon reaches Liollmon from a legal ACCEL Pinamon stack through public evolution",
+    "BT20-030 Liollmon checks the named Frimon alternative against BT18-006",
+    "BT20-030 Liollmon checks the named Frimon alternative against BT20-001",
+    "BT20-030 Liollmon leaves all three revealed cards on the bottom when neither required category matches",
+    "BT20-030 Liollmon resolves each reveal category independently when only one category is available",
+    "BT20-030 Liollmon uses or refuses inherited Barrier during a losing battle (accept true)",
+    "BT20-030 Liollmon uses or refuses inherited Barrier during a losing battle (accept false)"
+  ]
+}

@@ -1,0 +1,95 @@
+{
+  "cardId": "BT20-084",
+  "status": "lead-verified",
+  "scores": {
+    "catalogRules": 2,
+    "irTrace": 2,
+    "behavioralProof": 2,
+    "peerStackProof": 2,
+    "deliveryGates": 0
+  },
+  "evidence": [
+    "apps/api/src/cards/BT20/BT20-084.ts",
+    "apps/api/src/cards/BT20/BT20-084.test.ts",
+    "node tools/kb/query.mjs card BT20-084",
+    "round5-final-collection-results.json",
+    "round5-mechanism-results.json",
+    "BT20-084-runtime-disabled.json",
+    "round5-gates.json"
+  ],
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-final-collection-results.json",
+      "result": "11/11 colocated cases pass; 968/968 full collection/mechanism cases."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/effects/interpreter/actions/play.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/builders.test.ts src/engine/actions/activateEffect.test.ts src/engine/actions/playCard.test.ts src/engine/useOption.test.ts src/engine/effectOptionUseCost.test.ts src/engine/decisions/minEnforcement.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/primitives.test.ts src/cards/BT7/BT7-063.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-mechanism-results.json",
+      "result": "465/465 affected mechanism cases pass."
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-084",
+      "result": "4 meaningful assertion failures with runtime effects disabled; original production module restored. Per-card JSON/log and aggregate retained."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "PASS; round5-final-typecheck.log. Final API test-source check also passes in round5-final-api-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "PASS; all 102 records synchronized, round5-scoped-check.log."
+    },
+    {
+      "command": "Changed-file oxlint/oxfmt --check and git diff --check",
+      "result": "PASS; round5-gates.json, round5-style-paths.json and final style logs."
+    }
+  ],
+  "gaps": [],
+  "executedCases": [
+    "BT20-084 Sistermon Ciel (Awakened) has a trash-only effect that may digivolve a Sistermon Ciel into this card when a Digimon is played",
+    "BT20-084 Sistermon Ciel (Awakened) prevents one opposing Digimon or Tamer from suspending on play and digivolving",
+    "BT20-084 Sistermon Ciel (Awakened) places this Digimon's top digivolution card on top of security at end of all turns",
+    "BT20-084 Sistermon Ciel (Awakened) naturally digivolves a Sistermon Ciel from trash when one of your Digimon is played",
+    "BT20-084 Sistermon Ciel (Awakened) matches plain Sistermon Ciel but not already Awakened Sistermon Ciel",
+    "BT20-084 Sistermon Ciel (Awakened) can refuse the optional trash evolution while leaving the plain Ciel and source in place",
+    "BT20-084 Sistermon Ciel (Awakened) does not trigger the trash effect when a Tamer is played",
+    "BT20-084 Sistermon Ciel (Awakened) resolves plain Ciel On Play and the trash reaction in either order without re-triggering",
+    "BT20-084 Sistermon Ciel (Awakened) moves its top stack card to the top of security at End of All Turns",
+    "BT20-084 Sistermon Ciel (Awakened) locks one opposing Digimon for both public entry routes until opponent turn end",
+    "BT20-084 Sistermon Ciel (Awakened) releases the opposing suspend lock after that opponent's real turn ends"
+  ],
+  "historicalCommands": [
+    {
+      "command": "node tools/kb/query.mjs card BT20-084",
+      "result": "Q4412-Q4414 retrieved"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-084.test.ts --maxWorkers=1 --no-file-parallelism",
+      "result": "pending lead execution"
+    },
+    {
+      "command": "git diff --check",
+      "result": "pending lead validation"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/current-collection-green-results.json",
+      "result": "PASS: 6 cases for BT20-084;734 total tests. See current-collection-green-results.json."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+      "result": "10 cases passed for BT20-084; 836 total passed, zero failed."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "Passed shared/API/web; reactive-movement-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "All102 synchronized; see reactive-movement-gates.json for the temporary watchdog adjustment and restored script."
+    },
+    {
+      "command": "Commands in reactive-movement-gates.json",
+      "result": "552 affected mechanism cases and changed-file lint/format passed without warnings."
+    }
+  ],
+  "reviewStatus": "Current printed clauses, KB/errata, exclusive IR registration, legal public paths and negative controls independently reviewed. Delivery credit requires the pushed, hash-bound acceptance record."
+}

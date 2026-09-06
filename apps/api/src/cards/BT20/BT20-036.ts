@@ -123,6 +123,8 @@ export const compiled: CompiledCard = {
         },
         {
           kind: "Attack",
+          // Q4345/Q4346: finish simultaneous evolution/attack triggers before Counter timing.
+          drainTimingWindowDuringAttack: true,
           target: {
             filter: {
               boundRef: "dnaDigivolvedByThisEffect",

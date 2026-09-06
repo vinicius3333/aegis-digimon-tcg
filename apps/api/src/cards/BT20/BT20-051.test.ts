@@ -14,7 +14,7 @@ describe("BT20-051 Raptordramon", () => {
           from: ["hand"],
           payCost: false,
           target: {
-            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Kota Domoto"], match: "name" }] },
+            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Kota Domoto"], match: "nameExact" }] },
             count: 1,
           },
           condition: { kind: "permanentCount", seat: "mine", filter: { kind: ["Tamer"] }, op: "lte", value: 1 },
@@ -42,7 +42,7 @@ describe("BT20-051 Raptordramon", () => {
             battleArea: [{ card: base, as: "base" }, ...tamers.map((card, index) => ({ card, as: `tamer${index}` }))],
             hand: [
               { card: "BT20-051", as: "raptor" },
-              { card: "BT20-087", as: "kota" },
+              { card: "BT7-090", as: "kota" },
             ],
           },
         },
@@ -59,11 +59,10 @@ describe("BT20-051 Raptordramon", () => {
       ).toEqual({ ok: true });
       await settle(() => s.perm("base").topCard.cardId === "BT20-051");
       await settle(
-        () =>
-          shouldPlay === s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-087"),
+        () => shouldPlay === s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT7-090"),
       );
       expect(s.state.memory).toBe(0);
-      expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-087")).toBe(
+      expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT7-090")).toBe(
         shouldPlay,
       );
     }
@@ -76,11 +75,11 @@ describe("BT20-051 Raptordramon", () => {
           battleArea: [{ card: "BT20-048", as: "base" }],
           hand: [
             { card: "BT20-051", as: "raptor" },
-            { card: "BT20-087", as: "kota" },
+            { card: "BT7-090", as: "kota" },
           ],
         },
       },
-      { autoAcceptOptional: false, autoSelectCards: true },
+      { autoDeclineOptional: true, autoSelectCards: true },
     );
     s.state.memory = 2;
     expect(
@@ -104,5 +103,31 @@ describe("BT20-051 Raptordramon", () => {
     s.state.turnSeat = 1;
     await advance(s.engine).recompute();
     expect(s.perm("host").currentDP).toBe(9000);
+  });
+
+  it("does not treat the Kota Domoto & Yuji Musya variant as exact Kota Domoto", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-048", as: "base" }],
+          hand: [
+            { card: "BT20-051", as: "raptor" },
+            { card: "BT20-087", as: "variant" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("raptor").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT20-051" && s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("variant").instanceId)).toBe(true);
   });
 });

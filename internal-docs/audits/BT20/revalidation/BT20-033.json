@@ -1,0 +1,92 @@
+{
+  "cardId": "BT20-033",
+  "status": "lead-verified",
+  "scores": {
+    "catalogRules": 2,
+    "irTrace": 2,
+    "behavioralProof": 2,
+    "peerStackProof": 2,
+    "deliveryGates": 0
+  },
+  "evidence": [
+    "apps/api/src/cards/BT20/BT20-033.ts",
+    "apps/api/src/cards/BT20/BT20-033.test.ts",
+    "internal-docs/audits/BT20/revalidation/BT20-033.md",
+    "Public opponent evolution proves a restricted When Digivolving effect does not resolve",
+    "Real-turn duration fixture proves the restriction suppresses the first opponent evolution, then permits the next opponent-turn When Digivolving effect after expiry",
+    "014-040-results.json",
+    "collection-after-name-fix-results.json",
+    "public-followups-typecheck.log",
+    "Real opponent-turn/own-turn/later-opponent-turn public battle sequence now proves inherited redirect reset while preserving security; corrected neutral host and captured surviving state.",
+    "Lead independently reviewed current clauses and legal stacks; final894 collection,543 affected mechanisms, typecheck, scoped sync/style and meaningful restored runtime mutation pass. Delivery credit is hash-bound in acceptance.json after push."
+  ],
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-final-collection-results.json",
+      "result": "10/10 colocated cases pass; full collection/mechanism894/894."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/overallTimingRestrictions.test.ts src/engine/effects/continuous.test.ts src/engine/effects/primitives.test.ts src/engine/effects/interpreter.test.ts src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/effects/restrictionEnforcement.test.ts src/engine/effects/restrictionConsumers.guard.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/combat/restrictionProjection.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-affected-results.json",
+      "result": "543/543 affected cases pass."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "Pass; round4-final-typecheck.log"
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-033",
+      "result": "6 meaningful assertion failures with registered effects disabled; original module restored. Runtime-disabled JSON/log and aggregate result retained."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "102 records already synchronized; round4-scoped-check.log"
+    },
+    {
+      "command": "Changed-file oxlint/oxfmt and git diff --check",
+      "result": "Pass; round4-gates.json and exact paths in round4-style-paths.json."
+    }
+  ],
+  "gaps": [],
+  "historicalCommands": [
+    {
+      "command": "node tools/kb/query.mjs card BT20-033",
+      "result": "Q4326-Q4330 retrieved"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-033.test.ts --maxWorkers=1 --no-file-parallelism",
+      "result": "pending lead execution"
+    },
+    {
+      "command": "git diff --check",
+      "result": "pending lead validation"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-014.test.ts src/cards/BT20/BT20-015.test.ts src/cards/BT20/BT20-016.test.ts src/cards/BT20/BT20-017.test.ts src/cards/BT20/BT20-018.test.ts src/cards/BT20/BT20-019.test.ts src/cards/BT20/BT20-020.test.ts src/cards/BT20/BT20-021.test.ts src/cards/BT20/BT20-022.test.ts src/cards/BT20/BT20-023.test.ts src/cards/BT20/BT20-024.test.ts src/cards/BT20/BT20-025.test.ts src/cards/BT20/BT20-026.test.ts src/cards/BT20/BT20-027.test.ts src/cards/BT20/BT20-028.test.ts src/cards/BT20/BT20-029.test.ts src/cards/BT20/BT20-030.test.ts src/cards/BT20/BT20-031.test.ts src/cards/BT20/BT20-032.test.ts src/cards/BT20/BT20-033.test.ts src/cards/BT20/BT20-034.test.ts src/cards/BT20/BT20-035.test.ts src/cards/BT20/BT20-036.test.ts src/cards/BT20/BT20-037.test.ts src/cards/BT20/BT20-038.test.ts src/cards/BT20/BT20-039.test.ts src/cards/BT20/BT20-040.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/014-040-results.json",
+      "result": "7 tests passed for this card; 160 total passed; 014-040-results.json"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-name-fix-results.json",
+      "result": "8 cases pass for BT20-033; all 790/790 pass. Final independent clause acceptance/delivery still pending."
+    },
+    {
+      "command": "pnpm --filter @aegis/api typecheck",
+      "result": "Passed; public-followups-typecheck.log"
+    },
+    {
+      "command": "pnpm exec oxlint <changed public-proof test files>; pnpm exec oxfmt <same files>; git diff --check",
+      "result": "Passed changed-file style and diff gates."
+    }
+  ],
+  "executedCases": [
+    "BT20-033 LoaderLeomon restricts one opposing Digimon's When Digivolving activation and lowers its DP on both triggers",
+    "BT20-033 LoaderLeomon applies both the timing lock and -3000 DP through the opponent's turn end duration",
+    "BT20-033 LoaderLeomon binds the restriction and DP reduction to one opposing Digimon",
+    "BT20-033 LoaderLeomon suppresses a restricted target's When Digivolving effect on a public evolution",
+    "BT20-033 LoaderLeomon suppresses an opponent evolution during the lock, then allows its When Digivolving effect after expiry",
+    "BT20-033 LoaderLeomon redirects an opposing player attack to the inherited host",
+    "BT20-033 LoaderLeomon can refuse the inherited redirect, allowing the opponent's player attack to check security",
+    "BT20-033 LoaderLeomon redirects only once per opponent turn",
+    "BT20-033 LoaderLeomon resets inherited attack redirection on a later opponent turn",
+    "BT20-033 LoaderLeomon reaches LoaderLeomon from a legal ACCEL level-4 stack and rejects an unrelated base"
+  ]
+}

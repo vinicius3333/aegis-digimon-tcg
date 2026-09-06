@@ -83,6 +83,49 @@ describe("BT20-023 Coredramon", () => {
     expect(negative.perm("coredramon").topCard.cardId).toBe("BT20-023");
   });
 
+  it("also reacts to a green Digimon whose name supplies the Examon text match", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-023", as: "coredramon" }],
+          hand: [
+            { card: "BT20-045", as: "examonMatch" },
+            { card: "BT20-025", as: "wingdramon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 0 },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("examonMatch").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("coredramon").topCard.cardId === "BT20-025");
+    expect(s.perm("coredramon").topCard.cardId).toBe("BT20-025");
+  });
+
+  it("can decline the optional reduced Wingdramon evolution without paying its cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-023", as: "coredramon" }],
+          hand: [
+            { card: "BT20-040", as: "greenTextMatch" },
+            { card: "BT20-025", as: "wingdramon" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("greenTextMatch").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("coredramon").topCard.cardId === "BT20-023" && s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("wingdramon").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(2);
+  });
+
   it("has Jamming and grants inherited +2000 DP only on its controller's turn", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT20-025", dp: 7000, as: "host", under: ["BT20-023"] }] },
@@ -97,5 +140,40 @@ describe("BT20-023 Coredramon", () => {
     const direct = setupEngine({ 0: { battleArea: [{ card: "BT20-023", as: "coredramon" }] } });
     await direct.ready();
     expect(observe(direct.engine).hasKeyword(direct.perm("coredramon"), "Jamming")).toBe(true);
+  });
+
+  it("survives a public security battle through Jamming", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-023", as: "coredramon" }] },
+      1: { security: [{ card: "BT1-027", as: "strongSecurity" }] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("coredramon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.perm("coredramon").topCard.cardId).toBe("BT20-023");
+  });
+
+  it("reaches Coredramon from a legal Dracomon stack through public evolution", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-007", as: "dracomon" }], hand: [{ card: "BT20-023", as: "coredramon" }] },
+    });
+    s.state.memory = 2;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("dracomon").permanentId,
+        instanceId: s.inst("coredramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("dracomon").topCard.cardId === "BT20-023");
+    expect(s.perm("dracomon").topCard.cardId).toBe("BT20-023");
+    expect(s.perm("dracomon").stack.map((card) => card.cardId)).toEqual(["BT20-007"]);
   });
 });

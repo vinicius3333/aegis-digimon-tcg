@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming } from "@aegis/shared";
-import { setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-091.js";
 import "./index.js";
 
@@ -108,6 +108,34 @@ describe("BT20-091 [Your Turn] when Royal Knight played/digivolves, suspend to d
     expect(p0?.deck.length).toBe(0);
     // Gain 1 memory.
     expect(s.state.memory).toBe(memBefore + 1);
+  });
+
+  it("publicly plays a [Royal Knight] and pays Cool Boy's suspension cost for draw and memory", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: COOL_BOY, dp: 0, as: "coolBoy" }],
+          hand: [{ card: ROYAL_KNIGHT_CARD, as: "royalKnight" }, "BT1-010"],
+          deck: [{ card: "BT1-010", faceUp: false }, "BT1-010"],
+        },
+        1: { deck: ["BT1-010", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    const handBefore = s.state.players[0]!.hand.length;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("royalKnight").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("royalKnight").instanceId),
+    );
+    expect(s.perm("coolBoy").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand.length).toBe(handBefore);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(s.state.memory).toBe(-1); // 10 - printed play cost 12 + Cool Boy's 1.
   });
 
   it("does NOT draw when the Digimon has no [Royal Knight] trait (negative control)", async () => {
@@ -225,5 +253,25 @@ describe("BT20-091 [Opponent's Turn][Once Per Turn] play Omekamon when a Royal K
     expect(p0?.battleArea.some((p) => p.permanentId === royalKnightId)).toBe(false);
     // Omekamon stayed in hand: the clause is [Opponent's Turn] only.
     expect(p0?.hand.some((c) => c.instanceId === omekamonInstanceId)).toBe(true);
+  });
+});
+
+describe("BT20-091 Security deployment", () => {
+  it("plays itself from security through a public security check", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-010", as: "attacker" }] },
+      1: { security: [{ card: COOL_BOY, as: "securityCoolBoy" }] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === COOL_BOY));
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === COOL_BOY)).toBe(true);
   });
 });

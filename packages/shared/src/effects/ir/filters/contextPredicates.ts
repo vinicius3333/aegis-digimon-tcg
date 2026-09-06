@@ -3,6 +3,8 @@
 // arrived where it is.
 
 export interface ContextPredicates {
+  /** The exact card being checked, identified by TriggerInfo.securityInstanceId (EX5-053). */
+  isRevealedSecurityCard?: boolean;
   /**
    * Leave-prevention costs only: exclude the permanent currently being protected. In an
    * affects-all simultaneous event this still permits a different leaving permanent, matching

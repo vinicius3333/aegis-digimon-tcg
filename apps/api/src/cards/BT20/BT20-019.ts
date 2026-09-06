@@ -33,16 +33,16 @@ export const compiled: CompiledCard = {
           grant: "immuneToOpponentEffects",
           duration: "forTheTurn",
           condition: {
-            kind: "selfDigivolutionStackHasTrait",
+            kind: "selfDigivolutionStackMatchesFilter",
             filter: {
               nameOrTrait: [
                 {
                   tokens: ["Jesmon"],
-                  match: "name",
+                  match: "nameExact",
                 },
                 {
                   tokens: ["X Antibody"],
-                  match: "trait",
+                  match: "nameExact",
                 },
               ],
             },

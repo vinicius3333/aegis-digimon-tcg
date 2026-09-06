@@ -3,6 +3,10 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-070.js";
+import "./BT20-029.js";
+import "./BT20-064.js";
+import "./BT20-071.js";
+import "./BT20-089.js";
 import "./index.js";
 
 describe("BT20-070 Loogarmon", () => {
@@ -64,6 +68,7 @@ describe("BT20-070 Loogarmon", () => {
         }),
       ).toEqual({ ok: true });
       await settle(() => s.perm("base").topCard.cardId === "BT20-070");
+      expect(s.perm("base").stack.map((card) => card.cardId)).toEqual([base]);
       expect(s.state.memory).toBe(0);
     }
   });
@@ -85,6 +90,7 @@ describe("BT20-070 Loogarmon", () => {
             ],
             deck: ["BT20-047"],
           },
+          1: { trash: [{ card: "BT20-089", as: "opponentSoc" }] },
         },
         { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
       );
@@ -103,6 +109,7 @@ describe("BT20-070 Loogarmon", () => {
       await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("soc").instanceId));
       expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
       expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("nonmatch").instanceId);
+      expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("opponentSoc").instanceId);
     }
   });
 

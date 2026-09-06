@@ -1,0 +1,72 @@
+{
+  "cardId": "BT20-071",
+  "status": "lead-verified",
+  "scores": {
+    "catalogRules": 2,
+    "irTrace": 2,
+    "behavioralProof": 2,
+    "peerStackProof": 2,
+    "deliveryGates": 0
+  },
+  "evidence": [
+    "apps/api/src/cards/BT20/BT20-071.ts",
+    "apps/api/src/cards/BT20/BT20-071.test.ts",
+    "node tools/kb/query.mjs card BT20-071",
+    "round5-final-collection-results.json",
+    "round5-mechanism-results.json",
+    "BT20-071-runtime-disabled.json",
+    "round5-gates.json"
+  ],
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-final-collection-results.json",
+      "result": "8/8 colocated cases pass; 968/968 full collection/mechanism cases."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/effects/interpreter/actions/play.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/builders.test.ts src/engine/actions/activateEffect.test.ts src/engine/actions/playCard.test.ts src/engine/useOption.test.ts src/engine/effectOptionUseCost.test.ts src/engine/decisions/minEnforcement.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/primitives.test.ts src/cards/BT7/BT7-063.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-mechanism-results.json",
+      "result": "465/465 affected mechanism cases pass."
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-071",
+      "result": "5 meaningful assertion failures with runtime effects disabled; original production module restored. Per-card JSON/log and aggregate retained."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "PASS; round5-final-typecheck.log. Final API test-source check also passes in round5-final-api-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "PASS; all 102 records synchronized, round5-scoped-check.log."
+    },
+    {
+      "command": "Changed-file oxlint/oxfmt --check and git diff --check",
+      "result": "PASS; round5-gates.json, round5-style-paths.json and final style logs."
+    }
+  ],
+  "gaps": [],
+  "executedCases": [
+    "BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP compiles the hand cost, Tamer-stack trigger, and inherited Option suppression",
+    "BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP [When Digivolving] by trashing 1 hand card, a Digimon gets +3000 DP for the turn",
+    "BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP does not grant Raid or DP when the optional By-trashing condition is declined",
+    "BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP publishes stats and both exact cost-3 alternate evolution routes",
+    "BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP deletes only a 6000-DP-or-less opponent when a Tamer is placed under itself",
+    "BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP inherits Option Security suppression only for a SoC/SEEKERS host on its controller's turn",
+    "BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP publicly triggers the Tamer-in-source deletion through Eiji's Mind Link",
+    "BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP actually suppresses an Option security effect only for the qualifying inherited host"
+  ],
+  "historicalCommands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-071.test.ts --maxWorkers=1 --no-file-parallelism",
+      "result": "not run by worker; coordinator owns Vitest"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed after test/report additions"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/current-collection-green-results.json",
+      "result": "PASS: 7 cases for BT20-071;734 total tests. See current-collection-green-results.json."
+    }
+  ],
+  "reviewStatus": "Current printed clauses, KB/errata, exclusive IR registration, legal public paths and negative controls independently reviewed. Delivery credit requires the pushed, hash-bound acceptance record."
+}

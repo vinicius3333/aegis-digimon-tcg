@@ -64736,7 +64736,7 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "nameOrTrait": [{ "tokens": ["Dorumon", "Ryudamon"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Dorumon", "Ryudamon"], "match": "nameExact" }]
               },
               "count": 1
             },
@@ -64774,7 +64774,7 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "nameOrTrait": [{ "tokens": ["Dorumon", "Ryudamon"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Dorumon", "Ryudamon"], "match": "nameExact" }]
               },
               "count": 1
             },
@@ -65092,11 +65092,11 @@
             "grant": "immuneToOpponentEffects",
             "duration": "forTheTurn",
             "condition": {
-              "kind": "selfDigivolutionStackHasTrait",
+              "kind": "selfDigivolutionStackMatchesFilter",
               "filter": {
                 "nameOrTrait": [
-                  { "tokens": ["Jesmon"], "match": "name" },
-                  { "tokens": ["X Antibody"], "match": "trait" }
+                  { "tokens": ["Jesmon"], "match": "nameExact" },
+                  { "tokens": ["X Antibody"], "match": "nameExact" }
                 ]
               },
               "raw": "[Jesmon]/[X Antibody] is in this Digimon's digivolution cards"
@@ -65465,11 +65465,11 @@
             "restriction": "suspend",
             "duration": "untilOpponentTurnEnd",
             "condition": {
-              "kind": "selfDigivolutionStackHasTrait",
+              "kind": "selfDigivolutionStackMatchesFilter",
               "filter": {
                 "nameOrTrait": [
-                  { "tokens": ["Seadramon"], "match": "name" },
-                  { "tokens": ["X Antibody"], "match": "trait" }
+                  { "tokens": ["Seadramon"], "match": "nameExact" },
+                  { "tokens": ["X Antibody"], "match": "nameExact" }
                 ]
               },
               "raw": "[Seadramon]/[X Antibody] is in this Digimon's digivolution cards"
@@ -65491,11 +65491,11 @@
             "restriction": "suspend",
             "duration": "untilOpponentTurnEnd",
             "condition": {
-              "kind": "selfDigivolutionStackHasTrait",
+              "kind": "selfDigivolutionStackMatchesFilter",
               "filter": {
                 "nameOrTrait": [
-                  { "tokens": ["Seadramon"], "match": "name" },
-                  { "tokens": ["X Antibody"], "match": "trait" }
+                  { "tokens": ["Seadramon"], "match": "nameExact" },
+                  { "tokens": ["X Antibody"], "match": "nameExact" }
                 ]
               },
               "raw": "[Seadramon]/[X Antibody] is in this Digimon's digivolution cards"
@@ -65604,11 +65604,11 @@
             "restriction": "suspend",
             "duration": "untilOpponentTurnEnd",
             "condition": {
-              "kind": "selfDigivolutionStackHasTrait",
+              "kind": "selfDigivolutionStackMatchesFilter",
               "filter": {
                 "nameOrTrait": [
-                  { "tokens": ["MegaSeadramon"], "match": "name" },
-                  { "tokens": ["X Antibody"], "match": "trait" }
+                  { "tokens": ["MegaSeadramon"], "match": "nameExact" },
+                  { "tokens": ["X Antibody"], "match": "nameExact" }
                 ]
               },
               "raw": "[MegaSeadramon]/[X Antibody] is in this Digimon's digivolution cards"
@@ -65637,11 +65637,11 @@
             "restriction": "suspend",
             "duration": "untilOpponentTurnEnd",
             "condition": {
-              "kind": "selfDigivolutionStackHasTrait",
+              "kind": "selfDigivolutionStackMatchesFilter",
               "filter": {
                 "nameOrTrait": [
-                  { "tokens": ["MegaSeadramon"], "match": "name" },
-                  { "tokens": ["X Antibody"], "match": "trait" }
+                  { "tokens": ["MegaSeadramon"], "match": "nameExact" },
+                  { "tokens": ["X Antibody"], "match": "nameExact" }
                 ]
               },
               "raw": "[MegaSeadramon]/[X Antibody] is in this Digimon's digivolution cards"
@@ -65790,11 +65790,11 @@
           }
         ],
         "condition": {
-          "kind": "selfDigivolutionStackHasTrait",
+          "kind": "selfDigivolutionStackMatchesFilter",
           "filter": {
             "nameOrTrait": [
-              { "tokens": ["MetalSeadramon"], "match": "name" },
-              { "tokens": ["X Antibody"], "match": "trait" }
+              { "tokens": ["MetalSeadramon"], "match": "nameExact" },
+              { "tokens": ["X Antibody"], "match": "nameExact" }
             ]
           },
           "raw": "this Digimon has [MetalSeadramon] or [X Antibody] in its digivolution cards"
@@ -65818,11 +65818,11 @@
           }
         ],
         "condition": {
-          "kind": "selfDigivolutionStackHasTrait",
+          "kind": "selfDigivolutionStackMatchesFilter",
           "filter": {
             "nameOrTrait": [
-              { "tokens": ["MetalSeadramon"], "match": "name" },
-              { "tokens": ["X Antibody"], "match": "trait" }
+              { "tokens": ["MetalSeadramon"], "match": "nameExact" },
+              { "tokens": ["X Antibody"], "match": "nameExact" }
             ]
           },
           "raw": "this Digimon has [MetalSeadramon] or [X Antibody] in its digivolution cards"
@@ -65867,7 +65867,7 @@
               "controllerDefault": "mine",
               "kind": ["Digimon"],
               "nameOrTrait": [
-                { "tokens": ["Pulsemon"], "match": "name" },
+                { "tokens": ["Pulsemon"], "match": "text" },
                 { "tokens": ["SEEKERS"], "match": "trait" }
               ]
             },
@@ -66192,6 +66192,7 @@
               },
               {
                 "kind": "Attack",
+                "attackPlayer": false,
                 "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
                 "optional": true
               }
@@ -66311,6 +66312,7 @@
           },
           {
             "kind": "Attack",
+            "drainTimingWindowDuringAttack": true,
             "target": { "filter": { "boundRef": "dnaDigivolvedByThisEffect" }, "count": 1 },
             "withoutSuspending": false,
             "optional": true,
@@ -66380,12 +66382,14 @@
           },
           {
             "kind": "DisableTimingEffect",
+            "whileMatchesTargetFilter": true,
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] }, "count": "all" },
             "timings": ["onPlay"],
             "duration": "untilOpponentTurnEnd"
           },
           {
             "kind": "Restrict",
+            "whileMatchesTargetFilter": true,
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] }, "count": "all" },
             "restriction": "unsuspend",
             "duration": "untilOpponentTurnEnd"
@@ -66716,14 +66720,16 @@
               "nameOrTrait": [{ "tokens": ["Chaosmon"], "match": "name" }]
             },
             "payCost": true,
-            "optional": true
+            "optional": true,
+            "bindResultAs": "dnaDigivolvedByThisEffect"
           },
           {
             "kind": "Attack",
-            "target": { "filter": { "controllerDefault": "mine", "kind": ["Digimon"] }, "count": 1 },
+            "drainTimingWindowDuringAttack": true,
+            "target": { "filter": { "boundRef": "dnaDigivolvedByThisEffect" }, "count": 1 },
             "withoutSuspending": false,
             "optional": true,
-            "condition": { "kind": "ifThisEffectActed" }
+            "condition": { "kind": "bindingExists", "ref": "dnaDigivolvedByThisEffect" }
           }
         ]
       },
@@ -67056,7 +67062,7 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Kota Domoto"], "match": "name" }] },
+              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Kota Domoto"], "match": "nameExact" }] },
               "count": 1
             },
             "from": ["hand"],
@@ -67158,7 +67164,7 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "nameOrTrait": [{ "tokens": ["Dorumon", "Ryudamon"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Dorumon", "Ryudamon"], "match": "nameExact" }]
               },
               "count": 1
             },
@@ -67193,7 +67199,7 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "nameOrTrait": [{ "tokens": ["Dorumon", "Ryudamon"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Dorumon", "Ryudamon"], "match": "nameExact" }]
               },
               "count": 1
             },
@@ -67604,11 +67610,11 @@
             "grant": "immuneToOpponentDigimonEffects",
             "duration": "untilOpponentTurnEnd",
             "condition": {
-              "kind": "selfDigivolutionStackHasTrait",
+              "kind": "selfDigivolutionStackMatchesFilter",
               "filter": {
                 "nameOrTrait": [
-                  { "tokens": ["Gankoomon"], "match": "name" },
-                  { "tokens": ["X Antibody"], "match": "trait" }
+                  { "tokens": ["Gankoomon"], "match": "nameExact" },
+                  { "tokens": ["X Antibody"], "match": "nameExact" }
                 ]
               },
               "raw": "[Gankoomon]/[X Antibody] is in this Digimon's digivolution cards"
@@ -67775,7 +67781,10 @@
                 "to": "hand"
               },
               {
-                "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Yuuki"], "match": "name" }] },
+                "filter": {
+                  "controllerDefault": "mine",
+                  "nameOrTrait": [{ "tokens": ["Yuuki"], "match": "nameExact" }]
+                },
                 "count": 1,
                 "to": "hand"
               }
@@ -69102,6 +69111,7 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "into": { "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Omnimon (X Antibody)"], "match": "name" }] },
             "payCost": false,
+            "optional": true,
             "ignoreRequirements": true,
             "from": ["hand"]
           }
@@ -69127,7 +69137,6 @@
         "trigger": "OpponentsTurn",
         "isInherited": true,
         "isBreeding": true,
-        "optional": true,
         "actions": [
           {
             "kind": "SubTrigger",
@@ -69137,13 +69146,10 @@
             "actions": [
               {
                 "kind": "PlayWithoutCost",
-                "target": {
-                  "filter": { "nameOrTrait": [{ "tokens": ["Omekamon"], "match": "name" }] },
-                  "count": 1,
-                  "upTo": true
-                },
+                "target": { "filter": { "nameOrTrait": [{ "tokens": ["Omekamon"], "match": "name" }] }, "count": 1 },
                 "fromOwnDigivolutionStack": true,
                 "payCost": false,
+                "optional": true,
                 "cost": { "kind": "suspend", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }
               }
             ]
@@ -69169,7 +69175,7 @@
                 "target": {
                   "filter": {
                     "controller": "mine",
-                    "nameOrTrait": [{ "tokens": ["Sistermon Ciel"], "match": "name" }]
+                    "nameOrTrait": [{ "tokens": ["Sistermon Ciel"], "match": "nameExact" }]
                   },
                   "count": 1
                 },
@@ -69917,6 +69923,7 @@
       },
       {
         "trigger": "AllTurns",
+        "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }],
         "actions": [
           {
             "kind": "Replacement",
@@ -69930,30 +69937,17 @@
             },
             "actions": [
               {
-                "kind": "GainKeyword",
-                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                "keyword": { "keyword": "Delay", "raw": "＜Delay＞" },
-                "duration": "permanent"
+                "kind": "DnaDigivolve",
+                "materials": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 2 },
+                "into": {
+                  "controllerDefault": "mine",
+                  "nameOrTrait": [{ "tokens": ["Examon"], "match": "nameExact" }],
+                  "zone": "hand"
+                },
+                "payCost": true,
+                "optional": true
               }
             ]
-          }
-        ]
-      },
-      {
-        "trigger": "Main",
-        "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }],
-        "actions": [
-          {
-            "requiresDelayArmed": true,
-            "kind": "DnaDigivolve",
-            "materials": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 2 },
-            "into": {
-              "controllerDefault": "mine",
-              "nameOrTrait": [{ "tokens": ["Examon"], "match": "nameExact" }],
-              "zone": "hand"
-            },
-            "payCost": true,
-            "optional": true
           }
         ]
       },
@@ -70008,6 +70002,7 @@
       },
       {
         "trigger": "AllTurns",
+        "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }],
         "actions": [
           {
             "kind": "SubTrigger",
@@ -70015,39 +70010,26 @@
             "sourceFilter": { "controller": "opponent" },
             "actions": [
               {
-                "kind": "GainKeyword",
-                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                "keyword": { "keyword": "Delay", "raw": "＜Delay＞" },
-                "duration": "permanent"
+                "kind": "PlayWithoutCost",
+                "target": {
+                  "filter": {
+                    "controller": "mine",
+                    "kind": ["Digimon"],
+                    "zone": "digivolutionCards",
+                    "hostFilter": {
+                      "controller": "mine",
+                      "kind": ["Digimon"],
+                      "nameOrTrait": [{ "tokens": ["Imperialdramon: Fighter Mode"], "match": "nameExact" }]
+                    },
+                    "nameOrTrait": [{ "tokens": ["Imperialdramon: Dragon Mode"], "match": "nameExact" }]
+                  },
+                  "count": 1
+                },
+                "from": ["digivolutionCards"],
+                "payCost": false,
+                "optional": true
               }
             ]
-          }
-        ]
-      },
-      {
-        "trigger": "Main",
-        "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }],
-        "actions": [
-          {
-            "requiresDelayArmed": true,
-            "kind": "PlayWithoutCost",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": ["Digimon"],
-                "zone": "digivolutionCards",
-                "hostFilter": {
-                  "controller": "mine",
-                  "kind": ["Digimon"],
-                  "nameOrTrait": [{ "tokens": ["Imperialdramon: Fighter Mode"], "match": "nameExact" }]
-                },
-                "nameOrTrait": [{ "tokens": ["Imperialdramon: Dragon Mode"], "match": "nameExact" }]
-              },
-              "count": 1
-            },
-            "from": ["digivolutionCards"],
-            "payCost": false,
-            "optional": true
           }
         ]
       },
@@ -70102,6 +70084,7 @@
       },
       {
         "trigger": "AllTurns",
+        "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }],
         "actions": [
           {
             "kind": "SubTrigger",
@@ -70113,44 +70096,37 @@
             },
             "actions": [
               {
-                "kind": "GainKeyword",
-                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                "keyword": { "keyword": "Delay", "raw": "＜Delay＞" },
-                "duration": "permanent"
+                "kind": "Digivolve",
+                "target": {
+                  "filter": { "controller": "mine", "kind": ["Digimon"] },
+                  "fromSelectionRef": "fellowshipMoved",
+                  "count": 1
+                },
+                "into": {
+                  "controllerDefault": "mine",
+                  "kind": ["Digimon"],
+                  "nameOrTrait": [{ "tokens": ["Chronicle"], "match": "trait" }]
+                },
+                "payCost": false,
+                "from": ["hand", "trash"],
+                "optional": true,
+                "cost": {
+                  "kind": "moveToBattleArea",
+                  "target": {
+                    "filter": {
+                      "zone": "breeding",
+                      "controller": "mine",
+                      "kind": ["Digimon"],
+                      "levelComparison": { "op": "gte", "value": 3 }
+                    },
+                    "count": 1,
+                    "bindAs": "fellowshipMoved"
+                  },
+                  "raw": "By moving your level 3 or higher Digimon from the breeding area to the battle area"
+                },
+                "abortOnDecline": true
               }
             ]
-          }
-        ]
-      },
-      {
-        "trigger": "Main",
-        "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }],
-        "actions": [
-          {
-            "requiresDelayArmed": true,
-            "kind": "Digivolve",
-            "target": {
-              "filter": {
-                "zone": "breeding",
-                "controller": "mine",
-                "kind": ["Digimon"],
-                "levelComparison": { "op": "gte", "value": 3 }
-              },
-              "count": 1
-            },
-            "into": {
-              "controllerDefault": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["Chronicle"], "match": "trait" }]
-            },
-            "payCost": false,
-            "from": ["hand", "trash"],
-            "optional": true,
-            "cost": {
-              "kind": "moveToBattleArea",
-              "raw": "By moving your level 3 or higher Digimon from the breeding area to the battle area"
-            },
-            "abortOnDecline": true
           }
         ]
       },
@@ -70188,6 +70164,7 @@
             "kind": "Return",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "to": "deckBottom",
+            "from": ["trash"],
             "condition": {
               "kind": "zoneCount",
               "seat": "mine",
@@ -70680,11 +70657,11 @@
               "except": { "filter": { "kind": ["Digimon"] }, "count": 1, "selector": "any" }
             },
             "condition": {
-              "kind": "selfDigivolutionStackHasTrait",
+              "kind": "selfDigivolutionStackMatchesFilter",
               "filter": {
                 "nameOrTrait": [
                   { "tokens": ["Omnimon"], "match": "nameExact" },
-                  { "tokens": ["X Antibody"], "match": "trait" }
+                  { "tokens": ["X Antibody"], "match": "nameExact" }
                 ]
               },
               "raw": "[Omnimon]/[X Antibody] is in this Digimon's digivolution cards"
@@ -70708,11 +70685,11 @@
               "except": { "filter": { "kind": ["Digimon"] }, "count": 1, "selector": "any" }
             },
             "condition": {
-              "kind": "selfDigivolutionStackHasTrait",
+              "kind": "selfDigivolutionStackMatchesFilter",
               "filter": {
                 "nameOrTrait": [
                   { "tokens": ["Omnimon"], "match": "nameExact" },
-                  { "tokens": ["X Antibody"], "match": "trait" }
+                  { "tokens": ["X Antibody"], "match": "nameExact" }
                 ]
               },
               "raw": "[Omnimon]/[X Antibody] is in this Digimon's digivolution cards"

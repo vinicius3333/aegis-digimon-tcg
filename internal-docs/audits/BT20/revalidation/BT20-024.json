@@ -1,0 +1,80 @@
+{
+  "cardId": "BT20-024",
+  "status": "verified",
+  "scores": {
+    "catalogRules": 2,
+    "irTrace": 2,
+    "behavioralProof": 2,
+    "peerStackProof": 2,
+    "deliveryGates": 2
+  },
+  "evidence": [
+    "Public play and legal Seadramon evolution bottom-deck the one eligible opposing level-3 target and retain higher levels.",
+    "Exact Seadramon/X Antibody and Rule Name stack positives gate the Tamer lock; X-Antibody-trait-only sources do not. During the real opponent turn, BT20-087 cannot suspend to evolve its attacker; after expiry it pays the suspension and reduced evolution cost.",
+    "A legal MegaSeadramon X host carrying Seadramon X draws on an actual attack at seven hand cards, not on the same-turn repeat, and draws again after a real turn cycle. A cheap public play restores the eligible hand count after the normal turn draw; eight cards is a negative control.",
+    "BT20-024.test.ts; committed catalog and card-specific KB query reviewed by lead and Luna.",
+    "reactive-movement-affected-results.json: 552 passing affected mechanism tests.",
+    "collection-after-reactive-delay-results.json",
+    "reactive-movement-gates.json",
+    "BT20-024-runtime-disabled.json"
+  ],
+  "gaps": [],
+  "reviewStatus": "Lead accepted all printed clauses, legal public stack and negative-path evidence, meaningful runtime sensitivity, green final gates and pushed code delivery. Collection completion remains separate.",
+  "historicalCommands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-024.test.ts --maxWorkers=1 --no-file-parallelism",
+      "result": "pending lead execution"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-014.test.ts src/cards/BT20/BT20-015.test.ts src/cards/BT20/BT20-016.test.ts src/cards/BT20/BT20-017.test.ts src/cards/BT20/BT20-018.test.ts src/cards/BT20/BT20-019.test.ts src/cards/BT20/BT20-020.test.ts src/cards/BT20/BT20-021.test.ts src/cards/BT20/BT20-022.test.ts src/cards/BT20/BT20-023.test.ts src/cards/BT20/BT20-024.test.ts src/cards/BT20/BT20-025.test.ts src/cards/BT20/BT20-026.test.ts src/cards/BT20/BT20-027.test.ts src/cards/BT20/BT20-028.test.ts src/cards/BT20/BT20-029.test.ts src/cards/BT20/BT20-030.test.ts src/cards/BT20/BT20-031.test.ts src/cards/BT20/BT20-032.test.ts src/cards/BT20/BT20-033.test.ts src/cards/BT20/BT20-034.test.ts src/cards/BT20/BT20-035.test.ts src/cards/BT20/BT20-036.test.ts src/cards/BT20/BT20-037.test.ts src/cards/BT20/BT20-038.test.ts src/cards/BT20/BT20-039.test.ts src/cards/BT20/BT20-040.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/014-040-results.json",
+      "result": "5 tests passed for this card; 160 total passed; 014-040-results.json"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-{019,024,026,028,059,102}.test.ts src/engine/effects/nameExactMatch.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+      "result": "66/66 passed; exact-name source correction with trait-only negatives and printed Rule aliases."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/effects/{nameExactMatch,interpreter,capabilities}.test.ts src/cards/BT20/BT20-{019,024,026,028,059,102}.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+      "result": "570/570 passed; named-x-mechanism-results.json"
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "Passed shared, API and web; named-x-typecheck.log"
+    },
+    {
+      "command": "pnpm effects:sync:set -- --set BT20 && pnpm effects:check:set -- --set BT20",
+      "result": "Passed; exactly six affected BT20 records changed."
+    },
+    {
+      "command": "pnpm exec oxlint <six changed card modules/tests and nameExactMatch.test.ts>; pnpm exec oxfmt --check <same paths>; git diff --check",
+      "result": "Passed; named-x-lint.log and named-x-format-check.log"
+    }
+  ],
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+      "result": "11 cases passed for BT20-024; 836 total passed, zero failed."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "Passed shared/API/web; reactive-movement-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "All102 synchronized; see reactive-movement-gates.json for the temporary watchdog adjustment and restored script."
+    },
+    {
+      "command": "Commands in reactive-movement-gates.json",
+      "result": "552 affected mechanism cases and changed-file lint/format passed without warnings."
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-024",
+      "result": "8 intended state/assertion failures with registered effects disabled; production restored. See BT20-024-runtime-disabled.json. Runner reproduction is per-card; batch invocation is retained in014-026-runtime-sensitivity.log."
+    },
+    {
+      "command": "git diff --check; git push origin HEAD",
+      "result": "Clean diff and successful branch push through 2a2a2b113d370435d513bfdb0b569a05a1c46e12."
+    }
+  ],
+  "deliveryCommit": "2a2a2b113d370435d513bfdb0b569a05a1c46e12"
+}

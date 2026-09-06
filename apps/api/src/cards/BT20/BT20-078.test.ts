@@ -1,8 +1,12 @@
+import "../P/P-106.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { describe, it, expect } from "vitest";
 import { EffectTiming, type PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT20-078.js";
+import "./BT20-073.js";
+import "./BT20-069.js";
 import "./index.js";
 
 // A3 for BT20-078 (Reapermon — Purple Lv.6 Digimon).
@@ -37,10 +41,114 @@ describe("BT20-078 Reapermon — On Deletion deletes cheap opponent permanent", 
     });
   });
 
+  it("de-digivolves an opponent effect evolution once and resets on a later opponent turn", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: REAPERMON, as: "reapermon" }], hand: [AGUMON], deck: [AGUMON, AGUMON, AGUMON] },
+        1: {
+          battleArea: [{ card: "BT1-064", as: "base" }],
+          hand: [
+            { card: "P-106", as: "training1" },
+            { card: "P-106", as: "training2" },
+            { card: "P-106", as: "training3" },
+            { card: "BT20-039", as: "evolution1" },
+            { card: "BT1-071", as: "evolution2" },
+            { card: "BT1-075", as: "evolution3" },
+            AGUMON,
+          ],
+          deck: Array(20).fill(AGUMON),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.turnCount = 1;
+    s.state.memory = 10;
+    await s.ready();
+    const placementTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    for (const alias of ["training1", "training2", "training3"]) {
+      const id = s.inst(alias).instanceId;
+      expect(s.engine.applyIntent(1, { type: "playCard", instanceId: id })).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === id));
+      expect(s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === id)).toBe(true);
+    }
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await placementTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    async function train(alias: string, expectedTop: string, expectedStack: number) {
+      const training = s.perm(alias);
+      const id = training.topCard.instanceId;
+      const entry = observe(s.engine).activatableEffects(training)[0];
+      expect(entry).toBeDefined();
+      const before = s.events.filter((e) => e.kind === "effectActivated").length;
+      expect(
+        s.engine.applyIntent(1, { type: "activateEffect", sourceInstanceId: id, effectKey: entry!.effectKey }),
+      ).toEqual({ ok: true });
+      await settle(() => s.events.filter((e) => e.kind === "effectActivated").length > before);
+      expect(s.perm("base").topCard.cardId).toBe(expectedTop);
+      expect(s.perm("base").stack).toHaveLength(expectedStack);
+      expect(s.state.players[1]!.trash.some((c) => c.instanceId === id)).toBe(true);
+    }
+    await train("training1", "BT1-064", 0);
+    expect(s.perm("reapermon").isSuspended).toBe(true);
+    const turnPlayerTrigger = s.events.findIndex(
+      (event) => event.kind === "effectTriggered" && event.sourceCardId === "BT20-039",
+    );
+    const reapermonTrigger = s.events.findIndex(
+      (event) => event.kind === "effectTriggered" && event.sourceCardId === REAPERMON,
+    );
+    expect(turnPlayerTrigger).toBeGreaterThanOrEqual(0);
+    expect(reapermonTrigger).toBeGreaterThan(turnPlayerTrigger);
+
+    await train("training2", "BT1-071", 1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await firstTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    const nextTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    await train("training3", "BT1-071", 1);
+    expect(s.state.players[1]!.trash.some((c) => c.cardId === "BT1-075")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await nextTurn;
+  });
+
   it("grants Collision and Blocker as static keywords", () => {
     expect(
       compiled.effects.filter((effect) => effect.trigger === "Static").map((effect) => effect.keywords?.[0]?.keyword),
     ).toEqual(["Collision", "Blocker"]);
+  });
+
+  it("does not react to an opponent's ordinary Main digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: REAPERMON, as: "reapermon" }] },
+        1: { battleArea: [{ card: "BT1-064", as: "base" }], hand: [{ card: "BT1-071", as: "evolution" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 2;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT1-071");
+    expect(s.perm("base").topCard.cardId).toBe("BT1-071");
   });
 
   it("[On Deletion] deletes opponent Digimon with play cost <= 4 when Reapermon is deleted", async () => {
@@ -77,12 +185,7 @@ describe("BT20-078 Reapermon — On Deletion deletes cheap opponent permanent", 
       target: { kind: "permanent", permanentId: metalGreymon.permanentId },
     });
 
-    if (!res.ok) {
-      // If attack intent not available, try direct forceAttack.
-      // Fallback: check the on-deletion was registered (structural test).
-      expect(res.ok).toBe(true);
-      return;
-    }
+    expect(res).toEqual({ ok: true });
 
     // After battle, Reapermon (11000) loses to MetalGreymon (15000) and is deleted.
     // [On Deletion] should then delete Agumon (cost 3 <= 4).
@@ -118,5 +221,91 @@ describe("BT20-078 Reapermon — On Deletion deletes cheap opponent permanent", 
 
     // MetalGreymon (cost > 4) must not be offered to the Delete action.
     expect(p1.battleArea.some((pp) => pp.permanentId === metalGreymon.permanentId)).toBe(true);
+  });
+
+  it("[On Deletion] deletes a cost-3 opponent Tamer while preserving a cost-5 Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: REAPERMON, dp: 11000, as: "reapermon" }] },
+        1: {
+          battleArea: [
+            { card: "BT10-087", as: "cheapTamer" },
+            { card: "AD1-020", as: "expensiveTamer" },
+            { card: "BT20-076", dp: 15000, as: "attacker", suspended: true },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const cheapTamerId = s.perm("cheapTamer").permanentId;
+    const expensiveTamerId = s.perm("expensiveTamer").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("reapermon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("attacker").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === REAPERMON));
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === cheapTamerId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === expensiveTamerId)).toBe(true);
+  });
+
+  it("publicly forces an opponent Digimon to block through Collision, then redirects with its own Blocker", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: REAPERMON, dp: 11000, as: "reapermon" }], security: ["BT1-010"] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", dp: 1000, as: "blocker" },
+            { card: "BT20-076", dp: 15000, as: "attacker", suspended: true },
+          ],
+          security: ["BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const blockerId = s.perm("blocker").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("reapermon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("attacker").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(1, { type: "declineBlock" }).ok).toBe(false);
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === blockerId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("reapermon").permanentId)).toBe(true);
+  });
+
+  it("publicly redirects an opponent player attack with Reapermon's Blocker", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: REAPERMON, dp: 11000, as: "reapermon" }], security: ["BT1-010"] },
+        1: { battleArea: [{ card: "BT1-010", dp: 2000, as: "attacker" }], security: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("reapermon").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("reapermon").permanentId)).toBe(true);
   });
 });

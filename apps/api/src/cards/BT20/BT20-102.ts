@@ -55,7 +55,7 @@ export const compiled: CompiledCard = {
             },
           },
           condition: {
-            kind: "selfDigivolutionStackHasTrait",
+            kind: "selfDigivolutionStackMatchesFilter",
             filter: {
               nameOrTrait: [
                 {
@@ -64,7 +64,7 @@ export const compiled: CompiledCard = {
                 },
                 {
                   tokens: ["X Antibody"],
-                  match: "trait",
+                  match: "nameExact",
                 },
               ],
             },
@@ -103,7 +103,7 @@ export const compiled: CompiledCard = {
             },
           },
           condition: {
-            kind: "selfDigivolutionStackHasTrait",
+            kind: "selfDigivolutionStackMatchesFilter",
             filter: {
               nameOrTrait: [
                 {
@@ -112,7 +112,7 @@ export const compiled: CompiledCard = {
                 },
                 {
                   tokens: ["X Antibody"],
-                  match: "trait",
+                  match: "nameExact",
                 },
               ],
             },

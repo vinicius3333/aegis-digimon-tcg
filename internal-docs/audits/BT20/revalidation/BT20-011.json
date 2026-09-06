@@ -1,0 +1,76 @@
+{
+  "cardId": "BT20-011",
+  "status": "lead-verified",
+  "scores": {
+    "catalogRules": 2,
+    "irTrace": 2,
+    "behavioralProof": 2,
+    "peerStackProof": 2,
+    "deliveryGates": 0
+  },
+  "evidence": [
+    "internal-docs/audits/BT20/revalidation/BT20-011.md",
+    "apps/api/src/cards/BT20/BT20-011.test.ts",
+    "001-013-results.json",
+    "BT20-011-runtime-disabled.json",
+    "collection-after-return-fix-results.json",
+    "immediate-return-affected-results.json",
+    "immediate-return-typecheck.log",
+    "early-final-lint.log",
+    "early-final-format.log",
+    "merge-main-collection.json",
+    "merge-main-gates.json",
+    "MERGE-MAIN.md"
+  ],
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/merge-main-collection.json",
+      "result": "PASS: 6 colocated cases; 969/969 full collection tests after merging main."
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-011",
+      "result": "PASS: meaningful state assertions fail when registered behavior is disabled; production restored. Per-card JSON/log retained."
+    },
+    {
+      "command": "See merge-main-gates.json for exact mechanism, shared DNA, typecheck, scoped catalog, style and diff commands",
+      "result": "Integration validation recorded in merge-main-gates.json."
+    }
+  ],
+  "gaps": [],
+  "reviewStatus": "Astra reviewed the main integration correction; pushed delivery and current hashes are recorded in acceptance.json.",
+  "historicalCommands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-011.test.ts --maxWorkers=1 --no-file-parallelism",
+      "result": "pending lead execution"
+    },
+    {
+      "command": "Lead focused run of BT20-001 through BT20-013 with --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json",
+      "result": "4 assertions/tests in focused file: passed; 001-013-results.json"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/current-collection-green-results.json",
+      "result": "PASS: 6 cases for BT20-011;734 total tests; current-collection-green-results.json"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/immediateReturnReaction.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+      "result": "6 cases for BT20-011; 800/800 collection and named-source/DNA/return mechanism cases passed."
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-011",
+      "result": "Meaningful observable assertion fails with behavior disabled; production restored and green. See BT20-011-runtime-disabled.json."
+    },
+    {
+      "command": "pnpm typecheck; pnpm effects:check:set -- --set BT20; pnpm exec oxlint <BT20-001\u2013013 modules/tests>; pnpm exec oxfmt --check <same paths>; git diff --check",
+      "result": "Passed workspace typecheck, prior scoped effects check (no card IR changed after named-source sync), early-card style and diff checks."
+    }
+  ],
+  "integrationReview": "Main supplies the printed zero-cost DNA requirement for Paildramon. The public On Play path ends at zero memory; evolving ExVeemon first costs two from ten, then DNA costs zero, ending at eight. This corrects the old ordinary-evolution-cost expectation.",
+  "executedCases": [
+    "BT20-011 ExVeemon deletes up to 3000 DP and optionally pays for qualifying DNA digivolution on both triggers",
+    "BT20-011 ExVeemon on play deletes only a 3000-DP target then performs the optional paid DNA evolution",
+    "BT20-011 ExVeemon publicly triggers deletion and paid DNA on When Digivolving during its owner's turn",
+    "BT20-011 ExVeemon excludes its DNA branch on the opponent's turn through a public battle-deletion trigger",
+    "BT20-011 ExVeemon observably grants its inherited host +2000 DP only during its controller's turn",
+    "BT20-011 ExVeemon can decline the optional DNA branch while still resolving the deletion"
+  ]
+}

@@ -1,0 +1,63 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api
+
+ ❯ src/engine/immediateReturnReaction.test.ts (4 tests | 2 failed) 40ms
+   ❯ immediate public return reactions (4)
+     × runs BT20-074 DNA before a public Cocytus Breath hand return moves its target 25ms
+     × runs BT20-074 DNA before a public Absolute Blast deck-bottom return 7ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/engine/immediateReturnReaction.test.ts > immediate public return reactions > runs BT20-074 DNA before a public Cocytus Breath hand return moves its target
+AssertionError: expected undefined to deeply equal { Object (sample, inverse, ...) }
+
+- Expected:
+ArrayContaining [
+  "BT20-074",
+  "BT20-016",
+]
+
++ Received:
+undefined
+
+ ❯ src/engine/immediateReturnReaction.test.ts:29:54
+     27|     await settle(() => s.state.players[0]!.battleArea.some((p) => p.to…
+     28|     const merged = s.state.players[0]!.battleArea.find((p) => p.topCar…
+     29|     expect(merged?.stack.map((card) => card.cardId)).toEqual(expect.ar…
+       |                                                      ^
+     30|     expect(s.state.players[0]!.hand.map((card) => card.cardId)).not.to…
+     31|     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toCon…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/engine/immediateReturnReaction.test.ts > immediate public return reactions > runs BT20-074 DNA before a public Absolute Blast deck-bottom return
+AssertionError: expected undefined to deeply equal { Object (sample, inverse, ...) }
+
+- Expected:
+ArrayContaining [
+  "BT20-074",
+  "BT20-016",
+]
+
++ Received:
+undefined
+
+ ❯ src/engine/immediateReturnReaction.test.ts:56:54
+     54|     await settle(() => s.state.players[0]!.battleArea.some((p) => p.to…
+     55|     const merged = s.state.players[0]!.battleArea.find((p) => p.topCar…
+     56|     expect(merged?.stack.map((card) => card.cardId)).toEqual(expect.ar…
+       |                                                      ^
+     57|     expect(s.state.players[0]!.deck.map((card) => card.cardId)).not.to…
+     58|     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toCon…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 2 passed (4)
+   Start at  13:28:52
+   Duration  501ms (import 47%, transform 44%, tests 9%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/engine/immediateReturnReaction.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000

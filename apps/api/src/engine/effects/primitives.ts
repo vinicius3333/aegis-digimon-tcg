@@ -1,4 +1,5 @@
 import { ArraySchema } from "@colyseus/schema";
+import { peekCheckedCard, takeCheckedCard } from "../security/checkedCard.js";
 import {
   CardKind,
   DECK_BOTTOM,
@@ -116,6 +117,8 @@ export interface PrimitivesEngine {
   beginEffectBody?(): void;
   /** Notify the engine that one triggered effect body has completely resolved. */
   finishEffectBody?(): void;
+  /** Pause enclosing card bodies while an effect-directed attack drains pending effects. */
+  resolveAttackTimingWindow?(drain: () => Promise<void>): Promise<void>;
   /** The authoritative match state (the only state these verbs read/mutate). */
   readonly state: GameState;
   /** Resolve a static evolution path granted by the base permanent. */
@@ -710,6 +713,15 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   const disableTimingEffect: Primitives["disableTimingEffect"] = (permanentId, timings, duration) => {
     continuous.addEffectTimingDisable(permanentId, timings, durationForTarget(permanentId, duration), continuousOpt());
   };
+  const disableTimingEffectsForPlayer: NonNullable<Primitives["disableTimingEffectsForPlayer"]> = (
+    seat,
+    timings,
+    duration,
+    matches,
+  ) => {
+    const ownerSeat = effectSeatStack.at(-1) ?? engine.controllerSeat();
+    continuous.addPlayerEffectTimingDisable(seat, ownerSeat, timings, duration, matches, continuousOpt());
+  };
   const isTimingEffectDisabled: NonNullable<Primitives["isTimingEffectDisabled"]> = (permanentId, timing) =>
     continuous.isTimingEffectDisabled(permanentId, timing) && !continuous.hasRestriction(permanentId, "beAffected");
 
@@ -926,9 +938,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
 
   const playFromSecurity = async (instanceId: string, opts?: { payCost?: boolean }): Promise<Permanent | undefined> => {
     const located = locateInSecurity(state, instanceId);
-    if (located === undefined) return undefined;
-    const { owner, index } = located;
-    const definition = requireCardDefinition(owner.security[index]!.cardId);
+    const checked = peekCheckedCard(state, instanceId);
+    const owner = located?.owner ?? (checked === undefined ? undefined : state.players[checked.seat]);
+    const card = located === undefined ? checked?.card : located.owner.security[located.index];
+    if (owner === undefined || card === undefined) return undefined;
+    const definition = requireCardDefinition(card.cardId);
     if (!isPermanentKind(definition)) return undefined;
     const effectSeat = effectSeatStack.at(-1) ?? owner.seat;
     if (continuous.isPlayBlocked(effectSeat, definition, "play", true, "security")) return undefined;
@@ -941,9 +955,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       await engine.finalizeEffectPlayCost?.(instanceId, 0, false, "security");
     }
     // Payment windows may reorder security; remove the selected instance, not a stale index.
-    const currentIndex = owner.security.findIndex((card) => card.instanceId === instanceId);
-    if (currentIndex < 0) return undefined;
-    const instance = extractCardAt(owner, Zone.Security, currentIndex)!;
+    const currentIndex = owner.security.findIndex((candidate) => candidate.instanceId === instanceId);
+    const instance =
+      currentIndex < 0 ? takeCheckedCard(state, instanceId) : extractCardAt(owner, Zone.Security, currentIndex);
+    if (instance === undefined) return undefined;
     instance.faceUp = true;
     const permanent = placePermanent(engine, owner, instance, definition, false);
     engine.emit({
@@ -968,11 +983,14 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // Playing a card from security is still an effect-driven removal from that stack. Publish
     // both security-removal buses after the entering card's effects have installed its live
     // watchers, so cards such as BT15-037 observe the same-time removal (KB Q2519).
-    await engine.fireSubTrigger?.("whenEffectRemovesFromSecurity", { removedFromSecuritySeat: owner.seat });
-    await engine.fireSubTrigger?.("whenSecurityRemoved", {
-      removedFromSecuritySeat: owner.seat,
-      securityRemovedByEffect: true,
-    });
+    // The check already removed a staged card. Moving it into play creates no second removal.
+    if (checked === undefined) {
+      await engine.fireSubTrigger?.("whenEffectRemovesFromSecurity", { removedFromSecuritySeat: owner.seat });
+      await engine.fireSubTrigger?.("whenSecurityRemoved", {
+        removedFromSecuritySeat: owner.seat,
+        securityRemovedByEffect: true,
+      });
+    }
     await engine.fireSubTrigger?.("whenPlayed", {
       subjectPermanentId: permanent.permanentId,
       playedByEffect: true,
@@ -1430,7 +1448,12 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   const dnaDigivolveInto = async (
     materialPermanentIds: string[],
     resultInstanceId: string,
-    opts?: { payCost?: boolean; extraMaterialInstanceIds?: string[]; costOverride?: number },
+    opts?: {
+      payCost?: boolean;
+      extraMaterialInstanceIds?: string[];
+      extraMaterialsOnBottom?: boolean;
+      costOverride?: number;
+    },
   ): Promise<Permanent | undefined> => {
     const materials = materialPermanentIds
       .map((id) => access.permanentById(id))
@@ -1517,12 +1540,20 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       if (idx >= 0) extractPermanentAt(owner, idx);
       dropPermanentLedgers(mat.permanentId);
     }
+    const extraStackCards: CardInstance[] = [];
     for (const id of extraMaterialIds) {
       const extra = removeLooseInstance(state, id);
       if (extra !== undefined) {
         extra.faceUp = true;
-        stackCards.push(extra);
+        extraStackCards.push(extra);
       }
+    }
+    if (opts?.extraMaterialsOnBottom) {
+      stackCards.unshift(...extraStackCards);
+      sourceCardIds.unshift(...extraStackCards.map((card) => card.cardId));
+    } else {
+      stackCards.push(...extraStackCards);
+      sourceCardIds.push(...extraStackCards.map((card) => card.cardId));
     }
     // <Overflow> (CR §4-18): each material's linked cards just left the field for trash — a
     // genuine leave. The materials' own stack/top cards are NOT included here: they become
@@ -4068,6 +4099,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const moved: CardInstance[] = [];
     const movedToHand: CardInstance[] = [];
     const trashedAttachments: CardInstance[] = [];
+    const overflowOrigins = overflowOriginInstanceIds(state);
     for (const instanceId of instanceIds) {
       const collected = collectForReturn(state, instanceId, dropPermanentLedgers);
       if (collected === undefined) continue;
@@ -4097,9 +4129,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         }
       }
     }
-    // <Overflow> (CR §4-18): a bounced permanent's top/stack/linked cards just left the
+    // <Overflow> (CR 4-19-1): a bounced permanent's top/stack/linked cards just left the
     // field (or left from under it) for hand — a genuine leave, same as deletion.
-    applyOverflow(engine.memory, [...moved, ...trashedAttachments], state.turnSeat);
+    applyOverflow(
+      engine.memory,
+      [...moved, ...trashedAttachments].filter((card) => overflowOrigins.has(card.instanceId)),
+      state.turnSeat,
+    );
     if (trashedAttachments.length > 0) {
       engine.emit({
         kind: "cardsMoved",
@@ -4238,6 +4274,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // already in the destination deck (RevealAdd keeps revealed cards face-up in place); a
     // collect-and-insert loop mutates that deck between removals and can invert the requested
     // order. Batch collection makes the move atomic and exposes no transient zone.
+    const overflowOrigins = overflowOriginInstanceIds(state);
     const collectedBatches: { instanceId: string; cards: CardInstance[] }[] = [];
     for (const instanceId of instanceIds) {
       const collected = collectForReturn(state, instanceId, dropPermanentLedgers);
@@ -4261,8 +4298,12 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         }
       }
     }
-    // <Overflow> (CR §4-18): same genuine leave as returnToHand, landing in the deck instead.
-    applyOverflow(engine.memory, [...moved, ...trashedAttachments], state.turnSeat);
+    // <Overflow> (CR 4-19-1): same genuine leave as returnToHand, landing in the deck instead.
+    applyOverflow(
+      engine.memory,
+      [...moved, ...trashedAttachments].filter((card) => overflowOrigins.has(card.instanceId)),
+      state.turnSeat,
+    );
     if (trashedAttachments.length > 0) {
       engine.emit({
         kind: "cardsMoved",
@@ -5407,7 +5448,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       attackMechanic: opts?.attackMechanic,
       afterAttackDeclaration: opts?.afterAttackDeclaration,
       afterAttackTriggers: opts?.afterAttackTriggers,
-      drainTimingWindow: opts?.drainTimingWindow,
+      drainTimingWindow: opts?.drainTimingWindow
+        ? () => engine.resolveAttackTimingWindow?.(opts.drainTimingWindow!) ?? opts.drainTimingWindow!()
+        : undefined,
     });
   };
 
@@ -5608,6 +5651,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     disableSecurityEffect,
     disableSecurityEffectsForSeat,
     disableTimingEffect,
+    disableTimingEffectsForPlayer,
     isTimingEffectDisabled,
     declareWinner,
     setMemory,
@@ -5836,6 +5880,8 @@ function removeLooseInstance(
   includeTrash = true,
   hostPermanentId?: string,
 ): CardInstance | undefined {
+  const checked = takeCheckedCard(state, instanceId);
+  if (checked !== undefined) return checked;
   if (hostPermanentId !== undefined) {
     const host = findPermanentInState(state, hostPermanentId);
     if (host !== undefined) {
@@ -5887,6 +5933,8 @@ function removeLooseInstance(
  * Used to inspect a card's definition (kind/cost) before deciding to play it.
  */
 function peekLooseInstance(state: GameState, instanceId: string): CardInstance | undefined {
+  const checked = peekCheckedCard(state, instanceId);
+  if (checked !== undefined) return checked.card;
   for (const owner of state.players) {
     // §9-1-4/9-1-5: an Option resolving its own [Main] effect is held on `resolvingOption`
     // (no zone array) rather than pre-trashed. Its own effect can still relocate it into a
@@ -6058,7 +6106,7 @@ export function dnaDigivolveCostFor(evolving: CardDefinition, materials: CardDef
   return matchingDnaDigivolveCost(evolving, materials);
 }
 
-function matchingDnaDigivolveCost(evolving: CardDefinition, materials: CardDefinition[]): number | undefined {
+export function matchingDnaDigivolveCost(evolving: CardDefinition, materials: CardDefinition[]): number | undefined {
   const requirements = dnaDigivolutionRequirementsFor(evolving.cardId);
   let best: number | undefined;
   for (const req of requirements) {
@@ -6122,6 +6170,21 @@ function dnaMaterialSpecMatches(
     if (!spec.traits.some((trait) => (material.types ?? []).includes(trait))) return false;
   }
   return true;
+}
+
+function overflowOriginInstanceIds(state: GameState): Set<string> {
+  // CR 4-19-1 and 3-4-6: only cards leaving the field (including breeding) or from
+  // under a card incur Overflow. Loose hand/deck/trash/security moves do not.
+  return new Set(
+    [...state.players].flatMap((owner) => {
+      const permanents = [...owner.battleArea, ...(owner.breeding === undefined ? [] : [owner.breeding])];
+      return permanents.flatMap((permanent) =>
+        [...permanent.stack, ...(permanent.topCard === undefined ? [] : [permanent.topCard]), ...permanent.linked].map(
+          (card) => card.instanceId,
+        ),
+      );
+    }),
+  );
 }
 
 /**

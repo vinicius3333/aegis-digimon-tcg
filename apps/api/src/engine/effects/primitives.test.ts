@@ -2588,6 +2588,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     disableSecurityEffect: true,
     disableSecurityEffectsForSeat: true,
     disableTimingEffect: true,
+    disableTimingEffectsForPlayer: true,
     dnaDigivolveInto: true,
     dpDeleteBudgetBonus: true,
     draw: true,

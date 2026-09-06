@@ -645,6 +645,13 @@ export interface Primitives {
    * honoring the `beAffected` effect-immunity exception.
    */
   disableTimingEffect(permanentId: string, timings: DisableTiming[], duration: EffectDuration): void;
+  /** Overall timing prohibition, including matching permanents entering later. */
+  disableTimingEffectsForPlayer?(
+    seat: Seat,
+    timings: DisableTiming[],
+    duration: EffectDuration,
+    matches: (permanentId: string) => boolean,
+  ): void;
   /** Read the effective timing-disable state from the authoritative continuous ledger. */
   isTimingEffectDisabled?(permanentId: string, timing: DisableTiming): boolean;
   declareWinner(seat: Seat): void;
@@ -776,7 +783,7 @@ export interface Primitives {
   dnaDigivolveInto(
     materialPermanentIds: string[],
     resultInstanceId: string,
-    opts?: { payCost?: boolean; extraMaterialInstanceIds?: string[] },
+    opts?: { payCost?: boolean; extraMaterialInstanceIds?: string[]; extraMaterialsOnBottom?: boolean },
   ): Promise<Permanent | undefined>;
   /**
    * App Fusion: play the fusion-target card `resultInstanceId` (a loose card in trash/hand)

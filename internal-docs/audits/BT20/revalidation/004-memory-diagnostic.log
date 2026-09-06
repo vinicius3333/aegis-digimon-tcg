@@ -1,0 +1,37 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api
+
+ ❯ src/cards/BT20/BT20-004.test.ts (7 tests | 1 failed) 67ms
+   ❯ BT20-004 Pinamon (7)
+     × resets the optional ACCEL evolution after a real turn cycle 22ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT20/BT20-004.test.ts > BT20-004 Pinamon > resets the optional ACCEL evolution after a real turn cycle
+AssertionError: [{"kind":"memoryChanged","from":10,"to":7,"reason":"payCost"},{"kind":"memoryChanged","from":10,"to":7,"reason":"playCard"},{"kind":"memoryChanged","from":7,"to":4,"reason":"payCost"},{"kind":"memoryChanged","from":7,"to":4,"reason":"playCard"},{"kind":"memoryChanged","from":4,"to":-1,"reason":"overflow"},{"kind":"memoryChanged","from":0,"to":-3,"reason":"passTurn"},{"kind":"memoryChanged","from":10,"to":7,"reason":"payCost"},{"kind":"memoryChanged","from":10,"to":7,"reason":"playCard"},{"kind":"memoryChanged","from":7,"to":2,"reason":"overflow"},{"kind":"memoryChanged","from":2,"to":1,"reason":"digivolve"}]: expected 1 to be 6 // Object.is equality
+
+- Expected
++ Received
+
+- 6
++ 1
+
+ ❯ src/cards/BT20/BT20-004.test.ts:225:104
+    223|     await settle(() => s.perm("host").topCard.cardId === "BT20-033");
+    224|     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["…
+    225|     expect(s.state.memory, JSON.stringify(s.events.filter((event) => e…
+       |                                                                                                        ^
+    226|     advance(s.engine).endMainPhaseIfOpen(0);
+    227|     await ownTurn;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 6 passed (7)
+   Start at  09:56:45
+   Duration  650ms (transform 48%, import 41%, tests 11%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT20/BT20-004.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000

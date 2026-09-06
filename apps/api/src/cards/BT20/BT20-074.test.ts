@@ -4,6 +4,9 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-074.js";
+import "../ST2/ST2-16.js";
+import "../BT2/BT2-107.js";
+import "./BT20-076.js";
 import "./index.js";
 
 describe("BT20-074 Dinobeemon", () => {
@@ -125,6 +128,30 @@ describe("BT20-074 Dinobeemon", () => {
     }
   });
 
+  it("may decline the optional trash return and leaves the eligible card in trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT20-074", as: "dinobeemon" }],
+          trash: [{ card: "BT20-076", as: "eligible" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 8;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dinobeemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-074"),
+    );
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("eligible").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).not.toContain("BT20-076");
+  });
+
   it("Q4400 DNA digivolves a returning material and the new Imperialdramon remains in battle", async () => {
     const s = setupEngine(
       {
@@ -169,13 +196,122 @@ describe("BT20-074 Dinobeemon", () => {
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).not.toContain("BT20-074");
   });
 
-  it("inherits Option Security suppression only on its controller's turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT20-076", under: ["BT20-074"], as: "host" }] } });
-    s.state.turnSeat = 0;
+  it("Q4400 triggers from a public opponent Cocytus Breath and replaces the return with DNA", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-074", as: "dinobeemon" },
+            { card: "BT20-016", as: "paildramon" },
+          ],
+          hand: [{ card: "BT20-076", as: "dragonMode" }],
+          deck: ["BT20-047"],
+        },
+        1: { battleArea: [{ card: "BT1-027", as: "blueSource" }], hand: [{ card: "ST2-16", as: "cocytus" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
     await s.ready();
-    expect(observe(s.engine).suppressesSecurityEffect(s.perm("host"), "BT20-096")).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("cocytus").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-076"));
+    const result = s.state.players[0]!.battleArea.find((p) => p.topCard.cardId === "BT20-076");
+    expect(result?.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT20-074", "BT20-016"]));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).not.toContain("BT20-074");
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("ST2-16");
+  });
+
+  it("Q4400 can be declined through the public return effect, leaving the material in hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-074", as: "dinobeemon" },
+            { card: "BT20-016", as: "paildramon" },
+          ],
+          hand: [{ card: "BT20-076", as: "dragonMode" }],
+          deck: ["BT20-047"],
+        },
+        1: { battleArea: [{ card: "BT1-027", as: "blueSource" }], hand: [{ card: "ST2-16", as: "cocytus" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("cocytus").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT20-074"));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT20-074");
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard.cardId)).toEqual(["BT20-016"]);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT20-076");
+  });
+
+  it("Q4400 returns the material normally when no Dragon Mode result is available", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-074", as: "dinobeemon" },
+            { card: "BT20-016", as: "paildramon" },
+          ],
+          deck: ["BT20-047"],
+        },
+        1: { battleArea: [{ card: "BT1-027", as: "blueSource" }], hand: [{ card: "ST2-16", as: "cocytus" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("cocytus").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT20-074"));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT20-074");
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard.cardId)).toEqual(["BT20-016"]);
+  });
+
+  it("inherits Option Security suppression only on its controller's turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-076", under: ["BT20-074"], as: "host" }] },
+      1: { security: ["BT2-107"] },
+    });
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    expect(observe(s.engine).suppressesSecurityEffect(s.perm("host"), "BT2-107")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.memory).toBe(10);
     s.state.turnSeat = 1;
     await advance(s.engine).recompute();
-    expect(observe(s.engine).suppressesSecurityEffect(s.perm("host"), "BT20-096")).toBe(false);
+    expect(observe(s.engine).suppressesSecurityEffect(s.perm("host"), "BT2-107")).toBe(false);
+  });
+
+  it("allows the same security Option to resolve without the inherited source", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT20-076", as: "host" }] }, 1: { security: ["BT2-107"] } });
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.memory).toBe(8);
   });
 });

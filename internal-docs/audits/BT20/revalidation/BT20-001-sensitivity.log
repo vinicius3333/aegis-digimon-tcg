@@ -1,0 +1,37 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api
+
+ ❯ src/cards/BT20/BT20-001.test.ts (2 tests | 1 failed | 1 skipped) 62ms
+   ❯ BT20-001 DemiVeemon (2)
+     × observably grants +2000 DP only on its controller's turn at the 4-card boundary 60ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT20/BT20-001.test.ts > BT20-001 DemiVeemon > observably grants +2000 DP only on its controller's turn at the 4-card boundary
+AssertionError: expected 13000 to be 15000 // Object.is equality
+
+- Expected
++ Received
+
+- 15000
++ 13000
+
+ ❯ src/cards/BT20/BT20-001.test.ts:46:44
+     44|     // Jesmon 11000 + Huckmon inherited 1000 + BaoHuckmon inherited 10…
+     45|     // DemiVeemon's 2000 bonus = 15000 on the owner's turn.
+     46|     expect(s.perm("atBoundary").currentDP).toBe(15000);
+       |                                            ^
+     47|     // The two Huckmon auras reach this ally; DemiVeemon's +2000 does …
+     48|     expect(s.perm("ally").currentDP).toBe(s.perm("ally").baseDP + 2000…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 skipped (2)
+   Start at  01:06:00
+   Duration  974ms (transform 54%, import 39%, tests 7%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT20/BT20-001.test.ts -t observably grants --maxWorkers=1 --no-file-parallelism --testTimeout=15000

@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Digimon OR Tamers can't unsuspend until end of their turn (may be different cards).
 // KB Q4343 confirms suspend target and can't-unsuspend target can differ.
 // [All Turns]: When Tamer cards are placed in this Digimon's digivolution cards, activate
-// 1 of this Digimon's [When Digivolving] effects. Then, 1 of your Digimon may attack.
+// 1 of this Digimon's [When Digivolving] effects. Then, 1 of your Digimon may attack an opponent Digimon.
 // The ActivateEffect targets the opponent's Digimon or Tamer (inherited from WhenDigivolving).
 export const compiled: CompiledCard = {
   effects: [
@@ -69,6 +69,7 @@ export const compiled: CompiledCard = {
             },
             {
               kind: "Attack",
+              attackPlayer: false,
               target: {
                 filter: { controller: "mine", kind: ["Digimon"] },
                 count: 1,
