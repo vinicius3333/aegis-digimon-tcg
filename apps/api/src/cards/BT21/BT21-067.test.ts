@@ -106,6 +106,24 @@ describe("BT21-067 Garurumon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("other").instanceId)).toBe(true);
   });
 
+  it("alternate-digivolves from a non-Gabumon ADVENTURE rookie for the printed cost", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST21-10", as: "adventureRookie" }], hand: [{ card: "BT21-067", as: "garurumon" }] },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("adventureRookie").permanentId,
+        instanceId: s.inst("garurumon").instanceId,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("adventureRookie").topCard.cardId === "BT21-067");
+    expect(s.state.memory).toBe(1);
+  });
+
   it("draws and trashes exactly once per turn from a realistic evolution stack", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -134,5 +152,43 @@ describe("BT21-067 Garurumon", () => {
 
     expect(s.state.players[0]!.deck).toHaveLength(1);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("first").instanceId)).toBe(true);
+  });
+
+  it("retains inherited draw-trash through a legal Ghostmon-to-Garurumon stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-065", as: "source" }],
+          hand: [
+            { card: "BT21-067", as: "garurumon" },
+            { card: "ST6-11", as: "host" },
+            { card: "BT1-009", as: "discard" },
+          ],
+          deck: [{ card: "BT1-010", as: "drawn" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("garurumon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard.cardId === "BT21-067");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("host").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard.cardId === "ST6-11");
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("source"));
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("discard").instanceId));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
   });
 });
