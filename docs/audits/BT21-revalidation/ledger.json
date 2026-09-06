@@ -1,0 +1,1646 @@
+{
+  "set": "BT21",
+  "baseline": "a924de971e0b43ad9ebd8f82a454d495ff880a60",
+  "status": "incomplete",
+  "scoreModel": [
+    "Catalog/rules",
+    "IR trace",
+    "Behavioral proof",
+    "Peer and stack proof",
+    "Executed delivery gates"
+  ],
+  "cards": [
+    {
+      "cardId": "BT21-001",
+      "name": "Gigimon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-001.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-002",
+      "name": "Gurimon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-002.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-003",
+      "name": "Yokomon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-003.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-004",
+      "name": "Koromon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-004.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-005",
+      "name": "Swipemon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-005.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-006",
+      "name": "Tsumemon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-006.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-007",
+      "name": "Agumon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-007.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-008",
+      "name": "Elizamon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-008.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-009",
+      "name": "Gatchmon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-009.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-010",
+      "name": "Gammamon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-010.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-011",
+      "name": "Shoutmon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-011.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-012",
+      "name": "Flamemon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-012.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-013",
+      "name": "Agunimon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-013.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-014",
+      "name": "BurningGreymon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-014.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-015",
+      "name": "Cyclonemon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-015.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-016",
+      "name": "Shoutmon (King Version)",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-016.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-017",
+      "name": "Dimetromon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-017.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-018",
+      "name": "DoGatchmon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-018.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-019",
+      "name": "BetelGammamon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-019.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-020",
+      "name": "Aldamon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-020.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-021",
+      "name": "OmniShoutmon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-021.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-022",
+      "name": "Canoweissmon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-022.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-023",
+      "name": "Globemon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-023.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-024",
+      "name": "Cyberdramon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-024.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-025",
+      "name": "Lamiamon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-025.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-026",
+      "name": "WarGreymon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-026.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-027",
+      "name": "Shoutmon DX",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-027.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-028",
+      "name": "Siriusmon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-028.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-029",
+      "name": "Medusamon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-029.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-030",
+      "name": "Shoutmon X7: Superior Mode",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-030.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-031",
+      "name": "Sangomon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-031.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-032",
+      "name": "Veemon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-032.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-033",
+      "name": "Floramon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-033.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-034",
+      "name": "Kiwimon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-034.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-035",
+      "name": "Flamedramon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-035.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-036",
+      "name": "Magnamon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-036.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-037",
+      "name": "Lighdramon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-037.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-038",
+      "name": "Deramon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-038.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-039",
+      "name": "Gryphonmon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-039.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-040",
+      "name": "Agumon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-040.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-041",
+      "name": "Calendamon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-041.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-042",
+      "name": "GeoGreymon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-042.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-043",
+      "name": "Sociamon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-043.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-044",
+      "name": "RizeGreymon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-044.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-045",
+      "name": "ShineGreymon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-045.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-046",
+      "name": "Dracomon (X Antibody)",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-046.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-047",
+      "name": "Navimon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-047.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-048",
+      "name": "Mushroomon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-048.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-049",
+      "name": "Woodmon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-049.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-050",
+      "name": "Cherrymon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-050.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-051",
+      "name": "Puppetmon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-051.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-052",
+      "name": "Examon (X Antibody)",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-052.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-053",
+      "name": "Watchmon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-053.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-054",
+      "name": "Shotmon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-054.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-055",
+      "name": "Sunarizamon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-055.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-056",
+      "name": "Vemmon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-056.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-057",
+      "name": "Greymon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-057.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-058",
+      "name": "Snatchmon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-058.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-059",
+      "name": "Timemon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-059.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-060",
+      "name": "Destromon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-060.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-061",
+      "name": "MetalGreymon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-061.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-062",
+      "name": "Galacticmon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-062.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-063",
+      "name": "Gumdramon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-063.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-064",
+      "name": "Guilmon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-064.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-065",
+      "name": "Ghostmon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-065.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-066",
+      "name": "Arresterdramon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-066.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-067",
+      "name": "Garurumon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-067.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-068",
+      "name": "Growlmon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-068.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-069",
+      "name": "GulusGammamon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-069.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-070",
+      "name": "Gossipmon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-070.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-071",
+      "name": "Scopemon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-071.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-072",
+      "name": "Arresterdramon: Superior Mode",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-072.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-073",
+      "name": "Charismon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-073.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-074",
+      "name": "Satellamon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-074.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-075",
+      "name": "SkullGreymon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-075.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-076",
+      "name": "WarGrowlmon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-076.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-077",
+      "name": "Regulusmon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-077.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-078",
+      "name": "WereGarurumon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-078.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-079",
+      "name": "Megidramon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-079.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-080",
+      "name": "Hiro Amanokawa",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-080.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-081",
+      "name": "Owen Dreadnought",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-081.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-082",
+      "name": "Takuya Kanbara",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-082.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-083",
+      "name": "Taiki Kudo",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-083.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-084",
+      "name": "Haru Shinkai",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-084.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-085",
+      "name": "Davis Motomiya",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-085.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-086",
+      "name": "Marcus Damon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-086.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-087",
+      "name": "Zenith",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-087.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-088",
+      "name": "Tagiru Akashi",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-088.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-089",
+      "name": "Takato Matsuki",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-089.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-090",
+      "name": "The Strongest of Brothers",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-090.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-091",
+      "name": "Spirit Evolution!",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-091.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-092",
+      "name": "Can't Turn My Back!",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-092.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-093",
+      "name": "Raging Serpentine",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-093.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-094",
+      "name": "Armor Digivolution",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-094.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-095",
+      "name": "Wind Guardians",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-095.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-096",
+      "name": "The Champion Ultimate Fighter!",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-096.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-097",
+      "name": "App Link",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-097.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-098",
+      "name": "Ragnarok Cannon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-098.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-099",
+      "name": "Xros Up",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-099.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-100",
+      "name": "The Digimon I Designed",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-100.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-101",
+      "name": "Gaiamon",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-101.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    },
+    {
+      "cardId": "BT21-102",
+      "name": "Tai Kamiya",
+      "status": "unverified",
+      "scores": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "evidence": "cards/BT21-102.md",
+      "gaps": [
+        "Independent revalidation pending"
+      ]
+    }
+  ]
+}
