@@ -1,9 +1,8 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
+// The printed All Turns Delay reacts immediately to opponent security removal.
+// Its intrinsic activation gate pays the Option trash cost and enforces the entry-turn limit.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -37,6 +36,7 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "AllTurns",
+      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
       actions: [
         {
           kind: "SubTrigger",
@@ -44,48 +44,26 @@ export const compiled: CompiledCard = {
           sourceFilter: { controller: "opponent" },
           actions: [
             {
-              kind: "GainKeyword",
+              kind: "PlayWithoutCost",
               target: {
                 filter: {
-                  isSelfRef: true,
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  zone: "digivolutionCards",
+                  hostFilter: {
+                    controller: "mine",
+                    kind: ["Digimon"],
+                    nameOrTrait: [{ tokens: ["Imperialdramon: Fighter Mode"], match: "nameExact" }],
+                  },
+                  nameOrTrait: [{ tokens: ["Imperialdramon: Dragon Mode"], match: "nameExact" }],
                 },
                 count: 1,
-                isSelf: true,
               },
-              keyword: {
-                keyword: "Delay",
-                raw: "＜Delay＞",
-              },
-              duration: "permanent",
+              from: ["digivolutionCards"],
+              payCost: false,
+              optional: true,
             },
           ],
-        },
-      ],
-    },
-    {
-      trigger: "Main",
-      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
-      actions: [
-        {
-          requiresDelayArmed: true,
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              zone: "digivolutionCards",
-              hostFilter: {
-                controller: "mine",
-                kind: ["Digimon"],
-                nameOrTrait: [{ tokens: ["Imperialdramon: Fighter Mode"], match: "nameExact" }],
-              },
-              nameOrTrait: [{ tokens: ["Imperialdramon: Dragon Mode"], match: "nameExact" }],
-            },
-            count: 1,
-          },
-          from: ["digivolutionCards"],
-          payCost: false,
-          optional: true,
         },
       ],
     },

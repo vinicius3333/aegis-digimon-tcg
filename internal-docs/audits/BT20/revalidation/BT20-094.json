@@ -1,6 +1,6 @@
 {
   "cardId": "BT20-094",
-  "status": "ready-for-coordinator-verification",
+  "status": "awaiting-lead-acceptance",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
@@ -9,11 +9,19 @@
     "deliveryGates": 0
   },
   "evidence": [
-    "BT20-094.test.ts: public reduced Free play/self placement",
-    "BT20-094.test.ts: own/opponent security removal Delay boundary",
-    "current-collection-green-results.json"
+    "All Turns Delay now immediately plays the exact Dragon Mode source from exact Fighter Mode when opponent security is removed.",
+    "Real prior-turn placement and public attacks prove acceptance, feasible refusal, same-turn exclusion and own-security exclusion. Acceptance consumes the Option to trash and preserves source identity with no extra memory charge.",
+    "Security publicly plays a level-3 Free Digimon from hand or trash and returns the Option to hand.",
+    "collection-after-reactive-delay-results.json",
+    "reactive-movement-gates.json"
   ],
-  "commands": [
+  "gaps": [
+    "Main reduction with a nonzero remaining play cost and complete Free/level/source-boundary comparison review remain pending.",
+    "Final independent acceptance and runtime sensitivity remain pending.",
+    "Atomic pushed delivery and final independent acceptance pending."
+  ],
+  "reviewStatus": "Current lead corrections supersede historical report prose; this card is not accepted at10/10.",
+  "historicalCommands": [
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-094.test.ts --maxWorkers=1 --no-file-parallelism",
       "result": "not run by worker"
@@ -23,8 +31,22 @@
       "result": "PASS: 6 cases for BT20-094;734 total tests. See current-collection-green-results.json."
     }
   ],
-  "gaps": [
-    "Coordinator gates pending"
-  ],
-  "reviewStatus": "Full collection execution passed at this draft checkpoint. Strict clause acceptance, sensitivity and final delivery review remain pending; provisional scores do not count in the ledger."
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+      "result": "10 cases passed for BT20-094; 836 total passed, zero failed."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "Passed shared/API/web; reactive-movement-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "All102 synchronized; see reactive-movement-gates.json for the temporary watchdog adjustment and restored script."
+    },
+    {
+      "command": "Commands in reactive-movement-gates.json",
+      "result": "552 affected mechanism cases and changed-file lint/format passed without warnings."
+    }
+  ]
 }
