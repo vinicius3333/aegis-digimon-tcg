@@ -1,5 +1,10 @@
 # BT22 Card Implementation Audit
 
+> Historical report. The independent audit started on 2026-09-06 is incomplete;
+> current evidence and scores are tracked in [BT22-reaudit/PLAN.md](BT22-reaudit/PLAN.md)
+> and [BT22-reaudit/ledger.json](BT22-reaudit/ledger.json). Claims below are not
+> carried forward without revalidation.
+
 Date: 2026-09-01
 
 Status: complete — 102/102 cards verified at 10/10

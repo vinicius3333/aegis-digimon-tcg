@@ -1,0 +1,4307 @@
+{
+  "set": "BT22",
+  "date": "2026-09-06",
+  "baseline": "a924de971e0b43ad9ebd8f82a454d495ff880a60",
+  "status": "incomplete",
+  "scoreCategories": [
+    "catalogRules",
+    "irTrace",
+    "behavior",
+    "peerStack",
+    "delivery"
+  ],
+  "gates": {
+    "focused": "pending",
+    "mechanisms": "pending",
+    "collection": "pending",
+    "effectsSync": "pending",
+    "typecheck": "pending",
+    "lint": "pending",
+    "format": "pending",
+    "diffCheck": "pending",
+    "pushed": "pending",
+    "reviewPr": "pending"
+  },
+  "cards": [
+    {
+      "cardId": "BT22-001",
+      "name": "Puyoyomon",
+      "kinds": [
+        "DigiEgg"
+      ],
+      "level": 2,
+      "traits": [
+        "Lesser",
+        "LIBERATOR"
+      ],
+      "evolution": [],
+      "printedClauses": {
+        "main": "",
+        "inherited": "[Your Turn] [Once Per Turn] When effects place Digimon cards with [Aqua] or [Sea Animal] in any of their traits in this Digimon's digivolution cards, ＜Draw 1＞",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-001.ts",
+      "test": "apps/api/src/cards/BT22/BT22-001.test.ts",
+      "batch": 1,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "in-progress",
+      "evidence": "evidence/BT22-001.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ],
+      "owner": "luna_a"
+    },
+    {
+      "cardId": "BT22-002",
+      "name": "Kyaromon",
+      "kinds": [
+        "DigiEgg"
+      ],
+      "level": 2,
+      "traits": [
+        "Lesser",
+        "LIBERATOR"
+      ],
+      "evolution": [],
+      "printedClauses": {
+        "main": "",
+        "inherited": "[Your Turn] [Once Per Turn] When any of your Tokens or other [Puppet] trait Digimon are deleted, ＜Draw 1＞.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-002.ts",
+      "test": "apps/api/src/cards/BT22/BT22-002.test.ts",
+      "batch": 1,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "in-progress",
+      "evidence": "evidence/BT22-002.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ],
+      "owner": "luna_a"
+    },
+    {
+      "cardId": "BT22-003",
+      "name": "Tapmon",
+      "kinds": [
+        "DigiEgg"
+      ],
+      "level": 2,
+      "traits": [
+        "Tap"
+      ],
+      "evolution": [],
+      "printedClauses": {
+        "main": "",
+        "inherited": "[Your Turn] [Once Per Turn] When this Digimon gets linked, 1 of your opponent's Digimon gets -2000 DP for the turn.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-003.ts",
+      "test": "apps/api/src/cards/BT22/BT22-003.test.ts",
+      "batch": 1,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "in-progress",
+      "evidence": "evidence/BT22-003.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ],
+      "owner": "luna_a"
+    },
+    {
+      "cardId": "BT22-004",
+      "name": "Wanyamon",
+      "kinds": [
+        "DigiEgg"
+      ],
+      "level": 2,
+      "traits": [
+        "Lesser",
+        "CS"
+      ],
+      "evolution": [],
+      "printedClauses": {
+        "main": "",
+        "inherited": "[Your Turn] [Once Per Turn] When effects place [CS] trait Digimon cards in this Digimon's digivolution cards, it may digivolve into a [CS] trait Digimon card in the hand with the digivolution cost reduced by 1.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-004.ts",
+      "test": "apps/api/src/cards/BT22/BT22-004.test.ts",
+      "batch": 1,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "in-progress",
+      "evidence": "evidence/BT22-004.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ],
+      "owner": "luna_a"
+    },
+    {
+      "cardId": "BT22-005",
+      "name": "Tsumemon",
+      "kinds": [
+        "DigiEgg"
+      ],
+      "level": 2,
+      "traits": [
+        "Unidentified",
+        "CS"
+      ],
+      "evolution": [],
+      "printedClauses": {
+        "main": "",
+        "inherited": "[Your Turn] [Once Per Turn] When any of your Digimon with the [Unidentified] or [CS] trait are played, ＜Draw 1＞",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-005.ts",
+      "test": "apps/api/src/cards/BT22/BT22-005.test.ts",
+      "batch": 2,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "in-progress",
+      "evidence": "evidence/BT22-005.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ],
+      "owner": "luna_b"
+    },
+    {
+      "cardId": "BT22-006",
+      "name": "Moonmon",
+      "kinds": [
+        "DigiEgg"
+      ],
+      "level": 2,
+      "traits": [
+        "Lesser",
+        "Night Claw"
+      ],
+      "evolution": [],
+      "printedClauses": {
+        "main": "",
+        "inherited": "[Your Turn] [Once Per Turn] When effects place this Digimon's top stacked card as its bottom digivolution card, ＜Draw 1＞ and trash 1 card in your hand.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-006.ts",
+      "test": "apps/api/src/cards/BT22/BT22-006.test.ts",
+      "batch": 2,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "in-progress",
+      "evidence": "evidence/BT22-006.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ],
+      "owner": "luna_b"
+    },
+    {
+      "cardId": "BT22-007",
+      "name": "Mother Eater",
+      "kinds": [
+        "DigiEgg"
+      ],
+      "level": null,
+      "traits": [
+        "CS"
+      ],
+      "evolution": [],
+      "printedClauses": {
+        "main": "[Breeding] [Start of Your Main Phase] Look at your Digi-Egg deck's top card. Among them, you may place [Mother Eater]s as this Digimon's top digivolution cards. Then, if this Digimon has 10 or more digivolution cards, you may play 3 [Mother Eater]s from its digivolution cards without paying the costs.  [Breeding] [All Turns] All of your [Mother Eater]s in the battle area are treated as having 16000 DP.  [On Play] Delete 1 of your opponent's Digimon.",
+        "inherited": "[Breeding] [All Turns] [Once Per Turn] When any of your [Eater] trait Digimon would leave the battle area other than by your effects, you may place them as this Digimon's bottom digivolution cards.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-007.ts",
+      "test": "apps/api/src/cards/BT22/BT22-007.test.ts",
+      "batch": 2,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "in-progress",
+      "evidence": "evidence/BT22-007.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ],
+      "owner": "luna_b"
+    },
+    {
+      "cardId": "BT22-008",
+      "name": "Agumon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 3,
+      "traits": [
+        "Reptile",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Red",
+          "level": 2,
+          "memoryCost": 0
+        },
+        {
+          "color": "Blue",
+          "level": 2,
+          "memoryCost": 0
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] [Koromon]/Lv.2 w/[CS] trait: Cost 0 \n\n[On Play] You may return 1 Digimon card with [Greymon], [Garurumon] or [Omnimon] in its name from your trash to the hand.",
+        "inherited": "[End of Your Turn] This Digimon and any of your other Digimon may DNA digivolve into a Digimon card in the hand.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-008.ts",
+      "test": "apps/api/src/cards/BT22/BT22-008.test.ts",
+      "batch": 2,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "in-progress",
+      "evidence": "evidence/BT22-008.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ],
+      "owner": "luna_b"
+    },
+    {
+      "cardId": "BT22-009",
+      "name": "Effecmon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "traits": [
+        "Effect"
+      ],
+      "evolution": [
+        {
+          "color": "Red",
+          "level": 3,
+          "memoryCost": 2
+        }
+      ],
+      "printedClauses": {
+        "main": "[Security] At the end of the battle, play this card without paying the cost.  [On Play] [When Digivolving] Delete 1 of your opponent's Digimon with 4000 DP or less.",
+        "inherited": "",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-009.ts",
+      "test": "apps/api/src/cards/BT22/BT22-009.test.ts",
+      "batch": 3,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "in-progress",
+      "evidence": "evidence/BT22-009.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ],
+      "owner": "luna_c"
+    },
+    {
+      "cardId": "BT22-010",
+      "name": "Meramon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "traits": [
+        "Flame",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Red",
+          "level": 3,
+          "memoryCost": 3
+        },
+        {
+          "color": "Purple",
+          "level": 3,
+          "memoryCost": 3
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.3 w/[Flame]/[CS] trait: Cost 2 \n\n[Main] [Once Per Turn] By paying 2 cost, this Digimon gains ＜Raid＞ and ＜Piercing＞ for the turn. Then, this Digimon may attack.",
+        "inherited": "[Your Turn] This Digimon gets +2000 DP.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-010.ts",
+      "test": "apps/api/src/cards/BT22/BT22-010.test.ts",
+      "batch": 3,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "in-progress",
+      "evidence": "evidence/BT22-010.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ],
+      "owner": "luna_c"
+    },
+    {
+      "cardId": "BT22-011",
+      "name": "BlueMeramon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 5,
+      "traits": [
+        "Flame",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Red",
+          "level": 4,
+          "memoryCost": 4
+        },
+        {
+          "color": "Purple",
+          "level": 4,
+          "memoryCost": 4
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.4 w/[Flame]/[CS] trait: Cost 3 \n\n＜Alliance＞ \n[Main] [Once Per Turn] By paying 3 cost, you may play 1 play cost 5 or lower Digimon card with the [Flame] from your trash without paying the cost. Then, this Digimon may attack.",
+        "inherited": "[Your Turn] This Digimon with the [Flame] or [CS] trait gains ＜Alliance＞",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-011.ts",
+      "test": "apps/api/src/cards/BT22/BT22-011.test.ts",
+      "batch": 3,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "in-progress",
+      "evidence": "evidence/BT22-011.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ],
+      "owner": "luna_c"
+    },
+    {
+      "cardId": "BT22-012",
+      "name": "RizeGreymon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 5,
+      "traits": [
+        "Cyborg",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Red",
+          "level": 4,
+          "memoryCost": 4
+        },
+        {
+          "color": "Black",
+          "level": 4,
+          "memoryCost": 4
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.4 w/[Greymon] in name or w/[CS] trait: Cost 3 \n\n＜Raid＞ \n[When Digivolving] If you have 1 or fewer Tamers, from your hand and without paying the cost, you may play 1 red or black Tamer card with a play cost of 4 or less or 1 Tamer card with the [CS] trait.",
+        "inherited": "＜Security A. +1＞",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-012.ts",
+      "test": "apps/api/src/cards/BT22/BT22-012.test.ts",
+      "batch": 3,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "in-progress",
+      "evidence": "evidence/BT22-012.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ],
+      "owner": "luna_c"
+    },
+    {
+      "cardId": "BT22-013",
+      "name": "WarGreymon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "traits": [
+        "Dragonkin",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Red",
+          "level": 5,
+          "memoryCost": 4
+        },
+        {
+          "color": "Blue",
+          "level": 5,
+          "memoryCost": 4
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.5 w/[Greymon] in name or w/[CS] trait: Cost 3 \n\n[Hand] [Main] If you have [Nokia Shiramine], 1 of your [Agumon] digivolves into this card for a digivolution cost of 6, ignoring digivolution requirements.\n[When Digivolving] Activate 1 of the effects below:\n・1 of your [Gabumon] may digivolve into [MetalGarurumon] in the hand, ignoring digivolution requirements and without paying the cost.\n・Delete 1 of your opponent's Digimon with the lowest DP.",
+        "inherited": "[When Attacking] [Once Per Turn] If this Digimon has [Omnimon] in its name, trash your opponent's top security card.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-013.ts",
+      "test": "apps/api/src/cards/BT22/BT22-013.test.ts",
+      "batch": 4,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-013.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-014",
+      "name": "Gaiomon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "traits": [
+        "Dragonkin",
+        "X Antibody",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Red",
+          "level": 5,
+          "memoryCost": 5
+        },
+        {
+          "color": "Black",
+          "level": 5,
+          "memoryCost": 5
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.5 w/[Greymon] in name or w/[CS] trait: Cost 4 \n\n＜Raid＞ \n＜Reboot＞ \n[When Digivolving] You may unsuspend 1 of your opponent's Digimon. Then, this Digimon may attack.\n[All Turns] [Once Per Turn] When attack targets change, this Digimon gains ＜Piercing＞ and +5000 DP for the turn.",
+        "inherited": "",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-014.ts",
+      "test": "apps/api/src/cards/BT22/BT22-014.test.ts",
+      "batch": 4,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-014.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-015",
+      "name": "Omnimon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 7,
+      "traits": [
+        "Holy Warrior",
+        "Royal Knight",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Red",
+          "level": 6,
+          "memoryCost": 6
+        },
+        {
+          "color": "Blue",
+          "level": 6,
+          "memoryCost": 6
+        }
+      ],
+      "printedClauses": {
+        "main": "＜Blocker＞ \n＜Decode (Red/Black Lv.3)＞ \n＜Decode (Blue/Yellow Lv.3)＞ \n[On Play] [When Attacking] Delete 1 of your opponent's Digimon with the lowest DP.\n[When Digivolving] For every 2 same-level cards this Digimon's stack has, return 1 of your opponent's Digimon to the bottom of the deck. Then, this Digimon may attack.",
+        "inherited": "",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-015.ts",
+      "test": "apps/api/src/cards/BT22/BT22-015.test.ts",
+      "batch": 4,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-015.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-016",
+      "name": "Mcmon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 3,
+      "traits": [
+        "Broadcasting"
+      ],
+      "evolution": [
+        {
+          "color": "Blue",
+          "level": 2,
+          "memoryCost": 0
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.2 w/[Appmon] trait: Cost 0 \n\n[On Play] Reveal the top 3 cards of your deck. Add 1 card with the [Appmon] trait and 1 card with the [Entertainment] or [Awakening (App Name)] trait among them to the hand. Return the rest to the bottom of the deck.",
+        "inherited": "",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-016.ts",
+      "test": "apps/api/src/cards/BT22/BT22-016.test.ts",
+      "batch": 4,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-016.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-017",
+      "name": "Gabumon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 3,
+      "traits": [
+        "Reptile",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Blue",
+          "level": 2,
+          "memoryCost": 0
+        },
+        {
+          "color": "Red",
+          "level": 2,
+          "memoryCost": 0
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] [Tsunomon]/Lv.2 w/[CS] trait: Cost 0 \n\n[On Play] Reveal the top 3 cards of your deck. Add 1 card with [Omnimon] in its text and 1 card with the [CS] trait among them to the hand. Return the rest to the bottom of the deck.",
+        "inherited": "[End of Your Turn] This Digimon and any of your other Digimon may DNA digivolve into a Digimon card in the hand.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-017.ts",
+      "test": "apps/api/src/cards/BT22/BT22-017.test.ts",
+      "batch": 5,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-017.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-018",
+      "name": "Sangomon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 3,
+      "traits": [
+        "Mollusk",
+        "LIBERATOR",
+        "Aquatic"
+      ],
+      "evolution": [
+        {
+          "color": "Blue",
+          "level": 2,
+          "memoryCost": 0
+        }
+      ],
+      "printedClauses": {
+        "main": "[On Play] By placing this Digimon as the bottom digivolution card of any of your other Digimon with [Aqua] or [Sea Animal] in any of their traits, until your opponent's turn ends, that Digimon gains ＜Blocker＞ and can't be deleted in battle.",
+        "inherited": "＜Jamming＞",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-018.ts",
+      "test": "apps/api/src/cards/BT22/BT22-018.test.ts",
+      "batch": 5,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-018.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-019",
+      "name": "Veemon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 3,
+      "traits": [
+        "Mini Dragon",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Blue",
+          "level": 2,
+          "memoryCost": 0
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.2 w/[CS] trait: Cost 0 \n\n[Your Turn] When this Digimon would digivolve into a Digimon card with [Veedramon] in its name, reduce the digivolution cost by 1.",
+        "inherited": "[All Turns] [Once Per Turn] When this Digimon with [Veedramon] in its name would leave the battle area by your opponent's effects, by suspending this Digimon, it doesn't leave.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-019.ts",
+      "test": "apps/api/src/cards/BT22/BT22-019.test.ts",
+      "batch": 5,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-019.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-020",
+      "name": "KausGammamon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "traits": [
+        "Dragonkin"
+      ],
+      "evolution": [
+        {
+          "color": "Blue",
+          "level": 3,
+          "memoryCost": 2
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] [Gammamon]: Cost 2 \n\n[When Attacking] [Once Per Turn] By placing 1 Digimon card with [Gammamon] in its name from your hand as this Digimon's bottom digivolution card, ＜Draw 1＞",
+        "inherited": "＜Jamming＞",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-020.ts",
+      "test": "apps/api/src/cards/BT22/BT22-020.test.ts",
+      "batch": 5,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-020.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-021",
+      "name": "Shellmon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "traits": [
+        "Mollusk",
+        "LIBERATOR",
+        "Aquatic"
+      ],
+      "evolution": [
+        {
+          "color": "Blue",
+          "level": 3,
+          "memoryCost": 2
+        }
+      ],
+      "printedClauses": {
+        "main": "＜Decode (Lv.3 w/[Aqua]/[Sea Animal] in any trait)＞ (When this Digimon would leave the battle area other than in battle, you may play 1 Level 3 Digimon card with [Aqua] or [Sea Animal] in any of its traits from its digivolution cards without paying the cost.)\n[On Play] [When Digivolving] You may place 1 level 5 or lower Digimon card with [Aqua] or [Sea Animal] in any of its traits from your hand as any of your Digimon's bottom digivolution card.",
+        "inherited": "＜Jamming＞",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-021.ts",
+      "test": "apps/api/src/cards/BT22/BT22-021.test.ts",
+      "batch": 6,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-021.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-022",
+      "name": "Veedramon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "traits": [
+        "Mythical Dragon",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Blue",
+          "level": 3,
+          "memoryCost": 2
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.3 w/[CS] trait: Cost 2 \n\n[When Digivolving] If you have 1 or fewer Tamers, from your hand and without paying the cost, you may play 1 Tamer card with [Veedramon] in its text from your hand without paying the cost.",
+        "inherited": "[All Turns] [Once Per Turn] When this Digimon with [Veedramon] in its name would leave the battle area by your opponent's effects, by suspending this Digimon, it doesn't leave.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-022.ts",
+      "test": "apps/api/src/cards/BT22/BT22-022.test.ts",
+      "batch": 6,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-022.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-023",
+      "name": "AeroVeedramon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 5,
+      "traits": [
+        "Holy Dragon",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Blue",
+          "level": 4,
+          "memoryCost": 3
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.4 w/[CS] trait: Cost 3 \n\n[On Play] [When Digivolving] Return 1 of your opponent's level 4 or lower Digimon to the bottom of the deck.\n[End of Your Turn] [Once Per Turn] 1 of your blue Digimon or Tamers may unsuspend.",
+        "inherited": "[All Turns] [Once Per Turn] When this Digimon with [Veedramon] in its name suspends, if you have a blue Tamer, this Digimon may unsuspend.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-023.ts",
+      "test": "apps/api/src/cards/BT22/BT22-023.test.ts",
+      "batch": 6,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-023.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-024",
+      "name": "MarineBullmon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 5,
+      "traits": [
+        "Mollusk",
+        "LIBERATOR",
+        "Aquatic"
+      ],
+      "evolution": [
+        {
+          "color": "Blue",
+          "level": 4,
+          "memoryCost": 3
+        }
+      ],
+      "printedClauses": {
+        "main": "[Hand] [Main] If you have [Yao Qinglan], by placing 1 [Shellmon] from your trash as any of your [Sangomon]'s bottom digivolution card, it digivolves into this card for a digivolution cost of 3, ignoring digivolution requirements.\n＜Decode (Lv.4 w/[Aqua]/[Sea Animal] in any trait)＞ (When this Digimon would leave the battle area other than in battle, you may play 1 Level 4 Digimon card with [Aqua] or [Sea Animal] in any of its traits from its digivolution cards without paying the cost.)",
+        "inherited": "[End of Attack] [Once Per Turn] You may play 1 level 4 or lower Digimon card with [Aqua] or [Sea Animal] in any of its traits from this Digimon's digivolution cards without paying the cost.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-024.ts",
+      "test": "apps/api/src/cards/BT22/BT22-024.test.ts",
+      "batch": 6,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-024.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-025",
+      "name": "UlforceVeedramon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "traits": [
+        "Holy Warrior",
+        "Royal Knight",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Blue",
+          "level": 5,
+          "memoryCost": 4
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.5 w/[CS] trait: Cost 3 \n\n[Hand] [Counter] ＜Blast Digivolve＞ \n[On Play] [When Digivolving] Activate 1 of the effects below:\n・Return 1 of your opponent's lowest level Digimon to the bottom of the deck.\n・You may play 1 play cost 4 or lower blue Tamer card from your hand without paying the cost.\n[When Attacking] [Once Per Turn] This Digimon may unsuspend.",
+        "inherited": "",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-025.ts",
+      "test": "apps/api/src/cards/BT22/BT22-025.test.ts",
+      "batch": 7,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-025.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-026",
+      "name": "MetalGarurumon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "traits": [
+        "Cyborg",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Blue",
+          "level": 5,
+          "memoryCost": 4
+        },
+        {
+          "color": "Red",
+          "level": 5,
+          "memoryCost": 4
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.5 w/[Garurumon] in name or w/[CS] trait: Cost 3 \n\n[Hand] [Main] If you have [Nokia Shiramine], 1 of your [Gabumon] digivolves into this card for a digivolution cost of 6, ignoring digivolution requirements.\n[When Digivolving] Activate 1 of the effects below:\n・1 of your [Agumon] may digivolve into [WarGreymon] in the hand, ignoring digivolution requirements and without paying the cost.\n・Return 1 of your opponent's Digimon with the lowest level to the hand.",
+        "inherited": "[When Attacking] [Once Per Turn] If this Digimon has [Omnimon] in its name, it unsuspends.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-026.ts",
+      "test": "apps/api/src/cards/BT22/BT22-026.test.ts",
+      "batch": 7,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-026.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-027",
+      "name": "Ryugumon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "traits": [
+        "Mollusk",
+        "LIBERATOR",
+        "Aquatic"
+      ],
+      "evolution": [
+        {
+          "color": "Blue",
+          "level": 5,
+          "memoryCost": 3
+        }
+      ],
+      "printedClauses": {
+        "main": "＜Decode (Lv.5 w/[Aqua]/[Sea Animal] in any trait)＞ (When this Digimon would leave the battle area other than in battle, you may play 1 Level 5 Digimon card with [Aqua] or [Sea Animal] in any of its traits from its digivolution cards without paying the cost.)\n[On Play] [When Digivolving] By placing 1 level 5 or lower Digimon card with [Aqua] or [Sea Animal] in any of its traits from your hand as this Digimon's bottom digivolution card, 1 of your opponent's Digimon or Tamers can't suspend until their turn ends.\n[All Turns] [Once Per Turn] When effects add to this Digimon's digivolution cards, return 1 of your opponent's level 5 or lower Digimon to the bottom of the deck.",
+        "inherited": "",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-027.ts",
+      "test": "apps/api/src/cards/BT22/BT22-027.test.ts",
+      "batch": 7,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-027.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-028",
+      "name": "Ariemon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 7,
+      "traits": [
+        "Aquatic",
+        "LIBERATOR"
+      ],
+      "evolution": [
+        {
+          "color": "Blue",
+          "level": 6,
+          "memoryCost": 4
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] While you have [Yao Qinglan], [MarineBullmon]: Cost 6 \n\n＜Decode (Lv.6 or lower w/[Aqua]/[Sea Animal] in any trait)＞ (When this Digimon would leave the battle area other than in battle, you may play 1 Level 6 or lower Digimon card with [Aqua] or [Sea Animal] in any of its traits from its digivolution cards without paying the cost.)\n[When Digivolving] You may play 1 each of level 3, level 4 and level 5 Digimon cards with [Aqua] or [Sea Animal] in any of their traits from this Digimon's digivolution cards without paying the cost.\n[When Digivolving] [When Attacking] [Once Per Turn] By placing 1 of your other Digimon as this Digimon's bottom digivolution card, return 1 of your opponent's Digimon to the bottom of the deck and this Digimon unsuspends.",
+        "inherited": "",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-028.ts",
+      "test": "apps/api/src/cards/BT22/BT22-028.test.ts",
+      "batch": 7,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-028.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-029",
+      "name": "Shoemon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 3,
+      "traits": [
+        "Puppet",
+        "LIBERATOR"
+      ],
+      "evolution": [
+        {
+          "color": "Yellow",
+          "level": 2,
+          "memoryCost": 0
+        }
+      ],
+      "printedClauses": {
+        "main": "[On Play] [On Deletion] 1 of your Digimon with the [Puppet] trait gains ＜Blocker＞ until your opponent's turn ends.",
+        "inherited": "[When Attacking] [Once Per Turn] 1 of your opponent's Digimon gets -2000 DP for the turn.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-029.ts",
+      "test": "apps/api/src/cards/BT22/BT22-029.test.ts",
+      "batch": 8,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-029.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-030",
+      "name": "Musimon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 3,
+      "traits": [
+        "Music"
+      ],
+      "evolution": [
+        {
+          "color": "Yellow",
+          "level": 2,
+          "memoryCost": 0
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.2 w/[Appmon] trait: Cost 0 \n\n[Your Turn] [Once Per Turn] When this Digimon gets linked, if you have 1 or fewer Tamers, you may play 1 [Torajiro Asuka] from your hand without paying the cost.",
+        "inherited": "",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-030.ts",
+      "test": "apps/api/src/cards/BT22/BT22-030.test.ts",
+      "batch": 8,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-030.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-031",
+      "name": "GoldNumemon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "traits": [
+        "Mutant",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Yellow",
+          "level": 3,
+          "memoryCost": 3
+        },
+        {
+          "color": "Black",
+          "level": 3,
+          "memoryCost": 3
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.4 w/[Numemon] in name or Lv.3 w/[CS] trait: Cost 2 \n\n[On Play] [When Digivolving] Give 1 of your opponent's Digimon ＜Security A. -2＞ until their turn ends. Then, if this Digimon's stack has 2 or more same-level cards, this Digimon may digivolve into [PlatinumNumemon] in the hand for a digivolution cost of 4, ignoring digivolution requirements.",
+        "inherited": "[Your Turn] [Once Per Turn] When this Digimon would digivolve into a Digimon card with the [CS] trait, reduce the digivolution cost by 1.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-031.ts",
+      "test": "apps/api/src/cards/BT22/BT22-031.test.ts",
+      "batch": 8,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-031.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-032",
+      "name": "ShoeShoemon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "traits": [
+        "Puppet",
+        "LIBERATOR"
+      ],
+      "evolution": [
+        {
+          "color": "Yellow",
+          "level": 3,
+          "memoryCost": 2
+        }
+      ],
+      "printedClauses": {
+        "main": "[On Deletion] You may play 1 level 3 Digimon card with the [Puppet] trait from your hand without paying the cost.",
+        "inherited": "[When Attacking] [Once Per Turn] 1 of your opponent's Digimon gets -2000 DP for the turn.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-032.ts",
+      "test": "apps/api/src/cards/BT22/BT22-032.test.ts",
+      "batch": 8,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-032.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-033",
+      "name": "Mediamon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "traits": [
+        "Media Player"
+      ],
+      "evolution": [
+        {
+          "color": "Yellow",
+          "level": 3,
+          "memoryCost": 3
+        },
+        {
+          "color": "Blue",
+          "level": 3,
+          "memoryCost": 3
+        }
+      ],
+      "printedClauses": {
+        "main": "[App Fusion] [Musimon] & [Recomon] & [Mcmon]: Cost 0\n\n[On Play] [When Digivolving] 1 of your opponent's Digimon gets -4000 DP for the turn.\n[Your Turn] [Once Per Turn] When this Digimon gets linked, you may play 1 level 3 Digimon card with the [Appmon] trait from your hand without paying the cost.",
+        "inherited": "",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-033.ts",
+      "test": "apps/api/src/cards/BT22/BT22-033.test.ts",
+      "batch": 9,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-033.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-034",
+      "name": "Reppamon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "traits": [
+        "Holy Beast",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Yellow",
+          "level": 3,
+          "memoryCost": 2
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.3 w/[CS] trait: Cost 2 \n\nWhen effects trash this card from the security stack, you may play this card without paying the cost.\n[On Play] [When Digivolving] 1 of your opponent's Digimon gets -3000 DP until their turn ends. By trashing your top security card, instead 1 of your opponent's Digimon gets -6000 DP until their turn ends.",
+        "inherited": "[When Attacking] [Once Per Turn] 1 of your opponent's Digimon gets -2000 DP for the turn.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-034.ts",
+      "test": "apps/api/src/cards/BT22/BT22-034.test.ts",
+      "batch": 9,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-034.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-035",
+      "name": "Entermon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 5,
+      "traits": [
+        "Entertainment"
+      ],
+      "evolution": [
+        {
+          "color": "Yellow",
+          "level": 4,
+          "memoryCost": 4
+        },
+        {
+          "color": "Black",
+          "level": 4,
+          "memoryCost": 4
+        }
+      ],
+      "printedClauses": {
+        "main": "[App Fusion] [Mediamon] & [Dreammon]: Cost 0\n\n＜Alliance＞ \n[On Play] [When Digivolving] You may link 1 level 4 or lower Digimon card from your hand or this Digimon's digivolution cards to this Digimon without paying the cost.\n[Your Turn] [Once Per Turn] When this Digimon gets linked, you may play 1 play cost 4 or lower card with the [Appmon] trait from your hand without paying the cost.",
+        "inherited": "",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-035.ts",
+      "test": "apps/api/src/cards/BT22/BT22-035.test.ts",
+      "batch": 9,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-035.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-036",
+      "name": "Chaperomon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 5,
+      "traits": [
+        "Puppet",
+        "LIBERATOR"
+      ],
+      "evolution": [
+        {
+          "color": "Yellow",
+          "level": 4,
+          "memoryCost": 3
+        }
+      ],
+      "printedClauses": {
+        "main": "[Hand] [Main] If you have [Arisa Kinosaki], by placing 1 [ShoeShoemon] from your trash as any of your [Shoemon]'s bottom digivolution card, it digivolves into this card for a digivolution cost of 3, ignoring digivolution requirements.\n＜Overclock ([Puppet] Trait)＞ (At the end of your turn, by deleting 1 of your Tokens or other [Puppet] trait Digimon, this Digimon attacks a player without suspending.)",
+        "inherited": "[All Turns] [Once Per Turn] When this Digimon would leave the battle area other than by your effects, by deleting 1 of your Tokens or other [Puppet] trait Digimon, it doesn't leave.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-036.ts",
+      "test": "apps/api/src/cards/BT22/BT22-036.test.ts",
+      "batch": 9,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-036.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-037",
+      "name": "Chirinmon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 5,
+      "traits": [
+        "Holy Beast",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Yellow",
+          "level": 4,
+          "memoryCost": 3
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.4 w/[CS] trait: Cost 3 \n\nWhen effects trash this card from the security stack, 1 of your opponent's Digimon gets -8000 DP for the turn.\n[When Digivolving] By trashing your top security card, this Digimon may digivolve into a Digimon card with [Kentaurosmon] or [Mitamamon] in its name or the [CS] trait in the hand with the digivolution cost reduced by 2.",
+        "inherited": "[When Attacking] [Once Per Turn] 1 of your opponent's Digimon gets -4000 DP for the turn.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-037.ts",
+      "test": "apps/api/src/cards/BT22/BT22-037.test.ts",
+      "batch": 10,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-037.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-038",
+      "name": "Monzaemon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 5,
+      "traits": [
+        "Puppet",
+        "DM",
+        "Ver.1"
+      ],
+      "evolution": [
+        {
+          "color": "Yellow",
+          "level": 4,
+          "memoryCost": 4
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] [Numemon]: Cost 3\n[Digivolve] Lv.4 w/[DM] trait: Cost 4 \n\nWhen any of your Digimon with the [Ver.1] trait would digivolve into this card, for each of its face-down digivolution cards, reduce the digivolution cost by 1.\n＜Armor Purge＞ \n[When Digivolving] [When Attacking] [Once Per Turn] By trashing this Digimon's bottom face-down digivolution card, until your opponent's turn ends, 1 of their Digimon can't activate [When Digivolving] effects and gets -4000 DP.",
+        "inherited": "[When Attacking] [Once Per Turn] 1 of your opponent's Digimon gets -4000 DP for the turn.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-038.ts",
+      "test": "apps/api/src/cards/BT22/BT22-038.test.ts",
+      "batch": 10,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-038.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-039",
+      "name": "Ouranosmon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "traits": [
+        "Awakening"
+      ],
+      "evolution": [
+        {
+          "color": "Yellow",
+          "level": 5,
+          "memoryCost": 4
+        }
+      ],
+      "printedClauses": {
+        "main": "[App Fusion] [Entermon] & [Fakemon]: Cost 0\n\n＜Alliance＞ \n＜Link +1＞ \n[When Digivolving] [When Attacking] [Once Per Turn] You may play 1 level 4 or lower [Appmon] trait Digimon card from your hand without paying the cost.\n[All Turns] [Once Per Turn] When any of your Digimon are played, you may link 1 [Appmon] trait Digimon card from this Digimon's digivolution cards to 1 of your Digimon without paying the cost.",
+        "inherited": "",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-039.ts",
+      "test": "apps/api/src/cards/BT22/BT22-039.test.ts",
+      "batch": 10,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-039.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-040",
+      "name": "Cendrillmon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "traits": [
+        "Puppet",
+        "LIBERATOR"
+      ],
+      "evolution": [
+        {
+          "color": "Yellow",
+          "level": 5,
+          "memoryCost": 3
+        }
+      ],
+      "printedClauses": {
+        "main": "＜Overclock ([Puppet] Trait)＞ (At the end of your turn, by deleting 1 of your Tokens or other [Puppet] trait Digimon, this Digimon attacks a player without suspending.)\n[On Play] [When Digivolving] You may play 1 [Familiar] Token. (Digimon/Yellow/3000 DP/[On Deletion] 1 of your opponent's Digimon gets -3000 DP for the turn.)\n[All Turns] [Once Per Turn] When any of your other Digimon are deleted, you may activate 1 of this Digimon's [When Digivolving] effects.",
+        "inherited": "",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-040.ts",
+      "test": "apps/api/src/cards/BT22/BT22-040.test.ts",
+      "batch": 10,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-040.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-041",
+      "name": "Kentaurosmon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "traits": [
+        "Holy Warrior",
+        "Royal Knight",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Yellow",
+          "level": 5,
+          "memoryCost": 4
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] [Chirinmon]/Lv.5 w/[CS] trait: Cost 3 \n\nWhen this card would be played, if there are 6 or fewer total cards in both players' security stacks, reduce the play cost by 6.\n＜Blocker＞ \n＜Barrier＞ \n[On Play] [When Digivolving] You may place 1 yellow card from your hand as your top security card.\n[All Turns] [Once Per Turn] When this Digimon suspends, by trashing your top security card, it unsuspends.",
+        "inherited": "",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-041.ts",
+      "test": "apps/api/src/cards/BT22/BT22-041.test.ts",
+      "batch": 11,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-041.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-042",
+      "name": "Nyabootmon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 7,
+      "traits": [
+        "Puppet",
+        "LIBERATOR"
+      ],
+      "evolution": [
+        {
+          "color": "Yellow",
+          "level": 6,
+          "memoryCost": 4
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] While you have [Arisa Kinosaki], [Chaperomon]: Cost 6 \n\n＜Overclock ([Puppet] Trait)＞ (At the end of your turn, by deleting 1 of your Tokens or other [Puppet] trait Digimon, this Digimon attacks a player without suspending.)\n[When Digivolving] You may play 1 level 4 or lower [Puppet] trait Digimon card from your hand without paying the cost. Then, to 1 of your opponent's Digimon, give -3000 DP until their turn ends for each of your Digimon.\n[All Turns] [Once Per Turn] When any of your other Digimon are deleted, you may activate 1 of this Digimon's [When Digivolving] effects.",
+        "inherited": "",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-042.ts",
+      "test": "apps/api/src/cards/BT22/BT22-042.test.ts",
+      "batch": 11,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-042.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-043",
+      "name": "Terriermon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 3,
+      "traits": [
+        "Beast",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Green",
+          "level": 2,
+          "memoryCost": 1
+        },
+        {
+          "color": "Yellow",
+          "level": 2,
+          "memoryCost": 1
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.2 w/[CS] trait: Cost 0 \n\n[Your Turn] [Once Per Turn] When effects place Digimon cards with the [CS] trait in this Digimon's digivolution cards, if you have 1 or fewer Tamers, you may play 1 Tamer card with the [CS] trait from your hand without paying the cost.",
+        "inherited": "[Main] [Once Per Turn] By placing this [CS] trait Digimon's top stacked card as its bottom digivolution card, ＜Draw 1＞",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-043.ts",
+      "test": "apps/api/src/cards/BT22/BT22-043.test.ts",
+      "batch": 11,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-043.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-044",
+      "name": "Palmon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 3,
+      "traits": [
+        "Vegetation",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Green",
+          "level": 2,
+          "memoryCost": 1
+        },
+        {
+          "color": "Red",
+          "level": 2,
+          "memoryCost": 1
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.2 w/[CS] trait: Cost 0 \n\n[Your Turn] [Once Per Turn] When effects place Digimon cards with the [CS] trait in this Digimon's digivolution cards, gain 1 memory.",
+        "inherited": "[Main] [Once Per Turn] By placing this [CS] trait Digimon's top stacked card as its bottom digivolution card, ＜Draw 1＞",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-044.ts",
+      "test": "apps/api/src/cards/BT22/BT22-044.test.ts",
+      "batch": 11,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-044.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-045",
+      "name": "WezenGammamon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "traits": [
+        "Ceratopsian"
+      ],
+      "evolution": [
+        {
+          "color": "Green",
+          "level": 3,
+          "memoryCost": 2
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] [Gammamon]: Cost 2 \n\n[On Play] [When Digivolving] By placing 1 Digimon card with [Gammamon] in its name from your hand as this Digimon's bottom digivolution card, it gains ＜Blocker＞ and +3000 DP until your opponent's turn ends.",
+        "inherited": "＜Piercing＞",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-045.ts",
+      "test": "apps/api/src/cards/BT22/BT22-045.test.ts",
+      "batch": 12,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-045.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-046",
+      "name": "Gargomon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "traits": [
+        "Beastkin",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Green",
+          "level": 3,
+          "memoryCost": 3
+        },
+        {
+          "color": "Yellow",
+          "level": 3,
+          "memoryCost": 3
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.3 w/[CS] trait: Cost 2 \n\n[When Digivolving] If you have 1 or fewer Tamers, from your hand and without paying the cost, you may play 1 Tamer card with [CS] trait from your hand without paying the cost.",
+        "inherited": "[All Turns] This Digimon gets +1000 DP.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-046.ts",
+      "test": "apps/api/src/cards/BT22/BT22-046.test.ts",
+      "batch": 12,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-046.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-047",
+      "name": "Kuwagamon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "traits": [
+        "Insectoid",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Green",
+          "level": 3,
+          "memoryCost": 2
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.3 w/[CS] trait: Cost 2 \n\n[On Play] [When Digivolving] Suspend 1 of your opponent's Digimon. Then, if this Digimon's stack has 2 or more same-level cards, 1 of your opponent's Digimon can't unsuspend until their turn ends.",
+        "inherited": "[All Turns] [Once Per Turn] When this Digimon deletes your opponent's Digimon in battle, gain 1 memory.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-047.ts",
+      "test": "apps/api/src/cards/BT22/BT22-047.test.ts",
+      "batch": 12,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-047.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-048",
+      "name": "Togemon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "traits": [
+        "Vegetation",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Green",
+          "level": 3,
+          "memoryCost": 3
+        },
+        {
+          "color": "Red",
+          "level": 3,
+          "memoryCost": 3
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.3 w/[CS] trait: Cost 2 \n\n[On Play] [When Digivolving] 1 of your Digimon gets +3000 DP for the turn. Then, if this Digimon's stack has 2 or more same-level cards, this Digimon gains ＜Raid＞ and ＜Piercing＞ for the turn.",
+        "inherited": "[Your Turn] This Digimon gets +2000 DP.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-048.ts",
+      "test": "apps/api/src/cards/BT22/BT22-048.test.ts",
+      "batch": 12,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-048.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-049",
+      "name": "Vegiemon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "traits": [
+        "Carnivorous Plant",
+        "DM",
+        "Ver.2"
+      ],
+      "evolution": [
+        {
+          "color": "Green",
+          "level": 3,
+          "memoryCost": 2
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.3 w/[DM] trait: Cost 3 \n\n[End of Your Turn] [Once Per Turn] By placing 3 Digimon cards with the [Ver.2] trait from your trash face down as this Digimon's bottom digivolution cards, it may digivolve into a Digimon card with the [Ver.2] trait in the hand or trash.",
+        "inherited": "＜Piercing＞",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-049.ts",
+      "test": "apps/api/src/cards/BT22/BT22-049.test.ts",
+      "batch": 13,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-049.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-050",
+      "name": "Roamon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "traits": [
+        "Voice Change"
+      ],
+      "evolution": [
+        {
+          "color": "Green",
+          "level": 3,
+          "memoryCost": 2
+        }
+      ],
+      "printedClauses": {
+        "main": "[Security] At the end of the battle, play this card without paying the cost.  [On Play] [When Digivolving] Suspend 1 of your opponent's Digimon.",
+        "inherited": "",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-050.ts",
+      "test": "apps/api/src/cards/BT22/BT22-050.test.ts",
+      "batch": 13,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-050.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-051",
+      "name": "Okuwamon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 5,
+      "traits": [
+        "Insectoid",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Green",
+          "level": 4,
+          "memoryCost": 3
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.4 w/[CS] trait: Cost 3 \n\n＜Fortitude＞ \n[On Play] [When Digivolving] Suspend 1 of your opponent's Digimon. Then, if this Digimon's stack has 2 or more same-level cards, return 1 of your opponent's suspended Digimon with the lowest DP to the hand.",
+        "inherited": "[All Turns] [Once Per Turn] When this Digimon deletes your opponent's Digimon in battle, trash their top security card.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-051.ts",
+      "test": "apps/api/src/cards/BT22/BT22-051.test.ts",
+      "batch": 13,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-051.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-052",
+      "name": "Leopardmon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "traits": [
+        "Holy Warrior",
+        "Royal Knight",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Green",
+          "level": 5,
+          "memoryCost": 4
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.5 w/[CS] trait: Cost 3 \n\n[Hand] [Counter] ＜Blast Digivolve＞ \n[On Play] [When Digivolving] You may play 1 5000 DP or lower Digimon card from your hand without paying the cost. Then, all of your level 3 or higher Digimon gain ＜Blocker＞ until your opponent's turn ends.\n[All Turns] [Once Per Turn] When any of your other Digimon would leave the battle area, gain 2 memory.",
+        "inherited": "",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-052.ts",
+      "test": "apps/api/src/cards/BT22/BT22-052.test.ts",
+      "batch": 13,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-052.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-053",
+      "name": "Keramon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 3,
+      "traits": [
+        "Unidentified",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Black",
+          "level": 2,
+          "memoryCost": 0
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.2 w/[CS] trait: Cost 0 \n\n[On Play] Reveal the top 3 cards of your deck. Add 1 [Arata Sanada] and 1 card with the [Unidentified] or [CS] trait among them to the hand. Return the rest to the bottom of the deck.",
+        "inherited": "[All Turns] [Once Per Turn] When this Digimon with [Diaboromon] in its text would leave the battle area, by deleting 1 of your other [Diaboromon], it doesn't leave.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-053.ts",
+      "test": "apps/api/src/cards/BT22/BT22-053.test.ts",
+      "batch": 14,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-053.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-054",
+      "name": "Hagurumon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 3,
+      "traits": [
+        "Machine",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Black",
+          "level": 2,
+          "memoryCost": 1
+        },
+        {
+          "color": "Yellow",
+          "level": 2,
+          "memoryCost": 1
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.2 w/[CS] trait: Cost 0 \n\n[Your Turn] [Once Per Turn] When effects place Digimon cards with the [CS] trait in this Digimon's digivolution cards, 1 of your opponent's Digimon gets -3000 DP for the turn.",
+        "inherited": "[Main] [Once Per Turn] By placing this [CS] trait Digimon's top stacked card as its bottom digivolution card, ＜Draw 1＞",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-054.ts",
+      "test": "apps/api/src/cards/BT22/BT22-054.test.ts",
+      "batch": 14,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-054.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-055",
+      "name": "Recomon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 3,
+      "traits": [
+        "Recording"
+      ],
+      "evolution": [
+        {
+          "color": "Black",
+          "level": 2,
+          "memoryCost": 0
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.2 w/[Appmon] trait: Cost 0 \n\n[On Play] By trashing 1 Digimon card with the [Appmon] trait from your hand, ＜Draw 2＞",
+        "inherited": "",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-055.ts",
+      "test": "apps/api/src/cards/BT22/BT22-055.test.ts",
+      "batch": 14,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-055.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-056",
+      "name": "Guardromon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "traits": [
+        "Machine",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Black",
+          "level": 3,
+          "memoryCost": 3
+        },
+        {
+          "color": "Yellow",
+          "level": 3,
+          "memoryCost": 3
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.3 w/[CS] trait: Cost 2 \n\n[On Play] [When Digivolving] 1 of your opponent's Digimon gets -3000 DP for the turn. Then, if this Digimon's stack has 2 or more same-level cards, ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
+        "inherited": "[Opponent's Turn] This Digimon gets +2000 DP.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-056.ts",
+      "test": "apps/api/src/cards/BT22/BT22-056.test.ts",
+      "batch": 14,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-056.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-057",
+      "name": "Kurisarimon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "traits": [
+        "Unidentified",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Black",
+          "level": 3,
+          "memoryCost": 2
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.3 w/[CS] trait: Cost 2 \n\n[When Digivolving] If you have 1 or fewer Tamers, you may play 1 [Arata Sanada] from your hand without paying the cost.",
+        "inherited": "[All Turns] [Once Per Turn] When this Digimon with [Diaboromon] in its text would leave the battle area, by deleting 1 of your other [Diaboromon], it doesn't leave.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-057.ts",
+      "test": "apps/api/src/cards/BT22/BT22-057.test.ts",
+      "batch": 15,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-057.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-058",
+      "name": "Dreammon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "traits": [
+        "Dream"
+      ],
+      "evolution": [
+        {
+          "color": "Black",
+          "level": 3,
+          "memoryCost": 2
+        }
+      ],
+      "printedClauses": {
+        "main": "[All Turns] [Once Per Turn] When this Digimon gets linked, your opponent's effects can't return 1 of your Digimon to hands or decks until their turn ends.",
+        "inherited": "",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-058.ts",
+      "test": "apps/api/src/cards/BT22/BT22-058.test.ts",
+      "batch": 15,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-058.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-059",
+      "name": "Infermon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 5,
+      "traits": [
+        "Unidentified",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Black",
+          "level": 4,
+          "memoryCost": 3
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.4 w/[CS] trait: Cost 3 \n\n[On Play] [When Digivolving] Delete 1 of your opponent's Digimon with a play cost of 5 or less. Then, if you have [Arata Sanada] or [Eater Adam], your opponent's effects can't reduce this Digimon's DP or return it to hands or decks until their turn ends.",
+        "inherited": "[All Turns] [Once Per Turn] When any of your Digimon with the [Unidentified] trait are deleted, you may play 1 [Diaboromon] Token without paying the cost. (Digimon/Cost 14/Lv.6/White/Mega/Unknown/Unidentified/3000 DP)",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-059.ts",
+      "test": "apps/api/src/cards/BT22/BT22-059.test.ts",
+      "batch": 15,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-059.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-060",
+      "name": "Datamon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 5,
+      "traits": [
+        "Machine",
+        "DM",
+        "Ver.5"
+      ],
+      "evolution": [
+        {
+          "color": "Black",
+          "level": 4,
+          "memoryCost": 3
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.4 w/[DM] trait: Cost 3 \n\n＜Blocker＞ \n[On Play] [When Digivolving] Until your opponent's turn ends, their ＜De-Digivolve＞ effects don't affect this Digimon, and it gets +1000 DP for each of its face-down digivolution cards.",
+        "inherited": "[End of Opponent's Turn] [Once Per Turn] You may choose 1 of your opponent's Digimon. Your opponent attacks with the chosen Digimon.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-060.ts",
+      "test": "apps/api/src/cards/BT22/BT22-060.test.ts",
+      "batch": 15,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-060.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-061",
+      "name": "Vademon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 5,
+      "traits": [
+        "Alien",
+        "DM",
+        "Ver.2"
+      ],
+      "evolution": [
+        {
+          "color": "Black",
+          "level": 4,
+          "memoryCost": 4
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] [Vegiemon]: Cost 3\n[Digivolve] Lv.4 w/[DM] trait: Cost 4 \n\nWhen any of your [Ver.2] trait Digimon would digivolve into this card, for each of its face-down digivolution cards, reduce the digivolution cost by 1.\n＜Fragment (3)＞ \n[When Digivolving] [When Attacking] [Once Per Turn] ＜De-Digivolve 1＞ 1 of your opponent's Digimon. Then, by trashing this Digimon's bottom face-down digivolution card, return 1 of your opponent's play cost 4 or lower Digimon or Tamers to the hand.",
+        "inherited": "[Opponent's Turn] [Once Per Turn] When one of your opponent's Digimon attacks, you may change the attack target to this Digimon.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-061.ts",
+      "test": "apps/api/src/cards/BT22/BT22-061.test.ts",
+      "batch": 16,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-061.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-062",
+      "name": "MetalTyrannomon (X Antibody)",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 5,
+      "traits": [
+        "Cyborg",
+        "X Antibody",
+        "Dinosaur"
+      ],
+      "evolution": [
+        {
+          "color": "Black",
+          "level": 4,
+          "memoryCost": 4
+        },
+        {
+          "color": "Green",
+          "level": 4,
+          "memoryCost": 4
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.5 w/[Tyrannomon] in name w/o [X Antibody] trait: Cost 1 \n\n＜Collision＞ \n[When Digivolving] This Digimon gets +4000 DP until your opponent's turn ends. Then, if [MetalTyrannomon] or [X Antibody] is in this Digimon's digivolution cards, 1 of your opponent's Digimon can't digivolve until their turn ends.",
+        "inherited": "[End of Opponent's Turn] [Once Per Turn] You may choose 1 of your opponent's Digimon. Your opponent attacks with the chosen Digimon.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-062.ts",
+      "test": "apps/api/src/cards/BT22/BT22-062.test.ts",
+      "batch": 16,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-062.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-063",
+      "name": "Alphamon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "traits": [
+        "Holy Warrior",
+        "X Antibody",
+        "Royal Knight",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Black",
+          "level": 5,
+          "memoryCost": 4
+        },
+        {
+          "color": "Yellow",
+          "level": 5,
+          "memoryCost": 4
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.5 w/[CS] trait: Cost 3\n[Digivolve] While you have 3 or fewer security cards, [Kyoko Kuremi]: Cost 5 \n\n＜Reboot＞ \n＜Blocker＞ \n[On Play] [When Digivolving] [When Attacking] 1 of your opponent's Digimon gets -5000 DP for the turn.\n[All Turns] [Once Per Turn] When this Digimon suspends, if [Kyoko Kuremi] is in this Digimon's digivolution cards or if this Digimon's stack has 2 or more same-level cards, it gets +3000 DP until your opponent's turn ends. Then, this Digimon unsuspends.",
+        "inherited": "",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-063.ts",
+      "test": "apps/api/src/cards/BT22/BT22-063.test.ts",
+      "batch": 16,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-063.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-064",
+      "name": "Diaboromon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "traits": [
+        "Unidentified",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Black",
+          "level": 5,
+          "memoryCost": 4
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] [Infermon]/Lv.5 w/[CS] trait: Cost 3 \n\n＜Alliance＞ \n[When Digivolving] [When Attacking] You may play 1 [Diaboromon] Token without paying the cost. (Digimon/Cost 14/Lv.6/White/Mega/Unknown/Unidentified/3000 DP)\n[All Turns] [Once Per Turn] When any of your other Digimon with the [Unidentified] trait are played, delete 1 of your opponent's Digimon with the lowest play cost.",
+        "inherited": "",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-064.ts",
+      "test": "apps/api/src/cards/BT22/BT22-064.test.ts",
+      "batch": 16,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-064.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-065",
+      "name": "PlatinumNumemon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "traits": [
+        "Mutant",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Black",
+          "level": 5,
+          "memoryCost": 4
+        },
+        {
+          "color": "Yellow",
+          "level": 5,
+          "memoryCost": 4
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.5 w/[CS] trait: Cost 3 \n\n[On Play] [When Digivolving] 1 of your opponent's Digimon gets -8000 DP for the turn.\n[Your Turn] [Once Per Turn] When any of your opponent's Digimon are deleted, 1 of your other Digimon with the [CS] trait may digivolve into a Digimon card with the [CS] trait in the hand without paying the cost.",
+        "inherited": "",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-065.ts",
+      "test": "apps/api/src/cards/BT22/BT22-065.test.ts",
+      "batch": 17,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-065.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-066",
+      "name": "Raidenmon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "traits": [
+        "Machine",
+        "DM",
+        "Ver.5"
+      ],
+      "evolution": [
+        {
+          "color": "Black",
+          "level": 5,
+          "memoryCost": 4
+        },
+        {
+          "color": "Green",
+          "level": 5,
+          "memoryCost": 4
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.5 w/[DM] trait: Cost 3 \n\n[Hand] [Counter] ＜Blast Digivolve＞ \n＜Collision＞ \n＜Blocker＞ \n[On Play] [When Digivolving] You may unsuspend 1 Digimon. Then, you may suspend 1 Digimon.\n[All Turns] [Once Per Turn] When any of your [Ver.5] Digimon suspend, ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
+        "inherited": "",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-066.ts",
+      "test": "apps/api/src/cards/BT22/BT22-066.test.ts",
+      "batch": 17,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-066.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-067",
+      "name": "LordKnightmon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "traits": [
+        "Holy Warrior",
+        "Royal Knight",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Red",
+          "level": 5,
+          "memoryCost": 4
+        },
+        {
+          "color": "Black",
+          "level": 5,
+          "memoryCost": 4
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.5 w/[CS] trait: Cost 3\n[Digivolve] While you have 3 or fewer security cards [Rie Kishibe]: Cost 5 \n\n＜Raid＞ \n＜Reboot＞ \n[On Play] [When Digivolving] 1 of your Digimon gets +3000 DP until your opponent's turn ends. Then, 1 of your Digimon may attack a player.\n[All Turns] [Once Per Turn] When Digimon attack players, reveal the top 3 cards of your deck. You may play 1 play cost 4 or lower black or red card among them without paying the cost. Trash the rest.",
+        "inherited": "",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-067.ts",
+      "test": "apps/api/src/cards/BT22/BT22-067.test.ts",
+      "batch": 17,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-067.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-068",
+      "name": "Agumon (X Antibody)",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 3,
+      "traits": [
+        "Reptile",
+        "X Antibody"
+      ],
+      "evolution": [
+        {
+          "color": "Purple",
+          "level": 2,
+          "memoryCost": 1
+        },
+        {
+          "color": "Green",
+          "level": 2,
+          "memoryCost": 1
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] [Koromon]/[Agumon]: Cost 0 \n\n[On Play] [When Digivolving] You may return 1 Digimon card with [Tyrannomon] in its name or the [Dinosaur] trait from your trash to the hand.",
+        "inherited": "[All Turns] [Once Per Turn] When this Digimon deletes your opponent's Digimon in battle, gain 1 memory.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-068.ts",
+      "test": "apps/api/src/cards/BT22/BT22-068.test.ts",
+      "batch": 17,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-068.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-069",
+      "name": "Lunamon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 3,
+      "traits": [
+        "Mammal",
+        "Night Claw",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Purple",
+          "level": 2,
+          "memoryCost": 1
+        },
+        {
+          "color": "Blue",
+          "level": 2,
+          "memoryCost": 1
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.2 w/[Night Claw]/[Light Fang]/[CS] trait: Cost 0 \n\n[On Play] Reveal the top 3 cards of your deck. Add 1 card with the [Night Claw] trait and 1 card with the [Light Fang] or [Galaxy] trait among them to the hand. Return the rest to the bottom of the deck.",
+        "inherited": "[Main] [Once Per Turn] By placing this [Night Claw] or [Light Fang] trait Digimon's top stacked card as its bottom digivolution card, ＜Draw 1＞",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-069.ts",
+      "test": "apps/api/src/cards/BT22/BT22-069.test.ts",
+      "batch": 18,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-069.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-070",
+      "name": "DarkTyrannomon (X Antibody)",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "traits": [
+        "Dinosaur",
+        "X Antibody"
+      ],
+      "evolution": [
+        {
+          "color": "Purple",
+          "level": 3,
+          "memoryCost": 3
+        },
+        {
+          "color": "Green",
+          "level": 3,
+          "memoryCost": 3
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.4 w/[Tyrannomon] in name w/o [X Antibody] trait: Cost 0 \n\n[When Digivolving] If [DarkTyrannomon] or [X Antibody] is in this Digimon's digivolution cards, delete 1 of your opponent's level 4 or lower Digimon.\n[When Attacking] This Digimon may digivolve into a Digimon card with [Tyrannomon] in its name or the [Dinosaur] trait in the hand.",
+        "inherited": "[All Turns] [Once Per Turn] When this Digimon deletes your opponent's Digimon in battle, gain 1 memory.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-070.ts",
+      "test": "apps/api/src/cards/BT22/BT22-070.test.ts",
+      "batch": 18,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-070.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-071",
+      "name": "Devimon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "traits": [
+        "Fallen Angel",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Purple",
+          "level": 3,
+          "memoryCost": 3
+        },
+        {
+          "color": "Red",
+          "level": 3,
+          "memoryCost": 3
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.3 w/[Flame]/[CS] trait: Cost 2 \n\n[When Digivolving] If you have 1 or fewer Tamers, you may play 1 [Jimmy KEN] from your hand without paying the cost.",
+        "inherited": "[On Deletion] You may return 1 Digimon card with the [Flame] or [CS] trait from your trash to the hand.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-071.ts",
+      "test": "apps/api/src/cards/BT22/BT22-071.test.ts",
+      "batch": 18,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-071.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-072",
+      "name": "Lekismon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "traits": [
+        "Beastkin",
+        "Night Claw",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Purple",
+          "level": 3,
+          "memoryCost": 3
+        },
+        {
+          "color": "Blue",
+          "level": 3,
+          "memoryCost": 3
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.3 w/[Night Claw]/[Light Fang]/[CS] trait: Cost 2 \n\n[When Digivolving] If this Digimon's stack has 2 or more same-level cards, you may play 1 Tamer card with the [Night Claw] or [Light Fang] trait from your hand without paying the cost. This effect can't play cards with the same name as any of your Tamers.",
+        "inherited": "[All Turns] [Once Per Turn] When this Digimon with the [Night Claw], [Light Fang] or [Galaxy] trait would be deleted, by trashing 2 same-level cards from its digivolution cards, it isn't deleted.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-072.ts",
+      "test": "apps/api/src/cards/BT22/BT22-072.test.ts",
+      "batch": 18,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-072.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-073",
+      "name": "Crescemon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 5,
+      "traits": [
+        "Wizard",
+        "Night Claw",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Purple",
+          "level": 4,
+          "memoryCost": 4
+        },
+        {
+          "color": "Blue",
+          "level": 4,
+          "memoryCost": 4
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.4 w/[Night Claw]/[Light Fang]/[CS] trait: Cost 3 \n\n＜Jamming＞ \n[When Digivolving] ＜Draw 1＞ and trash 1 card in your hand. Then, if this Digimon's stack has 2 or more same-level cards, 1 of your opponent's Digimon or Tamers can't suspend until their turn ends.",
+        "inherited": "[All Turns] [Once Per Turn] When this Digimon with the [Night Claw], [Light Fang] or [Galaxy] trait would be deleted, by trashing 2 same-level cards from its digivolution cards, it isn't deleted.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-073.ts",
+      "test": "apps/api/src/cards/BT22/BT22-073.test.ts",
+      "batch": 19,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-073.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-074",
+      "name": "SkullMeramon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 5,
+      "traits": [
+        "Flame",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Purple",
+          "level": 4,
+          "memoryCost": 4
+        },
+        {
+          "color": "Red",
+          "level": 4,
+          "memoryCost": 4
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.4 w/[Flame]/[CS] trait: Cost 3 \n\n[Main] [Once Per Turn] By paying 3 cost, delete 1 of your opponent's level 5 or lower Digimon. If this effect didn't delete, this Digimon gains ＜Security A. +1＞ for the turn. Then, this Digimon may attack.\n[On Deletion] ＜Draw 2＞ and trash 1 card in your hand.",
+        "inherited": "[On Deletion] You may play 1 level 4 or lower Digimon card with the [Flame] or [CS] trait from your trash without paying the cost.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-074.ts",
+      "test": "apps/api/src/cards/BT22/BT22-074.test.ts",
+      "batch": 19,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-074.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-075",
+      "name": "Fakemon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 5,
+      "traits": [
+        "Camouflage"
+      ],
+      "evolution": [
+        {
+          "color": "Purple",
+          "level": 4,
+          "memoryCost": 4
+        },
+        {
+          "color": "Green",
+          "level": 4,
+          "memoryCost": 4
+        }
+      ],
+      "printedClauses": {
+        "main": "[App Fusion] [Roamon] & [Effecmon]: Cost 0\n\n＜Retaliation＞ \n[On Play] [When Digivolving] You may link 1 level 4 or lower Digimon card from your trash or this Digimon's digivolution cards to this Digimon without paying the cost.\n[All Turns] [Once Per Turn] When this Digimon would leave the battle area, you may play 1 of this Digimon's link cards without paying the cost.",
+        "inherited": "",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-075.ts",
+      "test": "apps/api/src/cards/BT22/BT22-075.test.ts",
+      "batch": 19,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-075.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-076",
+      "name": "ShinMonzaemon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "traits": [
+        "Puppet",
+        "DM",
+        "Ver.1"
+      ],
+      "evolution": [
+        {
+          "color": "Purple",
+          "level": 5,
+          "memoryCost": 5
+        },
+        {
+          "color": "Yellow",
+          "level": 5,
+          "memoryCost": 5
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.5 w/[DM] trait: Cost 5 \n\nWhen any of your Digimon with the [Ver.1] trait would digivolve into this card, reduce the digivolution cost by 2.\n＜Security A. +1＞ \n＜Armor Purge＞ \n[When Digivolving] [When Attacking] [Once Per Turn] By trashing this Digimon's bottom face-down digivolution card, place 1 Digimon with as much or less DP as this Digimon as the top security card.",
+        "inherited": "",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-076.ts",
+      "test": "apps/api/src/cards/BT22/BT22-076.test.ts",
+      "batch": 19,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-076.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-077",
+      "name": "Dianamon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "traits": [
+        "Shaman",
+        "Olympos XII",
+        "Night Claw",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Purple",
+          "level": 5,
+          "memoryCost": 4
+        },
+        {
+          "color": "Blue",
+          "level": 5,
+          "memoryCost": 4
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.5 w/[Night Claw]/[Light Fang]/[CS] trait: Cost 3 \n\n＜Iceclad＞ \n＜Blocker＞ \n[When Digivolving] If this Digimon's stack has 2 or more same-level cards, trash any 4 digivolution cards from your opponent's Digimon. Then, return 1 of your opponent's Digimon with 1 or fewer digivolution cards to the bottom of the deck.\n[End of Your Turn] [Once Per Turn] 1 of your Digimon may unsuspend.",
+        "inherited": "[End of Your Turn] [Once Per Turn] 1 of your Digimon may unsuspend.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-077.ts",
+      "test": "apps/api/src/cards/BT22/BT22-077.test.ts",
+      "batch": 20,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-077.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-078",
+      "name": "Boltmon",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "traits": [
+        "Cyborg",
+        "CS"
+      ],
+      "evolution": [
+        {
+          "color": "Purple",
+          "level": 5,
+          "memoryCost": 4
+        },
+        {
+          "color": "Red",
+          "level": 5,
+          "memoryCost": 4
+        }
+      ],
+      "printedClauses": {
+        "main": "[Digivolve] Lv.5 w/[Flame]/[CS] trait: Cost 3 \n\n＜Rush＞ \n[Your Turn] This Digimon gains all [Main] effects of its digivolution cards with the [Flame] trait.\n[When Attacking] [Once Per Turn] Delete 1 of your opponent's Digimon with the lowest level.",
+        "inherited": "",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-078.ts",
+      "test": "apps/api/src/cards/BT22/BT22-078.test.ts",
+      "batch": 20,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-078.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-079",
+      "name": "Eater (Species Form)",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": null,
+      "traits": [
+        "CS"
+      ],
+      "evolution": [],
+      "printedClauses": {
+        "main": "＜Blocker＞ \n[On Play] ＜Draw 1＞",
+        "inherited": "[Breeding] [Your Turn] [Once Per Turn] When any of your Digimon cards with the [Eater] trait would be played, you may reduce the play costs by 1.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-079.ts",
+      "test": "apps/api/src/cards/BT22/BT22-079.test.ts",
+      "batch": 20,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-079.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-080",
+      "name": "Eater (Human Form)",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": null,
+      "traits": [
+        "CS"
+      ],
+      "evolution": [],
+      "printedClauses": {
+        "main": "[Digivolve] [Eater (Species Form)]: Cost 2 \n\n[When Digivolving] You may place 1 [Eater (Species Form)] from this Digimon's digivolution cards as the bottom digivolution card of your [Mother Eater] in the breeding area.\n[Your Turn] [Once Per Turn] When this Digimon checks your opponent's security stack, you may play 1 Tamer card with the [CS] trait from your hand without paying the cost.",
+        "inherited": "[Breeding] [Your Turn] [Once Per Turn] When any of your Digimon cards with the [Eater] trait would be played, you may reduce the play costs by 1.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-080.ts",
+      "test": "apps/api/src/cards/BT22/BT22-080.test.ts",
+      "batch": 20,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-080.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-081",
+      "name": "Eater Eve",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": null,
+      "traits": [
+        "CS"
+      ],
+      "evolution": [],
+      "printedClauses": {
+        "main": "[Digivolve] [Yuuko Kamishiro]: Cost 3 \n\n＜Raid＞ \n[On Play] [When Digivolving] Until your opponent's turn ends, 1 of their Digimon can't suspend. Then, if this Digimon has no digivolution cards, you may place 1 [Yuuko Kamishiro] from your hand or trash as this Digimon's bottom digivolution card.\n[All Turns] When this Digimon would leave the battle area, you may play 1 [Yuuko Kamishiro] from its digivolution cards without paying the cost.",
+        "inherited": "",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-081.ts",
+      "test": "apps/api/src/cards/BT22/BT22-081.test.ts",
+      "batch": 21,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-081.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-082",
+      "name": "Eater Adam",
+      "kinds": [
+        "Digimon"
+      ],
+      "level": null,
+      "traits": [
+        "CS"
+      ],
+      "evolution": [],
+      "printedClauses": {
+        "main": "[Digivolve] [Arata Sanada]: Cost 4 \n\n＜Security A. +1＞ \n[On Play] [When Digivolving] Delete 1 of your opponent's play cost 7 or lower Digimon. Then, if this Digimon has no digivolution cards, you may place 1 [Arata Sanada] from your hand or trash as this Digimon's bottom digivolution card.\n[All Turns] When this Digimon would leave the battle area, you may play 1 [Arata Sanada] from its digivolution cards without paying the cost.",
+        "inherited": "",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-082.ts",
+      "test": "apps/api/src/cards/BT22/BT22-082.test.ts",
+      "batch": 21,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-082.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-083",
+      "name": "Yuuko Kamishiro",
+      "kinds": [
+        "Tamer"
+      ],
+      "level": null,
+      "traits": [
+        "CS"
+      ],
+      "evolution": [],
+      "printedClauses": {
+        "main": "[Security] Play this card without paying the cost.\n[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.\n[All Turns] When attack targets change, by suspending this Tamer, for the turn, your opponent's Digimon's effects don't affect 1 of your Digimon with [Greymon] in its name or the [CS] trait and it gets +3000 DP.",
+        "inherited": "[All Turns] [Once Per Turn] When attack targets change, if this Digimon is [Eater Eve], 1 of your Digimon gets +3000 DP for the turn.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-083.ts",
+      "test": "apps/api/src/cards/BT22/BT22-083.test.ts",
+      "batch": 21,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-083.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-084",
+      "name": "Nokia Shiramine",
+      "kinds": [
+        "Tamer"
+      ],
+      "level": null,
+      "traits": [
+        "CS"
+      ],
+      "evolution": [],
+      "printedClauses": {
+        "main": "[Start of Your Turn] If you have 2 or less memory, set it to 3.\n[Start of Your Main Phase] [On Play] If you have 1 or fewer Digimon, you may play 1 [Agumon] or [Gabumon] from your hand without paying the cost.\n[All Turns] All your Digimon with [Greymon], [Garurumon] or [Omnimon] in their names get +1000 DP.",
+        "inherited": "",
+        "security": "[Security] Play this card without paying the cost.",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-084.ts",
+      "test": "apps/api/src/cards/BT22/BT22-084.test.ts",
+      "batch": 21,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-084.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-085",
+      "name": "Rina Shinomiya",
+      "kinds": [
+        "Tamer"
+      ],
+      "level": null,
+      "traits": [
+        "CS"
+      ],
+      "evolution": [],
+      "printedClauses": {
+        "main": "[Start of Your Turn] If you have 2 or less memory, set it to 3.\n[On Play] 1 of your Digimon with [Veedramon] in its name gets +3000 DP until your opponent's turn ends.\n[Your Turn] When one of your Digimon with [Veedramon] in its name attacks, by returning this Tamer to the hand, that Digimon gains ＜Jamming＞ for the turn.",
+        "inherited": "",
+        "security": "[Security] Play this card without paying the cost.",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-085.ts",
+      "test": "apps/api/src/cards/BT22/BT22-085.test.ts",
+      "batch": 22,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-085.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-086",
+      "name": "Yao Qinglan",
+      "kinds": [
+        "Tamer"
+      ],
+      "level": null,
+      "traits": [
+        "LIBERATOR"
+      ],
+      "evolution": [],
+      "printedClauses": {
+        "main": "[Start of Your Main Phase] By returning this Tamer to the bottom of the deck, you may play 1 [Yao Qinglan] from your hand without paying the cost. Then, if you don't have a Digimon, you may play 1 [Sangomon] from your trash without paying the cost.\n[All Turns] When effects add digivolution cards to any of your Digimon with [Aqua] or [Sea Animal] in any of their traits, by suspending this Tamer, ＜Draw 1＞",
+        "inherited": "",
+        "security": "[Security] Play this card without paying the cost.",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-086.ts",
+      "test": "apps/api/src/cards/BT22/BT22-086.test.ts",
+      "batch": 22,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-086.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-087",
+      "name": "Torajiro Asuka",
+      "kinds": [
+        "Tamer"
+      ],
+      "level": null,
+      "traits": [
+        "App Driver",
+        "Appmon"
+      ],
+      "evolution": [],
+      "printedClauses": {
+        "main": "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.  [Your Turn] When any of your Digimon get linked, by suspending this Tamer, 1 of your opponent's Digimon gets -2000 DP for the turn. Then, 1 of your Digimon may app fuse into a Digimon card in the hand.",
+        "inherited": "",
+        "security": "[Security] Play this card without paying the cost..",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-087.ts",
+      "test": "apps/api/src/cards/BT22/BT22-087.test.ts",
+      "batch": 22,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-087.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-088",
+      "name": "Arisa Kinosaki",
+      "kinds": [
+        "Tamer"
+      ],
+      "level": null,
+      "traits": [
+        "LIBERATOR"
+      ],
+      "evolution": [],
+      "printedClauses": {
+        "main": "[Start of Your Main Phase] By returning this Tamer to the bottom of the deck, you may play 1 [Arisa Kinosaki] from your hand without paying the cost. Then, if you don't have a Digimon, you may play 1 [Shoemon] from your trash without paying the cost.\n[All Turns] When any of your Tokens or [Puppet] trait Digimon are played, by suspending this Tamer, ＜Draw 1＞",
+        "inherited": "",
+        "security": "[Security] Play this card without paying the cost.",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-088.ts",
+      "test": "apps/api/src/cards/BT22/BT22-088.test.ts",
+      "batch": 22,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-088.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-089",
+      "name": "Mirei Mikagura",
+      "kinds": [
+        "Tamer"
+      ],
+      "level": null,
+      "traits": [
+        "CS"
+      ],
+      "evolution": [],
+      "printedClauses": {
+        "main": "[Start of Your Main Phase] By returning this Tamer to the bottom of the deck, you may play 1 play cost 4 or higher [Mirei Mikagura] or play cost 4 or higher Tamer card with the [CS] trait from your hand without paying the cost.\n[On Play] By trashing 1 card with the [Holy Beast], [Angel], [Archangel], [Fallen Angel] or [CS] trait from your hand, ＜Draw 2＞",
+        "inherited": "",
+        "security": "[Security] Play this card without paying the cost.",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-089.ts",
+      "test": "apps/api/src/cards/BT22/BT22-089.test.ts",
+      "batch": 23,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-089.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-090",
+      "name": "Rie Kishibe",
+      "kinds": [
+        "Tamer"
+      ],
+      "level": null,
+      "traits": [
+        "CS"
+      ],
+      "evolution": [],
+      "printedClauses": {
+        "main": "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.\n[End of Your Turn] [Once Per Turn] By deleting 1 of your other Digimon or Tamers with [Knightmon] in its text or the [CS] trait, this Tamer may digivolve into [LordKnightmon] in the hand with the digivolution cost reduced by 3.",
+        "inherited": "",
+        "security": "[Security] Play this card without paying the cost.",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-090.ts",
+      "test": "apps/api/src/cards/BT22/BT22-090.test.ts",
+      "batch": 23,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-090.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-091",
+      "name": "Arata Sanada",
+      "kinds": [
+        "Tamer"
+      ],
+      "level": null,
+      "traits": [
+        "CS"
+      ],
+      "evolution": [],
+      "printedClauses": {
+        "main": "[Security] Play this card without paying the cost.\n[Start of Your Turn] If you have 2 or less memory, set it to 3.\n[Opponent's Turn] When one of your opponent's Digimon attacks, by suspending this Tamer, change the attack target to 1 of your Digimon with the [Unidentified] or [CS] trait.",
+        "inherited": "[Opponent's Turn] [Once Per Turn] When one of your opponent's Digimon attacks, if this Digimon is [Eater Adam], you may change the attack target to 1 of your [Unidentified] or [CS] trait Digimon.",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-091.ts",
+      "test": "apps/api/src/cards/BT22/BT22-091.test.ts",
+      "batch": 23,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-091.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-092",
+      "name": "Jimmy KEN",
+      "kinds": [
+        "Tamer"
+      ],
+      "level": null,
+      "traits": [
+        "CS"
+      ],
+      "evolution": [],
+      "printedClauses": {
+        "main": "[Start of Your Turn] If you have 2 or less memory, set it to 3.\n[Your Turn] When your Digimon are played or digivolve, if any of them have the [Flame] or [CS] trait, by suspending this Tamer, activate 1 of those Digimon's [Main] effects. If this activated any effect, gain 1 memory.",
+        "inherited": "",
+        "security": "[Security] Play this card without paying the cost.",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-092.ts",
+      "test": "apps/api/src/cards/BT22/BT22-092.test.ts",
+      "batch": 23,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-092.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-093",
+      "name": "Ami Aiba",
+      "kinds": [
+        "Tamer"
+      ],
+      "level": null,
+      "traits": [
+        "CS"
+      ],
+      "evolution": [],
+      "printedClauses": {
+        "main": "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.\n[Your Turn] When any of your Digimon digivolve into a Digimon with the [CS] trait, if it has a digivolution card with the same level as the digivolved Digimon, by suspending this Tamer, that Digimon may digivolve into a Digimon card with the [CS] trait in the hand without paying the cost.",
+        "inherited": "",
+        "security": "[Security] Play this card without paying the cost.",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-093.ts",
+      "test": "apps/api/src/cards/BT22/BT22-093.test.ts",
+      "batch": 24,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-093.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-094",
+      "name": "Yuugo Kamishiro",
+      "kinds": [
+        "Tamer"
+      ],
+      "level": null,
+      "traits": [
+        "CS"
+      ],
+      "evolution": [],
+      "printedClauses": {
+        "main": "[On Play] Reveal the top 3 cards of your deck. Add 1 card with the [CS] trait among them to the hand. Return the rest to the bottom of the deck.\n[Your Turn] When any of your Digimon or Tamers with the [CS] trait would be played, by returning this Tamer to the bottom of the deck, reduce the play cost by 2.",
+        "inherited": "",
+        "security": "[Security] Play this card without paying the cost.",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-094.ts",
+      "test": "apps/api/src/cards/BT22/BT22-094.test.ts",
+      "batch": 24,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-094.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-095",
+      "name": "Akemi Suedou",
+      "kinds": [
+        "Tamer"
+      ],
+      "level": null,
+      "traits": [
+        "CS"
+      ],
+      "evolution": [],
+      "printedClauses": {
+        "main": "[Security] Play this card without paying the cost.\n[Your Turn] When any of your Digimon with the [Eater] trait are played, by suspending this Tamer, gain 1 memory. Then, if you have 7 or fewer cards in your hand, ＜Draw 1＞ \n[Main] Place this Tamer as any of your [Mother Eater]s' bottom digivolution card.",
+        "inherited": "[All Turns] While this Digimon is [Mother Eater], it gains ＜Rush＞ , ＜Alliance＞ and ＜Scapegoat＞",
+        "security": "",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-095.ts",
+      "test": "apps/api/src/cards/BT22/BT22-095.test.ts",
+      "batch": 24,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-095.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-096",
+      "name": "Unique Emblem: Poseidia Lagoon",
+      "kinds": [
+        "Option"
+      ],
+      "level": null,
+      "traits": [
+        "LIBERATOR"
+      ],
+      "evolution": [],
+      "printedClauses": {
+        "main": "[Main] You may play 1 [Sangomon] or [Yao Qinglan] from your hand or trash without paying the cost. Then, place this card in the battle area.\n[Your Turn] When any of your [Yao Qinglan] suspend, ＜Delay＞ \n・1 of your Digimon with [Aqua] or [Sea Animal] in any of its traits may digivolve into an [Aquatic] and [LIBERATOR] trait Digimon card in the hand with the digivolution cost reduced by 3.",
+        "inherited": "",
+        "security": "[Security] Activate this card's [Main] effects.",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-096.ts",
+      "test": "apps/api/src/cards/BT22/BT22-096.test.ts",
+      "batch": 24,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-096.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-097",
+      "name": "Music of the Heart",
+      "kinds": [
+        "Option"
+      ],
+      "level": null,
+      "traits": [
+        "Appmon"
+      ],
+      "evolution": [],
+      "printedClauses": {
+        "main": "While you have an [Appmon] trait Digimon or Tamer on the field, you can ignore this card's color requirements.\n[Main] ＜Draw 1＞ Then, place this card in the battle area.\n[All Turns] When any of your [Appmon] trait Digimon are played, ＜Delay＞ \n・You may link 1 [Appmon] trait Digimon card from your hand to 1 of your Digimon without paying the cost.",
+        "inherited": "",
+        "security": "[Security] Place this card in the battle area.",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-097.ts",
+      "test": "apps/api/src/cards/BT22/BT22-097.test.ts",
+      "batch": 25,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-097.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-098",
+      "name": "Unique Emblem: Fable Waltz",
+      "kinds": [
+        "Option"
+      ],
+      "level": null,
+      "traits": [
+        "LIBERATOR"
+      ],
+      "evolution": [],
+      "printedClauses": {
+        "main": "[Main] You may play 1 [Shoemon] or [Arisa Kinosaki] from your hand or trash without paying the cost. Then, place this card in the battle area.\n[Your Turn] When any of your [Arisa Kinosaki] suspend, ＜Delay＞ \n・1 of your [Puppet] trait Digimon may digivolve into a [Puppet] and [LIBERATOR] trait Digimon card in the hand with the digivolution cost reduced by 3.",
+        "inherited": "",
+        "security": "[Security] Activate this card's [Main] effects.",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-098.ts",
+      "test": "apps/api/src/cards/BT22/BT22-098.test.ts",
+      "batch": 25,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-098.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-099",
+      "name": "Kuremi Detective Agency",
+      "kinds": [
+        "Option"
+      ],
+      "level": null,
+      "traits": [
+        "CS"
+      ],
+      "evolution": [],
+      "printedClauses": {
+        "main": "While you have a [CS] trait Digimon or Tamer on the field, you can ignore this card's color requirements.\n[Main] Reveal the top 3 cards of your deck. Add 1 [CS] trait card among them to the hand. Return the rest to the bottom of the deck. Then, place this card in the battle area.\n[Main] ＜Delay＞ \n・Gain 2 memory.",
+        "inherited": "",
+        "security": "[Security] Place this card in the battle area.",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-099.ts",
+      "test": "apps/api/src/cards/BT22/BT22-099.test.ts",
+      "batch": 25,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-099.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-100",
+      "name": "Cyberspace EDEN",
+      "kinds": [
+        "Option"
+      ],
+      "level": null,
+      "traits": [
+        "CS"
+      ],
+      "evolution": [],
+      "printedClauses": {
+        "main": "While you have no face-up security cards, you can ignore this card's color requirements.\n[Security] [All Turns] All of your Digimon with the [CS] trait get +2000 DP.\n[Main] Add your bottom security card to the hand. Then, place this card face up as the bottom security card.",
+        "inherited": "",
+        "security": "[Security] You may play 1 play cost 5 or lower card with the [CS] trait from your hand without paying the cost.",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-100.ts",
+      "test": "apps/api/src/cards/BT22/BT22-100.test.ts",
+      "batch": 25,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-100.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-101",
+      "name": "Kyoko Kuremi",
+      "kinds": [
+        "Tamer"
+      ],
+      "level": null,
+      "traits": [
+        "CS"
+      ],
+      "evolution": [],
+      "printedClauses": {
+        "main": "[Start of Your Turn] If you have 2 or less memory, set it to 3.\n[All Turns] When any of your level 4 or higher [CS] trait Digimon are deleted, by suspending this Tamer, return 1 [CS] trait Digimon card from your trash to the hand.\n[Your Turn] [Once Per Turn] When this Tamer unsuspends, if you don't have [Alphamon], this Tamer may digivolve into [Alphamon] in the hand with the digivolution cost reduced by 2.",
+        "inherited": "",
+        "security": "[Security] Play this card without paying the cost.",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-101.ts",
+      "test": "apps/api/src/cards/BT22/BT22-101.test.ts",
+      "batch": 26,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-101.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    },
+    {
+      "cardId": "BT22-102",
+      "name": "Sayo",
+      "kinds": [
+        "Tamer"
+      ],
+      "level": null,
+      "traits": [
+        "Night Claw",
+        "CS"
+      ],
+      "evolution": [],
+      "printedClauses": {
+        "main": "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.\n[Your Turn] When one of your Digimon with 2 or more same-level cards in its stack attacks, by suspending this Tamer, digivolve it into a Digimon card with the [Night Claw], [Light Fang], [Galaxy] or [CS] trait in the trash with the digivolution cost reduced by 2.",
+        "inherited": "",
+        "security": "[Security] Play this card without paying the cost.",
+        "link": ""
+      },
+      "module": "apps/api/src/cards/BT22/BT22-102.ts",
+      "test": "apps/api/src/cards/BT22/BT22-102.test.ts",
+      "batch": 26,
+      "historicalScore": 10,
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavior": 0,
+        "peerStack": 0,
+        "delivery": 0
+      },
+      "status": "pending",
+      "evidence": "evidence/BT22-102.md",
+      "commands": [],
+      "gaps": [
+        "Independent clause, runtime, behavioral, legal-stack and delivery verification pending."
+      ]
+    }
+  ],
+  "baselineRun": {
+    "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism",
+    "result": "failed",
+    "passed": 566,
+    "failed": 2,
+    "files": 103,
+    "log": "logs/baseline-collection.log",
+    "failures": [
+      "BT22-007 On Play deletion leaves 2 opponents instead of 1",
+      "BT22-049 expected -6 memory, observed -3; inspect Vademon cost reduction"
+    ]
+  }
+}

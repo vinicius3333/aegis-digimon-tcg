@@ -1,0 +1,59 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt22-astra-luna/apps/api
+
+ ❯ src/cards/BT22/BT22-007.test.ts (10 tests | 1 failed) 37ms
+   ❯ BT22-007 battle-area clauses (2)
+     × deletes exactly one opposing Digimon on play 12ms
+ ❯ src/cards/BT22/BT22-049.test.ts (4 tests | 1 failed) 93ms
+   ❯ BT22-049 Vegiemon (4)
+     × pays all 3 face-down Ver.2 cards and evolves from hand at end of turn 17ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT22/BT22-007.test.ts > BT22-007 battle-area clauses > deletes exactly one opposing Digimon on play
+AssertionError: expected ArraySchema{ items: [ …(2) ], …(5) } to have a length of 1 but got 2
+
+- Expected
++ Received
+
+- 1
++ 2
+
+ ❯ src/cards/BT22/BT22-007.test.ts:298:44
+    296|     await settle(() => s.state.players[1]!.battleArea.length === 1);
+    297|
+    298|     expect(s.state.players[1]!.battleArea).toHaveLength(1);
+       |                                            ^
+    299|     expect(s.state.players[1]!.trash).toHaveLength(1);
+    300|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/cards/BT22/BT22-049.test.ts > BT22-049 Vegiemon > pays all 3 face-down Ver.2 cards and evolves from hand at end of turn
+AssertionError: expected -3 to be -6 // Object.is equality
+
+- Expected
++ Received
+
+- -6
++ -3
+
+ ❯ src/cards/BT22/BT22-049.test.ts:71:28
+     69|     // Ending the turn first crosses the gauge from +3 to -3; the norm…
+     70|     // evolution then pays another 3 rather than resolving for free.
+     71|     expect(s.state.memory).toBe(-6);
+       |                            ^
+     72|   });
+     73|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed | 101 passed (103)
+      Tests  2 failed | 566 passed (568)
+   Start at  00:42:40
+   Duration  15.96s (transform 53%, tests 36%, import 10%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt22-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT22 --pool=forks --maxWorkers=1 --no-file-parallelism
