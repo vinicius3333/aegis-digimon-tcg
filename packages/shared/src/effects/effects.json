@@ -71754,6 +71754,7 @@
               "host": "self"
             },
             "optional": true,
+            "allowCostWithoutTarget": true,
             "abortOnDecline": true
           }
         ]
@@ -71785,6 +71786,7 @@
               "host": "self"
             },
             "optional": true,
+            "allowCostWithoutTarget": true,
             "abortOnDecline": true
           }
         ]

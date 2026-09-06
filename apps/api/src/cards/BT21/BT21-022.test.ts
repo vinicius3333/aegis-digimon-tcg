@@ -1,3 +1,4 @@
+import { CardKind, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -49,6 +50,7 @@ describe("BT21-022 Canoweissmon", () => {
                 raw: "By placing 1 Digimon card with [Gammamon] in its text from your hand as this Digimon's bottom digivolution card",
               },
               optional: true,
+              allowCostWithoutTarget: true,
               abortOnDecline: true,
             },
           ],
@@ -118,6 +120,77 @@ describe("BT21-022 Canoweissmon", () => {
     expect(s.state.memory).toBe(3);
   });
 
+  it("publicly uses the alternate Gammamon-text Lv4 route and still pays placement with no deletion target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-002", as: "host" }],
+          hand: [
+            { card: "BT21-010", as: "lv3" },
+            { card: "BT21-019", as: "lv4" },
+            { card: "BT21-022", as: "canoweissmon" },
+            { card: "BT21-019", as: "material" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "ineligible", dp: 8000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    for (const alias of ["lv3", "lv4"] as const) {
+      expect(
+        s.engine.applyIntent(0, { type: "digivolve", permanentId: hostId, instanceId: s.inst(alias).instanceId }),
+      ).toEqual({
+        ok: true,
+      });
+      await settle(() => s.perm("host").topCard.instanceId === s.inst(alias).instanceId);
+    }
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: hostId,
+        instanceId: s.inst("canoweissmon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("host").topCard.instanceId === s.inst("canoweissmon").instanceId);
+
+    expect(s.perm("host").stack[0]?.instanceId).toBe(s.inst("material").instanceId);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-010")).toBe(true);
+    expect(s.state.memory).toBe(4);
+  });
+
+  it("rejects the alternate evolution when the Lv4 has no Gammamon text", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-015", as: "host" }],
+        hand: [
+          { card: "BT21-022", as: "canoweissmon" },
+          { card: "BT1-009", as: "nonMatch" },
+        ],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    const result = s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("host").permanentId,
+      instanceId: s.inst("canoweissmon").instanceId,
+      alternateRequirementIndex: 0,
+    });
+    expect(result.ok).toBe(false);
+    expect(s.perm("host").topCard.cardId).toBe("BT21-015");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
+      s.inst("canoweissmon").instanceId,
+      s.inst("nonMatch").instanceId,
+    ]);
+  });
+
   it("does not pay with a nonmatching card and permits declining the placement cost", async () => {
     for (const [material, options] of [
       ["BT1-009", { autoAcceptOptional: true, autoSelectCards: true }],
@@ -179,24 +252,74 @@ describe("BT21-022 Canoweissmon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
   });
 
-  it("naturally prevents an opponent's public Gaia Force deletion by trashing three sources", async () => {
+  it("naturally proves once-per-turn prevention with two public Gaia Force deletions", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT21-028", as: "host", under: ["BT21-002", "BT21-010", "BT21-019", "BT21-022"] }] },
-        1: { battleArea: [{ card: "BT1-009", as: "redSource" }], hand: [{ card: "ST1-16", as: "gaiaForce" }] },
+        0: {
+          battleArea: [{ card: "BT21-019", as: "host", under: [{ card: "BT21-010", as: "source1" }] }],
+          hand: [
+            { card: "BT21-022", as: "canoweissmon" },
+            { card: "BT21-028", as: "siriusmon" },
+            { card: "BT21-019", as: "material1" },
+            { card: "BT21-010", as: "material2" },
+            { card: "BT21-028", as: "material3" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "victim1" },
+            { card: "BT1-010", as: "victim2" },
+            { card: "BT21-019", as: "victim3" },
+            { card: "BT1-085", as: "redTamer" },
+          ],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+          hand: [
+            { card: "ST1-16", as: "gaiaForce" },
+            { card: "ST1-16", as: "gaiaForce2" },
+          ],
+        },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    s.state.turnSeat = 1;
-    s.state.memory = 10;
+    preferred.push(s.inst("source1").instanceId, s.inst("material1").instanceId, s.inst("material2").instanceId);
+    s.state.memory = 20;
     const hostId = s.perm("host").permanentId;
     await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: hostId,
+        instanceId: s.inst("canoweissmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.instanceId === s.inst("canoweissmon").instanceId);
+    expect(
+      s.engine.applyIntent(0, { type: "digivolve", permanentId: hostId, instanceId: s.inst("siriusmon").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.instanceId === s.inst("siriusmon").instanceId);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").stack.length >= 5);
+    expect(
+      s.perm("host").stack.filter((card) => getCardDefinition(card.cardId)?.kinds.includes(CardKind.Digimon)).length,
+    ).toBeGreaterThanOrEqual(6);
+    s.state.memory = 20;
+    s.state.turnSeat = 1;
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaiaForce").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.state.players[0]!.trash.length === 3);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toContain("BT21-022");
+    expect(
+      s.perm("host").stack.filter((card) => getCardDefinition(card.cardId)?.kinds.includes(CardKind.Digimon)).length,
+    ).toBeGreaterThanOrEqual(3);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(true);
-    expect(s.state.players[0]!.trash).toHaveLength(3);
-    expect(s.state.memory).toBe(2);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaiaForce2").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
   });
 });
