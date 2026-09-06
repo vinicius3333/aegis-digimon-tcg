@@ -1,5 +1,6 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT23-016.js";
@@ -36,7 +37,7 @@ describe("BT23-016 Dokamon", () => {
             {
               kind: "PlayWithoutCost",
               target: {
-                filter: { controller: "mine", nameOrTrait: [{ tokens: ["Eri Karan"], match: "name" }] },
+                filter: { controller: "mine", nameOrTrait: [{ tokens: ["Eri Karan"], match: "nameExact" }] },
                 count: 1,
               },
               from: ["hand"],
@@ -207,7 +208,7 @@ describe("BT23-016 Dokamon", () => {
   it("digivolves for 0 from an off-color level-2 Appmon and rejects an off-color non-Appmon", async () => {
     const legal = setupEngine({
       0: {
-        battleArea: [{ card: "BT21-005", as: "base" }],
+        breeding: { card: "BT21-005", as: "base" },
         hand: [{ card: "BT23-016", as: "dokamon" }],
         deck: ["BT1-009"],
       },
@@ -222,9 +223,11 @@ describe("BT23-016 Dokamon", () => {
     ).toEqual({ ok: true });
     await settle(() => legal.perm("base").topCard.instanceId === legal.inst("dokamon").instanceId);
     expect(legal.state.memory).toBe(0);
+    expect(legal.perm("base").stack.map((card) => card.instanceId)).toEqual([legal.inst("base").instanceId]);
+    expect(legal.perm("base").topCard.instanceId).toBe(legal.inst("dokamon").instanceId);
 
     const illegal = setupEngine({
-      0: { battleArea: [{ card: "BT23-002", as: "base" }], hand: [{ card: "BT23-016", as: "dokamon" }] },
+      0: { breeding: { card: "BT23-002", as: "base" }, hand: [{ card: "BT23-016", as: "dokamon" }] },
     });
     await illegal.ready();
     expect(
@@ -234,5 +237,55 @@ describe("BT23-016 Dokamon", () => {
         instanceId: illegal.inst("dokamon").instanceId,
       }),
     ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
+
+  it("caps the Your Turn Eri trigger per turn and resets it on the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-016", as: "dokamon" }],
+          hand: [
+            { card: "BT23-007", as: "firstLink" },
+            { card: "BT23-007", as: "secondLink" },
+            { card: "BT23-007", as: "thirdLink" },
+            { card: "BT23-079", as: "firstEri" },
+            { card: "BT23-079", as: "secondEri" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016"],
+        },
+        1: { deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
+    const link = (alias: "firstLink" | "secondLink" | "thirdLink") =>
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst(alias).instanceId,
+        targetPermanentId: s.perm("dokamon").permanentId,
+      });
+    const handBefore = s.state.players[0]!.hand.length;
+    expect(link("firstLink")).toEqual({ ok: true });
+    await settle(() => s.perm("dokamon").linked.some((card) => card.instanceId === s.inst("firstLink").instanceId));
+    expect(s.state.players[0]!.hand.length).toBe(handBefore - 2); // link leaves hand and Eri is played for free
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("firstEri").instanceId)).toBe(
+      true,
+    );
+    expect(link("secondLink")).toEqual({ ok: true });
+    await settle(() => s.perm("dokamon").linked.some((card) => card.instanceId === s.inst("secondLink").instanceId));
+    expect(s.state.players[0]!.battleArea.filter((p) => p.topCard?.cardId === "BT23-079")).toHaveLength(1);
+    expect(s.state.memory).toBe(8);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(link("thirdLink")).toEqual({ ok: true });
+    await settle(() => s.perm("dokamon").linked.some((card) => card.instanceId === s.inst("thirdLink").instanceId));
+    expect(s.state.players[0]!.battleArea.filter((p) => p.topCard?.cardId === "BT23-079")).toHaveLength(2);
+    expect(s.state.memory).toBe(2); // the next turn begins at 3 memory, then pays the 1 link cost
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

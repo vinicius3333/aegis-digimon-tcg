@@ -1,9 +1,15 @@
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { effectsOf } from "../../engine/effects/collect.js";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT24/BT24-016.js";
 import { compiled } from "./BT23-005.js";
+
+function lamiamonMainEffectKey(s: ReturnType<typeof setupEngine>): string {
+  const source = s.engine.cardSourceOf(s.inst("lamiamon"));
+  return effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("BT24-016/"))!
+    .effectKey;
+}
 
 describe("BT23-005 Elizamon", () => {
   it("matches the catalog, rulings, and complete IR contract", () => {
@@ -152,7 +158,13 @@ describe("BT23-005 Elizamon", () => {
     s.state.memory = 5;
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.OnDeclaration, s.inst("lamiamon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("lamiamon").instanceId,
+        effectKey: lamiamonMainEffectKey(s),
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("elizamon").topCard.instanceId === s.inst("lamiamon").instanceId);
 
     expect(s.state.memory).toBe(3);

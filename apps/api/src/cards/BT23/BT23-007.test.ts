@@ -97,6 +97,7 @@ describe("BT23-007 Musclemon", () => {
     ).toEqual({ ok: true });
     await settle(() => eligible.perm("appmonEgg").topCard.instanceId === eligible.inst("muscle").instanceId);
     expect(eligible.state.memory).toBe(0);
+    expect(eligible.perm("appmonEgg").stack[0]!.instanceId).toBe(eligible.inst("appmonEgg").instanceId);
 
     const ineligible = setupEngine({
       0: { breeding: { card: "BT2-005", as: "nonAppmonEgg" }, hand: [{ card: "BT23-007", as: "muscle" }] },
@@ -133,6 +134,27 @@ describe("BT23-007 Musclemon", () => {
     expect(s.state.memory).toBe(4);
     expect(s.perm("host").currentDP).toBe(baseDp + 2000);
     expect(s.perm("host").linked.map(({ instanceId }) => instanceId)).toContain(s.inst("muscle").instanceId);
+  });
+
+  it("uses linked Piercing to check security after deleting a suspended Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-009", as: "host", linked: ["BT23-007"] }] },
+        1: { battleArea: [{ card: "BT1-009", as: "defender", dp: 1000, suspended: true }], security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const defenderId = s.perm("defender").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: defenderId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === defenderId)).toBe(false);
   });
 
   it("cannot link to a non-Appmon and leaves both memory and zones unchanged", async () => {

@@ -167,4 +167,56 @@ describe("BT23-012 Garudamon", () => {
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("bird").instanceId);
     expect(s.state.memory).toBe(2);
   });
+
+  it("resolves top-card On Deletion after a natural battle deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-012", suspended: true, as: "garuda" }],
+          hand: [{ card: "BT1-012", as: "bird" }],
+          deck: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-010", dp: 10000, as: "attacker" }], deck: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("garuda").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("bird").instanceId));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("bird").instanceId)).toBe(true);
+  });
+
+  it("expires the public Raid grant at the opponent's turn boundary", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT23-012", as: "garuda" }],
+          battleArea: [{ card: "BT1-012", as: "recipient" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-013"],
+        },
+        1: { deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-013"] },
+      },
+      { autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("garuda").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("recipient"), "Raid"));
+    expect(observe(s.engine).hasKeyword(s.perm("recipient"), "Raid")).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(observe(s.engine).hasKeyword(s.perm("recipient"), "Raid")).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
 });

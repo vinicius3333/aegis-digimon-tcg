@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../BT15/BT15-069.js";
 import { compiled } from "./BT23-004.js";
 
 describe("BT23-004 DemiMeramon", () => {
@@ -61,7 +62,7 @@ describe("BT23-004 DemiMeramon", () => {
         0: {
           deck: ["BT1-009", "BT1-009", "BT1-009"],
           battleArea: [
-            { card: "BT1-010", under: ["BT23-004"], as: "source", suspended: true },
+            { card: "BT15-069", under: ["BT23-004"], as: "source", suspended: true },
             { card: "BT20-063", as: "firstGhost" },
             { card: "BT20-067", as: "chosenGhost" },
             { card: "BT1-009", as: "nonGhost" },
@@ -88,8 +89,9 @@ describe("BT23-004 DemiMeramon", () => {
         target: { kind: "permanent", permanentId: s.perm("source").permanentId },
       }),
     ).toEqual({ ok: true });
+    const sourcePermanentId = s.perm("source").permanentId;
     await settle(
-      () => !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-010"),
+      () => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === sourcePermanentId),
     );
 
     expect(observe(s.engine).hasKeyword(s.perm("chosenGhost"), "Blocker")).toBe(true);
@@ -113,5 +115,33 @@ describe("BT23-004 DemiMeramon", () => {
     expect(await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect")).toBe(1);
     expect(s.decisions).toHaveLength(0);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
+  });
+
+  it("public breeding evolution preserves source and pays 0", async () => {
+    const s = setupEngine({
+      0: {
+        deck: ["BT1-009", "BT1-009", "BT1-009"],
+        breeding: { card: "BT23-004", as: "egg" },
+        hand: [{ card: "BT15-069", as: "candlemon" }],
+        battleArea: [{ card: "BT20-063", as: "ghost" }],
+      },
+      1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 3000 }] },
+    });
+    s.state.memory = 0;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const result = s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("egg").permanentId,
+      instanceId: s.inst("candlemon").instanceId,
+    });
+    expect(result).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.instanceId === s.inst("candlemon").instanceId);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(s.inst("candlemon").instanceId);
+    expect(s.perm("egg").stack.map(({ cardId }) => cardId)).toEqual(["BT23-004"]);
+    expect(s.perm("egg").topCard.cardId).toBe("BT15-069");
+    expect(s.state.memory).toBe(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
   });
 });

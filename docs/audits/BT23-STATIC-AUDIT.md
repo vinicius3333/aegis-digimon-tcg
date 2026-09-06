@@ -1,5 +1,7 @@
 # BT23 Card Implementation Audit Ledger
 
+> Historical completion claims. The independent audit started 2026-09-06 is INCOMPLETE; current scores and evidence are in [BT23-REAUDIT-LEDGER.md](BT23-REAUDIT-LEDGER.md). The results below must be independently revalidated.
+
 Status: complete — 102/102 cards independently traceable at 10/10
 
 Baseline catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
@@ -115,15 +117,15 @@ Each card receives two points in each fixed category: Catalog/rules, IR trace, B
 | BT23-088 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Detailed catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.      |
 | BT23-089 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Detailed catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.      |
 | BT23-090 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Detailed catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.      |
-| BT23-091 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Public CS attack pays Delay; non-CS and opponent-controlled CS attacks prove subject and ownership gates.                  |
+| BT23-091 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Public CS attack pays Delay; non-CS and opponent-controlled CS attacks prove subject and ownership gates.                 |
 | BT23-092 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Public CS attack applies both restrictions; a non-CS attack proves the negative gate.                                     |
 | BT23-093 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Public suspension preserves provenance and links only a friendly Appmon; opponent ownership and breeding waiver pass.     |
-| BT23-094 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Public CS attack binds both timing masks to one target; non-CS and breeding-waiver cases pass.                             |
-| BT23-095 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Public CS attack returns only a suspended target; non-CS and breeding-waiver cases pass.                                   |
-| BT23-096 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Public CS attack De-Digivolves a legal five-card stack to the level-3 floor; breeding waiver is proven.                    |
-| BT23-097 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Public evolution isolates its level-4 deletion; decline and opponent-ownership negatives prove both abort gates.           |
+| BT23-094 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Public CS attack binds both timing masks to one target; non-CS and breeding-waiver cases pass.                            |
+| BT23-095 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Public CS attack returns only a suspended target; non-CS and breeding-waiver cases pass.                                  |
+| BT23-096 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Public CS attack De-Digivolves a legal five-card stack to the level-3 floor; breeding waiver is proven.                   |
+| BT23-097 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Public evolution isolates its level-4 deletion; decline and opponent-ownership negatives prove both abort gates.          |
 | BT23-098 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Public Ghost evolution resolves only a friendly Violet suspension; invalid destination and opponent ownership are proven. |
-| BT23-099 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Public Huckmon evolution free-plays Sistermon; non-Huckmon, opponent ownership, and breeding waiver negatives pass.        |
+| BT23-099 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Public Huckmon evolution free-plays Sistermon; non-Huckmon, opponent ownership, and breeding waiver negatives pass.       |
 | BT23-100 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Canonical breeding-zone waiver and Security/Main Delay behavior pass focused proof.                                       |
 | BT23-101 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Detailed catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.      |
 | BT23-102 |           2/2 |      2/2 |              2/2 |                  2/2 |                     2/2 | 10/10  | Detailed catalog/KB, executable IR, focused behavior, peer/stack, persistence, and bounded delivery evidence passed.      |

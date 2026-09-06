@@ -45,19 +45,19 @@ describe("BT23-008 Greymon", () => {
               target: {
                 filter: {
                   controller: "mine",
-                  nameOrTrait: [{ tokens: ["Gabumon", "Nokia Shiramine"], match: "name" }],
+                  nameOrTrait: [{ tokens: ["Gabumon", "Nokia Shiramine"], match: "nameExact" }],
                 },
                 count: 1,
+                upTo: true,
               },
               from: ["hand"],
               payCost: true,
               reduceCostBy: 2,
               cost: {
                 kind: "place",
-                optional: true,
                 target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
               },
-              optional: true,
+              optional: false,
               abortOnDecline: true,
             },
           ],
@@ -191,7 +191,7 @@ describe("BT23-008 Greymon", () => {
     expect(s.state.memory).toBe(4);
   });
 
-  it("allows the controller to decline before paying the restack cost", async () => {
+  it("still pays and restacks when the optional reduced play is declined", async () => {
     const s = setupEngine(
       {
         0: {
@@ -199,7 +199,7 @@ describe("BT23-008 Greymon", () => {
           hand: [{ card: "BT22-084", as: "nokia" }],
         },
       },
-      { autoDeclineOptional: true, autoSelectCards: true },
+      { autoSelectCards: false },
     );
     s.state.memory = 5;
     const before = [s.perm("greymon").topCard.instanceId, ...s.perm("greymon").stack.map((card) => card.instanceId)];
@@ -211,13 +211,65 @@ describe("BT23-008 Greymon", () => {
         effectKey: mainEffectKey(s),
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "selectCards"));
+    const playPrompt = s.decisions.find(({ req }) => req.kind === "selectCards")!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: playPrompt.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
     await settle();
 
-    expect([s.perm("greymon").topCard.instanceId, ...s.perm("greymon").stack.map((card) => card.instanceId)]).toEqual(
-      before,
-    );
+    expect([
+      s.perm("greymon").topCard.instanceId,
+      ...s.perm("greymon").stack.map((card) => card.instanceId),
+    ]).not.toEqual(before);
+    expect(s.perm("greymon").stack[0]!.instanceId).toBe(s.inst("greymon").instanceId);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("nokia").instanceId);
     expect(s.state.memory).toBe(5);
+  });
+
+  it("plays exact Gabumon while retaining a Gabumon X Antibody near-name variant", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-008", as: "greymon", under: ["BT23-001"] }],
+          hand: [
+            { card: "BT1-029", as: "gabumon" },
+            { card: "BT9-020", as: "xGabumon" },
+          ],
+        },
+      },
+      { autoSelectCards: false },
+    );
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("greymon").instanceId,
+        effectKey: mainEffectKey(s),
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "selectCards"));
+    const playDecision = s.decisions.find(({ req }) => req.kind === "selectCards")!;
+    expect(playDecision?.req.options?.candidateInstanceIds).toContain(s.inst("gabumon").instanceId);
+    expect(playDecision?.req.options?.candidateInstanceIds).not.toContain(s.inst("xGabumon").instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: playDecision.req.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("gabumon").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("gabumon").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("gabumon").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("xGabumon").instanceId);
   });
 
   it("supports both alternate level-3 boundaries and rejects an off-color nonmatch", async () => {
@@ -270,6 +322,7 @@ describe("BT23-008 Greymon", () => {
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === raidTargetId));
 
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === raidTargetId)).toBe(false);
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
