@@ -73,6 +73,37 @@ describe("BT21-087 Zenith", () => {
     expect(setup.state.players[0]!.trash).toHaveLength(2);
   });
 
+  it("publicly chooses the exact-name Vemmon free-play disposition", async () => {
+    const setup = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT21-087", as: "zenith" }],
+          deck: [
+            { card: "BT21-056", as: "vemmon" },
+            { card: "BT1-009", as: "rest1" },
+            { card: "BT1-010", as: "rest2" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, autoChooseOption: true, preferOptionIndex: 1 },
+    );
+    setup.state.memory = 4;
+    await setup.ready();
+    expect(setup.engine.applyIntent(0, { type: "playCard", instanceId: setup.inst("zenith").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => setup.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-056"));
+    expect(setup.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-056")).toBe(true);
+    expect(setup.state.players[0]!.hand.some((card) => card.instanceId === setup.inst("vemmon").instanceId)).toBe(
+      false,
+    );
+    expect(setup.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([setup.inst("rest1").instanceId, setup.inst("rest2").instanceId]),
+    );
+    expect(setup.state.players[0]!.deck).toHaveLength(0);
+    expect(setup.state.memory).toBe(0);
+  });
+
   // The revealed cards are still in the deck, which no client's state carries: the prompt is
   // the only channel that can name them, and a card it leaves unnamed is drawn as a card back.
   it("names every revealed card in the prompt that offers them", async () => {
