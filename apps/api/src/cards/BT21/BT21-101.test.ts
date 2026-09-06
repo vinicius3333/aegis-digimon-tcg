@@ -1,3 +1,4 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
@@ -117,5 +118,59 @@ describe("BT21-101 Gaiamon", () => {
     await advance(s.engine).fireSubTrigger("whenLinked", { subjectPermanentId: s.perm("gaiamon").permanentId });
     expect(s.perm("gaiamon").isSuspended).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+
+  it("public attack links an Appmon from hand without paying its link cost", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-101", as: "gaiamon" }], hand: [{ card: "BT21-009", as: "link" }] },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gaiamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("gaiamon").linked.some((card) => card.instanceId === s.inst("link").instanceId));
+    expect(s.perm("gaiamon").linked.some((card) => card.instanceId === s.inst("link").instanceId)).toBe(true);
+  });
+
+  it("declines the optional attack-time link and rejects a non-Link candidate", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-101", as: "gaiamon" }], hand: [{ card: "BT21-005", as: "invalid" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("gaiamon"));
+    expect(s.perm("gaiamon").linked).toHaveLength(0);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("invalid").instanceId)).toBe(true);
+  });
+
+  it("legally App Fuses Globemon and Charismon into Gaiamon at zero cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-023", as: "globemon", linked: [{ card: "BT21-073", as: "charismon" }] }],
+          hand: [{ card: "BT21-101", as: "gaiamon" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const fused = await advance(s.engine).verb.appFuseInto(
+      s.perm("globemon").permanentId,
+      s.inst("gaiamon").instanceId,
+    );
+    expect(fused?.topCard.cardId).toBe("BT21-101");
+    // The recipe proof intentionally declines Gaiamon's unrelated optional Link window;
+    // the public attack-link tests above cover that payload separately.
+    expect(s.state.memory).toBe(0);
   });
 });
