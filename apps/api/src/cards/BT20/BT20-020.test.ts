@@ -128,4 +128,38 @@ describe("BT20-020 Imperialdramon: Fighter Mode", () => {
     await settle(() => false, 50);
     expect(s.perm("secondEligible")).toBeDefined();
   });
+  it("naturally deletes an opposing Digimon after a security check within the source DP limit", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-020", as: "fighter" }] },
+        1: {
+          security: ["BT20-001"],
+          battleArea: [
+            { card: "BT20-014", dp: 10000, as: "eligible" },
+            { card: "BT20-014", dp: 14000, as: "tooLarge" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("fighter").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some(
+          (permanent) => permanent.topCard.cardId === "BT20-014" && permanent.baseDP === 10000,
+        ),
+    );
+    expect(
+      s.state.players[1]!.battleArea.some(
+        (permanent) => permanent.topCard.cardId === "BT20-014" && permanent.baseDP === 14000,
+      ),
+    ).toBe(true);
+  });
 });
