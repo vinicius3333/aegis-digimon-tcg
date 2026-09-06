@@ -89,6 +89,32 @@ describe("BT20-053 Grademon", () => {
     }
   });
 
+  it("does not play the optional rookie when the breeding area is occupied", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT20-053", as: "grademon" },
+            { card: "BT20-048", as: "rookie" },
+          ],
+          breeding: { card: "BT20-003", as: "occupied" },
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("grademon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-053") &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.state.players[0]!.breeding?.topCard.cardId).toBe("BT20-003");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("rookie").instanceId);
+  });
+
   it("Q4721 grants +5000 DP and Digimon-effect immunity during an opponent attack", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
