@@ -115,21 +115,30 @@ describe("BT21-084 Haru Shinkai", () => {
         0: {
           battleArea: [
             { card: "BT21-084", as: "haru" },
-            { card: "BT21-043", as: "sociamon", linked: [{ card: "BT21-070", as: "gossipmon" }] },
+            { card: "BT21-043", as: "sociamon" },
           ],
-          hand: [{ card: "BT21-073", as: "charismon" }],
+          hand: [
+            { card: "BT21-073", as: "charismon" },
+            { card: "BT21-070", as: "gossipmon" },
+          ],
           deck: ["BT1-009"],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 3;
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenLinked", {
-      subjectPermanentId: s.perm("sociamon").permanentId,
-      linkedCardInstanceIds: [s.inst("gossipmon").instanceId],
-    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("gossipmon").instanceId,
+        targetPermanentId: s.perm("sociamon").permanentId,
+      }),
+    ).toEqual({ ok: true });
 
+    await settle(() => s.perm("sociamon").linked.some((card) => card.instanceId === s.inst("gossipmon").instanceId));
+    expect(s.perm("sociamon").linked).toHaveLength(1);
     expect(s.perm("haru").isSuspended).toBe(false);
     expect(s.state.players[0]!.deck).toHaveLength(1);
     expect(s.perm("sociamon").topCard.cardId).toBe("BT21-043");
@@ -139,16 +148,25 @@ describe("BT21-084 Haru Shinkai", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT21-084", as: "haru" }], deck: ["BT1-009"] },
-        1: { battleArea: [{ card: "BT21-043", as: "opponent", linked: [{ card: "BT21-070", as: "link" }] }] },
+        1: {
+          battleArea: [{ card: "BT21-043", as: "opponent" }],
+          hand: [{ card: "BT21-070", as: "link" }],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenLinked", {
-      subjectPermanentId: s.perm("opponent").permanentId,
-      linkedCardInstanceIds: [s.inst("link").instanceId],
-    });
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("opponent").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("opponent").linked.length === 1);
     expect(s.perm("haru").isSuspended).toBe(false);
     expect(s.state.players[0]!.deck).toHaveLength(1);
   });
