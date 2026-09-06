@@ -1,0 +1,87 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 [Start of Main Phase] place Xros Heart Digimon under Tamer → draw + memory > places Xros Heart Digimon under Tamer, draws 1, gains 1 memory 19ms
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 [Start of Main Phase] place Xros Heart Digimon under Tamer → draw + memory > does NOT draw when no qualifying Digimon is in hand (canActivate gate) 2ms
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 module registration > registers the played/digivolved attack watcher and security skill 1ms
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 module registration > suspends to make a newly played Xros Heart Digimon attack 12ms
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 module registration > does not suspend for a newly played nonmatching Digimon 1ms
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 module registration > does not react when the opponent plays a qualifying Xros Heart Digimon 4ms
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 module registration > suspends to make a newly digivolved Hero attack 10ms
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 module registration > declining the watcher leaves Taiki and the arrived Digimon unsuspended 1ms
+ ✓ src/cards/BT21/BT21-083.test.ts > BT21-083 module registration > plays itself from security without paying cost 4ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > plays from security, enables paid Hybrid/Hero digivolution, and gates the inherited trigger to opponent security 1ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > Q4595 counts itself and evolves into a Hybrid for 1 less 6ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > resolves the reduced Hybrid evolution at the public start of main phase 6ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > counts different red Tamer names once each 5ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > does not evolve into a non-Hybrid non-Hero card 1ms
+ × src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > inherited watcher plays one red Tamer only for opponent security removal 9ms
+   → alias "secondTamer" is not declared in the Board Spec: expected undefined to be defined
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > triggers the inherited Tamer play from a public opponent security check 16ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > does not play the inherited Tamer when the opponent removes your security 9ms
+ ✓ src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > plays itself from security without paying cost 3ms
+ ✓ src/cards/BT21/BT21-084.test.ts > BT21-084 Haru Shinkai > sets memory at the start of turn, draws on linking, and fuses from hand 0ms
+ ✓ src/cards/BT21/BT21-084.test.ts > BT21-084 Haru Shinkai > app fuses only from the linked-trigger window 9ms
+ ✓ src/cards/BT21/BT21-084.test.ts > BT21-084 Haru Shinkai > sets memory from 2 to 3 at start of turn 1ms
+ ✓ src/cards/BT21/BT21-084.test.ts > BT21-084 Haru Shinkai > sets memory from 3 to 3 at start of turn 1ms
+ ✓ src/cards/BT21/BT21-084.test.ts > BT21-084 Haru Shinkai > sets memory from 4 to 4 at start of turn 1ms
+ ✓ src/cards/BT21/BT21-084.test.ts > BT21-084 Haru Shinkai > public linking suspends Haru, draws, and app fuses the linked Digimon 10ms
+ ✓ src/cards/BT21/BT21-084.test.ts > BT21-084 Haru Shinkai > declining the watcher leaves Haru unsuspended and does not draw or fuse 3ms
+ ✓ src/cards/BT21/BT21-084.test.ts > BT21-084 Haru Shinkai > does not trigger for an opponent's linked Digimon 2ms
+ ✓ src/cards/BT21/BT21-084.test.ts > BT21-084 Haru Shinkai > plays itself from security without paying cost 3ms
+ ✓ src/cards/BT21/BT21-081.test.ts > BT21-081 Owen Dreadnought > suspends this Tamer, grants Piercing to a Reptile/Dragonkin, and makes that same Digimon attack 0ms
+ ✓ src/cards/BT21/BT21-081.test.ts > BT21-081 Owen Dreadnought > start of main without an opposing Digimon gains NaN memory 1ms
+ ✓ src/cards/BT21/BT21-081.test.ts > BT21-081 Owen Dreadnought > start of main with an opposing Digimon gains NaN memory 1ms
+ ✓ src/cards/BT21/BT21-081.test.ts > BT21-081 Owen Dreadnought > Q4593 suspends Owen, grants Piercing, and forces the selected Digimon to attack 6ms
+ ✓ src/cards/BT21/BT21-081.test.ts > BT21-081 Owen Dreadnought > declining does not suspend Owen or attack 2ms
+ ✓ src/cards/BT21/BT21-081.test.ts > BT21-081 Owen Dreadnought > may pay the suspend cost without an eligible Reptile or Dragonkin 3ms
+ ✓ src/cards/BT21/BT21-081.test.ts > BT21-081 Owen Dreadnought > plays itself from security without paying cost 4ms
+ × src/cards/BT21/BT21-081.test.ts > BT21-081 Owen Dreadnought > uses the granted Piercing during a forced Dragonkin battle and clears it at turn end 5ms
+   → expected true to be false // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-081.test.ts > BT21-081 Owen Dreadnought > uses the granted Piercing during a forced Dragonkin battle and clears it at turn end
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/cards/BT21/BT21-081.test.ts:195:100
+    193|     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok…
+    194|     await ownTurn;
+    195|     expect(s.state.players[1]!.battleArea.some((permanent) => permanen…
+       |                                                                                                    ^
+    196|     expect(s.state.players[1]!.security).toHaveLength(1);
+    197|     expect(s.perm("dragonkin").isSuspended).toBe(true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/cards/BT21/BT21-082.test.ts > BT21-082 Takuya Kanbara > inherited watcher plays one red Tamer only for opponent security removal
+AssertionError: alias "secondTamer" is not declared in the Board Spec: expected undefined to be defined
+ ❯ lookup src/engine/testkit/harness.ts:416:73
+    414|   const lookup = (alias: string) => {
+    415|     const entry = aliases.get(alias);
+    416|     expect(entry, `alias "${alias}" is not declared in the Board Spec`…
+       |                                                                         ^
+    417|     return entry as { kind: "permanent" | "instance"; id: string; inst…
+    418|   };
+ ❯ Object.inst src/engine/testkit/harness.ts:435:21
+ ❯ src/cards/BT21/BT21-082.test.ts:141:74
+ ❯ Proxy.some ../../node_modules/.pnpm/@colyseus+schema@3.0.76/node_modules/@colyseus/schema/src/types/custom/ArraySchema.ts:566:27
+ ❯ src/cards/BT21/BT21-082.test.ts:141:37
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed | 2 passed (4)
+      Tests  2 failed | 33 passed (35)
+   Start at  18:26:34
+   Duration  9.30s (transform 84%, import 15%, tests 2%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-081.test.ts src/cards/BT21/BT21-082.test.ts src/cards/BT21/BT21-083.test.ts src/cards/BT21/BT21-084.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

@@ -1,5 +1,12 @@
 # Open findings
 
+## Current status after the second-pass 084 checkpoint
+
+The full collection/mechanism run is green at 1878/1878 (121 files), plus the separate grant-duration mechanism 1/1. Historical “pending execution” and “uncommitted” notes below describe earlier snapshots. All named shared fixes and card fixes through 084 have atomic delivery commits. BT21-069 is delivered by cb86ea589; BT21-081 by 61ee00248. Public 073/077 forced-attack lifecycle gaps now have green producers, including explicit Collision blocking and expiration for 077.
+
+Outstanding strict proof includes earlier 004/005 upstream-rejection negatives; 038 target-lock behavior; 042 and 076 same-source OPT after restoring the main-effect card; 044 Tamer deletion/recovery timing and OPT; 051 Blast Digivolve; 055 inherited real discard producer; 081 Q4594 simultaneous copies; 077 Q4587 unaffected recipient comparison; public App Fusion recipes for 023/059/101 and review of normal declaration access. Later 085–102 need the same second-pass scrutiny, especially actual Delay aging, activation/refusal, controller filters, and cost zones. Additional per-card clause review remains recorded in the ledger. No unsupported card receives 10/10.
+
+
 ## Resolved: BT21-062 optional cost without an available Option
 
 Observed during BT21-006 legal stack construction: digivolving Snatchmon into Galacticmon with sufficient Vemmon-text trash but no Ragnarok Cannon leaves the sources unchanged. Supplying more trash did not help (`logs/review-004-006-v2.log`).
@@ -60,3 +67,11 @@ DigiXros-only identity is corrected by `542c55229` in both BT21-021/027 IR and t
 Proof limitations remain explicit. BT21-042's purported public once-per-turn repetition was removed because evolving its host removes its main effect; an independently valid same-source repeat still requires proof. BT21-038 inherited target-lock, BT21-044 Tamer deletion/recovery once-per-turn, and BT21-051 Blast Digivolve still rely on supplemental or structural coverage. BT21-004/005 public negatives that are rejected before their trigger cannot alone prove the card's filter/turn gate. App Fusion public declaration support remains a collection-level review item. None of these cards may be promoted solely from test counts.
 
 Stable snapshot update: `logs/collection-mechanisms-second-pass-v4.log` resolves all prior execution failures with 1819/1819 passes. This closes the regression-run issue, not the remaining printed-clause proof gaps. Public BT21-084 link-triggered App Fusion can replace several direct-primitive test paths; dedicated normal App Fusion declaration support remains under review.
+
+## BT21-069 second-pass defects
+
+Public regressions exposed two card-local IR gaps: optional placement was unavailable without a level≤4 deletion target (CR15-7-5), and the exact `[Gammamon]` alternate incorrectly accepted containing names such as GulusGammamon. Root applies `allowCostWithoutTarget:true` to both main triggers and `namesExact` to the alternate. Red logs: `second-pass-069-cost-red.log` (2 intended failures) and `second-pass-069-name-red.log` (1 intended failure). Green focused/mechanism, set sync/check, and collection closeout remain required.
+
+## BT21-081 optional suspend cost
+
+A public End of Your Turn regression shows the leading SelectBind incorrectly suppressed suspension when no eligible Reptile/Dragonkin exists. CR15-7-5 allows paying that cost independently. Root moves the cost into an existing CostGatedBlock before binding the grant/attack target. The old same-turn direct timing proof also observed Piercing before cleanup; real turn completion correctly clears it. Final set synchronization and collection gates remain required.

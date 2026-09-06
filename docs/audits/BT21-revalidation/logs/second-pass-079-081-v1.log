@@ -1,0 +1,88 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > has Security Attack plus one, wipes opposing Digimon, and recurs Guilmon family 1ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > has Security Attack +1 and deletes every Digimon on both sides at end of attack 23ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > wipes both battle areas after a real public attack resolves 7ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > publicly revives a qualifying Guilmon after Megidramon loses its attack 8ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > publicly declines the optional On Deletion revival and preserves the trash card 4ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > does not let an opponent-owned BT21-079 wipe after our other Digimon attacks 8ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > does not let its BT21-079 wipe after a different own Digimon attacks 5ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > does not let an opponent BT21-079 wipe after our Armor Purge attack defeats it 9ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > base cost 3 4ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > 9 total trash keeps cap 3 2ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > 10 total trash raises cap to 5 3ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > 20 total trash raises cap to 7 5ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > counts both players' trashes for the cost-5 ceiling 3ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > does not play a non-Guilmon-family card even below the cost ceiling 1ms
+ ✓ src/cards/BT21/BT21-079.test.ts > BT21-079 Megidramon > uses the level-5 Growlmon-name alternate evolution route for 4 2ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > implements the main-phase memory, digivolution-card trigger, and security play 0ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > start of main without an opposing Digimon gains NaN memory 1ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > start of main with an opposing Digimon gains NaN memory 1ms
+ × src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > gains the conditional Start of Your Main Phase memory through the public turn lifecycle 10ms
+   → expected +0 to be 1 // Object.is equality
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > suspends to draw and gain memory for a Gammamon text host 7ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > suspends to draw and gain memory for a Hero trait host 3ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > does not trigger for a nonmatching host 1ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > triggers from a public effect-driven placement under a Hero host 8ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > declining does not suspend, draw, or gain memory 1ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > plays itself from security without paying cost 2ms
+ ✓ src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > plays itself from a public security attack without paying cost 5ms
+ ✓ src/cards/BT21/BT21-081.test.ts > BT21-081 Owen Dreadnought > suspends this Tamer, grants Piercing to a Reptile/Dragonkin, and makes that same Digimon attack 1ms
+ ✓ src/cards/BT21/BT21-081.test.ts > BT21-081 Owen Dreadnought > start of main without an opposing Digimon gains NaN memory 1ms
+ ✓ src/cards/BT21/BT21-081.test.ts > BT21-081 Owen Dreadnought > start of main with an opposing Digimon gains NaN memory 1ms
+ × src/cards/BT21/BT21-081.test.ts > BT21-081 Owen Dreadnought > Q4593 suspends Owen, grants Piercing, and forces the selected Digimon to attack 6ms
+   → expected false to be true // Object.is equality
+ ✓ src/cards/BT21/BT21-081.test.ts > BT21-081 Owen Dreadnought > declining does not suspend Owen or attack 2ms
+ ✓ src/cards/BT21/BT21-081.test.ts > BT21-081 Owen Dreadnought > cannot pay the suspend cost without an eligible Reptile or Dragonkin 1ms
+ ✓ src/cards/BT21/BT21-081.test.ts > BT21-081 Owen Dreadnought > plays itself from security without paying cost 5ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-080.test.ts > BT21-080 Hiro Amanokawa > gains the conditional Start of Your Main Phase memory through the public turn lifecycle
+AssertionError: expected +0 to be 1 // Object.is equality
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ src/cards/BT21/BT21-080.test.ts:88:28
+     86|     const ownTurn = s.engine.runOneTurn();
+     87|     await advance(s.engine).waitForMainPhase(0);
+     88|     expect(s.state.memory).toBe(1);
+       |                            ^
+     89|     advance(s.engine).endMainPhaseIfOpen(0);
+     90|     await ownTurn;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/cards/BT21/BT21-081.test.ts > BT21-081 Owen Dreadnought > Q4593 suspends Owen, grants Piercing, and forces the selected Digimon to attack
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/cards/BT21/BT21-081.test.ts:88:60
+     86|     expect(s.perm("owen").isSuspended).toBe(true);
+     87|     expect(s.perm("guilmon").isSuspended).toBe(true);
+     88|     expect(observe(s.engine).hasPierce(s.perm("guilmon"))).toBe(true);
+       |                                                            ^
+     89|     expect(s.perm("other").isSuspended).toBe(false);
+     90|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed | 1 passed (3)
+      Tests  2 failed | 31 passed (33)
+   Start at  18:21:51
+   Duration  7.40s (transform 83%, import 15%, tests 2%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-079.test.ts src/cards/BT21/BT21-080.test.ts src/cards/BT21/BT21-081.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

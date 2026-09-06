@@ -1,7 +1,7 @@
 # BT21 independent revalidation ledger
 
 Status: **incomplete**. 0/102 cards at 10/10 (0.00%).
-Current independently accepted points: 512/1020; average 5.02/10.
+Current independently accepted points: 515/1020; average 5.05/10.
 
 Baseline: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Historical scores are not current proof. Zero means unverified in this campaign, not necessarily defective.
 
@@ -79,19 +79,19 @@ Recalculate with `node docs/audits/BT21-revalidation/recalculate.mjs`. See [chec
 | [BT21-066](cards/BT21-066.md) | Arresterdramon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
 | [BT21-067](cards/BT21-067.md) | Garurumon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
 | [BT21-068](cards/BT21-068.md) | Growlmon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
-| [BT21-069](cards/BT21-069.md) | GulusGammamon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
+| [BT21-069](cards/BT21-069.md) | GulusGammamon | 2 / 2 / 2 / 2 / 0 | 8/10 | integration-review | Final collection delivery gates pending |
 | [BT21-070](cards/BT21-070.md) | Gossipmon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
 | [BT21-071](cards/BT21-071.md) | Scopemon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
 | [BT21-072](cards/BT21-072.md) | Arresterdramon: Superior Mode | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
 | [BT21-073](cards/BT21-073.md) | Charismon | 0 / 0 / 0 / 0 / 0 | 0/10 | unverified | Independent revalidation pending |
 | [BT21-074](cards/BT21-074.md) | Satellamon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
 | [BT21-075](cards/BT21-075.md) | SkullGreymon | 0 / 0 / 0 / 0 / 0 | 0/10 | unverified | Independent revalidation pending |
-| [BT21-076](cards/BT21-076.md) | WarGrowlmon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
+| [BT21-076](cards/BT21-076.md) | WarGrowlmon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Strict same-turn OPT proof must restore WarGrowlmon as top; current repeat removes its main effect; Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
 | [BT21-077](cards/BT21-077.md) | Regulusmon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
 | [BT21-078](cards/BT21-078.md) | WereGarurumon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
 | [BT21-079](cards/BT21-079.md) | Megidramon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
 | [BT21-080](cards/BT21-080.md) | Hiro Amanokawa | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
-| [BT21-081](cards/BT21-081.md) | Owen Dreadnought | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
+| [BT21-081](cards/BT21-081.md) | Owen Dreadnought | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Q4594 simultaneous two-Owen trigger interaction remains supplemental; Final collection delivery gates pending |
 | [BT21-082](cards/BT21-082.md) | Takuya Kanbara | 0 / 0 / 0 / 0 / 0 | 0/10 | unverified | Independent revalidation pending |
 | [BT21-083](cards/BT21-083.md) | Taiki Kudo | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
 | [BT21-084](cards/BT21-084.md) | Haru Shinkai | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |

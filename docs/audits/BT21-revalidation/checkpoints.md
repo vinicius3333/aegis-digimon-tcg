@@ -61,3 +61,9 @@ All atomic implementation and card-evidence commits through `1fe1f2ef5` are push
 ## Public proof checkpoint through 065
 
 Eleven reviewed card files (018 and 056–065) pass all 123 assertions in `logs/second-pass-018-065-v6.log`. Shared/API/web typecheck passes in `logs/typecheck-second-pass-v4.log`; these eleven files pass Oxfmt/Oxlint, and `git diff --check` is clean. Each card is committed atomically through eb853825b. Invalid draft evolution routes, inherited-on-top producers, link-limit choices, memory-gauge assumptions, and impossible target assertions were corrected before acceptance. BT21-057 now has accepted 8/10 clause/evolution evidence; final delivery points remain withheld. The full collection remains incomplete; the previous 1819-assertion collection gate predates these additional tests.
+
+## Green second-pass checkpoint through BT21-084
+
+All **1878/1878** assertions across **121 files** pass in `logs/collection-mechanisms-second-pass-v5.log`; the separate grant-duration mechanism passes **1/1** in `logs/grant-duration-second-pass-v5.log`. The current suite includes 993 colocated assertions for all 102 catalog cards. Shared/API/web typecheck passes (`logs/typecheck-second-pass-v6.log`), 138 touched code paths pass Oxfmt/Oxlint (`logs/style-second-pass-v3.log`), and `git diff --check` is clean. Set-scoped sync/check reports all 102 records synchronized, 16 semantic changes against baseline, and zero semantic or byte changes outside BT21.
+
+GulusGammamon's exact-name alternate and no-target optional costs are corrected in cb86ea589. Owen's optional suspension now precedes target binding in 61ee00248. Public and comparative proofs through 084 are committed atomically through eabcd5bdd. The collection recalculates to **515/1020**, **0/102 final 10/10**. Delivery points remain withheld until every explicit card gap is closed. Next: second-pass 085–102, then earlier strict gaps listed in `gaps.md`; no completion claim.

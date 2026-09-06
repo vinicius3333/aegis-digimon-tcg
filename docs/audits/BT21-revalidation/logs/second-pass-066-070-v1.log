@@ -1,0 +1,87 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > preserves the Gammamon evolution route and residual-free coverage 1ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > uses a Gammamon bottom-stack cost to delete a level 4 or lower Digimon 1ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > places a Gammamon from hand and deletes an opposing level 4 or lower Digimon 23ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > publicly pays the On Play source from trash before deleting an eligible target 5ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > refuses the alternate evolution from a level-3 without Gammamon in its name 1ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > uses the printed alternate Gammamon evolution through a legal public stack 6ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > also pays from trash during evolution and places the card at the true bottom 4ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > does not pay or delete when the cost is declined 2ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > does not pay or delete when the cost is nonmatching 2ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > does not pay the cost when there is only a level 5 target 1ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > plays itself from security for free and grants inherited Retaliation 6ms
+ ✓ src/cards/BT21/BT21-069.test.ts > BT21-069 GulusGammamon > plays from Security only after the public security battle closes 8ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > preserves both alternate Digivolution requirements, DigiXros, and complete coverage 0ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > DigiXroses with exactly one Save-text Digimon for a 2-memory reduction 3ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > plays Hunter/Hero Tamers and saves a qualifying Digimon 0ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > plays a Hunter Tamer from hand without cost on play 2ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > plays a Hero Tamer from hand without cost on play 2ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > does not play a nonmatching Tamer 1ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > publicly uses the Hero alternate evolution route at its printed cost 2ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > publicly plays a Hunter Tamer for free on the When Digivolving trigger 4ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > places a Save-text trash card and itself under an own Tamer on deletion 6ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > places a Hero hand card and itself under an own Tamer on deletion 4ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > still performs mandatory Save when the optional first placement is declined 4ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > publicly triggers On Deletion after losing a battle and Saves under an own Tamer 8ms
+ ✓ src/cards/BT21/BT21-066.test.ts > BT21-066 Arresterdramon > gives its evolution host +2000 DP only during its controller's turn 1ms
+ ✓ src/cards/BT21/BT21-067.test.ts > BT21-067 Garurumon > preserves both alternate Digivolution requirements and residual-free coverage 0ms
+ ✓ src/cards/BT21/BT21-067.test.ts > BT21-067 Garurumon > supports security play, ADVENTURE recovery, and inherited draw-trash 0ms
+ ✓ src/cards/BT21/BT21-067.test.ts > BT21-067 Garurumon > returns an ADVENTURE Digimon from the trash when played 3ms
+ ✓ src/cards/BT21/BT21-067.test.ts > BT21-067 Garurumon > plays itself from security at end of battle without paying cost 4ms
+ ✓ src/cards/BT21/BT21-067.test.ts > BT21-067 Garurumon > does not return a non-ADVENTURE Digimon from trash 1ms
+ ✓ src/cards/BT21/BT21-067.test.ts > BT21-067 Garurumon > refuses both alternate routes from a level-3 that is neither Gabumon nor ADVENTURE 1ms
+ ✓ src/cards/BT21/BT21-067.test.ts > BT21-067 Garurumon > alternate-digivolves from a non-Gabumon ADVENTURE rookie for the printed cost 2ms
+ ✓ src/cards/BT21/BT21-067.test.ts > BT21-067 Garurumon > draws and trashes exactly once per turn from a realistic evolution stack 3ms
+ ✓ src/cards/BT21/BT21-067.test.ts > BT21-067 Garurumon > retains inherited draw-trash through a legal Ghostmon-to-Garurumon stack 5ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > preserves the Guilmon alternate Digivolution requirement and inherited deletion memory 0ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > deletes an opposing Digimon and conditionally mills two 0ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > must delete an eligible 4000 DP Digimon and does not mill 2ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > deletes an eligible printed opponent through the public play intent 3ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > mills two after the public When Digivolving trigger has no eligible target 3ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > mills two when the opponent has only a 4001 DP Digimon 2ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > mills two when the opponent has only a 9000 DP Digimon 2ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > gains 1 memory when a realistic host carrying Growlmon is deleted 2ms
+ ✓ src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > uses the Guilmon alternate evolution route for exactly 2 1ms
+ × src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > gains inherited memory when a public battle deletes a legal Growlmon stack 7ms
+   → expected -1 to be 1 // Object.is equality
+ ✓ src/cards/BT21/BT21-070.test.ts > BT21-070 Gossipmon > preserves the Appmon link requirement and linked recovery 0ms
+ ✓ src/cards/BT21/BT21-070.test.ts > BT21-070 Gossipmon > plays from security and recovers Appmon 0ms
+ ✓ src/cards/BT21/BT21-070.test.ts > BT21-070 Gossipmon > returns an Appmon from trash through its public On Play effect 2ms
+ ✓ src/cards/BT21/BT21-070.test.ts > BT21-070 Gossipmon > links to an Appmon for 2 and recovers an Appmon from trash 14ms
+ ✓ src/cards/BT21/BT21-070.test.ts > BT21-070 Gossipmon > recovers through the When Digivolving branch 14ms
+ ✓ src/cards/BT21/BT21-070.test.ts > BT21-070 Gossipmon > does not recover a non-Appmon Digimon 1ms
+ ✓ src/cards/BT21/BT21-070.test.ts > BT21-070 Gossipmon > publicly declines the optional On Play recovery with an eligible Appmon still in trash 1ms
+ ✓ src/cards/BT21/BT21-070.test.ts > BT21-070 Gossipmon > plays itself from security without paying cost 8ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-068.test.ts > BT21-068 Growlmon > gains inherited memory when a public battle deletes a legal Growlmon stack
+AssertionError: expected -1 to be 1 // Object.is equality
+
+- Expected
++ Received
+
+- 1
++ -1
+
+ ❯ src/cards/BT21/BT21-068.test.ts:213:28
+    211|     await settle(() => s.state.players[0]!.battleArea.length === 0);
+    212|     expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    213|     expect(s.state.memory).toBe(before + 1);
+       |                            ^
+    214|   });
+    215| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 4 passed (5)
+      Tests  1 failed | 51 passed (52)
+   Start at  18:08:07
+   Duration  7.65s (transform 82%, import 15%, tests 2%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-066.test.ts src/cards/BT21/BT21-067.test.ts src/cards/BT21/BT21-068.test.ts src/cards/BT21/BT21-069.test.ts src/cards/BT21/BT21-070.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose
