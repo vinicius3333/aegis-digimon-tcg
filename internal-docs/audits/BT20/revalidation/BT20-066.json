@@ -1,0 +1,36 @@
+{
+  "cardId": "BT20-066",
+  "status": "ready-for-coordinator-verification",
+  "scores": {
+    "catalogRules": 2,
+    "irTrace": 2,
+    "behavioralProof": 2,
+    "peerStackProof": 2,
+    "deliveryGates": 0
+  },
+  "evidence": [
+    "BT20-066.test.ts: On Play public deletion boundary preserves opposing non-level-3 Digimon",
+    "BT20-066.test.ts: public BT20-065 evolution triggers deletion and no-candidate optional DNA refusal",
+    "BT20-066.test.ts: legal two-permanent DNA into BT20-076, exact material stack and consumed hand card",
+    "BT20-066.test.ts: inherited Retaliation host versus standalone boundary",
+    "current-collection-green-results.json"
+  ],
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-066.test.ts --maxWorkers=1 --no-file-parallelism",
+      "result": "not run by worker; coordinator owns Vitest"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed after test/report additions"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/current-collection-green-results.json",
+      "result": "PASS: 7 cases for BT20-066;734 total tests. See current-collection-green-results.json."
+    }
+  ],
+  "gaps": [
+    "Coordinator focused/collection, mechanism/typecheck, and lint gates pending"
+  ],
+  "reviewStatus": "Full collection execution passed at this draft checkpoint. Strict clause acceptance, sensitivity and final delivery review remain pending; provisional scores do not count in the ledger."
+}
