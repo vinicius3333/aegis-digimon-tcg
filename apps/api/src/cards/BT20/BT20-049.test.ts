@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-049.js";
@@ -84,5 +85,39 @@ describe("BT20-049 Blimpmon", () => {
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Reboot")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("standalone"), "Reboot")).toBe(false);
+  });
+
+  it("clears the player restriction at the real opponent turn end", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT20-049", as: "blimpmon" }] },
+        1: {
+          battleArea: [{ card: "BT1-010", as: "attacker" }],
+          hand: [{ card: "BT20-001", as: "playable" }],
+          deck: ["BT20-001", "BT20-001", "BT20-001"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blimpmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).isRestricted(s.perm("attacker"), "attackPlayers"));
+    s.state.memory = -4;
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toMatchObject({ ok: false });
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    expect(observe(s.engine).isRestricted(s.perm("attacker"), "attackPlayers")).toBe(false);
   });
 });
