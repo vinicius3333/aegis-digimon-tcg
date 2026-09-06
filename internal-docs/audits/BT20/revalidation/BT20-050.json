@@ -1,6 +1,6 @@
 {
   "cardId": "BT20-050",
-  "status": "awaiting-lead-review",
+  "status": "lead-verified",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
@@ -9,15 +9,51 @@
     "deliveryGates": 0
   },
   "evidence": [
-    "BT20-050.test.ts: face-up top/next face-down security flip and exact memory cost",
-    "BT20-050.test.ts: ordinary versus alternate evolution boundary and invalid source",
-    "BT20-050.test.ts: once-per-turn End of Attack draw and inherited +1000 DP on both turns",
-    "BT20-050.test.ts: unexecuted public BT1-036 Garurumon unsuspends HoverEspimon for two same-turn attacks and a post-turn attack, proving the top-level (not inherited) Once Per Turn draw reset",
-    "current-collection-green-results.json",
-    "collection-after-name-fix-results.json",
-    "public-followups-typecheck.log"
+    "apps/api/src/cards/BT20/BT20-050.ts",
+    "apps/api/src/cards/BT20/BT20-050.test.ts",
+    "node tools/kb/query.mjs card BT20-050",
+    "round5-final-collection-results.json",
+    "round5-mechanism-results.json",
+    "BT20-050-runtime-disabled.json",
+    "round5-gates.json"
   ],
   "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-final-collection-results.json",
+      "result": "7/7 colocated cases pass; 968/968 full collection/mechanism cases."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/effects/interpreter/actions/play.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/builders.test.ts src/engine/actions/activateEffect.test.ts src/engine/actions/playCard.test.ts src/engine/useOption.test.ts src/engine/effectOptionUseCost.test.ts src/engine/decisions/minEnforcement.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/primitives.test.ts src/cards/BT7/BT7-063.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-mechanism-results.json",
+      "result": "465/465 affected mechanism cases pass."
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-050",
+      "result": "4 meaningful assertion failures with runtime effects disabled; original production module restored. Per-card JSON/log and aggregate retained."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "PASS; round5-final-typecheck.log. Final API test-source check also passes in round5-final-api-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "PASS; all 102 records synchronized, round5-scoped-check.log."
+    },
+    {
+      "command": "Changed-file oxlint/oxfmt --check and git diff --check",
+      "result": "PASS; round5-gates.json, round5-style-paths.json and final style logs."
+    }
+  ],
+  "gaps": [],
+  "executedCases": [
+    "BT20-050 HoverEspimon flips the next face-down opposing security card when digivolving",
+    "BT20-050 HoverEspimon draws once at end of attack and grants inherited +1000 DP",
+    "BT20-050 HoverEspimon uses the Cyborg route for 2 and flips the next face-down security card",
+    "BT20-050 HoverEspimon keeps the ordinary black evolution route distinct from the Cyborg/Machine alternate",
+    "BT20-050 HoverEspimon draws exactly once across repeated end-of-attack windows in one turn",
+    "BT20-050 HoverEspimon draws once across two public attacks, then draws again after the next turn",
+    "BT20-050 HoverEspimon grants its inherited host +1000 DP on both players' turns"
+  ],
+  "historicalCommands": [
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-050.test.ts --maxWorkers=1 --no-file-parallelism",
       "result": "not run by worker; coordinator owns Vitest"
@@ -47,10 +83,5 @@
       "result": "All current colocated cases pass within894/894; final independent acceptance remains pending."
     }
   ],
-  "gaps": [
-    "Coordinator focused/collection, mechanism/typecheck, and lint gates pending",
-    "Cross-rule face-up Security effect and shuffle reset are not isolated",
-    "new public attack/reset case is unexecuted pending coordinator validation"
-  ],
-  "reviewStatus": "Latest public additions pass in the 790-test collection snapshot. Provisional report; final clause acceptance remains pending."
+  "reviewStatus": "Current printed clauses, KB/errata, exclusive IR registration, legal public paths and negative controls independently reviewed. Delivery credit requires the pushed, hash-bound acceptance record."
 }
