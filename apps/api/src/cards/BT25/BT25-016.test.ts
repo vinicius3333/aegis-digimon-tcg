@@ -2,6 +2,7 @@ import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { compiled as BT25_016 } from "./BT25-016.js";
 import "../index.js";
 
@@ -133,6 +134,8 @@ describe("BT25-016 GrapLeomon", () => {
     expect(s.perm("boost").currentDP).toBe(8000);
     expect(s.perm("attacker").isSuspended).toBe(true);
     expect(s.perm("attacker").currentDP).toBe(2000);
+    await advance(s.engine).runTurn(0);
+    expect(s.perm("boost").currentDP).toBe(getCardDefinition("BT24-011")!.dp);
   });
 
   it("applies the same two entry clauses after a legal alternate TS digivolution", async () => {
@@ -219,6 +222,94 @@ describe("BT25-016 GrapLeomon", () => {
     await settle(() => s.perm("source").topCard?.cardId === "BT25-020");
     expect(s.perm("source").topCard?.cardId).toBe("BT25-020");
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).not.toContain("BT25-020");
+  });
+
+  it("free-digivolves into Callismon as the second printed destination", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-016", as: "source" }],
+          hand: [{ card: "BT25-058", as: "callismon" }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 13000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT25-058"));
+    const evolved = s.state.players[0]!.battleArea.find((perm) => perm.topCard?.cardId === "BT25-058");
+    expect(evolved?.topCard?.cardId).toBe("BT25-058");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).not.toContain("BT25-058");
+  });
+
+  it("preserves the hand destination when the optional attack-time evolution is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-016", as: "source" }],
+          hand: [{ card: "BT25-020", as: "marsmon" }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 13000 }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "attackDeclared"));
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("source").topCard?.cardId).toBe("BT25-016");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT25-020");
+  });
+
+  it("keeps the inherited Security Attack +1 after a legal public TS evolution stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-013", as: "base" }],
+          hand: [
+            { card: "BT25-016", as: "grap" },
+            { card: "BT25-020", as: "lv6" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("grap").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "BT25-016");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("lv6").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "BT25-020");
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT25-013", "BT25-016"]);
+    expect(observe(s.engine).keywordAmount(s.perm("base").permanentId, "SecurityAttack")).toBe(1);
   });
 
   it("does not use a 12000 DP attack that only becomes 13000 after When Attacking", async () => {
