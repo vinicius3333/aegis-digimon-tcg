@@ -150,6 +150,34 @@ describe("BT20-089 Code Cracker Fang & Hacker Judge — Tamer effects", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === CC_FANG)).toBe(false);
   });
 
+  it("may decline Mind Link when a qualifying Pulsemon enters play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CC_FANG, as: "tamer" }],
+          hand: [{ card: "BT20-029", as: "pulsemon" }, "BT1-010"],
+          deck: DECK_FILLER,
+        },
+        1: { deck: DECK_FILLER },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pulsemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-029"),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === CC_FANG)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.find((p) => p.topCard.cardId === "BT20-029")!.stack.map((card) => card.cardId),
+    ).not.toContain(CC_FANG);
+  });
+
   it("naturally grants the three inherited keywords to a qualifying linked host", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT20-029", as: "host", under: [CC_FANG] }] },
@@ -183,5 +211,86 @@ describe("BT20-089 Code Cracker Fang & Hacker Judge — Tamer effects", () => {
     expect(
       s.state.players[0]!.battleArea.some((permanent) => permanent.stack.some((card) => card.cardId === CC_FANG)),
     ).toBe(false);
+  });
+
+  it("uses a public Mind Link host for Alliance and Piercing in a real attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CC_FANG, as: "tamer" },
+            { card: "BT20-029", as: "pulsemon" },
+            { card: "BT1-010", as: "ally", dp: 6000 },
+          ],
+          hand: [{ card: "BT20-032", as: "evolution" }],
+          security: ["BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-010", as: "defender", dp: 8000, suspended: true }],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("pulsemon").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("pulsemon").stack.some((card) => card.cardId === CC_FANG));
+    expect(observe(s.engine).hasKeyword(s.perm("pulsemon"), "Alliance")).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("pulsemon"))).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("pulsemon"), "Barrier")).toBe(true);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("pulsemon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "alliancePrompt"));
+    expect(s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: s.perm("ally").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("ally").isSuspended).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(2);
+  });
+
+  it.each([true, false])("uses inherited Barrier for a battle deletion (accept=%s)", async (accept) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-029", under: [CC_FANG], as: "host", suspended: true }],
+          security: [{ card: "BT1-009", as: "security" }],
+        },
+        1: { battleArea: [{ card: "BT20-076", as: "attacker", dp: 12000 }] },
+      },
+      { autoAcceptOptional: false, autoDeclineOptional: false, autoSelectCards: true },
+    );
+    const hostId = s.perm("host").permanentId;
+    const securityId = s.inst("security").instanceId;
+    await s.ready();
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: hostId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
+    expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: hostId, accept })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(accept);
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === securityId)).toBe(!accept);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === securityId)).toBe(accept);
   });
 });
