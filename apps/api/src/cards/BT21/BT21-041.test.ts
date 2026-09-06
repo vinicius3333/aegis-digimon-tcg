@@ -112,6 +112,37 @@ describe("BT21-041 compiled implementation", () => {
     expect(observe(s.engine).securityDp(0)).toBe(0);
   });
 
+  it("resolves a non-Digimon Security effect while the linked DP modifier is active", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-018", as: "host" }],
+          hand: [{ card: "BT21-041", as: "calendamon" }],
+        },
+        1: { security: [{ card: "ST1-16", as: "option" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("calendamon").instanceId,
+        targetPermanentId: hostId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.some((card) => card.cardId === "BT21-041"));
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: hostId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT21-018")).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "ST1-16")).toBe(true);
+  });
+
   it("does not reduce Security Digimon on the opponent's turn", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT21-018", as: "host", linked: ["BT21-041"] }] },
