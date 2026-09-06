@@ -66,7 +66,7 @@ describe("BT21-033 compiled implementation", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT21-033", as: "floramon" }],
+          hand: [{ card: "BT21-033", as: "floramon" }],
           deck: [
             { card: "BT21-034", as: "ancientBirdWg" },
             { card: "BT21-033", as: "wg" },
@@ -77,9 +77,12 @@ describe("BT21-033 compiled implementation", () => {
       },
       { autoSelectCards: true, autoOrderCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("floramon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("floramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("ancientBirdWg").instanceId));
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("ancientBirdWg").instanceId, s.inst("wg").instanceId]),
@@ -134,6 +137,26 @@ describe("BT21-033 compiled implementation", () => {
 
     expect(s.state.memory).toBe(1);
     expect(s.perm("yokomon").stack.map((card) => card.cardId)).toEqual(["BT21-003"]);
+  });
+
+  it("carries Jamming through a public Floramon-to-Kiwimon evolution", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-033", as: "floramon" }],
+        hand: [{ card: "BT21-034", as: "kiwimon" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("floramon").permanentId,
+        instanceId: s.inst("kiwimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("floramon").topCard.cardId === "BT21-034");
+    expect(observe(s.engine).hasKeyword(s.perm("floramon"), "Jamming")).toBe(true);
   });
 
   it("grants Jamming only while Floramon is in the evolution stack", async () => {
