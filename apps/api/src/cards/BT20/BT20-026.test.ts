@@ -1,3 +1,4 @@
+import { observe } from "../../engine/testkit/observe.js";
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
@@ -24,11 +25,11 @@ describe("BT20-026 MegaSeadramon (X Antibody)", () => {
             restriction: "suspend",
             duration: "untilOpponentTurnEnd",
             condition: {
-              kind: "selfDigivolutionStackHasTrait",
+              kind: "selfDigivolutionStackMatchesFilter",
               filter: {
                 nameOrTrait: [
-                  { tokens: ["MegaSeadramon"], match: "name" },
-                  { tokens: ["X Antibody"], match: "trait" },
+                  { tokens: ["MegaSeadramon"], match: "nameExact" },
+                  { tokens: ["X Antibody"], match: "nameExact" },
                 ],
               },
             },
@@ -73,7 +74,7 @@ describe("BT20-026 MegaSeadramon (X Antibody)", () => {
       {
         0: { battleArea: [{ card: "BT20-027", as: "host", under: ["BT20-026"] }] },
         1: {
-          battleArea: [{ card: "BT20-044", as: "blocker" }],
+          battleArea: [{ card: "BT20-044", dp: 10000, as: "blocker" }],
           security: ["BT20-001", "BT20-001"],
         },
       },
@@ -87,7 +88,10 @@ describe("BT20-026 MegaSeadramon (X Antibody)", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 1);
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    expect(s.events.some((event) => event.kind === "blockWindowOpened")).toBe(false);
+    expect(s.perm("blocker").isSuspended).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.perm("blocker")).toBeDefined();
   });
   it("publicly evolves from MegaSeadramon into the X Antibody card", async () => {
@@ -117,8 +121,8 @@ describe("BT20-026 MegaSeadramon (X Antibody)", () => {
   it("proves inherited attack-target lock against a public Blocker attack", async () => {
     const protectedHost = setupEngine(
       {
-        0: { battleArea: [{ card: "BT20-027", as: "host", under: ["BT20-026"] }], security: ["BT20-001"] },
-        1: { battleArea: [{ card: "BT20-047", as: "blocker" }] },
+        0: { battleArea: [{ card: "BT20-027", as: "host", under: ["BT20-026"] }] },
+        1: { battleArea: [{ card: "BT20-047", dp: 10000, as: "blocker" }], security: ["BT20-001"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -129,13 +133,20 @@ describe("BT20-026 MegaSeadramon (X Antibody)", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => protectedHost.state.players[0]!.security.length === 0);
+    await settle(
+      () =>
+        protectedHost.events.some((event) => event.kind === "securityChecked") &&
+        !observe(protectedHost.engine).isAttacking(),
+    );
+    expect(protectedHost.events.some((event) => event.kind === "blockWindowOpened")).toBe(false);
+    expect(protectedHost.perm("blocker").isSuspended).toBe(false);
+    expect(protectedHost.state.players[1]!.security).toHaveLength(0);
     expect(protectedHost.perm("blocker")).toBeDefined();
 
     const unprotectedHost = setupEngine(
       {
-        0: { battleArea: [{ card: "BT20-027", as: "host" }], security: ["BT20-001"] },
-        1: { battleArea: [{ card: "BT20-047", as: "blocker" }] },
+        0: { battleArea: [{ card: "BT20-027", as: "host" }] },
+        1: { battleArea: [{ card: "BT20-047", dp: 10000, as: "blocker" }], security: ["BT20-001"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -146,8 +157,25 @@ describe("BT20-026 MegaSeadramon (X Antibody)", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => unprotectedHost.perm("blocker").isSuspended);
-    expect(unprotectedHost.state.players[0]!.security).toHaveLength(1);
+    await settle(() => unprotectedHost.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      unprotectedHost.engine.applyIntent(1, {
+        type: "declareBlock",
+        blockerPermanentId: unprotectedHost.perm("blocker").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        unprotectedHost.events.some((event) => event.kind === "combatResolved") &&
+        !observe(unprotectedHost.engine).isAttacking(),
+    );
+    expect(
+      unprotectedHost.state.players[1]!.trash.some(
+        (card) => card.instanceId === unprotectedHost.inst("blocker").instanceId,
+      ),
+    ).toBe(true);
+    expect(unprotectedHost.events.some((event) => event.kind === "combatResolved")).toBe(true);
+    expect(unprotectedHost.state.players[1]!.security).toHaveLength(0); // Slayerdramon Piercing still checks after deleting the Blocker.
   });
 
   it("prevents the selected opponent from suspending to attack until its turn ends", async () => {
@@ -205,4 +233,53 @@ describe("BT20-026 MegaSeadramon (X Antibody)", () => {
     advance(s.engine).endMainPhaseIfOpen(1);
     await nextOpponentTurn;
   });
+
+  it("does not treat an X Antibody-trait Digimon as the exact X Antibody source", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-023", as: "base", under: ["BT20-010", "BT20-022"] }],
+          hand: [{ card: "BT20-026", as: "megaX" }],
+        },
+        1: { battleArea: [{ card: "BT20-014", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("megaX").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT20-026");
+    expect(observe(s.engine).isRestricted(s.perm("attacker"), "suspend")).toBe(false);
+  });
+
+  it.each(["BT9-109", "EX5-070"] as const)(
+    "accepts exact-name X Antibody source %s through public evolution",
+    async (source) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT20-023", as: "base", under: [source, "BT20-022"] }],
+            hand: [{ card: "BT20-026", as: "megaX" }],
+          },
+          1: { battleArea: [{ card: "BT20-014", as: "target" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 0;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("megaX").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard.cardId === "BT20-026");
+      expect(observe(s.engine).isRestricted(s.perm("target"), "suspend")).toBe(true);
+    },
+  );
 });

@@ -1,6 +1,6 @@
 {
   "cardId": "BT20-059",
-  "status": "ready-for-coordinator-verification",
+  "status": "awaiting-lead-review",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
@@ -12,7 +12,12 @@
     "BT20-059.test.ts: public De-Digivolve 2 and conditional all-ally immunity matrix",
     "BT20-059.test.ts: opponent-turn Sistermon/Huckmon/Royal Knight keyword boundaries",
     "BT20-059.test.ts: inherited Jesmon GX all-own keyword scope and alternate costs",
-    "current-collection-green-results.json"
+    "current-collection-green-results.json",
+    "named-x-clause-red.log",
+    "named-x-019-102-red.log",
+    "named-x-026-028-red.log",
+    "named-x-green-results.json",
+    "named-x-mechanism-results.json"
   ],
   "commands": [
     {
@@ -26,11 +31,32 @@
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/current-collection-green-results.json",
       "result": "PASS: 6 cases for BT20-059;734 total tests. See current-collection-green-results.json."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-{019,024,026,028,059,102}.test.ts src/engine/effects/nameExactMatch.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+      "result": "66/66 passed; exact-name source correction with trait-only negatives and printed Rule aliases."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/effects/{nameExactMatch,interpreter,capabilities}.test.ts src/cards/BT20/BT20-{019,024,026,028,059,102}.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+      "result": "570/570 passed; named-x-mechanism-results.json"
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "Passed shared, API and web; named-x-typecheck.log"
+    },
+    {
+      "command": "pnpm effects:sync:set -- --set BT20 && pnpm effects:check:set -- --set BT20",
+      "result": "Passed; exactly six affected BT20 records changed."
+    },
+    {
+      "command": "pnpm exec oxlint <six changed card modules/tests and nameExactMatch.test.ts>; pnpm exec oxfmt --check <same paths>; git diff --check",
+      "result": "Passed; named-x-lint.log and named-x-format-check.log"
     }
   ],
   "gaps": [
     "Coordinator focused/collection, mechanism/typecheck, and lint gates pending",
-    "Live immunity effect survival/trigger suppression remains cross-rule follow-up"
+    "Live immunity effect survival/trigger suppression remains cross-rule follow-up",
+    "Final strict clause acceptance, whole-collection revalidation, typecheck/style and pushed delivery gates remain pending."
   ],
   "reviewStatus": "Full collection execution passed at this draft checkpoint. Strict clause acceptance, sensitivity and final delivery review remain pending; provisional scores do not count in the ledger."
 }

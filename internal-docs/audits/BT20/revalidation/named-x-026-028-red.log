@@ -1,0 +1,160 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api
+
+ ❯ src/cards/BT20/BT20-026.test.ts (9 tests | 2 failed) 112ms
+   ❯ BT20-026 MegaSeadramon (X Antibody) (9)
+     × returns level 4 or lower and conditionally restricts suspension on both entry triggers 8ms
+     × does not treat an X Antibody-trait Digimon as the exact X Antibody source 4ms
+ ❯ src/cards/BT20/BT20-028.test.ts (8 tests | 3 failed) 57ms
+   ❯ BT20-028 GigaSeadramon (8)
+     × once per turn plays a level 5 or lower stack card only with the required name or trait 1ms
+     × does not play a stack card with only an X Antibody-trait source through public evolution 6ms
+     × refuses the optional source play and excludes a level-6 source 6ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT20/BT20-026.test.ts > BT20-026 MegaSeadramon (X Antibody) > returns level 4 or lower and conditionally restricts suspension on both entry triggers
+AssertionError: expected { Object (trigger, actions) } to match object { actions: [ { …(3) }, { …(5) } ] }
+(2 matching properties omitted from actual)
+
+- Expected
++ Received
+
+@@ -20,17 +20,17 @@
+      {
+        "condition": {
+          "filter": {
+            "nameOrTrait": [
+              {
+-               "match": "nameExact",
++               "match": "name",
+                "tokens": [
+                  "MegaSeadramon",
+                ],
+              },
+              {
+-               "match": "nameExact",
++               "match": "trait",
+                "tokens": [
+                  "X Antibody",
+                ],
+              },
+            ],
+
+ ❯ src/cards/BT20/BT20-026.test.ts:12:75
+     10|   it("returns level 4 or lower and conditionally restricts suspension …
+     11|     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
+     12|       expect(compiled.effects.find((entry) => entry.trigger === trigge…
+       |                                                                           ^
+     13|         actions: [
+     14|           {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  src/cards/BT20/BT20-026.test.ts > BT20-026 MegaSeadramon (X Antibody) > does not treat an X Antibody-trait Digimon as the exact X Antibody source
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/cards/BT20/BT20-026.test.ts:254:75
+    252|     ).toEqual({ ok: true });
+    253|     await settle(() => s.perm("base").topCard.cardId === "BT20-026");
+    254|     expect(observe(s.engine).isRestricted(s.perm("attacker"), "suspend…
+       |                                                                           ^
+    255|   });
+    256|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  src/cards/BT20/BT20-028.test.ts > BT20-028 GigaSeadramon > once per turn plays a level 5 or lower stack card only with the required name or trait
+AssertionError: expected { trigger: 'WhenDigivolving', …(4) } to match object { frequency: 'OncePerTurn', …(2) }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+@@ -20,17 +20,17 @@
+    ],
+    "condition": {
+      "filter": {
+        "nameOrTrait": [
+          {
+-           "match": "nameExact",
++           "match": "name",
+            "tokens": [
+              "MetalSeadramon",
+            ],
+          },
+          {
+-           "match": "nameExact",
++           "match": "trait",
+            "tokens": [
+              "X Antibody",
+            ],
+          },
+        ],
+
+ ❯ src/cards/BT20/BT20-028.test.ts:13:75
+     11|   it("once per turn plays a level 5 or lower stack card only with the …
+     12|     for (const trigger of ["WhenDigivolving", "WhenAttacking"] as cons…
+     13|       expect(compiled.effects.find((entry) => entry.trigger === trigge…
+       |                                                                           ^
+     14|         frequency: "OncePerTurn",
+     15|         condition: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  src/cards/BT20/BT20-028.test.ts > BT20-028 GigaSeadramon > does not play a stack card with only an X Antibody-trait source through public evolution
+AssertionError: expected ArraySchema{ items: [ …(2) ], …(5) } to have a length of 1 but got 2
+
+- Expected
++ Received
+
+- 1
++ 2
+
+ ❯ src/cards/BT20/BT20-028.test.ts:89:44
+     87|     expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s…
+     88|     await settle(() => s.perm("wingdramon").topCard.cardId === "BT20-0…
+     89|     expect(s.state.players[0]!.battleArea).toHaveLength(1);
+       |                                            ^
+     90|     expect(s.perm("wingdramon").stack.map((card) => card.cardId)).toEq…
+     91|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  src/cards/BT20/BT20-028.test.ts > BT20-028 GigaSeadramon > refuses the optional source play and excludes a level-6 source
+AssertionError: expected [ 'BT20-023', 'BT20-027' ] to deeply equal [ 'BT20-010', 'BT20-027' ]
+
+- Expected
++ Received
+
+  [
+-   "BT20-010",
++   "BT20-023",
+    "BT20-027",
+  ]
+
+ ❯ src/cards/BT20/BT20-028.test.ts:129:66
+    127|     await advance(level6.engine).fire(EffectTiming.WhenDigivolving, le…
+    128|     expect(level6.state.players[0]!.battleArea).toHaveLength(2);
+    129|     expect(level6.perm("giga").stack.map((card) => card.cardId)).toEqu…
+       |                                                                  ^
+    130|     expect(level6.state.players[0]!.battleArea.some((p) => p.topCard.c…
+    131|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  5 failed | 12 passed (17)
+   Start at  13:02:22
+   Duration  871ms (import 43%, transform 35%, tests 22%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT20/BT20-026.test.ts src/cards/BT20/BT20-028.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000

@@ -13,7 +13,15 @@ describe("BT20-019 Jesmon (X Antibody)", () => {
       kind: "GrantStatic",
       grant: "immuneToOpponentEffects",
       duration: "forTheTurn",
-      condition: { kind: "selfDigivolutionStackHasTrait" },
+      condition: {
+        kind: "selfDigivolutionStackMatchesFilter",
+        filter: {
+          nameOrTrait: [
+            { tokens: ["Jesmon"], match: "nameExact" },
+            { tokens: ["X Antibody"], match: "nameExact" },
+          ],
+        },
+      },
     });
     expect(whenDigivolving?.actions[1]).toMatchObject({ kind: "Attack", optional: true });
     const yourTurn = compiled.effects.find((entry) => entry.trigger === "YourTurn" && !entry.isInherited);
@@ -70,6 +78,33 @@ describe("BT20-019 Jesmon (X Antibody)", () => {
       ),
     ).toBe(true);
     expect(s.perm("jesmon").isSuspended).toBe(false);
+  });
+
+  it.each([
+    ["trait-only X Antibody Digimon", "BT9-008", false],
+    ["exact X Antibody Option", "BT9-109", true],
+    ["Proto Form Rule Name", "EX5-070", true],
+  ] as const)("uses exact bracket-name semantics for %s in the stack", async (_label, sourceCard, qualifies) => {
+    const stackSources = sourceCard === "BT9-008" ? ["BT9-008", "BT15-009"] : [sourceCard, "BT9-008", "BT15-009"];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-014", as: "jesmon", under: stackSources }],
+          hand: [{ card: "BT20-019", as: "xAntibody" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 1;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("jesmon").permanentId,
+        instanceId: s.inst("xAntibody").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("jesmon").topCard.cardId === "BT20-019");
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("jesmon"), "beAffected", "Digimon")).toBe(qualifies);
   });
 
   it("still allows the post-then attack when the stack condition is false", async () => {

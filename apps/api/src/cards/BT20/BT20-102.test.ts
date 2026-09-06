@@ -56,11 +56,11 @@ describe("BT20-102 — [When Digivolving] mass-delete spares the chosen survivor
 
       expect(entryEffect?.actions[0]).toMatchObject({
         condition: {
-          kind: "selfDigivolutionStackHasTrait",
+          kind: "selfDigivolutionStackMatchesFilter",
           filter: {
             nameOrTrait: [
               { tokens: ["Omnimon"], match: "nameExact" },
-              { tokens: ["X Antibody"], match: "trait" },
+              { tokens: ["X Antibody"], match: "nameExact" },
             ],
           },
         },
@@ -113,13 +113,13 @@ describe("BT20-102 — [When Digivolving] mass-delete spares the chosen survivor
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === oppOther.permanentId)).toBe(false);
   });
 
-  it("fires the entry mass-delete from an X Antibody card in the stack", async () => {
+  it("does not fire the entry mass-delete from an X Antibody trait-only Digimon in the stack", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: OMNIMON_XA, as: "xOnly", under: ["BT20-056"] },
+            { card: OMNIMON_XA, as: "xOnly", under: ["BT9-008", "BT15-009", "BT20-014", "BT20-018"] },
             { card: OWN_OTHER, as: "ownOther" },
           ],
         },
@@ -131,12 +131,46 @@ describe("BT20-102 — [When Digivolving] mass-delete spares the chosen survivor
     await s.ready();
 
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("xOnly"));
-    await settle(() => s.state.players[0]!.battleArea.length === 1 && s.state.players[1]!.battleArea.length === 0);
+    await settle(
+      () => s.state.players[0]!.battleArea.length === 2 && s.state.players[1]!.deck.at(-1)?.cardId === OPPONENT_DIGIMON,
+    );
 
-    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
-      s.perm("xOnly").permanentId,
-    ]);
-    expect(s.state.players[0]!.battleArea[0]!.stack.map((card) => card.cardId)).toContain("BT20-056");
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toContain(OMNIMON_XA);
+  });
+
+  it.each([
+    ["trait-only X Antibody Digimon", "BT9-008", false],
+    ["exact X Antibody Option", "BT9-109", true],
+    ["Proto Form Rule Name", "EX5-070", true],
+  ] as const)("uses exact bracket-name semantics for %s in the stack", async (_label, sourceCard, qualifies) => {
+    const stackSources =
+      sourceCard === "BT9-008" ? ["BT9-008", "BT15-009", "BT20-014"] : [sourceCard, "BT20-008", "BT15-009", "BT20-014"];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-018", as: "base", under: stackSources },
+            { card: OWN_OTHER, as: "ownOther" },
+          ],
+          hand: [{ card: OMNIMON_XA, as: "evolving" }],
+        },
+        1: { battleArea: [{ card: OPPONENT_DIGIMON, as: "oppOther" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === OMNIMON_XA);
+    await settle();
+    expect(s.state.players[0]!.battleArea).toHaveLength(qualifies ? 1 : 2);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === OWN_OTHER)).toBe(!qualifies);
   });
 
   it("does not mass-delete when neither Omnimon nor X Antibody is in the stack", async () => {

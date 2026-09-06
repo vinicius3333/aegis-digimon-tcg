@@ -65092,11 +65092,11 @@
             "grant": "immuneToOpponentEffects",
             "duration": "forTheTurn",
             "condition": {
-              "kind": "selfDigivolutionStackHasTrait",
+              "kind": "selfDigivolutionStackMatchesFilter",
               "filter": {
                 "nameOrTrait": [
-                  { "tokens": ["Jesmon"], "match": "name" },
-                  { "tokens": ["X Antibody"], "match": "trait" }
+                  { "tokens": ["Jesmon"], "match": "nameExact" },
+                  { "tokens": ["X Antibody"], "match": "nameExact" }
                 ]
               },
               "raw": "[Jesmon]/[X Antibody] is in this Digimon's digivolution cards"
@@ -65465,11 +65465,11 @@
             "restriction": "suspend",
             "duration": "untilOpponentTurnEnd",
             "condition": {
-              "kind": "selfDigivolutionStackHasTrait",
+              "kind": "selfDigivolutionStackMatchesFilter",
               "filter": {
                 "nameOrTrait": [
-                  { "tokens": ["Seadramon"], "match": "name" },
-                  { "tokens": ["X Antibody"], "match": "trait" }
+                  { "tokens": ["Seadramon"], "match": "nameExact" },
+                  { "tokens": ["X Antibody"], "match": "nameExact" }
                 ]
               },
               "raw": "[Seadramon]/[X Antibody] is in this Digimon's digivolution cards"
@@ -65491,11 +65491,11 @@
             "restriction": "suspend",
             "duration": "untilOpponentTurnEnd",
             "condition": {
-              "kind": "selfDigivolutionStackHasTrait",
+              "kind": "selfDigivolutionStackMatchesFilter",
               "filter": {
                 "nameOrTrait": [
-                  { "tokens": ["Seadramon"], "match": "name" },
-                  { "tokens": ["X Antibody"], "match": "trait" }
+                  { "tokens": ["Seadramon"], "match": "nameExact" },
+                  { "tokens": ["X Antibody"], "match": "nameExact" }
                 ]
               },
               "raw": "[Seadramon]/[X Antibody] is in this Digimon's digivolution cards"
@@ -65604,11 +65604,11 @@
             "restriction": "suspend",
             "duration": "untilOpponentTurnEnd",
             "condition": {
-              "kind": "selfDigivolutionStackHasTrait",
+              "kind": "selfDigivolutionStackMatchesFilter",
               "filter": {
                 "nameOrTrait": [
-                  { "tokens": ["MegaSeadramon"], "match": "name" },
-                  { "tokens": ["X Antibody"], "match": "trait" }
+                  { "tokens": ["MegaSeadramon"], "match": "nameExact" },
+                  { "tokens": ["X Antibody"], "match": "nameExact" }
                 ]
               },
               "raw": "[MegaSeadramon]/[X Antibody] is in this Digimon's digivolution cards"
@@ -65637,11 +65637,11 @@
             "restriction": "suspend",
             "duration": "untilOpponentTurnEnd",
             "condition": {
-              "kind": "selfDigivolutionStackHasTrait",
+              "kind": "selfDigivolutionStackMatchesFilter",
               "filter": {
                 "nameOrTrait": [
-                  { "tokens": ["MegaSeadramon"], "match": "name" },
-                  { "tokens": ["X Antibody"], "match": "trait" }
+                  { "tokens": ["MegaSeadramon"], "match": "nameExact" },
+                  { "tokens": ["X Antibody"], "match": "nameExact" }
                 ]
               },
               "raw": "[MegaSeadramon]/[X Antibody] is in this Digimon's digivolution cards"
@@ -65790,11 +65790,11 @@
           }
         ],
         "condition": {
-          "kind": "selfDigivolutionStackHasTrait",
+          "kind": "selfDigivolutionStackMatchesFilter",
           "filter": {
             "nameOrTrait": [
-              { "tokens": ["MetalSeadramon"], "match": "name" },
-              { "tokens": ["X Antibody"], "match": "trait" }
+              { "tokens": ["MetalSeadramon"], "match": "nameExact" },
+              { "tokens": ["X Antibody"], "match": "nameExact" }
             ]
           },
           "raw": "this Digimon has [MetalSeadramon] or [X Antibody] in its digivolution cards"
@@ -65818,11 +65818,11 @@
           }
         ],
         "condition": {
-          "kind": "selfDigivolutionStackHasTrait",
+          "kind": "selfDigivolutionStackMatchesFilter",
           "filter": {
             "nameOrTrait": [
-              { "tokens": ["MetalSeadramon"], "match": "name" },
-              { "tokens": ["X Antibody"], "match": "trait" }
+              { "tokens": ["MetalSeadramon"], "match": "nameExact" },
+              { "tokens": ["X Antibody"], "match": "nameExact" }
             ]
           },
           "raw": "this Digimon has [MetalSeadramon] or [X Antibody] in its digivolution cards"
@@ -67607,11 +67607,11 @@
             "grant": "immuneToOpponentDigimonEffects",
             "duration": "untilOpponentTurnEnd",
             "condition": {
-              "kind": "selfDigivolutionStackHasTrait",
+              "kind": "selfDigivolutionStackMatchesFilter",
               "filter": {
                 "nameOrTrait": [
-                  { "tokens": ["Gankoomon"], "match": "name" },
-                  { "tokens": ["X Antibody"], "match": "trait" }
+                  { "tokens": ["Gankoomon"], "match": "nameExact" },
+                  { "tokens": ["X Antibody"], "match": "nameExact" }
                 ]
               },
               "raw": "[Gankoomon]/[X Antibody] is in this Digimon's digivolution cards"
@@ -70683,11 +70683,11 @@
               "except": { "filter": { "kind": ["Digimon"] }, "count": 1, "selector": "any" }
             },
             "condition": {
-              "kind": "selfDigivolutionStackHasTrait",
+              "kind": "selfDigivolutionStackMatchesFilter",
               "filter": {
                 "nameOrTrait": [
                   { "tokens": ["Omnimon"], "match": "nameExact" },
-                  { "tokens": ["X Antibody"], "match": "trait" }
+                  { "tokens": ["X Antibody"], "match": "nameExact" }
                 ]
               },
               "raw": "[Omnimon]/[X Antibody] is in this Digimon's digivolution cards"
@@ -70711,11 +70711,11 @@
               "except": { "filter": { "kind": ["Digimon"] }, "count": 1, "selector": "any" }
             },
             "condition": {
-              "kind": "selfDigivolutionStackHasTrait",
+              "kind": "selfDigivolutionStackMatchesFilter",
               "filter": {
                 "nameOrTrait": [
                   { "tokens": ["Omnimon"], "match": "nameExact" },
-                  { "tokens": ["X Antibody"], "match": "trait" }
+                  { "tokens": ["X Antibody"], "match": "nameExact" }
                 ]
               },
               "raw": "[Omnimon]/[X Antibody] is in this Digimon's digivolution cards"

@@ -1,22 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-028.js";
 import "./index.js";
+import "../BT11/BT11-098.js";
 
 describe("BT20-028 GigaSeadramon", () => {
-  it("once per turn plays a level 5 or lower stack card only with the required name or trait", () => {
+  it("once per turn plays a level 5 or lower stack card only with the required exact name", () => {
     for (const trigger of ["WhenDigivolving", "WhenAttacking"] as const) {
       expect(compiled.effects.find((entry) => entry.trigger === trigger)).toMatchObject({
         frequency: "OncePerTurn",
         condition: {
-          kind: "selfDigivolutionStackHasTrait",
+          kind: "selfDigivolutionStackMatchesFilter",
           filter: {
             nameOrTrait: [
-              { tokens: ["MetalSeadramon"], match: "name" },
-              { tokens: ["X Antibody"], match: "trait" },
+              { tokens: ["MetalSeadramon"], match: "nameExact" },
+              { tokens: ["X Antibody"], match: "nameExact" },
             ],
           },
         },
@@ -55,7 +54,7 @@ describe("BT20-028 GigaSeadramon", () => {
           ],
           hand: [{ card: "BT20-028", as: "gigaEvolution" }],
         },
-        1: { battleArea: [{ card: "BT20-017", as: "opponentStack", under: ["BT20-014", "BT20-013"] }] },
+        1: { battleArea: [{ card: "BT20-017", as: "opponentStack", under: ["BT20-013", "BT20-014"] }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -77,14 +76,27 @@ describe("BT20-028 GigaSeadramon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("giga"), "Blocker")).toBe(true);
   });
 
-  it("does not play a stack card without MetalSeadramon or X Antibody in its sources", async () => {
+  it("does not play a stack card with only an X Antibody-trait source through public evolution", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT20-028", as: "giga", under: ["BT20-023", "BT20-025"] }] } },
+      {
+        0: {
+          battleArea: [{ card: "BT20-025", as: "wingdramon", under: ["BT15-021", "BT20-023"] }],
+          hand: [{ card: "BT20-028", as: "giga" }],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("giga"));
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("wingdramon").permanentId,
+        instanceId: s.inst("giga").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("wingdramon").topCard.cardId === "BT20-028");
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
-    expect(s.perm("giga").stack.map((card) => card.cardId)).toEqual(["BT20-023", "BT20-025"]);
+    expect(s.perm("wingdramon").stack.map((card) => card.cardId)).toEqual(["BT15-021", "BT20-023", "BT20-025"]);
   });
 
   it("reaches GigaSeadramon from a legal MegaSeadramon/X Antibody stack through public evolution", async () => {
@@ -106,5 +118,123 @@ describe("BT20-028 GigaSeadramon", () => {
     await settle(() => s.perm("mega").topCard.cardId === "BT20-028");
     expect(s.perm("mega").topCard.cardId).toBe("BT20-028");
     expect(s.perm("mega").stack.map((card) => card.cardId)).toEqual(["BT20-024", "BT20-026"]);
+  });
+
+  it.each([true, false])("offers a feasible source play, accepts %s, and leaves the level-6 source", async (accept) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-031", as: "base", under: ["BT20-022", "BT20-023", "BT20-025"] }],
+          hand: [{ card: "BT20-028", as: "giga" }],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: accept, autoDeclineOptional: !accept },
+    );
+    s.state.memory = 2;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("giga").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT20-028");
+    await settle();
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(accept ? 2 : 1);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toContain("BT15-031");
+    expect(s.perm("base").stack).toHaveLength(accept ? 3 : 4);
+  });
+
+  it("uses the trait-only source and shares the once-per-turn use across public evolution and attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-026", as: "mega", under: ["BT9-109", "BT20-022", "BT20-023"] }],
+          hand: [{ card: "BT20-028", as: "giga" }],
+          security: ["BT20-001"],
+        },
+        1: { battleArea: [{ card: "BT20-014", as: "target" }], security: ["BT20-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("mega").permanentId,
+        instanceId: s.inst("giga").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("mega").topCard.cardId === "BT20-028");
+    const afterDigivolving = s.perm("mega").stack.length;
+    expect(afterDigivolving).toBe(3);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("mega").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    expect(s.perm("mega").stack.length).toBe(3);
+  });
+
+  it("accepts X Antibody Proto Form's Rule Name through public evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-023", as: "base", under: ["EX5-070", "BT20-023"] }],
+          hand: [
+            { card: "BT20-025", as: "wingdramon" },
+            { card: "BT20-028", as: "giga" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("wingdramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT20-025");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("giga").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT20-028");
+    expect(s.state.players[0]!.battleArea.length).toBe(2);
+  });
+
+  it("triggers De-Digivolve when GigaSeadramon itself is played from a source stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-045", as: "host", under: ["BT20-028"] }],
+          hand: [{ card: "BT11-098", as: "sourcePlayer" }],
+        },
+        1: { battleArea: [{ card: "BT20-017", as: "opponent", under: ["BT20-013", "BT20-014"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sourcePlayer").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-028") &&
+        s.perm("opponent").stack.length === 0,
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-028")).toBe(true);
+    expect(s.perm("opponent").stack).toHaveLength(0);
   });
 });

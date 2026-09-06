@@ -1,17 +1,17 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT20-028 GigaSeadramon — Lv.7 Digimon
+// BT20-028 GigaSeadramon — Lv.6 Digimon
 // <Security A. +1>, <Reboot>, <Blocker>
 // [When Digivolving][When Attacking][Once Per Turn] From the digivolution cards of this Digimon
-//   with [MetalSeadramon] (name) or [X Antibody] (trait) in its digivolution cards, you may
+//   with [MetalSeadramon] or [X Antibody] in its digivolution cards, you may
 //   play 1 level 5 or lower Digimon card without paying the cost.
 // [All Turns][Once Per Turn] When any of your Digimon are played from digivolution cards,
 //   <De-Digivolve 2> 1 of your opponent's Digimon.
 //
 // KB Q4320: Effect can't activate without [MetalSeadramon] or [X Antibody] in digivolution cards.
 // KB Q4321: Triggers when this card itself is played from digivolution cards.
-// Audit finding: [MetalSeadramon] is NAME match, [X Antibody] is TRAIT match.
+// Bracketed names are exact card names, including Rule aliases (CR 2-3-1-2; P-139 Q4246).
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -64,16 +64,16 @@ export const compiled: CompiledCard = {
         },
       ],
       condition: {
-        kind: "selfDigivolutionStackHasTrait",
+        kind: "selfDigivolutionStackMatchesFilter",
         filter: {
           nameOrTrait: [
             {
               tokens: ["MetalSeadramon"],
-              match: "name",
+              match: "nameExact",
             },
             {
               tokens: ["X Antibody"],
-              match: "trait",
+              match: "nameExact",
             },
           ],
         },
@@ -101,16 +101,16 @@ export const compiled: CompiledCard = {
         },
       ],
       condition: {
-        kind: "selfDigivolutionStackHasTrait",
+        kind: "selfDigivolutionStackMatchesFilter",
         filter: {
           nameOrTrait: [
             {
               tokens: ["MetalSeadramon"],
-              match: "name",
+              match: "nameExact",
             },
             {
               tokens: ["X Antibody"],
-              match: "trait",
+              match: "nameExact",
             },
           ],
         },

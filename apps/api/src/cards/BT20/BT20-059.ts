@@ -29,16 +29,16 @@ export const compiled: CompiledCard = {
           grant: "immuneToOpponentDigimonEffects",
           duration: "untilOpponentTurnEnd",
           condition: {
-            kind: "selfDigivolutionStackHasTrait",
+            kind: "selfDigivolutionStackMatchesFilter",
             filter: {
               nameOrTrait: [
                 {
                   tokens: ["Gankoomon"],
-                  match: "name",
+                  match: "nameExact",
                 },
                 {
                   tokens: ["X Antibody"],
-                  match: "trait",
+                  match: "nameExact",
                 },
               ],
             },

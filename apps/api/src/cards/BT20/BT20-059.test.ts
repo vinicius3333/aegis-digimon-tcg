@@ -15,7 +15,7 @@ describe("BT20-059 Gankoomon (X Antibody)", () => {
           grant: "immuneToOpponentDigimonEffects",
           duration: "untilOpponentTurnEnd",
           target: { filter: { controller: "mine", kind: ["Digimon"] }, count: "all" },
-          condition: { kind: "selfDigivolutionStackHasTrait" },
+          condition: { kind: "selfDigivolutionStackMatchesFilter" },
         },
       ],
     });
@@ -58,21 +58,36 @@ describe("BT20-059 Gankoomon (X Antibody)", () => {
   });
 
   it("de-digivolves by 2 and protects all allies only with Gankoomon or X Antibody underneath", async () => {
-    for (const [base, cost, protects] of [
-      ["BT20-057", 2, true],
-      ["BT20-053", 5, true],
-      ["BT20-054", 5, false],
+    for (const [base, cost, protects, extraSource] of [
+      ["BT20-057", 2, true, undefined],
+      ["BT20-053", 5, false, undefined],
+      ["BT20-054", 5, false, undefined],
+      ["BT20-054", 5, true, "BT9-109"],
+      ["BT20-054", 5, true, "EX5-070"],
     ] as const) {
       const s = setupEngine(
         {
           0: {
             battleArea: [
-              { card: base, as: "base" },
+              {
+                card: base,
+                as: "base",
+                under: [
+                  ...(extraSource ? [extraSource] : []),
+                  "BT13-005",
+                  "BT20-048",
+                  "BT20-051",
+                  ...(base === "BT20-057" ? ["BT20-054"] : []),
+                ],
+              },
               { card: "BT20-047", as: "ally" },
             ],
             hand: [{ card: "BT20-059", as: "gankoomonX" }],
           },
-          1: { battleArea: [{ card: "BT20-053", under: ["BT13-005", "BT20-048", "BT20-051"], as: "target" }] },
+          1: {
+            battleArea: [{ card: "BT20-053", under: ["BT13-005", "BT20-048", "BT20-051"], as: "target" }],
+            hand: [{ card: "BT20-033", as: "loader" }],
+          },
         },
         { autoSelectCards: true },
       );
@@ -86,10 +101,20 @@ describe("BT20-059 Gankoomon (X Antibody)", () => {
         }),
       ).toEqual({ ok: true });
       await settle(() => s.perm("target").stack.length === 1);
+      await settle();
       expect(s.state.memory).toBe(5 - cost);
       for (const alias of ["base", "ally"]) {
         expect(observe(s.engine).isRestrictedByEffect(s.perm(alias), "beAffected", "Digimon")).toBe(protects);
       }
+      s.state.turnSeat = 1;
+      s.state.memory = 10;
+      await s.ready();
+      const beforeDP = s.perm("base").currentDP;
+      expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("loader").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle();
+      expect(s.perm("base").currentDP).toBe(beforeDP - (protects ? 0 : 3000));
     }
   });
 

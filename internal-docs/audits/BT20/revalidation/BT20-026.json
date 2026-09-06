@@ -11,10 +11,15 @@
   "evidence": [
     "Catalog: MegaSeadramon (X Antibody) level5 blue Aquatic/X Antibody; alternate MegaSeadramon cost0; On Play/When Digivolving returns one opposing level4-or-lower Digimon to deck bottom, then if MegaSeadramon/X Antibody is in stack, one opposing Digimon cannot suspend until opponent turn end; inherited Your Turn prevents this attack target changing.",
     "BT20-026.ts exclusively registers IR and maps entry return boundary, conditional until-opponent-turn-end suspend restriction, field-bound inherited attack-target restriction, and MegaSeadramon alternate requirement.",
-    "BT20-026.test.ts proves exact level4/5 return boundary, restriction effect, legal public MegaSeadramon\u2192X evolution, field-only treatment, inherited attack-target lock, and Examon DNA integration.",
-    "Added public Blocker comparison: inherited host reaches security while unprotected control is redirected.",
+    "BT20-026.test.ts proves exact level4/5 return boundary, restriction effect, legal public Blue Lv.4 evolution, field-only treatment, inherited attack-target lock, Examon DNA integration, negative X Antibody-trait-only handling, and positive exact X Antibody/Rule Name sources.",
+    "Added public Blocker comparison through real block windows: protected host rejects Blocker redirection and completes a security check; unprotected control declares the Blocker and completes combat without a security win.",
     "Added real turn-boundary retry: public BT1-070 effect suspension fails before opponent turn end and succeeds during the following opponent turn.",
-    "014-040-results.json"
+    "014-040-results.json",
+    "named-x-clause-red.log",
+    "named-x-019-102-red.log",
+    "named-x-026-028-red.log",
+    "named-x-green-results.json",
+    "named-x-mechanism-results.json"
   ],
   "commands": [
     {
@@ -24,11 +29,33 @@
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-014.test.ts src/cards/BT20/BT20-015.test.ts src/cards/BT20/BT20-016.test.ts src/cards/BT20/BT20-017.test.ts src/cards/BT20/BT20-018.test.ts src/cards/BT20/BT20-019.test.ts src/cards/BT20/BT20-020.test.ts src/cards/BT20/BT20-021.test.ts src/cards/BT20/BT20-022.test.ts src/cards/BT20/BT20-023.test.ts src/cards/BT20/BT20-024.test.ts src/cards/BT20/BT20-025.test.ts src/cards/BT20/BT20-026.test.ts src/cards/BT20/BT20-027.test.ts src/cards/BT20/BT20-028.test.ts src/cards/BT20/BT20-029.test.ts src/cards/BT20/BT20-030.test.ts src/cards/BT20/BT20-031.test.ts src/cards/BT20/BT20-032.test.ts src/cards/BT20/BT20-033.test.ts src/cards/BT20/BT20-034.test.ts src/cards/BT20/BT20-035.test.ts src/cards/BT20/BT20-036.test.ts src/cards/BT20/BT20-037.test.ts src/cards/BT20/BT20-038.test.ts src/cards/BT20/BT20-039.test.ts src/cards/BT20/BT20-040.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/014-040-results.json",
       "result": "6 tests passed for this card; 160 total passed; 014-040-results.json"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-{019,024,026,028,059,102}.test.ts src/engine/effects/nameExactMatch.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+      "result": "66/66 passed; exact-name source correction with trait-only negatives and printed Rule aliases."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/effects/{nameExactMatch,interpreter,capabilities}.test.ts src/cards/BT20/BT20-{019,024,026,028,059,102}.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+      "result": "570/570 passed; named-x-mechanism-results.json"
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "Passed shared, API and web; named-x-typecheck.log"
+    },
+    {
+      "command": "pnpm effects:sync:set -- --set BT20 && pnpm effects:check:set -- --set BT20",
+      "result": "Passed; exactly six affected BT20 records changed."
+    },
+    {
+      "command": "pnpm exec oxlint <six changed card modules/tests and nameExactMatch.test.ts>; pnpm exec oxfmt --check <same paths>; git diff --check",
+      "result": "Passed; named-x-lint.log and named-x-format-check.log"
     }
   ],
   "gaps": [
+    "Focused execution for the added public attack-rejection proof is pending coordinator execution.",
     "Delivery gates pending coordinator collection, mechanism, typecheck, lint.",
-    "Lead review: verify the attack restriction/Blocker comparative case resolves a real security check and cannot pass through an empty-security win."
+    "Lead review: verify the attack restriction/Blocker comparative case resolves a real security check and cannot pass through an empty-security win.",
+    "Final strict clause acceptance, whole-collection revalidation, typecheck/style and pushed delivery gates remain pending."
   ],
   "reviewStatus": "Focused execution passed; clause-by-clause lead acceptance remains pending. Provisional worker scores do not contribute to the ledger."
 }
