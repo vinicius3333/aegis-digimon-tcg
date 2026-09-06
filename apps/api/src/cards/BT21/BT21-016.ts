@@ -116,6 +116,7 @@ export const compiled: CompiledCard = {
         },
       ],
       count: 1,
+      maxMaterials: 1,
     },
   ],
 };

@@ -71437,7 +71437,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [{ "level": 3, "traits": ["Xros Heart", "Hero"], "cost": 2, "isAlternate": true }],
-    "digiXrosRequirement": [{ "materials": [{ "traits": ["Xros Heart"] }], "count": 1 }]
+    "digiXrosRequirement": [{ "materials": [{ "traits": ["Xros Heart"] }], "count": 1, "maxMaterials": 1 }]
   },
   "BT21-017": {
     "effects": [

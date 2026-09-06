@@ -53,7 +53,9 @@ describe("BT21-016 Shoutmon (King Version)", () => {
         ],
       }),
     );
-    expect(compiled.digiXrosRequirement).toEqual([{ materials: [{ traits: ["Xros Heart"] }], count: 1 }]);
+    expect(compiled.digiXrosRequirement).toEqual([
+      { materials: [{ traits: ["Xros Heart"] }], count: 1, maxMaterials: 1 },
+    ]);
   });
 
   it("DigiXroses with one Xros Heart material for cost 4 and gains Raid and Piercing", async () => {
@@ -79,6 +81,32 @@ describe("BT21-016 Shoutmon (King Version)", () => {
     expect(s.state.memory).toBe(2);
     expect(king.stack.map((card) => card.instanceId)).toContain(s.inst("material").instanceId);
     expect(observe(s.engine).hasKeyword(king, "Raid")).toBe(true);
+  });
+
+  it("rejects a second DigiXros material and preserves hand, board, and memory", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "BT21-016", as: "king" },
+          { card: "BT21-011", as: "first" },
+          { card: "BT21-021", as: "second" },
+        ],
+      },
+    });
+    s.state.memory = 6;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("king").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("first").instanceId, s.inst("second").instanceId] },
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(6);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("king").instanceId, s.inst("first").instanceId, s.inst("second").instanceId]),
+    );
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
 
   it("performs a security check after deleting a suspended Digimon by battle with Piercing", async () => {
@@ -128,7 +156,41 @@ describe("BT21-016 Shoutmon (King Version)", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("ineligible").instanceId);
   });
 
-  it("declining the optional first placement still performs mandatory Save", async () => {
+  it("naturally resolves optional placement and Save after battle deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-016", as: "king", suspended: true },
+            { card: "BT21-083", as: "tamer" },
+          ],
+          hand: [{ card: "BT21-011", as: "eligible" }],
+        },
+        1: { battleArea: [{ card: "BT21-062", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const kingId = s.perm("king").permanentId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: kingId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("tamer").stack.some((card) => card.cardId === "BT21-016"));
+
+    expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("eligible").instanceId, s.inst("king").instanceId]),
+    );
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === kingId)).toBe(false);
+  });
+
+  it("declining the optional first placement still offers the Save continuation", async () => {
     const s = setupEngine(
       {
         0: {
