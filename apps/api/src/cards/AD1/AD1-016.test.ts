@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../../cards/index.js";
 
@@ -107,6 +108,33 @@ describe("AD1-016 ShineGreymon", () => {
 
     expect(s.state.players[1]!.battleArea.filter((permanent) => permanent.currentDP === 9000)).toHaveLength(1);
     expect(s.state.players[1]!.battleArea.filter((permanent) => permanent.currentDP === 12000)).toHaveLength(1);
+  });
+
+  it("deletes at most one opposing Digimon when Marcus is played or suspended each turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "AD1-016", as: "shine" },
+            { card: "BT12-092", as: "marcus" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "first", dp: 5000 },
+            { card: "BT1-010", as: "second", dp: 6000 },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("marcus").permanentId });
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+
+    await advance(s.engine).fireSubTrigger("whenSuspended", { subjectPermanentId: s.perm("marcus").permanentId });
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
   it("uses either printed alternate level-5 route for cost 3", async () => {

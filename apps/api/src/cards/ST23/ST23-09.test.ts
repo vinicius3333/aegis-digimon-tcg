@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./ST23-09.js";
 
@@ -72,5 +73,53 @@ describe("ST23-09 Atratusmon", () => {
         },
       ],
     });
+  });
+
+  it("uses Security Attack +1 in a real player attack and performs two checks", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST23-09", as: "attacker" }] },
+      1: { security: ["BT1-001", "BT1-002"] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 2);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(2);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
+  it("uses Blocker in a real player attack and keeps the blocker after the unequal battle", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST2-11", as: "attacker" }] },
+      1: { battleArea: [{ card: "ST23-09", as: "blocker" }], security: ["BT1-001"] },
+    });
+    const attackerId = s.perm("attacker").permanentId;
+    const blockerId = s.perm("blocker").permanentId;
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: blockerId })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(s.events.find((event) => event.kind === "combatResolved")).toMatchObject({
+      deletedPermanentIds: [attackerId],
+    });
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === blockerId)).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("uses Reboot to unsuspend the host during the opponent's active phase", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST23-09", as: "host", suspended: true }] },
+      1: { deck: ["BT1-001", "BT1-002"] },
+    });
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("host").isSuspended).toBe(false);
   });
 });

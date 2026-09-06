@@ -27,6 +27,7 @@ const compiled: CompiledCard = {
               filter: {
                 controllerDefault: "mine",
                 kind: ["Tamer"],
+                colors: ["Green"],
               },
               count: 1,
               to: "hand",

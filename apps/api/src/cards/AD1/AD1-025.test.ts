@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../../cards/index.js";
 
@@ -87,5 +88,52 @@ describe("AD1-025 Omnimon", () => {
     expect(continuous.hasKeyword(s.perm("omnimon").permanentId, "Raid")).toBe(true);
     expect(continuous.hasKeyword(s.perm("omnimon").permanentId, "Blocker")).toBe(true);
     expect(continuous.hasKeyword(s.perm("omnimon").permanentId, "Partition")).toBe(true);
+  });
+
+  it("replays its WarGreymon and MetalGarurumon materials through Partition", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "AD1-025", as: "omnimon", under: ["AD1-004", "AD1-014"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("omnimon").permanentId], "byEffect")).toBe(1);
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.length === 2 &&
+        s.state.players[0]!.battleArea.every((permanent) => permanent.stack.length === 0),
+    );
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(
+      expect.arrayContaining(["AD1-004", "AD1-014"]),
+    );
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "AD1-025")).toBe(true);
+  });
+
+  it("trashes one opposing Option and top security card on the first opposing Digimon leave only", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "AD1-025", as: "omnimon" }] },
+      1: {
+        battleArea: [
+          { card: "BT1-010", as: "leaving" },
+          { card: "BT9-103", as: "option" },
+        ],
+        security: ["BT1-001", "BT1-002"],
+      },
+    });
+    await s.ready();
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("leaving").permanentId], "byEffect")).toBe(1);
+    await settle();
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT9-103")).toBe(true);
+    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-002"]);
+
+    s.putOnBoard(1, { card: "BT1-010", as: "second" });
+    await s.ready();
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("second").permanentId], "byEffect")).toBe(1);
+    await settle();
+    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-002"]);
   });
 });

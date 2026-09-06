@@ -63,6 +63,20 @@ describe("ST18-13 Eaglemon", () => {
     expect(s.state.players[1]!.hand.some((card) => card.cardId === "ST18-03")).toBe(true);
   });
 
+  it("does not return an unsuspended opponent Digimon", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "ST18-13", as: "eaglemon" }] }, 1: { battleArea: [{ card: "ST18-03", as: "victim" }] } },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 12;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("eaglemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.hand.some((card) => card.cardId === "ST18-03")).toBe(false);
+  });
+
   it("publishes Fortitude", () => {
     expect(compiled.effects).toContainEqual(
       expect.objectContaining({

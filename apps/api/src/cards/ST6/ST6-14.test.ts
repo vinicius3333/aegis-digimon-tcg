@@ -37,4 +37,25 @@ describe("ST6-14 Matt Ishida", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === instanceId)).toBe(true);
     expect(s.state.memory).toBe(3);
   });
+
+  it("may decline the deletion trigger without suspending or gaining memory", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST6-14", as: "matt" },
+            { card: "ST6-03", as: "victim" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    expect(s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "ST6-14")).toBe(true);
+    expect(s.perm("matt").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(2);
+  });
 });

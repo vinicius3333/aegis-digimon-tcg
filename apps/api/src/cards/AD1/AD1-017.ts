@@ -129,12 +129,21 @@ const compiled: CompiledCard = {
       trigger: "Security",
       actions: [
         {
-          kind: "GainKeyword",
+          kind: "SelectBind",
           target: {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
             },
+            count: 1,
+            bindAs: "securityDebuffTarget",
+          },
+        },
+        {
+          kind: "GainKeyword",
+          target: {
+            fromSelectionRef: "securityDebuffTarget",
+            filter: {},
             count: 1,
           },
           keyword: {
@@ -147,10 +156,8 @@ const compiled: CompiledCard = {
         {
           kind: "ModifyDP",
           target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-            },
+            fromSelectionRef: "securityDebuffTarget",
+            filter: {},
             count: 1,
           },
           amount: -3000,

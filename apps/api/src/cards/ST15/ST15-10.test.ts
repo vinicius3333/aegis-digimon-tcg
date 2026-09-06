@@ -1,6 +1,5 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -32,7 +31,7 @@ describe("ST15-10 Andromon", () => {
         instanceId: s.inst("andromon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await s.ready();
+    await settle(() => target.topCard?.cardId === "ST15-11");
 
     expect(target.topCard?.cardId).toBe("ST15-11");
     expect(target.stack).toHaveLength(2);
@@ -46,10 +45,7 @@ describe("ST15-10 Andromon", () => {
     ).toEqual({ ok: true });
     await settle(() => base.topCard.cardId === "ST15-13");
     await s.engine.recomputeContinuousEffects();
-    expect(registeredCompiledCards.get("ST15-10")?.effects.find((effect) => effect.isInherited)).toMatchObject({
-      trigger: "Static",
-      keywords: [{ keyword: "Reboot" }],
-    });
+    expect(observe(s.engine).hasKeyword(base, "Reboot")).toBe(true);
   });
 
   it("grants inherited Reboot to its evolved host", async () => {
@@ -62,5 +58,17 @@ describe("ST15-10 Andromon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "vanilla" }] } });
     await advance(s.engine).fire(EffectTiming.None, s.perm("vanilla"));
     expect(observe(s.engine).hasKeyword(s.perm("vanilla"), "Reboot")).toBe(false);
+  });
+
+  it("unsuspends its inherited Reboot host during the opponent's Active phase", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST15-13", under: ["ST15-10"], as: "host", suspended: true }] },
+      1: { deck: ["BT1-001"] },
+    });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Reboot")).toBe(true);
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("host").isSuspended).toBe(false);
   });
 });

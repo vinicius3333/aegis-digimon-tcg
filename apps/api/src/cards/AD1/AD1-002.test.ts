@@ -69,6 +69,27 @@ describe("AD1-002 Aldamon", () => {
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
 
+  it("rejects the Takuya route when fewer than 2 Hybrid cards are underneath", () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "AD1-020", as: "takuya", under: ["BT12-009"] }],
+        hand: [{ card: "AD1-002", as: "aldamon" }],
+      },
+    });
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("takuya").permanentId,
+        instanceId: s.inst("aldamon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("takuya").topCard?.cardId).toBe("AD1-020");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("aldamon").instanceId)).toBe(true);
+  });
+
   it("at end of attack trashes a Hybrid, draws 2, and plays an inherited-effect Tamer for free", async () => {
     const s = setupEngine(
       {

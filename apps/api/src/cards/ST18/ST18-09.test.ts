@@ -31,4 +31,38 @@ describe("ST18-09 Deramon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("deramon"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasEffectiveTrait(s.perm("deramon"), "Vegetation")).toBe(true);
   });
+
+  it("accepts the exact 3000-DP boundary and declines the optional play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST18-09", as: "deramon" }],
+          hand: [
+            { card: "ST18-06", as: "boundary" },
+            { card: "ST18-08", as: "tooLarge" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).verb.deletePermanent([s.perm("deramon").permanentId], "byEffect");
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("boundary").instanceId),
+    );
+    expect(
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("boundary").instanceId),
+    ).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tooLarge").instanceId)).toBe(true);
+
+    const declined = setupEngine(
+      { 0: { battleArea: [{ card: "ST18-09", as: "deramon" }], hand: [{ card: "ST18-06", as: "boundary" }] } },
+      { autoDeclineOptional: true },
+    );
+    await advance(declined.engine).verb.deletePermanent([declined.perm("deramon").permanentId], "byEffect");
+    await settle();
+    expect(declined.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "ST18-09")).toBe(true);
+    expect(
+      declined.state.players[0]!.hand.some((card) => card.instanceId === declined.inst("boundary").instanceId),
+    ).toBe(true);
+  });
 });

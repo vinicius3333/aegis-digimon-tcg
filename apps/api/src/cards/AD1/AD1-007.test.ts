@@ -47,7 +47,20 @@ describe("AD1-007 Siriusmon", () => {
         alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    for (let index = 0; index < 3; index += 1) {
+      await settle(() => s.decisions.filter(({ req }) => req.kind === "chooseOption").length > index);
+      const decision = s.decisions.filter(({ req }) => req.kind === "chooseOption")[index]!;
+      expect(decision).toBeDefined();
+      expect(decision.req.options?.choices).toEqual(["top", "bottom"]);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.req.decisionId,
+          response: { kind: "chooseOption", optionIndex: 0 },
+        }),
+      ).toEqual({ ok: true });
+    }
+    await settle(() => s.perm("base").stack.length === 4);
 
     expect(s.perm("base").stack).toHaveLength(4);
     expect(s.state.players[1]!.battleArea[0]?.permanentId).toBe(s.perm("over-ceiling").permanentId);
@@ -72,6 +85,179 @@ describe("AD1-007 Siriusmon", () => {
     expect(s.state.memory).toBe(2);
   });
 
+  it("accepts qualifying cards from trash and places exactly three", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-011", as: "base" }],
+          hand: [{ card: "AD1-007", as: "siriusmon" }],
+          trash: ["BT10-011", "BT10-050", "BT10-078"],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 12000 }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 5;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("siriusmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    for (let index = 0; index < 3; index += 1) {
+      await settle(() => s.decisions.filter(({ req }) => req.kind === "chooseOption").length > index);
+      const decision = s.decisions.filter(({ req }) => req.kind === "chooseOption")[index]!;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.req.decisionId,
+          response: { kind: "chooseOption", optionIndex: 1 },
+        }),
+      ).toEqual({ ok: true });
+    }
+    await settle(() => s.perm("base").stack.length === 4);
+
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.perm("base").stack).toHaveLength(4);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("does nothing when fewer than three qualifying cards remain, including decline", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-011", as: "base" }],
+          hand: [
+            { card: "AD1-007", as: "siriusmon" },
+            { card: "BT10-011", as: "only-material" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 12000 }] },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    s.state.memory = 5;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("siriusmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "AD1-007");
+
+    expect(s.perm("base").stack).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  it("can place all three Gammamon-text cards at the bottom of its stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-011", as: "base", under: ["BT1-001"] }],
+          hand: [
+            { card: "AD1-007", as: "siriusmon" },
+            { card: "BT10-011", as: "gamma-1" },
+            { card: "BT10-050", as: "gamma-2" },
+            { card: "BT10-078", as: "gamma-3" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 12000 }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 5;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("siriusmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    for (let index = 0; index < 3; index += 1) {
+      await settle(() => s.decisions.filter(({ req }) => req.kind === "chooseOption").length > index);
+      const decision = s.decisions.filter(({ req }) => req.kind === "chooseOption")[index]!;
+      expect(decision).toBeDefined();
+      expect(decision.req.options?.choices).toEqual(["top", "bottom"]);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.req.decisionId,
+          response: { kind: "chooseOption", optionIndex: 1 },
+        }),
+      ).toEqual({ ok: true });
+    }
+    await settle(() => s.perm("base").stack.length === 4);
+
+    expect(s.perm("base").stack[3]?.cardId).toBe("BT1-001");
+    expect(
+      s
+        .perm("base")
+        .stack.slice(0, 3)
+        .map((card) => card.cardId),
+    ).toEqual(expect.arrayContaining(["BT10-011", "BT10-050", "BT10-078"]));
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("target").permanentId),
+    ).toBe(false);
+  });
+
+  it("records an independent top-or-bottom choice for each of the three cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-011", as: "base", under: ["BT1-001"] }],
+          hand: [
+            { card: "AD1-007", as: "siriusmon" },
+            { card: "BT10-011", as: "gamma-1" },
+            { card: "BT10-050", as: "gamma-2" },
+            { card: "BT10-078", as: "gamma-3" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 12000 }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 5;
+    const gamma1Id = s.inst("gamma-1").instanceId;
+    const gamma2Id = s.inst("gamma-2").instanceId;
+    const gamma3Id = s.inst("gamma-3").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("siriusmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+
+    const choices = [0, 1, 1];
+    for (const [index, optionIndex] of choices.entries()) {
+      await settle(() => s.decisions.filter(({ req }) => req.kind === "chooseOption").length > index);
+      const decision = s.decisions.filter(({ req }) => req.kind === "chooseOption")[index]!;
+      expect(decision).toBeDefined();
+      expect(decision.req.options?.choices).toEqual(["top", "bottom"]);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.req.decisionId,
+          response: { kind: "chooseOption", optionIndex },
+        }),
+      ).toEqual({ ok: true });
+    }
+    await settle(() => s.perm("base").stack.length === 5);
+
+    const stack = s.perm("base").stack.map((card) => card.cardId);
+    expect(stack).toEqual(["BT10-078", "BT10-050", "BT1-001", "BT10-011", "BT10-011"]);
+    const stackIds = s.perm("base").stack.map((card) => card.instanceId);
+    expect(stackIds[0]).toBe(gamma3Id);
+    expect(stackIds[1]).toBe(gamma2Id);
+    expect(stackIds[4]).toBe(gamma1Id);
+  });
+
   it("shares one use between its when-digivolving and when-attacking timings", async () => {
     const s = setupEngine(
       {
@@ -92,7 +278,7 @@ describe("AD1-007 Siriusmon", () => {
           ],
         },
       },
-      { autoSelectCards: true, autoAcceptOptional: true },
+      { autoSelectCards: true, autoAcceptOptional: true, autoChooseOption: true },
     );
     s.state.memory = 5;
 
@@ -103,7 +289,7 @@ describe("AD1-007 Siriusmon", () => {
         instanceId: s.inst("siriusmon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    await settle(() => s.perm("base").stack.length === 4);
     await settle();
     expect(
       s.engine.applyIntent(0, {

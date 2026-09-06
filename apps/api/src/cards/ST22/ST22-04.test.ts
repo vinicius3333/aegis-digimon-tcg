@@ -3,6 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
+import { observe } from "../../engine/testkit/observe.js";
 
 describe("ST22-04 Taomon", () => {
   it("reduces one opposing Digimon by 3000 on play", async () => {
@@ -54,5 +55,35 @@ describe("ST22-04 Taomon", () => {
     // AD1-001 would delete the opposing 2000-DP Digimon on [When Digivolving].
     // Taomon's restriction is proven by that Digimon remaining in the battle area.
     expect(s.perm("victim").currentDP).toBe(2000);
+  });
+  it("pays the top security once to unsuspend its Sakuyamon host after a completed attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST22-06", as: "host", under: ["ST22-04"] }],
+          security: [{ card: "ST1-02", as: "cost" }, "ST1-03"],
+        },
+        1: { security: ["ST1-02", "ST1-02"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const attack = () =>
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      });
+    expect(attack()).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && !s.perm("host").isSuspended);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.trash.some((c) => c.instanceId === s.inst("cost").instanceId)).toBe(true);
+    expect(attack()).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.perm("host").isSuspended).toBe(true);
   });
 });

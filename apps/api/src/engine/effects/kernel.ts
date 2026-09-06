@@ -176,6 +176,12 @@ export function passesPlacementGuard(effect: Effect, ctx: EffectContext): boolea
     // Mother D-Reaper (official Q3276), so its stack can also provide inherited effects.
     return isBattleAreaDigimon || ctx.source.isOnBreedingArea?.() === true;
   }
+  // An Option used from a stack still checks its own printed use requirement.
+  // Only the dedicated self-waiver builder gets this continuous exception; ordinary
+  // printed statics and triggered effects remain inactive while buried.
+  if (ctx.continuousPass && effect.isColorWaiverStatic && ctx.source.definition.kinds.includes(CardKind.Option)) {
+    return true;
+  }
   // Printed (own) effect: must be the top card.
   return isTop;
 }

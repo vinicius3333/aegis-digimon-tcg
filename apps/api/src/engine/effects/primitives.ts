@@ -328,6 +328,8 @@ export interface CombatPort {
     opts?: {
       withoutTap?: boolean;
       attackMechanic?: string;
+      /** Resolve an attack-cost payload after attack declaration and before declaration-triggered effects. */
+      afterAttackDeclaration?: () => Promise<void>;
       afterAttackTriggers?: () => Promise<void>;
       drainTimingWindow?: () => Promise<void>;
     },
@@ -3479,7 +3481,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // continuous ledgers; the post-removal timing window consumes this immutable event snapshot.
     const deletionGrantSnapshot = {
       stackEffectConferralsSnapshot: [...continuous.listStackEffectConferrals()],
-      customEffectGrantsSnapshot: [...continuous.listCustomEffectGrants()],
+      customEffectGrantsSnapshot: continuous.listCustomEffectGrants().map((grant) => {
+        if (!topInstanceIdsByPermanent.includes(grant.instanceId)) return grant;
+        // Aura immunity gates consult the live recipient. Preserve their event-time
+        // result before removal makes that recipient unavailable (ST16-15 Q824).
+        const activeAtDeletion = grant.isActive?.() ?? true;
+        return { ...grant, isActive: () => activeAtDeletion };
+      }),
       onDeletionAtEndOfAttackProjectionsSnapshot: continuous
         .listOnDeletionAtEndOfAttackProjections()
         .map((projection) => projection.permanentId),
@@ -5339,7 +5347,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       ignoreSummoningSickness?: boolean;
       attackPlayer?: boolean;
       attackPlayerOnly?: boolean;
+      vortex?: boolean;
       attackMechanic?: string;
+      afterAttackDeclaration?: () => Promise<void>;
       afterAttackTriggers?: () => Promise<void>;
       drainTimingWindow?: () => Promise<void>;
     },
@@ -5356,7 +5366,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         controllerSeat,
         attacker,
         continuous,
-        false,
+        opts?.vortex,
         opts?.withoutSuspending,
         opts?.ignoreSummoningSickness,
       ) !== null
@@ -5380,12 +5390,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
             attacker,
             { kind: "permanent", permanentId: permanent.permanentId },
             continuous,
+            opts?.vortex,
           ) === null,
       )
       .map((permanent) => permanent.permanentId);
     const candidates = [
       ...(opts?.attackPlayer !== false &&
-      canAttackTarget(access, controllerSeat, attacker, playerTarget, continuous) === null
+      canAttackTarget(access, controllerSeat, attacker, playerTarget, continuous, opts?.vortex) === null
         ? [PLAYER]
         : []),
       ...(opts?.attackPlayerOnly === true ? [] : legalEnemyIds),
@@ -5404,6 +5415,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     await combat.resolveAttack(controllerSeat, attacker, target, {
       withoutTap: opts?.withoutSuspending ?? false,
       attackMechanic: opts?.attackMechanic,
+      afterAttackDeclaration: opts?.afterAttackDeclaration,
       afterAttackTriggers: opts?.afterAttackTriggers,
       drainTimingWindow: opts?.drainTimingWindow,
     });

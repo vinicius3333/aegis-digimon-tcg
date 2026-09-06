@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../../cards/index.js";
 
 describe("AD1-014 MetalGarurumon", () => {
@@ -143,5 +144,37 @@ describe("AD1-014 MetalGarurumon", () => {
       .continuous;
     expect(continuous.hasKeyword(s.perm("metal").permanentId, "Blocker")).toBe(true);
     expect(continuous.hasKeyword(s.perm("metal").permanentId, "Evade")).toBe(true);
+  });
+
+  it("applies its inherited restriction only when the host name contains Garurumon or Omnimon", async () => {
+    const matching = setupEngine({
+      0: { battleArea: [{ card: "BT1-040", as: "host", under: ["AD1-014"] }] },
+      1: { battleArea: [{ card: "BT1-010", as: "target" }] },
+    });
+    await matching.ready();
+    expect(
+      matching.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: matching.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(matching.engine).isRestricted(matching.perm("target"), "suspend"));
+    expect(observe(matching.engine).isRestricted(matching.perm("target"), "suspend")).toBe(true);
+
+    const nonMatching = setupEngine({
+      0: { battleArea: [{ card: "AD1-006", as: "host", under: ["AD1-014"] }] },
+      1: { battleArea: [{ card: "BT1-010", as: "target" }] },
+    });
+    await nonMatching.ready();
+    expect(
+      nonMatching.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: nonMatching.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(observe(nonMatching.engine).isRestricted(nonMatching.perm("target"), "suspend")).toBe(false);
   });
 });

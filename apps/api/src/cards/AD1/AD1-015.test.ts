@@ -87,6 +87,59 @@ describe("AD1-015 Beowolfmon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-001", "BT1-002"]));
   });
 
+  it("places a Ten Warriors card under itself and draws two after the attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "AD1-015", as: "beowolf" }],
+          hand: [{ card: "BT17-017", as: "ten-warriors" }],
+          deck: ["BT1-001", "BT1-002"],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("beowolf").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("beowolf").stack.some((card) => card.cardId === "BT17-017"));
+
+    expect(s.perm("beowolf").stack.some((card) => card.cardId === "BT17-017")).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-001", "BT1-002"]));
+  });
+
+  it("does not draw when the hand has neither a Hybrid nor a Ten Warriors card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "AD1-015", as: "beowolf" }],
+          hand: [{ card: "BT1-010", as: "unrelated" }],
+          deck: ["BT1-001", "BT1-002"],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("beowolf").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+
+    expect(s.perm("beowolf").stack).toHaveLength(0);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-010")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(false);
+  });
+
   it("inherits the when-attacking -4000 DP effect", async () => {
     const s = setupEngine(
       {

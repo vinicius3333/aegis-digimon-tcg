@@ -84,6 +84,31 @@ describe("ST12-14 Aus Generics", () => {
     expect(observe(s.engine).hasPierce(s.perm("volcanomon"))).toBe(false);
   });
 
+  it("expires the DP and Piercing bonuses at the end of the turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST12-04", as: "huckmon" }],
+          hand: [{ card: "ST12-14", as: "option" }],
+          deck: ["ST1-02", "ST1-02"],
+        },
+        1: { deck: ["ST1-02", "ST1-02"] },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("huckmon").currentDP === s.perm("huckmon").baseDP + 2000);
+    expect(s.perm("huckmon").currentDP).toBe(s.perm("huckmon").baseDP + 2000);
+    expect(observe(s.engine).hasPierce(s.perm("huckmon"))).toBe(true);
+
+    await advance(s.engine).runTurn(0);
+    expect(s.perm("huckmon").currentDP).toBe(s.perm("huckmon").baseDP);
+    expect(observe(s.engine).hasPierce(s.perm("huckmon"))).toBe(false);
+  });
+
   it("gains 1 memory and returns itself to hand from security", async () => {
     const s = setupEngine(
       { 0: { security: [{ card: "ST12-14", as: "option", faceUp: true }] } },

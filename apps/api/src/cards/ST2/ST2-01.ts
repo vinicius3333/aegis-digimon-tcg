@@ -52,16 +52,10 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenBlocked",
-          sourceFilter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "none" },
+          sourceFilter: { isSelfRef: true },
           fireCondition: {
-            kind: "allOf",
-            conditions: [
-              { kind: "triggerDefenderIsSelf" },
-              {
-                kind: "triggerAttackerMatchesFilter",
-                filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "none" },
-              },
-            ],
+            kind: "triggerDefenderMatchesFilter",
+            filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "none" },
           },
           actions: [
             {

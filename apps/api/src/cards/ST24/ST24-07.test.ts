@@ -67,7 +67,8 @@ describe("ST24-07 ShineGreymon", () => {
     await settle(() => s.decisions.some((decision) => decision.req.kind === "optional"));
     const prompt = s.decisions.find((decision) => decision.req.kind === "optional");
     expect(prompt).toBeDefined();
-    if (prompt !== undefined) {
+    if (prompt === undefined) throw new Error("Optional prompt missing");
+    {
       expect(
         s.engine.applyIntent(prompt.seat, {
           type: "respondDecision",
@@ -80,5 +81,37 @@ describe("ST24-07 ShineGreymon", () => {
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("declinedTamer").instanceId);
     expect(s.perm("opponent").currentDP).toBe(1000);
+  });
+
+  it("uses Raid in a real player attack and resolves Piercing plus Security Attack +1", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST24-07", as: "attacker" }] },
+        1: {
+          battleArea: [{ card: "ST2-10", as: "highest" }],
+          security: ["BT1-001", "BT1-002"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const highestId = s.perm("highest").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(
+      s.events.some(
+        (event) =>
+          event.kind === "attackDeclared" &&
+          event.target.kind === "permanent" &&
+          event.target.permanentId === highestId,
+      ),
+    ).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === highestId)).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(0);
   });
 });

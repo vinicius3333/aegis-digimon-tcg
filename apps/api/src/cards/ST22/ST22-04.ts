@@ -70,30 +70,15 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "UseOptionWithoutCost",
-          target: {
-            filter: {
-              kind: ["Option"],
-              nameOrTrait: [
-                {
-                  tokens: ["Onmyōjutsu"],
-                  match: "trait",
-                },
-              ],
-            },
-            count: 1,
-            from: ["hand", "digivolutionCards"],
-            orFilters: [
-              {
-                kind: ["Option"],
-                nameOrTrait: [
-                  {
-                    tokens: ["Plug-In"],
-                    match: "trait",
-                  },
-                ],
-              },
+          filter: {
+            controller: "mine",
+            kind: ["Option"],
+            nameOrTrait: [
+              { tokens: ["Onmyōjutsu"], match: "trait" },
+              { tokens: ["Plug-In"], match: "trait" },
             ],
           },
+          from: ["hand", "underTamers"],
           payCost: false,
           optional: true,
         },

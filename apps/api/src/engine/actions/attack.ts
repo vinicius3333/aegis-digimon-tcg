@@ -59,6 +59,11 @@ export function validateAttack(deps: AttackDeps, seat: Seat, intent: AttackInten
   if (state.phase !== Phase.Main) {
     return "wrong-phase";
   }
+  // Vortex is an end-of-your-turn keyword attack; its public declaration is
+  // synthesized by the end-turn effect rather than accepted as a forged Main intent.
+  if (intent.vortex === true) {
+    return "wrong-phase";
+  }
 
   // 2. No attack may begin while an effect is waiting on a Decision. Attacking is a Main-phase
   //    action like play/digivolve/activate, and every one of those gates here (the API-CONTRACT

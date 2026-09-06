@@ -22,7 +22,10 @@ describe("ST10-08 Tsukaimon", () => {
       ok: true,
     });
     await settle(() => s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("angel").instanceId));
-    expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("rest1").instanceId,
+      s.inst("rest2").instanceId,
+    ]);
   });
 
   it("bottoms all three revealed cards when none has an eligible trait", async () => {

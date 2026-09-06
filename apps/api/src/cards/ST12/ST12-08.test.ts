@@ -42,7 +42,11 @@ describe("ST12-08 [When Digivolving] allows attacking unsuspended opponent Digim
     // Place a Lv.4 Red Digimon as the digivolution base, and digivolve ST12-08 onto it.
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: LV4_BASE, dp: 4000, as: "base" }], hand: [{ card: SAVIOHUCKMON, as: "card" }] },
+        0: {
+          battleArea: [{ card: LV4_BASE, dp: 4000, as: "base" }],
+          hand: [{ card: SAVIOHUCKMON, as: "card" }],
+          deck: ["ST1-02", "ST1-02"],
+        },
         // Opponent's UNSUSPENDED Digimon (normally an "illegal-target").
         1: { battleArea: [{ card: "BT1-009", dp: 3000, as: "unsuspended" }] }, // Monodramon, not suspended
       },
@@ -101,7 +105,11 @@ describe("ST12-08 [When Digivolving] allows attacking unsuspended opponent Digim
   it("expires the unsuspended-Digimon attack permission when the turn changes", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: LV4_BASE, as: "base" }], hand: [{ card: SAVIOHUCKMON, as: "card" }] },
+        0: {
+          battleArea: [{ card: LV4_BASE, as: "base" }],
+          hand: [{ card: SAVIOHUCKMON, as: "card" }],
+          deck: ["ST1-02", "ST1-02", "ST1-02"],
+        },
         1: { battleArea: [{ card: "BT1-009", as: "unsuspended" }] },
       },
       { autoAcceptOptional: true, autoOrderTriggers: true },
@@ -117,6 +125,7 @@ describe("ST12-08 [When Digivolving] allows attacking unsuspended opponent Digim
     const ledger = ledgerOf(s);
     await settle(() => ledger.canAttackUnsuspended(s.perm("base").permanentId), 400);
 
+    expect(ledger.canAttackUnsuspended(s.perm("base").permanentId)).toBe(true);
     await advance(s.engine).runTurn(0);
     expect(ledger.canAttackUnsuspended(s.perm("base").permanentId)).toBe(false);
     expect([...s.perm("base").attackablePermanentIds]).not.toContain(s.perm("unsuspended").permanentId);
@@ -125,12 +134,11 @@ describe("ST12-08 [When Digivolving] allows attacking unsuspended opponent Digim
 
 describe("ST12-08 [When Attacking][Inherited] does not fire when attacker lacks Royal Knight trait", () => {
   it("Sistermon card stays in hand when the attacking Digimon has no Royal Knight trait", async () => {
-    // ST12-08 as top card — its type is "Dragonkin", NOT Royal Knight. The inherited
-    // effect requires Royal Knight in the ATTACKER's traits, so it won't fire here.
+    // A neutral level-6 host lacks Royal Knight, while ST12-08 is an active source.
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: SAVIOHUCKMON, dp: 6000, as: "attacker" }],
+          battleArea: [{ card: "ST1-10", as: "attacker", under: [SAVIOHUCKMON] }],
           hand: [{ card: SISTERMON, as: "sistermon" }],
         },
         1: { security: [{ card: "BT1-009" }] },
@@ -151,6 +159,7 @@ describe("ST12-08 [When Attacking][Inherited] does not fire when attacker lacks 
     await settle(() => s.state.players[1]!.security.length === 0);
 
     // Sistermon must still be in hand (Royal Knight check failed → no play).
+    expect(s.state.players[1]!.security).toHaveLength(0);
     expect(p0.hand.some((c) => c.instanceId === sistermonId)).toBe(true);
   });
 });
@@ -177,6 +186,7 @@ describe("ST12-08 [When Attacking][Inherited] plays Sistermon for a Royal Knight
     await settle(() =>
       s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("sister").instanceId),
     );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("sister").instanceId)).toBe(true);
     expect(s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("sister").instanceId)).toBe(false);
   });
 
@@ -202,6 +212,7 @@ describe("ST12-08 [When Attacking][Inherited] plays Sistermon for a Royal Knight
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === sisterId));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === sisterId)).toBe(true);
     expect(s.state.players[0]!.trash.some((c) => c.instanceId === sisterId)).toBe(false);
   });
 
@@ -268,8 +279,12 @@ describe("ST12-08 [When Attacking][Inherited] plays Sistermon for a Royal Knight
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
+    await settle(
+      () => s.state.pendingDecision?.kind === "optional" && s.decisions.at(-1)?.req.sourceCardId === "ST12-08",
+    );
     const pending = s.state.pendingDecision!;
+    expect(pending?.kind).toBe("optional");
+    expect(s.decisions.at(-1)?.req.sourceCardId).toBe("ST12-08");
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
@@ -277,7 +292,8 @@ describe("ST12-08 [When Attacking][Inherited] plays Sistermon for a Royal Knight
         response: { kind: "optional", accept: false },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision === undefined);
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === sisterId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === sisterId)).toBe(false);
   });

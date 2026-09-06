@@ -128,6 +128,18 @@ const compiled: CompiledCard = {
                 raw: "any of them have the [ADVENTURE] trait",
               },
             },
+            {
+              kind: "Attack",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+              },
+              withoutSuspending: false,
+              optional: true,
+            },
           ],
         },
         {
@@ -159,19 +171,19 @@ const compiled: CompiledCard = {
                 raw: "any of them have the [ADVENTURE] trait",
               },
             },
-          ],
-        },
-        {
-          kind: "Attack",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
+            {
+              kind: "Attack",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+              },
+              withoutSuspending: false,
+              optional: true,
             },
-            count: 1,
-          },
-          withoutSuspending: false,
-          optional: true,
+          ],
         },
       ],
       frequency: "OncePerTurn",

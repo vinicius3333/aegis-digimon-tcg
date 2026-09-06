@@ -35,6 +35,8 @@ import {
   registerTamerOntoFromEffects,
   synthesizedOverclockTrait,
   trainingActivatedEffect,
+  vortexActivatedEffect,
+  hasExplicitVortexEndOfTurnAttack,
 } from "./keywords.js";
 import {
   collectWouldBePlayedSelfReducers,
@@ -42,8 +44,17 @@ import {
   isIntrinsicWouldDigivolveSelfReducerMarker,
 } from "./reducers.js";
 import { normalizeCompiledCard } from "./normalize.js";
-import { compiledEffects, EffectTiming, getCardDefinition, isOption } from "@aegis/shared";
-import type { CardEffect, CompiledCard } from "@aegis/shared";
+import { CardKind, compiledEffects, EffectTiming, getCardDefinition, isOption } from "@aegis/shared";
+import type { Action, CardEffect, CompiledCard } from "@aegis/shared";
+
+function containsPlayCostReduction(actions: Action[]): boolean {
+  return actions.some((action) => {
+    if (action.kind === "ReducePlayCost") return true;
+    if (action.kind === "CostModifier" && action.costType === "play" && action.mode === "reduce") return true;
+    // Cost-gated bodies execute now; subscriptions and granted effects execute later.
+    return action.kind === "CostGatedBlock" && containsPlayCostReduction(action.actions);
+  });
+}
 
 /** Preserve a collected conferral key while still giving nested effects their own identity. */
 function runtimeEffectKey(ctx: Parameters<Effect["resolve"]>[0], effectKey: string): string {
@@ -85,8 +96,18 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
     // effect index and append its zone-specific counterpart.
     effects.push(trainingActivatedEffect(true));
   }
+  const definition = getCardDefinition(cardId);
+  const overclockTrait = synthesizedOverclockTrait(compiled, definition);
   if (declaresUnimplementedEngageKeyword(compiled)) effects.push(engageActivatedEffect());
   if (declaresExecuteKeyword(compiled)) effects.push(executeActivatedEffect(), executeDeleteEffect());
+  // Vortex can be granted dynamically by another permanent (for example BT26-045, P-241,
+  // and BT21-095). Install the conditional trigger on every compiled Digimon so a live grant
+  // receives the same end-of-turn attack scheduling as a printed keyword. The condition inside
+  // vortexActivatedEffect re-checks the active keyword at resolution/collection time, so a
+  // temporary grant naturally expires and a non-Vortex permanent contributes no effect.
+  if (definition?.kinds.includes(CardKind.Digimon) === true && !hasExplicitVortexEndOfTurnAttack(compiled)) {
+    effects.push(vortexActivatedEffect());
+  }
   registerTamerOntoFromEffects(cardId, compiled.effects);
   collectWouldBePlayedSelfReducers(cardId, compiled.effects);
   collectWouldDigivolveSelfReducers(cardId, compiled.effects);
@@ -94,8 +115,6 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
   registerDigisorptionRedirectorFromEffects(cardId, compiled.effects);
   registerBlastDigivolveFromEffects(cardId, compiled.effects);
   detectAllowDigiXrosMaterialsFromTrash(cardId, compiled.effects);
-  const definition = getCardDefinition(cardId);
-  const overclockTrait = synthesizedOverclockTrait(compiled, definition);
   if (overclockTrait !== undefined) effects.push(overclockActivatedEffect(overclockTrait));
   const cardIsOption = definition !== undefined && isOption(definition);
   const effectCondition = (effect: CardEffect, ctx: Parameters<NonNullable<BuilderOptions["when"]>>[0]): boolean => {
@@ -131,9 +150,13 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
     const timings = timingsForTrigger(effect, isOptionPlayBody);
     if (timings.length === 0) continue;
     const build = builderForTrigger(effect);
+    const markedBuild = (options: BuilderOptions): Effect => {
+      const built = build(options);
+      return containsPlayCostReduction(effect.actions) ? { ...built, isPlayCostReduction: true } : built;
+    };
     for (const timing of timings) {
       const list = byTiming.get(timing) ?? [];
-      list.push({ effect, build });
+      list.push({ effect, build: markedBuild });
       byTiming.set(timing, list);
     }
     index++;

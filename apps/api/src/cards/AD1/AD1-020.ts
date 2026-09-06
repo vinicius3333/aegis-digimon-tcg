@@ -133,17 +133,18 @@ const compiled: CompiledCard = {
             raw: "＜Security Attack +1＞",
           },
           duration: "forTheAttack",
-          optional: true,
-          abortOnDecline: true,
-        },
-        {
-          kind: "Attack",
-          target: {
-            filter: { isSelfRef: true },
-            count: 1,
-            isSelf: true,
+          cost: {
+            kind: "attack",
+            raw: "by attacking with this Digimon",
           },
-          attackPlayer: true,
+          optional: true,
+          condition: {
+            kind: "selfHasTrait",
+            filter: {
+              nameOrTrait: [{ tokens: ["Hybrid", "Ten Warriors"], match: "trait" }],
+            },
+            raw: "this Digimon has the [Hybrid] or [Ten Warriors] trait",
+          },
         },
       ],
       isInherited: true,

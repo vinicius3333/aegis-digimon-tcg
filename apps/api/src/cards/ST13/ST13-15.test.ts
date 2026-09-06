@@ -14,6 +14,7 @@ describe("ST13-15 Direct Smasher", () => {
       },
     });
     const highId = s.perm("high").permanentId;
+    const highCardId = s.perm("high").topCard.instanceId;
     s.state.memory = 7;
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("smasher").instanceId })).toEqual({
@@ -21,6 +22,8 @@ describe("ST13-15 Direct Smasher", () => {
     });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === highId));
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT1-009")).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === highCardId)).toBe(true);
   });
 
   it("deletes exactly one Digimon when the highest DP is tied", async () => {

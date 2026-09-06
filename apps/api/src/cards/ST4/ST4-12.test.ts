@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./ST4-12.js";
@@ -11,10 +12,12 @@ describe("ST4-12 Rosemon", () => {
           battleArea: [{ card: "ST4-10", as: "base" }],
           hand: [{ card: "ST4-12", as: "evolving" }],
           security: ["ST4-03"],
+          deck: ["ST1-02", "ST1-02"],
         },
         1: {
           battleArea: [{ card: "ST4-10", as: "target" }],
           hand: [{ card: "ST4-12", as: "targetEvolution" }],
+          deck: ["ST1-02", "ST1-02"],
         },
       },
       { autoSelectCards: true },
@@ -52,5 +55,8 @@ describe("ST4-12 Rosemon", () => {
         target: { kind: "player" },
       }).ok,
     ).toBe(false);
+    await advance(s.engine).runTurn(1);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "block")).toBe(false);
   });
 });

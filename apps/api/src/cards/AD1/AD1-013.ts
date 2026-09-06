@@ -75,6 +75,7 @@ const compiled: CompiledCard = {
                 filter: {
                   controller: "mine",
                   kind: ["Digimon"],
+                  hostFilter: { isSelfRef: true },
                   levelComparison: {
                     op: "lte",
                     value: 5,
@@ -89,7 +90,6 @@ const compiled: CompiledCard = {
                 count: 1,
               },
               from: ["digivolutionCards"],
-              digiXrosMaterialsFrom: ["battleArea"],
               payCost: false,
               optional: true,
             },

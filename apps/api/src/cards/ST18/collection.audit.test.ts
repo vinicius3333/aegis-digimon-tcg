@@ -34,14 +34,15 @@ describe("ST18 collection audit proof", () => {
         indexSource.match(new RegExp(`^import "\\./${cardId}\\.js";$`, "gm")),
         `${cardId} index import`,
       ).toHaveLength(1);
-      expect(
-        testSource,
-        `${cardId} focused evidence suite`,
-      ).toMatch(new RegExp(`^describe\\s*\\(\\s*["']${cardId}(?=\\s|["'])`, "m"));
+      expect(testSource, `${cardId} focused evidence suite`).toMatch(
+        new RegExp(`^describe\\s*\\(\\s*["']${cardId}(?=\\s|["'])`, "m"),
+      );
       expect(testSource, `${cardId} runnable focused case`).toMatch(/\bit\s*\(/);
       expect(testSource, `${cardId} focused engine harness`).toMatch(/\bsetupEngine\s*\(/);
       expect(testSource, `${cardId} focused observable assertion`).toMatch(/\bexpect\s*\(/);
-      expect(testSource, `${cardId} skipped or pending focused case`).not.toMatch(/\b(?:describe|it|test)\.(?:skip|todo)\s*\(/);
+      expect(testSource, `${cardId} skipped or pending focused case`).not.toMatch(
+        /\b(?:describe|it|test)\.(?:skip|todo)\s*\(/,
+      );
       expect(getEffectModule(cardId), `${cardId} executable module`).toBeDefined();
     }
   });

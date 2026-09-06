@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "../index.js";
 
 describe("ST24-10 Lilamon", () => {
@@ -69,5 +70,32 @@ describe("ST24-10 Lilamon", () => {
     });
     await settle(() => s.perm("opponent").isSuspended);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("next").instanceId)).toBe(true);
+  });
+
+  it("prevents a Rosemon-name host from leaving by paying the inherited replacement cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST24-11", as: "host", under: [{ card: "ST24-10" }] },
+            { card: "ST24-13", as: "tamer", under: [{ card: "BT1-001", as: "under", faceUp: false }] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    expect(await advance(s.engine).verb.deletePermanent([hostId])).toBe(0);
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === hostId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((c) => c.instanceId === s.inst("under").instanceId)).toBe(true);
+  });
+
+  it("allows a DATA SQUAD host to leave when no inherited cost card exists", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "ST24-11", as: "host", under: [{ card: "ST24-10" }] }] } });
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    expect(await advance(s.engine).verb.deletePermanent([hostId])).toBe(1);
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === hostId)).toBe(false);
   });
 });

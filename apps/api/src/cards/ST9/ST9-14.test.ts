@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./ST9-14.js";
 
@@ -10,6 +12,7 @@ describe("ST9-14 Megadeath", () => {
         battleArea: [
           { card: "BT1-009", as: "first" },
           { card: "BT1-010", as: "second", suspended: true },
+          { card: "BT1-011", as: "unsuspended" },
         ],
       },
     });
@@ -34,11 +37,34 @@ describe("ST9-14 Megadeath", () => {
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: returnDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("unsuspended").permanentId] },
+      }),
+    ).toMatchObject({ ok: false });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: returnDecision.decisionId,
         response: { kind: "chooseTargets", instanceIds: [s.perm("second").permanentId] },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.hand.some((c) => c.instanceId === secondInstanceId));
     expect(s.state.players[1]!.battleArea.find((p) => p.permanentId === firstPermanentId)?.isSuspended).toBe(true);
     expect(s.state.players[1]!.hand.some((c) => c.instanceId === secondInstanceId)).toBe(true);
+  });
+
+  it("activates its Main effect when revealed in Security", async () => {
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "ST9-14", as: "securityOption" }] },
+        1: {
+          battleArea: [{ card: "BT1-010", as: "second", suspended: true }],
+        },
+      },
+      { autoOrderTriggers: true, autoSelectCards: true },
+    );
+    const returnedInstanceId = s.inst("second").instanceId;
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
+    await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === returnedInstanceId));
+    expect(s.state.players[1]!.hand.some((card) => card.instanceId === returnedInstanceId)).toBe(true);
   });
 });

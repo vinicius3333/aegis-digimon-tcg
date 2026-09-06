@@ -104,8 +104,8 @@ const compiled: CompiledCard = {
               },
               duration: "forTheTurn",
               condition: {
-                kind: "sourceHasTrait",
-                trait: "ADVENTURE",
+                kind: "triggerSubjectMatchesFilter",
+                filter: { nameOrTrait: [{ tokens: ["ADVENTURE"], match: "trait" }] },
                 raw: "if any of them have the [ADVENTURE] trait",
               },
             },
@@ -147,8 +147,8 @@ const compiled: CompiledCard = {
               },
               duration: "forTheTurn",
               condition: {
-                kind: "sourceHasTrait",
-                trait: "ADVENTURE",
+                kind: "triggerSubjectMatchesFilter",
+                filter: { nameOrTrait: [{ tokens: ["ADVENTURE"], match: "trait" }] },
                 raw: "if any of them have the [ADVENTURE] trait",
               },
             },

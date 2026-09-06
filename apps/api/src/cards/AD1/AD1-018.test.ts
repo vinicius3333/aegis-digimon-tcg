@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition, getCompiledCard } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../../cards/index.js";
 
@@ -103,5 +104,24 @@ describe("AD1-018 LordKnightmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0, 5000);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("security de-digivolves first, then deletes only a resulting play-cost 3 or less Digimon", async () => {
+    const qualified = setupEngine({
+      0: { security: [{ card: "AD1-018", as: "security" }] },
+      1: { battleArea: [{ card: "BT1-015", as: "qualified", under: ["BT1-010"] }] },
+    });
+    await advance(qualified.engine).fireForInstance(EffectTiming.SecuritySkill, qualified.inst("security"));
+    await settle(() => qualified.state.players[1]!.battleArea.length === 0);
+    expect(qualified.state.players[1]!.battleArea).toHaveLength(0);
+
+    const boundary = setupEngine({
+      0: { security: [{ card: "AD1-018", as: "security" }] },
+      1: { battleArea: [{ card: "BT1-015", as: "too-expensive" }] },
+    });
+    await advance(boundary.engine).fireForInstance(EffectTiming.SecuritySkill, boundary.inst("security"));
+    await settle();
+    expect(boundary.state.players[1]!.battleArea).toHaveLength(1);
+    expect(boundary.perm("too-expensive").topCard.cardId).toBe("BT1-015");
   });
 });

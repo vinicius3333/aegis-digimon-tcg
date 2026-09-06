@@ -31,6 +31,7 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
       }
       const opts = {
         withoutSuspending: action.withoutSuspending ?? false,
+        vortex: action.vortex,
         ignoreSummoningSickness: true,
         attackPlayer:
           action.attackPlayer ??

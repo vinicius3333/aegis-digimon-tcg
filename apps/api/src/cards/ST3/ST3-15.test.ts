@@ -10,8 +10,8 @@ describe("ST3-15 Holy Flame", () => {
   it("gives one opposing Digimon Security Attack -3", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: ["ST3-07"], hand: [{ card: "ST3-15", as: "option" }] },
-        1: { battleArea: [{ card: "ST3-07", as: "target" }] },
+        0: { battleArea: ["ST3-07"], hand: [{ card: "ST3-15", as: "option" }], deck: ["ST1-02", "ST1-02"] },
+        1: { battleArea: [{ card: "ST3-07", as: "target" }], deck: ["ST1-02", "ST1-02"] },
       },
       { autoSelectCards: true },
     );
@@ -21,10 +21,16 @@ describe("ST3-15 Holy Flame", () => {
     });
     await settle(() => observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack") === -3);
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-3);
+    await advance(s.engine).runTurn(0);
+    expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-3);
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory; // Production passTurn changes the active player's memory perspective.
+    await advance(s.engine).runTurn(1);
+    expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(0);
   });
   it("gives every opposing Digimon Security Attack -1 from security", async () => {
     const s = setupEngine({
-      0: { security: [{ card: "ST3-15", as: "option", faceUp: true }] },
+      0: { security: [{ card: "ST3-15", as: "option", faceUp: true }], deck: ["ST3-02"] },
       1: {
         battleArea: [
           { card: "ST3-07", as: "first" },
@@ -35,12 +41,15 @@ describe("ST3-15 Holy Flame", () => {
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
     expect(observe(s.engine).keywordAmount(s.perm("first"), "SecurityAttack")).toBe(-1);
     expect(observe(s.engine).keywordAmount(s.perm("second"), "SecurityAttack")).toBe(-1);
+    await advance(s.engine).runTurn(0);
+    expect(observe(s.engine).keywordAmount(s.perm("first"), "SecurityAttack")).toBe(0);
+    expect(observe(s.engine).keywordAmount(s.perm("second"), "SecurityAttack")).toBe(0);
   });
 
   it("prevents a direct win at 0 checks even when the attacker has Security Attack +1", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: ["ST3-07"], hand: [{ card: "ST3-15", as: "option" }] },
+        0: { battleArea: ["ST3-07"], hand: [{ card: "ST3-15", as: "option" }], deck: ["ST1-02", "ST1-02"] },
         1: { battleArea: [{ card: "ST3-09", under: ["ST1-07"], as: "attacker" }] },
       },
       { autoSelectCards: true },
