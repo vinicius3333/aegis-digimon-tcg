@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming, type PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT25_040 } from "./BT25-040.js";
 import "../index.js";
 
@@ -176,6 +177,56 @@ describe("BT25-040 MagnaAngemon", () => {
     expect(s.state.players[0]!.security).toHaveLength(0);
   });
 
+  it("offers Ascension in a real battle and accepts or refuses the security replacement", async () => {
+    const run = async (accept: boolean) => {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT25-040", as: "magna", suspended: true }] },
+          1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 10000 }] },
+        },
+        { autoAcceptOptional: false, autoSelectCards: false },
+      );
+      s.state.turnSeat = 1;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "permanent", permanentId: s.perm("magna").permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "selectCards");
+      const decision = s.state.pendingDecision!;
+      expect(JSON.parse(decision.payloadJson).candidateInstanceIds).toContain(s.inst("magna").instanceId);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "selectCards", instanceIds: accept ? [s.inst("magna").instanceId] : [] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking());
+      return s;
+    };
+
+    const accepted = await run(true);
+    expect(accepted.state.players[0]!.battleArea).toHaveLength(0);
+    expect(accepted.state.players[0]!.security[0]).toMatchObject({
+      instanceId: accepted.inst("magna").instanceId,
+      faceUp: false,
+    });
+    expect(accepted.state.players[0]!.trash).not.toContainEqual(
+      expect.objectContaining({ instanceId: accepted.inst("magna").instanceId }),
+    );
+
+    const refused = await run(false);
+    expect(refused.state.players[0]!.battleArea).toHaveLength(0);
+    expect(refused.state.players[0]!.trash).toContainEqual(
+      expect.objectContaining({ instanceId: refused.inst("magna").instanceId }),
+    );
+    expect(refused.state.players[0]!.security).toHaveLength(0);
+  });
+
   it("may play a level-4 Angel or Iliad card when an effect directly trashes it from security", async () => {
     const s = setupEngine(
       {
@@ -192,6 +243,42 @@ describe("BT25-040 MagnaAngemon", () => {
 
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.perm("angel").topCard?.cardId).toBe("BT10-035");
+  });
+
+  it("also plays a level-4 Iliad card, while rejecting level-5 Angel and Tamer near matches", async () => {
+    const iliad = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT25-040", as: "magna" }],
+          hand: [{ card: "BT24-011", as: "iliad" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(iliad.engine).verb.trash([iliad.inst("magna").instanceId], 0);
+    await settle(() => iliad.perm("iliad").topCard?.cardId === "BT24-011");
+    expect(iliad.perm("iliad").topCard?.cardId).toBe("BT24-011");
+
+    const nearMatches = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT25-040", as: "magna" }],
+          hand: [
+            { card: "BT1-060", as: "level5Angel" },
+            { card: "BT1-089", as: "tamer" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(nearMatches.engine).verb.trash([nearMatches.inst("magna").instanceId], 0);
+    await settle(() => nearMatches.state.players[0]!.trash.some((card) => card.cardId === "BT25-040"));
+    expect(nearMatches.state.players[0]!.hand).toContainEqual(
+      expect.objectContaining({ instanceId: nearMatches.inst("level5Angel").instanceId }),
+    );
+    expect(nearMatches.state.players[0]!.hand).toContainEqual(
+      expect.objectContaining({ instanceId: nearMatches.inst("tamer").instanceId }),
+    );
   });
 
   it("does not fire from ordinary trash and does not play a non-Angel/non-Iliad near match", async () => {
@@ -281,5 +368,37 @@ describe("BT25-040 MagnaAngemon", () => {
     advance(s.engine).endMainPhaseIfOpen(0);
     await turn;
     expect(s.perm("opponent").currentDP).toBe(10000);
+  });
+
+  it("keeps the accepted -8000 through its own turn, then expires at opponent turn end", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT25-040", as: "magna" }],
+          security: [{ card: "BT1-010", as: "security" }],
+          deck: ["BT1-011", "BT1-012"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 12000 }], deck: ["BT1-013", "BT1-014"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("magna").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("opponent").currentDP === 4000);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+    expect(s.perm("opponent").currentDP).toBe(4000);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    expect(s.perm("opponent").currentDP).toBe(12000);
   });
 });
