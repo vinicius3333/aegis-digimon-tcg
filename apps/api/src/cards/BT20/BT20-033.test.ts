@@ -70,6 +70,36 @@ describe("BT20-033 LoaderLeomon", () => {
     expect(observe(s.engine).isRestricted(s.perm("secondTarget"), "cannotActivateWhenDigivolving")).toBe(false);
   });
 
+  it("suppresses a restricted target's When Digivolving effect on a public evolution", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT20-033", as: "loader" }] },
+        1: {
+          battleArea: [{ card: "BT20-030", dp: 6000, as: "target" }],
+          hand: [{ card: "BT20-031", as: "evolution" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("loader").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "cannotActivateWhenDigivolving"));
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("target").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").topCard.cardId === "BT20-031");
+    await settle();
+    expect(s.perm("loader").currentDP).toBe(6000);
+  });
+
   it("redirects an opposing player attack to the inherited host", async () => {
     const s = setupEngine(
       {
