@@ -1,24 +1,27 @@
 {
   "cardId": "BT20-021",
-  "status": "awaiting-lead-review",
+  "status": "awaiting-delivery-gates",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
     "behavioralProof": 2,
-    "peerStackProof": 1,
+    "peerStackProof": 2,
     "deliveryGates": 0
   },
   "evidence": [
-    "Catalog: Jesmon GX level7 red/black Royal Knight/X Antibody, hand Counter Blast Digivolve, optional once-per-turn On Play/When Digivolving/When Attacking by placing one Royal Knight from hand/trash bottom to delete opposing Digimon at most source DP; When Attacking once per turn unsuspends then trashes one top security per two Royal Knight stack cards.",
-    "BT20-021.ts exclusively registers IR and maps Blast Digivolve, shared placement/deletion once-per-turn key, bottom-stack zone, source-DP boundary, unsuspend, Royal Knight scaling, and optional costs.",
-    "BT20-021.test.ts proves structural clauses, public Jesmon X\u2192GX evolution and bottom placement, optional refusal, 16000/17000 boundary, shared use, and four-Royal-Knight security scaling.",
-    "Added natural public attack proving shared placement/deletion, bottom stack zone, source-DP boundary, security removal, and manual simultaneous trigger ordering with both Q4311 orders.",
-    "Added unexecuted public-stack proof that committed Royal Knight Option BT10-110 contributes to security scaling.",
-    "014-040-results.json",
-    "collection-after-name-fix-results.json",
-    "public-followups-typecheck.log"
+    "Royal Knight hand and trash costs are placed at the exact stack bottom, removed from their prior zone, and followed by source-DP-bounded deletion. Feasible refusal pays no placement.",
+    "Public legal Jesmon X -> GX pays 6, shares entry/attack placement OPT, and resets on the next own turn; public Blast Digivolve resolves its entry payload.",
+    "Actual attacks unsuspend GX and trash security per pairs of Royal Knight sources, including a Royal Knight Option. Simultaneous trigger ordering covers Q4311 and changes scaling according to the chosen order.",
+    "BT20-021.test.ts; committed catalog and card-specific KB query reviewed by lead and Luna.",
+    "reactive-movement-affected-results.json: 552 passing affected mechanism tests.",
+    "collection-after-reactive-delay-results.json",
+    "reactive-movement-gates.json"
   ],
-  "commands": [
+  "gaps": [
+    "Atomic commit/push and final hash-bound acceptance pending."
+  ],
+  "reviewStatus": "Lead integrated and reviewed the current public proofs; earlier report prose and unexecuted worker handoffs are superseded by this clause map. No final score until delivery gates and artifact hashes are recorded.",
+  "historicalCommands": [
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-021.test.ts --maxWorkers=1 --no-file-parallelism",
       "result": "not run by worker; coordinator owns Vitest"
@@ -40,10 +43,26 @@
       "result": "Passed changed-file style and diff gates."
     }
   ],
-  "gaps": [
-    "Coordinator must execute the new Royal Knight Option stack proof and Q4311 cases.",
-    "Delivery gates pending coordinator collection, mechanism, typecheck, lint.",
-    "Coordinator rerun required for the manual Q4311 pending-order cases and collection gates; fixture now includes a legal low-DP delete target and accounts for automatic resolution of the lone remaining trigger."
-  ],
-  "reviewStatus": "Latest public additions pass in the 790-test collection snapshot. Provisional report; final clause acceptance remains pending."
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+      "result": "12 cases passed for BT20-021; 836 total passed, zero failed."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "Passed shared/API/web; reactive-movement-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "All102 synchronized; see reactive-movement-gates.json for the temporary watchdog adjustment and restored script."
+    },
+    {
+      "command": "Commands in reactive-movement-gates.json",
+      "result": "552 affected mechanism cases and changed-file lint/format passed without warnings."
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-021",
+      "result": "6 intended state/assertion failures with registered effects disabled; production restored. See BT20-021-runtime-disabled.json. Runner reproduction is per-card; batch invocation is retained in014-026-runtime-sensitivity.log."
+    }
+  ]
 }

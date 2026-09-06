@@ -51,32 +51,34 @@ describe("BT20-021 Jesmon GX", () => {
     });
   });
 
-  it("places a Royal Knight from hand at stack bottom, deletes at 16000 DP, and shares the use across timings", async () => {
+  it("publicly plays GX, pays its Royal Knight placement, and deletes at the 16000-DP boundary", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT20-021", as: "gx", under: ["BT20-010"] }],
-          hand: [{ card: "BT20-017", as: "royalKnightCost" }],
+          hand: [
+            { card: "BT20-021", as: "gx" },
+            { card: "BT20-017", as: "royalKnightCost" },
+          ],
         },
         1: {
           battleArea: [
             { card: "BT20-014", dp: 16000, as: "boundary" },
-            { card: "BT20-014", dp: 17000, as: "tooLarge" },
+            { card: "BT20-014", dp: 16001, as: "tooLarge" },
           ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const boundaryId = s.perm("boundary").permanentId;
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("gx"));
-    await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === boundaryId));
-    expect(s.perm("gx").stack[0]?.cardId).toBe("BT20-017");
-    expect(s.perm("gx").stack.map((card) => card.cardId)).toContain("BT20-010");
-    expect(s.perm("tooLarge")).toBeDefined();
-
-    const stackLength = s.perm("gx").stack.length;
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("gx"));
-    expect(s.perm("gx").stack).toHaveLength(stackLength);
+    const knightId = s.inst("royalKnightCost").instanceId;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gx").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("gx").stack.some((card) => card.instanceId === knightId));
+    expect(s.perm("gx").stack.map((card) => card.instanceId)).toEqual([knightId]);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === knightId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === boundaryId)).toBe(false);
+    expect(s.perm("tooLarge").currentDP).toBe(16001);
+    expect(s.state.memory).toBe(1);
   });
 
   it("with 4 Royal Knight sources unsuspends and trashes the top 2 security cards", async () => {
@@ -94,7 +96,7 @@ describe("BT20-021 Jesmon GX", () => {
         },
         1: {
           battleArea: [{ card: "BT20-010", dp: 1000, as: "low" }],
-          security: ["BT20-001", "BT20-002", "BT20-003", "BT20-004"],
+          security: ["BT1-010", "BT1-010", "BT1-010", "BT1-010"],
         },
       },
       { autoOrderTriggers: true },
@@ -110,40 +112,48 @@ describe("BT20-021 Jesmon GX", () => {
       0: {
         battleArea: [{ card: "BT20-021", suspended: true, as: "gx", under: ["BT20-017", "BT20-019", "BT10-110"] }],
       },
-      1: { security: ["BT20-001", "BT20-002"] },
+      1: { security: ["BT1-010", "BT1-010"] },
     });
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("gx"));
     await settle(() => s.state.players[1]!.security.length === 1);
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
-  it("publicly evolves Jesmon X into GX and optionally places a Royal Knight at stack bottom", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT20-019", as: "xAntibody", under: ["BT20-017"] }],
-          hand: [
-            { card: "BT20-021", as: "gx" },
-            { card: "BT20-017", as: "royalKnightCost" },
-          ],
+  it.each(["hand", "trash"] as const)(
+    "publicly evolves Jesmon X into GX and places a Royal Knight from %s at stack bottom",
+    async (sourceZone) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT20-019", as: "xAntibody", under: ["BT20-017"] }],
+            hand: [
+              { card: "BT20-021", as: "gx" },
+              ...(sourceZone === "hand" ? [{ card: "BT20-017", as: "royalKnightCost" }] : []),
+            ],
+            ...(sourceZone === "trash" ? { trash: [{ card: "BT20-017", as: "royalKnightCost" }] } : {}),
+          },
+          1: { battleArea: [{ card: "BT20-014", dp: 12000, as: "target" }] },
         },
-        1: { battleArea: [{ card: "BT20-014", dp: 12000, as: "target" }] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 6;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("xAntibody").permanentId,
-        instanceId: s.inst("gx").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("xAntibody").topCard.cardId === "BT20-021");
-    expect(s.perm("xAntibody").stack.map((card) => card.cardId)).toContain("BT20-017");
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("royalKnightCost").instanceId)).toBe(
-      false,
-    );
-  });
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 6;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("xAntibody").permanentId,
+          instanceId: s.inst("gx").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("xAntibody").topCard.cardId === "BT20-021");
+      expect(s.perm("xAntibody").stack[0]?.cardId).toBe("BT20-017");
+      expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("royalKnightCost").instanceId)).toBe(
+        false,
+      );
+      expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("royalKnightCost").instanceId)).toBe(
+        false,
+      );
+      expect(s.state.memory).toBe(0);
+    },
+  );
 
   it("allows the optional Royal Knight placement and deletion to be refused", async () => {
     const s = setupEngine(
@@ -169,7 +179,7 @@ describe("BT20-021 Jesmon GX", () => {
           battleArea: [{ card: "BT20-021", as: "gx", under: ["BT20-019", "BT20-017"] }],
           hand: [{ card: "BT20-056", as: "royalKnight" }],
         },
-        1: { battleArea: [{ card: "BT20-014", dp: 12000, as: "target" }], security: ["BT20-001", "BT20-002"] },
+        1: { battleArea: [{ card: "BT20-014", dp: 12000, as: "target" }], security: ["BT1-010", "BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
@@ -197,7 +207,7 @@ describe("BT20-021 Jesmon GX", () => {
         },
         1: {
           battleArea: [{ card: "BT20-010", dp: 1000, as: "low" }],
-          security: ["BT20-001", "BT20-002", "BT20-003", "BT20-004"],
+          security: ["BT1-010", "BT1-010", "BT1-010", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
@@ -228,5 +238,125 @@ describe("BT20-021 Jesmon GX", () => {
     expect(s.perm("gx").isSuspended).toBe(false);
     expect(s.perm("gx").stack.map((card) => card.cardId)).toEqual(["BT20-017", "BT20-019"]);
     expect(s.state.players[1]!.security).toHaveLength(expectedSecurity);
+  });
+
+  it("publicly shares entry and attack placement Once Per Turn, then resets on the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-019", under: ["BT20-017"], as: "host" }],
+          hand: [
+            { card: "BT20-021", as: "gx" },
+            { card: "BT20-056", as: "entryKnight" },
+            { card: "BT20-017", as: "nextKnight" },
+          ],
+          deck: ["BT20-047", "BT20-047", "BT20-047"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT20-014", dp: 16000, as: "boundary" },
+            { card: "BT20-014", dp: 16001, as: "retained" },
+          ],
+          security: Array.from({ length: 6 }, () => "BT1-010"),
+          deck: ["BT20-047", "BT20-047"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 6;
+    const firstOwnTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("gx").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "BT20-021");
+    const stackAfterEntry = s.perm("host").stack.map((card) => card.cardId);
+    expect(
+      s.state.players[1]!.battleArea.some((perm) => perm.topCard.cardId === "BT20-014" && perm.currentDP === 16001),
+    ).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length < 6);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(stackAfterEntry);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstOwnTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    const nextOwnTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").stack.some((card) => card.instanceId === s.inst("nextKnight").instanceId));
+    expect(s.perm("host").stack.map((card) => card.cardId)).toContain("BT20-017");
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextOwnTurn;
+  });
+
+  it("publicly Blast Digivolves from hand over Jesmon X and resolves the placement cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-019", under: ["BT20-017"], as: "host" }],
+          hand: [
+            { card: "BT20-021", as: "gx" },
+            { card: "BT20-056", as: "royalKnight" },
+          ],
+          deck: ["BT20-047", "BT20-047"],
+        },
+        1: {
+          battleArea: [{ card: "BT20-010", as: "attacker" }],
+          security: ["BT1-010"],
+          deck: ["BT20-047", "BT20-047"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    const opened = s.events.findLast((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("counter window did not open");
+    const choice = opened.eligibleCounters.find((entry) => entry.instanceId === s.inst("gx").instanceId);
+    expect(choice).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondCounter",
+        sourceInstanceId: choice!.instanceId,
+        effectKey: choice!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "BT20-021");
+    expect(s.perm("host").stack[0]?.cardId).toBe("BT20-056");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("royalKnight").instanceId)).toBe(false);
   });
 });
