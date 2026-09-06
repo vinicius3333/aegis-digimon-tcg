@@ -1,6 +1,7 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-067.js";
 import "./index.js";
@@ -117,5 +118,30 @@ describe("BT20-067 Soulmon", () => {
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(
       expect.arrayContaining(["BT20-071", "BT20-076"]),
     );
+  });
+
+  it("expires the gained Retaliation at the end of the opponent's turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-061", as: "ally" }],
+          hand: [{ card: "BT20-067", as: "soulmon" }],
+          deck: ["BT1-001", "BT1-002"],
+        },
+        1: { deck: ["BT1-001", "BT1-002"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("soulmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("ally"), "Retaliation"));
+    expect(observe(s.engine).hasKeyword(s.perm("ally"), "Retaliation")).toBe(true);
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await advance(s.engine).runTurn(1);
+    expect(observe(s.engine).hasKeyword(s.perm("ally"), "Retaliation")).toBe(false);
   });
 });
