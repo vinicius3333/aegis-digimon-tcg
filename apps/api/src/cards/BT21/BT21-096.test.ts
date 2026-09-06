@@ -75,6 +75,40 @@ describe("BT21-096 The Champion Ultimate Fighter!", () => {
     expect(observe(s.engine).isRestricted(s.perm("marcus"), "digivolve")).toBe(true);
   });
 
+  it("publicly declines the optional attack against an unsuspended opponent Digimon", async () => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "BT4-092", as: "marcus" },
+            { card: "BT2-033", as: "yellow" },
+          ],
+          hand: [{ card: "BT21-096", as: "option" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponentTarget" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const targetId = s.perm("opponentTarget").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT21-096"));
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
+    expect(observe(s.engine).isAttacking()).toBe(false);
+
+    expect(s.state.memory).toBe(6);
+    expect(s.perm("marcus").currentDP).toBe(12000);
+    expect(s.perm("marcus").isSuspended).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("marcus"), "Rush")).toBe(true);
+    expect(observe(s.engine).canAttackUnsuspended(s.perm("marcus"))).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("marcus"), "digivolve")).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(true);
+  });
+
   it("Security plays Marcus from trash for free, then adds itself to hand", async () => {
     const s = setup(
       {
