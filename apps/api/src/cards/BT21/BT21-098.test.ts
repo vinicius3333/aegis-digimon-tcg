@@ -1,3 +1,4 @@
+import { observe } from "../../engine/testkit/observe.js";
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
@@ -31,6 +32,7 @@ describe("BT21-098 Ragnarok Cannon", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === highId)).toBe(true);
     expect(s.events.some((event) => event.kind === "cardPlayed" && event.cardId === "BT21-098")).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT21-098")).toBe(false);
+    expect(s.state.memory).toBe(4);
     expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
   });
 
@@ -97,6 +99,7 @@ describe("BT21-098 Ragnarok Cannon", () => {
     );
     const lowId = s.perm("low").permanentId;
     const highId = s.perm("high").permanentId;
+    const optionId = s.perm("option").topCard.instanceId;
     await s.ready();
     expect(
       s.engine.applyIntent(0, {
@@ -107,6 +110,7 @@ describe("BT21-098 Ragnarok Cannon", () => {
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === lowId));
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === highId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
   });
 
   it("Q4624 trashes security to one when the Delay deletion is prevented", async () => {
@@ -205,6 +209,36 @@ describe("BT21-098 Ragnarok Cannon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("option").instanceId));
     expect(s.state.players[1]!.battleArea[0]!.topCard.instanceId).toBe(s.inst("vemmon").instanceId);
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("Security also plays a cost-6-or-less Vemmon-text card from hand", async () => {
+    const s = setup(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+        1: {
+          security: [{ card: "BT21-098", as: "option" }],
+          hand: [{ card: "BT11-065", as: "vemmon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("option").instanceId));
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("vemmon").instanceId)).toBe(true);
+    expect(s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("vemmon").instanceId)).toBe(false);
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(observe(s.engine).isAttacking()).toBe(false);
     expect(s.state.memory).toBe(0);
   });
 });
