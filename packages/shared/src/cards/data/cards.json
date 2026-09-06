@@ -36918,7 +36918,7 @@
     "playCost": -1,
     "dp": 0,
     "evoCosts": [],
-    "forms": ["-"],
+    "forms": ["In-Training"],
     "attributes": ["-"],
     "types": ["Lesser", "LIBERATOR"],
     "inheritedEffectText": "[Your Turn] [Once Per Turn] When any of your Tokens or other [Puppet] trait Digimon are deleted, ＜Draw 1＞.",
@@ -37070,7 +37070,8 @@
     "maxCountInDeck": 4,
     "imageId": "BT22-009",
     "linkDp": 3000,
-    "linkEffect": "[When Linking] Delete 1 of your opponent's Digimon with 4000 DP or less."
+    "linkEffect": "[When Linking] Delete 1 of your opponent's Digimon with 4000 DP or less.",
+    "linkRequirement": "[Link] [Appmon] trait: Cost 2"
   },
   {
     "cardId": "BT22-010",
@@ -37126,7 +37127,7 @@
     "forms": ["Ultimate"],
     "attributes": ["Virus"],
     "types": ["Flame", "CS"],
-    "effectText": "[Digivolve] Lv.4 w/[Flame]/[CS] trait: Cost 3 \n\n＜Alliance＞ \n[Main] [Once Per Turn] By paying 3 cost, you may play 1 play cost 5 or lower Digimon card with the [Flame] from your trash without paying the cost. Then, this Digimon may attack.",
+    "effectText": "[Digivolve] Lv.4 w/[Flame]/[CS] trait: Cost 3 \n\n＜Alliance＞ \n[Main] [Once Per Turn] By paying 3 cost, you may play 1 play cost 5 or lower Digimon card with the [Flame] or [CS] trait from your trash without paying the cost. Then, this Digimon may attack.",
     "inheritedEffectText": "[Your Turn] This Digimon with the [Flame] or [CS] trait gains ＜Alliance＞",
     "rarity": "C",
     "maxCountInDeck": 4,
@@ -37216,7 +37217,7 @@
     "forms": ["Mega"],
     "attributes": ["Virus"],
     "types": ["Dragonkin", "X Antibody", "CS"],
-    "effectText": "[Digivolve] Lv.5 w/[Greymon] in name or w/[CS] trait: Cost 4 \n\n＜Raid＞ \n＜Reboot＞ \n[When Digivolving] You may unsuspend 1 of your opponent's Digimon. Then, this Digimon may attack.\n[All Turns] [Once Per Turn] When attack targets change, this Digimon gains ＜Piercing＞ and +5000 DP for the turn.",
+    "effectText": "[Digivolve] Lv.5 w/[Greymon] in name or w/[CS] trait: Cost 4 \n\n＜Raid＞ \n＜Reboot＞ \n[When Digivolving] You may unsuspend 1 of your opponent's Digimon. Then, this Digimon may attack.\n[All Turns] [Once Per Turn] When attack targets change, this Digimon gains ＜Piercing＞ and +5000 DP for the turn.\n[Rule] Name: Also treated as having [Greymon].",
     "rarity": "R",
     "maxCountInDeck": 4,
     "imageId": "BT22-014"
@@ -37245,7 +37246,7 @@
     "forms": ["Mega"],
     "attributes": ["Vaccine"],
     "types": ["Holy Warrior", "Royal Knight", "CS"],
-    "effectText": "＜Blocker＞ \n＜Decode (Red/Black Lv.3)＞ \n＜Decode (Blue/Yellow Lv.3)＞ \n[On Play] [When Attacking] Delete 1 of your opponent's Digimon with the lowest DP.\n[When Digivolving] For every 2 same-level cards this Digimon's stack has, return 1 of your opponent's Digimon to the bottom of the deck. Then, this Digimon may attack.",
+    "effectText": "[Digivolve] Lv.6 w/[CS] trait: Cost 5\n[DNA Digivolve] Lv.6 w/[Greymon] in name+Lv.6 w/[Garurumon] in name: Cost 0\n\n＜Blocker＞ \n＜Decode (Red/Black Lv.3)＞ \n＜Decode (Blue/Yellow Lv.3)＞ \n[On Play] [When Attacking] Delete 1 of your opponent's Digimon with the lowest DP.\n[When Digivolving] For every 2 same-level cards this Digimon's stack has, return 1 of your opponent's Digimon to the bottom of the deck. Then, this Digimon may attack.",
     "rarity": "SR",
     "maxCountInDeck": 4,
     "imageId": "BT22-015"
@@ -37269,12 +37270,13 @@
     "forms": ["Stnd.", "Appmon"],
     "attributes": ["Navi"],
     "types": ["Broadcasting"],
-    "effectText": "[Digivolve] Lv.2 w/[Appmon] trait: Cost 0 \n\n[On Play] Reveal the top 3 cards of your deck. Add 1 card with the [Appmon] trait and 1 card with the [Entertainment] or [Awakening (App Name)] trait among them to the hand. Return the rest to the bottom of the deck.",
+    "effectText": "[Digivolve] Lv.2 w/[Appmon] trait: Cost 0 \n\n[On Play] Reveal the top 3 cards of your deck. Add 1 card with the [Appmon] trait and 1 card with the [Entertainment] or [Awakening] trait among them to the hand. Return the rest to the bottom of the deck.",
     "rarity": "C",
     "maxCountInDeck": 4,
     "imageId": "BT22-016",
     "linkDp": 2000,
-    "linkEffect": "[When Linking] Trash any 1 digivolution card of 1 of your opponent's Digimon."
+    "linkEffect": "[When Linking] Trash any 1 digivolution card of 1 of your opponent's Digimon.",
+    "linkRequirement": "[Link] [Appmon] trait: Cost 1"
   },
   {
     "cardId": "BT22-017",
@@ -37634,7 +37636,8 @@
     "maxCountInDeck": 4,
     "imageId": "BT22-030",
     "linkDp": 2000,
-    "linkEffect": "[When Attacking] [Once Per Turn] 1 of your opponent's Digimon gets -2000 DP for the turn."
+    "linkEffect": "[When Attacking] [Once Per Turn] 1 of your opponent's Digimon gets -2000 DP for the turn.",
+    "linkRequirement": "[Link] [Appmon] trait: Cost 1"
   },
   {
     "cardId": "BT22-031",
@@ -37720,7 +37723,8 @@
     "maxCountInDeck": 4,
     "imageId": "BT22-033",
     "linkDp": 3000,
-    "linkEffect": "[When Attacking] You may play 1 level 3 Digimon card with the [Appmon] trait from your hand without paying the cost."
+    "linkEffect": "[When Attacking] You may play 1 level 3 Digimon card with the [Appmon] trait from your hand without paying the cost.",
+    "linkRequirement": "[Link] [Appmon] trait: Cost 2"
   },
   {
     "cardId": "BT22-034",
@@ -37776,7 +37780,8 @@
     "maxCountInDeck": 4,
     "imageId": "BT22-035",
     "linkDp": 4000,
-    "linkEffect": "[When Linking] To 1 of your opponent's Digimon, give -4000 DP for the turn for each of your Digimon with the [Appmon] trait."
+    "linkEffect": "[When Linking] To 1 of your opponent's Digimon, give -4000 DP for the turn for each of your Digimon with the [Appmon] trait.",
+    "linkRequirement": "[Link] [Appmon] trait: Cost 3"
   },
   {
     "cardId": "BT22-036",
@@ -38138,7 +38143,7 @@
     "forms": ["Champion"],
     "attributes": ["Virus"],
     "types": ["Carnivorous Plant", "DM", "Ver.2"],
-    "effectText": "[Digivolve] Lv.3 w/[DM] trait: Cost 3 \n\n[End of Your Turn] [Once Per Turn] By placing 3 Digimon cards with the [Ver.2] trait from your trash face down as this Digimon's bottom digivolution cards, it may digivolve into a Digimon card with the [Ver.2] trait in the hand or trash.",
+    "effectText": "[Digivolve] Lv.3 w/[DM] trait: Cost 2 \n\n[End of Your Turn] [Once Per Turn] By placing 3 Digimon cards with the [Ver.2] trait from your trash face down as this Digimon's bottom digivolution cards, it may digivolve into a Digimon card with the [Ver.2] trait in the hand or trash.",
     "inheritedEffectText": "＜Piercing＞",
     "rarity": "U",
     "maxCountInDeck": 4,
@@ -38872,7 +38877,8 @@
     "maxCountInDeck": 4,
     "imageId": "BT22-075",
     "linkDp": 4000,
-    "linkEffect": "＜Scapegoat＞"
+    "linkEffect": "＜Scapegoat＞",
+    "linkRequirement": "[Link] [Appmon] trait: Cost 3"
   },
   {
     "cardId": "BT22-076",
