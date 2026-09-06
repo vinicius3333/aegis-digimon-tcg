@@ -54,6 +54,9 @@ describe("BT20-046 Espimon", () => {
         }),
       ).toEqual({ ok: true });
       await settle(() => s.perm("espimon").topCard.cardId === "BT20-050");
+      // HoverEspimon's printed Lv.3 Cyborg evolution cost is 2. The
+      // battle-area Your Turn replacement reduces it to 1; Q4369 confirms
+      // that replacement does not trigger while Espimon remains in breeding.
       expect(s.state.memory).toBe(zone === "battleArea" ? 2 : 1);
     }
   });
