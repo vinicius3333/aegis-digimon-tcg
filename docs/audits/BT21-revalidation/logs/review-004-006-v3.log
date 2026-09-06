@@ -1,0 +1,37 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ❯ src/cards/BT21/BT21-005.test.ts (5 tests | 1 failed) 31ms
+   ❯ BT21-005 Swipemon (5)
+     × draws when the realistic Swipemon evolution stack gets linked 17ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-005.test.ts > BT21-005 Swipemon > draws when the realistic Swipemon evolution stack gets linked
+AssertionError: expected 3 to be 6 // Object.is equality
+
+- Expected
++ Received
+
+- 6
++ 3
+
+ ❯ src/cards/BT21/BT21-005.test.ts:71:28
+     69|     ).toEqual({ ok: true });
+     70|     await settle(() => s.state.players[0]!.hand.some((card) => card.in…
+     71|     expect(s.state.memory).toBe(6);
+       |                            ^
+     72|     expect(
+     73|       s.engine.applyIntent(0, {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 2 passed (3)
+      Tests  1 failed | 19 passed (20)
+   Start at  00:50:11
+   Duration  23.96s (transform 86%, import 13%, tests 1%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-004.test.ts src/cards/BT21/BT21-005.test.ts src/cards/BT21/BT21-006.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache

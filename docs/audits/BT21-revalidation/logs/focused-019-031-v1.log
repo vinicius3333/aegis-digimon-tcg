@@ -1,0 +1,273 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > exposes complete effect coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > models the printed optional bottom-material cost before each lowest-DP deletion 0ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > publishes Security Attack +1, Raid, and both alternate level-5 evolution routes 8ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > places a qualifying hand card under itself before deleting the lowest-DP opponent 18ms
+ × src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > resolves When Attacking from a public attack and preserves the higher-DP tie opponent 13ms
+   → expected false to be true // Object.is equality
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > uses Raid to redirect a public attack to the opponent's highest-DP unsuspended Digimon 4ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > performs two security checks from Security Attack +1 4ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > evolves from the BT21-077 alternate route and pays a qualifying bottom-material cost 7ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > evolves from the BT21-021 alternate route and pays a qualifying bottom-material cost 7ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > does not pay or delete with only a nonmatching hand card 3ms
+ ✓ src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > permits declining a payable bottom-material cost without deleting 3ms
+stdout | src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > returns a source-less Digimon after a real public attack
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 0
+
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > verifies the Shoutmon cost replacement, trash DigiXros expansion, stack trash, and attack return 0ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > pays 14 and places its Shoutmon cost under the played card 4ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > accepts a qualifying trash card as DigiXros material after paying the Shoutmon cost 3ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > trashes only stacked cards from the top and leaves the opponent's top card 2ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > evolves from a Hero level 6 for 3 and trashes all available sources 3ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > returns only a source-less opposing Digimon to deck bottom and may decline 3ms
+ ✓ src/cards/BT21/BT21-030.test.ts > BT21-030 compiled implementation > returns a source-less Digimon after a real public attack 4ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > requires OmniShoutmon and ZeigGreymon as the two DigiXros materials 0ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > publishes both alternate evolution routes and its additional DigiXros names 1ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > deletes exactly the lowest-DP opponent on play 3ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > publicly DigiXroses OmniShoutmon and ZeigGreymon with the printed -3 per material 4ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > uses the alternate route from AD1-013 for cost 2 and deletes the lowest DP Digimon 7ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > uses the alternate route from BT21-021 for cost 3 and deletes the lowest DP Digimon 5ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > places only Xros Heart and Blue Flare Digimon sources under a Tamer, then still leaves 9ms
+ ✓ src/cards/BT21/BT21-027.test.ts > BT21-027 compiled implementation > may decline moving sources and leaves without offering the effect when no Tamer exists 6ms
+stdout | src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > plays an eligible trait card at cost reduced by 5
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 3
+
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > verifies End of Attack play/delete, On Deletion Save flow, DigiXros identity, and Xros Heart-gated Rush 0ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > saves a qualifying Xros Heart card and itself under a Tamer on deletion 5ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > plays an eligible trait card at cost reduced by 5 10ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > uses DigiXros with exactly one Shoutmon material through the public play intent 2ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > rejects a DigiXros intent offering two materials for the one-material recipe 1ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > Q4530 publicly plays an eligible Tamer at end of attack, then deletes and saves itself 13ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > does not delete itself when the play is declined or no eligible card exists 5ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > grants inherited Rush only to an Xros Heart host 1ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > shares one once-per-turn delete budget and places Petrification for either opponent event 0ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > exposes Security Attack +1 and Progress 1ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > evolves from a red level 5, may delete exactly one lowest-DP Digimon, and pays 4 6ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > may decline the deletion and preserves every opposing Digimon 2ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > uses one shared delete activation across digivolution and end of attack 6ms
+ × src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > plays a token from a real opponent Digimon deletion 2ms
+   → expected { ok: false, reason: 'illegal-target' } to deeply equal { ok: true }
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > plays one token under the opponent for onDeletionOf and observes the once-per-turn limit 6ms
+ ✓ src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > plays one token under the opponent for whenSecurityRemoved and observes the once-per-turn limit 3ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > trashes the opponent's top security card when an eligible attack target changes 0ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > trashes security only for a controller's Reptile or Dragonkin target change and only once per turn 4ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > trashes the opponent's top security from a public Raid target switch 8ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > plays a qualifying inherited Digimon from a public security attack 10ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > inherited effect optionally plays exactly one qualifying 5000 DP Reptile or Dragonkin for free 5ms
+ ✓ src/cards/BT21/BT21-025.test.ts > BT21-025 Lamiamon > does not play for the controller's security removal and permits declining the optional play 2ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > reduces the hand digivolution cost only when the source stack contains Agunimon or BurningGreymon 0ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > plays a red Tamer with inherited effects when deleted 5ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > pays the correct cost with Agunimon in its evolution cards 4ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > pays the correct cost with BurningGreymon in its evolution cards 3ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > pays the correct cost with no matching source in its evolution cards 3ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > may decline the deletion play and rejects ineligible Tamers 6ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > applies the same deletion effect when Aldamon is inherited 5ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > performs two security checks with Security Attack +1 8ms
+ × src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > plays its deletion Tamer from a real battle deletion 25ms
+   → expected false to be true // Object.is equality
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > reduces its play cost by two per opposing Digimon and preserves all three keywords 0ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > pays 11 with 0 opposing Digimon 2ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > pays 7 with 2 opposing Digimon 3ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > pays 0 with 6 opposing Digimon 4ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > retains Rush, Raid, and Blocker after evolving from a legal red level 5 4ms
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > may unsuspend when an opposing Digimon is deleted, only once per turn 12ms
+ × src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > unsuspends from a public attack that deletes an opposing Digimon 57ms
+   → expected true to be false // Object.is equality
+ ✓ src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > stays suspended when its controller's Digimon is deleted or the optional effect is declined 12ms
+ ✓ src/cards/BT21/BT21-019.test.ts > BT21-019 BetelGammamon > encodes the Gammamon evolution, bounded Hiro play, and inherited turn DP 0ms
+ ✓ src/cards/BT21/BT21-019.test.ts > BT21-019 BetelGammamon > plays Hiro free after a Gammamon evolution with zero existing Tamers 4ms
+ ✓ src/cards/BT21/BT21-019.test.ts > BT21-019 BetelGammamon > plays Hiro free after a Gammamon evolution with one existing Tamers 5ms
+ ✓ src/cards/BT21/BT21-019.test.ts > BT21-019 BetelGammamon > does not play Hiro with two Tamers and permits declining with one 7ms
+ ✓ src/cards/BT21/BT21-019.test.ts > BT21-019 BetelGammamon > grants inherited +2000 DP only during its controller's turn 1ms
+ ✓ src/cards/BT21/BT21-019.test.ts > BT21-019 BetelGammamon > builds a legal Gammamon to BetelGammamon to Aldamon stack before checking inheritance 7ms
+stdout | src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > links a legal level-4 card for free on play and preserves the 9-cost play
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 1
+
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > links a level 4 or lower Digimon from the default hand/stack zones and deletes an equal-or-lower DP opponent once per turn 0ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > links a legal level-4 card for free on play and preserves the 9-cost play 6ms
+stdout | src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > links only this Globemon's qualifying stack card, not another Digimon's stack card
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 0
+
+ × src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > publicly App Fuses DoGatchmon and Timemon into Globemon 15003ms
+   → Test timed out in 15000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > rejects linkless and level-5 cards and permits declining a legal link 6ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > deletes only an equal-or-lower DP target once when its own stack is linked 7ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > links only this Globemon's qualifying stack card, not another Digimon's stack card 5ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > places an opponent hand card as bottom security only at five or fewer, then trashes the top card 0ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > on play makes the opponent bottom-deck a hand card into security, then trashes the prior top card 2ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > at six security skips the hand placement but still trashes the top security card 2ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > at exactly five security places a hand card at the bottom, then trashes the prior top 2ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > with an empty opponent hand still trashes the top security card 3ms
+ × src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > digivolves through its legal red level-4 stack and grants the inherited +4000 DP to its host 3ms
+   → expected 12000 to be 10000 // Object.is equality
+ ✓ src/cards/BT21/BT21-031.test.ts > BT21-031 compiled implementation > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-031.test.ts > BT21-031 compiled implementation > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-031.test.ts > BT21-031 compiled implementation > reduces Mollusk or Aquatic digivolution costs and gains memory once per turn at End of Attack 0ms
+ ✓ src/cards/BT21/BT21-031.test.ts > BT21-031 compiled implementation > reduces a Mollusk evolution by exactly 1 and keeps its inherited effect 2ms
+ ✓ src/cards/BT21/BT21-031.test.ts > BT21-031 compiled implementation > reduces a Aquatic evolution by exactly 1 and keeps its inherited effect 2ms
+ ✓ src/cards/BT21/BT21-031.test.ts > BT21-031 compiled implementation > does not reduce a near-matching blue evolution without Mollusk or Aquatic 2ms
+ ✓ src/cards/BT21/BT21-031.test.ts > BT21-031 compiled implementation > does not apply its evolution reduction from the breeding area 3ms
+ × src/cards/BT21/BT21-031.test.ts > BT21-031 compiled implementation > gains 1 memory at end of attack only once per turn from a realistic evolution stack 28ms
+   → expected { ok: false, …(1) } to deeply equal { ok: true }
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > plays its deletion Tamer from a real battle deletion
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/cards/BT21/BT21-020.test.ts:156:89
+    154|     ).toEqual({ ok: true });
+    155|     await settle(() => s.state.players[0]!.battleArea.some((p) => p.to…
+    156|     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId…
+       |                                                                                         ^
+    157|   });
+    158| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+
+ FAIL  src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > publicly App Fuses DoGatchmon and Timemon into Globemon
+Error: Test timed out in 15000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ src/cards/BT21/BT21-023.test.ts:119:3
+    117|   });
+    118|
+    119|   it("publicly App Fuses DoGatchmon and Timemon into Globemon", async …
+       |   ^
+    120|     const s = setupEngine({
+    121|       0: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯
+
+ FAIL  src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > digivolves through its legal red level-4 stack and grants the inherited +4000 DP to its host
+AssertionError: expected 12000 to be 10000 // Object.is equality
+
+- Expected
++ Received
+
+- 10000
++ 12000
+
+ ❯ src/cards/BT21/BT21-024.test.ts:162:46
+    160|     });
+    161|     await inherited.ready();
+    162|     expect(inherited.perm("host").currentDP).toBe(10000);
+       |                                              ^
+    163|   });
+    164| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯
+
+ FAIL  src/cards/BT21/BT21-026.test.ts > BT21-026 WarGreymon > unsuspends from a public attack that deletes an opposing Digimon
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/cards/BT21/BT21-026.test.ts:148:46
+    146|     ).toEqual({ ok: true });
+    147|     await settle(() => !s.perm("wargreymon").isSuspended);
+    148|     expect(s.perm("wargreymon").isSuspended).toBe(false);
+       |                                              ^
+    149|   });
+    150|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯
+
+ FAIL  src/cards/BT21/BT21-028.test.ts > BT21-028 compiled implementation > resolves When Attacking from a public attack and preserves the higher-DP tie opponent
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/cards/BT21/BT21-028.test.ts:92:82
+     90|     await settle(() => s.state.players[1]!.battleArea.length === 1);
+     91|     expect(s.perm("siriusmon").stack.some((card) => card.instanceId ==…
+     92|     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId ==…
+       |                                                                                  ^
+     93|   });
+     94|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/7]⎯
+
+ FAIL  src/cards/BT21/BT21-029.test.ts > BT21-029 compiled implementation > plays a token from a real opponent Digimon deletion
+AssertionError: expected { ok: false, reason: 'illegal-target' } to deeply equal { ok: true }
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
++   "ok": false,
++   "reason": "illegal-target",
+  }
+
+ ❯ src/cards/BT21/BT21-029.test.ts:178:185
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/7]⎯
+
+ FAIL  src/cards/BT21/BT21-031.test.ts > BT21-031 compiled implementation > gains 1 memory at end of attack only once per turn from a realistic evolution stack
+AssertionError: expected { ok: false, …(1) } to deeply equal { ok: true }
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
++   "ok": false,
++   "reason": "decision-pending",
+  }
+
+ ❯ src/cards/BT21/BT21-031.test.ts:139:134
+    137|     await settle(() => !observe(s.engine).isAttacking());
+    138|     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId…
+    139|     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanent…
+       |                                                                                                                                      ^
+    140|     await settle(() => s.state.memory === 1);
+    141|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/7]⎯
+
+
+ Test Files  7 failed | 5 passed (12)
+      Tests  7 failed | 103 passed (110)
+   Start at  01:17:57
+   Duration  23.54s (tests 66%, transform 29%, import 5%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-019.test.ts src/cards/BT21/BT21-020.test.ts src/cards/BT21/BT21-021.test.ts src/cards/BT21/BT21-023.test.ts src/cards/BT21/BT21-024.test.ts src/cards/BT21/BT21-025.test.ts src/cards/BT21/BT21-026.test.ts src/cards/BT21/BT21-027.test.ts src/cards/BT21/BT21-028.test.ts src/cards/BT21/BT21-029.test.ts src/cards/BT21/BT21-030.test.ts src/cards/BT21/BT21-031.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

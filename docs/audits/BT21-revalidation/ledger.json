@@ -13,247 +13,413 @@
     {
       "cardId": "BT21-001",
       "name": "Gigimon",
-      "status": "unverified",
+      "status": "proof-gaps",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        2,
+        1,
+        2,
         0
       ],
       "evidence": "cards/BT21-001.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Public Reptile branch and turn/security boundaries pending",
+        "Final collection delivery gates pending"
+      ],
+      "owner": "luna_a",
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-001.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "6/6",
+          "log": "logs/review-001-003-v5.log"
+        }
+      ],
+      "deliveryCommits": [
+        "d541e53f4"
       ]
     },
     {
       "cardId": "BT21-002",
       "name": "Gurimon",
-      "status": "unverified",
+      "status": "delivery-pending",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-002.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final collection delivery gates pending"
+      ],
+      "owner": "luna_a",
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-002.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "6/6",
+          "log": "logs/focused-002-011-v2.log"
+        }
+      ],
+      "deliveryCommits": [
+        "6f81fe1b2"
       ]
     },
     {
       "cardId": "BT21-003",
       "name": "Yokomon",
-      "status": "unverified",
+      "status": "proof-gaps",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        2,
+        1,
+        2,
         0
       ],
       "evidence": "cards/BT21-003.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Public trait/controller/kind negative boundaries pending",
+        "Final collection delivery gates pending"
+      ],
+      "owner": "luna_a",
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-003.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "8/8",
+          "log": "logs/review-001-003-v5.log"
+        }
+      ],
+      "deliveryCommits": [
+        "3ba73356d"
       ]
     },
     {
       "cardId": "BT21-004",
       "name": "Koromon",
-      "status": "unverified",
+      "status": "proof-gaps",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        2,
+        1,
+        2,
         0
       ],
       "evidence": "cards/BT21-004.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Public color/controller/turn negative boundaries pending",
+        "Final collection delivery gates pending"
+      ],
+      "owner": "luna_b",
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-004.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/review-004-006-v4.log"
+        }
+      ],
+      "deliveryCommits": [
+        "c96c27e36"
       ]
     },
     {
       "cardId": "BT21-005",
       "name": "Swipemon",
-      "status": "unverified",
+      "status": "proof-gaps",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        2,
+        1,
+        2,
         0
       ],
       "evidence": "cards/BT21-005.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Public other-host/turn negative boundaries pending",
+        "Final collection delivery gates pending"
+      ],
+      "owner": "luna_b",
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-005.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "5/5",
+          "log": "logs/review-004-006-v4.log"
+        }
+      ],
+      "deliveryCommits": [
+        "90393deb6"
       ]
     },
     {
       "cardId": "BT21-006",
       "name": "Tsumemon",
-      "status": "unverified",
+      "status": "delivery-pending",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-006.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final collection delivery gates pending"
+      ],
+      "owner": "luna_b",
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-006.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "5/5",
+          "log": "logs/focused-006-013-v3.log"
+        }
+      ],
+      "deliveryCommits": [
+        "2776d46c3"
       ]
     },
     {
       "cardId": "BT21-007",
       "name": "Agumon",
-      "status": "unverified",
+      "status": "delivery-pending",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-007.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final collection delivery gates pending"
+      ],
+      "owner": "luna_c",
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-007.test.ts src/cards/BT21/BT21-008.test.ts src/cards/BT21/BT21-009.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "26/26 passed",
+          "log": "logs/review-007-009-v4.log"
+        }
+      ],
+      "deliveryCommits": [
+        "89baf6ba2"
       ]
     },
     {
       "cardId": "BT21-008",
       "name": "Elizamon",
-      "status": "unverified",
+      "status": "delivery-pending",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-008.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final collection delivery gates pending"
+      ],
+      "owner": "luna_c",
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-007.test.ts src/cards/BT21/BT21-008.test.ts src/cards/BT21/BT21-009.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "26/26 passed",
+          "log": "logs/review-007-009-v4.log"
+        }
+      ],
+      "deliveryCommits": [
+        "c56bf694b"
       ]
     },
     {
       "cardId": "BT21-009",
       "name": "Gatchmon",
-      "status": "unverified",
+      "status": "proof-gaps",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        2,
+        1,
+        2,
         0
       ],
       "evidence": "cards/BT21-009.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Public link count/refusal/other-host/once-per-turn boundary proof pending",
+        "Final collection delivery gates pending"
+      ],
+      "owner": "luna_c",
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-007.test.ts src/cards/BT21/BT21-008.test.ts src/cards/BT21/BT21-009.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "26/26 passed",
+          "log": "logs/review-007-009-v4.log"
+        }
+      ],
+      "deliveryCommits": [
+        "0c07388e4"
       ]
     },
     {
       "cardId": "BT21-010",
       "name": "Gammamon",
-      "status": "unverified",
+      "status": "delivery-pending",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-010.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-010.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "7/7",
+          "log": "logs/focused-010-v1.log"
+        }
+      ],
+      "deliveryCommits": [
+        "45860f0a2"
       ]
     },
     {
       "cardId": "BT21-011",
       "name": "Shoutmon",
-      "status": "unverified",
+      "status": "delivery-pending",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-011.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-011.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/focused-002-011-v2.log"
+        }
+      ],
+      "deliveryCommits": [
+        "d3269ba44"
       ]
     },
     {
       "cardId": "BT21-012",
       "name": "Flamemon",
-      "status": "unverified",
+      "status": "delivery-pending",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-012.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-012.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "12/12",
+          "log": "logs/focused-012-v3.log"
+        }
+      ],
+      "deliveryCommits": [
+        "2e43eaf27"
       ]
     },
     {
       "cardId": "BT21-013",
       "name": "Agunimon",
-      "status": "unverified",
+      "status": "proof-gaps",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        2,
+        1,
+        2,
         0
       ],
       "evidence": "cards/BT21-013.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Public red-Tamer alternate route, trash placement and target negatives pending",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-013.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "11/11 card assertions passed in recorded combined run",
+          "log": "logs/focused-006-013-v3.log"
+        }
+      ],
+      "deliveryCommits": [
+        "80a4adc48"
       ]
     },
     {
       "cardId": "BT21-014",
       "name": "BurningGreymon",
-      "status": "unverified",
+      "status": "proof-gaps",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        2,
+        1,
+        2,
         0
       ],
       "evidence": "cards/BT21-014.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Actual Piercing battle and duration expiry pending",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-014.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "8/8 card assertions passed in recorded combined run",
+          "log": "logs/focused-013-015-v1.log"
+        }
+      ],
+      "deliveryCommits": [
+        "0c2434fda"
       ]
     },
     {
       "cardId": "BT21-015",
       "name": "Cyclonemon",
-      "status": "unverified",
+      "status": "delivery-pending",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-015.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-015.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "7/7 card assertions passed in recorded combined run",
+          "log": "logs/focused-015-v3.log"
+        }
+      ],
+      "deliveryCommits": [
+        "e505b2309"
       ]
     },
     {
       "cardId": "BT21-016",
       "name": "Shoutmon (King Version)",
-      "status": "unverified",
+      "status": "in-review",
       "scores": [
         0,
         0,
@@ -263,61 +429,94 @@
       ],
       "evidence": "cards/BT21-016.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Focused proof and lead review ongoing",
+        "Final collection delivery gates pending"
       ]
     },
     {
       "cardId": "BT21-017",
       "name": "Dimetromon",
-      "status": "unverified",
+      "status": "proof-gaps",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        2,
+        1,
+        2,
         0
       ],
       "evidence": "cards/BT21-017.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Public own-security/turn and repeated removal boundaries pending",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-017.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "8/8 card assertions passed in recorded combined run",
+          "log": "logs/focused-015-021-sync-security-v2.log"
+        }
+      ],
+      "deliveryCommits": [
+        "da873dffe"
       ]
     },
     {
       "cardId": "BT21-018",
       "name": "DoGatchmon",
-      "status": "unverified",
+      "status": "proof-gaps",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        2,
+        1,
+        2,
         0
       ],
       "evidence": "cards/BT21-018.md",
       "gaps": [
-        "Independent revalidation pending"
+        "App Fusion production verb only; public Rush/Raid and alternate pairs/nested attack boundaries pending",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-018.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "9/9 card assertions passed in recorded combined run",
+          "log": "logs/focused-015-021-sync-security-v2.log"
+        }
+      ],
+      "deliveryCommits": [
+        "0edef5803"
       ]
     },
     {
       "cardId": "BT21-019",
       "name": "BetelGammamon",
-      "status": "unverified",
+      "status": "delivery-pending",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        2,
+        2,
+        2,
         0
       ],
       "evidence": "cards/BT21-019.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-019.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "6/6 card assertions passed in recorded combined run",
+          "log": "logs/focused-019-031-v1.log"
+        }
+      ],
+      "deliveryCommits": [
+        "7702cb521"
       ]
     },
     {
       "cardId": "BT21-020",
       "name": "Aldamon",
-      "status": "unverified",
+      "status": "in-review",
       "scores": [
         0,
         0,
@@ -327,29 +526,41 @@
       ],
       "evidence": "cards/BT21-020.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Focused proof and lead review ongoing",
+        "Final collection delivery gates pending"
       ]
     },
     {
       "cardId": "BT21-021",
       "name": "OmniShoutmon",
-      "status": "unverified",
+      "status": "proof-gaps",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        2,
+        1,
+        2,
         0
       ],
       "evidence": "cards/BT21-021.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Legal Lv6 inherited Rush proof and nonzero end-of-attack payment boundary pending",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-021.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "10/10 card assertions passed in recorded combined run",
+          "log": "logs/focused-021-xros-sync-v1.log"
+        }
+      ],
+      "deliveryCommits": [
+        "038f2aac4"
       ]
     },
     {
       "cardId": "BT21-022",
       "name": "Canoweissmon",
-      "status": "unverified",
+      "status": "in-review",
       "scores": [
         0,
         0,
@@ -359,13 +570,14 @@
       ],
       "evidence": "cards/BT21-022.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Focused proof and lead review ongoing",
+        "Final collection delivery gates pending"
       ]
     },
     {
       "cardId": "BT21-023",
       "name": "Globemon",
-      "status": "unverified",
+      "status": "in-review",
       "scores": [
         0,
         0,
@@ -375,13 +587,14 @@
       ],
       "evidence": "cards/BT21-023.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Focused proof and lead review ongoing",
+        "Final collection delivery gates pending"
       ]
     },
     {
       "cardId": "BT21-024",
       "name": "Cyberdramon",
-      "status": "unverified",
+      "status": "in-review",
       "scores": [
         0,
         0,
@@ -391,7 +604,8 @@
       ],
       "evidence": "cards/BT21-024.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Focused proof and lead review ongoing",
+        "Final collection delivery gates pending"
       ]
     },
     {
@@ -1642,5 +1856,6 @@
         "Independent revalidation pending"
       ]
     }
-  ]
+  ],
+  "commandNote": "Per-card commands reproduce the card assertions. Recorded logs may group multiple listed card paths into one serialized invocation; aggregate red runs are explicitly not delivery gates."
 }

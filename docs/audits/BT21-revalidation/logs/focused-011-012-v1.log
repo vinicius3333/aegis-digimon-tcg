@@ -1,0 +1,30 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > exposes complete effect coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > reduces Xros Heart/Hero digivolution costs and grants Rush only while this Digimon has Xros Heart 0ms
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > grants inherited Rush to a Xros Heart Digimon 22ms
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > reduces a matching Xros Heart evolution cost by exactly 1 10ms
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > reduces a matching Hero evolution cost by exactly 1 6ms
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > publicly evolves through a Hero egg and lets the newly evolved Xros Heart host attack with Rush 20ms
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > does not reduce a near-matching non-Xros-Heart/non-Hero evolution 4ms
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > grants inherited Rush only to an Xros Heart host and only on your turn 2ms
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > does not expose inherited Rush from breeding or during the opponent's turn 2ms
+ ✓ src/cards/BT21/BT21-011.test.ts > BT21-011 Shoutmon > saves the deleted Shoutmon under one of its Tamers 13ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > plays a red Tamer with inherited effects by suspending this Digimon, then places it under that Tamer 0ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > suspends Flamemon, plays an eligible red Tamer for free, then places Flamemon under it 9ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > places Flamemon under the Tamer played by this effect, not an existing Tamer 5ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > does not pay the suspension cost for a red Tamer without inherited effects 1ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > does not pay the suspension cost for a non-red Tamer with inherited effects 2ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > may decline without suspending or moving Flamemon 1ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > grants inherited +2000 DP only during its controller's turn 1ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > gets inherited DP only after a legal public evolution carries Flamemon under a level 4 host 4ms
+
+ Test Files  2 passed (2)
+      Tests  21 passed (21)
+   Start at  00:55:58
+   Duration  13.78s (transform 85%, import 15%, tests 1%)
+

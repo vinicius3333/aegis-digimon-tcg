@@ -1,0 +1,752 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ❯ src/cards/BT21/BT21-catalog-sync.test.ts (207 tests | 7 failed) 33ms
+   ❯ BT21 persisted IR (207)
+     × registers BT21-058 exclusively through its compiled IR 7ms
+     × registers BT21-062 exclusively through its compiled IR 3ms
+     × registers BT21-083 exclusively through its compiled IR 1ms
+     × registers BT21-086 exclusively through its compiled IR 1ms
+     × registers BT21-087 exclusively through its compiled IR 1ms
+     × registers BT21-092 exclusively through its compiled IR 1ms
+     × registers BT21-096 exclusively through its compiled IR 1ms
+stdout | src/cards/BT21/BT21-001.test.ts
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 10
+
+ ❯ src/cards/BT21/BT21-001.test.ts (5 tests | 1 failed) 63ms
+   ❯ BT21-001 Gigimon (5)
+     × may decline and can resolve only once per turn 8ms
+ ❯ src/cards/BT21/BT21-006.test.ts (5 tests | 1 failed) 23ms
+   ❯ BT21-006 Tsumemon (5)
+     × proves the four-Vemmon state through a legal public evolution chain 16ms
+ ❯ src/cards/BT21/BT21-005.test.ts (5 tests | 1 failed) 12ms
+   ❯ BT21-005 Swipemon (5)
+     × draws when the realistic Swipemon evolution stack gets linked 2ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 10 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-001.test.ts > BT21-001 Gigimon > may decline and can resolve only once per turn
+ReferenceError: observe is not defined
+ ❯ src/cards/BT21/BT21-001.test.ts:157:24
+    155|     });
+    156|     expect(attack("first")).toEqual({ ok: true });
+    157|     await settle(() => !observe(once.engine).isAttacking());
+       |                        ^
+    158|     await advance(once.engine).verb.unsuspend([once.perm("second").per…
+    159|     expect(attack("second")).toEqual({ ok: true });
+ ❯ settle src/engine/testkit/harness.ts:539:9
+ ❯ src/cards/BT21/BT21-001.test.ts:157:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/10]⎯
+
+ FAIL  src/cards/BT21/BT21-005.test.ts > BT21-005 Swipemon > draws when the realistic Swipemon evolution stack gets linked
+AssertionError: expected { ok: false, …(1) } to deeply equal { ok: true }
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
++   "ok": false,
++   "reason": "invalid-evolution",
+  }
+
+ ❯ src/cards/BT21/BT21-005.test.ts:48:7
+     46|         instanceId: s.inst("evolved").instanceId,
+     47|       }),
+     48|     ).toEqual({ ok: true });
+       |       ^
+     49|     await settle(() => s.perm("host").topCard.instanceId === s.inst("e…
+     50|     await advance(s.engine).fireSubTrigger("whenLinked", { subjectPerm…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/10]⎯
+
+ FAIL  src/cards/BT21/BT21-006.test.ts > BT21-006 Tsumemon > proves the four-Vemmon state through a legal public evolution chain
+AssertionError: expected [ CardInstance{ …(17) }, …(2) ] to have a length of 1 but got 3
+
+- Expected
++ Received
+
+- 1
++ 3
+
+ ❯ src/cards/BT21/BT21-006.test.ts:138:83
+    136|     ).toEqual({ ok: true });
+    137|     await settle(() => s.perm("tsumemon").topCard.cardId === "BT21-058…
+    138|     expect(s.perm("tsumemon").stack.filter((card) => card.cardId === "…
+       |                                                                                   ^
+    139|     expect(s.perm("tsumemon").currentDP).toBe(9000);
+    140|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/10]⎯
+
+ FAIL  src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-058 exclusively through its compiled IR
+AssertionError: expected 'import type { CompiledCard } from "@a…' to contain 'registerIrCard("BT21-058", compiled)'
+
+- Expected
++ Received
+
+- registerIrCard("BT21-058", compiled)
++ import type { CompiledCard } from "@aegis/shared";
++ import { registerIrCard } from "../../engine/effects/interpreter.js";
++
++ const cardId = "BT21-058";
++
++ const revealAndPlaceVemmon = [
++   {
++     kind: "RevealAdd" as const,
++     revealCount: 3,
++     add: [
++       {
++         filter: {
++           controllerDefault: "mine" as const,
++           nameOrTrait: [{ tokens: ["Vemmon"], match: "text" as const }],
++         },
++         count: 1,
++         to: "hand" as const,
++       },
++     ],
++     rest: "trash" as const,
++   },
++   {
++     kind: "PlaceUnder" as const,
++     target: {
++       filter: {
++         zone: "trash" as const,
++         controller: "mine" as const,
++         nameOrTrait: [{ tokens: ["Vemmon"], match: "nameExact" as const }],
++       },
++       count: 2,
++       upTo: true,
++       from: ["trash" as const],
++     },
++     underFilter: { controller: "mine" as const, kind: ["Digimon" as const] },
++     position: "bottom",
++     optional: true,
++   },
++ ];
++
++ export const compiled: CompiledCard = {
++   effects: [
++     { trigger: "OnPlay", actions: revealAndPlaceVemmon },
++     { trigger: "WhenDigivolving", actions: revealAndPlaceVemmon },
++     {
++       trigger: "AllTurns",
++       isInherited: true,
++       frequency: "OncePerTurn",
++       actions: [
++         {
++           kind: "SubTrigger",
++           event: "onDigivolutionCardReturnToDeckBottom",
++           raw: "When any [Vemmon] are returned to the bottom of the deck from this Digimon's digivolution cards",
++           sourceFilter: { nameOrTrait: [{ tokens: ["Vemmon"], match: "nameExact" }] },
++           actions: [
++             {
++               kind: "Delete",
++               target: {
++                 filter: { controller: "opponent", kind: ["Digimon"], playCostLte: 4 },
++                 count: 1,
++               },
++             },
++           ],
++         },
++       ],
++     },
++   ],
++   coverage: "full",
++   residual: [],
++ };
++
++ registerIrCard(cardId, compiled);
++
+
+ ❯ src/cards/BT21/BT21-catalog-sync.test.ts:228:20
+    226|     const source = readFileSync(new URL(`./${cardId}.ts`, import.meta.…
+    227|     expect(source.match(/\bregisterIrCard\s*\(/g)).toHaveLength(1);
+    228|     expect(source).toContain(`registerIrCard("${cardId}", compiled)`);
+       |                    ^
+    229|     expect(source).not.toMatch(/\bregisterCard\s*\(/);
+    230|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/10]⎯
+
+ FAIL  src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-062 exclusively through its compiled IR
+AssertionError: expected 'import type { CompiledCard } from "@a…' to contain 'registerIrCard("BT21-062", compiled)'
+
+- Expected
++ Received
+
+- registerIrCard("BT21-062", compiled)
++ import type { CompiledCard } from "@aegis/shared";
++ import { registerIrCard } from "../../engine/effects/interpreter.js";
++
++ const cardId = "BT21-062";
++
++ export const compiled: CompiledCard = {
++   effects: [
++     {
++       trigger: "WhenDigivolving",
++       actions: [
++         {
++           kind: "UseOptionWithoutCost",
++           filter: {
++             controller: "mine",
++             kind: ["Option"],
++             // The printed clause names Ragnarok Cannon without a play-cost cap.
++             // UseOptionWithoutCost otherwise defaults to 5, while BT21-098 costs 6.
++             playCostLte: 99,
++             nameOrTrait: [{ tokens: ["Ragnarok Cannon"], match: "nameExact" }],
++           },
++           from: ["hand", "trash"],
++           payCost: false,
++           optional: true,
++           abortOnDecline: true,
++           cost: {
++             kind: "place",
++             target: {
++               filter: {
++                 zone: "trash",
++                 controller: "mine",
++                 nameOrTrait: [{ tokens: ["Vemmon"], match: "text" }],
++               },
++               count: 4,
++               from: ["trash"],
++             },
++             destination: "digivolutionStack",
++             position: "bottom",
++             host: "self",
++             raw: "By placing 4 cards with [Vemmon] in its text from your trash as this Digimon's bottom digivolution cards",
++           },
++         },
++       ],
++     },
++     {
++       trigger: "StartOfYourMainPhase",
++       actions: [
++         {
++           kind: "Delete",
++           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
++         },
++       ],
++     },
++     {
++       trigger: "AllTurns",
++       actions: [
++         {
++           kind: "Replacement",
++           event: "wouldLeavePlay",
++           sourceFilter: { isSelfRef: true },
++           actions: [
++             {
++               kind: "Prevent",
++               mode: "leavePlay",
++               optional: true,
++               abortOnDecline: true,
++               cost: {
++                 kind: "return",
++                 target: {
++                   filter: {
++                     zone: "digivolutionCards",
++                     controller: "mine",
++                     nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }],
++                     hostFilter: { isSelfRef: true },
++                   },
++                   count: 4,
++                 },
++                 to: "deckBottom",
++                 raw: "by returning 4 [Vemmon] from its digivolution cards to the bottom of the deck",
++               },
++             },
++           ],
++         },
++       ],
++     },
++   ],
++   coverage: "full",
++   residual: [],
++   digivolutionRequirement: [{ namesExact: ["Snatchmon"], cost: 9, isAlternate: true }],
++ };
++
++ registerIrCard(cardId, compiled);
++
+
+ ❯ src/cards/BT21/BT21-catalog-sync.test.ts:228:20
+    226|     const source = readFileSync(new URL(`./${cardId}.ts`, import.meta.…
+    227|     expect(source.match(/\bregisterIrCard\s*\(/g)).toHaveLength(1);
+    228|     expect(source).toContain(`registerIrCard("${cardId}", compiled)`);
+       |                    ^
+    229|     expect(source).not.toMatch(/\bregisterCard\s*\(/);
+    230|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/10]⎯
+
+ FAIL  src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-083 exclusively through its compiled IR
+AssertionError: expected 'import type { CompiledCard } from "@a…' to contain 'registerIrCard("BT21-083", compiled)'
+
+- Expected
++ Received
+
+- registerIrCard("BT21-083", compiled)
++ import type { CompiledCard } from "@aegis/shared";
++ import { registerIrCard } from "../../engine/effects/interpreter.js";
++
++ const cardId = "BT21-083";
++ const qualifyingDigimon = {
++   controller: "mine" as const,
++   kind: ["Digimon" as const],
++   nameOrTrait: [{ tokens: ["Xros Heart", "Hero"], match: "trait" as const }],
++ };
++ const attackOnArrival = (event: "whenPlayed" | "whenOneOfYoursDigivolves") => ({
++   kind: "SubTrigger" as const,
++   event,
++   raw: "When your [Xros Heart] or [Hero] Digimon is played or digivolves",
++   sourceFilter: qualifyingDigimon,
++   actions: [
++     {
++       kind: "Attack" as const,
++       target: { filter: {}, count: 1, sourceRef: "triggerSubject" as const },
++       withoutSuspending: false,
++       optional: true,
++       abortOnDecline: true,
++       cost: {
++         kind: "suspend" as const,
++         target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
++         raw: "by suspending this Tamer",
++       },
++     },
++   ],
++ });
++
++ export const compiled: CompiledCard = {
++   effects: [
++     {
++       trigger: "StartOfYourMainPhase",
++       actions: [
++         {
++           kind: "Draw",
++           controller: "mine",
++           amount: 1,
++           optional: true,
++           abortOnDecline: true,
++           cost: {
++             kind: "place",
++             target: {
++               filter: {
++                 zone: "hand",
++                 controller: "mine",
++                 kind: ["Digimon"],
++                 nameOrTrait: [{ tokens: ["Xros Heart", "Blue Flare", "Hero"], match: "trait" }],
++               },
++               count: 1,
++               from: ["hand"],
++             },
++             raw: "By placing 1 qualifying Digimon card from your hand under this Tamer",
++           },
++         },
++         { kind: "GainMemory", amount: 1 },
++       ],
++     },
++     {
++       trigger: "YourTurn",
++       actions: [attackOnArrival("whenPlayed"), attackOnArrival("whenOneOfYoursDigivolves")],
++     },
++     {
++       trigger: "Security",
++       isSecurity: true,
++       actions: [
++         {
++           kind: "PlayWithoutCost",
++           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
++           payCost: false,
++         },
++       ],
++     },
++   ],
++   coverage: "full",
++   residual: [],
++ };
++
++ registerIrCard(cardId, compiled);
++
+
+ ❯ src/cards/BT21/BT21-catalog-sync.test.ts:228:20
+    226|     const source = readFileSync(new URL(`./${cardId}.ts`, import.meta.…
+    227|     expect(source.match(/\bregisterIrCard\s*\(/g)).toHaveLength(1);
+    228|     expect(source).toContain(`registerIrCard("${cardId}", compiled)`);
+       |                    ^
+    229|     expect(source).not.toMatch(/\bregisterCard\s*\(/);
+    230|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/10]⎯
+
+ FAIL  src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-086 exclusively through its compiled IR
+AssertionError: expected 'import type { CompiledCard } from "@a…' to contain 'registerIrCard("BT21-086", compiled)'
+
+- Expected
++ Received
+
+- registerIrCard("BT21-086", compiled)
++ import type { CompiledCard } from "@aegis/shared";
++ import { registerIrCard } from "../../engine/effects/interpreter.js";
++
++ const cardId = "BT21-086";
++
++ export const compiled: CompiledCard = {
++   effects: [
++     {
++       trigger: "StartOfYourMainPhase",
++       actions: [
++         {
++           kind: "GainMemory",
++           amount: 1,
++           condition: {
++             kind: "opponentHas",
++             filter: { controllerDefault: "opponent", kind: ["Digimon"] },
++             raw: "your opponent has a Digimon",
++           },
++         },
++       ],
++     },
++     {
++       trigger: "OnPlay",
++       actions: [
++         {
++           kind: "Suspend",
++           target: {
++             filter: {
++               controller: "mine",
++               kind: ["Tamer"],
++               nameOrTrait: [{ tokens: ["Marcus Damon"], match: "name" }],
++               suspended: false,
++             },
++             count: 1,
++           },
++           optional: true,
++         },
++       ],
++     },
++     {
++       trigger: "AllTurns",
++       frequency: "OncePerTurn",
++       actions: [
++         {
++           kind: "SubTrigger",
++           event: "whenSuspended",
++           raw: "When this Tamer suspends",
++           sourceFilter: { isSelfRef: true },
++           actions: [
++             {
++               kind: "SelectBind",
++               target: {
++                 filter: { controller: "mine", kind: ["Digimon"] },
++                 count: 1,
++                 bindAs: "boostedDigimon",
++               },
++             },
++             {
++               kind: "GainKeyword",
++               target: { filter: {}, count: 1, fromSelectionRef: "boostedDigimon" },
++               keyword: { keyword: "Piercing", raw: "＜Piercing＞" },
++               duration: "forTheTurn",
++             },
++             {
++               kind: "ModifyDP",
++               target: { filter: {}, count: 1, fromSelectionRef: "boostedDigimon" },
++               amount: 3000,
++               duration: "forTheTurn",
++             },
++             {
++               kind: "ModifyDP",
++               target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
++               amount: -3000,
++               duration: "forTheTurn",
++             },
++           ],
++         },
++       ],
++     },
++     {
++       trigger: "Security",
++       isSecurity: true,
++       actions: [
++         {
++           kind: "PlayWithoutCost",
++           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
++           payCost: false,
++         },
++       ],
++     },
++   ],
++   coverage: "full",
++   residual: [],
++ };
++
++ registerIrCard(cardId, compiled);
++
+
+ ❯ src/cards/BT21/BT21-catalog-sync.test.ts:228:20
+    226|     const source = readFileSync(new URL(`./${cardId}.ts`, import.meta.…
+    227|     expect(source.match(/\bregisterIrCard\s*\(/g)).toHaveLength(1);
+    228|     expect(source).toContain(`registerIrCard("${cardId}", compiled)`);
+       |                    ^
+    229|     expect(source).not.toMatch(/\bregisterCard\s*\(/);
+    230|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/10]⎯
+
+ FAIL  src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-087 exclusively through its compiled IR
+AssertionError: expected 'import type { CompiledCard } from "@a…' to contain 'registerIrCard("BT21-087", compiled)'
+
+- Expected
++ Received
+
+- registerIrCard("BT21-087", compiled)
++ import type { CompiledCard } from "@aegis/shared";
++ import { registerIrCard } from "../../engine/effects/interpreter.js";
++
++ const cardId = "BT21-087";
++
++ export const compiled: CompiledCard = {
++   effects: [
++     {
++       trigger: "StartOfYourTurn",
++       actions: [{ kind: "SetMemory", value: 3, condition: { kind: "memoryAtMost", value: 2 } }],
++     },
++     {
++       trigger: "OnPlay",
++       actions: [
++         {
++           kind: "RevealAdd",
++           revealCount: 3,
++           add: [
++             {
++               filter: { nameOrTrait: [{ tokens: ["Vemmon"], match: "text" }] },
++               count: 1,
++               to: "hand",
++               orDispositions: [
++                 {
++                   to: "play",
++                   filter: { nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }] },
++                 },
++               ],
++             },
++           ],
++           rest: "trash",
++         },
++       ],
++     },
++     {
++       trigger: "Security",
++       isSecurity: true,
++       actions: [
++         {
++           kind: "PlayWithoutCost",
++           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
++           payCost: false,
++         },
++       ],
++     },
++   ],
++   coverage: "full",
++   residual: [],
++ };
++
++ registerIrCard(cardId, compiled);
++
+
+ ❯ src/cards/BT21/BT21-catalog-sync.test.ts:228:20
+    226|     const source = readFileSync(new URL(`./${cardId}.ts`, import.meta.…
+    227|     expect(source.match(/\bregisterIrCard\s*\(/g)).toHaveLength(1);
+    228|     expect(source).toContain(`registerIrCard("${cardId}", compiled)`);
+       |                    ^
+    229|     expect(source).not.toMatch(/\bregisterCard\s*\(/);
+    230|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/10]⎯
+
+ FAIL  src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-092 exclusively through its compiled IR
+AssertionError: expected 'import type { CompiledCard } from "@a…' to contain 'registerIrCard("BT21-092", compiled)'
+
+- Expected
++ Received
+
+- registerIrCard("BT21-092", compiled)
++ import type { CompiledCard } from "@aegis/shared";
++ import { registerIrCard } from "../../engine/effects/interpreter.js";
++
++ const cardId = "BT21-092";
++ const xrosHeartDigimon = {
++   controller: "mine" as const,
++   kind: ["Digimon" as const],
++   nameOrTrait: [{ tokens: ["Xros Heart"], match: "trait" as const }],
++ };
++
++ export const compiled: CompiledCard = {
++   effects: [
++     {
++       trigger: "Static",
++       actions: [
++         {
++           kind: "WaiveColorRequirement",
++           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
++           condition: { kind: "youHave", filter: xrosHeartDigimon, raw: "you have a [Xros Heart] Digimon" },
++         },
++       ],
++     },
++     {
++       trigger: "Main",
++       actions: [
++         {
++           kind: "PlaceUnder",
++           target: { filter: xrosHeartDigimon, count: 1 },
++           fromSelectedPermanentDigivolutionCards: true,
++           underFilter: { controller: "mine", kind: ["Tamer"] },
++           position: "bottom",
++           order: "any",
++           trackCount: "placedXrosSources",
++         },
++         {
++           kind: "PlayWithoutCost",
++           target: { filter: xrosHeartDigimon, count: 1 },
++           from: ["hand"],
++           payCost: true,
++           optional: true,
++           reduceCostByScaling: { per: 1, unit: "namedCount", countSource: "placedXrosSources" },
++         },
++       ],
++     },
++     {
++       trigger: "Security",
++       isSecurity: true,
++       actions: [
++         {
++           kind: "PlayWithoutCost",
++           target: {
++             filter: {
++               controller: "mine",
++               nameOrTrait: [{ tokens: ["Xros Heart"], match: "trait" }],
++               playCostLte: 5,
++             },
++             count: 1,
++           },
++           from: ["hand", "trash"],
++           payCost: false,
++           optional: true,
++         },
++       ],
++     },
++   ],
++   coverage: "full",
++   residual: [],
++ };
++
++ registerIrCard(cardId, compiled);
++
+
+ ❯ src/cards/BT21/BT21-catalog-sync.test.ts:228:20
+    226|     const source = readFileSync(new URL(`./${cardId}.ts`, import.meta.…
+    227|     expect(source.match(/\bregisterIrCard\s*\(/g)).toHaveLength(1);
+    228|     expect(source).toContain(`registerIrCard("${cardId}", compiled)`);
+       |                    ^
+    229|     expect(source).not.toMatch(/\bregisterCard\s*\(/);
+    230|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/10]⎯
+
+ FAIL  src/cards/BT21/BT21-catalog-sync.test.ts > BT21 persisted IR > registers BT21-096 exclusively through its compiled IR
+AssertionError: expected 'import type { CompiledCard, Target } …' to contain 'registerIrCard("BT21-096", compiled)'
+
+- Expected
++ Received
+
+- registerIrCard("BT21-096", compiled)
++ import type { CompiledCard, Target } from "@aegis/shared";
++ import { registerIrCard } from "../../engine/effects/interpreter.js";
++
++ const cardId = "BT21-096";
++ const marcusSelection: Target = {
++   filter: {
++     controller: "mine",
++     kind: ["Tamer"],
++     nameOrTrait: [{ tokens: ["Marcus Damon"], match: "name" }],
++   },
++   count: 1,
++   bindAs: "chosenMarcus",
++ };
++ const chosenMarcus: Target = { filter: {}, count: 1, fromSelectionRef: "chosenMarcus" };
++
++ export const compiled: CompiledCard = {
++   effects: [
++     {
++       trigger: "Main",
++       actions: [
++         { kind: "SelectBind", target: marcusSelection },
++         {
++           kind: "GrantStatic",
++           target: chosenMarcus,
++           grant: "kind",
++           tokens: ["Digimon"],
++           staticEffect: { kind: "SetBaseDP", value: 12000 },
++           duration: "forTheTurn",
++         },
++         { kind: "Restrict", target: chosenMarcus, restriction: "digivolve", duration: "forTheTurn" },
++         {
++           kind: "GainKeyword",
++           target: chosenMarcus,
++           keyword: { keyword: "Rush", raw: "＜Rush＞" },
++           duration: "forTheTurn",
++         },
++         { kind: "GrantCanAttackUnsuspended", target: chosenMarcus, duration: "forTheTurn" },
++         {
++           kind: "Attack",
++           target: chosenMarcus,
++           withoutSuspending: false,
++           attackPlayer: false,
++           optional: true,
++         },
++       ],
++     },
++     {
++       trigger: "Security",
++       isSecurity: true,
++       actions: [
++         {
++           kind: "PlayWithoutCost",
++           target: {
++             filter: { controller: "mine", nameOrTrait: [{ tokens: ["Marcus Damon"], match: "name" }] },
++             count: 1,
++           },
++           from: ["hand", "trash"],
++           payCost: false,
++           optional: true,
++         },
++         { kind: "AddToHandSelf" },
++       ],
++     },
++   ],
++   coverage: "full",
++   residual: [],
++ };
++
++ registerIrCard(cardId, compiled);
++
+
+ ❯ src/cards/BT21/BT21-catalog-sync.test.ts:228:20
+    226|     const source = readFileSync(new URL(`./${cardId}.ts`, import.meta.…
+    227|     expect(source.match(/\bregisterIrCard\s*\(/g)).toHaveLength(1);
+    228|     expect(source).toContain(`registerIrCard("${cardId}", compiled)`);
+       |                    ^
+    229|     expect(source).not.toMatch(/\bregisterCard\s*\(/);
+    230|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/10]⎯
+
+
+ Test Files  4 failed | 1 passed (5)
+      Tests  10 failed | 221 passed (231)
+   Start at  00:44:46
+   Duration  11.57s (transform 83%, import 15%, tests 1%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-001.test.ts src/cards/BT21/BT21-004.test.ts src/cards/BT21/BT21-005.test.ts src/cards/BT21/BT21-006.test.ts src/cards/BT21/BT21-catalog-sync.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache

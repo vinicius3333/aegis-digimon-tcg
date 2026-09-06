@@ -1,0 +1,69 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > exposes complete effect coverage with no residual clauses 2ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > plays a red Tamer with inherited effects by suspending this Digimon, then places it under that Tamer 1ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > suspends Flamemon, plays an eligible red Tamer for free, then places Flamemon under it 41ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > places Flamemon under the Tamer played by this effect, not an existing Tamer 14ms
+ × src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > does not pay the suspension cost for a red Tamer without inherited effects 9ms
+   → expected true to be false // Object.is equality
+ × src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > does not pay the suspension cost for a non-red Tamer with inherited effects 6ms
+   → expected true to be false // Object.is equality
+ × src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > may decline without suspending or moving Flamemon 6ms
+   → expected true to be false // Object.is equality
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > pays the mandatory suspension cost even when no eligible Tamer exists 3ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > rejects activation when Flamemon is already suspended 1ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > grants inherited +2000 DP only during its controller's turn 3ms
+ ✓ src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > gets inherited DP only after a legal public evolution carries Flamemon under a level 4 host 22ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > does not pay the suspension cost for a red Tamer without inherited effects
+ FAIL  src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > does not pay the suspension cost for a non-red Tamer with inherited effects
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/cards/BT21/BT21-012.test.ts:132:44
+    130|     });
+    131|     await settle(() => s.state.pendingDecision === undefined);
+    132|     expect(s.perm("flamemon").isSuspended).toBe(false);
+       |                                            ^
+    133|     expect(s.state.players[0]!.hand).toHaveLength(1);
+    134|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/cards/BT21/BT21-012.test.ts > BT21-012 Flamemon > may decline without suspending or moving Flamemon
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/cards/BT21/BT21-012.test.ts:153:44
+    151|     });
+    152|     await settle(() => s.state.pendingDecision === undefined);
+    153|     expect(s.perm("flamemon").isSuspended).toBe(false);
+       |                                            ^
+    154|     expect(s.state.players[0]!.hand).toHaveLength(1);
+    155|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 9 passed (12)
+   Start at  01:02:00
+   Duration  27.07s (transform 86%, import 13%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-012.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

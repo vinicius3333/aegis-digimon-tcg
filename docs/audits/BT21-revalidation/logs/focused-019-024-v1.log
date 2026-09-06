@@ -1,0 +1,60 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+stdout | src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > links a legal level-4 card for free on play and preserves the 9-cost play
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 1
+
+stdout | src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > links only this Globemon's qualifying stack card, not another Digimon's stack card
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 0
+
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > exposes complete effect coverage with no residual clauses 1ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > links a level 4 or lower Digimon from the default hand/stack zones and deletes an equal-or-lower DP opponent once per turn 0ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > links a legal level-4 card for free on play and preserves the 9-cost play 22ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > rejects linkless and level-5 cards and permits declining a legal link 8ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > deletes only an equal-or-lower DP target once when its own stack is linked 8ms
+ ✓ src/cards/BT21/BT21-023.test.ts > BT21-023 Globemon > links only this Globemon's qualifying stack card, not another Digimon's stack card 5ms
+ ✓ src/cards/BT21/BT21-022.test.ts > BT21-022 Canoweissmon > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-022.test.ts > BT21-022 Canoweissmon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-022.test.ts > BT21-022 Canoweissmon > places a Gammamon-text Digimon as bottom material for either removal trigger and saves once from an opponent effect 0ms
+ ✓ src/cards/BT21/BT21-022.test.ts > BT21-022 Canoweissmon > pays the Gammamon-text hand cost, places it at the bottom, and deletes exactly a 7000 DP target 5ms
+ ✓ src/cards/BT21/BT21-022.test.ts > BT21-022 Canoweissmon > does not pay with a nonmatching card and permits declining the placement cost 4ms
+ ✓ src/cards/BT21/BT21-022.test.ts > BT21-022 Canoweissmon > prevents one opponent-effect deletion only after trashing exactly 3 Digimon sources 8ms
+stdout | src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > plays an eligible trait card at cost reduced by 5
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 3
+
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > verifies End of Attack play/delete, On Deletion Save flow, DigiXros identity, and Xros Heart-gated Rush 1ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > saves a qualifying Xros Heart card and itself under a Tamer on deletion 7ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > plays an eligible trait card at cost reduced by 5 9ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > Q4530 publicly plays an eligible Tamer at end of attack, then deletes and saves itself 10ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > does not delete itself when the play is declined or no eligible card exists 4ms
+ ✓ src/cards/BT21/BT21-021.test.ts > BT21-021 OmniShoutmon > grants inherited Rush only to an Xros Heart host 1ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > reduces the hand digivolution cost only when the source stack contains Agunimon or BurningGreymon 0ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > plays a red Tamer with inherited effects when deleted 3ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > pays the correct cost with Agunimon in its evolution cards 3ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > pays the correct cost with BurningGreymon in its evolution cards 2ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > pays the correct cost with no matching source in its evolution cards 3ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > may decline the deletion play and rejects ineligible Tamers 5ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > applies the same deletion effect when Aldamon is inherited 4ms
+ ✓ src/cards/BT21/BT21-020.test.ts > BT21-020 Aldamon > performs two security checks with Security Attack +1 4ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > exposes complete effect coverage with no residual clauses 0ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > preserves the registered effect triggers and action boundaries 0ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > places an opponent hand card as bottom security only at five or fewer, then trashes the top card 0ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > on play makes the opponent bottom-deck a hand card into security, then trashes the prior top card 4ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > at six security skips the hand placement but still trashes the top security card 1ms
+ ✓ src/cards/BT21/BT21-024.test.ts > BT21-024 Cyberdramon > digivolves through its legal red level-4 stack and grants the inherited +4000 DP to its host 2ms
+ ✓ src/cards/BT21/BT21-019.test.ts > BT21-019 BetelGammamon > encodes the Gammamon evolution, bounded Hiro play, and inherited turn DP 0ms
+ ✓ src/cards/BT21/BT21-019.test.ts > BT21-019 BetelGammamon > plays Hiro free after a Gammamon evolution with zero existing Tamers 4ms
+ ✓ src/cards/BT21/BT21-019.test.ts > BT21-019 BetelGammamon > plays Hiro free after a Gammamon evolution with one existing Tamers 4ms
+ ✓ src/cards/BT21/BT21-019.test.ts > BT21-019 BetelGammamon > does not play Hiro with two Tamers and permits declining with one 5ms
+ ✓ src/cards/BT21/BT21-019.test.ts > BT21-019 BetelGammamon > grants inherited +2000 DP only during its controller's turn 1ms
+
+ Test Files  6 passed (6)
+      Tests  42 passed (42)
+   Start at  01:07:58
+   Duration  7.82s (transform 83%, import 15%, tests 2%)
+
