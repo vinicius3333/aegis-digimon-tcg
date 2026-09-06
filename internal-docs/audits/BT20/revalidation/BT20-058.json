@@ -11,7 +11,7 @@
   "evidence": [
     "BT20-058.test.ts: cost-7 versus cost-8 entry deletion boundary",
     "BT20-058.test.ts: Q4391 Cyborg/Machine source replay, refusal, and cost-12 negative",
-    "BT20-058.test.ts: exact three-material DigiXros stack and memory payment",
+    "BT20-058.test.ts: exact three-material DigiXros stack and memory payment from maximum legal memory 10",
     "current-collection-green-results.json"
   ],
   "commands": [
@@ -26,6 +26,10 @@
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/current-collection-green-results.json",
       "result": "PASS: 8 cases for BT20-058;734 total tests. See current-collection-green-results.json."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-final-collection-results.json",
+      "result": "All current colocated cases pass within894/894; final independent acceptance remains pending."
     }
   ],
   "gaps": [

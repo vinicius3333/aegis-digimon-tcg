@@ -149,7 +149,7 @@ describe("BT20-058 Raidenmon", () => {
         ],
       },
     });
-    s.state.memory = 12;
+    s.state.memory = 10;
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",
@@ -165,7 +165,7 @@ describe("BT20-058 Raidenmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-058"));
     const raidenmon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT20-058")!;
-    expect(s.state.memory).toBe(6);
+    expect(s.state.memory).toBe(4);
     expect(raidenmon.stack.map((card) => card.cardId)).toEqual(
       expect.arrayContaining(["BT9-042", "BT9-054", "BT9-029"]),
     );
