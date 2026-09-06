@@ -1,7 +1,6 @@
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT24/BT24-016.js";
 import { compiled } from "./BT23-005.js";
