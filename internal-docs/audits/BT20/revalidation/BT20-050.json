@@ -1,6 +1,6 @@
 {
   "cardId": "BT20-050",
-  "status": "ready-for-coordinator-verification",
+  "status": "awaiting-lead-review",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
@@ -12,7 +12,10 @@
     "BT20-050.test.ts: face-up top/next face-down security flip and exact memory cost",
     "BT20-050.test.ts: ordinary versus alternate evolution boundary and invalid source",
     "BT20-050.test.ts: once-per-turn End of Attack draw and inherited +1000 DP on both turns",
-    "current-collection-green-results.json"
+    "BT20-050.test.ts: unexecuted public BT1-036 Garurumon unsuspends HoverEspimon for two same-turn attacks and a post-turn attack, proving the top-level (not inherited) Once Per Turn draw reset",
+    "current-collection-green-results.json",
+    "collection-after-name-fix-results.json",
+    "public-followups-typecheck.log"
   ],
   "commands": [
     {
@@ -26,11 +29,24 @@
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/current-collection-green-results.json",
       "result": "PASS: 6 cases for BT20-050;734 total tests. See current-collection-green-results.json."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-name-fix-results.json",
+      "result": "7 cases pass for BT20-050; all 790/790 pass. Final independent clause acceptance/delivery still pending."
+    },
+    {
+      "command": "pnpm --filter @aegis/api typecheck",
+      "result": "Passed; public-followups-typecheck.log"
+    },
+    {
+      "command": "pnpm exec oxlint <changed public-proof test files>; pnpm exec oxfmt <same files>; git diff --check",
+      "result": "Passed changed-file style and diff gates."
     }
   ],
   "gaps": [
     "Coordinator focused/collection, mechanism/typecheck, and lint gates pending",
-    "Cross-rule face-up Security effect and shuffle reset are not isolated"
+    "Cross-rule face-up Security effect and shuffle reset are not isolated",
+    "new public attack/reset case is unexecuted pending coordinator validation"
   ],
-  "reviewStatus": "Full collection execution passed at this draft checkpoint. Strict clause acceptance, sensitivity and final delivery review remain pending; provisional scores do not count in the ledger."
+  "reviewStatus": "Latest public additions pass in the 790-test collection snapshot. Provisional report; final clause acceptance remains pending."
 }
