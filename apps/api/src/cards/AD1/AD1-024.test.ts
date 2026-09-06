@@ -62,7 +62,7 @@ describe("AD1-024 Imperialdramon: Fighter Mode", () => {
         0: { battleArea: [{ card: "AD1-011", as: "paildramon" }], hand: [{ card: "AD1-024", as: "fighter" }] },
         1: { battleArea: [{ card: "BT1-010", as: "opponent" }], security: ["BT1-001"] },
       },
-      { autoSelectCards: true, autoAcceptOptional: true },
+      { autoSelectCards: true, autoAcceptOptional: true, autoChooseOption: true },
     );
     s.state.memory = 5;
 
@@ -78,6 +78,24 @@ describe("AD1-024 Imperialdramon: Fighter Mode", () => {
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.deck.some((card) => card.cardId === "BT1-010")).toBe(true);
+  });
+
+  it("reacts when the opponent plays a Digimon as well as when I play one", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "AD1-024", as: "fighter", suspended: true }] },
+        1: { battleArea: [{ card: "BT1-010", as: "opponent" }], hand: [{ card: "BT1-010", as: "played" }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("opponent").isSuspended && !s.perm("fighter").isSuspended);
+    expect(s.perm("opponent").isSuspended).toBe(true);
+    expect(s.perm("fighter").isSuspended).toBe(false);
   });
 
   it("shares one use between when-digivolving and when-attacking lowest-DP returns", async () => {

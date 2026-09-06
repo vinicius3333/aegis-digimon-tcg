@@ -535,6 +535,8 @@ export class CombatController {
     opts: {
       withoutTap?: boolean;
       attackMechanic?: string;
+      /** Resolve an attack-cost payload after attack declaration and before declaration-triggered effects. */
+      afterAttackDeclaration?: () => Promise<void>;
       afterAttackTriggers?: () => Promise<void>;
       drainTimingWindow?: () => Promise<void>;
     } = {},
@@ -568,6 +570,10 @@ export class CombatController {
         target,
         ...(targetCardId === undefined ? {} : { targetCardId }),
       });
+      // The declaration is complete. Resolve an attack-cost payload before suspension-triggered
+      // and When Attacking effects while the in-flight attack remains open. Keeping this callback
+      // inside the outer try/finally guarantees combat cleanup if it rejects.
+      await opts.afterAttackDeclaration?.();
       // The declaration is complete, so armed "when any Digimon suspend" watchers may run.
       await this.fireSuspended(attacker, attackerSuspended);
 

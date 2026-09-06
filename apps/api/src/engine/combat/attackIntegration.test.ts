@@ -1,8 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { Phase } from "@aegis/shared";
-import { registerIrCard } from "../effects/interpreter.js";
+import { registerIrCard, runtimeCompiledCard } from "../effects/interpreter.js";
+import { unregisterCard } from "../effects/registry.js";
 import { advance } from "../testkit/advance.js";
 import { setupEngine, settle } from "../testkit/harness.js";
+import "../../cards/index.js";
 
 /**
  * End-to-end wiring of the attack/declareBlock/declineBlock verbs through
@@ -201,40 +203,48 @@ describe("GameEngine.applyIntent — block wiring", () => {
     // was legal to re-trigger the check, and only a manual endPhase closed the turn.
     // Give the attacker an End of Attack effect that first drains memory across, then
     // hits the interpreter's legacy-payload guard exactly as the logged match did.
-    registerIrCard(DIGIMON_B, {
-      effects: [
-        {
-          trigger: "EndOfAttack",
-          actions: [{ kind: "GainMemory", amount: -3 }, { kind: "ActivateEffect" }],
-        },
-      ],
-      coverage: "full",
-      residual: [],
-    } as never);
-    const s = setupEngine({
-      0: { battleArea: [{ card: DIGIMON_B, dp: 9000, as: "attacker" }], deck: [DIGIMON_A, DIGIMON_A] },
-      1: { deck: [DIGIMON_A, DIGIMON_A], security: [DIGIMON_A] },
-    });
-    await s.ready();
+    const originalCompiled = runtimeCompiledCard(DIGIMON_B);
+    try {
+      registerIrCard(DIGIMON_B, {
+        effects: [
+          {
+            trigger: "EndOfAttack",
+            actions: [{ kind: "GainMemory", amount: -3 }, { kind: "ActivateEffect" }],
+          },
+        ],
+        coverage: "full",
+        residual: [],
+      } as never);
+      const s = setupEngine({
+        0: { battleArea: [{ card: DIGIMON_B, dp: 9000, as: "attacker" }], deck: [DIGIMON_A, DIGIMON_A] },
+        1: { deck: [DIGIMON_A, DIGIMON_A], security: [DIGIMON_A] },
+      });
+      await s.ready();
 
-    let turnClosed = false;
-    const turn = s.engine.runOneTurn().then(() => {
-      turnClosed = true;
-    });
-    await advance(s.engine).waitForMainPhase(0);
-    s.state.memory = 2;
+      let turnClosed = false;
+      const turn = s.engine.runOneTurn().then(() => {
+        turnClosed = true;
+      });
+      await advance(s.engine).waitForMainPhase(0);
+      s.state.memory = 2;
 
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
 
-    await settle(() => turnClosed, 1000);
-    expect(s.events.some((e) => e.kind === "actionRejected" && e.intent === "attack")).toBe(true);
-    expect(turnClosed).toBe(true);
-    await turn;
+      await settle(() => turnClosed, 1000);
+      expect(s.events.some((e) => e.kind === "actionRejected" && e.intent === "attack")).toBe(true);
+      expect(turnClosed).toBe(true);
+      await turn;
+    } finally {
+      // Vitest runs this file with a shared module graph. Restore the real IR after the
+      // synthetic throw-path card so later AD1-002 tests cannot resolve this test payload.
+      unregisterCard(DIGIMON_B);
+      if (originalCompiled !== undefined) registerIrCard(DIGIMON_B, originalCompiled);
+    }
   });
 });

@@ -799,7 +799,12 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     action.kind !== "DigivolveViaPlacement" &&
     payableActionCost
   ) {
-    if (payableActionCost.optional) {
+    if (payableActionCost.kind === "attack" && action.kind === "GainKeyword") {
+      // Attack costs are executed by GainKeyword's board handler so the attack-only
+      // grant can be installed atomically at declaration. The generic payCost path
+      // cannot perform that pairing because it has not yet resolved the action target.
+      if (!canPayCost(ctx, payableActionCost)) return action.abortOnDecline === true;
+    } else if (payableActionCost.optional) {
       const willPay =
         forceOptionalCostProcessing || (await ctx.ask.optional(ctx, `Pay cost: ${describeCost(payableActionCost)}?`));
       if (willPay) {

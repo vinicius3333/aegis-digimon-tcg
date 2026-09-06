@@ -101,4 +101,39 @@ describe("AD1-022 Izzy Izumi & Tai Kamiya", () => {
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tamer"));
     expect(s.state.memory).toBe(1);
   });
+
+  it("does not gain memory at start of main when the opponent has no Digimon", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "AD1-022", as: "tamer" }] } });
+    s.state.memory = 0;
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tamer"));
+
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("does not react when an unrelated non-ADVENTURE card is played", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "AD1-022", as: "tamer" },
+            { card: "ST20-10", as: "base" },
+          ],
+          hand: [
+            { card: "BT1-010", as: "unrelated" },
+            { card: "AD1-001", as: "evolve" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("unrelated").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.perm("tamer").isSuspended).toBe(false);
+    expect(s.perm("base").topCard.cardId).toBe("ST20-10");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("evolve").instanceId)).toBe(true);
+  });
 });

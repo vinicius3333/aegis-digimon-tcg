@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../../cards/index.js";
 
@@ -87,6 +88,66 @@ describe("AD1-020 Tommy, Takuya, & Zoe", () => {
 
     await advance(s.engine).runTurn(0);
     expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
+  it("makes its qualifying Ten Warriors host attack with Security Attack +1 at end of turn", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT12-032", as: "host", under: ["AD1-020"] }] },
+        1: { security: ["BT1-001", "BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).runTurn(0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
+  it("does not grant the inherited attack effect to a non-Hybrid host", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-010", as: "host", under: ["AD1-020"] }] },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).runTurn(0);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "SecurityAttack")).toBe(false);
+    expect(s.events.filter((event) => event.kind === "attackDeclared")).toHaveLength(0);
+  });
+
+  it("does not leave Security Attack +1 active when a qualifying host cannot attack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "AD1-015", as: "host", under: ["AD1-020"], suspended: true }] },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("host"));
+    await settle();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "SecurityAttack")).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("allows declining the optional attack without granting the attack-only keyword", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "AD1-015", as: "host", under: ["AD1-020"] }] },
+        1: { security: ["BT1-001"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("host"));
+    await settle();
+    expect(s.events.filter((event) => event.kind === "attackDeclared")).toHaveLength(0);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "SecurityAttack")).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
   it("plays itself from security without paying the cost", async () => {

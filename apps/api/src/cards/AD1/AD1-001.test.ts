@@ -31,6 +31,36 @@ describe("AD1-001 Greymon", () => {
     );
   });
 
+  it("returns a matching Greymon-family card from trash when digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST20-02", as: "base" }],
+          hand: [{ card: "AD1-001", as: "greymon" }],
+          trash: [{ card: "AD1-010", as: "trashGarurumon" }],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 2;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("greymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("trashGarurumon").instanceId),
+    );
+
+    expect(s.perm("base").topCard?.cardId).toBe("AD1-001");
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("trashGarurumon").instanceId)).toBe(
+      false,
+    );
+  });
+
   it("allows the printed level-3 ADVENTURE and Omnimon-in-text digivolution routes for cost 2", async () => {
     for (const baseCardId of ["ST20-02", "BT12-059"]) {
       const s = setupEngine({
@@ -80,6 +110,30 @@ describe("AD1-001 Greymon", () => {
     expect(s.perm("source").topCard?.cardId).toBe("BT1-021");
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("metalGreymon").instanceId)).toBe(false);
     expect(s.state.memory).toBe(5);
+  });
+
+  it("may free-digivolve itself when a Tai Kamiya Tamer is played", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "AD1-001", as: "source" }],
+          hand: [
+            { card: "BT1-085", as: "tai" },
+            { card: "BT1-021", as: "metalGreymon" },
+          ],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tai").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard?.cardId === "BT1-021");
+
+    expect(s.perm("source").topCard?.cardId).toBe("BT1-021");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("metalGreymon").instanceId)).toBe(false);
+    expect(s.state.memory).toBe(6);
   });
 
   it("does not retrigger after it digivolves into Garurumon, per Q6050", async () => {

@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition, getCompiledCard } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../../cards/index.js";
 
 describe("AD1-011 Paildramon", () => {
@@ -60,7 +62,7 @@ describe("AD1-011 Paildramon", () => {
         0: { battleArea: [{ card: "AD1-011", as: "paildramon" }], hand: [{ card: "BT12-030", as: "imperialdramon" }] },
         1: { security: ["BT1-001"] },
       },
-      { autoSelectCards: true, autoAcceptOptional: true },
+      { autoSelectCards: true, autoAcceptOptional: true, autoChooseOption: true },
     );
     s.state.memory = 5;
 
@@ -75,6 +77,67 @@ describe("AD1-011 Paildramon", () => {
 
     expect(s.state.memory).toBe(3);
     expect(s.perm("paildramon").topCard.cardId).toBe("BT12-030");
+  });
+
+  it("may decline the optional Imperialdramon digivolution while attacking", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "AD1-011", as: "paildramon" }], hand: [{ card: "BT12-030", as: "imperialdramon" }] },
+        1: { security: ["BT1-001"] },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 5;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("paildramon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+
+    expect(s.perm("paildramon").topCard.cardId).toBe("AD1-011");
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT12-030")).toBe(true);
+  });
+
+  it("applies the attack-target lock only to DNA digivolution while battle protection is unconditional", async () => {
+    const dna = setupEngine({ 0: { battleArea: [{ card: "AD1-011", as: "paildramon" }] } });
+    await dna.ready();
+    await advance(dna.engine).fireForPermanent(EffectTiming.WhenDigivolving, dna.perm("paildramon"), {
+      isDnaDigivolve: true,
+    });
+    expect(observe(dna.engine).isRestricted(dna.perm("paildramon"), "beDeletedInBattle")).toBe(true);
+    expect(observe(dna.engine).isRestricted(dna.perm("paildramon"), "attackTargetChange")).toBe(true);
+
+    const normal = setupEngine({ 0: { battleArea: [{ card: "AD1-011", as: "paildramon" }] } });
+    await normal.ready();
+    await advance(normal.engine).fireForPermanent(EffectTiming.WhenDigivolving, normal.perm("paildramon"), {
+      isDnaDigivolve: false,
+    });
+    expect(observe(normal.engine).isRestricted(normal.perm("paildramon"), "beDeletedInBattle")).toBe(true);
+    expect(observe(normal.engine).isRestricted(normal.perm("paildramon"), "attackTargetChange")).toBe(false);
+  });
+
+  it("partitions into its specified Blue Lv.4 and Green Lv.4 cards after opponent-effect deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "AD1-011", as: "paildramon", under: ["AD1-010", "BT8-053"] }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([s.perm("paildramon").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.battleArea.length === 2);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(
+      expect.arrayContaining(["AD1-010", "BT8-053"]),
+    );
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "AD1-011")).toBe(true);
   });
 
   it("publishes Partition both directly and as an inherited keyword", async () => {
