@@ -116,6 +116,22 @@ describe("BT21-023 Globemon", () => {
     expect(globemon.currentDP).toBe(13000);
   });
 
+  it("publicly App Fuses DoGatchmon and Timemon into Globemon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-018", as: "host", linked: [{ card: "BT21-059", as: "timemon" }] }],
+          hand: [{ card: "BT21-023", as: "globemon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.appFuseInto(s.perm("host").permanentId, s.inst("globemon").instanceId);
+    await settle(() => s.perm("host").topCard.cardId === "BT21-023");
+    expect(s.perm("host").topCard.cardId).toBe("BT21-023");
+  });
+
   it("rejects linkless and level-5 cards and permits declining a legal link", async () => {
     for (const [card, options] of [
       ["BT1-009", { autoAcceptOptional: true, autoSelectCards: true }],
