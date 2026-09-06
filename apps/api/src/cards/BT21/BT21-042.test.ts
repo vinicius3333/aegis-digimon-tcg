@@ -138,6 +138,25 @@ describe("BT21-042 compiled implementation", () => {
     expect(s.perm("geogreymon").stack.map((card) => card.cardId)).toEqual(["BT21-042"]);
   });
 
+  it("ignores a public Marcus Damon played by the opponent", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-042", as: "geogreymon" }], hand: [{ card: "BT21-044", as: "rizegreymon" }] },
+        1: { hand: [{ card: "BT21-086", as: "opponentMarcus" }], deck: ["BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentMarcus").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT21-086"));
+    expect(s.perm("geogreymon").topCard.cardId).toBe("BT21-042");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("rizegreymon").instanceId);
+  });
+
   it("does not trigger from a combined Marcus Damon card name", async () => {
     const s = setupEngine(
       {
