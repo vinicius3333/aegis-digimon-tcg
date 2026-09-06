@@ -1,10 +1,5 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -14,6 +9,37 @@ export const compiled: CompiledCard = {
         {
           keyword: "Vortex",
           raw: "＜Vortex＞",
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          mode: "instead",
+          sourceFilter: { isSelfRef: true },
+          leaveCause: "otherThanBattle",
+          raw: "＜Decode ([Aegiomon])＞: when this Digimon would leave other than in battle, you may play 1 [Aegiomon] from its digivolution cards without paying the cost.",
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  zone: "digivolutionCards",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Aegiomon"], match: "name" }],
+                },
+                count: 1,
+              },
+              fromOwnDigivolutionStack: true,
+              payCost: false,
+              playedByDecode: true,
+              optional: true,
+            },
+          ],
         },
       ],
     },
