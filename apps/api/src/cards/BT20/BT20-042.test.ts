@@ -71,6 +71,63 @@ describe("BT20-042 Groundramon", () => {
     expect(observe(s.engine).grantedNames(s.perm("groundramon"))).not.toContain("examon");
   });
 
+  it("publicly evolves from Coredramon, refuses another level-4 source, and can choose separate Digimon/Tamer targets", async () => {
+    const evolved = setupEngine({
+      0: { battleArea: [{ card: "BT20-040", as: "coredramon" }], hand: [{ card: "BT20-042", as: "groundramon" }] },
+    });
+    evolved.state.memory = 3;
+    expect(
+      evolved.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: evolved.perm("coredramon").permanentId,
+        instanceId: evolved.inst("groundramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => evolved.perm("coredramon").topCard.cardId === "BT20-042" && evolved.state.pendingDecision === undefined,
+    );
+    expect(evolved.perm("coredramon").stack.map((card) => card.cardId)).toEqual(["BT20-040"]);
+
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "BT20-041", as: "crowmon" }], hand: [{ card: "BT20-042", as: "groundramon" }] },
+    });
+    invalid.state.memory = 3;
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("crowmon").permanentId,
+        instanceId: invalid.inst("groundramon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(invalid.perm("crowmon").topCard.cardId).toBe("BT20-041");
+
+    const preferred: string[] = [];
+    const targets = setupEngine(
+      {
+        0: { hand: [{ card: "BT20-042", as: "groundramon" }] },
+        1: {
+          battleArea: [
+            { card: "BT20-010", as: "suspendTarget" },
+            { card: "BT20-085", as: "restrictTarget" },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(targets.perm("suspendTarget").permanentId, targets.perm("restrictTarget").permanentId);
+    targets.state.memory = 10;
+    await targets.ready();
+    expect(
+      targets.engine.applyIntent(0, { type: "playCard", instanceId: targets.inst("groundramon").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        targets.perm("suspendTarget").isSuspended &&
+        observe(targets.engine).isRestricted(targets.perm("restrictTarget"), "unsuspend"),
+    );
+    expect(targets.perm("restrictTarget").isSuspended).toBe(false);
+  });
+
   it("inherits one opposing top-security trash after its surviving host deletes in battle", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT20-044", dp: 12000, under: ["BT20-042"], as: "host" }] },
