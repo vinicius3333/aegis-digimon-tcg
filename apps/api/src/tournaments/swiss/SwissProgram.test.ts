@@ -4,6 +4,7 @@ import type { Pool } from "pg";
 import { beforeEach, describe, expect, it } from "vitest";
 import { AccountStore } from "../../accounts/AccountStore.js";
 import { createMemoryPool } from "../../db/memoryPool.fixture.js";
+import { snapshotFixtures } from "../../db/snapshotFixture.js";
 import { RED_DECK } from "../../engine/testDecks.js";
 import { pairSwissRound } from "../pairing/index.js";
 import { ParticipantStore } from "../participants/index.js";
@@ -29,6 +30,9 @@ type Fixture = {
 };
 
 let fixture: Fixture;
+
+/** One cache for this file: an arrangement is built once and restored for every test that reuses it. */
+const fixtureFor = snapshotFixtures<Fixture>();
 
 /**
  * A pool that records the transaction verb each connection ends on.
@@ -70,8 +74,21 @@ function recordingPool(): { pool: Pool; verbs: string[] } {
  * registers, checks in, and the field is frozen by `closeCheckIn` — which is what leaves them
  * `active` and what the round count is frozen from.
  */
+/**
+ * Snapshot-backed when the caller takes the default pool. A caller that brings its own pool wants
+ * that exact instance (the `recordingPool` atomicity cases read the verbs off it), so those build
+ * from scratch.
+ */
 async function build(playerCount: number, options: { topCut?: boolean; pool?: Pool } = {}): Promise<Fixture> {
-  const accounts = new AccountStore(options.pool ?? createMemoryPool());
+  if (options.pool) return buildOn(options.pool, playerCount, options.topCut === true);
+  return fixtureFor(`swiss:${playerCount}:${options.topCut === true}`, (pool) =>
+    buildOn(pool, playerCount, options.topCut === true),
+  );
+}
+
+async function buildOn(pool: Pool, playerCount: number, topCut: boolean): Promise<Fixture> {
+  const options = { topCut };
+  const accounts = new AccountStore(pool);
   const participants = new ParticipantStore(accounts);
   const series = new SeriesStore(accounts);
   const swiss = new SwissProgram(accounts, series);

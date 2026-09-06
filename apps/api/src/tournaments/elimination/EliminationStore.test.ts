@@ -1,7 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { beforeEach, describe, expect, it } from "vitest";
 import { AccountStore } from "../../accounts/AccountStore.js";
-import { createMemoryPool } from "../../db/memoryPool.fixture.js";
+import type { Pool } from "pg";
+import { snapshotFixtures } from "../../db/snapshotFixture.js";
 import { inProcessTournamentLock } from "../participants/index.js";
 import { EliminationStore, type BracketView, type EliminationMatch } from "./EliminationStore.js";
 
@@ -62,8 +63,17 @@ async function statsOf(accountId: string): Promise<Record<string, number>> {
   return (row ?? {}) as Record<string, number>;
 }
 
-beforeEach(async () => {
-  accounts = new AccountStore(createMemoryPool());
+type Fixture = { accounts: AccountStore; elimination: EliminationStore; organizer: string; tournamentId: string };
+
+/** One empty Lightning Cup, built once and restored before each test. */
+const fixtureFor = snapshotFixtures<Fixture>();
+
+/**
+ * Assigns the file's module-level bindings rather than shadowing them, so the helpers and
+ * assertions below read the same instances the snapshot restores.
+ */
+async function buildFixture(pool: Pool): Promise<Fixture> {
+  accounts = new AccountStore(pool);
   elimination = new EliminationStore(accounts, inProcessTournamentLock());
   organizer = (await accounts.accountForIdentity("discord", "organizer", "Organizer")).id;
   const tournament = await accounts.createTournament(organizer, {
@@ -73,7 +83,11 @@ beforeEach(async () => {
     maxPlayers: 8,
     allowBots: true,
   });
-  tournamentId = tournament.id;
+  return { accounts, elimination, organizer, tournamentId: tournament.id };
+}
+
+beforeEach(async () => {
+  ({ accounts, elimination, organizer, tournamentId } = await fixtureFor("default", buildFixture));
 });
 
 describe("drawing the bracket", () => {

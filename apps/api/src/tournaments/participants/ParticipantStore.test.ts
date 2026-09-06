@@ -3,6 +3,7 @@ import type { Pool } from "pg";
 import { beforeEach, describe, expect, it } from "vitest";
 import { type Account, AccountStore } from "../../accounts/AccountStore.js";
 import { createMemoryPool } from "../../db/memoryPool.fixture.js";
+import { snapshotFixtures } from "../../db/snapshotFixture.js";
 import { BLUE_DECK, RED_DECK } from "../../engine/testDecks.js";
 import { type AcquireTournamentLock, ParticipantStore } from "./ParticipantStore.js";
 
@@ -13,6 +14,21 @@ type Fixture = { pool: Pool; store: AccountStore; participants: ParticipantStore
 function createFixture(pool: Pool = createMemoryPool()): Fixture {
   const store = new AccountStore(pool as never);
   return { pool, store, participants: new ParticipantStore(store) };
+}
+
+/**
+ * An empty, already-migrated database. Every test here arranges its own players and tournaments, so
+ * all they share is the schema — and re-running the migrator for each of them cost more than the
+ * arranging did.
+ */
+const emptyFixture = snapshotFixtures<Fixture>();
+
+async function createMigratedFixture(): Promise<Fixture> {
+  return emptyFixture("empty", async (pool) => {
+    const fixture = createFixture(pool);
+    await fixture.store.ensureReady();
+    return fixture;
+  });
 }
 
 async function createPlayer(store: AccountStore, name: string): Promise<Account> {
@@ -37,8 +53,8 @@ async function addBanlistColumn(pool: Pool, tournamentId: string, cards: Tournam
 
 describe("ParticipantStore registration", () => {
   let fixture: Fixture;
-  beforeEach(() => {
-    fixture = createFixture();
+  beforeEach(async () => {
+    fixture = await createMigratedFixture();
   });
 
   it("registers a player who owns a legal saved deck", async () => {
@@ -173,7 +189,7 @@ describe("ParticipantStore check-in", () => {
   let player: Account;
   let deckId: string;
   beforeEach(async () => {
-    fixture = createFixture();
+    fixture = await createMigratedFixture();
     player = await createPlayer(fixture.store, "Alice");
     deckId = await saveLegalDeck(fixture.store, player.id);
     tournamentId = await createTournament(fixture.store, player.id);
