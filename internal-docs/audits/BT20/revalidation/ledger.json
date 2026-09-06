@@ -12,9 +12,9 @@
   "summary": {
     "cards": 102,
     "verified": 0,
-    "totalPoints": 8,
+    "totalPoints": 91,
     "maximumPoints": 1020,
-    "meanScore": 0.078,
+    "meanScore": 0.892,
     "percentVerified": 0
   },
   "cards": [
@@ -56,218 +56,465 @@
     {
       "cardId": "BT20-002",
       "name": "Bebydomon",
-      "status": "pending",
+      "status": "in-progress",
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavioralProof": 0,
-        "peerStackProof": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavioralProof": 1,
+        "peerStackProof": 1,
         "deliveryGates": 0
       },
-      "total": 0,
-      "evidence": [],
-      "commands": [],
+      "total": 6,
+      "evidence": [
+        "Catalog and KB: blue level 2 Digi-Egg; inherited When Attacking Once Per Turn draws 1 when this Digimon has Dracomon or Examon in its text; Q4281/Q4282 apply.",
+        "BT20-002.ts has exactly one registerIrCard and exact inherited OncePerTurn selfTopHasText draw IR.",
+        "BT20-002.test.ts uses immediate pre-attack hand counts: first public attack draws exactly one; public BT1-036 Garurumon On Play unsuspends the host for a second same-turn attack with no second draw; after a complete opponent turn and automatic draw, the next own-turn attack draws exactly one.",
+        "001-013-results.json"
+      ],
+      "commands": [
+        {
+          "command": "node tools/kb/query.mjs card BT20-002",
+          "result": "Q4281 and Q4282 returned."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-001.test.ts src/cards/BT20/BT20-002.test.ts src/cards/BT20/BT20-003.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "ENOSPC before collection writing apps/api/node_modules/.vite-temp/vitest.config.ts timestamp."
+        },
+        {
+          "command": "git diff --check",
+          "result": "Passed."
+        },
+        {
+          "command": "Lead focused run of BT20-001 through BT20-013 with --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json",
+          "result": "2 assertions/tests in focused file: passed; 001-013-results.json"
+        }
+      ],
       "gaps": [
-        "Independent revalidation pending; historical 10/10 is not current evidence."
-      ]
+        "Add independent Examon-text host and public egg-to-host source transition proof."
+      ],
+      "acceptance": {
+        "reviewed": true,
+        "gatesPassed": false,
+        "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open."
+      }
     },
     {
       "cardId": "BT20-003",
       "name": "Bibimon",
-      "status": "pending",
+      "status": "in-progress",
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavioralProof": 0,
-        "peerStackProof": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavioralProof": 2,
+        "peerStackProof": 2,
         "deliveryGates": 0
       },
-      "total": 0,
-      "evidence": [],
-      "commands": [],
-      "gaps": [
-        "Independent revalidation pending; historical 10/10 is not current evidence."
-      ]
+      "total": 8,
+      "evidence": [
+        "Catalog and KB: yellow level 2 Digi-Egg with Lesser/Abadin Electronics/SEEKERS; optional End of Your Turn Once Per Turn placement of a qualifying Tamer at bottom of this no-Tamer stack; Q4283 applies.",
+        "BT20-003.ts has exactly one registerIrCard and exact optional self PlaceUnder bottom/Tamer-exclusion IR.",
+        "BT20-003.test.ts publicly digivolves Bibimon into legal yellow BT10-031 in Main before the next turn, moves it during the real Breeding phase, then proves SoC-only BT14-087, Pulsemon-text BT17-086, and SEEKERS-only BT24-086 routes in table-driven mixed fields; each selects the controlled match, leaves BT20-085 and opponent matches in play, and preserves refusal/existing-Tamer tests.",
+        "001-013-results.json"
+      ],
+      "commands": [
+        {
+          "command": "node tools/kb/query.mjs card BT20-003",
+          "result": "Q4283 returned."
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-001.test.ts src/cards/BT20/BT20-002.test.ts src/cards/BT20/BT20-003.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "ENOSPC before collection writing apps/api/node_modules/.vite-temp/vitest.config.ts timestamp."
+        },
+        {
+          "command": "git diff --check",
+          "result": "Passed."
+        },
+        {
+          "command": "Lead focused run of BT20-001 through BT20-013 with --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json",
+          "result": "5 assertions/tests in focused file: passed; 001-013-results.json"
+        }
+      ],
+      "gaps": [],
+      "acceptance": {
+        "reviewed": true,
+        "gatesPassed": false,
+        "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open."
+      }
     },
     {
       "cardId": "BT20-004",
       "name": "Pinamon",
-      "status": "pending",
+      "status": "in-progress",
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavioralProof": 0,
-        "peerStackProof": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavioralProof": 1,
+        "peerStackProof": 2,
         "deliveryGates": 0
       },
-      "total": 0,
-      "evidence": [],
-      "commands": [],
+      "total": 7,
+      "evidence": [
+        "BT20-004.ts exclusively registers IR; inherited YourTurn/OncePerTurn ACCEL whenPlayed watcher, optional self digivolve from hand, reduction 2.",
+        "BT20-004.test.ts proves natural ACCEL play, non-ACCEL negative, optional refusal, and second ACCEL play blocked by once-per-turn.",
+        "001-013-results.json"
+      ],
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-004.test.ts src/cards/BT20/BT20-005.test.ts src/cards/BT20/BT20-006.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "3 files passed; 9 tests passed"
+        },
+        {
+          "command": "Lead focused run of BT20-001 through BT20-013 with --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json",
+          "result": "6 assertions/tests in focused file: passed; 001-013-results.json"
+        }
+      ],
       "gaps": [
-        "Independent revalidation pending; historical 10/10 is not current evidence."
-      ]
+        "Prove once-per-turn reset after a real turn boundary."
+      ],
+      "acceptance": {
+        "reviewed": true,
+        "gatesPassed": false,
+        "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open."
+      }
     },
     {
       "cardId": "BT20-005",
       "name": "Kapurimon",
-      "status": "pending",
+      "status": "in-progress",
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavioralProof": 0,
-        "peerStackProof": 0,
+        "catalogRules": 2,
+        "irTrace": 1,
+        "behavioralProof": 1,
+        "peerStackProof": 2,
         "deliveryGates": 0
       },
-      "total": 0,
-      "evidence": [],
-      "commands": [],
+      "total": 6,
+      "evidence": [
+        "BT20-005.md",
+        "security-priority.md",
+        "security-mechanism-1.log",
+        "security-affected-1.log",
+        "005-security-priority.log",
+        "001-013-results.json"
+      ],
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/engine/security/revealTriggerPriority.test.ts src/engine/security/securityCheck.test.ts src/engine/subTriggerSeams.test.ts src/cards/BT20/BT20-005.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+          "result": "4 files / 59 tests passed; security-mechanism-1.log"
+        },
+        {
+          "command": "pnpm --filter @aegis/api typecheck",
+          "result": "exit0; typecheck-integration-2.log"
+        },
+        {
+          "command": "Lead focused run of BT20-001 through BT20-013 with --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json",
+          "result": "5 assertions/tests in focused file: passed; 001-013-results.json"
+        }
+      ],
       "gaps": [
-        "Independent revalidation pending; historical 10/10 is not current evidence."
-      ]
+        "Q4284 cross-family simultaneous trigger ordering remains unresolved."
+      ],
+      "acceptance": {
+        "reviewed": true,
+        "gatesPassed": false,
+        "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open."
+      }
     },
     {
       "cardId": "BT20-006",
       "name": "DemiMeramon",
-      "status": "pending",
+      "status": "in-progress",
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavioralProof": 0,
-        "peerStackProof": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavioralProof": 2,
+        "peerStackProof": 2,
         "deliveryGates": 0
       },
-      "total": 0,
-      "evidence": [],
-      "commands": [],
-      "gaps": [
-        "Independent revalidation pending; historical 10/10 is not current evidence."
-      ]
+      "total": 8,
+      "evidence": [
+        "BT20-006.ts exclusively registers IR; inherited optional OnDeletion returns one controlled-trash Ghost Digimon to hand.",
+        "BT20-006.test.ts uses legal DemiMeramon → Ghostmon → Bakemon stack via public digivolution, proving Ghost selection, non-Ghost/opponent-trash exclusion, exact one-card movement, and legal-stack refusal. Q4285/Q4286 explicit pending-source order cases remain lead-owned gaps. Added explicit Q4285/Q4286 orderTriggers-first scenarios with manual target selection.",
+        "001-013-results.json"
+      ],
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-004.test.ts src/cards/BT20/BT20-005.test.ts src/cards/BT20/BT20-006.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "3 files passed; 9 tests passed"
+        },
+        {
+          "command": "Lead focused run of BT20-001 through BT20-013 with --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json",
+          "result": "5 assertions/tests in focused file: passed; 001-013-results.json"
+        }
+      ],
+      "gaps": [],
+      "acceptance": {
+        "reviewed": true,
+        "gatesPassed": false,
+        "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open."
+      }
     },
     {
       "cardId": "BT20-007",
       "name": "Dracomon",
-      "status": "pending",
+      "status": "in-progress",
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavioralProof": 0,
-        "peerStackProof": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavioralProof": 1,
+        "peerStackProof": 2,
         "deliveryGates": 0
       },
-      "total": 0,
-      "evidence": [],
-      "commands": [],
+      "total": 7,
+      "evidence": [
+        "internal-docs/audits/BT20/revalidation/BT20-007.md",
+        "apps/api/src/cards/BT20/BT20-007.test.ts",
+        "001-013-results.json"
+      ],
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-007.test.ts src/cards/BT20/BT20-008.test.ts src/cards/BT20/BT20-009.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "pending rerun after natural-turn/evolution expansion"
+        },
+        {
+          "command": "git diff --check",
+          "result": "passed"
+        },
+        {
+          "command": "Lead focused run of BT20-001 through BT20-013 with --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json",
+          "result": "5 assertions/tests in focused file: passed; 001-013-results.json"
+        }
+      ],
       "gaps": [
-        "Independent revalidation pending; historical 10/10 is not current evidence."
-      ]
+        "Complete independent text alternatives and natural Start Main refusal/negative proof."
+      ],
+      "acceptance": {
+        "reviewed": true,
+        "gatesPassed": false,
+        "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open."
+      }
     },
     {
       "cardId": "BT20-008",
       "name": "Huckmon",
-      "status": "pending",
+      "status": "in-progress",
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavioralProof": 0,
-        "peerStackProof": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavioralProof": 2,
+        "peerStackProof": 2,
         "deliveryGates": 0
       },
-      "total": 0,
-      "evidence": [],
-      "commands": [],
-      "gaps": [
-        "Independent revalidation pending; historical 10/10 is not current evidence."
-      ]
+      "total": 8,
+      "evidence": [
+        "internal-docs/audits/BT20/revalidation/BT20-008.md",
+        "apps/api/src/cards/BT20/BT20-008.test.ts",
+        "001-013-results.json"
+      ],
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-007.test.ts src/cards/BT20/BT20-008.test.ts src/cards/BT20/BT20-009.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "pending rerun after natural-turn/evolution expansion"
+        },
+        {
+          "command": "git diff --check",
+          "result": "passed"
+        },
+        {
+          "command": "Lead focused run of BT20-001 through BT20-013 with --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json",
+          "result": "11 assertions/tests in focused file: passed; 001-013-results.json"
+        }
+      ],
+      "gaps": [],
+      "acceptance": {
+        "reviewed": true,
+        "gatesPassed": false,
+        "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open."
+      }
     },
     {
       "cardId": "BT20-009",
       "name": "Veemon",
-      "status": "pending",
+      "status": "in-progress",
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavioralProof": 0,
-        "peerStackProof": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavioralProof": 2,
+        "peerStackProof": 2,
         "deliveryGates": 0
       },
-      "total": 0,
-      "evidence": [],
-      "commands": [],
-      "gaps": [
-        "Independent revalidation pending; historical 10/10 is not current evidence."
-      ]
+      "total": 8,
+      "evidence": [
+        "internal-docs/audits/BT20/revalidation/BT20-009.md",
+        "apps/api/src/cards/BT20/BT20-009.test.ts",
+        "001-013-results.json"
+      ],
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-007.test.ts src/cards/BT20/BT20-008.test.ts src/cards/BT20/BT20-009.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "pending rerun after natural-turn/evolution expansion"
+        },
+        {
+          "command": "git diff --check",
+          "result": "passed"
+        },
+        {
+          "command": "Lead focused run of BT20-001 through BT20-013 with --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json",
+          "result": "8 assertions/tests in focused file: passed; 001-013-results.json"
+        }
+      ],
+      "gaps": [],
+      "acceptance": {
+        "reviewed": true,
+        "gatesPassed": false,
+        "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open."
+      }
     },
     {
       "cardId": "BT20-010",
       "name": "Ryudamon",
-      "status": "pending",
+      "status": "in-progress",
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavioralProof": 0,
-        "peerStackProof": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavioralProof": 1,
+        "peerStackProof": 1,
         "deliveryGates": 0
       },
-      "total": 0,
-      "evidence": [],
-      "commands": [],
+      "total": 6,
+      "evidence": [
+        "internal-docs/audits/BT20/revalidation/BT20-010.md",
+        "apps/api/src/cards/BT20/BT20-010.test.ts",
+        "001-013-results.json"
+      ],
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-010.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "pending lead execution"
+        },
+        {
+          "command": "Lead focused run of BT20-001 through BT20-013 with --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json",
+          "result": "4 assertions/tests in focused file: passed; 001-013-results.json"
+        }
+      ],
       "gaps": [
-        "Independent revalidation pending; historical 10/10 is not current evidence."
-      ]
+        "Prove Chronicle-only destination and alternate evolution exact paid cost, plus inherited source transition."
+      ],
+      "acceptance": {
+        "reviewed": true,
+        "gatesPassed": false,
+        "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open."
+      }
     },
     {
       "cardId": "BT20-011",
       "name": "ExVeemon",
-      "status": "pending",
+      "status": "in-progress",
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavioralProof": 0,
-        "peerStackProof": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavioralProof": 1,
+        "peerStackProof": 1,
         "deliveryGates": 0
       },
-      "total": 0,
-      "evidence": [],
-      "commands": [],
+      "total": 6,
+      "evidence": [
+        "internal-docs/audits/BT20/revalidation/BT20-011.md",
+        "apps/api/src/cards/BT20/BT20-011.test.ts",
+        "001-013-results.json"
+      ],
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-011.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "pending lead execution"
+        },
+        {
+          "command": "Lead focused run of BT20-001 through BT20-013 with --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json",
+          "result": "4 assertions/tests in focused file: passed; 001-013-results.json"
+        }
+      ],
       "gaps": [
-        "Independent revalidation pending; historical 10/10 is not current evidence."
-      ]
+        "Prove When Digivolving deletion and opponent-turn exclusion of DNA with feasible materials."
+      ],
+      "acceptance": {
+        "reviewed": true,
+        "gatesPassed": false,
+        "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open."
+      }
     },
     {
       "cardId": "BT20-012",
       "name": "Ginryumon",
-      "status": "pending",
+      "status": "in-progress",
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavioralProof": 0,
-        "peerStackProof": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavioralProof": 1,
+        "peerStackProof": 1,
         "deliveryGates": 0
       },
-      "total": 0,
-      "evidence": [],
-      "commands": [],
+      "total": 6,
+      "evidence": [
+        "internal-docs/audits/BT20/revalidation/BT20-012.md",
+        "apps/api/src/cards/BT20/BT20-012.test.ts",
+        "001-013-results.json"
+      ],
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-012.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "pending lead execution"
+        },
+        {
+          "command": "Lead focused run of BT20-001 through BT20-013 with --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json",
+          "result": "5 assertions/tests in focused file: passed; 001-013-results.json"
+        }
+      ],
       "gaps": [
-        "Independent revalidation pending; historical 10/10 is not current evidence."
-      ]
+        "Prove Chronicle-only destination and alternate evolution exact cost."
+      ],
+      "acceptance": {
+        "reviewed": true,
+        "gatesPassed": false,
+        "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open."
+      }
     },
     {
       "cardId": "BT20-013",
       "name": "BaoHuckmon",
-      "status": "pending",
+      "status": "in-progress",
       "scores": {
-        "catalogRules": 0,
-        "irTrace": 0,
-        "behavioralProof": 0,
-        "peerStackProof": 0,
+        "catalogRules": 2,
+        "irTrace": 2,
+        "behavioralProof": 1,
+        "peerStackProof": 2,
         "deliveryGates": 0
       },
-      "total": 0,
-      "evidence": [],
-      "commands": [],
+      "total": 7,
+      "evidence": [
+        "Catalog: BaoHuckmon level 4 red Dinosaur, Main Once Per Turn optional play of one Digimon with Sistermon/Gankoomon in name from hand, play cost reduced by 2; inherited Your Turn all allied Digimon +1000 DP.",
+        "BT20-013.test.ts structural assertions verify Main/OncePerTurn, controller mine Digimon count 1, name substring matcher, payCost true, reduction 2, and inherited all-allied +1000.",
+        "BT20-013.test.ts public activation verifies Sistermon Ciel enters battle area at reduced payment and once-per-turn retry is rejected; negative non-match remains in hand. Added refusal and Gankoomon branch tests; inherited host/ally/opponent turn scope is asserted.",
+        "Root review correction: BT20-057 Gankoomon leaves memory 4 because its printed -4 reduction stacks with BaoHuckmon -2 (Q4294).",
+        "001-013-results.json"
+      ],
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-013.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "not run by worker; coordinator owns Vitest slot"
+        },
+        {
+          "command": "Lead focused run of BT20-001 through BT20-013 with --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json",
+          "result": "4 assertions/tests in focused file: passed; 001-013-results.json"
+        }
+      ],
       "gaps": [
-        "Independent revalidation pending; historical 10/10 is not current evidence."
-      ]
+        "Prove once-per-turn reset with a legal payable target after a real turn boundary."
+      ],
+      "acceptance": {
+        "reviewed": true,
+        "gatesPassed": false,
+        "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open."
+      }
     },
     {
       "cardId": "BT20-014",

@@ -12,7 +12,7 @@ Read all catalog fields and run node tools/kb/query.mjs card CARD-ID; trace appl
 
 ## Resource limits and integration
 
-At most one Vitest process runs in this worktree at a time. Workers request the test slot; all invocations use --maxWorkers=1 --no-file-parallelism, with bounded test/hook timeouts. Astra runs collection baseline first and then grants focused slots. No parallel package builds. Engine fixes and catalog sync are serialized, with minimal reusable seams and mechanism regressions. Only pnpm effects:sync:set -- --set BT20 and effects:check:set may update/check generated effects; compare scope to baseline.
+At most one Vitest process runs in this worktree at a time. The lead runs every test/build; workers do not launch test processes. All invocations use --maxWorkers=1 --no-file-parallelism, with bounded test/hook timeouts. Astra runs focused and collection integration checks. No parallel package builds. Engine fixes and catalog sync are serialized, with minimal reusable seams and mechanism regressions. Only pnpm effects:sync:set -- --set BT20 and effects:check:set may update/check generated effects; compare scope to baseline.
 
 ## Gates and delivery
 

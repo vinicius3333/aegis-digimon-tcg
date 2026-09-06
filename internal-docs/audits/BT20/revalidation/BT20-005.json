@@ -13,7 +13,8 @@
     "security-priority.md",
     "security-mechanism-1.log",
     "security-affected-1.log",
-    "005-security-priority.log"
+    "005-security-priority.log",
+    "001-013-results.json"
   ],
   "commands": [
     {
@@ -23,9 +24,13 @@
     {
       "command": "pnpm --filter @aegis/api typecheck",
       "result": "exit0; typecheck-integration-2.log"
+    },
+    {
+      "command": "Lead focused run of BT20-001 through BT20-013 with --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json",
+      "result": "5 assertions/tests in focused file: passed; 001-013-results.json"
     }
   ],
   "gaps": [
-    "Cross-family simultaneous ordering: reveal watchers, OnSecurityCheck and OnLoseSecurity remain separate pools (Q4284)."
+    "Q4284 cross-family simultaneous trigger ordering remains unresolved."
   ]
 }

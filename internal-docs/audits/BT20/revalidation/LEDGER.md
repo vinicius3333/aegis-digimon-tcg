@@ -2,23 +2,23 @@
 
 Reproduce: `node internal-docs/audits/BT20/revalidation/recalculate.mjs`. Scores use the established five dimensions (0–2 each). Pending scores reflect missing accepted evidence. Historical reports do not contribute. Final delivery points require explicit lead review and recorded gates.
 
-Verified: 0/102; total 8/1020; mean 0.078/10. Collection remains in progress until all delivery gates, push, and PR are recorded.
+Verified: 0/102; total 91/1020; mean 0.892/10. Collection remains in progress until all delivery gates, push, and PR are recorded.
 
 | Card | Name | Catalog/rules | IR | Behavior | Peer/stack | Gates | Total | Evidence |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | BT20-001 | DemiVeemon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 | [report](BT20-001.md) |
-| BT20-002 | Bebydomon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-003 | Bibimon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-004 | Pinamon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-005 | Kapurimon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-006 | DemiMeramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-007 | Dracomon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-008 | Huckmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-009 | Veemon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-010 | Ryudamon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-011 | ExVeemon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-012 | Ginryumon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-013 | BaoHuckmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-002 | Bebydomon | 2/2 | 2/2 | 1/2 | 1/2 | 0/2 | 6/10 | [report](BT20-002.md) |
+| BT20-003 | Bibimon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 | [report](BT20-003.md) |
+| BT20-004 | Pinamon | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 | [report](BT20-004.md) |
+| BT20-005 | Kapurimon | 2/2 | 1/2 | 1/2 | 2/2 | 0/2 | 6/10 | [report](BT20-005.md) |
+| BT20-006 | DemiMeramon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 | [report](BT20-006.md) |
+| BT20-007 | Dracomon | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 | [report](BT20-007.md) |
+| BT20-008 | Huckmon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 | [report](BT20-008.md) |
+| BT20-009 | Veemon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 | [report](BT20-009.md) |
+| BT20-010 | Ryudamon | 2/2 | 2/2 | 1/2 | 1/2 | 0/2 | 6/10 | [report](BT20-010.md) |
+| BT20-011 | ExVeemon | 2/2 | 2/2 | 1/2 | 1/2 | 0/2 | 6/10 | [report](BT20-011.md) |
+| BT20-012 | Ginryumon | 2/2 | 2/2 | 1/2 | 1/2 | 0/2 | 6/10 | [report](BT20-012.md) |
+| BT20-013 | BaoHuckmon | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 | [report](BT20-013.md) |
 | BT20-014 | SaviorHuckmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
 | BT20-015 | Hisyaryumon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
 | BT20-016 | Paildramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
