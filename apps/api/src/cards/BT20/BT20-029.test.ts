@@ -104,4 +104,39 @@ describe("BT20-029 Pulsemon", () => {
     await advance(s.engine).fire(EffectTiming.OnBattleDeleteOpponent, s.perm("host"));
     expect(s.state.memory).toBe(memoryBefore + 1);
   });
+
+  it("naturally gains memory when its legal host deletes an opponent in battle", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-032", dp: 5000, as: "host", under: ["BT20-029"] }] },
+      1: { battleArea: [{ card: "BT20-010", dp: 1000, suspended: true, as: "target" }] },
+    });
+    await s.ready();
+    const memoryBefore = s.state.memory;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-010"));
+    expect(s.state.memory).toBe(memoryBefore + 1);
+  });
+
+  it("reaches Pulsemon from a legal Bibimon egg through a public evolution intent", async () => {
+    const s = setupEngine({
+      0: { breeding: { card: "BT20-003", as: "bibimon" }, hand: [{ card: "BT20-029", as: "pulsemon" }] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("bibimon").permanentId,
+        instanceId: s.inst("pulsemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("bibimon").topCard.cardId === "BT20-029");
+    expect(s.perm("bibimon").topCard.cardId).toBe("BT20-029");
+    expect(s.perm("bibimon").stack.map((card) => card.cardId)).toEqual(["BT20-003"]);
+  });
 });
