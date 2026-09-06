@@ -36,6 +36,63 @@ describe("BT25-052 Logimon", () => {
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT25-089")).toBe(true);
   });
 
+  it("links an eligible card from its own digivolution cards and rejects a non-Link card", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT25-052", as: "logimon", under: [{ card: "BT25-007", as: "stackLink" }] }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const [effect] = observe(s.engine).activatableEffects(s.perm("logimon")) as { effectKey: string }[];
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("logimon").topCard.instanceId,
+        effectKey: effect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("logimon").linked.length === 1);
+    expect(s.perm("logimon").linked.map((card) => card.cardId)).toEqual(["BT25-007"]);
+    expect(s.perm("logimon").stack).toHaveLength(0);
+
+    const refused = setupEngine(
+      { 0: { battleArea: [{ card: "BT25-052", as: "logimon" }], hand: [{ card: "BT1-009", as: "notLink" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await refused.ready();
+    const [refusedEffect] = observe(refused.engine).activatableEffects(refused.perm("logimon")) as {
+      effectKey: string;
+    }[];
+    expect(
+      refused.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: refused.perm("logimon").topCard.instanceId,
+        effectKey: refusedEffect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(refused.state.players[0]!.hand.map((card) => card.instanceId)).toContain(refused.inst("notLink").instanceId);
+  });
+
+  it("supports refusal of the optional Main link cost without changing zones", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT25-052", as: "logimon" }], hand: [{ card: "BT25-036", as: "link" }] } },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const [effect] = observe(s.engine).activatableEffects(s.perm("logimon")) as { effectKey: string }[];
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("logimon").topCard.instanceId,
+        effectKey: effect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("logimon").linked).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("link").instanceId);
+  });
+
   it("does not play Kazuki & Itsuki when its controller has 2 Tamers", async () => {
     const s = setupEngine(
       {
@@ -129,5 +186,21 @@ describe("BT25-052 Logimon", () => {
       event: "whenLinked",
       on: { filter: { isSelfRef: true }, count: 1, isSelf: true },
     });
+  });
+
+  it("App Fuses the printed Onmon and Gatchmon pair at zero cost", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT25-045", as: "onmon", linked: [{ card: "BT21-009", as: "gatchmon" }] }],
+        hand: [{ card: "BT25-052", as: "logimon" }],
+        deck: ["BT1-010"],
+      },
+    });
+    await s.ready();
+    const fused = await advance(s.engine).verb.appFuseInto(s.perm("onmon").permanentId, s.inst("logimon").instanceId);
+    expect(fused?.topCard.cardId).toBe("BT25-052");
+    expect(fused?.stack.map((card) => card.cardId)).toEqual(["BT25-045", "BT21-009"]);
+    expect(s.perm("onmon").linked).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-010");
   });
 });
