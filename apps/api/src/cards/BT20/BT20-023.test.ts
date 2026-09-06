@@ -98,4 +98,39 @@ describe("BT20-023 Coredramon", () => {
     await direct.ready();
     expect(observe(direct.engine).hasKeyword(direct.perm("coredramon"), "Jamming")).toBe(true);
   });
+
+  it("survives a public security battle through Jamming", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-023", as: "coredramon" }] },
+      1: { security: [{ card: "BT20-001", as: "securityEgg" }] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("coredramon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.perm("coredramon").topCard.cardId).toBe("BT20-023");
+  });
+
+  it("reaches Coredramon from a legal Dracomon stack through public evolution", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-007", as: "dracomon" }], hand: [{ card: "BT20-023", as: "coredramon" }] },
+    });
+    s.state.memory = 2;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("dracomon").permanentId,
+        instanceId: s.inst("coredramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("dracomon").topCard.cardId === "BT20-023");
+    expect(s.perm("dracomon").topCard.cardId).toBe("BT20-023");
+    expect(s.perm("dracomon").stack.map((card) => card.cardId)).toEqual(["BT20-007"]);
+  });
 });
