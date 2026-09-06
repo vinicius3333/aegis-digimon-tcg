@@ -29,3 +29,5 @@ Set check attempt: pnpm effects:check:set -- --set BT23 --base a924de971e0b43ad9
 First review: returned BT23-001–006 for missing legal evolution transitions, once-per-turn reset, and specific natural-origin proof. Existing green tests do not establish full scores.
 
 Effects check retry completed build and failed: BT23 effects.json records are stale. Full baseline catalog-sync equality passed, so inspect formatting/canonicalization before claiming a semantic change. Official set-scoped sync then failed at its 30000ms formatter timeout; no catalog mutation occurred.
+
+Set-scoped synchronization and check now passed after capacity recovered: pnpm effects:sync:set -- --set BT23 --base a924de971e0b43ad9ebd8f82a454d495ff880a60; pnpm effects:check:set -- --set BT23 --base a924de971e0b43ad9ebd8f82a454d495ff880a60. Both reported zero semantic changes and zero semantic or byte changes outside BT23. The sync normalizes BT23 record formatting only (102 records). Logs: /tmp/bt23-astra-audit/effects-sync-retry.log and effects-check.log.
