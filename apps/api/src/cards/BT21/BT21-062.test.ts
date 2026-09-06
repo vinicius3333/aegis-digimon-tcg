@@ -73,6 +73,31 @@ describe("BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon", () => 
     expect(p1?.trash.length).toBeGreaterThanOrEqual(1);
   });
 
+  it("publicly deletes an opposing Digimon at the real start of its Main phase", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: GALACTICMON, as: "galacticmon" }],
+          deck: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+        1: {
+          battleArea: [{ card: PLAIN_DIGIMON, as: "victim" }],
+          deck: ["BT1-004", "BT1-005", "BT1-006"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === PLAIN_DIGIMON)).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
   it("does NOT delete when it is the opponent's turn ([Your Turn] gate)", async () => {
     const s = setupEngine(
       {
@@ -169,6 +194,64 @@ describe("BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon", () => 
       expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-001"]);
     },
   );
+
+  it("publicly pays all four Vemmon sources before declining an eligible Ragnarok Cannon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-058", as: "snatchmon" }],
+          hand: [
+            { card: GALACTICMON, as: "evolution" },
+            { card: "BT21-098", as: "cannon" },
+          ],
+          trash: ["BT21-056", "BT21-056", "BT11-065", "BT11-065"],
+          deck: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+      },
+      {},
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("snatchmon").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const cost = s.state.pendingDecision!;
+    expect(cost.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: cost.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("snatchmon").stack.length === 5);
+    expect(s.perm("snatchmon").stack).toHaveLength(5);
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const option = s.decisions.at(-1)!.req;
+    if (option.kind !== "selectCards") throw new Error("expected optional Ragnarok Cannon selection");
+    expect(option.options?.min).toBe(0);
+    expect(option.options?.candidateInstanceIds).toContain(s.inst("cannon").instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: option.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("snatchmon").topCard.cardId).toBe(GALACTICMON);
+    expect(s.perm("snatchmon").stack).toHaveLength(5);
+    expect(s.perm("snatchmon").stack.filter((card) => card.cardId === "BT21-056")).toHaveLength(2);
+    expect(s.perm("snatchmon").stack.filter((card) => card.cardId === "BT11-065")).toHaveLength(2);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("cannon").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(1);
+  });
 
   it("returns exactly 4 stacked Vemmon to deck bottom to prevent leaving", async () => {
     const s = setupEngine(
