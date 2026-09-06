@@ -125,12 +125,31 @@ describe("BT21-081 Owen Dreadnought", () => {
   });
 
   it("plays itself from security without paying cost", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "BT21-081", as: "owen" }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-032", as: "attacker", dp: 2000 }] },
+      1: { security: [{ card: "BT21-081", as: "owen" }] },
+    });
     s.state.memory = 0;
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("owen"));
-    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("owen").instanceId));
     expect(s.state.memory).toBe(0);
+    const checked = s.events.findIndex((event) => event.kind === "securityChecked");
+    const played = s.events.findIndex((event) => event.kind === "cardPlayed" && event.cardId === "BT21-081");
+    expect(played).toBeGreaterThanOrEqual(0);
+    expect(checked).toBeGreaterThanOrEqual(0);
+    expect(played).toBeLessThan(checked);
+    expect(
+      s.events.some(
+        (event) => event.kind === "attackDeclared" && event.attackerPermanentId === s.perm("owen").permanentId,
+      ),
+    ).toBe(false);
   });
 });
