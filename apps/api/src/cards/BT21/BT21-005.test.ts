@@ -195,6 +195,8 @@ describe("BT21-005 Swipemon", () => {
     s.state.turnSeat = 1;
     await s.ready();
 
+    // A player's linkCard intent cannot legally be created during the opponent's turn;
+    // verify the public action is rejected before the inherited whenLinked event exists.
     const result = s.engine.applyIntent(0, {
       type: "linkCard",
       instanceId: s.inst("link").instanceId,
