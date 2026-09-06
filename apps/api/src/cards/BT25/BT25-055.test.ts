@@ -87,4 +87,23 @@ describe("BT25-055 Deramon", () => {
     await advance(s.engine).verb.suspend([s.perm("deramon").permanentId]);
     expect(s.state.players[0]!.hand).toHaveLength(1);
   });
+
+  it("supports the public TS alternate evolution from a level 4 source", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT25-050", as: "source" }], hand: [{ card: "BT25-055", as: "evolver" }] },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("evolver").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard?.cardId === "BT25-055");
+    expect(s.state.memory).toBe(0);
+  });
 });
