@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT25_030 } from "./BT25-030.js";
 import "../index.js";
 
@@ -36,7 +37,11 @@ describe("BT25-030 Elecmon", () => {
 
   it("supports the legal level 2 TS alternate evolution at zero cost", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT24-002", as: "tsBase" }], hand: [{ card: "BT25-030", as: "elecmon" }] },
+      0: {
+        battleArea: [{ card: "BT24-002", as: "tsBase" }],
+        hand: [{ card: "BT25-030", as: "elecmon" }],
+        deck: ["BT1-009", "BT1-010"],
+      },
     });
     await s.ready();
     expect(
@@ -49,6 +54,8 @@ describe("BT25-030 Elecmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("tsBase").topCard.cardId === "BT25-030");
     expect(s.perm("tsBase").topCard.cardId).toBe("BT25-030");
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
   });
 
   it("rejects the alternate evolution over a level 2 without TS", async () => {
@@ -218,7 +225,10 @@ describe("BT25-030 Elecmon", () => {
             { card: "BT1-001", as: "firstSecurity" },
             { card: "BT1-002", as: "secondSecurity" },
           ],
-          deck: [{ card: "BT1-005", as: "recovered" }, "BT1-006"],
+          deck: [
+            { card: "BT1-005", as: "turnDraw" },
+            { card: "BT1-006", as: "nextRecovery" },
+          ],
         },
         1: {
           security: ["BT1-007", "BT1-008", "BT1-009", "BT1-010"],
@@ -236,6 +246,8 @@ describe("BT25-030 Elecmon", () => {
       });
     expect(attack()).toEqual({ ok: true });
     await settle(() => s.events.filter((event) => event.kind === "securityChecked").length >= 1);
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(observe(s.engine).isAttacking()).toBe(false);
     expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[0]!.security).toHaveLength(1);
@@ -244,6 +256,8 @@ describe("BT25-030 Elecmon", () => {
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
     expect(attack()).toEqual({ ok: true });
     await settle(() => s.events.filter((event) => event.kind === "securityChecked").length >= 2);
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(observe(s.engine).isAttacking()).toBe(false);
     expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(2);
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[0]!.security).toHaveLength(1);
@@ -262,8 +276,11 @@ describe("BT25-030 Elecmon", () => {
     await advance(s.engine).waitForMainPhase(0);
     expect(attack()).toEqual({ ok: true });
     await settle(() => s.events.filter((event) => event.kind === "securityChecked").length >= 3);
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(observe(s.engine).isAttacking()).toBe(false);
     expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(3);
     expect(s.state.players[0]!.hand).toHaveLength(3);
+    expect(s.state.players[0]!.security[0]?.instanceId).toBe(s.inst("nextRecovery").instanceId);
     expect(s.state.players[0]!.hand).toContainEqual(
       expect.objectContaining({ instanceId: s.inst("firstSecurity").instanceId }),
     );
