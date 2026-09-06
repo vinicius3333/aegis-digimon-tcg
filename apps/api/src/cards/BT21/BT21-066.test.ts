@@ -87,18 +87,27 @@ describe("BT21-066 Arresterdramon", () => {
     ["Hero", "BT21-080"],
   ])("plays a %s Tamer from hand without cost on play", async (_label, tamer) => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT21-066", as: "arrester" }], hand: [{ card: tamer, as: "tamer" }] } },
+      {
+        0: {
+          hand: [
+            { card: "BT21-066", as: "arrester" },
+            { card: tamer, as: "tamer" },
+          ],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 0;
+    s.state.memory = 10;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("arrester"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("arrester").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() =>
       s.state.players[0]!.battleArea.some((card) => card.topCard.instanceId === s.inst("tamer").instanceId),
     );
 
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(4);
   });
 
   it("does not play a nonmatching Tamer", async () => {
@@ -110,6 +119,28 @@ describe("BT21-066 Arresterdramon", () => {
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("arrester"));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tamer").instanceId)).toBe(true);
+  });
+
+  it("publicly uses the Hero alternate evolution route at its printed cost", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-063", as: "hero" }],
+        hand: [{ card: "BT21-066", as: "arrester" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("hero").permanentId,
+        instanceId: s.inst("arrester").instanceId,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("hero").topCard.cardId === "BT21-066");
+    expect(s.state.memory).toBe(1);
   });
 
   it.each([
