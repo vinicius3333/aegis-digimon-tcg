@@ -34,7 +34,15 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
       // Registration metadata consumed by the digivolve-cost path. Its live field/turn/OPT
       // gates are enforced when GameEngine selects an eligible redirector permanent.
       if (action.grant === "digisorptionRedirect") return false;
-      const ids = await resolvePermanentTargets(ctx, action.target);
+      // Q4561: an unaffected Digimon can receive a triggered effect. Its immunity
+      // is checked when that gained effect would trigger, rather than when granted.
+      const grantsTriggeredEffect =
+        typeof action.grant === "string" &&
+        ["effects", "effect", "tokenEffect", "quotedEffect", "gainEffect"].includes(action.grant) &&
+        (action.tokens ?? []).some((token) => token !== "get -5000DP");
+      const ids = await resolvePermanentTargets(ctx, action.target, {
+        preserveUnaffectableSelection: grantsTriggeredEffect,
+      });
       const duration = toDuration("permanent");
       // "nameForDigiXros" (BT19-038) and grant:"name" with digiXrosOnly:true (BT19-012,
       // BT19-051, BT19-061) both encode an alias valid ONLY in DigiXros material matching.

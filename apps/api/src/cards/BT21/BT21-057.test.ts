@@ -82,6 +82,49 @@ describe("BT21-057 Greymon", () => {
     await opponentTurn;
   });
 
+  it("keeps the grant on an attack-capable unaffected opponent Digimon but does not trigger it", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-085", as: "tai" }],
+          hand: [{ card: "BT21-057", as: "greymon" }],
+          security: [{ card: "BT1-009", as: "security" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        // ZeedMillenniummon has no inherent cannot-attack restriction and is unaffected by
+        // opponent effects while it has no digivolution cards (CR 15-15-5). Its Reboot-like
+        // suspension restriction is separate from attack capability; the unprotected BT1-010
+        // target in the preceding public test demonstrates the same grant's normal attack.
+        1: {
+          battleArea: [{ card: "BT19-101", as: "unaffected" }],
+          security: [{ card: "BT1-009", as: "opponent-security" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("unaffected").permanentId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("greymon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).customEffectGrants(s.perm("unaffected")).length === 1);
+    expect(observe(s.engine).customEffectGrants(s.perm("unaffected"))).toHaveLength(1);
+
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.perm("unaffected").isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+  });
+
   it("does not grant the attack effect without Tai Kamiya or an ADVENTURE Tamer", async () => {
     const s = setupEngine(
       {
