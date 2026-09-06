@@ -1,4 +1,4 @@
-import type { Seat } from "@aegis/shared";
+import { Phase, type Seat } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -78,5 +78,26 @@ describe("BT20-047 Solarmon", () => {
     ).unsuspendForActivePhase(1);
     expect(s.perm("host").isSuspended).toBe(false);
     expect(unsuspendedIds).toContain(s.perm("host").permanentId);
+  });
+
+  it("unsuspends an inherited Reboot host through the real Active phase", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT20-050", under: ["BT20-047"], suspended: true, as: "host" }],
+        hand: [{ card: "BT20-001", as: "playable" }],
+        deck: ["BT20-001", "BT20-001", "BT20-001"],
+      },
+      1: { deck: ["BT20-001", "BT20-001"] },
+    });
+    await s.ready();
+    s.state.turnSeat = 0;
+    const turn = s.engine.runOneTurn();
+    await settle(() => !s.perm("host").isSuspended);
+    expect(s.perm("host").isSuspended).toBe(false);
+    await (async () => {
+      for (let i = 0; i < 5000 && s.state.phase !== Phase.Main; i += 1) await Promise.resolve();
+      if (s.state.phase === Phase.Main) s.engine.applyIntent(0, { type: "endPhase" });
+    })();
+    await turn;
   });
 });
