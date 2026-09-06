@@ -1799,15 +1799,24 @@ describe("primitives: effect-driven digivolve cost honors the continuous evo-cos
     expect(before - h.state.memory).toBe(PRINTED_COST);
   });
 
+  // The DNA path prices off a matching printed DNA requirement only — there is no
+  // ordinary-digivolve fallback — so this case needs a card printing a nonzero DNA cost.
+  // BT13-059 Examon is the one: [Slayerdramon] + [Breakdramon] for cost 4.
+  const DNA_INTO = "BT13-059";
+  const DNA_PRINTED_COST = 4;
+  const DNA_REDUCED_COST = DNA_PRINTED_COST - REDUCTION;
+
   it("DNA dnaDigivolveInto pays the REDUCED cost off the memory gauge", async () => {
     const h = harness({
       turnSeat: 0,
       memory: 5,
       board: {
-        // a's top is AD1-001 (Red Lv.4) — the chosen material; INTO has printed DNA cost 3 against it
         0: {
-          battleArea: [battleDigimon("a", 4000), battleDigimon("b", 3000)],
-          hand: [{ card: INTO, as: "result" }],
+          battleArea: [
+            { card: "EX3-024", as: "a", dp: 4000 },
+            { card: "EX3-044", as: "b", dp: 3000 },
+          ],
+          hand: [{ card: DNA_INTO, as: "result" }],
         },
       },
     });
@@ -1815,7 +1824,7 @@ describe("primitives: effect-driven digivolve cost honors the continuous evo-cos
     const b = h.s.perm("b");
     const resultId = h.s.inst("result").instanceId;
 
-    // Continuous reduction keyed to the chosen material (the one whose top yields the min cost).
+    // Continuous reduction keyed to the material the DNA path charges against (the first).
     h.ledger.addEvoCostAdjustment((m) => m.target.permanentId === a.permanentId, -REDUCTION, false, {
       continuous: true,
     });
@@ -1825,8 +1834,8 @@ describe("primitives: effect-driven digivolve cost honors the continuous evo-cos
 
     expect(perm).toBeDefined();
     expect(perm!.topCard.instanceId).toBe(resultId);
-    // FAILS-WHEN-REVERTED: reverting Task 1's DNA routing pays the full printed cost (3) -> RED.
-    expect(before - h.state.memory).toBe(REDUCED_COST);
+    // FAILS-WHEN-REVERTED: reverting Task 1's DNA routing pays the full printed cost (4) -> RED.
+    expect(before - h.state.memory).toBe(DNA_REDUCED_COST);
   });
 });
 
