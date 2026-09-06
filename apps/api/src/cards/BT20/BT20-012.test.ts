@@ -87,4 +87,43 @@ describe("BT20-012 Ginryumon", () => {
     await advance(s.engine).recompute();
     expect(s.perm("host").currentDP).toBe(7000);
   });
+
+  it("reaches Ginryumon from a legal Ryudamon stack through a public evolution intent", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-010", as: "ryudamon" }], hand: [{ card: "BT20-012", as: "ginryumon" }] },
+    });
+    s.state.memory = 2;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("ryudamon").permanentId,
+        instanceId: s.inst("ginryumon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("ryudamon").topCard.cardId === "BT20-012");
+    expect(s.perm("ryudamon").topCard.cardId).toBe("BT20-012");
+    expect(s.perm("ryudamon").stack.map((card) => card.cardId)).toEqual(["BT20-010"]);
+  });
+
+  it("can refuse the optional attacking evolution while preserving the hand card", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-012", as: "ginryumon" }], hand: [{ card: "BT20-015", as: "candidate" }] },
+        1: { security: ["BT20-001"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ginryumon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => false, 20);
+    expect(s.perm("ginryumon").topCard.cardId).toBe("BT20-012");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("candidate").instanceId);
+  });
 });
