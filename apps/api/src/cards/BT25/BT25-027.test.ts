@@ -246,12 +246,26 @@ describe("BT25-027 MachGaogamon", () => {
       () =>
         s.state.pendingDecision?.kind === "optional" && s.state.pendingDecision.decisionId !== firstDecision.decisionId,
     );
-    const secondDecision = s.state.pendingDecision!;
-    expect(secondDecision.kind).toBe("optional");
+    const returnDecision = s.state.pendingDecision!;
+    expect(returnDecision.kind).toBe("optional");
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
-        decisionId: secondDecision.decisionId,
+        decisionId: returnDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "optional" &&
+        s.state.pendingDecision.decisionId !== returnDecision.decisionId,
+    );
+    const costDecision = s.state.pendingDecision!;
+    expect(costDecision.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: costDecision.decisionId,
         response: { kind: "optional", accept: false },
       }),
     ).toEqual({ ok: true });
@@ -296,6 +310,19 @@ describe("BT25-027 MachGaogamon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
+    const wholeEffectDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: wholeEffectDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "optional" &&
+        s.state.pendingDecision.decisionId !== wholeEffectDecision.decisionId,
+    );
     const returnDecision = s.state.pendingDecision!;
     expect(
       s.engine.applyIntent(0, {
@@ -321,6 +348,84 @@ describe("BT25-027 MachGaogamon", () => {
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.perm("base").isSuspended).toBe(false);
+    expect(s.state.players[0]!.trash).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("cost").instanceId }),
+    );
+  });
+
+  it("declining the whole When Digivolving effect preserves the same-turn When Attacking opportunity", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-023", as: "base", suspended: true },
+            { card: "BT1-085", as: "tamer", under: [{ card: "BT1-001", as: "cost", faceUp: false }] },
+          ],
+          hand: [{ card: "BT25-027", as: "mach" }],
+          security: ["BT1-001"],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target" }], security: ["BT1-001"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("mach").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const wd = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: wd.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.perm("base").topCard.cardId === "BT25-027");
+    await advance(s.engine).verb.unsuspend([s.perm("base").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const wa = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: wa.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const ret = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: ret.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const cost = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: cost.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && !s.perm("base").isSuspended);
+    expect(s.state.players[1]!.hand).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("target").instanceId }),
+    );
     expect(s.state.players[0]!.trash).toContainEqual(
       expect.objectContaining({ instanceId: s.inst("cost").instanceId }),
     );

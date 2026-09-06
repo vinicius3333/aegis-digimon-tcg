@@ -5,6 +5,7 @@ export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",
+      optional: true,
       actions: [
         {
           kind: "Return",
@@ -45,6 +46,7 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "WhenAttacking",
+      optional: true,
       actions: [
         {
           kind: "Return",
