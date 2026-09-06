@@ -114,16 +114,40 @@ describe("BT20-055 Invisimon", () => {
           target: { kind: "player" },
         }),
       ).toEqual({ ok: true });
-      if (accept) {
-        await settle(() => s.state.players[0]!.security.some((card) => card.cardId === "BT20-055"));
-        await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
-        expect(s.state.players[0]!.security.at(-1)).toMatchObject({ cardId: "BT20-055", faceUp: true });
-        expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toContain("BT20-050");
-      } else {
-        await settle(() => s.events.some((event) => event.kind === "combatResolved"));
-        expect(s.state.players[0]!.security).toHaveLength(0);
-        expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toContain("BT20-055");
-      }
+      await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+      const placed = s.state.players[0]!.security.at(-1);
+      expect(placed?.cardId).toBe(accept ? "BT20-055" : undefined);
+      expect(placed?.faceUp).toBe(accept ? true : undefined);
+      expect(s.state.players[0]!.security).toHaveLength(accept ? 1 : 0);
+      expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toContain(
+        accept ? "BT20-050" : "BT20-055",
+      );
+      expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(accept);
     }
+  });
+
+  it("does not move its top card when an opponent checks a face-up security card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-055", under: ["BT20-050"], as: "invisimon" }],
+          security: [{ card: "BT1-001", faceUp: true }],
+        },
+        1: { battleArea: [{ card: "BT20-010", as: "attacker" }], security: ["BT1-001"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).not.toContain("BT20-055");
+    expect(s.perm("invisimon").topCard.cardId).toBe("BT20-055");
   });
 });
