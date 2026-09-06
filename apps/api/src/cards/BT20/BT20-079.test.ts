@@ -68,7 +68,7 @@ describe("BT20-079 Necromon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 12;
+    s.state.memory = 10;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("necromon").instanceId })).toEqual({
       ok: true,
@@ -84,6 +84,29 @@ describe("BT20-079 Necromon", () => {
 
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT20-076"]);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toContain("BT20-072");
+  });
+
+  it("publicly deletes exactly one Digimon when the lowest level is tied", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT20-079", as: "necromon" }], deck: ["BT20-047", "BT20-048"] },
+        1: {
+          battleArea: [
+            { card: "BT20-061", as: "lowest1" },
+            { card: "BT20-061", as: "lowest2" },
+            { card: "BT20-066", as: "higher" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("necromon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 2);
+    expect(s.state.players[1]!.battleArea.filter((p) => p.topCard.cardId === "BT20-061")).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT20-066")).toBe(true);
   });
 
   it("naturally proves On Deletion by losing a battle and playing a Ghost from trash", async () => {
@@ -143,4 +166,24 @@ describe("BT20-079 Necromon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("ghost").instanceId);
   });
+});
+
+it("checks two security cards with Necromon's printed Security Attack +1", async () => {
+  const s = setupEngine(
+    { 0: { battleArea: [{ card: "BT20-079", as: "necromon" }] }, 1: { security: ["BT1-010", "BT1-010", "BT1-010"] } },
+    { autoDeclineOptional: true, autoSelectCards: true },
+  );
+  const securityIds = s.state.players[1]!.security.map((c) => c.instanceId);
+  await s.ready();
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("necromon").permanentId,
+      target: { kind: "player" },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.events.filter((e) => e.kind === "securityChecked").length === 2);
+  expect(s.events.filter((e) => e.kind === "securityChecked")).toHaveLength(2);
+  expect(s.state.players[1]!.security.map((c) => c.instanceId)).toEqual(securityIds.slice(2));
+  expect(s.state.players[1]!.trash.map((c) => c.instanceId)).toEqual(expect.arrayContaining(securityIds.slice(0, 2)));
 });
