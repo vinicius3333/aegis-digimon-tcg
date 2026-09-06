@@ -10,6 +10,7 @@ Printed catalog clauses, local KB rulings, and observable game state define fide
 ## Execution
 
 Three gpt-5.6-luna workers own disjoint card modules, tests, and evidence reports:
+
 - AD1-001–009: luna_a, AD1-001-009-LUNA-AUDIT.md.
 - AD1-010–017: luna_b, AD1-010-017-LUNA-AUDIT.md.
 - AD1-018–025: luna_c, AD1-018-025-LUNA-AUDIT.md.
