@@ -70,6 +70,43 @@ describe("BT20-017 Jesmon", () => {
     expect(observe(s.engine).hasKeyword(token, "Decoy")).toBe(true);
   });
 
+  it("can refuse the optional token on public play", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "BT20-017", as: "jesmon" }] } }, { autoDeclineOptional: true });
+    s.state.memory = 11;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("jesmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT20-017"));
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+  });
+
+  it("reaches Jesmon from a legal SaviorHuckmon stack through public evolution", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-014", as: "base" }], hand: [{ card: "BT20-017", as: "jesmon" }] },
+        1: {
+          battleArea: [
+            { card: "BT20-014", dp: 8000, as: "boundary" },
+            { card: "BT20-014", dp: 8001, as: "high" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("jesmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT20-017");
+    expect(s.perm("base").topCard.cardId).toBe("BT20-017");
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT20-014"]);
+  });
+
   it("once per turn deletes an 8000-DP target after another Digimon is played, then may decline the attack", async () => {
     const s = setupEngine(
       {
