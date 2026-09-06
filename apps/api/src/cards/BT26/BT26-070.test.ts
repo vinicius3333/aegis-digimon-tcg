@@ -223,7 +223,7 @@ describe("BT26-070 bottom face-down Tamer cost", () => {
   it("executes inherited Retaliation after losing a battle", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-038", as: "host", under: [CARD_ID] }] },
+        0: { battleArea: [{ card: "BT26-074", as: "host", under: [CARD_ID] }] },
         1: { battleArea: [{ card: "BT26-060", as: "defender", suspended: true }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
