@@ -1,12 +1,12 @@
 {
   "cardId": "BT20-002",
-  "status": "in-progress",
+  "status": "verified",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
     "behavioralProof": 2,
     "peerStackProof": 2,
-    "deliveryGates": 0
+    "deliveryGates": 2
   },
   "evidence": [
     "Catalog and KB: blue level 2 Digi-Egg; inherited When Attacking Once Per Turn draws 1 when this Digimon has Dracomon or Examon in its text; Q4281/Q4282 apply.",
@@ -14,7 +14,13 @@
     "BT20-002.test.ts uses immediate pre-attack hand counts: first public attack draws exactly one; public BT1-036 Garurumon On Play unsuspends the host for a second same-turn attack with no second draw; after a complete opponent turn and automatic draw, the next own-turn attack draws exactly one.",
     "New pending proof publicly evolves BT20-002 Bebydomon through EX3-037 Dracomon and BT20-023 Coredramon into BT20-025 Wingdramon, asserts from the committed catalog that Wingdramon contains [Examon] and not [Dracomon], and proves exactly one attack draw from the full source stack; a separate public BT20-002 to BT11-023 Veemon route asserts the legal no-text negative with no draw.",
     "001-013-results.json",
-    "accepted-followups-results.json"
+    "accepted-followups-results.json",
+    "BT20-002-runtime-disabled.json",
+    "collection-after-return-fix-results.json",
+    "immediate-return-affected-results.json",
+    "immediate-return-typecheck.log",
+    "early-final-lint.log",
+    "early-final-format.log"
   ],
   "commands": [
     {
@@ -36,7 +42,20 @@
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-001.test.ts src/cards/BT20/BT20-002.test.ts src/cards/BT20/BT20-004.test.ts src/cards/BT20/BT20-005.test.ts src/cards/BT20/BT20-007.test.ts src/cards/BT20/BT20-010.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/accepted-followups-results.json",
       "result": "3 tests passed in this card; 28 total passed; accepted-followups-results.json"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/immediateReturnReaction.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+      "result": "3 cases for BT20-002; 800/800 collection and named-source/DNA/return mechanism cases passed."
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-002",
+      "result": "Meaningful observable assertion fails with behavior disabled; production restored and green. See BT20-002-runtime-disabled.json."
+    },
+    {
+      "command": "pnpm typecheck; pnpm effects:check:set -- --set BT20; pnpm exec oxlint <BT20-001\u2013013 modules/tests>; pnpm exec oxfmt --check <same paths>; git diff --check",
+      "result": "Passed workspace typecheck, prior scoped effects check (no card IR changed after named-source sync), early-card style and diff checks."
     }
   ],
-  "gaps": []
+  "gaps": [],
+  "reviewStatus": "Lead independently accepted every printed clause and realistic-stack risk; all current validation and delivery gates passed. Whole collection remains incomplete."
 }

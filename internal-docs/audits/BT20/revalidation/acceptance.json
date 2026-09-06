@@ -2,146 +2,237 @@
   "cards": {
     "BT20-001": {
       "reviewed": true,
-      "gatesPassed": false,
-      "review": "Legal-stack evidence rerun with memory capped at 10.",
+      "gatesPassed": true,
+      "review": "Legal-stack evidence rerun with memory capped at 10. Final card gates renewed after 800 green collection tests and meaningful runtime sensitivity. Collection completion remains separate.",
       "artifacts": {
         "apps/api/src/cards/BT20/BT20-001.ts": "92eb228af715dc506d78decbd4c7fadea3e273839c2096e099575b8ea40284cf",
         "apps/api/src/cards/BT20/BT20-001.test.ts": "24ea811e3f35e8163e7aa25fdc06ab3fdc06f9265738e9812b5b59ce9684db27",
-        "internal-docs/audits/BT20/revalidation/BT20-001.json": "04f60cf4fc625202cd517d2f164105bd8344208fd89958ced771b74646c72842",
-        "internal-docs/audits/BT20/revalidation/BT20-001.md": "788cc4157072318807b2c514effa368536344c8beed7ee93efb786630e94c84b"
-      }
+        "internal-docs/audits/BT20/revalidation/BT20-001.json": "36b10d0577490a3f311a5d6cbe3500694307924edec72f2c79e1edc84cdb5922",
+        "internal-docs/audits/BT20/revalidation/BT20-001.md": "97e106dcb16f00fe787d31394bfeecef31d1b9d1aac65253f01b3efd2d071cf7"
+      },
+      "commit": "826045f62",
+      "commands": [
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/immediateReturnReaction.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+        "pnpm typecheck",
+        "pnpm effects:check:set -- --set BT20",
+        "Early-card runtime sensitivity and style/diff logs"
+      ]
     },
     "BT20-002": {
       "reviewed": true,
-      "gatesPassed": false,
-      "review": "Both independent printed-text branches now have public legal egg evolutions and a real breeding-area move; the legal no-text route remains negative.",
+      "gatesPassed": true,
+      "review": "Both independent printed-text branches now have public legal egg evolutions and a real breeding-area move; the legal no-text route remains negative. Final card gates renewed after 800 green collection tests and meaningful runtime sensitivity. Collection completion remains separate.",
       "artifacts": {
         "apps/api/src/cards/BT20/BT20-002.ts": "4c58f95b6a06bd6b0a5733534dc66d842e40a8509250d1f5acd0c53d194f37ff",
         "apps/api/src/cards/BT20/BT20-002.test.ts": "ae2dd9a1617399e56786c80085b5321748d454c4070fcacd526935f71d581524",
-        "internal-docs/audits/BT20/revalidation/BT20-002.json": "5ee53fc45520f7092a17f88f013e6102276b4de95a6f7f385c7144aef02def16",
-        "internal-docs/audits/BT20/revalidation/BT20-002.md": "d79d4ceccd8b468d56ee781de682389a8aa98c06f6143f81ef66d11df5105ddc"
-      }
+        "internal-docs/audits/BT20/revalidation/BT20-002.json": "e2caca6de07c9c844d8e279c998fa687b734fe744f1e7cb67212327606a405fa",
+        "internal-docs/audits/BT20/revalidation/BT20-002.md": "32b9865be37db1ffe857bb75f8c82077ef2e36f2e5fc7ba2d4442bb2283430b4"
+      },
+      "commit": "826045f62",
+      "commands": [
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/immediateReturnReaction.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+        "pnpm typecheck",
+        "pnpm effects:check:set -- --set BT20",
+        "Early-card runtime sensitivity and style/diff logs"
+      ]
     },
     "BT20-003": {
       "reviewed": true,
-      "gatesPassed": false,
-      "review": "Root public Eiji/Ouryuken Main-reopening scenario proves eligible same-turn refusal and next-own-turn reset; removal of OPT fails the intended final-source assertion. Final delivery gates pending.",
+      "gatesPassed": true,
+      "review": "Root public Eiji/Ouryuken Main-reopening scenario proves eligible same-turn refusal and next-own-turn reset; removal of OPT fails the intended final-source assertion. Final delivery gates pending. Final card gates renewed after 800 green collection tests and meaningful runtime sensitivity. Collection completion remains separate.",
       "artifacts": {
         "apps/api/src/cards/BT20/BT20-003.ts": "2102cd77e81dbda8f15cef3e95afd777fe5b2386b38952725ebcfad73705dfbd",
         "apps/api/src/cards/BT20/BT20-003.test.ts": "582fc6492f591e9140543123aa727f55c248580888461b2a57162bbeb7ef65f8",
-        "internal-docs/audits/BT20/revalidation/BT20-003.json": "69447e5cf4b533e7054912b0b81545838bc5614716e7e2f3b41ea7d11ee160cd",
-        "internal-docs/audits/BT20/revalidation/BT20-003.md": "248be386ef5fe100872733cde99f3208fc7c2b5e2ec14dde2b52e05193e2094f"
-      }
+        "internal-docs/audits/BT20/revalidation/BT20-003.json": "86de990586b8ed849a268bb2decb3958ebac162402c372ff679e438f933e6759",
+        "internal-docs/audits/BT20/revalidation/BT20-003.md": "5b42d845ca36741671c515f98cfe93885d736832a07eda855d03ccdd19288107"
+      },
+      "commit": "826045f62",
+      "commands": [
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/immediateReturnReaction.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+        "pnpm typecheck",
+        "pnpm effects:check:set -- --set BT20",
+        "Early-card runtime sensitivity and style/diff logs"
+      ]
     },
     "BT20-004": {
       "reviewed": true,
-      "gatesPassed": false,
-      "review": "Real-turn reset passed after the shared Overflow origin correction (9cf46a768); exact final memory is 6.",
+      "gatesPassed": true,
+      "review": "Real-turn reset passed after the shared Overflow origin correction (9cf46a768); exact final memory is 6. Final card gates renewed after 800 green collection tests and meaningful runtime sensitivity. Collection completion remains separate.",
       "artifacts": {
         "apps/api/src/cards/BT20/BT20-004.ts": "539360ff401bcc03d1512588293b89ceb48f0be22461ec0bc3472452f01c393a",
         "apps/api/src/cards/BT20/BT20-004.test.ts": "078adfa93761ec1d3ad1aaa0f5dcfac45710806be923a1b547e80d1168c82211",
-        "internal-docs/audits/BT20/revalidation/BT20-004.json": "b4c1777640eadf5103eb58c497453366fbbdafb4f5609b74082da45007c0f5a6",
-        "internal-docs/audits/BT20/revalidation/BT20-004.md": "347252941e1286c671be158064512eb9a7ccee9040f29e942e393e48ce931367"
-      }
+        "internal-docs/audits/BT20/revalidation/BT20-004.json": "73bdba4e46cabc4fb56a1832df2f54be6ffd48294fb9a98533cec8f0abd03c02",
+        "internal-docs/audits/BT20/revalidation/BT20-004.md": "f4dbaa1c97dea2b226c5f1b59c3590eebab1cc43c00c422361462f238b540d2c"
+      },
+      "commit": "826045f62",
+      "commands": [
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/immediateReturnReaction.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+        "pnpm typecheck",
+        "pnpm effects:check:set -- --set BT20",
+        "Early-card runtime sensitivity and style/diff logs"
+      ]
     },
     "BT20-005": {
       "reviewed": true,
-      "gatesPassed": false,
-      "review": "Q4284 cross-family ordering and checked-card area gap resolved in 69730d6a0, with 313 passing mechanism tests.",
+      "gatesPassed": true,
+      "review": "Q4284 cross-family ordering and checked-card area gap resolved in 69730d6a0, with 313 passing mechanism tests. Final card gates renewed after 800 green collection tests and meaningful runtime sensitivity. Collection completion remains separate.",
       "artifacts": {
         "apps/api/src/cards/BT20/BT20-005.ts": "a5e7428e2552cffe8f22a4728df0929f0f20550e06a5a9e06397f700545cae23",
         "apps/api/src/cards/BT20/BT20-005.test.ts": "c538baded2f82b68a70fe8d794e952c11c0ed6fa5af0332e4d7c1cab8c8cc58f",
-        "internal-docs/audits/BT20/revalidation/BT20-005.json": "b6b994f5b3584372e53bad458b239d94c3e57891ecac4aabecc5d32847297311",
-        "internal-docs/audits/BT20/revalidation/BT20-005.md": "f0550c999970f148786732844a34a4d46baf506adf701dcb1c2329ef6166ee8e"
-      }
+        "internal-docs/audits/BT20/revalidation/BT20-005.json": "6891d53022444abcf543907feca8f0b80f2c6c4722ff79252c9c10dfc34f107e",
+        "internal-docs/audits/BT20/revalidation/BT20-005.md": "08e1960c487e049c196841e8b6551897f96692a94d2a9878c33abedca50788d2"
+      },
+      "commit": "826045f62",
+      "commands": [
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/immediateReturnReaction.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+        "pnpm typecheck",
+        "pnpm effects:check:set -- --set BT20",
+        "Early-card runtime sensitivity and style/diff logs"
+      ]
     },
     "BT20-006": {
       "reviewed": true,
-      "gatesPassed": false,
-      "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open.",
+      "gatesPassed": true,
+      "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open. Final card gates renewed after 800 green collection tests and meaningful runtime sensitivity. Collection completion remains separate.",
       "artifacts": {
         "apps/api/src/cards/BT20/BT20-006.ts": "55904d67dcdf482e2ab47b2f7148ee69028c2b39fee7d24d6d590e736e237cf6",
         "apps/api/src/cards/BT20/BT20-006.test.ts": "334bc393666fd48bd6aa8faa188ea1c90be6d5960a12ce2df5babdde32f852fd",
-        "internal-docs/audits/BT20/revalidation/BT20-006.json": "69372b8d77af671e27f5eb9332bea66cb29dc526eb715065d69a691979e87766",
-        "internal-docs/audits/BT20/revalidation/BT20-006.md": "ab3bcffd59a4646e4bd2ac8585d497d34c4477d30ecbcab5ac4debab797ff919"
-      }
+        "internal-docs/audits/BT20/revalidation/BT20-006.json": "46fab113a711a59226028b52bc4a79c5a64e078ec774af5c972f791e497fbf1f",
+        "internal-docs/audits/BT20/revalidation/BT20-006.md": "8cb924e163d550cab5c4564f73ea983020c19704cc95a96558d31d2554176d5d"
+      },
+      "commit": "826045f62",
+      "commands": [
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/immediateReturnReaction.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+        "pnpm typecheck",
+        "pnpm effects:check:set -- --set BT20",
+        "Early-card runtime sensitivity and style/diff logs"
+      ]
     },
     "BT20-007": {
       "reviewed": true,
-      "gatesPassed": false,
-      "review": "Natural Start Main acceptance, feasible refusal and no-match paths pass; legal breeding evolutions and the inherited host prove +2000 only in battle on the owner turn.",
+      "gatesPassed": true,
+      "review": "Natural Start Main acceptance, feasible refusal and no-match paths pass; legal breeding evolutions and the inherited host prove +2000 only in battle on the owner turn. Final card gates renewed after 800 green collection tests and meaningful runtime sensitivity. Collection completion remains separate.",
       "artifacts": {
         "apps/api/src/cards/BT20/BT20-007.ts": "89af2c817d55bd57048aa9c11bfadc3516c505a43ce91530fd1b109ce772c0d5",
         "apps/api/src/cards/BT20/BT20-007.test.ts": "5e079b7cda04195bd0d9c973316a80117998c7a72817ebc3e2f365acd20aef04",
-        "internal-docs/audits/BT20/revalidation/BT20-007.json": "1048d2c5365451e14696d4737fec82d52aa937dd2c9df2b2f61a7f73f536dc78",
-        "internal-docs/audits/BT20/revalidation/BT20-007.md": "21167c0159cfbad028a1a8914894cbac68f2171d423610b1cd8e2f3b17f1465b"
-      }
+        "internal-docs/audits/BT20/revalidation/BT20-007.json": "e2ec8b11a5339e9c4d4368fee2fd6878bf2f8bf9272b779aa9764f58a9952d90",
+        "internal-docs/audits/BT20/revalidation/BT20-007.md": "51b14f18f411f25be9c8f5724118c7d10f0f235f6617678347223615bf5f2875"
+      },
+      "commit": "826045f62",
+      "commands": [
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/immediateReturnReaction.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+        "pnpm typecheck",
+        "pnpm effects:check:set -- --set BT20",
+        "Early-card runtime sensitivity and style/diff logs"
+      ]
     },
     "BT20-008": {
       "reviewed": true,
-      "gatesPassed": false,
-      "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open.",
+      "gatesPassed": true,
+      "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open. Final card gates renewed after 800 green collection tests and meaningful runtime sensitivity. Collection completion remains separate.",
       "artifacts": {
         "apps/api/src/cards/BT20/BT20-008.ts": "8ae98721bf2ec492b72d411d144bc22a2ad440406da623cb77733ebe540ae596",
         "apps/api/src/cards/BT20/BT20-008.test.ts": "35c01c11561995f4d4a07cedb2068d07be283544229318e658839bf731727a7f",
-        "internal-docs/audits/BT20/revalidation/BT20-008.json": "427cd651bf504a281a74de7f43c56b61559922fe45d62cd363f2b2fdf3cfee86",
-        "internal-docs/audits/BT20/revalidation/BT20-008.md": "1c6de59c79249e7e1f1e91258c0cd7b2e0c5e34f6c348701d46da0293aa91569"
-      }
+        "internal-docs/audits/BT20/revalidation/BT20-008.json": "513c936ee7332449427399899f8e4b264ed5cfc4f452be26717f509a3924b46d",
+        "internal-docs/audits/BT20/revalidation/BT20-008.md": "2cb26e45da28a697756f99f09794a060e6f2b9128c8cbae7f55d92e7895bd69b"
+      },
+      "commit": "826045f62",
+      "commands": [
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/immediateReturnReaction.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+        "pnpm typecheck",
+        "pnpm effects:check:set -- --set BT20",
+        "Early-card runtime sensitivity and style/diff logs"
+      ]
     },
     "BT20-009": {
       "reviewed": true,
-      "gatesPassed": false,
-      "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open.",
+      "gatesPassed": true,
+      "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open. Final card gates renewed after 800 green collection tests and meaningful runtime sensitivity. Collection completion remains separate.",
       "artifacts": {
         "apps/api/src/cards/BT20/BT20-009.ts": "45cb750ccdf56c767c8aaa19c132c24c8030fb801dc058683838f521a76e9d7c",
         "apps/api/src/cards/BT20/BT20-009.test.ts": "1131c7d9f4c238292c96d52b400a1e185267f907f5ff164495df4935f2ad4091",
-        "internal-docs/audits/BT20/revalidation/BT20-009.json": "c767384960caab3c1d49aa3989d1081a46b4baa5f7a5448fd87fc52cccf17a42",
-        "internal-docs/audits/BT20/revalidation/BT20-009.md": "9b9a6e10b7c9af578e00464aeb59a121b9fd43b48c7972b0660d5d9462121ad1"
-      }
+        "internal-docs/audits/BT20/revalidation/BT20-009.json": "f29a2aa3db2ee9bb88a2e740e44d5f7cd452073fb2f7dad10da65a80d0771d66",
+        "internal-docs/audits/BT20/revalidation/BT20-009.md": "d7788869c85032b6038e47f1eb2ca7876632b35c698d2558187475b3551923b9"
+      },
+      "commit": "826045f62",
+      "commands": [
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/immediateReturnReaction.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+        "pnpm typecheck",
+        "pnpm effects:check:set -- --set BT20",
+        "Early-card runtime sensitivity and style/diff logs"
+      ]
     },
     "BT20-010": {
       "reviewed": true,
-      "gatesPassed": false,
-      "review": "Chronicle-only Raptordramon evolution proves cost reduction and inherited transition; the explicit alternate black X Antibody egg route proves zero cost.",
+      "gatesPassed": true,
+      "review": "Chronicle-only Raptordramon evolution proves cost reduction and inherited transition; the explicit alternate black X Antibody egg route proves zero cost. Final card gates renewed after 800 green collection tests and meaningful runtime sensitivity. Collection completion remains separate.",
       "artifacts": {
         "apps/api/src/cards/BT20/BT20-010.ts": "9d3cfc4fa737fa7a69b4f0abb3413b417791de069c7e2c3e958394475df22e2c",
         "apps/api/src/cards/BT20/BT20-010.test.ts": "c3075791f1758f43a01379fb50a1450e13dae5cd228d305cfda1472572bc970c",
-        "internal-docs/audits/BT20/revalidation/BT20-010.json": "6af6c5f805a7e5de8c450f6b73f122db9963fd29098ed93d43398dc404432b50",
-        "internal-docs/audits/BT20/revalidation/BT20-010.md": "8009bd4e9c30d4d3135485492a02990a450690b9bfbe7121213caa5bcb30a96b"
-      }
+        "internal-docs/audits/BT20/revalidation/BT20-010.json": "d6433b09dc840deefaa03df02685341ef5ce64dabbf6ef4f227f306129ca77ea",
+        "internal-docs/audits/BT20/revalidation/BT20-010.md": "b320f14e13cf7195db5d02175fe2418c023d757f714a0527c3d12c73a6b2d8e3"
+      },
+      "commit": "826045f62",
+      "commands": [
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/immediateReturnReaction.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+        "pnpm typecheck",
+        "pnpm effects:check:set -- --set BT20",
+        "Early-card runtime sensitivity and style/diff logs"
+      ]
     },
     "BT20-011": {
       "reviewed": true,
-      "gatesPassed": false,
-      "review": "Root public fixture corrections passed focused and full734-test run; independent Luna clause review found no remaining substantive gap. Final delivery gates pending.",
+      "gatesPassed": true,
+      "review": "Root public fixture corrections passed focused and full734-test run; independent Luna clause review found no remaining substantive gap. Final delivery gates pending. Final card gates renewed after 800 green collection tests and meaningful runtime sensitivity. Collection completion remains separate.",
       "artifacts": {
         "apps/api/src/cards/BT20/BT20-011.ts": "315614e4933ee8e4a67495c31e43d87fb5f6f0b9cb4f577c225872efa9efe5c4",
         "apps/api/src/cards/BT20/BT20-011.test.ts": "ce409c679bdeeaccc89db37c31c5181732926bbb53992dc5744d89cc90965c33",
-        "internal-docs/audits/BT20/revalidation/BT20-011.json": "e6ecaaed6ce4fb734f04fe5eee24a0b939fb13ec212a4721f691036db2669c19",
-        "internal-docs/audits/BT20/revalidation/BT20-011.md": "eb556f99483de70033e4883886d97b26a787b0029877cd04925f25a92de4e801"
-      }
+        "internal-docs/audits/BT20/revalidation/BT20-011.json": "c0fa64c3a93c63d1858b24d760563b4ab9cc48ebcd886731d5cbb37b1dd27b24",
+        "internal-docs/audits/BT20/revalidation/BT20-011.md": "5b6cd4a756df0739914fe68f250abc7fb3305586d5a7208e96cb02fbc91dd444"
+      },
+      "commit": "826045f62",
+      "commands": [
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/immediateReturnReaction.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+        "pnpm typecheck",
+        "pnpm effects:check:set -- --set BT20",
+        "Early-card runtime sensitivity and style/diff logs"
+      ]
     },
     "BT20-012": {
       "reviewed": true,
-      "gatesPassed": false,
-      "review": "Root public fixture corrections passed focused and full734-test run; independent Luna clause review found no remaining substantive gap. Final delivery gates pending.",
+      "gatesPassed": true,
+      "review": "Root public fixture corrections passed focused and full734-test run; independent Luna clause review found no remaining substantive gap. Final delivery gates pending. Final card gates renewed after 800 green collection tests and meaningful runtime sensitivity. Collection completion remains separate.",
       "artifacts": {
         "apps/api/src/cards/BT20/BT20-012.ts": "8cac8a43dcbdb323cf878d36a46b6c8533357e1c6d169a6d99def94cdd19a1c5",
         "apps/api/src/cards/BT20/BT20-012.test.ts": "b6d4bff87e426e37ab3948cd8e5120caa380f7a83e911af70a36c83456fe6bc9",
-        "internal-docs/audits/BT20/revalidation/BT20-012.json": "7cf3ecf85c07d3ba5c57aa4c8e164a2ee9efd23d29081a6d51de906c4d647894",
-        "internal-docs/audits/BT20/revalidation/BT20-012.md": "5dabb81da47a7b5b8556fb22920e40c0e7e45aaac7b4b74316df5824bd8aba99"
-      }
+        "internal-docs/audits/BT20/revalidation/BT20-012.json": "0839356fef266fb1db10f7aa02825e79a71b9a8d189ddd31bcdced3bd4fb784f",
+        "internal-docs/audits/BT20/revalidation/BT20-012.md": "178fea2a3d56accca4cd87c88ab74a98a704e9a02d8cc6419b1347de8dae700b"
+      },
+      "commit": "826045f62",
+      "commands": [
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/immediateReturnReaction.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+        "pnpm typecheck",
+        "pnpm effects:check:set -- --set BT20",
+        "Early-card runtime sensitivity and style/diff logs"
+      ]
     },
     "BT20-013": {
       "reviewed": true,
-      "gatesPassed": false,
-      "review": "Root public fixture corrections passed focused and full734-test run; independent Luna clause review found no remaining substantive gap. Final delivery gates pending.",
+      "gatesPassed": true,
+      "review": "Root public fixture corrections passed focused and full734-test run; independent Luna clause review found no remaining substantive gap. Final delivery gates pending. Final card gates renewed after 800 green collection tests and meaningful runtime sensitivity. Collection completion remains separate.",
       "artifacts": {
         "apps/api/src/cards/BT20/BT20-013.ts": "08021af9aba845850414ab71453619365849b2f617507eb7e1f94cd06ff8ab9d",
         "apps/api/src/cards/BT20/BT20-013.test.ts": "75e7fb9c0d25b3e009c0b86d3b1b6204868f4e549a3fcd2b8c8a588da8738be5",
-        "internal-docs/audits/BT20/revalidation/BT20-013.json": "f81e34f2586ef1a355c5204ffa2ceb5e3d41fd95101f6efeb25f8dede67c135f",
-        "internal-docs/audits/BT20/revalidation/BT20-013.md": "ffe09106c52a6a2ae8da4a353bb1c2ed29942beace3f9005fd49405be3aaa712"
-      }
+        "internal-docs/audits/BT20/revalidation/BT20-013.json": "0ad7a3ab8aea96494acdfee32333540fe09337ef1bb277a1263e35e8bb0eabd5",
+        "internal-docs/audits/BT20/revalidation/BT20-013.md": "76071ec3e550b7a8d0c83fe0998b2d0ddce524c5beedfe326d5b3339946b40d0"
+      },
+      "commit": "826045f62",
+      "commands": [
+        "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/immediateReturnReaction.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+        "pnpm typecheck",
+        "pnpm effects:check:set -- --set BT20",
+        "Early-card runtime sensitivity and style/diff logs"
+      ]
     }
   }
 }

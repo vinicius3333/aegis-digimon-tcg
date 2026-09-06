@@ -1,19 +1,25 @@
 {
   "cardId": "BT20-007",
-  "status": "in-progress",
+  "status": "verified",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
     "behavioralProof": 2,
     "peerStackProof": 2,
-    "deliveryGates": 0
+    "deliveryGates": 2
   },
   "evidence": [
     "internal-docs/audits/BT20/revalidation/BT20-007.md",
     "apps/api/src/cards/BT20/BT20-007.test.ts",
     "Pending natural Start of Main proof verifies EX3-018 ([Dracomon] only), BT20-025 ([Examon] only), exact discard/draw/+1 memory outcomes, and a BT20-010 no-match refusal.",
     "001-013-results.json",
-    "accepted-followups-results.json"
+    "accepted-followups-results.json",
+    "BT20-007-runtime-disabled.json",
+    "collection-after-return-fix-results.json",
+    "immediate-return-affected-results.json",
+    "immediate-return-typecheck.log",
+    "early-final-lint.log",
+    "early-final-format.log"
   ],
   "commands": [
     {
@@ -31,7 +37,20 @@
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-001.test.ts src/cards/BT20/BT20-002.test.ts src/cards/BT20/BT20-004.test.ts src/cards/BT20/BT20-005.test.ts src/cards/BT20/BT20-007.test.ts src/cards/BT20/BT20-010.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/accepted-followups-results.json",
       "result": "6 tests passed in this card; 28 total passed; accepted-followups-results.json"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/immediateReturnReaction.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+      "result": "6 cases for BT20-007; 800/800 collection and named-source/DNA/return mechanism cases passed."
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-007",
+      "result": "Meaningful observable assertion fails with behavior disabled; production restored and green. See BT20-007-runtime-disabled.json."
+    },
+    {
+      "command": "pnpm typecheck; pnpm effects:check:set -- --set BT20; pnpm exec oxlint <BT20-001\u2013013 modules/tests>; pnpm exec oxfmt --check <same paths>; git diff --check",
+      "result": "Passed workspace typecheck, prior scoped effects check (no card IR changed after named-source sync), early-card style and diff checks."
     }
   ],
-  "gaps": []
+  "gaps": [],
+  "reviewStatus": "Lead independently accepted every printed clause and realistic-stack risk; all current validation and delivery gates passed. Whole collection remains incomplete."
 }
