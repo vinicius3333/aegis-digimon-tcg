@@ -1,6 +1,6 @@
 {
   "cardId": "BT20-059",
-  "status": "awaiting-lead-review",
+  "status": "lead-verified",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
@@ -9,18 +9,51 @@
     "deliveryGates": 0
   },
   "evidence": [
-    "BT20-059.test.ts: public De-Digivolve 2 and conditional all-ally immunity matrix",
-    "BT20-059.test.ts: opponent-turn Sistermon/Huckmon/Royal Knight keyword boundaries",
-    "BT20-059.test.ts: inherited Jesmon GX all-own keyword scope and alternate costs",
-    "Unexecuted public natural-turn test: legal BT20-057 to BT20-059 alternate evolution, opponent-turn immunity and Royal Knight keywords, and post-turn expiry",
-    "current-collection-green-results.json",
-    "named-x-clause-red.log",
-    "named-x-019-102-red.log",
-    "named-x-026-028-red.log",
-    "named-x-green-results.json",
-    "named-x-mechanism-results.json"
+    "apps/api/src/cards/BT20/BT20-059.ts",
+    "apps/api/src/cards/BT20/BT20-059.test.ts",
+    "node tools/kb/query.mjs card BT20-059",
+    "round5-final-collection-results.json",
+    "round5-mechanism-results.json",
+    "BT20-059-runtime-disabled.json",
+    "round5-gates.json"
   ],
   "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-final-collection-results.json",
+      "result": "7/7 colocated cases pass; 968/968 full collection/mechanism cases."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/effects/interpreter/actions/play.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/builders.test.ts src/engine/actions/activateEffect.test.ts src/engine/actions/playCard.test.ts src/engine/useOption.test.ts src/engine/effectOptionUseCost.test.ts src/engine/decisions/minEnforcement.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/primitives.test.ts src/cards/BT7/BT7-063.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-mechanism-results.json",
+      "result": "465/465 affected mechanism cases pass."
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-059",
+      "result": "4 meaningful assertion failures with runtime effects disabled; original production module restored. Per-card JSON/log and aggregate retained."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "PASS; round5-final-typecheck.log. Final API test-source check also passes in round5-final-api-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "PASS; all 102 records synchronized, round5-scoped-check.log."
+    },
+    {
+      "command": "Changed-file oxlint/oxfmt --check and git diff --check",
+      "result": "PASS; round5-gates.json, round5-style-paths.json and final style logs."
+    }
+  ],
+  "gaps": [],
+  "executedCases": [
+    "BT20-059 Gankoomon (X Antibody) de-digivolves one opposing Digimon and conditionally protects all own Digimon",
+    "BT20-059 Gankoomon (X Antibody) grants Reboot and Blocker to own Sistermon/Huckmon or Royal Knight Digimon during the opponent's turn",
+    "BT20-059 Gankoomon (X Antibody) gives all own Digimon Reboot and Blocker when the inherited host is Jesmon GX",
+    "BT20-059 Gankoomon (X Antibody) de-digivolves by 2 and protects all allies only with Gankoomon or X Antibody underneath",
+    "BT20-059 Gankoomon (X Antibody) grants Reboot and Blocker only to the resident Sistermon/Huckmon/Royal Knight population",
+    "BT20-059 Gankoomon (X Antibody) inherits the all-Digimon keyword grant only under Jesmon GX",
+    "BT20-059 Gankoomon (X Antibody) expires the opponent-turn immunity and keyword grants at the real opponent turn end"
+  ],
+  "historicalCommands": [
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-059.test.ts --maxWorkers=1 --no-file-parallelism",
       "result": "not run by worker; coordinator owns Vitest"
@@ -58,10 +91,5 @@
       "result": "All current colocated cases pass within894/894; final independent acceptance remains pending."
     }
   ],
-  "gaps": [
-    "Coordinator focused/collection, mechanism/typecheck, and lint gates pending",
-    "Independent review: natural opponent-turn-end expiry of immunity and Reboot/Blocker remains unproven; Q4397 is shared-mechanism follow-up",
-    "Final strict clause acceptance, whole-collection revalidation, typecheck/style and pushed delivery gates remain pending."
-  ],
-  "reviewStatus": "Full collection execution passed at this draft checkpoint. Strict clause acceptance, sensitivity and final delivery review remain pending; provisional scores do not count in the ledger."
+  "reviewStatus": "Current printed clauses, KB/errata, exclusive IR registration, legal public paths and negative controls independently reviewed. Delivery credit requires the pushed, hash-bound acceptance record."
 }
