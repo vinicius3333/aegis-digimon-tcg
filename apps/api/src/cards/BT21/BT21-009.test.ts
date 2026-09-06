@@ -249,6 +249,52 @@ describe("BT21-009 Gatchmon", () => {
     expect(once.state.players[0]!.hand).toHaveLength(1);
   });
 
+  it("proves Once Per Turn through two public links on the same Gatchmon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-005", as: "appmonEgg" }],
+          hand: [
+            { card: "BT21-009", as: "gatchmon" },
+            { card: "BT21-009", as: "firstLink" },
+            { card: "BT21-009", as: "secondLink" },
+            { card: "BT21-084", as: "firstHaru" },
+            { card: "BT21-084", as: "secondHaru" },
+          ],
+          deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+        },
+        1: { security: ["BT1-005", "BT1-006", "BT1-007"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("appmonEgg").permanentId,
+        instanceId: s.inst("gatchmon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("appmonEgg").topCard.cardId === "BT21-009");
+
+    for (const link of ["firstLink", "secondLink"] as const) {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "linkCard",
+          instanceId: s.inst(link).instanceId,
+          targetPermanentId: s.perm("appmonEgg").permanentId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("appmonEgg").linked.some((card) => card.instanceId === s.inst(link).instanceId));
+    }
+
+    expect(s.state.players[0]!.battleArea.filter((p) => p.topCard.cardId === "BT21-084")).toHaveLength(1);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("secondHaru").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(3);
+  });
+
   it("links to an Appmon for 1 memory, adds 2000 DP, and grants Raid", async () => {
     const s = setupEngine(
       {
