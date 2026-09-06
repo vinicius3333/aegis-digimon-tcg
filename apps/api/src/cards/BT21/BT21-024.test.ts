@@ -88,6 +88,41 @@ describe("BT21-024 Cyberdramon", () => {
     expect(s.state.memory).toBe(3);
   });
 
+  it("publicly resolves the same security processing after a legal red level-4 evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-019", as: "level4" }],
+          hand: [{ card: "BT21-024", as: "cyberdramon" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          hand: [{ card: "BT1-009", as: "placed" }],
+          security: [{ card: "BT1-001", as: "top" }, "BT1-002", "BT1-003"],
+          deck: ["BT1-004", "BT1-005"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("level4").permanentId,
+        instanceId: s.inst("cyberdramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("level4").topCard.cardId === "BT21-024");
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("top").instanceId));
+
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("placed").instanceId)).toBe(false);
+    expect(s.state.players[1]!.security.at(-1)?.instanceId).toBe(s.inst("placed").instanceId);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("top").instanceId)).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(3);
+  });
+
   it("lets the opponent choose one of two hand cards and retains the other", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
