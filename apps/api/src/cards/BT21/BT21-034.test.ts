@@ -67,6 +67,24 @@ describe("BT21-034 compiled implementation", () => {
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("secondDraw").instanceId]);
   });
 
+  it("draws from a public attack that naturally suspends Kiwimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-034", as: "kiwimon" }], deck: [{ card: "BT1-001", as: "drawn" }] },
+      1: { security: ["BT1-002"] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("kiwimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
+    expect(s.perm("kiwimon").isSuspended).toBe(true);
+  });
+
   it("evolves from a level-3 WG Digimon for 2", async () => {
     const s = setupEngine({
       0: {
