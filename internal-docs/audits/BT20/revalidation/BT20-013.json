@@ -1,10 +1,10 @@
 {
   "cardId": "BT20-013",
-  "status": "in-progress",
+  "status": "lead-reviewed-awaiting-delivery",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
-    "behavioralProof": 1,
+    "behavioralProof": 2,
     "peerStackProof": 2,
     "deliveryGates": 0
   },
@@ -13,7 +13,8 @@
     "BT20-013.test.ts structural assertions verify Main/OncePerTurn, controller mine Digimon count 1, name substring matcher, payCost true, reduction 2, and inherited all-allied +1000.",
     "BT20-013.test.ts public activation verifies Sistermon Ciel enters battle area at reduced payment and once-per-turn retry is rejected; negative non-match remains in hand. Added refusal and Gankoomon branch tests; inherited host/ally/opponent turn scope is asserted.",
     "Root review correction: BT20-057 Gankoomon leaves memory 4 because its printed -4 reduction stacks with BaoHuckmon -2 (Q4294).",
-    "001-013-results.json"
+    "001-013-results.json",
+    "pending real opponent-turn once-per-turn reset assertion"
   ],
   "commands": [
     {
@@ -23,9 +24,13 @@
     {
       "command": "Lead focused run of BT20-001 through BT20-013 with --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json",
       "result": "4 assertions/tests in focused file: passed; 001-013-results.json"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/current-collection-green-results.json",
+      "result": "PASS: 5 cases for BT20-013;734 total tests; current-collection-green-results.json"
     }
   ],
   "gaps": [
-    "Prove once-per-turn reset with a legal payable target after a real turn boundary."
+    "Final collection delivery gates and accepted collection-wide evidence remain pending; no final10/10 granted."
   ]
 }

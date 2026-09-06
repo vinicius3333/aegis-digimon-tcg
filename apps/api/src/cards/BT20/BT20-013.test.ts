@@ -70,6 +70,63 @@ describe("BT20-013 BaoHuckmon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(second.instanceId);
   });
 
+  it("resets the once-per-turn activation after a real opponent turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-013", as: "bao" }],
+          hand: [
+            { card: "BT20-084", as: "first" },
+            { card: "BT20-084", as: "second" },
+          ],
+          deck: ["BT20-001", "BT20-002", "BT20-003"],
+        },
+        1: { deck: ["BT20-004", "BT20-005", "BT20-006"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const firstEffect = (observe(s.engine).activatableEffects(s.perm("bao")) as { effectKey: string }[])[0]!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("bao").topCard.instanceId,
+        effectKey: firstEffect.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-084"));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("second").instanceId);
+    expect(s.state.memory).toBe(2);
+
+    s.state.turnSeat = 1;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = 5;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("bao").isSuspended).toBe(false);
+    const nextTurnEffects = observe(s.engine).activatableEffects(s.perm("bao")) as { effectKey: string }[];
+    expect(nextTurnEffects).toHaveLength(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("bao").topCard.instanceId,
+        effectKey: nextTurnEffects[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "BT20-084").length === 2,
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("second").instanceId);
+    expect(s.state.memory).toBe(2);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+  });
+
   it("observably grants +1000 DP to all allies only during its controller's turn", async () => {
     const s = setupEngine({
       0: {

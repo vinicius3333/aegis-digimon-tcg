@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -77,6 +78,34 @@ describe("BT20-012 Ginryumon", () => {
     ).toEqual({ ok: true });
     await settle(() => false, 20);
     expect(nonMatch.perm("ginryumon").topCard.cardId).toBe("BT20-012");
+  });
+
+  it("publicly reaches a Chronicle-only non-Hisyaryumon destination at its exact alternate cost", async () => {
+    const chronicle = getCardDefinition("BT20-053")!;
+    expect(chronicle.nameEn).not.toBe("Hisyaryumon");
+    expect(chronicle.types).toContain("Chronicle");
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-012", as: "ginryumon", under: ["BT20-010"] }],
+          hand: [{ card: "BT20-053", as: "grademon" }],
+        },
+        1: { security: ["BT20-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ginryumon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("ginryumon").topCard.cardId === "BT20-053");
+    expect(s.state.memory).toBe(2); // Chronicle alternate cost 3, paid during the attack
+    expect(s.perm("ginryumon").stack.map((card) => card.cardId)).toEqual(["BT20-010", "BT20-012"]);
+    expect(s.perm("ginryumon").currentDP).toBe(chronicle.dp + 9000); // Ryudamon +2000, Ginryumon +2000, Grademon +5000
   });
 
   it("observably grants its inherited host +2000 DP only during its controller's turn", async () => {
