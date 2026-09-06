@@ -241,4 +241,30 @@ describe("BT20-084 Sistermon Ciel (Awakened)", () => {
       expect(s.perm("target").isSuspended).toBe(false);
     }
   });
+
+  it("releases the opposing suspend lock after that opponent's real turn ends", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT20-084", as: "awakened" }] },
+        1: { battleArea: [{ card: "BT20-010", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("awakened").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("target").isSuspended).toBe(false);
+
+    // The lock lasts through the opponent's turn, then expires at its end.
+    s.state.turnSeat = 1;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    await advance(s.engine).verb.suspend([s.perm("target").permanentId], 0);
+    expect(s.perm("target").isSuspended).toBe(true);
+  });
 });
