@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT25_006 } from "./BT25-006.js";
 import "../index.js";
 
@@ -56,9 +56,9 @@ describe("BT25-006 Dorimon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT25-019", as: "titan", suspended: true, under: ["BT25-006"] },
-            { card: "BT25-068", as: "otherTitan", suspended: true },
-            { card: "BT25-007", as: "nonTitan", suspended: true },
+            { card: "BT24-013", as: "titan", suspended: true, under: ["BT25-006", "BT24-009"] },
+            { card: "BT24-009", as: "otherTitan", suspended: true, under: ["BT25-006"] },
+            { card: "BT1-009", as: "nonTitan", suspended: true },
           ],
           hand: [{ card: "BT25-007", as: "handCost" }],
           security: ["BT1-009"],
@@ -87,12 +87,54 @@ describe("BT25-006 Dorimon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("handCost").instanceId);
   });
 
+  it("keeps a legal egg-to-Titan evolution stack and triggers from its public top card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-009", as: "base", under: ["BT25-006"] }],
+          hand: [
+            { card: "BT24-013", as: "fugamon" },
+            { card: "BT25-007", as: "handCost" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("fugamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("fugamon").instanceId);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT25-006", "BT24-009"]);
+
+    s.perm("base").isSuspended = true;
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").isSuspended === false);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("handCost").instanceId);
+  });
+
   it("can pay the optional trash condition after a public opponent attack even when no suspended Titan target exists", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT25-007", as: "nonTitan", suspended: true, under: ["BT25-006"] }],
+          battleArea: [{ card: "BT25-006", as: "dorimon" }],
           hand: [
+            { card: "BT10-071", as: "gazimon" },
             { card: "BT25-007", as: "handCost" },
             { card: "BT25-007", as: "secondCost" },
           ],
@@ -100,16 +142,27 @@ describe("BT25-006 Dorimon", () => {
         },
         1: {
           battleArea: [
-            { card: "BT25-019", as: "attacker" },
-            { card: "BT25-019", as: "secondAttacker" },
+            { card: "BT1-009", as: "attacker" },
+            { card: "BT1-009", as: "secondAttacker" },
           ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
+    s.state.turnSeat = 0;
     s.state.memory = 10;
     await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("dorimon").permanentId,
+        instanceId: s.inst("gazimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("dorimon").topCard.instanceId === s.inst("gazimon").instanceId);
+    expect(s.perm("dorimon").stack.map((card) => card.cardId)).toEqual(["BT25-006"]);
+    s.state.turnSeat = 1;
 
     expect(
       s.engine.applyIntent(1, {
@@ -120,7 +173,8 @@ describe("BT25-006 Dorimon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("handCost").instanceId));
 
-    expect(s.perm("nonTitan").isSuspended).toBe(true);
+    expect(s.perm("dorimon").topCard.cardId).toBe("BT10-071");
+    expect(s.perm("dorimon").isSuspended).toBe(false);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("handCost").instanceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("handCost").instanceId);
 
@@ -139,14 +193,14 @@ describe("BT25-006 Dorimon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT25-019", as: "titan", suspended: true, under: ["BT25-006"] }],
+          battleArea: [{ card: "BT24-013", as: "titan", suspended: true, under: ["BT25-006", "BT24-009"] }],
           hand: [{ card: "BT25-007", as: "handCost" }],
           security: ["BT1-009", "BT1-009"],
         },
         1: {
           battleArea: [
-            { card: "BT25-019", as: "attacker" },
-            { card: "BT25-068", as: "secondAttacker" },
+            { card: "BT1-009", as: "attacker" },
+            { card: "BT1-010", as: "secondAttacker" },
           ],
         },
       },
@@ -156,8 +210,10 @@ describe("BT25-006 Dorimon", () => {
     s.state.memory = 10;
     await s.ready();
 
-    const firstTrigger = advance(s.engine).fireSubTrigger("whenOpponentAttacks", {
+    const firstTrigger = s.engine.applyIntent(1, {
+      type: "attack",
       attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
     });
     await settle(() => s.state.pendingDecision?.kind === "optional");
     const firstDecision = s.state.pendingDecision!;
@@ -168,12 +224,16 @@ describe("BT25-006 Dorimon", () => {
         response: { kind: "optional", accept: false },
       }),
     ).toEqual({ ok: true });
-    await firstTrigger;
+    expect(firstTrigger).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(observe(s.engine).isAttacking()).toBe(false);
     expect(s.perm("titan").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("handCost").instanceId);
 
-    const secondTrigger = advance(s.engine).fireSubTrigger("whenOpponentAttacks", {
+    const secondTrigger = s.engine.applyIntent(1, {
+      type: "attack",
       attackerPermanentId: s.perm("secondAttacker").permanentId,
+      target: { kind: "player" },
     });
     await settle(() => s.state.pendingDecision?.kind === "optional");
     const secondDecision = s.state.pendingDecision!;
@@ -184,7 +244,8 @@ describe("BT25-006 Dorimon", () => {
         response: { kind: "optional", accept: true },
       }),
     ).toEqual({ ok: true });
-    await secondTrigger;
+    expect(secondTrigger).toEqual({ ok: true });
+    await settle(() => s.perm("titan").isSuspended === false);
     expect(s.perm("titan").isSuspended).toBe(false);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("handCost").instanceId);
   });
