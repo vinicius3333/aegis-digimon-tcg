@@ -4,15 +4,20 @@
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
-    "behavioralProof": 1,
-    "peerStackProof": 1,
+    "behavioralProof": 2,
+    "peerStackProof": 2,
     "deliveryGates": 0
   },
   "evidence": [
     "apps/api/src/cards/BT20/BT20-074.ts",
     "apps/api/src/cards/BT20/BT20-074.test.ts",
     "internal-docs/audits/BT20/revalidation/BT20-074.md",
-    "current-collection-green-results.json"
+    "current-collection-green-results.json",
+    "apps/api/src/engine/immediateReturnReaction.test.ts",
+    "immediate-return-mechanism-red.log",
+    "immediate-return-affected-results.json",
+    "collection-after-return-fix-results.json",
+    "immediate-return-typecheck.log"
   ],
   "commands": [
     {
@@ -30,12 +35,26 @@
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/current-collection-green-results.json",
       "result": "PASS: 9 cases for BT20-074;734 total tests. See current-collection-green-results.json."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/immediateReturnReaction.test.ts src/cards/BT20/BT20-{065,074,080}.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+      "result": "32/32 passed; immediate-return-focus-green.log"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/{immediateReturnReaction,subTriggerSeams,nestedDigivolveDoubleFire}.test.ts src/engine/effects/{subtriggers,subTriggerFireSites.guard,leavePrevent,pendingDnaAttackTriggers}.test.ts src/engine/security/{simultaneousCheckTriggers,revealTriggerPriority}.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+      "result": "152/152 passed; immediate-return-affected-results.json"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/immediateReturnReaction.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+      "result": "800/800 passed; collection-after-return-fix-results.json"
+    },
+    {
+      "command": "pnpm typecheck; pnpm exec oxlint <changed files>; pnpm exec oxfmt <changed files>; git diff --check",
+      "result": "All passed. immediate-return-typecheck.log and immediate-return-lint.log."
     }
   ],
   "gaps": [
-    "Q4400 public return-trigger proof remains pending.",
-    "Public DNA refusal and actual Option Security suppression check remain pending.",
-    "Lead focused/mechanism/collection execution and delivery gates pending."
+    "Final lead clause acceptance and full collection delivery remain pending."
   ],
   "reviewStatus": "Full collection execution passed at this draft checkpoint. Strict clause acceptance, sensitivity and final delivery review remain pending; provisional scores do not count in the ledger."
 }

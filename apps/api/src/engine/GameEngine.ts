@@ -2389,7 +2389,9 @@ export class GameEngine {
       this.deferredSecurityRemovalTriggers.push({ payload: boundPayload, subscriptions: pending, contexts });
       return;
     }
-    if (this.shouldDeferNestedTiming()) {
+    // A would-be-returned reaction interrupts the causing effect before its target moves
+    // (CR 15-8-5; BT20-074 Q4400). Deferring it loses the original Digimon first.
+    if (event !== "wouldBeReturned" && this.shouldDeferNestedTiming()) {
       // The event subject can leave the board before the causing effect finishes. Bind each
       // context now, at trigger time, so the pending activation keeps the subject snapshot
       // required by CR §15-4-4 instead of re-running its filter against an already-moved card.
