@@ -69,6 +69,31 @@ describe("BT21-051 Puppetmon", () => {
     expect(s.state.players[1]!.deck.at(-1)!.cardId).toBe("BT1-012");
   });
 
+  it("resolves the de-digivolve and bottom-deck sequence from a public play", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT21-051", as: "puppetmon" }] },
+        1: {
+          battleArea: [
+            { card: "BT21-045", as: "stacked", under: ["BT21-042", "BT21-044"] },
+            { card: "BT1-012", as: "suspended", suspended: true },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    preferred.push(s.perm("stacked").topCard.instanceId, s.perm("suspended").topCard.instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("puppetmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.deck.some((card) => card.instanceId === s.inst("suspended").instanceId));
+    expect(s.perm("stacked").topCard.cardId).toBe("BT21-042");
+    expect(s.state.memory).toBe(3);
+  });
+
   it("alternate-digivolves from a level-5 WG Digimon for 3", async () => {
     const s = setupEngine({
       0: {
