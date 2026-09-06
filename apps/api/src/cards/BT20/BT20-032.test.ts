@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { observe } from "../../engine/testkit/observe.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-032.js";
 import "./index.js";
+import "../BT1/BT1-036.js";
 
 describe("BT20-032 Bulkmon", () => {
   it("may take the top security card at three or more, then mandates Recovery +1 at two or fewer", () => {
@@ -45,7 +48,7 @@ describe("BT20-032 Bulkmon", () => {
       {
         0: {
           hand: [{ card: "BT20-032", as: "bulkmon" }],
-          security: ["BT20-010", "BT20-011", "BT20-012"],
+          security: [{ card: "BT20-010", as: "returnedSecurity" }, "BT20-011", "BT20-012"],
           deck: [{ card: "BT20-013", as: "recovery" }],
         },
       },
@@ -61,6 +64,7 @@ describe("BT20-032 Bulkmon", () => {
         s.state.players[0]!.security.some((card) => card.instanceId === s.inst("recovery").instanceId),
     );
     expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("returnedSecurity").instanceId);
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.state.memory).toBe(4);
   });
@@ -153,7 +157,7 @@ describe("BT20-032 Bulkmon", () => {
 
   it("does not gain memory when the inherited host and opponent are deleted in the same battle", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT20-010", dp: 1000, as: "host", under: ["BT20-032"] }] },
+      0: { battleArea: [{ card: "BT1-076", dp: 1000, as: "host", under: ["BT20-032"] }] },
       1: { battleArea: [{ card: "BT20-010", dp: 1000, suspended: true, as: "opponent" }] },
     });
     s.state.memory = 5;
@@ -167,6 +171,115 @@ describe("BT20-032 Bulkmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.players[1]!.battleArea.length === 0);
     expect(s.state.memory).toBe(5);
+  });
+
+  it("gains inherited memory once per turn, then again after the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-076", dp: 7000, as: "host", under: ["BT20-032"] }],
+          hand: [{ card: "BT1-036", as: "garurumon" }, "BT1-010"],
+          security: ["BT1-010", "BT1-010"],
+          deck: ["BT1-010", "BT1-010", "BT1-010"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT20-010", dp: 1000, suspended: true, as: "firstOpponent" },
+            { card: "BT20-010", dp: 1000, suspended: true, as: "secondOpponent" },
+            { card: "BT20-010", dp: 3000, suspended: true, as: "thirdOpponent" },
+          ],
+          security: ["BT1-010"],
+          deck: ["BT1-010", "BT1-010", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const firstId = s.perm("firstOpponent").topCard.instanceId;
+    const secondId = s.perm("secondOpponent").topCard.instanceId;
+    const thirdId = s.perm("thirdOpponent").topCard.instanceId;
+    s.state.memory = 5;
+    await s.ready();
+    const firstOwnTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("firstOpponent").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.filter((event) => event.kind === "combatResolved").length >= 1 &&
+        !observe(s.engine).isAttacking() &&
+        s.state.players[1]!.battleArea.length === 2,
+    );
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(firstId);
+    expect(s.state.memory).toBe(6);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("garurumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.perm("host").isSuspended);
+    expect(s.state.memory).toBe(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("secondOpponent").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.filter((event) => event.kind === "combatResolved").length >= 2 &&
+        !observe(s.engine).isAttacking() &&
+        s.state.players[1]!.battleArea.length === 1,
+    );
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(secondId);
+    expect(s.state.memory).toBe(0);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstOwnTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("thirdOpponent").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.filter((event) => event.kind === "combatResolved").length >= 3 &&
+        !observe(s.engine).isAttacking() &&
+        s.perm("thirdOpponent").isSuspended,
+    );
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("thirdOpponent").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.filter((event) => event.kind === "combatResolved").length >= 4 &&
+        !observe(s.engine).isAttacking() &&
+        s.state.players[1]!.battleArea.length === 0,
+    );
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(thirdId);
+    expect(s.state.memory).toBe(4);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
   });
 
   it("reaches Bulkmon from a legal Pulsemon stack and rejects an unrelated level-3 base", async () => {

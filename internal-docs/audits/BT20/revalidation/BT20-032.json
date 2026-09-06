@@ -1,6 +1,6 @@
 {
   "cardId": "BT20-032",
-  "status": "awaiting-lead-review",
+  "status": "lead-verified",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
@@ -9,14 +9,15 @@
     "deliveryGates": 0
   },
   "evidence": [
-    "apps/api/src/cards/BT20/BT20-032.ts",
-    "apps/api/src/cards/BT20/BT20-032.test.ts",
-    "internal-docs/audits/BT20/revalidation/BT20-032.md",
-    "014-040-results.json",
-    "collection-after-name-fix-results.json",
-    "public-followups-typecheck.log"
+    "Public play pays6: at3security optional top-card-to-hand accepts/refuses with exact identity; at2security mandatory Recovery adds exact deck-top; at4security removing one leaves3 and skips Recovery.",
+    "Public legal Pulsemon alternate evolution and a full printed normal route distinguish costs; evolution draws first, then returns exact top security and recovers exact next deck card. Invalid source is refused.",
+    "Legal inherited host gains one memory from actual battle deletion; other allied battle deletion and simultaneous host/opponent deletion do not trigger it. Public Garurumon unsuspend plus a second battle prove OPT; real turns reset it.",
+    "Colocated public behavioral test and committed card-specific KB query.",
+    "028-032-final-focused-results.json; runtime-disabled artifacts must be renewed after final changes.",
+    "Lead independently reviewed current clauses and legal stacks; final894 collection,543 affected mechanisms, typecheck, scoped sync/style and meaningful restored runtime mutation pass. Delivery credit is hash-bound in acceptance.json after push."
   ],
-  "commands": [
+  "gaps": [],
+  "historicalCommands": [
     {
       "command": "node tools/kb/query.mjs card BT20-032",
       "result": "Q4325 retrieved"
@@ -44,11 +45,49 @@
     {
       "command": "pnpm exec oxlint <changed public-proof test files>; pnpm exec oxfmt <same files>; git diff --check",
       "result": "Passed changed-file style and diff gates."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-032.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+      "result": "Current final checkpoint execution pending; earlier focused passes are historical after later changes."
     }
   ],
-  "gaps": [
-    "lead focused/mechanism/collection Vitest, typecheck, lint, and diff gates pending",
-    "new When Digivolving and four-security boundary tests are unexecuted pending lead validation"
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-final-collection-results.json",
+      "result": "11/11 colocated cases pass; full collection/mechanism894/894."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/overallTimingRestrictions.test.ts src/engine/effects/continuous.test.ts src/engine/effects/primitives.test.ts src/engine/effects/interpreter.test.ts src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/effects/restrictionEnforcement.test.ts src/engine/effects/restrictionConsumers.guard.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/combat/restrictionProjection.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-affected-results.json",
+      "result": "543/543 affected cases pass."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "Pass; round4-final-typecheck.log"
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-032",
+      "result": "5 meaningful assertion failures with registered effects disabled; original module restored. Runtime-disabled JSON/log and aggregate result retained."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "102 records already synchronized; round4-scoped-check.log"
+    },
+    {
+      "command": "Changed-file oxlint/oxfmt and git diff --check",
+      "result": "Pass; round4-gates.json and exact paths in round4-style-paths.json."
+    }
   ],
-  "reviewStatus": "Latest public additions pass in the 790-test collection snapshot. Provisional report; final clause acceptance remains pending."
+  "executedCases": [
+    "BT20-032 Bulkmon may take the top security card at three or more, then mandates Recovery +1 at two or fewer",
+    "BT20-032 Bulkmon takes security at three, then immediately recovers from the deck at two",
+    "BT20-032 Bulkmon can decline the optional security-to-hand action, preserving three security and skipping recovery",
+    "BT20-032 Bulkmon recovers at two security when the optional threshold is unavailable",
+    "BT20-032 Bulkmon inherits one memory gain when its surviving host deletes in battle",
+    "BT20-032 Bulkmon does not react when another allied Digimon deletes in battle",
+    "BT20-032 Bulkmon does not gain memory when the inherited host and opponent are deleted in the same battle",
+    "BT20-032 Bulkmon gains inherited memory once per turn, then again after the next own turn",
+    "BT20-032 Bulkmon reaches Bulkmon from a legal Pulsemon stack and rejects an unrelated level-3 base",
+    "BT20-032 Bulkmon resolves the security clauses when Bulkmon enters by digivolving",
+    "BT20-032 Bulkmon does not recover when removing one of four security cards leaves three"
+  ]
 }
