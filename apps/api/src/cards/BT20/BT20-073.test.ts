@@ -5,6 +5,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-073.js";
 import "./index.js";
+import "./BT20-078.js";
 
 describe("BT20-073 MetalPhantomon", () => {
   it("has Blocker", () => {
@@ -118,7 +119,7 @@ describe("BT20-073 MetalPhantomon", () => {
 
   it("when inherited, de-digivolves the chosen opponent by exactly 1 on host deletion", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT20-074", under: ["BT20-073"], as: "host" }] },
+      0: { battleArea: [{ card: "BT20-078", under: ["BT20-073"], as: "host" }] },
       1: { battleArea: [{ card: "BT20-071", under: ["BT20-070"], as: "target" }] },
     });
     await s.ready();
