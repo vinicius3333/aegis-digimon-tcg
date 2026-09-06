@@ -47,6 +47,49 @@ describe("BT20-041 Crowmon", () => {
     expect(s.perm("attacker").currentDP).toBe(9000);
   });
 
+  it("publicly evolves from a level-4 ACCEL Digimon and resolves the When Digivolving clauses when attack is declined", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-039", as: "diatrymon" },
+            { card: "BT20-010", dp: 5000, as: "buffTarget" },
+          ],
+          hand: [{ card: "BT20-041", as: "crowmon" }],
+        },
+        1: { battleArea: [{ card: "BT20-010", as: "opponent" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("buffTarget").permanentId, s.perm("opponent").permanentId);
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("diatrymon").permanentId,
+        instanceId: s.inst("crowmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("diatrymon").topCard.cardId === "BT20-041" && s.state.pendingDecision === undefined);
+    expect(s.perm("opponent").isSuspended).toBe(true);
+    expect(s.perm("buffTarget").currentDP).toBe(8000);
+    expect(s.perm("buffTarget").isSuspended).toBe(false);
+
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "BT20-023", as: "blueOnly" }], hand: [{ card: "BT20-041", as: "crowmon" }] },
+    });
+    invalid.state.memory = 3;
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("blueOnly").permanentId,
+        instanceId: invalid.inst("crowmon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(invalid.perm("blueOnly").topCard.cardId).toBe("BT20-023");
+  });
+
   it("inherits a once-per-turn -4000 DP When Attacking effect", async () => {
     const s = setupEngine(
       {
