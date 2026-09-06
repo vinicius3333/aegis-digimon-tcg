@@ -219,7 +219,7 @@ describe("BT21-025 Lamiamon", () => {
           hand: [
             { card: "BT21-017", as: "eligible" },
             { card: "BT21-015", as: "secondEligible" },
-            { card: "BT1-009", as: "wrongTrait" },
+            { card: "BT1-031", as: "wrongTrait" },
           ],
         },
       },
@@ -237,6 +237,54 @@ describe("BT21-025 Lamiamon", () => {
       1,
     );
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("secondEligible").instanceId);
+  });
+
+  it("publicly declines the inherited play after an opponent security removal and preserves exact hand boundaries", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-026", as: "host", under: ["BT21-025"] },
+            { card: "BT1-009", as: "attacker" },
+          ],
+          hand: [
+            { card: "BT21-017", as: "eligible4000" },
+            { card: "BT21-015", as: "eligible5000" },
+            { card: "BT21-026", as: "tooLarge11000" },
+            { card: "BT1-031", as: "wrongTrait1000" },
+          ],
+          deck: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+        1: { security: ["BT1-001"], deck: ["BT1-002", "BT1-003", "BT1-004"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+
+    // The inherited watcher was reached by a real public security removal. Confirm that its
+    // optional decision was actually opened, then decline the zero-cost play; every candidate
+    // remains in hand and memory does not move.
+    await settle(() => s.decisions.filter(({ req }) => req.kind === "optional").length === 1);
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
+      s.inst("eligible4000").instanceId,
+      s.inst("eligible5000").instanceId,
+      s.inst("tooLarge11000").instanceId,
+      s.inst("wrongTrait1000").instanceId,
+    ]);
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "BT21-017")).toHaveLength(
+      0,
+    );
   });
 
   it("does not play for the controller's security removal and permits declining the optional play", async () => {
