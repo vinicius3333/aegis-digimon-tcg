@@ -478,6 +478,544 @@ export const DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES: Record<string, DnaDigivolve
       ],
     },
   ],
+  // Backfilled 2026-09-06 from the community card DB's `dnaDigivolve` header
+  // (TakaOtaku/Digimon-Card-App), which the pre-EX9 imports dropped. Each entry transcribes the
+  // printed [DNA Digivolve] line; a slashed color list ("Blue/Yellow Lv.5") expands into one
+  // requirement per color pair, because a material spec holds a single color.
+  // See docs/audits/DNA-DIGIVOLVE-INTO-FILTER-AUDIT.md.
+  // Paildramon — [DNA Digivolve] Blue Lv.4 + Green Lv.4
+  "AD1-011": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 4 },
+        { color: "Green", level: 4 },
+      ],
+    },
+  ],
+  // Omnimon — [DNA Digivolve] Lv.6 w/[Greymon] in name + Lv.6 w/[Garurumon] in name
+  "AD1-025": [
+    {
+      cost: 0,
+      materials: [
+        { level: 6, names: ["Greymon"] },
+        { level: 6, names: ["Garurumon"] },
+      ],
+    },
+  ],
+  // Fenriloogamon: Takemikazuchi — [DNA Digivolve] [Fenriloogamon] + [Kazuchimon]
+  "BT17-101": [
+    {
+      cost: 0,
+      materials: [
+        { names: ["Fenriloogamon"] },
+        { names: ["Kazuchimon"] },
+      ],
+    },
+  ],
+  // Paildramon — [DNA Digivolve] Red Lv.4 + Purple Lv.4
+  "BT20-016": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Red", level: 4 },
+        { color: "Purple", level: 4 },
+      ],
+    },
+  ],
+  // Jesmon GX — [DNA Digivolve] Lv.6 w/[Jesmon] in name + Lv.6 w/[Gankoomon] in name
+  "BT20-021": [
+    {
+      cost: 0,
+      materials: [
+        { level: 6, names: ["Jesmon"] },
+        { level: 6, names: ["Gankoomon"] },
+      ],
+    },
+  ],
+  // Chaosmon: Valdur Arm — [DNA Digivolve] Yellow Lv.6 + Green/Black Lv.6
+  "BT20-037": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 6 },
+        { color: "Green", level: 6 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 6 },
+        { color: "Black", level: 6 },
+      ],
+    },
+  ],
+  // Examon — [DNA Digivolve] Green Lv.6 + Blue Lv.6
+  "BT20-045": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Green", level: 6 },
+        { color: "Blue", level: 6 },
+      ],
+    },
+  ],
+  // Alphamon: Ouryuken — [DNA Digivolve] Black Lv.6 + Yellow/Red Lv.6
+  "BT20-060": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Black", level: 6 },
+        { color: "Yellow", level: 6 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Black", level: 6 },
+        { color: "Red", level: 6 },
+      ],
+    },
+  ],
+  // Dinobeemon — [DNA Digivolve] Purple Lv.4 + Red Lv.4
+  "BT20-074": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Purple", level: 4 },
+        { color: "Red", level: 4 },
+      ],
+    },
+  ],
+  // Imperialdramon: Dragon Mode — [DNA Digivolve] Purple Lv.5 + Red Lv.5
+  "BT20-076": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Purple", level: 5 },
+        { color: "Red", level: 5 },
+      ],
+    },
+  ],
+  // Fenriloogamon: Takemikazuchi — [DNA Digivolve] [Fenriloogamon] + Yellow Lv.6 w/[Pulsemon] in text
+  "BT20-081": [
+    {
+      cost: 0,
+      materials: [
+        { names: ["Fenriloogamon"] },
+        { color: "Yellow", level: 6, namesInText: ["Pulsemon"] },
+      ],
+    },
+  ],
+  // Gryphonmon — [DNA Digivolve] Blue/Yellow Lv.5 + Green/Red Lv.5
+  "BT21-039": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 5 },
+        { color: "Green", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 5 },
+        { color: "Red", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 5 },
+        { color: "Green", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 5 },
+        { color: "Red", level: 5 },
+      ],
+    },
+  ],
+  // Omnimon — [DNA Digivolve] Lv.6 w/[Greymon] in name + Lv.6 w/[Garurumon] in name
+  "BT22-015": [
+    {
+      cost: 0,
+      materials: [
+        { level: 6, names: ["Greymon"] },
+        { level: 6, names: ["Garurumon"] },
+      ],
+    },
+  ],
+  // Shakkoumon — [DNA Digivolve] Yellow Lv.4 + Black/Blue Lv. 4
+  "BT23-032": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 4 },
+        { color: "Black", level: 4 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 4 },
+        { color: "Blue", level: 4 },
+      ],
+    },
+  ],
+  // Examon — [DNA Digivolve] Green Lv.6 + Blue Lv.6
+  "BT23-047": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Green", level: 6 },
+        { color: "Blue", level: 6 },
+      ],
+    },
+  ],
+  // Mastemon — [DNA Digivolve] Yellow Lv.5 + Purple Lv.5
+  "BT23-102": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 5 },
+        { color: "Purple", level: 5 },
+      ],
+    },
+  ],
+  // Shakkoumon — [DNA Digivolve] Yellow Lv.4 + Blue/Black Lv. 4
+  "BT25-038": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 4 },
+        { color: "Blue", level: 4 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 4 },
+        { color: "Black", level: 4 },
+      ],
+    },
+  ],
+  // GraceNovamon — [DNA Digivolve] Red Lv.6 + Blue Lv.6
+  "BT25-103": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Red", level: 6 },
+        { color: "Blue", level: 6 },
+      ],
+    },
+  ],
+  // Kimeramon — [DNA Digivolve] Lv.4 + Lv.4
+  "BT8-084": [
+    {
+      cost: 0,
+      materials: [
+        { level: 4 },
+        { level: 4 },
+      ],
+    },
+  ],
+  // RagnaLoardmon — [DNA Digivolve] Red Lv.6 + Black Lv.6
+  "EX6-011": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Red", level: 6 },
+        { color: "Black", level: 6 },
+      ],
+    },
+  ],
+  // Mastemon — [DNA Digivolve] Yellow Lv.5 + Purple Lv.5
+  "EX6-029": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 5 },
+        { color: "Purple", level: 5 },
+      ],
+    },
+  ],
+  // UltimateChaosmon — [DNA Digivolve] Yellow/Black Lv.6 + Green/Purple Lv.6
+  "EX6-062": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 6 },
+        { color: "Green", level: 6 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 6 },
+        { color: "Purple", level: 6 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Black", level: 6 },
+        { color: "Green", level: 6 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Black", level: 6 },
+        { color: "Purple", level: 6 },
+      ],
+    },
+  ],
+  // Tlalocmon — [DNA Digivolve] Green/Yellow Lv.6 + Black/Blue Lv.6
+  "EX7-037": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Green", level: 6 },
+        { color: "Black", level: 6 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Green", level: 6 },
+        { color: "Blue", level: 6 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 6 },
+        { color: "Black", level: 6 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 6 },
+        { color: "Blue", level: 6 },
+      ],
+    },
+  ],
+  // Whamon — [DNA Digivolve] Blue Lv.4 + Black/Purple Lv.4
+  "EX8-025": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 4 },
+        { color: "Black", level: 4 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 4 },
+        { color: "Purple", level: 4 },
+      ],
+    },
+  ],
+  // Aegisdramon — [DNA Digivolve] Blue/Purple Lv.6 + Black/Yellow Lv.6
+  "EX8-029": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 6 },
+        { color: "Black", level: 6 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 6 },
+        { color: "Yellow", level: 6 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Purple", level: 6 },
+        { color: "Black", level: 6 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Purple", level: 6 },
+        { color: "Yellow", level: 6 },
+      ],
+    },
+  ],
+  // Pumpkinmon — [DNA Digivolve] Yellow Lv.4 + Purple/Red Lv.4
+  "EX8-033": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 4 },
+        { color: "Purple", level: 4 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 4 },
+        { color: "Red", level: 4 },
+      ],
+    },
+  ],
+  // Callismon — [DNA Digivolve] Green/Purple Lv.5 + Red/Yellow Lv.5
+  "EX8-045": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Green", level: 5 },
+        { color: "Red", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Green", level: 5 },
+        { color: "Yellow", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Purple", level: 5 },
+        { color: "Red", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Purple", level: 5 },
+        { color: "Yellow", level: 5 },
+      ],
+    },
+  ],
+  // Pukumon — [DNA Digivolve] Blue/Black Lv.5 + Purple Lv.5
+  "P-171": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 5 },
+        { color: "Purple", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Black", level: 5 },
+        { color: "Purple", level: 5 },
+      ],
+    },
+  ],
+  // Magnadramon — [DNA Digivolve] Yellow/Red Lv.5 + Green/Black Lv.5
+  "P-172": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 5 },
+        { color: "Green", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 5 },
+        { color: "Black", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Red", level: 5 },
+        { color: "Green", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Red", level: 5 },
+        { color: "Black", level: 5 },
+      ],
+    },
+  ],
+  // Boltmon — [DNA Digivolve] Black/Yellow Lv.5 + Purple/Red Lv.5
+  "P-174": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Black", level: 5 },
+        { color: "Purple", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Black", level: 5 },
+        { color: "Red", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 5 },
+        { color: "Purple", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 5 },
+        { color: "Red", level: 5 },
+      ],
+    },
+  ],
+  // Mastemon — [DNA Digivolve] Purple Lv.5 + Yellow Lv.5
+  "P-187": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Purple", level: 5 },
+        { color: "Yellow", level: 5 },
+      ],
+    },
+  ],
+  // Millenniummon — [DNA Digivolve] [Kimeramon] + [Machinedramon]
+  "P-220": [
+    {
+      cost: 0,
+      materials: [
+        { names: ["Kimeramon"] },
+        { names: ["Machinedramon"] },
+      ],
+    },
+  ],
+  // Chaosmon — [DNA Digivolve] Yellow Lv.6 + Purple/Black Lv.6
+  "P-221": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 6 },
+        { color: "Purple", level: 6 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 6 },
+        { color: "Black", level: 6 },
+      ],
+    },
+  ],
 };
 
 export function dnaDigivolutionRequirementsFor(cardId: string): DnaDigivolveRequirement[] {
