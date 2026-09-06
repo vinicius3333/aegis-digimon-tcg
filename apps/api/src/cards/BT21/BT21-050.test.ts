@@ -131,6 +131,7 @@ describe("BT21-050 Cherrymon", () => {
           battleArea: [{ card: "BT21-051", as: "host", under: [{ card: "BT21-050", as: "source" }] }],
           hand: [
             { card: "BT21-048", as: "wg" },
+            { card: "BT21-048", as: "secondWg" },
             { card: "BT1-009", as: "nonWg" },
           ],
         },
@@ -154,6 +155,57 @@ describe("BT21-050 Cherrymon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wg").instanceId })).toEqual({ ok: true });
     await settle(() => s.perm("chosen").isSuspended);
     expect(s.perm("other").isSuspended).toBe(false);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondWg").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("other").isSuspended).toBe(false);
+  });
+
+  it("suspends exactly one opponent through a public When Digivolving effect", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-049", as: "woodmon" }], hand: [{ card: "BT21-050", as: "cherrymon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "chosen" },
+            { card: "BT1-010", as: "other" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("chosen").topCard.instanceId);
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("woodmon").permanentId,
+        instanceId: s.inst("cherrymon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("woodmon").topCard.cardId === "BT21-050");
+    expect(s.perm("chosen").isSuspended).toBe(true);
+    expect(s.perm("other").isSuspended).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((p) => p.isSuspended)).toBe(false);
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("permits declining the public optional suspension", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "BT21-050", as: "cherrymon" }] }, 1: { battleArea: [{ card: "BT1-009", as: "target" }] } },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cherrymon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("target").isSuspended).toBe(false);
   });
 
   it("alternate-digivolves from a level-4 WG Digimon for 3", async () => {
