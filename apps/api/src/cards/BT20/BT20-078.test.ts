@@ -3,6 +3,8 @@ import { EffectTiming, type PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT20-078.js";
+import "./BT20-073.js";
+import "./BT20-069.js";
 import "./index.js";
 
 // A3 for BT20-078 (Reapermon — Purple Lv.6 Digimon).
@@ -77,12 +79,7 @@ describe("BT20-078 Reapermon — On Deletion deletes cheap opponent permanent", 
       target: { kind: "permanent", permanentId: metalGreymon.permanentId },
     });
 
-    if (!res.ok) {
-      // If attack intent not available, try direct forceAttack.
-      // Fallback: check the on-deletion was registered (structural test).
-      expect(res.ok).toBe(true);
-      return;
-    }
+    expect(res).toEqual({ ok: true });
 
     // After battle, Reapermon (11000) loses to MetalGreymon (15000) and is deleted.
     // [On Deletion] should then delete Agumon (cost 3 <= 4).
