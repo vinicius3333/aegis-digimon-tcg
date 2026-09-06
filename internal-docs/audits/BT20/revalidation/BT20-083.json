@@ -1,6 +1,6 @@
 {
   "cardId": "BT20-083",
-  "status": "awaiting-lead-review",
+  "status": "awaiting-lead-acceptance",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
@@ -9,13 +9,17 @@
     "deliveryGates": 0
   },
   "evidence": [
-    "BT20-083.test.ts: one-or-fewer security free-evolution gate and two-security refusal",
-    "BT20-083.test.ts: deletion places the card under breeding King Drasil",
-    "BT20-083.test.ts: positive breeding-source stack play and battle-area Breeding negative",
-    "BT20-083.ts: exclusive registerIrCard and breeding-scoped source-stack IR",
-    "current-collection-green-results.json"
+    "On Play Digivolve now explicitly allows refusal. Before the fix, public Omekamon play evolves to Omnimon X despite refusal; the state-based regression records that defect.",
+    "Public Blocker, battle-deletion accept/refuse placement at the bottom of breeding King Drasil, and inherited own-breeding-stack play/suspension are integrated.",
+    "collection-after-reactive-delay-results.json",
+    "reactive-movement-gates.json"
   ],
-  "commands": [
+  "gaps": [
+    "Final inherited refusal/suspended-host/turn-boundary comparison review and runtime sensitivity remain pending.",
+    "Atomic pushed delivery and final independent acceptance pending."
+  ],
+  "reviewStatus": "Current lead corrections supersede historical report prose; this card is not accepted at10/10.",
+  "historicalCommands": [
     {
       "command": "node tools/kb/query.mjs card BT20-083",
       "result": "Q4409-Q4411 retrieved"
@@ -33,8 +37,22 @@
       "result": "PASS: 8 cases for BT20-083;734 total tests. See current-collection-green-results.json."
     }
   ],
-  "gaps": [
-    "Lead focused/collection execution, typecheck, lint, and delivery gates pending"
-  ],
-  "reviewStatus": "Full collection execution passed at this draft checkpoint. Strict clause acceptance, sensitivity and final delivery review remain pending; provisional scores do not count in the ledger."
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+      "result": "11 cases passed for BT20-083; 836 total passed, zero failed."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "Passed shared/API/web; reactive-movement-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "All102 synchronized; see reactive-movement-gates.json for the temporary watchdog adjustment and restored script."
+    },
+    {
+      "command": "Commands in reactive-movement-gates.json",
+      "result": "552 affected mechanism cases and changed-file lint/format passed without warnings."
+    }
+  ]
 }
