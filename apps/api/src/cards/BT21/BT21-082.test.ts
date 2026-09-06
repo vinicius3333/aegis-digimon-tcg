@@ -39,7 +39,7 @@ describe("BT21-082 Takuya Kanbara", () => {
           hand: [{ card: "BT21-013", as: "agunimon" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
     );
     s.state.memory = 2;
     await s.ready();
@@ -47,6 +47,30 @@ describe("BT21-082 Takuya Kanbara", () => {
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("takuya"));
     await settle(() => s.perm("takuya").topCard.instanceId === s.inst("agunimon").instanceId);
     expect(s.state.memory).toBe(1);
+  });
+
+  it("resolves the reduced Hybrid evolution at the public start of main phase", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-082", as: "takuya" }],
+          hand: [{ card: "BT21-013", as: "agunimon" }],
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: { deck: ["BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.perm("takuya").topCard.instanceId === s.inst("agunimon").instanceId);
+    expect(s.perm("takuya").topCard.instanceId).toBe(s.inst("agunimon").instanceId);
+    expect(s.state.memory).toBe(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("counts different red Tamer names once each", async () => {
@@ -114,6 +138,40 @@ describe("BT21-082 Takuya Kanbara", () => {
     );
     await advance(s.engine).verb.trashFromSecurity(1, 1);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("second").instanceId)).toBe(true);
+  });
+
+  it("triggers the inherited Tamer play from a public opponent security check", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-009", as: "attacker", dp: 6000 },
+            { card: "BT21-013", as: "host", under: [{ card: "BT21-082", as: "source" }] },
+          ],
+          hand: [{ card: "BT1-085", as: "tamer" }],
+          security: [{ card: "BT1-009", as: "own-security" }],
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: { security: [{ card: "BT1-090", as: "opponent-security" }], deck: ["BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 0 &&
+        s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT1-085"),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("tamer").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tamer").instanceId)).toBe(false);
   });
 
   it("plays itself from security without paying cost", async () => {
