@@ -56,6 +56,22 @@ describe("BT20-052 Oblivimon", () => {
     expect(s.state.players[0]!.security).toHaveLength(0);
   });
 
+  it("naturally plays from face-up security at the opponent's turn end", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "BT20-052", as: "oblivimon", faceUp: true }] },
+      1: { deck: ["BT20-001"] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-052"));
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-052")).toBe(true);
+  });
+
   it("uses the Cyborg route for 3 and flips the next face-down security card", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT20-050", as: "base" }], hand: [{ card: "BT20-052", as: "oblivimon" }] },
