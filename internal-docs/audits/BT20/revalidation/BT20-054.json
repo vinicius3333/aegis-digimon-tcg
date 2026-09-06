@@ -1,6 +1,6 @@
 {
   "cardId": "BT20-054",
-  "status": "ready-for-coordinator-verification",
+  "status": "lead-verified",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
@@ -9,13 +9,52 @@
     "deliveryGates": 0
   },
   "evidence": [
-    "BT20-054.test.ts: public black Lv.4 evolution and non-black source refusal",
-    "BT20-054.test.ts: cost-4 source replay, opponent-turn/optional refusal boundaries, and public opponent-effect deletion replacement",
-    "BT20-054.test.ts: inherited once-per-turn redirect, standalone exclusion, and real later-opponent-turn reset with two legal attackers",
-    "current-collection-green-results.json",
-    "Public ST1-15 with legal red source and Lv3/Lv4/Lv5 stack: source047 is played before Bulbmon leaves; Bulbmon is trashed, not preserved. No prevention is printed or implemented."
+    "apps/api/src/cards/BT20/BT20-054.ts",
+    "apps/api/src/cards/BT20/BT20-054.test.ts",
+    "node tools/kb/query.mjs card BT20-054",
+    "round5-final-collection-results.json",
+    "round5-mechanism-results.json",
+    "BT20-054-runtime-disabled.json",
+    "round5-gates.json"
   ],
   "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-final-collection-results.json",
+      "result": "8/8 colocated cases pass; 968/968 full collection/mechanism cases."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/effects/interpreter/actions/play.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/builders.test.ts src/engine/actions/activateEffect.test.ts src/engine/actions/playCard.test.ts src/engine/useOption.test.ts src/engine/effectOptionUseCost.test.ts src/engine/decisions/minEnforcement.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/primitives.test.ts src/cards/BT7/BT7-063.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-mechanism-results.json",
+      "result": "465/465 affected mechanism cases pass."
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-054",
+      "result": "3 meaningful assertion failures with runtime effects disabled; original production module restored. Per-card JSON/log and aggregate retained."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "PASS; round5-final-typecheck.log. Final API test-source check also passes in round5-final-api-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "PASS; all 102 records synchronized, round5-scoped-check.log."
+    },
+    {
+      "command": "Changed-file oxlint/oxfmt --check and git diff --check",
+      "result": "PASS; round5-gates.json, round5-style-paths.json and final style logs."
+    }
+  ],
+  "gaps": [],
+  "executedCases": [
+    "BT20-054 Bulbmon has Blocker and may replace leaving the battle area during the opponent's turn",
+    "BT20-054 Bulbmon may redirect one opposing attack to itself once per opponent turn as inherited text",
+    "BT20-054 Bulbmon publishes Blocker on Bulbmon at runtime",
+    "BT20-054 Bulbmon publicly evolves from a black level-4 source and rejects a non-black level-4 source",
+    "BT20-054 Bulbmon may play only a cost-4-or-lower source when leaving on the opponent's turn",
+    "BT20-054 Bulbmon publicly replaces an opponent-effect deletion during the opponent's turn",
+    "BT20-054 Bulbmon redirects an opposing attack only when Bulbmon is inherited",
+    "BT20-054 Bulbmon resets inherited attack redirection on a later opponent turn"
+  ],
+  "historicalCommands": [
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-054.test.ts --maxWorkers=1 --no-file-parallelism",
       "result": "not run by worker; coordinator owns Vitest"
@@ -33,9 +72,5 @@
       "result": "All current colocated cases pass within894/894; final independent acceptance remains pending."
     }
   ],
-  "gaps": [
-    "Coordinator focused/collection, mechanism/typecheck, and lint gates pending",
-    "New opponent-effect deletion replacement and real later-opponent-turn inherited reset remain pending coordinator execution"
-  ],
-  "reviewStatus": "Full collection execution passed at this draft checkpoint. Strict clause acceptance, sensitivity and final delivery review remain pending; provisional scores do not count in the ledger."
+  "reviewStatus": "Current printed clauses, KB/errata, exclusive IR registration, legal public paths and negative controls independently reviewed. Delivery credit requires the pushed, hash-bound acceptance record."
 }

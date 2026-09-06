@@ -95,8 +95,8 @@ describe("BT20-054 Bulbmon", () => {
               {
                 card: "BT20-054",
                 under: [
-                  { card: "BT20-051", as: "tooExpensive" },
                   { card: "BT20-047", as: "eligible" },
+                  { card: "BT20-051", as: "tooExpensive" },
                 ],
                 as: "bulbmon",
               },
