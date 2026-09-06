@@ -343,6 +343,29 @@ describe("BT21-013 Agunimon — observable game behavior", () => {
     expect(s.perm("burning").stack.map((card) => card.instanceId)).not.toContain(s.inst("trashHero").instanceId);
   });
 
+  it("leaves placement empty when no Hybrid/Hero source exists", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT12-013", as: "burning" }],
+        hand: [{ card: "BT21-013", as: "agunimon" }],
+        deck: ["BT1-009", "BT1-010"],
+      },
+    });
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("burning").permanentId,
+        instanceId: s.inst("agunimon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("burning").topCard.cardId === "BT21-013");
+    expect(s.perm("burning").stack).toHaveLength(1);
+    expect(s.perm("burning").stack[0]!.cardId).toBe("BT12-013");
+  });
+
   it("when attacking, pays the matching red Hero evolution cost reduced by 1", async () => {
     const s = setupEngine(
       {
