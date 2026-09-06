@@ -45193,7 +45193,7 @@
     "forms": ["Mega"],
     "attributes": ["Data"],
     "types": ["Beast Knight", "DATA SQUAD"],
-    "effectText": "[Digivolve] Lv.5 w/[MachGaogamon] in name or w/[DATA SQUAD] trait: Cost 3 \n\n＜Reboot＞ \n＜Blocker＞ \n＜Evade＞ \n[When Digivolving] [When Attacking] [Once Per Turn] You may return 1 of your opponent's level 5 or lower Digimon to the hand. Then, by trashing the bottom face-down card under any of your Tamers, return 1 of your opponent's lowest level Digimon to the hand.\n[All Turns] [Once Per Turn] When effects add cards to your opponent's hand or trash cards from under your Tamers, this Digimon may unsuspend.",
+    "effectText": "[Digivolve] Lv.5 w/[Gaogamon] in name or w/[DATA SQUAD] trait: Cost 3 \n\n＜Reboot＞ \n＜Blocker＞ \n＜Evade＞ \n[When Digivolving] [When Attacking] [Once Per Turn] You may return 1 of your opponent's level 5 or lower Digimon to the hand. Then, by trashing the bottom face-down card under any of your Tamers, return 1 of your opponent's lowest level Digimon to the hand.\n[All Turns] [Once Per Turn] When effects add cards to your opponent's hand or trash cards from under your Tamers, this Digimon may unsuspend.",
     "rarity": "SR",
     "maxCountInDeck": 4,
     "imageId": "BT25-029",
