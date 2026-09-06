@@ -1,6 +1,6 @@
 {
   "cardId": "BT20-053",
-  "status": "awaiting-lead-acceptance",
+  "status": "lead-verified",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
@@ -9,17 +9,52 @@
     "deliveryGates": 0
   },
   "evidence": [
-    "Bracketed Dorumon/Ryudamon entry targets now use nameExact. No current catalog name variants exist for these names, so this is faithful IR normalization rather than a demonstrated variant-target bug.",
-    "Existing actual attack-time breeding play and immunity survival proofs remain part of the regression suite; the Q4721 path also verifies the opponent Digimon-effect immunity boundary after a real attack trigger.",
-    "BT20-053.test.ts adds a real opponent-turn/own-turn/later-opponent-turn inherited redirect reset with redirected battles preserving security and leaving the host unsuspended (pending coordinator revalidation).",
-    "collection-after-reactive-delay-results.json",
-    "reactive-movement-gates.json"
+    "apps/api/src/cards/BT20/BT20-053.ts",
+    "apps/api/src/cards/BT20/BT20-053.test.ts",
+    "node tools/kb/query.mjs card BT20-053",
+    "round5-final-collection-results.json",
+    "round5-mechanism-results.json",
+    "BT20-053-runtime-disabled.json",
+    "round5-gates.json"
   ],
-  "gaps": [
-    "Final independent clause acceptance and runtime sensitivity remain pending.",
-    "Atomic pushed delivery and final independent acceptance pending."
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-final-collection-results.json",
+      "result": "9/9 colocated cases pass; 968/968 full collection/mechanism cases."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/effects/interpreter/actions/play.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/builders.test.ts src/engine/actions/activateEffect.test.ts src/engine/actions/playCard.test.ts src/engine/useOption.test.ts src/engine/effectOptionUseCost.test.ts src/engine/decisions/minEnforcement.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/primitives.test.ts src/cards/BT7/BT7-063.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-mechanism-results.json",
+      "result": "465/465 affected mechanism cases pass."
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-053",
+      "result": "4 meaningful assertion failures with runtime effects disabled; original production module restored. Per-card JSON/log and aggregate retained."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "PASS; round5-final-typecheck.log. Final API test-source check also passes in round5-final-api-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "PASS; all 102 records synchronized, round5-scoped-check.log."
+    },
+    {
+      "command": "Changed-file oxlint/oxfmt --check and git diff --check",
+      "result": "PASS; round5-gates.json, round5-style-paths.json and final style logs."
+    }
   ],
-  "reviewStatus": "Current lead corrections supersede historical report prose; this card is not accepted at10/10.",
+  "gaps": [],
+  "executedCases": [
+    "BT20-053 Grademon may play Dorumon or Ryudamon into an empty breeding area on play and digivolving",
+    "BT20-053 Grademon grants one own Digimon +5000 DP and immunity during an attack until the opponent's turn ends",
+    "BT20-053 Grademon can redirect one opposing attack to this Digimon once per opponent turn",
+    "BT20-053 Grademon plays Dorumon or Ryudamon free into empty breeding on both entry timings",
+    "BT20-053 Grademon does not play the optional rookie when the breeding area is occupied",
+    "BT20-053 Grademon Q4721 grants +5000 DP and Digimon-effect immunity during an opponent attack",
+    "BT20-053 Grademon naturally digivolves during an attack, grants +5000, and survives an opponent Digimon effect",
+    "BT20-053 Grademon redirects only the first of two opposing attacks to its inherited host",
+    "BT20-053 Grademon resets inherited attack redirection on a later opponent turn"
+  ],
   "historicalCommands": [
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-053.test.ts --maxWorkers=1 --no-file-parallelism",
@@ -44,9 +79,7 @@
     {
       "command": "pnpm exec oxlint <changed public-proof test files>; pnpm exec oxfmt <same files>; git diff --check",
       "result": "Passed changed-file style and diff gates."
-    }
-  ],
-  "commands": [
+    },
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
       "result": "8 cases passed for BT20-053; 836 total passed, zero failed."
@@ -67,5 +100,6 @@
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-final-collection-results.json",
       "result": "All current colocated cases pass within894/894; final independent acceptance remains pending."
     }
-  ]
+  ],
+  "reviewStatus": "Current printed clauses, KB/errata, exclusive IR registration, legal public paths and negative controls independently reviewed. Delivery credit requires the pushed, hash-bound acceptance record."
 }
