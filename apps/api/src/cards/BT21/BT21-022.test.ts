@@ -175,7 +175,28 @@ describe("BT21-022 Canoweissmon", () => {
       expect.arrayContaining([s.inst("cost1").instanceId, s.inst("cost2").instanceId, s.inst("cost3").instanceId]),
     );
     await advance(s.engine).verb.deletePermanent([hostId], "byEffect");
-    await settle(() => s.state.players[0]!.battleArea.every((permanent) => permanent.permanentId !== hostId));
+    await settle(() => s.state.players[0]!.trash.length === 3);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
+  });
+
+  it("naturally prevents an opponent's public Gaia Force deletion by trashing three sources", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-028", as: "host", under: ["BT21-002", "BT21-010", "BT21-019", "BT21-022"] }] },
+        1: { battleArea: [{ card: "BT1-009", as: "redSource" }], hand: [{ card: "ST1-16", as: "gaiaForce" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const hostId = s.perm("host").permanentId;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaiaForce").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.length === 3);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(true);
+    expect(s.state.players[0]!.trash).toHaveLength(3);
+    expect(s.state.memory).toBe(2);
   });
 });
