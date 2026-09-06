@@ -1,20 +1,48 @@
 {
   "cardId": "BT20-041",
-  "status": "ready-for-coordinator-verification",
+  "status": "lead-verified",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
     "behavioralProof": 2,
-    "peerStackProof": 1,
+    "peerStackProof": 2,
     "deliveryGates": 0
   },
   "evidence": [
     "BT20-041.test.ts: public BT20-039 ACCEL evolution and BT20-040 non-ACCEL refusal",
-    "BT20-041.test.ts: On Play and When Digivolving suspend/+3000/optional-decline behavior",
-    "BT20-041.test.ts: inherited -4000 battle outcome and own-turn scope",
-    "current-collection-green-results.json"
+    "BT20-041.test.ts: On Play and When Digivolving suspend/+3000/optional-decline behavior with play-cost assertion",
+    "BT20-041.test.ts: inherited -4000 battle outcome, same-turn Once Per Turn, expiry, and next-turn reset",
+    "current-collection-green-results.json",
+    "Lead independently reviewed current clauses and legal stacks; final894 collection,543 affected mechanisms, typecheck, scoped sync/style and meaningful restored runtime mutation pass. Delivery credit is hash-bound in acceptance.json after push."
   ],
   "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-final-collection-results.json",
+      "result": "5/5 colocated cases pass; full collection/mechanism894/894."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/overallTimingRestrictions.test.ts src/engine/effects/continuous.test.ts src/engine/effects/primitives.test.ts src/engine/effects/interpreter.test.ts src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/effects/restrictionEnforcement.test.ts src/engine/effects/restrictionConsumers.guard.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/combat/restrictionProjection.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-affected-results.json",
+      "result": "543/543 affected cases pass."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "Pass; round4-final-typecheck.log"
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-041",
+      "result": "3 meaningful assertion failures with registered effects disabled; original module restored. Runtime-disabled JSON/log and aggregate result retained."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "102 records already synchronized; round4-scoped-check.log"
+    },
+    {
+      "command": "Changed-file oxlint/oxfmt and git diff --check",
+      "result": "Pass; round4-gates.json and exact paths in round4-style-paths.json."
+    }
+  ],
+  "gaps": [],
+  "historicalCommands": [
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-041.test.ts --maxWorkers=1 --no-file-parallelism",
       "result": "not run by worker; coordinator owns Vitest"
@@ -28,9 +56,11 @@
       "result": "PASS: 4 cases for BT20-041;734 total tests. See current-collection-green-results.json."
     }
   ],
-  "gaps": [
-    "Coordinator focused/collection, mechanism/typecheck, and lint gates pending",
-    "Dedicated once-per-turn reset and full duration-boundary proof pending"
-  ],
-  "reviewStatus": "Full collection execution passed at this draft checkpoint. Strict clause acceptance, sensitivity and final delivery review remain pending; provisional scores do not count in the ledger."
+  "executedCases": [
+    "BT20-041 Crowmon suspends an opponent, buffs one of yours, and optionally attacks on both entry triggers",
+    "BT20-041 Crowmon on play suspends the opponent, gains +3000 DP, and takes the optional attack",
+    "BT20-041 Crowmon publicly evolves from a level-4 ACCEL Digimon and resolves the When Digivolving clauses when attack is declined",
+    "BT20-041 Crowmon inherits a once-per-turn -4000 DP When Attacking effect",
+    "BT20-041 Crowmon applies inherited -4000 once per turn, expires it, and resets on the next turn"
+  ]
 }
