@@ -83,6 +83,27 @@ describe("BT20-023 Coredramon", () => {
     expect(negative.perm("coredramon").topCard.cardId).toBe("BT20-023");
   });
 
+  it("also reacts to a green Digimon whose name supplies the Examon text match", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-023", as: "coredramon" }],
+          hand: [
+            { card: "BT20-045", as: "examonMatch" },
+            { card: "BT20-025", as: "wingdramon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 0 },
+    );
+    s.state.memory = 14;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("examonMatch").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("coredramon").topCard.cardId === "BT20-025");
+    expect(s.perm("coredramon").topCard.cardId).toBe("BT20-025");
+  });
+
   it("has Jamming and grants inherited +2000 DP only on its controller's turn", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT20-025", dp: 7000, as: "host", under: ["BT20-023"] }] },
