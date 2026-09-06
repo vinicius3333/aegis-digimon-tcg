@@ -469,6 +469,15 @@ interface EffectTimingDisable {
   continuous?: boolean;
 }
 
+interface PlayerEffectTimingDisable {
+  seat: Seat;
+  ownerSeat: Seat;
+  timings: DisableTimingMask[];
+  duration: EffectDuration;
+  matches: (permanentId: string) => boolean;
+  continuous?: boolean;
+}
+
 interface DnaLevelOverride {
   permanentId: string;
   level: number;
@@ -541,6 +550,7 @@ export class ContinuousEffectLedger {
   private playProhibitions: PlayProhibition[] = [];
   private securityEffectDisables: SecurityEffectDisable[] = [];
   private effectTimingDisables: EffectTimingDisable[] = [];
+  private playerEffectTimingDisables: PlayerEffectTimingDisable[] = [];
   private dnaLevelOverrides: DnaLevelOverride[] = [];
 
   /** Record a "can't <restriction>" rule on a permanent for a duration. */
@@ -912,12 +922,27 @@ export class ContinuousEffectLedger {
     this.effectTimingDisables.push({ permanentId, timings, duration, continuous: opts?.continuous });
   }
 
+  addPlayerEffectTimingDisable(
+    seat: Seat,
+    ownerSeat: Seat,
+    timings: DisableTimingMask[],
+    duration: EffectDuration,
+    matches: (permanentId: string) => boolean,
+    opts?: { continuous?: boolean },
+  ): void {
+    this.playerEffectTimingDisables.push({ seat, ownerSeat, timings, duration, matches, continuous: opts?.continuous });
+  }
+
   /**
    * Is `timing` masked on `permanentId` right now (so its effect at that window may not
    * activate)? Consulted by the per-effect activation gate; callers apply the `beAffected`
    */
   isTimingEffectDisabled(permanentId: string, timing: DisableTimingMask): boolean {
-    return this.effectTimingDisables.some((d) => d.permanentId === permanentId && d.timings.includes(timing));
+    if (this.effectTimingDisables.some((d) => d.permanentId === permanentId && d.timings.includes(timing))) return true;
+    const controllerSeat = this.anyControllerSeatOf?.(permanentId) ?? this.controllerSeatOf?.(permanentId);
+    return this.playerEffectTimingDisables.some(
+      (entry) => entry.seat === controllerSeat && entry.timings.includes(timing) && entry.matches(permanentId),
+    );
   }
 
   /** Record a name/trait alias on a permanent (e.g. "also treated as [Leomon]"). */
@@ -1547,6 +1572,9 @@ export class ContinuousEffectLedger {
     this.effectTimingDisables = this.effectTimingDisables.filter(
       (d) => !clearsAt(d.duration, boundary, ownerOf(d.permanentId), sweepSeat),
     );
+    this.playerEffectTimingDisables = this.playerEffectTimingDisables.filter(
+      (entry) => !clearsAt(entry.duration, boundary, entry.ownerSeat, sweepSeat),
+    );
     // UntilOpponentTurnEnd is framed from the GRANTER's seat (recorded as `ownerSeat`), so this
     // clears at the end of the granter's opponent's turn (RB1-030). Anchored on the instance, the
     // grant also lingers harmlessly in trash post-deletion until this boundary sweep removes it.
@@ -1590,6 +1618,7 @@ export class ContinuousEffectLedger {
     this.playProhibitions = this.playProhibitions.filter((p) => !p.continuous);
     this.securityEffectDisables = this.securityEffectDisables.filter((d) => !d.continuous);
     this.effectTimingDisables = this.effectTimingDisables.filter((d) => !d.continuous);
+    this.playerEffectTimingDisables = this.playerEffectTimingDisables.filter((d) => !d.continuous);
     this.dnaLevelOverrides = this.dnaLevelOverrides.filter((entry) => !entry.continuous);
   }
 
@@ -1625,6 +1654,7 @@ export class ContinuousEffectLedger {
     this.playProhibitions = [];
     this.securityEffectDisables = [];
     this.effectTimingDisables = [];
+    this.playerEffectTimingDisables = [];
     this.dnaLevelOverrides = [];
   }
 }

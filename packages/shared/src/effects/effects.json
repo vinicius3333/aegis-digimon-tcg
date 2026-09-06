@@ -66382,12 +66382,14 @@
           },
           {
             "kind": "DisableTimingEffect",
+            "whileMatchesTargetFilter": true,
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] }, "count": "all" },
             "timings": ["onPlay"],
             "duration": "untilOpponentTurnEnd"
           },
           {
             "kind": "Restrict",
+            "whileMatchesTargetFilter": true,
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] }, "count": "all" },
             "restriction": "unsuspend",
             "duration": "untilOpponentTurnEnd"

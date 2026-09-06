@@ -64,6 +64,7 @@ export const compiled: CompiledCard = {
         },
         {
           kind: "DisableTimingEffect",
+          whileMatchesTargetFilter: true,
           target: {
             filter: {
               controller: "opponent",
@@ -76,6 +77,7 @@ export const compiled: CompiledCard = {
         },
         {
           kind: "Restrict",
+          whileMatchesTargetFilter: true,
           target: {
             filter: {
               controller: "opponent",

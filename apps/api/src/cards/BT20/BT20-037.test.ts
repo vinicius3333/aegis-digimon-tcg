@@ -6,6 +6,8 @@ import { compiled } from "./BT20-037.js";
 import "./index.js";
 import "../ST1/ST1-15.js";
 import "./BT20-041.js";
+import "../BT16/BT16-036.js";
+import "../ST5/ST5-15.js";
 
 describe("BT20-037 Chaosmon: Valdur Arm", () => {
   it("scales suspension and memory by level 6 stack cards, then disables opponent On Play and unsuspend", () => {
@@ -109,6 +111,131 @@ describe("BT20-037 Chaosmon: Valdur Arm", () => {
     expect(s.perm("ally").isSuspended).toBe(false);
   });
 
+  it("keeps the selected opposing cards suspended through their turn, then expires the lock at turn end", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-035", as: "base", under: ["BT20-036"] }],
+          hand: [{ card: "BT20-037", as: "valdur" }],
+          deck: ["BT1-010", "BT1-010", "BT1-010"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT20-010", as: "opponentDigimon" },
+            { card: "BT20-011", as: "opponentDigimonTwo" },
+            { card: "BT20-085", as: "opponentTamer" },
+          ],
+          deck: ["BT1-010", "BT1-010", "BT1-010"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("opponentDigimon").permanentId, s.perm("opponentDigimonTwo").permanentId);
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("valdur").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        [s.perm("opponentDigimon"), s.perm("opponentDigimonTwo"), s.perm("opponentTamer")].filter(
+          (permanent) => permanent.isSuspended,
+        ).length === 2,
+    );
+    expect(observe(s.engine).isRestricted(s.perm("opponentDigimon"), "unsuspend")).toBe(true);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("opponentDigimon").isSuspended).toBe(true);
+    expect(s.perm("opponentDigimonTwo").isSuspended).toBe(true);
+    expect(s.perm("opponentTamer").isSuspended).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("opponentDigimon"), "unsuspend")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextOwnTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(observe(s.engine).isRestricted(s.perm("opponentDigimon"), "unsuspend")).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextOwnTurn;
+  });
+
+  it("publicly suppresses an opposing Digimon's On Play effect while the lock is active", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-035", as: "base", under: ["BT20-036"] }],
+          hand: [{ card: "BT20-037", as: "valdur" }],
+          deck: ["BT1-010", "BT1-010", "BT1-010"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT20-010", as: "target" },
+            { card: "BT20-085", as: "tamer" },
+          ],
+          hand: [{ card: "BT20-030", as: "played" }],
+          deck: ["BT1-010", { card: "BT20-031", as: "wouldReveal" }, "BT1-010", "BT1-010"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("valdur").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "unsuspend"));
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT20-030"));
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("wouldReveal").instanceId)).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+  });
+
+  it("publicly checks two security cards with Security Attack +1", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-037", as: "valdur" }] },
+        1: { security: ["BT1-010", "BT1-010"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("valdur").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.filter((event) => event.kind === "securityChecked").length === 2 && !observe(s.engine).isAttacking(),
+    );
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
   it("reaches Valdur Arm through a public level-6 evolution and rejects a lower-level base", async () => {
     const legal = setupEngine({
       0: { battleArea: [{ card: "BT20-035", as: "levelSix" }], hand: [{ card: "BT20-037", as: "valdur" }] },
@@ -140,6 +267,74 @@ describe("BT20-037 Chaosmon: Valdur Arm", () => {
       }).ok,
     ).toBe(false);
     expect(invalid.perm("levelFive").topCard.cardId).toBe("BT20-034");
+  });
+
+  it("reaches Valdur Arm from two legal level-6 cards after a public DNA and De-Digivolve sequence", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-035", as: "yellowSix" },
+            { card: "BT20-036", as: "blackSix" },
+          ],
+          hand: [
+            { card: "BT16-036", as: "dna" },
+            { card: "BT20-037", as: "valdur" },
+          ],
+          deck: ["BT1-010", "BT1-010", "BT1-010"],
+          security: ["BT1-010", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT20-046", dp: 10000, as: "blackSource" }],
+          hand: [{ card: "ST5-15", as: "deDigi" }],
+          deck: ["BT1-010", "BT1-010", "BT1-010"],
+          security: ["BT1-010", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT16-036"));
+    const dnaPermanent = s.state.players[0]!.battleArea.find((p) => p.topCard.cardId === "BT16-036")!;
+    expect(dnaPermanent.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT20-035", "BT20-036"]));
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("deDigi").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-035" || p.topCard.cardId === "BT20-036"),
+    );
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const finalOwnTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const exposed = s.state.players[0]!.battleArea.find((p) => ["BT20-035", "BT20-036"].includes(p.topCard.cardId))!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: exposed.permanentId,
+        instanceId: s.inst("valdur").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-037"));
+    expect(
+      s.state.players[0]!.battleArea.find((p) => p.topCard.cardId === "BT20-037")!.stack.map((card) => card.cardId),
+    ).toEqual(expect.arrayContaining(["BT20-035", "BT20-036"]));
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await finalOwnTurn;
   });
 
   it("Partitions its specified yellow and green/black level-6 sources after opponent-effect deletion", async () => {

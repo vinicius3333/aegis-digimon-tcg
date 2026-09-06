@@ -51,6 +51,8 @@ export interface DisableTimingEffectAction extends ActionBase {
   target: Target;
   timings: DisableTiming[];
   duration: EffectDurationRef;
+  /** Overall processing follows all matching current and future permanents for this duration. */
+  whileMatchesTargetFilter?: boolean;
 }
 
 /**

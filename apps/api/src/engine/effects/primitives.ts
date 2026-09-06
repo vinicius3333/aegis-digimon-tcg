@@ -713,6 +713,15 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   const disableTimingEffect: Primitives["disableTimingEffect"] = (permanentId, timings, duration) => {
     continuous.addEffectTimingDisable(permanentId, timings, durationForTarget(permanentId, duration), continuousOpt());
   };
+  const disableTimingEffectsForPlayer: NonNullable<Primitives["disableTimingEffectsForPlayer"]> = (
+    seat,
+    timings,
+    duration,
+    matches,
+  ) => {
+    const ownerSeat = effectSeatStack.at(-1) ?? engine.controllerSeat();
+    continuous.addPlayerEffectTimingDisable(seat, ownerSeat, timings, duration, matches, continuousOpt());
+  };
   const isTimingEffectDisabled: NonNullable<Primitives["isTimingEffectDisabled"]> = (permanentId, timing) =>
     continuous.isTimingEffectDisabled(permanentId, timing) && !continuous.hasRestriction(permanentId, "beAffected");
 
@@ -5652,6 +5661,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     disableSecurityEffect,
     disableSecurityEffectsForSeat,
     disableTimingEffect,
+    disableTimingEffectsForPlayer,
     isTimingEffectDisabled,
     declareWinner,
     setMemory,
