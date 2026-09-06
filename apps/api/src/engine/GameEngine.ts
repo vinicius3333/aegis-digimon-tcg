@@ -77,7 +77,7 @@ import {
 import {
   createPrimitives,
   ModifierLedger,
-  dnaDigivolveCostFor,
+  matchingDnaDigivolveCost,
   rootZoneOfLooseInstance,
 } from "./effects/primitives.js";
 import {
@@ -87,6 +87,7 @@ import {
   effectiveNames,
   effectiveTraits,
 } from "./effects/continuous.js";
+import { blastDnaChoices } from "./actions/blastDnaDigivolve.js";
 import { linkMax } from "./effects/mindLink.js";
 import { SubTriggerRegistry, type SubTriggerSubscription, type SubTriggerTurnLedger } from "./effects/subtriggers.js";
 import { consultLeavePrevention } from "./effects/leavePrevention.js";
@@ -440,6 +441,7 @@ export class GameEngine {
   private activeWindowToken: number | undefined = undefined;
   /** Async Main verbs accepted by the server but not yet fully resolved. */
   private mainVerbContinuationsInFlight = 0;
+  private counterResolutionInFlight = false;
   /** Nesting guard that defers state-based actions until a used Option finishes routing. */
   private optionResolutionDepth = 0;
   /** Nesting guard that keeps rule checks outside an effect body's atomic resolution. */
@@ -6133,6 +6135,49 @@ export class GameEngine {
    * sibling combat-decision verbs in combatDecisions.ts don't run it either).
    */
   private handleRespondCounter(seat: Seat, intent: RespondCounterIntent): IntentResult {
+    // Counter processing must finish before another response can pass or activate in this window.
+    if (this.counterResolutionInFlight) return { ok: false, reason: "decision-pending" };
+    if (intent.sourceInstanceId !== undefined && intent.effectKey?.startsWith("blast-dna-digivolve:") === true) {
+      if (!this.combat.hasOpenCounterWindow) return { ok: false, reason: "wrong-phase" };
+      if (this.combat.counterWindowSeat !== seat) return { ok: false, reason: "not-your-turn" };
+      if (this.combat.counterActivationsRemaining <= 0) return { ok: false, reason: "illegal-target" };
+      if (this.state.pendingDecision !== undefined) return { ok: false, reason: "decision-pending" };
+      // Recompute against live zones, names and restrictions before consuming either material.
+      const choice = this.blastDnaCounterChoices(seat).find(
+        (entry) => entry.instanceId === intent.sourceInstanceId && entry.effectKey === intent.effectKey,
+      );
+      if (choice === undefined) return { ok: false, reason: "illegal-target" };
+      this.counterResolutionInFlight = true;
+      void this.primitives
+        .dnaDigivolveInto([choice.materialPermanentId], choice.instanceId, {
+          payCost: false,
+          extraMaterialInstanceIds: [choice.handMaterialInstanceId],
+          extraMaterialsOnBottom: choice.extraMaterialsOnBottom,
+        })
+        .then((result) => {
+          if (result === undefined) throw new Error("invalid-evolution");
+          this.combat.resolveCounterActivated(seat);
+          this.hooks.emit({
+            kind: "effectActivated",
+            seat,
+            sourceCardId: result.topCard!.cardId,
+            effectKey: choice.effectKey,
+            description: choice.description,
+          });
+        })
+        .catch((err) => {
+          logError("[engine] Blast DNA Digivolve apply failed:", err);
+          this.hooks.emit({
+            kind: "actionRejected",
+            intent: "respondCounter",
+            reason: err instanceof Error ? err.message : "blast-dna-digivolve-apply-error",
+          });
+        })
+        .finally(() => {
+          this.counterResolutionInFlight = false;
+        });
+      return { ok: true };
+    }
     if (intent.sourceInstanceId !== undefined && intent.effectKey?.startsWith("blast-digivolve:") === true) {
       if (!this.combat.hasOpenCounterWindow) return { ok: false, reason: "wrong-phase" };
       if (this.combat.counterWindowSeat !== seat) return { ok: false, reason: "not-your-turn" };
@@ -6149,6 +6194,7 @@ export class GameEngine {
         useBlastDigivolve: true,
       };
       const digivolveDeps = this.digivolveDeps();
+      this.counterResolutionInFlight = true;
       void applyDigivolve(this.state, seat, blastIntent, digivolveDeps)
         .then((outcome) => {
           if (!outcome.ok) throw new Error(outcome.reason);
@@ -6168,6 +6214,9 @@ export class GameEngine {
             intent: "respondCounter",
             reason: err instanceof Error ? err.message : "blast-digivolve-apply-error",
           });
+        })
+        .finally(() => {
+          this.counterResolutionInFlight = false;
         });
       return { ok: true };
     }
@@ -6176,6 +6225,7 @@ export class GameEngine {
     if (!check.ok) {
       return { ok: false, reason: check.reason };
     }
+    this.counterResolutionInFlight = true;
     void applyRespondCounter(seat, intent, deps)
       .then((outcome) => {
         if (outcome.ok && !outcome.outcome.pass) {
@@ -6195,6 +6245,9 @@ export class GameEngine {
           intent: "respondCounter",
           reason: err instanceof Error ? err.message : "respond-counter-apply-error",
         });
+      })
+      .finally(() => {
+        this.counterResolutionInFlight = false;
       });
     return { ok: true };
   }
@@ -6256,6 +6309,7 @@ export class GameEngine {
         }
       }
     }
+    entries.push(...this.blastDnaCounterChoices(seat));
     const blastDeps = { ...this.digivolveDeps(), blastWindowAllowed: () => true };
     for (const instance of player.hand) {
       if (!hasBlastDigivolveKeyword(instance.cardId)) continue;
@@ -6275,6 +6329,14 @@ export class GameEngine {
       }
     }
     return entries;
+  }
+
+  private blastDnaCounterChoices(seat: Seat) {
+    const deps = this.dnaDigivolveDeps();
+    return blastDnaChoices(this.state, seat, {
+      names: (permanent, definition) => effectiveNames(this.continuous, permanent, definition.nameEn),
+      restricted: (permanent, definition) => deps.materialsRestricted?.(this.state, [permanent], definition) === true,
+    });
   }
 
   /** Dependencies the activateEffect verb needs (subsystem: intent-protocol-and-room). */
@@ -6621,18 +6683,12 @@ export class GameEngine {
     return { ok: true };
   }
 
-  /**
-   * Dependencies the dnaDigivolve verb needs (subsystem: dna-digivolve; §8-2). The memory
-   * gauge is the same seam digivolve/link use; `matchingCost` binds `dnaDigivolveCostFor`
-   * (effects/primitives.ts) so this verb's cost-matching can never drift from the
-   * `dnaDigivolveInto` primitive's own; `costWaived` reads the same ＜Blast Digivolve＞/
-   * ＜Blast DNA Digivolve＞ compiled-IR registry `digivolveDeps` uses (§16-26/§16-31).
-   */
+  /** Main DNA requires printed DNA requirements; effect-driven DNA keeps its separate cost rules. */
   private dnaDigivolveDeps(): DnaDigivolveDeps {
     const mem = memoryDepsFromGauge(this.memory);
     return {
       maxAffordable: mem.maxAffordable,
-      matchingCost: (definition, materials) => dnaDigivolveCostFor(definition, materials),
+      matchingCost: (definition, materials) => matchingDnaDigivolveCost(definition, materials),
       effectiveMaterialDefinitions: (_state, materials, definition) =>
         materials.map((material) => {
           const printed = lookupDefinition(material.topCard!.cardId)!;
@@ -6688,7 +6744,6 @@ export class GameEngine {
           materials,
         );
       },
-      costWaived: (_state, instance) => hasBlastDigivolveKeyword(instance.cardId),
       materialsRestricted: (_state, materials, definition) =>
         materials.some(
           (material) =>

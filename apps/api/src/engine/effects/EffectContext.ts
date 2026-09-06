@@ -776,7 +776,7 @@ export interface Primitives {
   dnaDigivolveInto(
     materialPermanentIds: string[],
     resultInstanceId: string,
-    opts?: { payCost?: boolean; extraMaterialInstanceIds?: string[] },
+    opts?: { payCost?: boolean; extraMaterialInstanceIds?: string[]; extraMaterialsOnBottom?: boolean },
   ): Promise<Permanent | undefined>;
   /**
    * App Fusion: play the fusion-target card `resultInstanceId` (a loose card in trash/hand)

@@ -1437,7 +1437,12 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   const dnaDigivolveInto = async (
     materialPermanentIds: string[],
     resultInstanceId: string,
-    opts?: { payCost?: boolean; extraMaterialInstanceIds?: string[]; costOverride?: number },
+    opts?: {
+      payCost?: boolean;
+      extraMaterialInstanceIds?: string[];
+      extraMaterialsOnBottom?: boolean;
+      costOverride?: number;
+    },
   ): Promise<Permanent | undefined> => {
     const materials = materialPermanentIds
       .map((id) => access.permanentById(id))
@@ -1534,12 +1539,20 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       if (idx >= 0) extractPermanentAt(owner, idx);
       dropPermanentLedgers(mat.permanentId);
     }
+    const extraStackCards: CardInstance[] = [];
     for (const id of extraMaterialIds) {
       const extra = removeLooseInstance(state, id);
       if (extra !== undefined) {
         extra.faceUp = true;
-        stackCards.push(extra);
+        extraStackCards.push(extra);
       }
+    }
+    if (opts?.extraMaterialsOnBottom) {
+      stackCards.unshift(...extraStackCards);
+      sourceCardIds.unshift(...extraStackCards.map((card) => card.cardId));
+    } else {
+      stackCards.push(...extraStackCards);
+      sourceCardIds.push(...extraStackCards.map((card) => card.cardId));
     }
     // <Overflow> (CR §4-18): each material's linked cards just left the field for trash — a
     // genuine leave. The materials' own stack/top cards are NOT included here: they become
@@ -6092,7 +6105,7 @@ export function dnaDigivolveCostFor(evolving: CardDefinition, materials: CardDef
   return best;
 }
 
-function matchingDnaDigivolveCost(evolving: CardDefinition, materials: CardDefinition[]): number | undefined {
+export function matchingDnaDigivolveCost(evolving: CardDefinition, materials: CardDefinition[]): number | undefined {
   const requirements = dnaDigivolutionRequirementsFor(evolving.cardId);
   let best: number | undefined;
   for (const req of requirements) {

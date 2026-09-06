@@ -52,6 +52,7 @@ export {
   allowsDigiXrosMaterialsFromTrash,
   allowsExtraDigiXrosMaterials,
   hasBlastDigivolveKeyword,
+  hasBlastDnaDigivolveKeyword,
 } from "./interpreter/registration/keywords.js";
 export { irCardModule, registerIrCard } from "./interpreter/registration/module.js";
 export {

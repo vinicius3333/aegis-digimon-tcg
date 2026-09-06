@@ -1,0 +1,41 @@
+{
+  "cardId": "BT20-045",
+  "status": "awaiting-lead-review",
+  "scores": {
+    "catalogRules": 2,
+    "irTrace": 2,
+    "behavioralProof": 2,
+    "peerStackProof": 1,
+    "deliveryGates": 0
+  },
+  "evidence": [
+    "apps/api/src/cards/BT20/BT20-045.ts",
+    "apps/api/src/cards/BT20/BT20-045.test.ts",
+    "internal-docs/audits/BT20/revalidation/BT20-045.md",
+    "blast-dna-resolution.md",
+    "blast-dna-affected-suites.log"
+  ],
+  "commands": [
+    {
+      "command": "node tools/kb/query.mjs card BT20-045",
+      "result": "Q4314, Q4359, Q4368 retrieved"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-045.test.ts --maxWorkers=1 --no-file-parallelism",
+      "result": "pending lead execution"
+    },
+    {
+      "command": "git diff --check",
+      "result": "pending lead validation"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/blastDnaCounter.test.ts src/engine/dnaDigivolve.test.ts src/engine/conformance/ch16c-deletion-and-advanced-keywords.test.ts src/cards/BT20/BT20-011.test.ts src/cards/BT20/BT20-012.test.ts src/cards/BT20/BT20-013.test.ts src/cards/BT20/BT20-045.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+      "result": "70/70 passed; 11 card tests"
+    }
+  ],
+  "gaps": [
+    "Full lead clause/stack review and final collection gates pending.",
+    "Complete card-specific Overflow origin/leave evidence and mutation sensitivity review pending."
+  ],
+  "reviewStatus": "Corrected Counter fixtures executed by lead; complete clause and collection acceptance remains pending."
+}
