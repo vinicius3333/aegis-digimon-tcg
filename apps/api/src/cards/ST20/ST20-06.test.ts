@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { advance } from "../../engine/testkit/advance.js";
-import "./ST20-06.js";
+import "../index.js";
 
 describe("ST20-06 Angewomon", () => {
   it.each([
@@ -16,9 +16,9 @@ describe("ST20-06 Angewomon", () => {
           0: {
             battleArea: [{ card: "ST20-06", as: "source" }],
             hand: [{ card: cardId, as: "played" }],
-            deck: ["BT1-001", "BT1-002"],
+            deck: ["ST1-02", "ST2-02"],
           },
-          1: { security: ["BT1-001"], deck: ["BT1-001", "BT1-002"] },
+          1: { security: ["BT1-001"], deck: ["ST1-02", "ST2-02"] },
         },
         { autoDeclineOptional: true, autoSelectCards: true },
       );
@@ -50,7 +50,7 @@ describe("ST20-06 Angewomon", () => {
             { card: "ST20-07", as: "base" },
           ],
           hand: [{ card: "ST20-08", as: "next" }],
-          deck: ["BT1-001", "BT1-002"],
+          deck: ["ST1-02", "ST2-02"],
         },
         1: { security: ["BT1-001"] },
       },
@@ -84,7 +84,7 @@ describe("ST20-06 Angewomon", () => {
             { card: "BT1-009", as: "ally" },
           ],
         },
-        1: { security: ["ST1-11", "ST1-11"], deck: ["BT1-001", "BT1-002"] },
+        1: { security: ["ST1-11", "ST1-11"], deck: ["ST1-02", "ST2-02"] },
       },
       { autoSelectCards: true },
     );

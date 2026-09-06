@@ -2,7 +2,7 @@ import { Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./ST20-10.js";
+import "../index.js";
 
 const DECK = Array.from({ length: 8 }, () => "BT1-010");
 
@@ -38,7 +38,7 @@ describe("ST20-10 Agumon", () => {
           hand: [{ card: "ST20-11", as: "wargreymon" }],
           deck: DECK,
         },
-        1: { battleArea: [{ card: "ST20-11" }], deck: DECK },
+        1: { battleArea: [{ card: "ST2-10" }], deck: DECK },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

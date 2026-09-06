@@ -41,4 +41,4 @@ Validation, with `--pool=forks --maxWorkers=1 --no-file-parallelism`:
 All 15 cards have reviewed 10/10 evidence. This collection checkpoint does not
 complete the overall 343-card starter audit.
 
-Final combined-run correction: ST20-06/09 now await the completed play action before starting a real turn; ST20-10 awaits its completed activation before checking payment. This removes early observations of top-card mutation before memory payment and unfinished actions at turn start. Full ST9/ST20 regression passed 33 files / 132 tests; ST20 remains 16 files / 90 tests.
+Final combined-run diagnosis: the three focused files now import the complete card registry. BT1-010's actual On Play reveal routed the fixture's illegally main-decked Digi-Eggs into the egg deck, leaving a Breeding decision open. The main decks now contain ordinary Digimon. ST20-10's former opponent ST20-11 was an ACE: evolution paid 4 correctly, then deleting that opponent returned 4 through Overflow. A neutral printed 12000-DP ST2-10 now isolates the evolution payment. The tests also await completed actions before turn and memory assertions. ST20 remains 16 files / 90 cases.
