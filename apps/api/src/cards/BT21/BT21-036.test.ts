@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-036.js";
@@ -122,6 +123,10 @@ describe("BT21-036 compiled implementation", () => {
     expect(s.perm("veemon").isSuspended).toBe(false);
     expect(s.perm("target").currentDP).toBe(6000);
     expect(s.perm("other").currentDP).toBe(9000);
+    s.give(0, "deck", "BT1-001");
+    s.give(1, "deck", "BT1-002");
+    await advance(s.engine).runTurn(0);
+    expect(s.perm("target").currentDP).toBe(10000);
   });
 
   it("does not reduce DP when no Armor Form card is in trash", async () => {
