@@ -169,4 +169,34 @@ describe("BT21-071 Scopemon", () => {
     await settle(() => s.perm("shotmon").topCard.instanceId === s.inst("scopemon").instanceId);
     expect(s.state.memory).toBe(1);
   });
+
+  it("resolves the placement-and-memory branch from a public alternate evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-054", as: "shotmon" }],
+          hand: [
+            { card: "BT21-071", as: "scopemon" },
+            { card: "BT21-041", as: "appmon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("shotmon").permanentId,
+        instanceId: s.inst("scopemon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("shotmon").topCard.cardId === "BT21-071");
+
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("shotmon").stack.some((card) => card.instanceId === s.inst("appmon").instanceId)).toBe(true);
+  });
 });
