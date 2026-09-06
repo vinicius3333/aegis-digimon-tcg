@@ -149,6 +149,53 @@ describe("BT20-053 Grademon", () => {
     expect(observe(s.engine).isRestrictedByEffect(s.perm("ally"), "beAffected", "Digimon")).toBe(true);
   });
 
+  it("naturally digivolves during an attack, grants +5000, and survives an opponent Digimon effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-012", as: "host", under: ["BT20-010"] }],
+          hand: [{ card: "BT20-053", as: "grademon" }],
+        },
+        1: {
+          battleArea: [{ card: "BT20-010", suspended: true, as: "target" }],
+          hand: [{ card: "BT20-033", as: "loader" }],
+          security: ["BT20-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("host").topCard.cardId === "BT20-053" &&
+        s.events.some((event) => event.kind === "securityChecked") &&
+        !observe(s.engine).isAttacking(),
+    );
+    const buffedDP = s.perm("host").currentDP;
+    // Printed 7000, two Your Turn inherited +2000 grants, and the attack-time +5000.
+    expect(buffedDP).toBe(16000);
+    expect(s.state.memory).toBe(7);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("host"), "beAffected", "Digimon")).toBe(true);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    const beforeLoaderDP = s.perm("host").currentDP;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("loader").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(s.perm("host").currentDP).toBe(beforeLoaderDP);
+  });
+
   it("redirects only the first of two opposing attacks to its inherited host", async () => {
     const s = setupEngine(
       {
