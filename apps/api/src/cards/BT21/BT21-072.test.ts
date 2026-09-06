@@ -65,17 +65,29 @@ describe("BT21-072 Arresterdramon Superior Mode", () => {
   it("Q4580 attacks while already suspended without suspending again", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT21-072", as: "superior", suspended: true }] },
+        0: {
+          battleArea: [{ card: "BT21-066", as: "base", suspended: true }],
+          hand: [{ card: "BT21-072", as: "superior" }],
+        },
         1: { security: [{ card: "BT1-009", as: "security" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 4;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("superior"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("superior").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
 
-    expect(s.perm("superior").isSuspended).toBe(true);
+    expect(s.perm("base").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(1);
   });
 
   it("declining the optional evolution attack leaves security untouched", async () => {
@@ -128,5 +140,23 @@ describe("BT21-072 Arresterdramon Superior Mode", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === s.inst("superior").instanceId);
     expect(s.state.memory).toBe(1);
+  });
+
+  it("proves inherited +2000 DP on a legal Lv4-to-Lv5 evolution stack", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-066", as: "base" }], hand: [{ card: "BT21-072", as: "superior" }] },
+    });
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("superior").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT21-072");
+    expect(s.perm("base").currentDP).toBe(13000);
   });
 });
