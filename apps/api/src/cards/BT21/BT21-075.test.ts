@@ -70,6 +70,36 @@ describe("BT21-075 SkullGreymon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("skullgreymon"), "Raid")).toBe(false);
   });
 
+  it("naturally uses granted Raid to redirect a public player attack", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT2-075", as: "target" }], hand: [{ card: "BT21-075", as: "skull" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 3000 }], security: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    const victimId = s.perm("victim").permanentId;
+    preferred.push(s.perm("target").permanentId);
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("skull").instanceId })).toEqual({ ok: true });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("target"), "Raid"));
+    // The public play grants Raid; this test then uses the established Digimon in the
+    // same production turn to isolate Raid's redirection behavior from summoning sickness.
+    expect(observe(s.engine).hasKeyword(s.perm("target"), "Raid")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("target").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === victimId));
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === victimId)).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
   it("plays an ADVENTURE Tamer at the play-cost-4 boundary", async () => {
     const s = setupEngine(
       {
@@ -108,15 +138,37 @@ describe("BT21-075 SkullGreymon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT21-076", as: "host", under: [{ card: "BT21-075", as: "source" }] }],
+          battleArea: [{ card: "BT21-057", as: "base" }],
+          hand: [
+            { card: "BT21-075", as: "source" },
+            { card: "ST6-13", as: "host" },
+          ],
           trash: [{ card: "BT21-057", as: "adventure" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
 
-    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT21-075");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("host").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "ST6-13");
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("base").permanentId], "byEffect")).toBe(1);
     await settle(() =>
       s.state.players[0]!.battleArea.some((card) => card.topCard.instanceId === s.inst("adventure").instanceId),
     );
