@@ -75,6 +75,15 @@ describe("BT21-037 compiled implementation", () => {
     expect(s.perm("veemon").stack.map((card) => card.cardId)).toEqual(["BT21-002", "BT21-032"]);
     expect(s.perm("target").isSuspended).toBe(true);
     expect(s.perm("veemon").currentDP).toBe(10000);
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
+    expect(s.perm("veemon").currentDP).toBe(8000);
+    s.give(1, "deck", "BT1-001");
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("veemon").currentDP).toBe(6000);
+    s.state.turnSeat = 0;
+    await advance(s.engine).recompute();
+    expect(s.perm("veemon").currentDP).toBe(8000);
   });
 
   it("suspends exactly one opponent and gives itself +2000 DP", async () => {
