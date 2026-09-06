@@ -66,12 +66,15 @@ describe("BT21-020 Aldamon", () => {
     ["BurningGreymon", "BT21-014", 3],
     ["no matching source", "BT21-019", 4],
   ])("pays the correct cost with %s in its evolution cards", async (_label, source, expectedCost) => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT21-014", as: "level4", under: [source] }],
-        hand: [{ card: "BT21-020", as: "aldamon" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-014", as: "level4", under: [source] }],
+          hand: [{ card: "BT21-020", as: "aldamon" }],
+        },
       },
-    });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 6;
     await s.ready();
     expect(
@@ -109,7 +112,7 @@ describe("BT21-020 Aldamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT21-021", as: "host", under: ["BT21-020"] }],
+          battleArea: [{ card: "BT1-025", as: "host", under: ["BT21-020"] }],
           trash: [{ card: "BT21-082", as: "takuya" }],
         },
       },
@@ -119,5 +122,70 @@ describe("BT21-020 Aldamon", () => {
     await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-082"));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-082")).toBe(true);
+  });
+
+  it("performs two security checks with Security Attack +1", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-020", as: "aldamon" }] },
+      1: { security: ["BT1-001", "BT1-002", "BT1-003"] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("aldamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("plays its deletion Tamer from a real battle deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-020", as: "aldamon", suspended: true }],
+          hand: [{ card: "BT21-082", as: "tamer" }],
+        },
+        1: { battleArea: [{ card: "BT21-062", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("aldamon").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-082"));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-082")).toBe(true);
+  });
+
+  it("fires inherited deletion from a legal level-6 host after battle deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-025", as: "host", suspended: true, under: ["BT21-020"] }],
+          hand: [{ card: "BT21-082", as: "tamer" }],
+        },
+        1: { battleArea: [{ card: "BT21-062", as: "attacker", dp: 16000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("host").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-082"));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-082")).toBe(true);
   });
 });
