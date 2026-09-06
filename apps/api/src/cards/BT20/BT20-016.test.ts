@@ -56,7 +56,7 @@ describe("BT20-016 Paildramon", () => {
           battleArea: [{ card: "BT20-010", dp: 1000, as: "ally" }],
           hand: [{ card: "BT20-016", as: "paildramon" }],
         },
-        1: { security: ["BT20-001"] },
+        1: { security: ["BT1-010"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
@@ -71,26 +71,27 @@ describe("BT20-016 Paildramon", () => {
     expect(paildramon.isSuspended).toBe(false);
   });
 
-  it("resolves the same buff and deletion boundary on public digivolution", async () => {
+  it("publicly evolves, buffs itself, Pierces in its optional attack, and expires both grants at turn end", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT20-011", as: "base" }],
-          hand: [
-            { card: "BT20-016", as: "paildramon" },
-            { card: "BT20-010", as: "ally" },
-          ],
+          hand: [{ card: "BT20-016", as: "paildramon" }, "BT1-010"],
+          deck: ["BT1-010", "BT1-010", "BT1-010"],
         },
         1: {
-          battleArea: [
-            { card: "BT20-010", dp: 3000, as: "low" },
-            { card: "BT20-012", dp: 3001, as: "high" },
-          ],
+          battleArea: [{ card: "BT20-010", dp: 5000, suspended: true, as: "target" }],
+          security: ["BT1-010", "BT1-010"],
         },
       },
-      { autoDeclineOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    const targetId = s.perm("target").permanentId;
+    preferred.push(s.perm("base").permanentId, targetId);
     s.state.memory = 4;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -98,10 +99,17 @@ describe("BT20-016 Paildramon", () => {
         instanceId: s.inst("paildramon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-010"));
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-012")).toBe(true);
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
     expect(s.perm("base").topCard.cardId).toBe("BT20-016");
+    expect(s.perm("base").currentDP).toBe(14000);
+    expect(observe(s.engine).hasPierce(s.perm("base"))).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.memory).toBe(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    expect(s.perm("base").currentDP).toBe(10000);
+    expect(observe(s.engine).hasPierce(s.perm("base"))).toBe(false);
   });
 
   it("provides inherited Security Attack +1 from a realistic evolution stack", async () => {
@@ -115,9 +123,9 @@ describe("BT20-016 Paildramon", () => {
       const s = setupEngine({
         0: {
           battleArea: [{ card: "BT20-020", as: "host", ...(under ? { under: ["BT20-016"] } : {}) }],
-          security: ["BT1-001"],
+          security: ["BT1-010"],
         },
-        1: { security: ["BT1-002", "BT1-003", "BT1-004"] },
+        1: { security: ["BT1-010", "BT1-010", "BT1-010"] },
       });
       s.state.turnSeat = 0;
       await s.ready();
@@ -169,9 +177,9 @@ describe("BT20-016 Paildramon", () => {
             { card: "BT20-074", as: "dinobeemon", under: ["BT20-072"] },
           ],
           hand: [{ card: "BT20-076", as: "dragonMode" }],
-          deck: ["BT20-001"],
+          deck: ["BT1-010"],
         },
-        1: { battleArea: [{ card: "BT20-012", dp: 10000, as: "attacker" }], security: ["BT20-001"] },
+        1: { battleArea: [{ card: "BT20-012", dp: 10000, as: "attacker" }], security: ["BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -206,7 +214,7 @@ describe("BT20-016 Paildramon", () => {
           ],
           hand: [{ card: "BT20-076", as: "dragonMode" }],
         },
-        1: { battleArea: [{ card: "BT20-012", dp: 10000, as: "attacker" }], security: ["BT20-001"] },
+        1: { battleArea: [{ card: "BT20-012", dp: 10000, as: "attacker" }], security: ["BT1-010"] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
@@ -220,6 +228,7 @@ describe("BT20-016 Paildramon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-016"));
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT20-016")).toBe(true);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("dragonMode").instanceId);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-074")).toBe(true);
   });
@@ -234,9 +243,9 @@ describe("BT20-016 Paildramon", () => {
           ],
           hand: [{ card: "BT20-045", as: "wrongResult" }],
         },
-        1: { battleArea: [{ card: "BT20-012", dp: 10000, as: "attacker" }], security: ["BT20-001"] },
+        1: { battleArea: [{ card: "BT20-012", dp: 10000, as: "attacker" }], security: ["BT1-010"] },
       },
-      { autoDeclineOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.turnSeat = 1;
     await s.ready();
@@ -248,6 +257,7 @@ describe("BT20-016 Paildramon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-016"));
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT20-016")).toBe(true);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("wrongResult").instanceId);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-074")).toBe(true);
   });
