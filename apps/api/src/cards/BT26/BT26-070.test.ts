@@ -223,10 +223,10 @@ describe("BT26-070 bottom face-down Tamer cost", () => {
   it("executes inherited Retaliation after losing a battle", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-075", as: "host", under: [CARD_ID] }] },
+        0: { battleArea: [{ card: "BT26-038", as: "host", under: [CARD_ID] }] },
         1: { battleArea: [{ card: "BT26-060", as: "defender", suspended: true }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoDeclineOptional: true, autoSelectCards: true },
     );
     const defenderId = s.perm("defender").permanentId;
     await s.ready();
@@ -238,10 +238,55 @@ describe("BT26-070 bottom face-down Tamer cost", () => {
         target: { kind: "permanent", permanentId: defenderId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.length === 0);
+    await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.players[1]!.battleArea.length === 0);
 
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(defenderId);
   });
+
+  it.each(["ascension-first", "retaliation-first"] as const)(
+    "respects BT26-075 Ascension ordering when inherited Retaliation is pending (%s)",
+    async (orderChoice) => {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT26-075", as: "host", under: [CARD_ID] }] },
+          1: { battleArea: [{ card: "BT26-060", as: "defender", suspended: true }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+      );
+      const defenderId = s.perm("defender").permanentId;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("host").permanentId,
+          target: { kind: "permanent", permanentId: defenderId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+      const pending = s.state.pendingDecision!;
+      const keys = (JSON.parse(pending.payloadJson) as { triggerKeys?: string[] }).triggerKeys ?? [];
+      const chosen =
+        orderChoice === "ascension-first"
+          ? keys.find((key) => key.startsWith("ascension/"))
+          : keys.find((key) => key.startsWith("on-deletion/"));
+      expect(chosen).toBeDefined();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: pending.decisionId,
+          response: { kind: "orderTriggers", order: [chosen!] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision === undefined && !observe(s.engine).isAttacking());
+
+      if (orderChoice === "ascension-first") {
+        expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).toContain("BT26-075");
+        expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(defenderId);
+      } else {
+        expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(defenderId);
+      }
+    },
+  );
 
   it("draws first, then mandates exactly 1 hand discard at both printed timings", async () => {
     for (const timing of [EffectTiming.OnPlay, EffectTiming.WhenDigivolving]) {
