@@ -1,6 +1,6 @@
 {
   "cardId": "BT20-095",
-  "status": "ready-for-coordinator-verification",
+  "status": "awaiting-lead-acceptance",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
@@ -9,11 +9,20 @@
     "deliveryGates": 0
   },
   "evidence": [
-    "BT20-095.test.ts: public reveal/add and self placement",
-    "BT20-095.test.ts: Delay breeding target and Chronicle restriction",
-    "current-collection-green-results.json"
+    "All Turns Delay now reacts immediately to an own Chronicle deletion. It consumes the Option, pays targeted breeding movement and evolves that same moved Digimon from hand/trash without memory cost.",
+    "The errata removes the Chronicle restriction from the moving level-3+ source. Public non-Chronicle BT1-009 -> Chronicle Ginryumon evolution proves it; non-Chronicle deletion and egg-base controls exclude activation.",
+    "Feasible Delay refusal leaves the Option, breeding source and destination unchanged. Security acceptance/refusal and mandatory Option placement are integrated.",
+    "Shared targeted movement-cost support and preflight binding are covered with another allied field Digimon still present; reverting only the shared changes fails the intended evolution assertion.",
+    "collection-after-reactive-delay-results.json",
+    "reactive-movement-gates.json"
   ],
-  "commands": [
+  "gaps": [
+    "Main remainder top/bottom choice and complete Security cost-5 boundary/zone comparison review remain pending.",
+    "Final independent acceptance and runtime sensitivity remain pending.",
+    "Atomic pushed delivery and final independent acceptance pending."
+  ],
+  "reviewStatus": "Current lead corrections supersede historical report prose; this card is not accepted at10/10.",
+  "historicalCommands": [
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-095.test.ts --maxWorkers=1 --no-file-parallelism",
       "result": "not run by worker"
@@ -23,8 +32,22 @@
       "result": "PASS: 3 cases for BT20-095;734 total tests. See current-collection-green-results.json."
     }
   ],
-  "gaps": [
-    "Coordinator gates pending"
-  ],
-  "reviewStatus": "Full collection execution passed at this draft checkpoint. Strict clause acceptance, sensitivity and final delivery review remain pending; provisional scores do not count in the ledger."
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+      "result": "10 cases passed for BT20-095; 836 total passed, zero failed."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "Passed shared/API/web; reactive-movement-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "All102 synchronized; see reactive-movement-gates.json for the temporary watchdog adjustment and restored script."
+    },
+    {
+      "command": "Commands in reactive-movement-gates.json",
+      "result": "552 affected mechanism cases and changed-file lint/format passed without warnings."
+    }
+  ]
 }

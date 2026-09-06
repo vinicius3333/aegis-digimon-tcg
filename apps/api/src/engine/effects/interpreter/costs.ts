@@ -139,6 +139,9 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     return required > 0 && candidates.length >= required;
   }
   if (cost.kind === "moveToBattleArea") {
+    if (cost.target !== undefined) {
+      return candidatePermanents(ctx, cost.target).some((permanent) => permanent.inBreeding);
+    }
     const self = ctx.source.permanent();
     return self !== undefined && self.inBreeding && ctx.game.player(ctx.source.ownerSeat).battleArea.length === 0;
   }
@@ -494,6 +497,20 @@ export async function payCost(
   }
   switch (cost.kind) {
     case "moveToBattleArea": {
+      if (cost.target !== undefined) {
+        const ids = await resolvePermanentTargets(ctx, cost.target, {
+          eligible: (id) => ctx.game.permanentById(id)?.inBreeding === true,
+        });
+        if (ids.length !== 1) return false;
+        const id = ids[0]!;
+        if (!(await ctx.fx.movePermanentZone(id, "toBattle"))) return false;
+        if (cost.target.bindAs !== undefined) {
+          ctx.selections ??= new Map();
+          ctx.selections.set(cost.target.bindAs, id);
+        }
+        if (out) out.paidCount = 1;
+        return true;
+      }
       const self = ctx.source.permanent();
       return self !== undefined && (await ctx.fx.movePermanentZone(self.permanentId, "toBattle"));
     }
