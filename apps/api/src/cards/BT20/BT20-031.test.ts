@@ -39,6 +39,7 @@ describe("BT20-031 Liamon", () => {
       ok: true,
     });
     await settle(() => played.perm("target").currentDP === 3000);
+    expect(played.perm("target").currentDP).toBe(3000);
 
     const evolved = setupEngine(
       {
@@ -60,6 +61,7 @@ describe("BT20-031 Liamon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => evolved.perm("target").currentDP === 3000);
+    expect(evolved.perm("target").currentDP).toBe(3000);
     expect(evolved.state.memory).toBe(8);
   });
 
@@ -67,7 +69,7 @@ describe("BT20-031 Liamon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT20-032", as: "host", under: ["BT20-031"] },
+          { card: "BT20-033", as: "host", under: ["BT20-031"] },
           { card: "BT20-031", as: "top" },
         ],
       },
