@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-066.js";
+import "../BT6/BT6-108.js";
 import "./index.js";
 
 describe("BT20-066 Stingmon", () => {
@@ -132,5 +133,47 @@ describe("BT20-066 Stingmon", () => {
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Retaliation")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("standalone"), "Retaliation")).toBe(false);
+  });
+
+  it("does not DNA evolve when Underworld's Call plays Stingmon from security on the opponent's turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT6-108", as: "underworld" }, "BT1-009"],
+          trash: [{ card: "BT20-066", as: "stingmon" }],
+          battleArea: [
+            { card: "BT20-074", as: "dinobeemon" },
+            { card: "BT20-016", as: "paildramon" },
+          ],
+          hand: [{ card: "BT20-076", as: "imperialdramon" }],
+          deck: ["BT20-010", "BT20-010"],
+        },
+        1: { battleArea: [{ card: "BT20-076", as: "attacker", dp: 15000 }], deck: ["BT20-010", "BT20-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.security[0]?.cardId === "BT1-009" &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-066"),
+    );
+
+    const stingmon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT20-066");
+    expect(stingmon).toBeDefined();
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("imperialdramon").instanceId);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(
+      expect.arrayContaining(["BT20-074", "BT20-016"]),
+    );
+    expect(s.state.players[0]!.security[0]!.faceUp).toBe(false);
+    expect(s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT20-076")).toBe(false);
   });
 });
