@@ -61,7 +61,7 @@ import {
   partitionSpecOf,
 } from "../combat/keywords.js";
 import { ModifierLedger, type EvoCostMatch } from "./modifiers.js";
-import { ContinuousEffectLedger, effectiveNames } from "./continuous.js";
+import { ContinuousEffectLedger, effectiveKinds, effectiveNames } from "./continuous.js";
 import { SubTriggerRegistry, type DnaMemoryGain, type SubTriggerRootZone } from "./subtriggers.js";
 import type { EffectContext, Primitives, Restriction, SubTriggerInstall } from "./EffectContext.js";
 import { resolvePermanentBattle } from "../combat/resolve.js";
@@ -217,6 +217,7 @@ export interface PrimitivesEngine {
     opts?: {
       isDnaDigivolve?: boolean;
       digivolvedFromZone?: import("@aegis/shared").ZoneRef;
+      baseWasDigimon?: boolean;
       playedFromZone?: import("@aegis/shared").ZoneRef;
       digiXrosMaterialCount?: number;
       playedByEffectSourceCardId?: string;
@@ -1397,6 +1398,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     instance.faceUp = true;
     const carriedSuspended = permanent.isSuspended;
     const priorTop = permanent.topCard;
+    const baseWasDigimon = effectiveKinds(
+      continuous,
+      permanent.permanentId,
+      requireCardDefinition(priorTop.cardId).kinds,
+    ).includes(CardKind.Digimon);
     pushOnStack(permanent, priorTop);
     setTopCard(permanent, instance);
     continuous.reanchorCustomEffectGrants(priorTop.instanceId, instance.instanceId);
@@ -1415,6 +1421,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // with `enteredByEffect` set to its controller (the producer for the BT25-084 by-effect gate).
     if (opts?.suppressWhenDigivolving !== true) {
       await engine.fireEnteredByEffect?.(EffectTiming.WhenDigivolving, instance.instanceId, seat, {
+        baseWasDigimon,
         ...(sourceZone !== undefined ? { digivolvedFromZone: sourceZone } : {}),
       });
     }

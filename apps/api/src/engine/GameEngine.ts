@@ -1667,6 +1667,8 @@ export class GameEngine {
       // EvoCost color test (static-continuous-effects, LOCKED Q4 — KB BT3-040 Q1075). The
       // continuous tier is recomputed before each fired timing, so the store is current.
       derivedBaseColors: (_state, permanent) => this.effectiveColorsOf(permanent),
+      effectiveBaseKinds: (_state, permanent) =>
+        effectiveKinds(this.continuous, permanent.permanentId, definitionOf(permanent.topCard)?.kinds ?? []),
       // Positive "can only digivolve into [X]" constraint (EX10-035 digivolveExceptInto): consult
       // the continuous ledger with the evolving card's definition; reject a non-matching target.
       digivolveIntoAllowed: (_state, permanent, evolving) =>
@@ -1761,7 +1763,7 @@ export class GameEngine {
       costWaived: (_state, instance) => hasBlastDigivolveKeyword(instance.cardId),
       blastWindowAllowed: (_state, seat) => this.combat.hasOpenCounterWindow && this.combat.counterWindowSeat === seat,
       draw: (_state, seat, count) => this.drawCards(seat, count),
-      fireWhenDigivolving: async (_state, seat, permanent, previousLevel) => {
+      fireWhenDigivolving: async (_state, seat, permanent, previousLevel, baseWasDigimon) => {
         // Turn-scoped fact consumed by inherited effects such as BT1-007. Register before
         // firing When Digivolving so effects in that window can observe the completed evolution.
         // Effects do not inspect the breeding area unless their text explicitly says so (BT1-007
@@ -1785,7 +1787,9 @@ export class GameEngine {
           previousDigivolutionLevel: previousLevel,
         };
         await this.withPendingSubTriggers(
-          ["whenOneOfYoursDigivolves", "whenAnyDigivolves"],
+          // Q6671: a Tamer source does not emit Digimon-evolution watcher events.
+          // The destination card still resolves its own When Digivolving effect.
+          baseWasDigimon === false ? [] : ["whenOneOfYoursDigivolves", "whenAnyDigivolves"],
           digivolveTrigger,
           async () => {
             // Scope [When Digivolving] to the permanent that just digivolved (its top card
@@ -3733,6 +3737,7 @@ export class GameEngine {
     opts?: {
       isDnaDigivolve?: boolean;
       digivolvedFromZone?: ZoneRef;
+      baseWasDigimon?: boolean;
       playedFromZone?: ZoneRef;
       digiXrosMaterialCount?: number;
       playedByEffectSourceCardId?: string;
@@ -3785,6 +3790,7 @@ export class GameEngine {
         enteredByEffect: ownerSeat,
         ...(opts?.isDnaDigivolve === true ? { isDnaDigivolve: true } : {}),
       });
+      if (opts?.baseWasDigimon === false) return;
       await this.fireSubTrigger("whenOneOfYoursDigivolves", {
         subjectPermanentId,
         enteredByEffect: ownerSeat,

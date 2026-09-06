@@ -202,6 +202,8 @@ export interface DigivolveDeps {
    * `effectiveColorsOf(permanent)`.
    */
   derivedBaseColors?(state: GameState, permanent: Permanent): readonly CardColor[];
+  /** Effective kinds before evolution, including effects that treat a Tamer as a Digimon. */
+  effectiveBaseKinds?(state: GameState, permanent: Permanent): readonly CardKind[];
   /**
    * Whether `evolving` is an ALLOWED digivolve target for the base `permanent` under every active
    * positive "can only digivolve into [X]" constraint (EX10-035 digivolveExceptInto). Optional:
@@ -305,7 +307,13 @@ export interface DigivolveDeps {
    * effect stack (subsystem: effect-stack-resolution). Async because resolution may
    * await player decisions (ARCHITECTURE.md section 5).
    */
-  fireWhenDigivolving(state: GameState, seat: Seat, permanent: Permanent, previousLevel?: number): Promise<void>;
+  fireWhenDigivolving(
+    state: GameState,
+    seat: Seat,
+    permanent: Permanent,
+    previousLevel?: number,
+    baseWasDigimon?: boolean,
+  ): Promise<void>;
   /** Optional narration hook (server -> client event log). */
   emit?: (event: DigivolveEvent) => void;
 }
@@ -736,7 +744,11 @@ export async function applyDigivolve(
 
   // (1) Capture suspended state of the base before any mutation.
   const carriedSuspended = permanent.isSuspended;
-  const previousLevel = definitionOf(permanent.topCard)?.level;
+  const previousDefinition = definitionOf(permanent.topCard);
+  const previousLevel = previousDefinition?.level;
+  const baseWasDigimon = (deps.effectiveBaseKinds?.(state, permanent) ?? previousDefinition?.kinds ?? []).includes(
+    CardKind.Digimon,
+  );
 
   // (2) Take the evolving card out of hand and stack it on. The prior top becomes
   //     the immediate digivolution source beneath the new top. Re-find by instanceId in case
@@ -812,7 +824,7 @@ export async function applyDigivolve(
 
   // (7) Fire When Digivolving (and the inherited-stack ESS markers) through the
   //     effect stack. Anything optional pauses for a decision inside resolution.
-  await deps.fireWhenDigivolving(state, seat, permanent, previousLevel);
+  await deps.fireWhenDigivolving(state, seat, permanent, previousLevel, baseWasDigimon);
 
   return {
     ok: true,

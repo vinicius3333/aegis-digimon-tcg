@@ -138,6 +138,71 @@ describe("BT21-089 Takato Matsuki", () => {
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT21-032"]);
   });
 
+  it("does not treat a red Tamer-source evolution as an own Digimon evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-089", as: "takato" },
+            { card: "BT7-085", as: "redTamer" },
+          ],
+          hand: [
+            { card: "BT21-013", as: "agunimon" },
+            { card: "BT21-016", as: "wdMaterial" },
+          ],
+          deck: [{ card: "BT1-009", as: "digivolveDraw" }, "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("redTamer").permanentId,
+        instanceId: s.inst("agunimon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("redTamer").stack.some((card) => card.cardId === "BT21-016"));
+    expect(s.perm("redTamer").stack.map((card) => card.cardId)).toContain("BT21-016");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("digivolveDraw").instanceId)).toBe(true);
+    expect(s.perm("takato").isSuspended).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("redTamer"), "Blocker")).toBe(false);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("does treat an ordinary Digimon-source evolution into Agunimon as an own Digimon evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-089", as: "takato" },
+            { card: "BT1-009", as: "base" },
+          ],
+          hand: [{ card: "BT21-013", as: "agunimon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("agunimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT21-013");
+    await settle(() => s.perm("takato").isSuspended && observe(s.engine).hasKeyword(s.perm("base"), "Blocker"));
+    expect(s.perm("takato").isSuspended).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Blocker")).toBe(true);
+    expect(s.state.memory).toBe(3);
+  });
+
   it("expires the public Blocker and DP grant after the opponent's turn ends", async () => {
     const s = setupEngine(
       {
