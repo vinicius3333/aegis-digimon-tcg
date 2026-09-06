@@ -43,6 +43,36 @@ describe("BT24-009 Shamanmon", () => {
     });
   });
 
+  it("resolves the On Play clause from a public play intent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT24-009", as: "shamanmon" },
+            { card: "BT24-009", as: "cost" },
+          ],
+          deck: ["BT1-001", "BT1-002"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shamanmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId));
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
+    expect(s.state.players[0]!.hand).toHaveLength(2);
+  });
+
+  it("records both zero-cost alternate evolution recipes", () => {
+    expect(compiled.digivolutionRequirement).toEqual([
+      { names: ["Tsunomon"], cost: 0, isAlternate: true },
+      { level: 2, traits: ["TS"], cost: 0, isAlternate: true },
+    ]);
+  });
+
   it("may trash a Demon card to draw two on play", async () => {
     const s = setupEngine(
       {
@@ -103,5 +133,90 @@ describe("BT24-009 Shamanmon", () => {
 
     expect(s.perm("host").topCard.cardId).toBe("P-209");
     expect(s.state.memory).toBe(3);
+  });
+
+  it("inherits from a public play discard and evolves its Demon/Titan host", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-072", as: "host", under: ["BT24-009"] }],
+          hand: [
+            { card: "BT24-026", as: "discarder" },
+            { card: "BT24-009", as: "discarded" },
+          ],
+          trash: [{ card: "P-209", as: "titamon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("discarder").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("host").topCard.cardId === "P-209");
+    expect(s.state.memory).toBe(4);
+  });
+
+  it("does not inherited-evolve a host lacking Demon or Titan", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-046", as: "host", under: ["BT24-009"] }],
+          hand: [
+            { card: "BT24-026", as: "discarder" },
+            { card: "BT24-009", as: "discarded" },
+          ],
+          trash: [{ card: "P-209", as: "titamon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("discarder").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("discarded").instanceId));
+    expect(s.perm("host").topCard.cardId).toBe("BT24-046");
+  });
+
+  it("accepts the named Tsunomon route from a non-TS egg", async () => {
+    const s = setupEngine({
+      0: { breeding: { card: "ST2-01", as: "egg" }, hand: [{ card: "BT24-009", as: "shaman" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    const eggId = s.perm("egg").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: eggId,
+        instanceId: s.inst("shaman").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.cardId === "BT24-009");
+    expect(s.perm("egg").stack.map((card) => card.cardId)).toEqual(["ST2-01"]);
+  });
+
+  it("also accepts the level-2 TS alternate recipe from the public evolution intent", async () => {
+    const s = setupEngine({
+      0: { breeding: { card: "BT24-004", as: "egg" }, hand: [{ card: "BT24-009", as: "shaman" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    const eggId = s.perm("egg").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: eggId,
+        instanceId: s.inst("shaman").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.cardId === "BT24-009");
   });
 });
