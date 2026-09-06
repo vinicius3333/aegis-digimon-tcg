@@ -1,6 +1,6 @@
 {
   "cardId": "BT20-086",
-  "status": "ready-for-coordinator-verification",
+  "status": "lead-verified",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
@@ -9,11 +9,56 @@
     "deliveryGates": 0
   },
   "evidence": [
-    "BT20-086.test.ts: real turn placement and face-up security",
-    "BT20-086.test.ts: exact Cyborg/Machine target IR and memory threshold",
-    "current-collection-green-results.json"
+    "apps/api/src/cards/BT20/BT20-086.ts",
+    "apps/api/src/cards/BT20/BT20-086.test.ts",
+    "node tools/kb/query.mjs card BT20-086",
+    "round5-final-collection-results.json",
+    "round5-mechanism-results.json",
+    "BT20-086-runtime-disabled.json",
+    "round5-gates.json"
   ],
   "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-final-collection-results.json",
+      "result": "12/12 colocated cases pass; 968/968 full collection/mechanism cases."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/effects/interpreter/actions/play.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/builders.test.ts src/engine/actions/activateEffect.test.ts src/engine/actions/playCard.test.ts src/engine/useOption.test.ts src/engine/effectOptionUseCost.test.ts src/engine/decisions/minEnforcement.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/primitives.test.ts src/cards/BT7/BT7-063.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-mechanism-results.json",
+      "result": "465/465 affected mechanism cases pass."
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-086",
+      "result": "4 meaningful assertion failures with runtime effects disabled; original production module restored. Per-card JSON/log and aggregate retained."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "PASS; round5-final-typecheck.log. Final API test-source check also passes in round5-final-api-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "PASS; all 102 records synchronized, round5-scoped-check.log."
+    },
+    {
+      "command": "Changed-file oxlint/oxfmt --check and git diff --check",
+      "result": "PASS; round5-gates.json, round5-style-paths.json and final style logs."
+    }
+  ],
+  "gaps": [],
+  "executedCases": [
+    "BT20-086 Altea sets memory at 3 when it starts your turn at 2 or less",
+    "BT20-086 Altea places the qualifying black Digimon at the bottom before flipping security",
+    "BT20-086 Altea naturally places a qualifying card under a battle-area host and flips the next face-down security",
+    "BT20-086 Altea handles the natural Start of Your Turn memory boundary at 2",
+    "BT20-086 Altea handles the natural Start of Your Turn memory boundary at 3",
+    "BT20-086 Altea handles the natural Start of Your Turn memory boundary at 4",
+    "BT20-086 Altea pays placement from hand only when accepted (true) and eligible (true)",
+    "BT20-086 Altea pays placement from hand only when accepted (false) and eligible (true)",
+    "BT20-086 Altea pays placement from hand only when accepted (true) and eligible (false)",
+    "BT20-086 Altea pays placement from trash only when accepted (true) and eligible (true)",
+    "BT20-086 Altea pays placement from trash only when accepted (false) and eligible (true)",
+    "BT20-086 Altea pays placement from trash only when accepted (true) and eligible (false)"
+  ],
+  "historicalCommands": [
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-086.test.ts --maxWorkers=1 --no-file-parallelism",
       "result": "not run by worker"
@@ -23,8 +68,5 @@
       "result": "PASS: 3 cases for BT20-086;734 total tests. See current-collection-green-results.json."
     }
   ],
-  "gaps": [
-    "Coordinator gates pending"
-  ],
-  "reviewStatus": "Full collection execution passed at this draft checkpoint. Strict clause acceptance, sensitivity and final delivery review remain pending; provisional scores do not count in the ledger."
+  "reviewStatus": "Current printed clauses, KB/errata, exclusive IR registration, legal public paths and negative controls independently reviewed. Delivery credit requires the pushed, hash-bound acceptance record."
 }
