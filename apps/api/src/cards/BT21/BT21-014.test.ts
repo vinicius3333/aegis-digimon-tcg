@@ -118,14 +118,19 @@ describe("BT21-014 BurningGreymon", () => {
           battleArea: [{ card: "BT21-014", as: "burningGreymon" }],
           hand: [{ card: "BT21-020", as: "aldamon" }],
         },
+        1: { security: ["BT1-001", "BT1-002"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
-    expect(s.perm("burningGreymon").topCard.cardId).toBe("BT21-014");
-    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 1 });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("burningGreymon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("burningGreymon").topCard.cardId === "BT21-020");
     expect(s.state.memory).toBe(2);
   });
@@ -137,12 +142,19 @@ describe("BT21-014 BurningGreymon", () => {
           battleArea: [{ card: "BT21-014", as: "burningGreymon" }],
           hand: [{ card: "BT21-020", as: "aldamon" }],
         },
+        1: { security: ["BT1-001"] },
       },
       { autoDeclineOptional: true },
     );
     s.state.memory = 5;
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 1 });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("burningGreymon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     expect(s.perm("burningGreymon").topCard.cardId).toBe("BT21-014");
     expect(s.state.memory).toBe(5);
   });
