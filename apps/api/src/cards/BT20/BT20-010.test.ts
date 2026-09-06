@@ -75,4 +75,36 @@ describe("BT20-010 Ryudamon", () => {
     await advance(s.engine).recompute();
     expect(s.perm("host").currentDP).toBe(4000);
   });
+
+  it("uses the public black X Antibody alternate route and excludes non-Chronicle destinations", async () => {
+    const alternate = setupEngine({
+      0: { breeding: { card: "BT13-005", as: "egg" }, hand: [{ card: "BT20-010", as: "ryudamon" }] },
+    });
+    await alternate.ready();
+    expect(
+      alternate.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: alternate.perm("egg").permanentId,
+        instanceId: alternate.inst("ryudamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => alternate.perm("egg").topCard.cardId === "BT20-010");
+    expect(alternate.perm("egg").topCard.cardId).toBe("BT20-010");
+
+    const excluded = setupEngine({
+      0: { battleArea: [{ card: "BT20-010", as: "ryudamon" }], hand: [{ card: "BT20-011", as: "nonChronicle" }] },
+    });
+    excluded.state.memory = 5;
+    await excluded.ready();
+    expect(
+      excluded.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: excluded.perm("ryudamon").permanentId,
+        instanceId: excluded.inst("nonChronicle").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => excluded.perm("ryudamon").topCard.cardId === "BT20-011");
+    expect(excluded.perm("ryudamon").topCard.cardId).toBe("BT20-011");
+    expect(excluded.state.memory).toBe(3);
+  });
 });
