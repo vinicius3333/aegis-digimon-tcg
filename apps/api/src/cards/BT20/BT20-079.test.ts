@@ -70,12 +70,16 @@ describe("BT20-079 Necromon", () => {
     );
     s.state.memory = 12;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("necromon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("necromon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => {
       const opponent = s.state.players[1]!;
       const mine = s.state.players[0]!;
-      return !opponent.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-071") &&
-        mine.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-072");
+      return (
+        !opponent.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-071") &&
+        mine.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-072")
+      );
     });
 
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT20-076"]);
@@ -104,11 +108,39 @@ describe("BT20-079 Necromon", () => {
     ).toEqual({ ok: true });
     await settle(() => {
       const mine = s.state.players[0]!;
-      return !mine.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-079") &&
-        mine.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-072");
+      return (
+        !mine.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-079") &&
+        mine.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-072")
+      );
     });
 
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toContain("BT20-072");
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT20-079")).toBe(true);
+  });
+
+  it("publicly evolves from a purple level-5 and may decline the trash Ghost play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-073", as: "base" }],
+          hand: [{ card: "BT20-079", as: "necromon" }],
+          trash: [{ card: "BT20-072", as: "ghost" }],
+        },
+        1: { battleArea: [{ card: "BT20-071", as: "lowest" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("necromon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT20-079" && s.state.pendingDecision === undefined);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("ghost").instanceId);
   });
 });
