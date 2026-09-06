@@ -106,7 +106,7 @@ describe("BT21-061 MetalGreymon", () => {
       {
         0: {
           battleArea: [{ card: "BT21-061", as: "metalgreymon" }],
-          hand: [{ card: "BT21-040", as: "adventure" }],
+          hand: [{ card: "ST20-10", as: "adventure" }],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
@@ -150,10 +150,33 @@ describe("BT21-061 MetalGreymon", () => {
 
   it("grants inherited Alliance to a realistic higher evolution", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT21-062", as: "host", under: [{ card: "BT21-061", as: "source" }] }] },
+      0: {
+        battleArea: [{ card: "BT21-057", as: "source" }],
+        hand: [
+          { card: "BT21-061", as: "metalgreymon" },
+          { card: "ST15-12", as: "host" },
+        ],
+      },
     });
+    s.state.memory = 10;
     await s.ready();
 
-    expect(observe(s.engine).hasKeyword(s.perm("host"), "Alliance")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("metalgreymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard.cardId === "BT21-061");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("host").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard.cardId === "ST15-12");
+    expect(observe(s.engine).hasKeyword(s.perm("source"), "Alliance")).toBe(true);
   });
 });
