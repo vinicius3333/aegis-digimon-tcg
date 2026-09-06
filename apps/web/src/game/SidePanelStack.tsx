@@ -4,6 +4,7 @@
    it has left. The panel contents come from ./sidePanels; this file only draws
    them. */
 
+import type { ReactNode } from "react";
 import { CardMini } from "../design/cards";
 import { useTranslation } from "../i18n";
 import { CardLink, CardLinkedText, cardDisplayName, useCardOpener } from "./cardLinks";
@@ -91,14 +92,17 @@ function SidePanelColumn({
   side,
   nowMs,
   onDismiss,
+  tail,
 }: {
   panels: readonly SidePanel[];
   side: SidePanelSide;
   nowMs: number;
   onDismiss: (id: string) => void;
+  /** Rendered under the column's panels, and on its own when the column has none. */
+  tail?: ReactNode;
 }) {
   const column = sidePanelColumn(panels, side);
-  if (column.length === 0) return null;
+  if (column.length === 0 && tail === undefined) return null;
   return (
     // Deliberately not a live region: the opponent action feed already narrates
     // these moments, and a second status would announce every card twice.
@@ -111,6 +115,7 @@ function SidePanelColumn({
           onDismiss={onDismiss}
         />
       ))}
+      {tail}
     </div>
   );
 }
@@ -119,17 +124,24 @@ export function SidePanelStack({
   panels,
   nowMs,
   onDismiss,
+  oppColumnTail,
 }: {
   panels: readonly SidePanel[];
   /** Injected so the eroding borders start at the right point after a re-render. */
   nowMs?: number;
   onDismiss: (id: string) => void;
+  /**
+   * What follows the opponent's panels down their column. The notices a security card
+   * raises live here: the cards it revealed and the clause that revealed them are one
+   * moment, read top to bottom, rather than two blocks anchored over each other.
+   */
+  oppColumnTail?: ReactNode;
 }) {
-  if (panels.length === 0) return null;
+  if (panels.length === 0 && oppColumnTail === undefined) return null;
   const now = nowMs ?? Date.now();
   return (
     <>
-      <SidePanelColumn panels={panels} side="opp" nowMs={now} onDismiss={onDismiss} />
+      <SidePanelColumn panels={panels} side="opp" nowMs={now} onDismiss={onDismiss} tail={oppColumnTail} />
       <SidePanelColumn panels={panels} side="you" nowMs={now} onDismiss={onDismiss} />
     </>
   );

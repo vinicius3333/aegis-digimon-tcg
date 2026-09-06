@@ -143,6 +143,7 @@ import { buildPermanentDetail } from "./permanentDetail";
 import { hasFaceUpSecurity, securityAttackLabelKey } from "./securityChrome";
 import { shieldSecurityCount } from "./securityClash";
 import { activeAttackArrow, effectTargetArrow, type ArrowEndpoint, type TrackingArrow } from "./trackingArrow";
+import { beamBetweenBoxes, clipToBox, type ArrowBox } from "./arrowGeometry";
 import { predictedMemory } from "./memoryArc";
 import { memoryCostPreview, type MemoryDropTarget } from "./memoryCostPreview";
 import { BoardOptionalPrompt, BoardSelectionRail, OpponentSelectingPill } from "./BoardDecisionRail";
@@ -295,6 +296,7 @@ export function GameScreen({
   const compactPiles = useMediaQuery(COMPACT_PILES_QUERY);
   const shortBoard = useMediaQuery(SHORT_BOARD_QUERY);
   const landscapePhone = useMediaQuery(LANDSCAPE_PHONE_QUERY);
+  const collapseNotices = narrowGameLayout && !landscapePhone;
   const narrowRail = useMediaQuery(NARROW_RAIL_QUERY);
   const coarsePointer = useMediaQuery(COARSE_POINTER_QUERY);
   const matchConfig = useMemo(() => {
@@ -582,7 +584,7 @@ export function GameScreen({
     }
     let frame = 0;
     let applied = "";
-    const endpoint = (end: ArrowEndpoint, board: DOMRect): { x: number; y: number } | undefined => {
+    const endpoint = (end: ArrowEndpoint, board: DOMRect): ArrowBox | undefined => {
       const element =
         end.kind === "permanent"
           ? permRefs.current[end.permanentId]
@@ -596,7 +598,12 @@ export function GameScreen({
       }
       const rect = element.getBoundingClientRect();
       if (!rect.width) return undefined;
-      return { x: rect.left + rect.width / 2 - board.left, y: rect.top + rect.height / 2 - board.top };
+      return {
+        x: rect.left + rect.width / 2 - board.left,
+        y: rect.top + rect.height / 2 - board.top,
+        halfWidth: rect.width / 2,
+        halfHeight: rect.height / 2,
+      };
     };
     const solve = () => {
       frame = window.requestAnimationFrame(solve);
@@ -604,18 +611,23 @@ export function GameScreen({
       const board = boardRef.current;
       if (!request || !board) return;
       const boardRect = board.getBoundingClientRect();
-      const from = endpoint(request.from, boardRect);
-      const to = request.to.flatMap((end) => {
-        const point = endpoint(end, boardRect);
-        return point ? [point] : [];
+      const fromBox = endpoint(request.from, boardRect);
+      const toBoxes = request.to.flatMap((end) => {
+        const box = endpoint(end, boardRect);
+        return box ? [box] : [];
       });
-      if (!from || to.length === 0) {
+      const firstTarget = toBoxes[0];
+      if (!fromBox || !firstTarget) {
         if (applied !== "") {
           applied = "";
           setTrackingArrow(null);
         }
         return;
       }
+      // The tail leaves the attacker towards its first target; every beam stops
+      // short of the box it points at so the card under attack stays readable.
+      const from = clipToBox(fromBox, firstTarget);
+      const to = toBoxes.map((box) => clipToBox(box, fromBox));
       const signature = `${request.key}|${Math.round(from.x)},${Math.round(from.y)}|${to
         .map((point) => `${Math.round(point.x)},${Math.round(point.y)}`)
         .join(";")}`;
@@ -658,15 +670,13 @@ export function GameScreen({
         return;
       }
       const br = b.getBoundingClientRect();
-      const ar = a.getBoundingClientRect();
-      const tr = opponentSecurityEl.getBoundingClientRect();
-      // Both ends sit at the middle of the card they name, the way the tracking
-      // arrow solves them: an edge anchor leaves the head floating off the pile
-      // and the tail hanging above the attacker rather than on it.
-      setArrow({
-        from: { x: ar.left + ar.width / 2 - br.left, y: ar.top + ar.height / 2 - br.top },
-        to: { x: tr.left + tr.width / 2 - br.left, y: tr.top + tr.height / 2 - br.top },
+      const boxOf = (rect: DOMRect): ArrowBox => ({
+        x: rect.left + rect.width / 2 - br.left,
+        y: rect.top + rect.height / 2 - br.top,
+        halfWidth: rect.width / 2,
+        halfHeight: rect.height / 2,
       });
+      setArrow(beamBetweenBoxes(boxOf(a.getBoundingClientRect()), boxOf(opponentSecurityEl.getBoundingClientRect())));
     };
     measure();
     const id = window.setTimeout(measure, 60);
@@ -2313,14 +2323,28 @@ export function GameScreen({
             )}
           </header>
 
-          {!state.gameOver ? <SidePanelStack panels={sidePanels} onDismiss={cues.dismissPanel} /> : null}
+          {/* A security card's notice follows the opponent's panels down their column,
+              under the cards it revealed; on the portrait phone every notice folds into
+              the one top band instead, so the column carries nothing there. */}
+          {!state.gameOver ? (
+            <SidePanelStack
+              panels={sidePanels}
+              onDismiss={cues.dismissPanel}
+              oppColumnTail={
+                !collapseNotices && cues.notices.some((notice) => notice.fromSecurity) ? (
+                  <NoticeStack notices={cues.notices} family="security" onDismiss={cues.dismissNotice} />
+                ) : undefined
+              }
+            />
+          ) : null}
 
           {/* Collapsed on a portrait phone only: the landscape phone keeps its
               right-anchored corners, where the short viewport has no top band. */}
           {!state.gameOver ? (
             <NoticeStack
               notices={cues.notices}
-              collapse={narrowGameLayout && !landscapePhone}
+              family={collapseNotices ? "all" : "corners"}
+              collapse={collapseNotices}
               onDismiss={cues.dismissNotice}
             />
           ) : null}

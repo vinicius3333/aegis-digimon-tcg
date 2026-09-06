@@ -115,6 +115,25 @@ export function securityGainNotice(side: NoticeSide, amount: number, id: string,
 }
 
 /**
+ * The same notice, read off the movement itself when the server names the seat whose
+ * stack grew. The count alone cannot narrate an add that the same patch undoes — "place
+ * 1 card from your hand as the bottom security card, then trash your top security card"
+ * (BT24-016) leaves the count where it was — so the event is the source of truth and
+ * the count watcher is the fallback for a movement that names no seat. A recovery's
+ * movement names none: `securityRecovered` narrates that growth.
+ */
+export function securityGainNoticeFromEvent(
+  event: ServerEvent,
+  viewerSeat: Seat,
+  id: string,
+  nowMs: number,
+): MatchNotice | null {
+  if (event.kind !== "cardsMoved" || event.to !== "security" || event.seat === undefined) return null;
+  if (event.instanceIds.length === 0) return null;
+  return securityGainNotice(sideOf(event.seat, viewerSeat), event.instanceIds.length, id, nowMs);
+}
+
+/**
  * The call-out a named mechanic earns as it happens, for either seat.
  *
  * The mechanic has to be identifiable from the event alone: a played card whose

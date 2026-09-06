@@ -55,6 +55,30 @@ describe("SidePanelStack", () => {
     expect(screen.queryByText("1")).toBeNull();
   });
 
+  it("carries the opponent column's tail under its panels, and alone when it has none", () => {
+    const { rerender } = render(
+      <I18nProvider>
+        <SidePanelStack panels={[]} nowMs={0} onDismiss={() => undefined} oppColumnTail={<i data-testid="tail" />} />
+      </I18nProvider>,
+    );
+    const lone = screen.getByTestId("side-panel-stack");
+    expect(lone.getAttribute("data-side")).toBe("opp");
+    expect(lone.lastElementChild).toBe(screen.getByTestId("tail"));
+    rerender(
+      <I18nProvider>
+        <SidePanelStack
+          panels={[panel({ side: "opp" })]}
+          nowMs={0}
+          onDismiss={() => undefined}
+          oppColumnTail={<i data-testid="tail" />}
+        />
+      </I18nProvider>,
+    );
+    const column = screen.getByTestId("side-panel-stack");
+    expect(column.firstElementChild).toBe(screen.getByTestId("side-panel"));
+    expect(column.lastElementChild).toBe(screen.getByTestId("tail"));
+  });
+
   it("gives each origin its own column", () => {
     renderStack([panel({ id: "mine", side: "you" }), panel({ id: "theirs", side: "opp", createdAt: 1 })]);
     const columns = screen.getAllByTestId("side-panel-stack").map((node) => node.getAttribute("data-side"));

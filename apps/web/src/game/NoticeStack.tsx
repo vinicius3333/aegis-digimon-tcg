@@ -177,14 +177,30 @@ function NoticeView({
   );
 }
 
+/** Which of the notices a stack draws: every one, or one of the two families. */
+export type NoticeFamily = "all" | "security" | "corners";
+
+function inFamily(notice: MatchNotice, family: NoticeFamily): boolean {
+  return family === "all" || (family === "security") === notice.fromSecurity;
+}
+
 export function NoticeStack({
   notices,
+  family = "all",
   panelSide = "right",
   collapse = false,
   nowMs,
   onDismiss,
 }: {
+  /** Every notice on screen, whichever family this stack draws: the clocks are shared. */
   notices: readonly MatchNotice[];
+  /**
+   * The security notices ride the opponent's panel column while the rest keep their
+   * corners, so the board mounts the two families in two places and each stack draws
+   * only its own. The lifetime stays that of the whole set, so a split stack erodes on
+   * the same clock the hook expires it on.
+   */
+  family?: NoticeFamily;
   /** Which half the timed side panels occupy, so security notices can mirror away from them. */
   panelSide?: NoticeHorizontal;
   /**
@@ -196,12 +212,13 @@ export function NoticeStack({
   nowMs?: number;
   onDismiss: (id: string) => void;
 }) {
-  if (notices.length === 0) return null;
+  const shown = notices.filter((notice) => inFamily(notice, family));
+  if (shown.length === 0) return null;
   const now = nowMs ?? Date.now();
   if (collapse) {
     return (
       <div className="match-notice-stack" data-anchor="top-center" data-testid="match-notice-stack">
-        {noticesCollapsed(notices).map((notice) => (
+        {noticesCollapsed(shown).map((notice) => (
           <NoticeView
             key={notice.id}
             notice={notice}
@@ -214,9 +231,9 @@ export function NoticeStack({
   }
   return (
     <>
-      {occupiedAnchors(notices, panelSide).map((anchor: NoticeAnchor) => (
+      {occupiedAnchors(shown, panelSide).map((anchor: NoticeAnchor) => (
         <div className="match-notice-stack" data-anchor={anchor} data-testid="match-notice-stack" key={anchor}>
-          {noticesAt(notices, anchor, panelSide).map((notice) => (
+          {noticesAt(shown, anchor, panelSide).map((notice) => (
             <NoticeView
               key={notice.id}
               notice={notice}

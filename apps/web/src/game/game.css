@@ -2413,9 +2413,9 @@
    attributes so one breakpoint retunes all three — a pointer screen sits far
    enough away that the phone-sized arrow reads as a hairline over card art. */
 .game-attack-arrow {
-  --arrow-core-width: 6;
-  --arrow-casing-width: 10;
-  --arrow-glow-width: 14;
+  --arrow-core-width: 4;
+  --arrow-casing-width: 6.5;
+  --arrow-glow-width: 10;
 }
 
 .game-attack-arrow__stroke--core {
@@ -2898,6 +2898,15 @@ button.side-panel__name:focus-visible {
   flex-direction: column-reverse;
 }
 
+/* A security card's notices ride the opponent's panel column instead of an anchor
+   of their own: under the panel of cards it revealed, in the column's flow, so the
+   two read top to bottom rather than one painted over the other. */
+.side-panel-stack > .match-notice-stack {
+  position: static;
+  width: auto;
+  translate: none;
+}
+
 /* The reference client frames a notice with bracketed corners rather than a full
    box, which is what keeps a large panel from reading as a dialog. */
 .match-notice {
@@ -3006,18 +3015,13 @@ button.side-panel__name:focus-visible {
   -webkit-line-clamp: 2;
 }
 
-/* Clamped so every chip in a stack lands near the same height: the clause is
-   the card's printed text, and the card link right above it opens the full
-   wording for a clause long enough to be cut. */
+/* Never clamped: the clause is the card's printed text, and a cut clause hides
+   the part a player has to read to know what just resolved. */
 .match-notice__text {
-  display: -webkit-box;
-  overflow: hidden;
   margin: 0;
   font-size: 0.72rem;
   line-height: 1.45;
   color: rgb(226 236 255 / 82%);
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
 }
 
 /* A named mechanic announces itself in the reference client's pink pill, next to
@@ -3180,6 +3184,11 @@ button.side-panel__name:focus-visible {
       calc(var(--t-clash-outcome-at, 1283ms) + var(--t-clash-outcome, 350ms)) both;
 }
 
+/* A card leaving for its dock has no outcome to play here, so the fade runs at once. */
+.battle-clash[data-departing="true"] {
+  animation: battle-clash-out var(--t-clash-exit, 160ms) linear both;
+}
+
 .battle-clash__badge {
   display: flex;
   margin: 0;
@@ -3212,6 +3221,7 @@ button.side-panel__name:focus-visible {
 }
 
 .battle-clash__art {
+  position: relative;
   overflow: hidden;
   border-radius: var(--ds-radius-sm);
   box-shadow:
@@ -4764,11 +4774,6 @@ button.side-panel__name:focus-visible {
     left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
     width: auto;
   }
-  /* One line less than the desktop clamp: the band covers the field while it is
-     up, and the card link still opens the full clause. */
-  .match-notice__text {
-    -webkit-line-clamp: 2;
-  }
 }
 
 /* Landscape phone. Keyed on the short viewport, not on width: a phone on its
@@ -5221,12 +5226,12 @@ button.side-panel__name:focus-visible {
   .match-notice-stack[data-anchor^="bottom-"] {
     bottom: calc(13rem + env(safe-area-inset-bottom, 0px));
   }
-  /* A pointer screen is looked at from further away and carries a much longer
-     board, so the phone-sized arc reads as a hairline across it. */
+  /* A pointer screen carries a much longer board, so the beam grows a little —
+     but not to the tube it once was, which covered the card it pointed at. */
   .game-attack-arrow {
-    --arrow-core-width: 9;
-    --arrow-casing-width: 14.5;
-    --arrow-glow-width: 22;
+    --arrow-core-width: 5;
+    --arrow-casing-width: 8;
+    --arrow-glow-width: 12;
   }
 }
 
@@ -5291,8 +5296,9 @@ button.side-panel__name:focus-visible {
     display: none;
   }
 
-  /* The clash burst is a pure motion flourish; the scene still reads without it. */
-  .battle-clash__flash {
+  /* The clash burst and the cracks are pure motion flourishes; the scene still reads without them. */
+  .battle-clash__flash,
+  .game-card-cracks {
     display: none;
   }
 
@@ -6716,6 +6722,113 @@ button.side-panel__name:focus-visible {
   }
   to {
     opacity: 1;
+  }
+}
+
+/* The shards and the burst are mounted with the scene, but they fly on the outcome
+   beat: their own clocks start there, or a scene that names a later beat (a destroyed
+   card holds for half a second first) would have spent them behind the hidden box. A
+   settled check names zero, so the break stays on the beat it always played on. */
+.battle-clash__shatter .game-card-shatter__shard {
+  animation-delay: calc(var(--t-clash-outcome-at, 1283ms) + var(--shard-delay, 0ms));
+}
+
+.battle-clash__shatter .battle-burst__core,
+.battle-clash__shatter .battle-burst__rays i,
+.battle-clash__shatter .battle-burst__ring {
+  animation-duration: var(--t-clash-outcome, 350ms);
+  animation-delay: var(--t-clash-outcome-at, 1283ms);
+}
+
+.battle-clash__shatter .battle-burst__ring--late {
+  animation-delay: calc(var(--t-clash-outcome-at, 1283ms) + 140ms);
+}
+
+/* --- Destroyed security card: the pane cracks, then breaks -----------------
+   The reference client's `DestroySecurityEffect` (`Effects.cs:1948-2027`) runs a
+   `BreakGlass` over the card itself. The web port draws the fractures over the art
+   during the last of the hold — they spread from the centre along the seams the
+   shards then part on — so the break that follows is the glass giving way rather
+   than a card popping. */
+.game-card-cracks {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  fill: none;
+  stroke: rgb(255 255 255 / 92%);
+  stroke-width: 1.1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 1.5px rgb(255 255 255 / 85%)) drop-shadow(0 0 4px rgb(140 200 255 / 55%));
+  /* `pathLength="1"` on every path, so one dash covers each crack whatever its length. */
+  stroke-dasharray: 1;
+  opacity: 0;
+  animation: battle-clash-cracks-in var(--t-clash-crack, 180ms) steps(1, end)
+    calc(var(--t-clash-outcome-at, 1283ms) - var(--t-clash-crack, 180ms)) forwards;
+}
+
+.game-card-cracks path {
+  stroke-dashoffset: 1;
+  animation: battle-clash-crack-draw var(--t-clash-crack, 180ms) cubic-bezier(0.22, 1, 0.36, 1)
+    calc(var(--t-clash-outcome-at, 1283ms) - var(--t-clash-crack, 180ms)) forwards;
+}
+
+/* The forks open a touch after the seam they hang off. */
+.game-card-cracks path:nth-child(3n + 2),
+.game-card-cracks path:nth-child(3n) {
+  animation-delay: calc(var(--t-clash-outcome-at, 1283ms) - var(--t-clash-crack, 180ms) * 0.55);
+}
+
+@keyframes battle-clash-cracks-in {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes battle-clash-crack-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* The impact flash under the cracks: the pane catches the light as it gives. */
+.battle-clash[data-cause="destruction"] .battle-clash__card[data-role="revealed"] .battle-clash__art {
+  animation:
+    battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
+    battle-clash-crack-flash var(--t-clash-crack, 180ms) ease-out
+      calc(var(--t-clash-outcome-at, 1283ms) - var(--t-clash-crack, 180ms)) both,
+    battle-clash-spent var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+}
+
+@keyframes battle-clash-crack-flash {
+  0% {
+    filter: brightness(1);
+    translate: 0 0;
+  }
+  18% {
+    filter: brightness(1.9);
+    translate: -2px 0;
+  }
+  40% {
+    filter: brightness(1.25);
+    translate: 2px 0;
+  }
+  62% {
+    translate: -1px 0;
+  }
+  100% {
+    filter: brightness(1.1);
+    translate: 0 0;
   }
 }
 

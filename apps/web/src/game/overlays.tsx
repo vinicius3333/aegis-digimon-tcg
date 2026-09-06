@@ -888,15 +888,24 @@ export function PermanentDetailInspector({
 
 /* ---------------- EFFECT DECISION ---------------- */
 
-/** IR effect-trigger -> the printed bracket label it appears under on the card. */
+/**
+ * Effect timing -> the printed bracket label it appears under on the card.
+ *
+ * The server names a timing two ways: `effectTriggered` carries the engine's
+ * EffectTiming enum key ("OnUseAttack"), while a decision's provenance carries the
+ * IR trigger ("WhenAttacking"). Both spellings map here, so the notice and the
+ * decision dialog slice the same clause whichever one arrives.
+ */
 export const TIMING_LABELS: Record<string, string> = {
   OnPlay: "On Play",
   WhenDigivolving: "When Digivolving",
   WhenAttacking: "When Attacking",
+  OnUseAttack: "When Attacking",
   OnAllyAttack: "When Attacking",
   OnDeletion: "On Deletion",
   OnDestroyedAnyone: "On Deletion",
   EndOfAttack: "End of Attack",
+  OnEndAttack: "End of Attack",
   AllTurns: "All Turns",
   YourTurn: "Your Turn",
   OpponentsTurn: "Opponent's Turn",
@@ -906,15 +915,28 @@ export const TIMING_LABELS: Record<string, string> = {
   EndOfOpponentsTurn: "End of Opponent's Turn",
   StartOfYourMainPhase: "Start of Your Main Phase",
   StartOfOpponentsMainPhase: "Start of Opponent's Main Phase",
+  EndOfAllTurns: "End of All Turns",
   Main: "Main",
+  OnUseOption: "Main",
+  // A declared activation is the turn player's [Main] ability, whether printed under
+  // [Main] alone or as a [Hand]/[Trash]/[Breeding] clause that shares its header.
+  OnDeclaration: "Main",
   Security: "Security",
+  SecuritySkill: "Security",
   Counter: "Counter",
+  OnCounterTiming: "Counter",
+  Hand: "Hand",
+  Trash: "Trash",
+  Breeding: "Breeding",
+  Rule: "Rule",
+  WhenMoving: "When Moving",
+  OnMove: "When Moving",
 };
 
 const GENERIC_TIMING_VARIANTS: Record<string, string[]> = {
   OnStartTurn: ["StartOfYourTurn", "StartOfOpponentsTurn"],
   OnStartMainPhase: ["StartOfYourMainPhase", "StartOfOpponentsMainPhase"],
-  OnEndTurn: ["EndOfYourTurn", "EndOfOpponentsTurn"],
+  OnEndTurn: ["EndOfYourTurn", "EndOfOpponentsTurn", "EndOfAllTurns"],
 };
 
 const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -1476,11 +1498,6 @@ export function DecisionOverlay({
               {t("overlay.chosen", { count: picks.length })}
             </span>
           </div>
-          <p className="decision-overlay__subtitle">
-            {min === max
-              ? t("overlay.selectCardsSubtitle", { count: max })
-              : t("overlay.selectCardsRangeSubtitle", { range: `${min}–${max}` })}
-          </p>
           {maxTotalPlayCost !== undefined ? (
             <div
               style={{

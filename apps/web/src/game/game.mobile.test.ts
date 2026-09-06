@@ -321,11 +321,12 @@ describe("floating chrome keeps clear of the hand and the memory band", () => {
   it("gives the phone's collapsed notice band a place of its own", () => {
     // GameScreen folds every anchor into one top-center stack on a portrait
     // phone; the band pins below the opponent feed and spans the width.
-    expect(gameScreenSource).toMatch(/collapse=\{narrowGameLayout && !landscapePhone\}/);
+    expect(gameScreenSource).toMatch(/const collapseNotices = narrowGameLayout && !landscapePhone;/);
+    expect(gameScreenSource).toMatch(/collapse=\{collapseNotices\}/);
     expect(narrowWidthRules).toMatch(/\.match-notice-stack\[data-anchor="top-center"\] \{[^}]*top:\s*calc\(10\.5rem/);
-    // One clamped line less than desktop: the band covers the field while it is
-    // up, and the card link still opens the full clause.
-    expect(narrowWidthRules).toMatch(/\.match-notice__text \{[^}]*-webkit-line-clamp:\s*2/);
+    // The clause is shown whole here too: no clamp may cut it on any layout.
+    expect(narrowWidthRules).not.toMatch(/\.match-notice__text \{/);
+    expect(gameCss).not.toMatch(/\.match-notice__text \{[^}]*line-clamp/);
   });
 
   it("gives both dismiss buttons a finger-sized target", () => {

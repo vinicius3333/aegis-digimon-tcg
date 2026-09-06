@@ -12,6 +12,8 @@ import { CARD_SHARD_SPREAD_MS } from "./cardShatter";
 import {
   BATTLE_TIMING_STYLE,
   BATTLE_TIMING_VARIABLES,
+  CLASH_DOCK_AT_MS,
+  CLASH_DOCK_LEAVE_MS,
   CLASH_OUTCOME_AT_MS,
   CLASH_SHATTER_MS,
   CLASH_TOTAL_MS,
@@ -122,15 +124,32 @@ describe("battle timings", () => {
   // A check the server resolves over several batches docks its card and holds it for as
   // long as that takes, so the budget the bot waits out is the fixed part — the break, the
   // reveal and the slide to the dock — plus what is still owed AFTER `securityChecked`.
+  // A card bound for the dock is held centre stage exactly as long as any other reveal, and
+  // then fades before the dock slides in, so the two are never on screen at once.
+  it("holds a docking reveal for the common hold and fades it before the dock", () => {
+    expect(CLASH_DOCK_AT_MS).toBe(CLASH_OUTCOME_AT_MS);
+    expect(CLASH_DOCK_LEAVE_MS).toBe(CLASH_DOCK_AT_MS + TIMINGS.clashExit);
+    expect(clashRule('.battle-clash[data-departing="true"]')).toContain(
+      `battle-clash-out var(--t-clash-exit, ${TIMINGS.clashExit}ms) linear both`,
+    );
+  });
+
   it("keeps the docked check's fixed and post-close beats inside the same budget", () => {
     expect(
-      SECURITY_BREAK_TOTAL_MS + CLASH_REVEAL_SHOWN_AT_MS + SECURITY_BRANCH_IN_MS + SECURITY_DOCK_CLOSE_MS,
+      SECURITY_BREAK_TOTAL_MS + CLASH_DOCK_LEAVE_MS + SECURITY_BRANCH_IN_MS + SECURITY_DOCK_CLOSE_MS,
     ).toBeLessThanOrEqual(SECURITY_EFFECT_NARRATION_MS);
     expect(SECURITY_DOCK_CLOSE_MS).toBe(TIMINGS.securityDockHold + TIMINGS.securityBranchOut);
   });
 
   // A destruction plays the whole sequence once per card, so the budget the server holds a
   // bot behind is per card too: it multiplies this by however many the stack lost.
+  it("cracks a destroyed security card inside its hold, before the break", () => {
+    expect(TIMINGS.securityDestroyCrack).toBeLessThanOrEqual(TIMINGS.securityDestroyHold);
+    expect(clashRule(".game-card-cracks path")).toContain(
+      "var(--t-clash-outcome-at, 1283ms) - var(--t-clash-crack, 180ms)",
+    );
+  });
+
   it("keeps one destroyed security card inside the per-card narration budget", () => {
     expect(SECURITY_BREAK_TOTAL_MS + SECURITY_DESTROY_TOTAL_MS).toBeLessThanOrEqual(SECURITY_DESTRUCTION_NARRATION_MS);
   });

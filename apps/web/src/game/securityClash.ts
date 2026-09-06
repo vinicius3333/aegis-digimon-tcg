@@ -72,6 +72,11 @@ export interface SecurityClashScene {
    * card is revealed and broken the same way either way. Defaults to `check`.
    */
   cause?: SecurityClashCause;
+  /**
+   * The card is on its way to the side dock: the scene fades out now, ahead of any outcome,
+   * which the dock and the close will show. Only a `pending` scene ever departs.
+   */
+  departing?: boolean;
 }
 
 export type SecurityClashCause = "check" | "destruction";

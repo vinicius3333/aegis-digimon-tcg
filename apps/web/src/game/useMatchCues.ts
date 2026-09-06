@@ -48,6 +48,7 @@ import {
   recoveryNoticeFromEvent,
   rejectionNotice,
   securityGainNotice,
+  securityGainNoticeFromEvent,
   type MatchNotice,
 } from "./notices";
 import {
@@ -91,6 +92,7 @@ import { phaseBannerFrom, type PhaseBanner } from "./phaseBanner";
 import { dpPulses as diffDpPulses, type DpPulse } from "./dpPulse";
 import { freezePulses as diffFreezePulses, type FreezeFlags, type FreezePulse } from "./freezePulse";
 import {
+  CLASH_DOCK_AT_MS,
   CLASH_OUTCOME_AT_MS,
   CLASH_REVEAL_SHOWN_AT_MS,
   CLASH_TOTAL_MS,
@@ -211,6 +213,7 @@ export interface MatchCues {
    * finished showing the revealed card. Nothing that speaks for that card — its effect
    * notice, its branch, the decision it asks the viewer — may be presented while it is
    * set (battle-animation-spec.md §4b: the reveal is steps 6–9, the effect is step 10b).
+   * A card an effect trashes out of a stack holds the same way, until its scene is over.
    */
   securityRevealPending: boolean;
   /** The player whose board the unsuspend phase is currently sweeping. */
@@ -457,9 +460,9 @@ export function useMatchCues({
   const restrictionsByPermanentRef = useRef<Map<string, FreezeFlags> | null>(null);
   const handCountsRef = useRef<{ you: number; opp: number } | null>(null);
   // Last read of each seat's security count, so a stack an effect grew can be told
-  // from one a recovery grew — the recovery event owns its own flight and notice.
+  // from one an event already narrated — a recovery or an effect's add owns its own flight and notice.
   const securityCountsRef = useRef<{ you: number; opp: number } | null>(null);
-  const recoveryFlightSeatsRef = useRef<Set<Seat>>(new Set());
+  const securityGrowthClaimedRef = useRef<Set<Seat>>(new Set());
   const securityGainKeyRef = useRef(0);
   // Destruction scenes enqueued and not yet finished. A chained effect (Medusamon's
   // Petrification tokens) trashes one security card per resolution step, so each trash
@@ -722,6 +725,7 @@ export function useMatchCues({
         const notice =
           effectNoticeFromEvent(event, viewerSeat, noticeId, now, securityEffectPendingRef.current) ??
           recoveryNoticeFromEvent(event, viewerSeat, noticeId, now) ??
+          securityGainNoticeFromEvent(event, viewerSeat, noticeId, now) ??
           keywordNoticeFromEvent(event, viewerSeat, noticeId, now);
         if (notice) {
           if (notice.body.variant === "effect") securityEffectPendingRef.current = false;
@@ -825,13 +829,27 @@ export function useMatchCues({
         if (!riffle) continue;
         enqueue(deckRiffleStep(riffle));
       }
+      // A claim is good for the patch that follows the batch it was made in. One that
+      // never met a growth — the stack lost a card in the same patch it gained one — is
+      // stale by the next batch, and must not swallow a growth that batch leaves to the
+      // count watcher.
+      securityGrowthClaimedRef.current.clear();
+      // A card an effect stacked lands with the same bounce a recovery plays. The event
+      // names the seat, so the notice is its own (see `securityGainNoticeFromEvent`) and
+      // the growth is claimed ahead of the count watcher.
+      for (const event of fresh) {
+        if (event.kind !== "cardsMoved" || event.to !== "security" || event.seat === undefined) continue;
+        if (event.instanceIds.length === 0) continue;
+        securityGrowthClaimedRef.current.add(event.seat);
+        launchSecurityGainFlight(event.seat);
+      }
       // A recovered card flies back onto the stack it joined.
       for (const event of fresh) {
         if (event.kind !== "securityRecovered") continue;
         const seat = event.seat;
         // The count watcher below will see this growth too; the flight and notice
         // are this event's to play, so the growth is claimed here.
-        recoveryFlightSeatsRef.current.add(seat);
+        securityGrowthClaimedRef.current.add(seat);
         enqueue({
           id: `security-flight-${seat}-${event.amount}`,
           track: `securityFlight-${seat}`,
@@ -1017,11 +1035,15 @@ export function useMatchCues({
             await context.wait(CLASH_REVEAL_SHOWN_AT_MS);
             // The card is out of the stack and on the screen, so the shield may drop.
             releaseSecurityCard(scene.key);
+            // Every reveal holds for the same beat, whatever follows it.
+            await context.wait(CLASH_DOCK_AT_MS - CLASH_REVEAL_SHOWN_AT_MS);
+            if (!docking) return;
             // A card that has a [Security] effect to resolve leaves the centre for its
-            // dock the moment it has been seen, rather than holding the middle of the
-            // board through a resolution that takes as long as the server needs.
-            if (docking) return;
-            await context.wait(CLASH_OUTCOME_AT_MS - CLASH_REVEAL_SHOWN_AT_MS);
+            // dock rather than holding the middle of the board through a resolution
+            // that takes as long as the server needs. It fades out first, so the dock's
+            // slide-in starts on a board it has already left.
+            setSecurityClash((current) => (current?.key === scene.key ? { ...current, departing: true } : current));
+            await context.wait(TIMINGS.clashExit);
           } finally {
             // A cancelled scene must not leave a card the shield keeps counting for good.
             releaseSecurityCard(scene.key);
@@ -1410,14 +1432,22 @@ export function useMatchCues({
       });
       releaseSecurityCardWhenIdle(key);
     });
-    // A destruction step dropped from the queue before it ever ran (a newer check
-    // replacing the track) never reaches its `finally`, so the count is squared with
-    // reality at the latest when nothing is running — same discipline as the held
-    // shield figures above.
-    if (destructions.length > 0)
+    if (destructions.length > 0) {
+      // A destruction step dropped from the queue before it ever ran (a newer check
+      // replacing the track) never reaches its `finally`, so the count is squared with
+      // reality at the latest when nothing is running — same discipline as the held
+      // shield figures above.
       void queue.idle().then(() => {
         pendingDestructionsRef.current = 0;
       });
+      // The trashed cards own the centre of the screen exactly as a reveal does, so a
+      // question the same batch carries — the order of the triggers the effect fired,
+      // say — waits behind the last card's scene. Opened at once, its dialog covered the
+      // very cards the effect just spent.
+      const lastKey = securityClashKeyRef.current;
+      if (!replayingHistory) setPendingRevealKey(lastKey);
+      releaseSecurityPresentation(lastKey);
+    }
     for (const scene of clashScenes) {
       const impacted: ReadonlySet<string> = new Set(scene.loserPermanentIds);
       enqueue({
@@ -1792,7 +1822,7 @@ export function useMatchCues({
     ];
     for (const { seat, side, amount } of gains) {
       if (amount <= 0) continue;
-      if (recoveryFlightSeatsRef.current.delete(seat)) continue;
+      if (securityGrowthClaimedRef.current.delete(seat)) continue;
       launchSecurityGainFlight(seat);
       noticeSequenceRef.current += 1;
       openNotice(securityGainNotice(side, amount, `notice-${noticeSequenceRef.current}`, Date.now()));

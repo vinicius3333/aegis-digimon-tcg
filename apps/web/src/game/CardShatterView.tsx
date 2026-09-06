@@ -8,7 +8,7 @@
 import type { CSSProperties } from "react";
 import { CardFull } from "../design/cards";
 import { CardBurst } from "./CardBurst";
-import { cardShards } from "./cardShatter";
+import { CARD_CRACK_VIEWBOX, cardCrackPaths, cardShards } from "./cardShatter";
 import type { ColorName } from "../design/theme";
 
 export function CardShatter({ cardId, width, color }: { cardId: string; width: number; color: ColorName }) {
@@ -33,5 +33,23 @@ export function CardShatter({ cardId, width, color }: { cardId: string; width: n
       ))}
       <CardBurst variant="delete" color={color} className="game-card-shatter__burst" />
     </span>
+  );
+}
+
+/* The pane cracking before it breaks (the reference client's `BreakGlass`,
+   `Effects.cs:1948-2027`): the seams the shards will part along, drawn over the
+   art as glass fractures. Fills the card box it is given; the caller times it. */
+export function CardCracks() {
+  return (
+    <svg
+      className="game-card-cracks"
+      viewBox={`0 0 ${CARD_CRACK_VIEWBOX.width} ${CARD_CRACK_VIEWBOX.height}`}
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      {cardCrackPaths().map((d, index) => (
+        <path key={index} d={d} pathLength={1} />
+      ))}
+    </svg>
   );
 }

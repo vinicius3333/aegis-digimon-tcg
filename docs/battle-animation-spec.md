@@ -345,10 +345,27 @@ claw, destroy vs. trash, both seats, and the per-check shard seed — `shieldSha
 derives each break's throws from the break's own key, so back-to-back checks do not
 shatter into the same frame.
 
+**A card an effect trashes.** `cardsMoved` from `security` to `trash` (with `cardIds`
+and `seat`) plays the reference client's `DestroySecurityEffect` once per card: the
+shield breaks, the card is revealed centre stage and held (`securityDestroyHold`,
+500 ms), the pane cracks over the art through the last of that hold
+(`securityDestroyCrack`, 180 ms, `CardCracks` along the shard seams), and the card
+breaks into its shards on the outcome beat. The scene is the card alone — no badge,
+no caption, no outcome line — because nothing a check prints applies to a card that
+was never checked; the accessible name is the one line it keeps.
+
+**A card an effect adds.** `cardsMoved` into `security` carries the `seat` whose
+stack grew, and the notice and the shield bounce come from that event rather than
+from the count: "place 1 card from your hand as the bottom security card, then trash
+your top security card" (BT24-016) leaves the count where it was. The count watcher
+is only the fallback for a movement that names no seat.
+
 **The dock.** `securityRevealed` carries two presentation hints, `hasSecurityEffect`
 and `isDigimon`. A reveal that says `hasSecurityEffect` no longer plays the
-centre-stage scene to its end: the card is shown centre stage for the reveal beat,
-then slides to its side dock (`securityBranchIn`, 220 ms) and **stays there** — the
+centre-stage scene to its end: the card is shown centre stage for the same hold every
+reveal gets (`CLASH_DOCK_AT_MS`, the beat an outcome would start), fades out
+(`clashExit`), then slides in at its side dock (`securityBranchIn`, 220 ms) and
+**stays there** — the
 reference client's brainstorm slot, `CardController.cs:4062-4232`. The effect's
 notices read beside it and the decisions it asks for open beside it; the dock ends
 only on the matching `securityChecked` (a `securityDockHold` beat, then

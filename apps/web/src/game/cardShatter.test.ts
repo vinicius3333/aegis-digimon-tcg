@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CARD_SHARD_COUNT, cardShards } from "./cardShatter";
+import { CARD_CRACK_VIEWBOX, CARD_SHARD_COUNT, cardCrackPaths, cardShards } from "./cardShatter";
 
 describe("cardShards", () => {
   it("cuts the card into the whole set of wedges", () => {
@@ -27,5 +27,21 @@ describe("cardShards", () => {
 
   it("honours a smaller cut", () => {
     expect(cardShards(3)).toHaveLength(3);
+  });
+});
+
+describe("cardCrackPaths", () => {
+  it("opens one seam per shard, each with its two forks", () => {
+    expect(cardCrackPaths()).toHaveLength(CARD_SHARD_COUNT * 3);
+  });
+
+  it("runs every seam out from the impact at the card's centre", () => {
+    const centre = `M${CARD_CRACK_VIEWBOX.width / 2} ${CARD_CRACK_VIEWBOX.height / 2}`;
+    const seams = cardCrackPaths().filter((_, index) => index % 3 === 0);
+    for (const seam of seams) expect(seam.startsWith(centre)).toBe(true);
+  });
+
+  it("is stable, so the pane always cracks the same way", () => {
+    expect(cardCrackPaths()).toEqual(cardCrackPaths());
   });
 });

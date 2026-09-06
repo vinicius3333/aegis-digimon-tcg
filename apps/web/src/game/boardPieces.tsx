@@ -1411,7 +1411,8 @@ function beamBetween(from: ArrowPoint, to: ArrowPoint): string {
  * The target arrow (`TargetArrow.cs`). One tail, one straight beam per target,
  * drawn from board coordinates the caller re-measures as the cards move — which is
  * what keeps a declared attack pointing at its target while the board shifts under
- * it. Both ends are card centres, so the head lands inside the card it names.
+ * it. The caller clips both ends to the cards' edges (`arrowGeometry.ts`), so the
+ * head points at the target rather than covering it.
  *
  * `tracking` is the reference client's persistent arrow: it extends with two quick
  * flashes and then stays up until the thing it is about is over. Without it the
@@ -1440,10 +1441,10 @@ export function AttackArrow({
         {/* Marker units are stroke widths, so the head grows with the arc rather
             than needing its own breakpoint. The dark rim is what keeps the tip
             readable over bright card art. */}
-        <marker id={headId} markerWidth="4" markerHeight="4" refX="2.8" refY="2" orient="auto">
+        <marker id={headId} markerWidth="5" markerHeight="5" refX="3.6" refY="2.5" orient="auto">
           <path
             className="game-attack-arrow__head"
-            d="M0,0 L2.8,2 L0,4 Z"
+            d="M0,0 L3.6,2.5 L0,5 Z"
             fill={`var(--battle-arrow-${kind})`}
             stroke="var(--battle-arrow-casing)"
             strokeWidth={0.3}
@@ -1455,7 +1456,9 @@ export function AttackArrow({
         const arc = beamBetween(from, target);
         return (
           <g key={index}>
-            {/* Soft glow pass under the beam, the way the reference client draws attacks. */}
+            {/* Soft glow pass under the beam, the way the reference client draws attacks.
+                The glow and the casing end flat: a round cap on the wider strokes
+                would poke out past the head as a nub on the tip. */}
             <path
               className="game-attack-arrow__stroke game-attack-arrow__stroke--glow"
               d={arc}
@@ -1464,7 +1467,7 @@ export function AttackArrow({
               fill="none"
               stroke={`var(--battle-arrow-${kind}-glow)`}
               strokeWidth={14}
-              strokeLinecap="round"
+              strokeLinecap="butt"
             />
             {/* Dark casing between the glow and the bright core: without it the beam
                 disappears into pale card art wherever it crosses one. */}
@@ -1476,7 +1479,7 @@ export function AttackArrow({
               fill="none"
               stroke="var(--battle-arrow-casing)"
               strokeWidth={10}
-              strokeLinecap="round"
+              strokeLinecap="butt"
             />
             <path
               className="game-attack-arrow__stroke game-attack-arrow__stroke--core"

@@ -41,6 +41,25 @@ describe("NoticeStack", () => {
     expect(shown.textContent).toContain("Draw 1 card.");
   });
 
+  it("slices the attacking clause when the engine names the timing by its enum key", () => {
+    // BT24-016 prints a [Hand] [Main] clause before its [When Digivolving] [When Attacking]
+    // one; the engine announces the attack as "OnUseAttack" with an internal description.
+    renderStack([
+      notice({
+        body: {
+          variant: "effect",
+          cardId: "BT24-016",
+          timing: "OnUseAttack",
+          description: "[WhenAttacking] Security manipulation, Security manipulation",
+        },
+      }),
+    ]);
+    const shown = screen.getByTestId("match-notice");
+    expect(shown.textContent).toContain("When Attacking");
+    expect(shown.textContent).toContain("Your opponent places 1 card from their hand as the bottom security card.");
+    expect(shown.textContent).not.toContain("[Hand]");
+  });
+
   it("anchors the viewer's effects bottom-left and the opponent's top-right", () => {
     renderStack([notice({ id: "mine", side: "you" }), notice({ id: "theirs", side: "opp" })]);
     const anchors = screen.getAllByTestId("match-notice-stack").map((node) => node.getAttribute("data-anchor"));
@@ -50,6 +69,33 @@ describe("NoticeStack", () => {
   it("mirrors a security effect to the middle of the opposite half", () => {
     renderStack([notice({ fromSecurity: true })]);
     expect(screen.getByTestId("match-notice-stack").getAttribute("data-anchor")).toBe("middle-left");
+  });
+
+  it("draws one family at a time while keeping the whole set's clock", () => {
+    const crowd = [
+      notice({ id: "s", fromSecurity: true }),
+      notice({ id: "a" }),
+      notice({ id: "b" }),
+      notice({ id: "c" }),
+    ];
+    const { container, rerender } = render(
+      <I18nProvider>
+        <NoticeStack notices={crowd} family="security" nowMs={0} onDismiss={() => undefined} />
+      </I18nProvider>,
+    );
+    expect(screen.getAllByTestId("match-notice")).toHaveLength(1);
+    expect(screen.getByTestId("match-notice-stack").getAttribute("data-anchor")).toBe("middle-left");
+    // Four notices share the screen, so even the lone security one is on the crowded clock.
+    expect((container.querySelector(".match-notice__erode") as HTMLElement).style.animationDuration).toBe(
+      `${NOTICE_CROWDED_LIFETIME_MS}ms`,
+    );
+    rerender(
+      <I18nProvider>
+        <NoticeStack notices={crowd} family="corners" nowMs={0} onDismiss={() => undefined} />
+      </I18nProvider>,
+    );
+    expect(screen.getAllByTestId("match-notice")).toHaveLength(3);
+    expect(screen.getByTestId("match-notice-stack").getAttribute("data-anchor")).toBe("bottom-left");
   });
 
   it("names a recovery without exposing the card behind it", () => {

@@ -9,7 +9,7 @@ import { CardFull } from "../design/cards";
 import { colorKey, type ColorName } from "../design/theme";
 import { Icons } from "../design/icons";
 import { ClawSlash } from "./boardPieces";
-import { CardShatter } from "./CardShatterView";
+import { CardCracks, CardShatter } from "./CardShatterView";
 import { useTranslation } from "../i18n";
 import {
   orderSecurityClashFighters,
@@ -22,6 +22,10 @@ import {
 /* The narrow blocks in game.css override both widths, so these are the pointer sizes. */
 const CLASH_CARD_WIDTH = 158;
 
+/* A destroyed card stands alone with nothing printed around it, so it takes the room a
+   check splits between two cards and their captions. */
+const DESTROYED_CARD_WIDTH = 236;
+
 const BRANCH_CARD_WIDTH = 150;
 
 const RESOLUTION_LABEL_KEYS = {
@@ -33,13 +37,11 @@ const RESOLUTION_LABEL_KEYS = {
   trashed: "overlay.securityTrashed",
 } as const;
 
-/* A card an effect trashed never had a chance to do anything, so neither the badge nor the
-   outcome line may say what a check's would: it was not checked, and "no effect" would read
-   as a verdict on a card that was never given one. */
-const DESTRUCTION_BADGE_KEY = "overlay.securityDestroyed";
-
-const DESTRUCTION_OUTCOME_KEY = "overlay.securityDestroyedDetail";
-
+/* A card an effect trashed never had a chance to do anything, so nothing a check's scene
+   prints applies: it was not checked, and "no effect" would read as a verdict on a card
+   that was never given one. The scene is the card alone — revealed, cracked and broken,
+   the way the reference client's `DestroySecurityEffect` plays it — and the one line it
+   still owes is the accessible name of what happened. */
 const DESTRUCTION_ROLE_KEY = "overlay.trashedFromSecurity";
 
 /** The battle verdict for one of the two cards. */
@@ -51,9 +53,11 @@ function ClashCard({
   fate,
   spent,
   destroyed,
+  width,
 }: {
   fighter: SecurityClashFighter;
   role: "attacker" | "revealed";
+  width: number;
   /** `beaten` takes the claw, the shake and the dim; `stands` is emphasized. */
   fate: ClashFate;
   /** This card leaves the board after the beat, whatever the verdict was. */
@@ -73,26 +77,28 @@ function ClashCard({
     >
       <div className="battle-clash__frame">
         <div className="battle-clash__art">
-          <CardFull cardId={fighter.cardId} width={CLASH_CARD_WIDTH} />
+          <CardFull cardId={fighter.cardId} width={width} />
+          {/* Inside the art box so the cracks go with the card the moment its shards fly. */}
+          {destroyed ? <CardCracks /> : null}
         </div>
         {/* Drawn outside the art box, which clips its own entrance: the shards and
             the claw both reach past the card's edge. */}
         {spent ? (
           <span className="battle-clash__shatter" aria-hidden="true">
-            <CardShatter cardId={fighter.cardId} width={CLASH_CARD_WIDTH} color={clashShatterColor(fighter.cardId)} />
+            <CardShatter cardId={fighter.cardId} width={width} color={clashShatterColor(fighter.cardId)} />
           </span>
         ) : null}
         {fate === "beaten" ? <ClawSlash /> : null}
       </div>
-      <figcaption className="battle-clash__caption">
-        <span className="battle-clash__role">
-          {role === "attacker"
-            ? t("overlay.isAttacking", { name: cardName })
-            : t(destroyed ? DESTRUCTION_ROLE_KEY : "overlay.revealedFromSecurity")}
-        </span>
-        <strong className="battle-clash__name">{cardName}</strong>
-        {fighter.dp === undefined ? null : <span className="battle-clash__dp">{fighter.dp.toLocaleString()} DP</span>}
-      </figcaption>
+      {destroyed ? null : (
+        <figcaption className="battle-clash__caption">
+          <span className="battle-clash__role">
+            {role === "attacker" ? t("overlay.isAttacking", { name: cardName }) : t("overlay.revealedFromSecurity")}
+          </span>
+          <strong className="battle-clash__name">{cardName}</strong>
+          {fighter.dp === undefined ? null : <span className="battle-clash__dp">{fighter.dp.toLocaleString()} DP</span>}
+        </figcaption>
+      )}
     </figure>
   );
 }
@@ -128,16 +134,22 @@ function clashShatterColor(cardId: string): ColorName {
   return colorKey(getCardDefinition(cardId)?.colors[0]);
 }
 
+function revealedName(scene: SecurityClashScene): string {
+  return getCardDefinition(scene.revealed.cardId)?.nameEn ?? scene.revealed.cardId;
+}
+
 export function SecurityClash({ scene }: { scene: SecurityClashScene }) {
   const { t } = useTranslation();
   const fighters = orderSecurityClashFighters(scene);
   const destroyed = scene.cause === "destruction";
+  const cardWidth = destroyed ? DESTROYED_CARD_WIDTH : CLASH_CARD_WIDTH;
   return (
     <div
       className="battle-clash"
       data-testid="security-clash"
       data-resolution={scene.resolution}
       data-cause={scene.cause ?? "check"}
+      data-departing={scene.departing ? "true" : undefined}
       // A scene that names its own outcome beat runs the break and the fade behind it from
       // that moment: zero for a check that held on stage while it resolved and has already
       // spent the lead-in, and the shorter destruction beat for a card no attacker faced.
@@ -148,11 +160,14 @@ export function SecurityClash({ scene }: { scene: SecurityClashScene }) {
       }
       role="status"
       aria-live="assertive"
+      aria-label={destroyed ? `${t(DESTRUCTION_ROLE_KEY)}: ${revealedName(scene)}` : undefined}
     >
-      <p className="battle-clash__badge">
-        <Icons.Shield size={13} />
-        {t(destroyed ? DESTRUCTION_BADGE_KEY : "overlay.securityCheck")}
-      </p>
+      {destroyed ? null : (
+        <p className="battle-clash__badge">
+          <Icons.Shield size={13} />
+          {t("overlay.securityCheck")}
+        </p>
+      )}
       <div className="battle-clash__stage">
         <ClashCard
           fighter={fighters[0]!.fighter}
@@ -160,6 +175,7 @@ export function SecurityClash({ scene }: { scene: SecurityClashScene }) {
           fate={clashFate(scene, fighters[0]!.role)}
           spent={clashSpent(scene, fighters[0]!.role)}
           destroyed={destroyed}
+          width={cardWidth}
         />
         {fighters.length > 1 ? (
           <span className="battle-clash__mark" aria-hidden="true">
@@ -174,12 +190,11 @@ export function SecurityClash({ scene }: { scene: SecurityClashScene }) {
             fate={clashFate(scene, fighters[1].role)}
             spent={clashSpent(scene, fighters[1].role)}
             destroyed={destroyed}
+            width={cardWidth}
           />
         ) : null}
       </div>
-      <p className="battle-clash__outcome">
-        {t(destroyed ? DESTRUCTION_OUTCOME_KEY : RESOLUTION_LABEL_KEYS[scene.resolution])}
-      </p>
+      {destroyed ? null : <p className="battle-clash__outcome">{t(RESOLUTION_LABEL_KEYS[scene.resolution])}</p>}
     </div>
   );
 }

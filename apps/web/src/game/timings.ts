@@ -85,6 +85,11 @@ export const TIMINGS = {
    * it is longer than any hold the check itself takes.
    */
   securityDestroyHold: 500,
+  /**
+   * How long the cracks take to spread over a destroyed security card before it breaks.
+   * Spent inside the hold, so the card is still readable under the fractures.
+   */
+  securityDestroyCrack: 180,
   /** The security counter popping as it decrements. */
   securityCountPop: 300,
   /** One permanent's 90° suspend or unsuspend rotation. */
@@ -224,6 +229,16 @@ export const CLASH_REVEAL_SHOWN_AT_MS = CLASH_REVEAL_AT_MS + TIMINGS.clashReveal
 export const CLASH_TOTAL_MS = CLASH_OUTCOME_AT_MS + TIMINGS.clashOutcome + TIMINGS.clashExit;
 
 /**
+ * When a card bound for its dock leaves the centre. It takes the same hold every other
+ * check takes, so a reveal reads the same whatever follows it; the fork is at the beat
+ * the outcome would start.
+ */
+export const CLASH_DOCK_AT_MS = CLASH_OUTCOME_AT_MS;
+
+/** The docking scene end to end: the hold, then the fade the dock slides in behind. */
+export const CLASH_DOCK_LEAVE_MS = CLASH_DOCK_AT_MS + TIMINGS.clashExit;
+
+/**
  * How long a card's shards fly inside the centre-stage clash. A field deletion breaks on
  * the longer `cardShatter` clock because nothing takes the board back from it, but inside
  * the clash the card has only the outcome beat before the scene fades — so the shards, and
@@ -329,6 +344,7 @@ export const BATTLE_TIMING_VARIABLES: Readonly<Record<string, number>> = {
   "--t-clash-outcome": TIMINGS.clashOutcome,
   "--t-clash-outcome-at": CLASH_OUTCOME_AT_MS,
   "--t-clash-exit": TIMINGS.clashExit,
+  "--t-clash-crack": TIMINGS.securityDestroyCrack,
   "--t-showcase-in": TIMINGS.showcaseIn,
   "--t-showcase-out": TIMINGS.showcaseOut,
   "--t-showcase-out-at": SHOWCASE_OUT_AT_MS,

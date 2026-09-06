@@ -6,6 +6,8 @@ import type { GameState, ServerEvent } from "@aegis/shared";
 import { useMatchCues, type MatchCueAnchors } from "./useMatchCues";
 import {
   CLASH_OUTCOME_AT_MS,
+  CLASH_DOCK_AT_MS,
+  CLASH_DOCK_LEAVE_MS,
   CLASH_REVEAL_SHOWN_AT_MS,
   CLASH_TOTAL_MS,
   FIELD_CLASH_IMPACT_AT_MS,
@@ -38,7 +40,7 @@ const REVEAL_SHOWN_AT_MS = SECURITY_BREAK_TOTAL_MS + CLASH_OUTCOME_AT_MS;
 const REVEAL_EXIT_AT_MS = SECURITY_BREAK_TOTAL_MS + CLASH_TOTAL_MS;
 
 /** When a card the server says has a [Security] effect leaves the centre for its dock. */
-const DOCK_AT_MS = SECURITY_BREAK_TOTAL_MS + CLASH_REVEAL_SHOWN_AT_MS;
+const DOCK_AT_MS = SECURITY_BREAK_TOTAL_MS + CLASH_DOCK_LEAVE_MS;
 
 /** When it has arrived there, which is when what it did may be read out beside it. */
 const DOCKED_AT_MS = DOCK_AT_MS + SECURITY_BRANCH_IN_MS;
@@ -445,9 +447,15 @@ describe("match cues", () => {
     expect(result.current.securityClash?.revealed.cardId).toBe("BT1-010");
     expect(result.current.securityBranch).toBeNull();
 
-    // The card is seen centre stage, then it leaves for the dock rather than holding the
-    // middle of the board for a resolution of unknown length.
+    // The card is seen centre stage for the hold every check gets, then it leaves for the
+    // dock rather than holding the middle of the board for a resolution of unknown length.
     await advance(CLASH_REVEAL_SHOWN_AT_MS);
+    expect(result.current.securityClash?.departing).toBeUndefined();
+    expect(result.current.securityBranch).toBeNull();
+    await advance(CLASH_DOCK_AT_MS - CLASH_REVEAL_SHOWN_AT_MS);
+    expect(result.current.securityClash?.departing).toBe(true);
+    expect(result.current.securityBranch).toBeNull();
+    await advance(TIMINGS.clashExit);
     expect(result.current.securityClash).toBeNull();
     expect(result.current.securityBranch).toMatchObject({ cardId: "BT1-010", side: "you", state: "docked" });
 
@@ -1387,6 +1395,39 @@ describe("security a card effect trashes", () => {
     expect(result.current.securityClash).toBeNull();
   });
 
+  // Lamiamon (BT24-016) trashes the opponent's top security card and then fires several
+  // triggers at once: the dialog asking their order must not cover the trashed card.
+  it("keeps a question the same batch carries behind the last card's scene", async () => {
+    const { result, rerender } = renderHook(
+      ({ events, decisionPending }: { events: readonly ServerEvent[]; decisionPending: boolean }) =>
+        useMatchCues({
+          events,
+          state: TRASHED_SECURITY_BOARD,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          decisionPending,
+          anchors,
+          onActionRejected: vi.fn(),
+        }),
+      { initialProps: { events: [] as readonly ServerEvent[], decisionPending: false } },
+    );
+    await advance(0);
+    expect(result.current.securityRevealPending).toBe(false);
+
+    rerender({ events: [SECURITY_TRASHED], decisionPending: true });
+    await advance(0);
+    expect(result.current.securityRevealPending).toBe(true);
+
+    const bothCardsMs = 2 * (SECURITY_BREAK_TOTAL_MS + SECURITY_DESTROY_TOTAL_MS);
+    await advance(bothCardsMs - 1);
+    expect(result.current.securityRevealPending).toBe(true);
+    expect(result.current.securityClash?.revealed.cardId).toBe("BT1-011");
+
+    await advance(1);
+    expect(result.current.securityRevealPending).toBe(false);
+    expect(result.current.securityClash).toBeNull();
+  });
+
   it("breaks the shield of the stack that lost the cards, once per card", async () => {
     const { result, rerender } = renderCuesOverBoard(TRASHED_SECURITY_BOARD);
     await advance(0);
@@ -1567,6 +1608,61 @@ describe("security gains", () => {
     });
     await advance(0);
     expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(["recovery"]);
+  });
+
+  it("announces an add the movement names a seat for, even when the count never moves", async () => {
+    const { result, rerender } = renderCuesOverGrowingBoard(boardWithSecurity(5, 5));
+    await advance(0);
+
+    // "Place 1 card from your hand as the bottom security card. Then, trash your top
+    // security card" (BT24-016): the opponent's stack is the same size after the patch.
+    rerender({
+      events: [
+        { kind: "cardsMoved", instanceIds: ["placed"], from: "various", to: "security", seat: 1 },
+        { kind: "cardsMoved", instanceIds: ["lost"], from: "security", to: "trash", cardIds: ["BT1-010"], seat: 1 },
+      ],
+      state: boardWithSecurity(5, 5),
+    });
+    await advance(0);
+    expect(result.current.securityFlights.has(1)).toBe(true);
+    expect(result.current.notices.map((notice) => [notice.side, notice.body])).toEqual([
+      ["opp", { variant: "securityGain", amount: 1 }],
+    ]);
+  });
+
+  it("narrates a named add once, not again when its growth lands", async () => {
+    const { result, rerender } = renderCuesOverGrowingBoard(boardWithSecurity(5, 5));
+    await advance(0);
+
+    rerender({
+      events: [{ kind: "cardsMoved", instanceIds: ["placed"], from: "various", to: "security", seat: VIEWER }],
+      state: boardWithSecurity(6, 5),
+    });
+    await advance(0);
+    expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(["securityGain"]);
+  });
+
+  it("does not let a claim that met no growth swallow the next growth the count shows", async () => {
+    const { result, rerender } = renderCuesOverGrowingBoard(boardWithSecurity(5, 5));
+    await advance(0);
+
+    rerender({
+      events: [{ kind: "cardsMoved", instanceIds: ["placed"], from: "various", to: "security", seat: 1 }],
+      state: boardWithSecurity(5, 5),
+    });
+    await advance(0);
+    rerender({
+      events: [
+        { kind: "cardsMoved", instanceIds: ["placed"], from: "various", to: "security", seat: 1 },
+        { kind: "cardsMoved", instanceIds: ["unnamed"], from: "deck", to: "security" },
+      ],
+      state: boardWithSecurity(5, 6),
+    });
+    await advance(0);
+    expect(result.current.notices.map((notice) => [notice.side, notice.body.variant])).toEqual([
+      ["opp", "securityGain"],
+      ["opp", "securityGain"],
+    ]);
   });
 
   it("says nothing when the stack shrinks", async () => {

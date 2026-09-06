@@ -9,7 +9,7 @@ import { BoardInputLock, PermanentView } from "./boardPieces";
 import { PermanentDetailInspector, StackViewerOverlay } from "./overlays";
 import { buildPermanentDetail } from "./permanentDetail";
 import { SecurityClash } from "./SecurityClashView";
-import { buildSecurityClashScene } from "./securityClash";
+import { buildSecurityClashScene, buildSecurityDestructionScene } from "./securityClash";
 
 afterEach(() => cleanup());
 
@@ -75,6 +75,26 @@ describe("security feedback", () => {
     expect(scene.querySelector('[data-role="attacker"][data-side="you"]')).toBeTruthy();
     expect(scene.querySelector('[data-role="revealed"][data-side="opp"]')).toBeTruthy();
     expect(screen.getAllByText(/DP$/).length).toBe(2);
+  });
+
+  it("stages a destroyed security card alone, cracked, with nothing printed around it", () => {
+    render(
+      <I18nProvider>
+        <SecurityClash
+          scene={buildSecurityDestructionScene({ key: 3, cardId: "BT1-010", trashedSeat: 1, viewerSeat: 0 })}
+        />
+      </I18nProvider>,
+    );
+
+    const scene = screen.getByTestId("security-clash");
+    expect(scene.getAttribute("data-cause")).toBe("destruction");
+    expect(scene.querySelector(".battle-clash__badge")).toBeNull();
+    expect(scene.querySelector(".battle-clash__caption")).toBeNull();
+    expect(scene.querySelector(".battle-clash__outcome")).toBeNull();
+    expect(scene.textContent).toBe("");
+    expect(scene.querySelector(".game-card-cracks")).toBeTruthy();
+    expect(scene.querySelector(".battle-clash__shatter")).toBeTruthy();
+    expect(scene.getAttribute("aria-label")).toContain("Agumon");
   });
 
   it("announces recovery without exposing a card identity", () => {
