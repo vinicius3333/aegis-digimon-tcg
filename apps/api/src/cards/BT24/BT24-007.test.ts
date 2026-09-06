@@ -165,8 +165,10 @@ describe("BT24-007 Tsunomon", () => {
     );
     await s.ready();
     await advance(s.engine).fireSubTrigger("whenHandTrashed", {
-      trashedFromHandInstanceIds: [s.inst("candidate").instanceId],
+      handTrashedSeat: 0,
+      handTrashedInstanceIds: [s.inst("candidate").instanceId],
     });
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("candidate").instanceId);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("candidate").instanceId)).toBe(
       false,
