@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-022.js";
+import "../BT1/BT1-036.js";
 import "./index.js";
 
 describe("BT20-022 Crabmon (X Antibody)", () => {
@@ -39,17 +40,20 @@ describe("BT20-022 Crabmon (X Antibody)", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT20-022", as: "crabmonX" },
-            { card: "BT20-010", dp: 1000, suspended: true, as: "protected" },
-          ],
+          hand: [{ card: "BT20-022", as: "crabmonX" }],
+          battleArea: [{ card: "BT20-010", dp: 1000, suspended: true, as: "protected" }],
         },
-        1: { battleArea: [{ card: "BT20-017", dp: 11000, as: "attacker" }] },
+        1: { battleArea: [{ card: "BT20-017", dp: 11000, as: "attacker" }], deck: ["BT1-010", "BT1-010"] },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("crabmonX").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).isRestricted(s.perm("protected"), "beDeletedInBattle"));
     preferred.push(s.perm("protected").permanentId);
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("crabmonX"));
     s.state.turnSeat = 1;
     expect(
       s.engine.applyIntent(1, {
@@ -58,8 +62,14 @@ describe("BT20-022 Crabmon (X Antibody)", () => {
         target: { kind: "permanent", permanentId: s.perm("protected").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => false, 50);
+    await settle(() => s.events.filter((event) => event.kind === "combatResolved").length >= 1);
     expect(s.perm("protected")).toBeDefined();
+
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    expect(observe(s.engine).isRestricted(s.perm("protected"), "beDeletedInBattle")).toBe(false);
   });
 
   it("reaches Crabmon (X Antibody) from a legal Crabmon stack through public evolution", async () => {
@@ -80,27 +90,98 @@ describe("BT20-022 Crabmon (X Antibody)", () => {
   });
 
   it("inherits Draw 1 at exactly 7 hand cards and only once per turn", async () => {
-    const hand = Array.from({ length: 7 }, () => "BT20-001");
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT20-023", as: "host", under: ["BT20-022"] }],
-        hand,
-        deck: ["BT20-003", "BT20-004"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-024", as: "host", under: ["BT20-022"] }],
+          hand: [
+            { card: "BT1-036", as: "firstGarurumon" },
+            { card: "BT1-009", as: "handCost" },
+            ...Array.from({ length: 5 }, () => "BT1-010"),
+          ],
+          deck: ["BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT20-007"],
+        },
+        1: { security: Array.from({ length: 8 }, () => "BT1-010"), deck: ["BT20-008", "BT20-009"] },
       },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    const firstOwnTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.filter((event) => event.kind === "combatResolved").length >= 1);
+    expect(s.state.players[0]!.hand).toHaveLength(8);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstGarurumon").instanceId })).toEqual({
+      ok: true,
     });
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
-    expect(s.state.players[0]!.hand).toHaveLength(8);
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
-    expect(s.state.players[0]!.hand).toHaveLength(8);
+    await settle(() => !s.perm("host").isSuspended);
+    expect(s.state.players[0]!.hand).toHaveLength(7);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.filter((event) => event.kind === "combatResolved").length >= 2);
+    expect(s.state.players[0]!.hand).toHaveLength(7);
 
-    const over = setupEngine({
-      0: {
-        battleArea: [{ card: "BT20-023", as: "host", under: ["BT20-022"] }],
-        hand: Array.from({ length: 8 }, () => "BT20-001"),
-        deck: ["BT20-003"],
-      },
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstOwnTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("handCost").instanceId })).toEqual({
+      ok: true,
     });
-    await advance(over.engine).fire(EffectTiming.OnUseAttack, over.perm("host"));
+    await settle(() => !s.perm("host").isSuspended);
+    expect(s.state.players[0]!.hand).toHaveLength(7);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.filter((event) => event.kind === "combatResolved").length >= 3);
+    expect(s.state.players[0]!.hand).toHaveLength(8);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+
+    const over = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-024", as: "host", under: ["BT20-022"] }],
+          hand: Array.from({ length: 8 }, () => "BT1-010"),
+          deck: ["BT1-010"],
+        },
+        1: { security: Array.from({ length: 8 }, () => "BT1-010"), deck: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    over.state.memory = 10;
+    await over.ready();
+    expect(
+      over.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: over.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => over.events.filter((event) => event.kind === "combatResolved").length >= 1);
     expect(over.state.players[0]!.hand).toHaveLength(8);
   });
 });
