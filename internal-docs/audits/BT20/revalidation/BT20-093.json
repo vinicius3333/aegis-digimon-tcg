@@ -1,6 +1,6 @@
 {
   "cardId": "BT20-093",
-  "status": "awaiting-lead-review",
+  "status": "awaiting-lead-acceptance",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
@@ -9,12 +9,19 @@
     "deliveryGates": 0
   },
   "evidence": [
-    "BT20-093.test.ts public Dracomon-text reduced play and placement",
-    "BT20-093.test.ts nonmatching Digimon refusal with Option placement",
-    "BT20-093.ts exact Main/Delay/Security IR",
-    "current-collection-green-results.json"
+    "All Turns Delay now performs immediate DNA evolution before a qualifying non-battle departure; it no longer grants a keyword for a later Main activation.",
+    "Public prior-turn Option placement, ST2-16 return, accepted/refused DNA, Option trash cost, exact field materials and memory are verified. The threatened Slayerdramon is consumed as DNA material rather than returned.",
+    "Public Security play from hand/trash and battle exclusion are integrated. In the battle control both Slayerdramon and Breakdramon are publicly suspended beforehand, so Blocker cannot redirect the intended battle.",
+    "Shared replacement registry recompute barrier has a passing public mechanism test and an intended missing-Examon assertion when the await is removed.",
+    "collection-after-reactive-delay-results.json",
+    "reactive-movement-gates.json"
   ],
-  "commands": [
+  "gaps": [
+    "Final entry-age, source/controller/trait comparisons and independent full-clause acceptance remain pending.",
+    "Atomic pushed delivery and final independent acceptance pending."
+  ],
+  "reviewStatus": "Current lead corrections supersede historical report prose; this card is not accepted at10/10.",
+  "historicalCommands": [
     {
       "command": "node tools/kb/query.mjs card BT20-093",
       "result": "Q4433 and Q4436 retrieved"
@@ -32,8 +39,22 @@
       "result": "PASS: 4 cases for BT20-093;734 total tests. See current-collection-green-results.json."
     }
   ],
-  "gaps": [
-    "Coordinator rerun required after the color-valid fixture correction; delivery gates pending"
-  ],
-  "reviewStatus": "Full collection execution passed at this draft checkpoint. Strict clause acceptance, sensitivity and final delivery review remain pending; provisional scores do not count in the ledger."
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+      "result": "8 cases passed for BT20-093; 836 total passed, zero failed."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "Passed shared/API/web; reactive-movement-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "All102 synchronized; see reactive-movement-gates.json for the temporary watchdog adjustment and restored script."
+    },
+    {
+      "command": "Commands in reactive-movement-gates.json",
+      "result": "552 affected mechanism cases and changed-file lint/format passed without warnings."
+    }
+  ]
 }

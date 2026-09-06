@@ -1171,12 +1171,15 @@ export class GameEngine {
    * permanent lookup, and context builder. Returns the subset whose removal was prevented;
    * default-safe (empty when no prevent replacement is active).
    */
-  private consultLeavePrevention(
+  private async consultLeavePrevention(
     permanentIds: string[],
     cause: RemovalCause = "byEffect",
     resolvingSeat?: Seat,
     opts?: { isBounce?: boolean },
   ): Promise<Set<string>> {
+    // Immediate reactions must observe the rebuilt continuous registry, never its
+    // clear-before-refill interval during an overlapping effect-resolution flow.
+    await this.recomputeContinuousEffects();
     return consultLeavePrevention(
       {
         subTriggers: this.subTriggers,
