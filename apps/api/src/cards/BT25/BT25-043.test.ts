@@ -205,6 +205,44 @@ describe("BT25-043 Habakirimon", () => {
     expect(s.perm("secondTarget").currentDP).toBe(15000);
   });
 
+  it("offers public Arts Digivolve before trashing the used dual card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-060", as: "base" }],
+          hand: [{ card: "BT25-043", as: "dualCard" }],
+          deck: ["BT1-001", "BT1-002"],
+        },
+        1: { battleArea: [{ card: "BT1-080", as: "target", dp: 8000 }] },
+      },
+      { autoSelectCards: false, autoDeclineOptional: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("dualCard").instanceId,
+        useAs: "option",
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    expect(s.perm("target").currentDP).toBe(0);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT1-060")).toBe(true);
+    const arts = s.state.pendingDecision!;
+    expect(JSON.parse(arts.payloadJson).candidateInstanceIds).toContain(s.inst("base").instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: arts.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("base").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT25-043");
+    expect(s.perm("base").stack.map((card) => card.cardId)).toContain("BT1-060");
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT25-043")).toBe(false);
+  });
+
   it("does not rule-delete a Digimon at 0 DP until the Option effect has finished", async () => {
     const s = setupEngine(
       {
@@ -213,7 +251,7 @@ describe("BT25-043 Habakirimon", () => {
           battleArea: [{ card: "BT25-032", as: "glowingDawn" }],
           security: [{ card: "BT1-001", as: "optionCost" }],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 13000 }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 8000 }] },
       },
       { autoAcceptOptional: false, autoSelectCards: true },
     );
@@ -227,7 +265,10 @@ describe("BT25-043 Habakirimon", () => {
       } as never),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
-    expect(s.perm("target").currentDP).toBe(5000);
+    // -8000 has already resolved while the optional security-funded action is pending.
+    // The target is genuinely at zero DP, but remains in play until the whole Option effect ends.
+    expect(s.perm("target").currentDP).toBe(0);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT1-009")).toBe(true);
     const cost = s.state.pendingDecision!;
     expect(
       s.engine.applyIntent(0, {
@@ -238,7 +279,14 @@ describe("BT25-043 Habakirimon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT1-009")).toBe(false);
-    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT1-009")).toBe(false);
+    const costMove = s.events.findIndex(
+      (event) => event.kind === "cardsMoved" && event.instanceIds.includes(s.inst("optionCost").instanceId),
+    );
+    const targetMove = s.events.findIndex(
+      (event) => event.kind === "cardsMoved" && event.instanceIds.includes(s.inst("target").instanceId),
+    );
+    expect(costMove).toBeGreaterThanOrEqual(0);
+    expect(targetMove).toBeGreaterThan(costMove);
   });
 
   it("can refuse the optional security-funded -5000 while retaining the -8000 effect", async () => {
