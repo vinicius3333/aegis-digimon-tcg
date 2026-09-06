@@ -153,7 +153,7 @@ describe("BT20-052 Oblivimon", () => {
   it("publicly refuses a Blocker redirect from an inherited Oblivimon attack", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT20-053", dp: 12000, under: ["BT20-052"], as: "host" }] },
+        0: { battleArea: [{ card: "BT20-055", dp: 12000, under: ["BT20-052"], as: "host" }] },
         1: {
           battleArea: [{ card: "BT20-047", as: "blocker" }],
           security: ["BT1-010"],
@@ -178,6 +178,8 @@ describe("BT20-052 Oblivimon", () => {
         blockerPermanentId: s.perm("blocker").permanentId,
       }),
     ).toMatchObject({ ok: false });
-    await settle(() => !observe(s.engine).isAttacking());
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-047")).toBe(true);
   });
 });
