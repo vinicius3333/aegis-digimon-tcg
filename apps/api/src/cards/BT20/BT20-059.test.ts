@@ -157,7 +157,7 @@ describe("BT20-059 Gankoomon (X Antibody)", () => {
 
   it("inherits the all-Digimon keyword grant only under Jesmon GX", async () => {
     for (const [host, expected] of [
-      ["BT20-021", true],
+      ["BT10-112", true],
       ["BT20-060", false],
     ] as const) {
       const s = setupEngine({
@@ -173,5 +173,47 @@ describe("BT20-059 Gankoomon (X Antibody)", () => {
       expect(observe(s.engine).hasKeyword(s.perm("nonmatch"), "Reboot")).toBe(expected);
       expect(observe(s.engine).hasKeyword(s.perm("nonmatch"), "Blocker")).toBe(expected);
     }
+  });
+
+  it("expires the opponent-turn immunity and keyword grants at the real opponent turn end", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT20-057", as: "base" }],
+        hand: [{ card: "BT20-059", as: "gankoomonX" }],
+        deck: ["BT1-010", "BT1-010", "BT1-010"],
+      },
+      1: { deck: ["BT1-010", "BT1-010", "BT1-010"] },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gankoomonX").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT20-059");
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("base"), "beAffected", "Digimon")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    await settle(() => observe(s.engine).hasKeyword(s.perm("base"), "Reboot"));
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Reboot")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Blocker")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("base"), "beAffected", "Digimon")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Reboot")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Blocker")).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
   });
 });

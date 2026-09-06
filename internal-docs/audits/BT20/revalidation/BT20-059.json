@@ -12,6 +12,7 @@
     "BT20-059.test.ts: public De-Digivolve 2 and conditional all-ally immunity matrix",
     "BT20-059.test.ts: opponent-turn Sistermon/Huckmon/Royal Knight keyword boundaries",
     "BT20-059.test.ts: inherited Jesmon GX all-own keyword scope and alternate costs",
+    "Unexecuted public natural-turn test: legal BT20-057 to BT20-059 alternate evolution, opponent-turn immunity and Royal Knight keywords, and post-turn expiry",
     "current-collection-green-results.json",
     "named-x-clause-red.log",
     "named-x-019-102-red.log",
@@ -51,11 +52,15 @@
     {
       "command": "pnpm exec oxlint <six changed card modules/tests and nameExactMatch.test.ts>; pnpm exec oxfmt --check <same paths>; git diff --check",
       "result": "Passed; named-x-lint.log and named-x-format-check.log"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-final-collection-results.json",
+      "result": "All current colocated cases pass within894/894; final independent acceptance remains pending."
     }
   ],
   "gaps": [
     "Coordinator focused/collection, mechanism/typecheck, and lint gates pending",
-    "Live immunity effect survival/trigger suppression remains cross-rule follow-up",
+    "Independent review: natural opponent-turn-end expiry of immunity and Reboot/Blocker remains unproven; Q4397 is shared-mechanism follow-up",
     "Final strict clause acceptance, whole-collection revalidation, typecheck/style and pushed delivery gates remain pending."
   ],
   "reviewStatus": "Full collection execution passed at this draft checkpoint. Strict clause acceptance, sensitivity and final delivery review remain pending; provisional scores do not count in the ledger."
