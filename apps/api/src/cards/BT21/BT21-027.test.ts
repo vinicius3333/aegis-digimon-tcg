@@ -5,6 +5,28 @@ import { compiled } from "./BT21-027.js";
 import "../index.js";
 
 describe("BT21-027 compiled implementation", () => {
+  it("does not use its DigiXros-only alias for an alternate digivolution", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-027", as: "base" }],
+        hand: [{ card: "BT21-027", as: "destination" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("destination").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.perm("base").topCard.cardId).toBe("BT21-027");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("destination").instanceId);
+    expect(s.state.memory).toBe(10);
+  });
+
   it("exposes complete effect coverage with no residual clauses", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual ?? []).toEqual([]);
@@ -61,11 +83,37 @@ describe("BT21-027 compiled implementation", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT21-027", as: "shoutmon-dx" }] } });
     await s.ready();
 
-    expect(observe(s.engine).effectiveNames(s.perm("shoutmon-dx"))).toEqual(
-      expect.arrayContaining(["shoutmon dx", "shoutmon", "zeiggreymon"]),
-    );
+    expect(observe(s.engine).effectiveNames(s.perm("shoutmon-dx"))).toEqual(["shoutmon dx"]);
     expect(observe(s.engine).hasKeyword(s.perm("shoutmon-dx"), "SecurityAttack")).toBe(true);
     expect(observe(s.engine).keywordAmount(s.perm("shoutmon-dx"), "SecurityAttack")).toBe(1);
+  });
+
+  it("accepts the printed alias in a later public DigiXros recipe", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "BT11-018", as: "nextHost" },
+          { card: "BT21-021", as: "omni" },
+          { card: "BT21-027", as: "zeigAlias" },
+        ],
+      },
+    });
+    s.state.memory = 8;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("nextHost").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("omni").instanceId, s.inst("zeigAlias").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("nextHost").instanceId),
+    );
+    const host = s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === s.inst("nextHost").instanceId)!;
+    expect(host.stack.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("omni").instanceId, s.inst("zeigAlias").instanceId]),
+    );
   });
 
   it("deletes exactly the lowest-DP opponent on play", async () => {
@@ -91,6 +139,34 @@ describe("BT21-027 compiled implementation", () => {
     await settle(() => s.state.players[1]!.battleArea.every((permanent) => permanent.permanentId !== lowId));
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === highId)).toBe(true);
+  });
+
+  it("deletes one selected lowest-DP tie and preserves the other tie and higher target", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT21-027", as: "superior" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "lowA" },
+            { card: "BT1-009", as: "lowB" },
+            { card: "BT1-019", as: "high" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    const lowAId = s.perm("lowA").permanentId;
+    const lowBId = s.perm("lowB").permanentId;
+    const highId = s.perm("high").permanentId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("superior").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 2);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === highId)).toBe(true);
+    expect(
+      [lowAId, lowBId].filter((id) => s.state.players[1]!.battleArea.some((p) => p.permanentId === id)),
+    ).toHaveLength(1);
   });
 
   it("publicly DigiXroses OmniShoutmon and ZeigGreymon with the printed -3 per material", async () => {
@@ -144,6 +220,7 @@ describe("BT21-027 compiled implementation", () => {
           type: "digivolve",
           permanentId: s.perm("base").permanentId,
           instanceId: s.inst("shoutmon-dx").instanceId,
+          alternateRequirementIndex: base === "AD1-013" ? 0 : 1,
         }),
       ).toEqual({ ok: true });
       await settle(() => s.perm("base").topCard.cardId === "BT21-027");
@@ -153,6 +230,24 @@ describe("BT21-027 compiled implementation", () => {
       expect(s.state.players[1]!.battleArea[0]?.topCard.cardId).toBe("BT1-010");
     },
   );
+
+  it("rejects both alternate routes from a nonmatching level-3 base without paying", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "base" }], hand: [{ card: "BT21-027", as: "shoutmon-dx" }] },
+    });
+    s.state.memory = 6;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("shoutmon-dx").instanceId,
+        alternateRequirementIndex: 1,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(6);
+    expect(s.perm("base").topCard.cardId).toBe("BT1-009");
+  });
 
   it("places only Xros Heart and Blue Flare Digimon sources under a Tamer, then still leaves", async () => {
     const s = setupEngine(

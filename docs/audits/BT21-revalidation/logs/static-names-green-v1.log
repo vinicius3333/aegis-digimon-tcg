@@ -1,0 +1,16 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/packages/shared
+
+ ✓ src/cards/effectiveNames.test.ts > effectiveStaticNames > parses the bracketed [Rule] Name alias on EX12-041 in every zone 3ms
+ ✓ src/cards/effectiveNames.test.ts > effectiveStaticNames > parses the bracketed [Rule] Name alias on BT15-012 in every zone 1ms
+ ✓ src/cards/effectiveNames.test.ts > effectiveStaticNames > parses the bracketed [Rule] Name alias on EX5-030 in every zone 0ms
+ ✓ src/cards/effectiveNames.test.ts > effectiveStaticNames > parses the bracketed [Rule] Name alias on P-141 in every zone 1ms
+ ✓ src/cards/effectiveNames.test.ts > effectiveStaticNames > excludes DigiXros-only names from ordinary identity gates on BT21-021 0ms
+ ✓ src/cards/effectiveNames.test.ts > effectiveStaticNames > excludes DigiXros-only names from ordinary identity gates on BT21-027 0ms
+ ✓ src/cards/effectiveNames.test.ts > effectiveStaticNames > excludes DigiXros-only names from ordinary identity gates on BT19-012 0ms
+ ✓ src/cards/effectiveNames.test.ts > effectiveStaticNames > keeps the parenthesised (Rule) Name form 0ms
+
+ Test Files  1 passed (1)
+      Tests  8 passed (8)
+   Start at  11:30:37
+   Duration  564ms (transform 67%, import 30%, tests 2%, worker 2%)

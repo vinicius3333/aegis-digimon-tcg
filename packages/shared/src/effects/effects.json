@@ -71647,6 +71647,7 @@
             "kind": "GrantStatic",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "grant": "name",
+            "digiXrosOnly": true,
             "tokens": ["Shoutmon"]
           }
         ]
@@ -72089,6 +72090,7 @@
             "kind": "GrantStatic",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "grant": "name",
+            "digiXrosOnly": true,
             "tokens": ["Shoutmon", "ZeigGreymon"]
           }
         ]
