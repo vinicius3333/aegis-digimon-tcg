@@ -149,4 +149,35 @@ describe("BT20-052 Oblivimon", () => {
     await advance(s.engine).recompute();
     expect(observe(s.engine).isRestricted(s.perm("host"), "attackTargetChange")).toBe(false);
   });
+
+  it("publicly refuses a Blocker redirect from an inherited Oblivimon attack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-053", dp: 12000, under: ["BT20-052"], as: "host" }] },
+        1: {
+          battleArea: [{ card: "BT20-047", as: "blocker" }],
+          security: ["BT1-010"],
+          deck: ["BT1-010", "BT1-010"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 0;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "declareBlock",
+        blockerPermanentId: s.perm("blocker").permanentId,
+      }),
+    ).toMatchObject({ ok: false });
+    await settle(() => !observe(s.engine).isAttacking());
+  });
 });

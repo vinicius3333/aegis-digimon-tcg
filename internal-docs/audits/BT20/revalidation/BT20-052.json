@@ -12,6 +12,7 @@
     "BT20-052.test.ts: Security free play and next face-down flip",
     "BT20-052.test.ts: face-up security source placement and face-down negative control",
     "BT20-052.test.ts: inherited attack-target lock scope and exact source stack",
+    "BT20-052.test.ts: public inherited attack refuses a real Blocker target switch",
     "BT20-052.test.ts: unexecuted natural runOneTurn Security play at the opponent's turn end",
     "current-collection-green-results.json",
     "collection-after-name-fix-results.json",
@@ -41,6 +42,10 @@
     {
       "command": "pnpm exec oxlint <changed public-proof test files>; pnpm exec oxfmt <same files>; git diff --check",
       "result": "Passed changed-file style and diff gates."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-final-collection-results.json",
+      "result": "All current colocated cases pass within894/894; final independent acceptance remains pending."
     }
   ],
   "gaps": [
