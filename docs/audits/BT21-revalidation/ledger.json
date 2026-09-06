@@ -419,18 +419,28 @@
     {
       "cardId": "BT21-016",
       "name": "Shoutmon (King Version)",
-      "status": "in-review",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-016.md",
       "gaps": [
-        "Focused proof and lead review ongoing",
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
         "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-016.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "10/10 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-016-035-sync-v2.log"
+        }
+      ],
+      "deliveryCommits": [
+        "0c215fca9"
       ]
     },
     {
@@ -516,18 +526,28 @@
     {
       "cardId": "BT21-020",
       "name": "Aldamon",
-      "status": "in-review",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-020.md",
       "gaps": [
-        "Focused proof and lead review ongoing",
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
         "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-020.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "12/12 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-016-035-sync-v2.log"
+        }
+      ],
+      "deliveryCommits": [
+        "a2f962525"
       ]
     },
     {
@@ -560,644 +580,1081 @@
     {
       "cardId": "BT21-022",
       "name": "Canoweissmon",
-      "status": "in-review",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-022.md",
       "gaps": [
-        "Focused proof and lead review ongoing",
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
         "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-022.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "7/7 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-022-042-v3.log"
+        }
+      ],
+      "deliveryCommits": [
+        "75d656b52"
       ]
     },
     {
       "cardId": "BT21-023",
       "name": "Globemon",
-      "status": "in-review",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-023.md",
       "gaps": [
-        "Focused proof and lead review ongoing",
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
         "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-023.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "8/8 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-016-035-sync-v2.log"
+        }
+      ],
+      "deliveryCommits": [
+        "b6f83876a"
       ]
     },
     {
       "cardId": "BT21-024",
       "name": "Cyberdramon",
-      "status": "in-review",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-024.md",
       "gaps": [
-        "Focused proof and lead review ongoing",
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
         "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-024.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "8/8 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-016-035-sync-v2.log"
+        }
+      ],
+      "deliveryCommits": [
+        "b47181bfd"
       ]
     },
     {
       "cardId": "BT21-025",
       "name": "Lamiamon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-025.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-025.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "8/8 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-016-035-sync-v2.log"
+        }
+      ],
+      "deliveryCommits": [
+        "beac94777"
       ]
     },
     {
       "cardId": "BT21-026",
       "name": "WarGreymon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-026.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-026.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "10/10 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-016-035-sync-v2.log"
+        }
+      ],
+      "deliveryCommits": [
+        "027fdfdb8"
       ]
     },
     {
       "cardId": "BT21-027",
       "name": "Shoutmon DX",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-027.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-027.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "10/10 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-016-035-sync-v2.log"
+        }
+      ],
+      "deliveryCommits": [
+        "440a61b8a"
       ]
     },
     {
       "cardId": "BT21-028",
       "name": "Siriusmon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-028.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-028.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "13/13 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-022-042-v3.log"
+        }
+      ],
+      "deliveryCommits": [
+        "a744e0d79"
       ]
     },
     {
       "cardId": "BT21-029",
       "name": "Medusamon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-029.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-029.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "10/10 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-016-035-sync-v2.log"
+        }
+      ],
+      "deliveryCommits": [
+        "b6daaad45"
       ]
     },
     {
       "cardId": "BT21-030",
       "name": "Shoutmon X7: Superior Mode",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-030.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-030.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "9/9 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-016-035-sync-v2.log"
+        }
+      ],
+      "deliveryCommits": [
+        "e8fc24547"
       ]
     },
     {
       "cardId": "BT21-031",
       "name": "Sangomon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-031.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-031.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "8/8 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-022-042-v3.log"
+        }
+      ],
+      "deliveryCommits": [
+        "18c9980b1"
       ]
     },
     {
       "cardId": "BT21-032",
       "name": "Veemon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-032.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-032.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "9/9 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-016-035-sync-v2.log"
+        }
+      ],
+      "deliveryCommits": [
+        "0def4911e"
       ]
     },
     {
       "cardId": "BT21-033",
       "name": "Floramon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-033.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-033.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "9/9 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-016-035-sync-v2.log"
+        }
+      ],
+      "deliveryCommits": [
+        "5818ec1da"
       ]
     },
     {
       "cardId": "BT21-034",
       "name": "Kiwimon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-034.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-034.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "8/8 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-016-035-sync-v2.log"
+        }
+      ],
+      "deliveryCommits": [
+        "a2fc43285"
       ]
     },
     {
       "cardId": "BT21-035",
       "name": "Flamedramon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-035.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-035.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "11/11 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-035-058-v6.log"
+        }
+      ],
+      "deliveryCommits": [
+        "2149b3ed1"
       ]
     },
     {
       "cardId": "BT21-036",
       "name": "Magnamon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-036.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-036.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "9/9 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-035-052-v5.log"
+        }
+      ],
+      "deliveryCommits": [
+        "551779c58"
       ]
     },
     {
       "cardId": "BT21-037",
       "name": "Lighdramon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-037.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-037.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "8/8 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-035-052-v5.log"
+        }
+      ],
+      "deliveryCommits": [
+        "e469b53d5"
       ]
     },
     {
       "cardId": "BT21-038",
       "name": "Deramon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-038.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-038.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "11/11 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-022-042-v3.log"
+        }
+      ],
+      "deliveryCommits": [
+        "daa683fdc"
       ]
     },
     {
       "cardId": "BT21-039",
       "name": "Gryphonmon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-039.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-039.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "10/10 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-022-042-v3.log"
+        }
+      ],
+      "deliveryCommits": [
+        "4573fbcbc"
       ]
     },
     {
       "cardId": "BT21-040",
       "name": "Agumon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-040.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-040.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "12/12 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-022-042-v3.log"
+        }
+      ],
+      "deliveryCommits": [
+        "fd1726c20"
       ]
     },
     {
       "cardId": "BT21-041",
       "name": "Calendamon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-041.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-041.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "10/10 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-022-042-v3.log"
+        }
+      ],
+      "deliveryCommits": [
+        "3699e1484"
       ]
     },
     {
       "cardId": "BT21-042",
       "name": "GeoGreymon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-042.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-042.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "11/11 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-022-042-v3.log"
+        }
+      ],
+      "deliveryCommits": [
+        "2fbd09eaa"
       ]
     },
     {
       "cardId": "BT21-043",
       "name": "Sociamon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-043.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-043.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "10/10 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-035-052-v5.log"
+        }
+      ],
+      "deliveryCommits": [
+        "54ca4a928"
       ]
     },
     {
       "cardId": "BT21-044",
       "name": "RizeGreymon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-044.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-044.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "11/11 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-035-049-v4.log"
+        }
+      ],
+      "deliveryCommits": [
+        "ff15ba47a"
       ]
     },
     {
       "cardId": "BT21-045",
       "name": "ShineGreymon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-045.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-045.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "12/12 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-035-052-v5.log"
+        }
+      ],
+      "deliveryCommits": [
+        "38e115eae"
       ]
     },
     {
       "cardId": "BT21-046",
       "name": "Dracomon (X Antibody)",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-046.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-046.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "11/11 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-035-049-v4.log"
+        }
+      ],
+      "deliveryCommits": [
+        "8a35dd09d"
       ]
     },
     {
       "cardId": "BT21-047",
       "name": "Navimon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-047.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-047.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "9/9 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-035-049-v4.log"
+        }
+      ],
+      "deliveryCommits": [
+        "19882a8a3"
       ]
     },
     {
       "cardId": "BT21-048",
       "name": "Mushroomon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-048.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-048.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "9/9 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-035-052-v5.log"
+        }
+      ],
+      "deliveryCommits": [
+        "cda6d5368"
       ]
     },
     {
       "cardId": "BT21-049",
       "name": "Woodmon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-049.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-049.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "8/8 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-035-049-v4.log"
+        }
+      ],
+      "deliveryCommits": [
+        "1e3e27b60"
       ]
     },
     {
       "cardId": "BT21-050",
       "name": "Cherrymon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-050.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-050.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "7/7 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-035-052-v5.log"
+        }
+      ],
+      "deliveryCommits": [
+        "c55349af6"
       ]
     },
     {
       "cardId": "BT21-051",
       "name": "Puppetmon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-051.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-051.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "6/6 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-035-052-v5.log"
+        }
+      ],
+      "deliveryCommits": [
+        "5c14d5cbb"
       ]
     },
     {
       "cardId": "BT21-052",
       "name": "Examon (X Antibody)",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-052.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-052.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "7/7 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-035-058-v6.log"
+        }
+      ],
+      "deliveryCommits": [
+        "4fa840e80"
       ]
     },
     {
       "cardId": "BT21-053",
       "name": "Watchmon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-053.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-053.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "7/7 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-035-058-v6.log"
+        }
+      ],
+      "deliveryCommits": [
+        "f10d4f284"
       ]
     },
     {
       "cardId": "BT21-054",
       "name": "Shotmon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-054.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-054.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "8/8 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-035-058-v6.log"
+        }
+      ],
+      "deliveryCommits": [
+        "e99478ada"
       ]
     },
     {
       "cardId": "BT21-055",
       "name": "Sunarizamon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-055.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-055.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "5/5 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-035-058-v6.log"
+        }
+      ],
+      "deliveryCommits": [
+        "67dda0b42"
       ]
     },
     {
       "cardId": "BT21-056",
       "name": "Vemmon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-056.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-056.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "8/8 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-056-057-v3.log"
+        }
+      ],
+      "deliveryCommits": [
+        "bc2284dec"
       ]
     },
     {
       "cardId": "BT21-057",
       "name": "Greymon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-057.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Full clause-by-clause fidelity review pending",
+        "Final collection delivery gates pending"
+      ],
+      "deliveryCommits": [
+        "61077ebf2"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-057.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "7/7",
+          "log": "logs/collection-integration-through-092-v1.log"
+        }
       ]
     },
     {
       "cardId": "BT21-058",
       "name": "Snatchmon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-058.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-058.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "6/6 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-035-058-v6.log"
+        }
+      ],
+      "deliveryCommits": [
+        "98a07cfb0"
       ]
     },
     {
       "cardId": "BT21-059",
       "name": "Timemon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-059.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-059.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "7/7 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-056-062-v2.log"
+        }
+      ],
+      "deliveryCommits": [
+        "33bc0c5e3"
       ]
     },
     {
       "cardId": "BT21-060",
       "name": "Destromon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-060.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-060.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "9/9 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-056-062-v1.log"
+        }
+      ],
+      "deliveryCommits": [
+        "10417ed45"
       ]
     },
     {
       "cardId": "BT21-061",
       "name": "MetalGreymon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-061.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs",
+        "Final collection delivery gates pending"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-061.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "7/7 current card assertions passed in recorded grouped run",
+          "log": "logs/focused-056-062-v1.log"
+        }
+      ],
+      "deliveryCommits": [
+        "969b44852"
       ]
     },
     {
@@ -1219,33 +1676,55 @@
     {
       "cardId": "BT21-063",
       "name": "Gumdramon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-063.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Full clause-by-clause fidelity review pending",
+        "Final collection delivery gates pending"
+      ],
+      "deliveryCommits": [
+        "f05a5893f"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-063.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "8/8",
+          "log": "logs/collection-integration-through-092-v1.log"
+        }
       ]
     },
     {
       "cardId": "BT21-064",
       "name": "Guilmon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-064.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Full clause-by-clause fidelity review pending",
+        "Final collection delivery gates pending"
+      ],
+      "deliveryCommits": [
+        "6681e89dc"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-064.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "8/8",
+          "log": "logs/collection-integration-through-092-v1.log"
+        }
       ]
     },
     {
@@ -1267,113 +1746,190 @@
     {
       "cardId": "BT21-066",
       "name": "Arresterdramon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-066.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Full clause-by-clause fidelity review pending",
+        "Final collection delivery gates pending"
+      ],
+      "deliveryCommits": [
+        "fddf83434"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-066.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "11/11",
+          "log": "logs/collection-integration-through-092-v1.log"
+        }
       ]
     },
     {
       "cardId": "BT21-067",
       "name": "Garurumon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-067.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Full clause-by-clause fidelity review pending",
+        "Final collection delivery gates pending"
+      ],
+      "deliveryCommits": [
+        "47a92d46c"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-067.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "8/8",
+          "log": "logs/collection-integration-through-092-v1.log"
+        }
       ]
     },
     {
       "cardId": "BT21-068",
       "name": "Growlmon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-068.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Full clause-by-clause fidelity review pending",
+        "Final collection delivery gates pending"
+      ],
+      "deliveryCommits": [
+        "4419ca1e8"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-068.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/collection-integration-through-092-v1.log"
+        }
       ]
     },
     {
       "cardId": "BT21-069",
       "name": "GulusGammamon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-069.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Full clause-by-clause fidelity review pending",
+        "Final collection delivery gates pending"
+      ],
+      "deliveryCommits": [
+        "fb93271bb"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-069.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/collection-integration-through-092-v1.log"
+        }
       ]
     },
     {
       "cardId": "BT21-070",
       "name": "Gossipmon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-070.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Full clause-by-clause fidelity review pending",
+        "Final collection delivery gates pending"
+      ],
+      "deliveryCommits": [
+        "fb93271bb"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-070.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "7/7",
+          "log": "logs/collection-integration-through-092-v1.log"
+        }
       ]
     },
     {
       "cardId": "BT21-071",
       "name": "Scopemon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-071.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Full clause-by-clause fidelity review pending",
+        "Final collection delivery gates pending"
+      ],
+      "deliveryCommits": [
+        "51c2b9ded"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-071.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/collection-integration-through-092-v1.log"
+        }
       ]
     },
     {
       "cardId": "BT21-072",
       "name": "Arresterdramon: Superior Mode",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-072.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Full clause-by-clause fidelity review pending",
+        "Final collection delivery gates pending"
+      ],
+      "deliveryCommits": [
+        "58ec247ee"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-072.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "8/8",
+          "log": "logs/collection-integration-through-092-v1.log"
+        }
       ]
     },
     {
@@ -1395,17 +1951,28 @@
     {
       "cardId": "BT21-074",
       "name": "Satellamon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-074.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Full clause-by-clause fidelity review pending",
+        "Final collection delivery gates pending"
+      ],
+      "deliveryCommits": [
+        "de6982860"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-074.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "7/7",
+          "log": "logs/focused-065-102-v2.log"
+        }
       ]
     },
     {
@@ -1427,49 +1994,82 @@
     {
       "cardId": "BT21-076",
       "name": "WarGrowlmon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-076.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Full clause-by-clause fidelity review pending",
+        "Final collection delivery gates pending"
+      ],
+      "deliveryCommits": [
+        "c8b1a6538"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-076.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "10/10",
+          "log": "logs/focused-065-102-v2.log"
+        }
       ]
     },
     {
       "cardId": "BT21-077",
       "name": "Regulusmon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-077.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Full clause-by-clause fidelity review pending",
+        "Final collection delivery gates pending"
+      ],
+      "deliveryCommits": [
+        "b92f46c7d"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-077.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/collection-integration-through-092-v1.log"
+        }
       ]
     },
     {
       "cardId": "BT21-078",
       "name": "WereGarurumon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-078.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Full clause-by-clause fidelity review pending",
+        "Final collection delivery gates pending"
+      ],
+      "deliveryCommits": [
+        "75256536e"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-078.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "8/8",
+          "log": "logs/collection-integration-through-092-v1.log"
+        }
       ]
     },
     {
@@ -1491,33 +2091,55 @@
     {
       "cardId": "BT21-080",
       "name": "Hiro Amanokawa",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-080.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Full clause-by-clause fidelity review pending",
+        "Final collection delivery gates pending"
+      ],
+      "deliveryCommits": [
+        "82529a55f"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-080.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "8/8",
+          "log": "logs/collection-integration-through-092-v1.log"
+        }
       ]
     },
     {
       "cardId": "BT21-081",
       "name": "Owen Dreadnought",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-081.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Full clause-by-clause fidelity review pending",
+        "Final collection delivery gates pending"
+      ],
+      "deliveryCommits": [
+        "b4d7774ab"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-081.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "7/7",
+          "log": "logs/collection-integration-through-092-v1.log"
+        }
       ]
     },
     {
@@ -1539,33 +2161,55 @@
     {
       "cardId": "BT21-083",
       "name": "Taiki Kudo",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-083.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Full clause-by-clause fidelity review pending",
+        "Final collection delivery gates pending"
+      ],
+      "deliveryCommits": [
+        "759f2b2c6"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-083.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "8/8",
+          "log": "logs/collection-integration-through-092-v1.log"
+        }
       ]
     },
     {
       "cardId": "BT21-084",
       "name": "Haru Shinkai",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-084.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Full clause-by-clause fidelity review pending",
+        "Final collection delivery gates pending"
+      ],
+      "deliveryCommits": [
+        "4712f2d0e"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-084.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/collection-integration-through-092-v1.log"
+        }
       ]
     },
     {
@@ -1587,17 +2231,28 @@
     {
       "cardId": "BT21-086",
       "name": "Marcus Damon",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-086.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Full clause-by-clause fidelity review pending",
+        "Final collection delivery gates pending"
+      ],
+      "deliveryCommits": [
+        "a750d11c4"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-086.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "8/8",
+          "log": "logs/collection-integration-through-092-v1.log"
+        }
       ]
     },
     {
@@ -1619,33 +2274,55 @@
     {
       "cardId": "BT21-088",
       "name": "Tagiru Akashi",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-088.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Full clause-by-clause fidelity review pending",
+        "Final collection delivery gates pending"
+      ],
+      "deliveryCommits": [
+        "e6537145b"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-088.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "6/6",
+          "log": "logs/collection-integration-through-092-v1.log"
+        }
       ]
     },
     {
       "cardId": "BT21-089",
       "name": "Takato Matsuki",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-089.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Full clause-by-clause fidelity review pending",
+        "Final collection delivery gates pending"
+      ],
+      "deliveryCommits": [
+        "9051179c2"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-089.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "9/9",
+          "log": "logs/collection-integration-through-092-v1.log"
+        }
       ]
     },
     {
@@ -1683,17 +2360,28 @@
     {
       "cardId": "BT21-092",
       "name": "Can't Turn My Back!",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-092.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Full clause-by-clause fidelity review pending",
+        "Final collection delivery gates pending"
+      ],
+      "deliveryCommits": [
+        "2fc6cc732"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-092.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "4/4",
+          "log": "logs/collection-integration-through-092-v1.log"
+        }
       ]
     },
     {
@@ -1731,49 +2419,82 @@
     {
       "cardId": "BT21-095",
       "name": "Wind Guardians",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-095.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Full clause-by-clause fidelity review pending",
+        "Final collection delivery gates pending"
+      ],
+      "deliveryCommits": [
+        "54cc96a2c"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-095.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "5/5",
+          "log": "logs/focused-065-102-v2.log"
+        }
       ]
     },
     {
       "cardId": "BT21-096",
       "name": "The Champion Ultimate Fighter!",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-096.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Full clause-by-clause fidelity review pending",
+        "Final collection delivery gates pending"
+      ],
+      "deliveryCommits": [
+        "607af2a3b"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-096.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "4/4",
+          "log": "logs/collection-integration-through-092-v1.log"
+        }
       ]
     },
     {
       "cardId": "BT21-097",
       "name": "App Link",
-      "status": "unverified",
+      "status": "integration-review",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        1,
+        1,
+        1,
         0
       ],
       "evidence": "cards/BT21-097.md",
       "gaps": [
-        "Independent revalidation pending"
+        "Full clause-by-clause fidelity review pending",
+        "Final collection delivery gates pending"
+      ],
+      "deliveryCommits": [
+        "3598d3f79"
+      ],
+      "commands": [
+        {
+          "command": "TEST_MAX_WORKERS=1 pnpm --filter @aegis/api exec vitest run src/cards/BT21/BT21-097.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose",
+          "result": "5/5",
+          "log": "logs/collection-integration-through-092-v1.log"
+        }
       ]
     },
     {
@@ -1857,5 +2578,12 @@
       ]
     }
   ],
-  "commandNote": "Per-card commands reproduce the card assertions. Recorded logs may group multiple listed card paths into one serialized invocation; aggregate red runs are explicitly not delivery gates."
+  "commandNote": "Per-card commands reproduce the card assertions. Recorded logs may group multiple listed card paths into one serialized invocation; aggregate red runs are explicitly not delivery gates.",
+  "deliveryGates": {
+    "status": "pending",
+    "collection": "1095 passing / 16 failing assertions at integration checkpoint; corrective focused run 110 passing / 14 failing. Final collection rerun pending.",
+    "typecheck": "Shared/web pass after clearing cached ENOSPC diagnostic; card-test API type errors being corrected.",
+    "sync": "102 BT21 records synchronized; 7 semantic changes against baseline, zero changes outside set.",
+    "review": "Final clause review and review PR delivery pending."
+  }
 }

@@ -25,3 +25,13 @@ Current ownership: Luna A 001–003; Luna B 004–006; Luna C 007–009. All rem
 - DigiXros focused/mechanism/collection guard run passed236/236 in6files (`logs/focused-021-xros-sync-v1.log`). Later016 mutation requires another final scoped gate.
 - Root review rejected malformed legal stacks, custom DP obscuring inherited arithmetic, deleted-permanent aliases, optional decisions left unanswered, and attack/battle conflation. Red integration logs are retained to make these corrections reviewable.
 - Additional production defects and proof gaps remain explicit in ledger/cards/gaps. No card has final delivery points; no historical10 has been adopted. Full collection and final delivery gates remain pending.
+
+## Independent first pass reaches all 102 cards
+
+All 102 catalog cards have a current draft report. Draft scores are provisional; the authoritative ledger still awards no 10/10. First-pass additions include public security, attack, link, evolution, source placement, and Delay producers. Lead review exposed invalid targets, stacks, relative memory expectations, and phase timing; those are being corrected and retested.
+
+`logs/collection-integration-through-092-v1.log`: 1095 passing /16 failing assertions,109 files; all73 affected mechanism assertions pass. `logs/focused-065-102-v2.log`:110 passing /14 failing; 17 files. These are incomplete integration gates.
+
+Card fixes now cover012,015,016,021,062,069,070. `logs/effects-sync-checkpoint-070-retry.log` confirms102 synchronized records and zero semantic/byte changes outside BT21. The shared custom-grant duration fix is commit61077ebf2; security069/070 fixes commitfb93271bb.
+
+Disk pressure caused shared-build ENOSPC; removing only this worktree API dist freed reproducible output. After disk recovered, TypeScript still replayed the cached ENOSPC in `packages/shared/dist/.tsbuildinfo`. Removing that generated cache restored shared/web builds; API test typing corrections remain pending (`logs/typecheck-checkpoint-102-clean-incremental.log`).
