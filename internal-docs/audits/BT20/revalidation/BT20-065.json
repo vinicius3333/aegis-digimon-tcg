@@ -1,6 +1,6 @@
 {
   "cardId": "BT20-065",
-  "status": "ready-for-coordinator-verification",
+  "status": "awaiting-lead-review",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
@@ -13,7 +13,10 @@
     "BT20-065.test.ts: no-payable-card refusal leaves deletion without memory loss",
     "BT20-065.test.ts: real opponent turn lifecycle expires the granted deletion effect",
     "BT20-065.test.ts: legal BT20-006 to BT20-065 evolution with exact source stack and inherited Retaliation boundary",
-    "current-collection-green-results.json"
+    "current-collection-green-results.json",
+    "BT20-065.test.ts: public refusal with a payable hand fodder card confirms CR15-7-1/15-7-4 optional by-condition processing and preserves fodder/no granted effect",
+    "collection-after-return-fix-results.json",
+    "immediate-return-typecheck.log"
   ],
   "commands": [
     {
@@ -27,6 +30,10 @@
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/current-collection-green-results.json",
       "result": "PASS: 7 cases for BT20-065;734 total tests. See current-collection-green-results.json."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts src/engine/immediateReturnReaction.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+      "result": "8 cases for this card; 800/800 total passed. Workspace typecheck/style/diff also passed."
     }
   ],
   "gaps": [

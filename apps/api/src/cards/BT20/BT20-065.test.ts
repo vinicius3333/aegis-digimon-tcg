@@ -99,6 +99,48 @@ describe("A3 BT20-065 — granted '[On Deletion] Lose 1 memory.' (costed)", () =
     expect(s.state.memory).toBe(6); // 5 + 1
   });
 
+  it("may decline the by-trash condition even when a legal hand card is available", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-069", dp: 5000, as: "attacker" }],
+          hand: [
+            { card: "BT20-065", as: "wormmon" },
+            { card: "BT1-085", as: "fodder" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", dp: 3000, suspended: true, as: "recipient" }] },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    const recipient = s.perm("recipient");
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wormmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("fodder").instanceId)).toBe(true);
+
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: recipient.permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === recipient.permanentId));
+    expect(s.state.memory).toBe(5);
+  });
+
   it("NEGATIVE (cost): no card in hand to trash => no grant => deletion costs nothing", async () => {
     const s = setupEngine(
       {
