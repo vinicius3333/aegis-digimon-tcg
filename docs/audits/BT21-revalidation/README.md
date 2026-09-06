@@ -1,7 +1,7 @@
 # BT21 independent revalidation ledger
 
 Status: **incomplete**. 0/102 cards at 10/10 (0.00%).
-Current independently accepted points: 556/1020; average 5.45/10.
+Current independently accepted points: 590/1020; average 5.78/10.
 
 Baseline: `a924de971e0b43ad9ebd8f82a454d495ff880a60`. Historical scores are not current proof. Zero means unverified in this campaign, not necessarily defective.
 
@@ -19,11 +19,11 @@ Recalculate with `node docs/audits/BT21-revalidation/recalculate.mjs`. See [chec
 | [BT21-006](cards/BT21-006.md) | Tsumemon | 2 / 2 / 2 / 2 / 0 | 8/10 | delivery-pending | Final collection delivery gates pending |
 | [BT21-007](cards/BT21-007.md) | Agumon | 2 / 2 / 2 / 2 / 0 | 8/10 | delivery-pending | Final collection delivery gates pending |
 | [BT21-008](cards/BT21-008.md) | Elizamon | 2 / 2 / 2 / 2 / 0 | 8/10 | delivery-pending | Final collection delivery gates pending |
-| [BT21-009](cards/BT21-009.md) | Gatchmon | 2 / 2 / 2 / 1 / 0 | 7/10 | review-pending | Genuine eligible public Haru refusal remains; opponent-turn link event is supplemental.; Final collection delivery gates pending |
+| [BT21-009](cards/BT21-009.md) | Gatchmon | 2 / 2 / 2 / 2 / 0 | 8/10 | delivery-pending | Final collection delivery gates pending |
 | [BT21-010](cards/BT21-010.md) | Gammamon | 2 / 2 / 2 / 2 / 0 | 8/10 | delivery-pending | Final collection delivery gates pending |
 | [BT21-011](cards/BT21-011.md) | Shoutmon | 2 / 2 / 2 / 2 / 0 | 8/10 | delivery-pending | Final collection delivery gates pending |
 | [BT21-012](cards/BT21-012.md) | Flamemon | 2 / 2 / 2 / 2 / 0 | 8/10 | delivery-pending | Final collection delivery gates pending |
-| [BT21-013](cards/BT21-013.md) | Agunimon | 2 / 2 / 2 / 1 / 0 | 7/10 | review-pending | Genuine eligible public placement refusal remains; Q6671 external Digimon-event watcher boundaries need mechanism review (destination When Digivolving remains valid).; Final collection delivery gates pending |
+| [BT21-013](cards/BT21-013.md) | Agunimon | 2 / 2 / 2 / 2 / 0 | 8/10 | delivery-pending | Final collection delivery gates pending |
 | [BT21-014](cards/BT21-014.md) | BurningGreymon | 2 / 2 / 1 / 2 / 0 | 7/10 | proof-gaps | Actual Piercing battle and duration expiry pending; Final collection delivery gates pending |
 | [BT21-015](cards/BT21-015.md) | Cyclonemon | 2 / 2 / 2 / 2 / 0 | 8/10 | delivery-pending | Final collection delivery gates pending |
 | [BT21-016](cards/BT21-016.md) | Shoutmon (King Version) | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs; Final collection delivery gates pending |
@@ -65,14 +65,14 @@ Recalculate with `node docs/audits/BT21-revalidation/recalculate.mjs`. See [chec
 | [BT21-052](cards/BT21-052.md) | Examon (X Antibody) | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs; Final collection delivery gates pending |
 | [BT21-053](cards/BT21-053.md) | Watchmon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs; Final collection delivery gates pending |
 | [BT21-054](cards/BT21-054.md) | Shotmon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs; Final collection delivery gates pending |
-| [BT21-055](cards/BT21-055.md) | Sunarizamon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs; Final collection delivery gates pending |
+| [BT21-055](cards/BT21-055.md) | Sunarizamon | 2 / 2 / 2 / 1 / 0 | 7/10 | review-pending | Rock-host and nonmatching-host effect-trash comparisons remain under final sufficiency review.; Final collection delivery gates pending |
 | [BT21-056](cards/BT21-056.md) | Vemmon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs; Final collection delivery gates pending |
 | [BT21-057](cards/BT21-057.md) | Greymon | 2 / 2 / 2 / 2 / 0 | 8/10 | integration-review | Final collection delivery gates pending |
 | [BT21-058](cards/BT21-058.md) | Snatchmon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs; Final collection delivery gates pending |
 | [BT21-059](cards/BT21-059.md) | Timemon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs; Final collection delivery gates pending |
 | [BT21-060](cards/BT21-060.md) | Destromon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs; Final collection delivery gates pending |
 | [BT21-061](cards/BT21-061.md) | MetalGreymon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Final clause-by-clause fidelity review pending; see card report for specific supplemental proofs; Final collection delivery gates pending |
-| [BT21-062](cards/BT21-062.md) | Galacticmon | 0 / 0 / 0 / 0 / 0 | 0/10 | unverified | Independent revalidation pending |
+| [BT21-062](cards/BT21-062.md) | Galacticmon | 2 / 2 / 1 / 2 / 0 | 7/10 | review-pending | Public Start of Main deletion and eligible Ragnarok Cannon refusal after four-source payment remain missing.; Final collection delivery gates pending |
 | [BT21-063](cards/BT21-063.md) | Gumdramon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
 | [BT21-064](cards/BT21-064.md) | Guilmon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
 | [BT21-065](cards/BT21-065.md) | Ghostmon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
@@ -83,30 +83,30 @@ Recalculate with `node docs/audits/BT21-revalidation/recalculate.mjs`. See [chec
 | [BT21-070](cards/BT21-070.md) | Gossipmon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
 | [BT21-071](cards/BT21-071.md) | Scopemon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
 | [BT21-072](cards/BT21-072.md) | Arresterdramon: Superior Mode | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
-| [BT21-073](cards/BT21-073.md) | Charismon | 0 / 0 / 0 / 0 / 0 | 0/10 | unverified | Independent revalidation pending |
+| [BT21-073](cards/BT21-073.md) | Charismon | 2 / 1 / 1 / 1 / 0 | 5/10 | review-pending | Public When Digivolving/link-cap refusal, natural leave-prevention with independent once-per-turn, exact Link cost 3 and public App Fusion remain gaps.; Final collection delivery gates pending |
 | [BT21-074](cards/BT21-074.md) | Satellamon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
-| [BT21-075](cards/BT21-075.md) | SkullGreymon | 0 / 0 / 0 / 0 / 0 | 0/10 | unverified | Independent revalidation pending |
-| [BT21-076](cards/BT21-076.md) | WarGrowlmon | 2 / 2 / 2 / 1 / 0 | 7/10 | review-pending | Actual Retaliation battle and grant expiration need final sufficiency review; public same-top two-attack OPT now passes.; Final collection delivery gates pending |
+| [BT21-075](cards/BT21-075.md) | SkullGreymon | 2 / 2 / 1 / 1 / 0 | 6/10 | review-pending | Actual Retaliation, duration expiry, public When Digivolving, normal cost 4 and natural positive recovery/inherited deletion remain gaps.; Final collection delivery gates pending |
+| [BT21-076](cards/BT21-076.md) | WarGrowlmon | 2 / 2 / 2 / 2 / 0 | 8/10 | delivery-pending | Final collection delivery gates pending |
 | [BT21-077](cards/BT21-077.md) | Regulusmon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
 | [BT21-078](cards/BT21-078.md) | WereGarurumon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
 | [BT21-079](cards/BT21-079.md) | Megidramon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
 | [BT21-080](cards/BT21-080.md) | Hiro Amanokawa | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
 | [BT21-081](cards/BT21-081.md) | Owen Dreadnought | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Q4594 simultaneous two-Owen trigger interaction remains supplemental; Final collection delivery gates pending |
-| [BT21-082](cards/BT21-082.md) | Takuya Kanbara | 0 / 0 / 0 / 0 / 0 | 0/10 | unverified | Independent revalidation pending |
+| [BT21-082](cards/BT21-082.md) | Takuya Kanbara | 2 / 2 / 2 / 1 / 0 | 7/10 | review-pending | Eligible Start of Main evolution and inherited Tamer refusal remain missing; nonmatching destination negative is also evolution-illegal.; Final collection delivery gates pending |
 | [BT21-083](cards/BT21-083.md) | Taiki Kudo | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
 | [BT21-084](cards/BT21-084.md) | Haru Shinkai | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
 | [BT21-085](cards/BT21-085.md) | Davis Motomiya | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
 | [BT21-086](cards/BT21-086.md) | Marcus Damon | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
 | [BT21-087](cards/BT21-087.md) | Zenith | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
 | [BT21-088](cards/BT21-088.md) | Tagiru Akashi | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Opponent under-Tamer material exclusion and opponent-turn evolution scope need final comparative review.; Final collection delivery gates pending |
-| [BT21-089](cards/BT21-089.md) | Takato Matsuki | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
+| [BT21-089](cards/BT21-089.md) | Takato Matsuki | 2 / 2 / 2 / 1 / 0 | 7/10 | review-pending | Final target/trait and eligible refusal sufficiency review pending; Tamer-source watcher defect is fixed.; Final collection delivery gates pending |
 | [BT21-090](cards/BT21-090.md) | The Strongest of Brothers | 2 / 2 / 2 / 1 / 0 | 7/10 | review-pending | Opposing-controller/non-effect source-placement negatives and Security over-cap/refusal require final review.; Final collection delivery gates pending |
 | [BT21-091](cards/BT21-091.md) | Spirit Evolution! | 2 / 1 / 1 / 1 / 0 | 5/10 | review-pending | Reactive Delay public aging, acceptance and refusal now pass; remaining full clause review pending.; Final collection delivery gates pending |
 | [BT21-092](cards/BT21-092.md) | Can't Turn My Back! | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
 | [BT21-093](cards/BT21-093.md) | Raging Serpentine | 2 / 1 / 1 / 1 / 0 | 5/10 | review-pending | Reactive Delay now proven by aged public security attacks; remaining full clause review pending.; Final collection delivery gates pending |
 | [BT21-094](cards/BT21-094.md) | Armor Digivolution | 2 / 1 / 1 / 1 / 0 | 5/10 | review-pending | Reactive Delay public Armor Purge acceptance passes; ineligible evolution negative may be confounded by placement-turn restriction.; Final collection delivery gates pending |
 | [BT21-095](cards/BT21-095.md) | Wind Guardians | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
-| [BT21-096](cards/BT21-096.md) | The Champion Ultimate Fighter! | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
+| [BT21-096](cards/BT21-096.md) | The Champion Ultimate Fighter! | 2 / 2 / 2 / 1 / 0 | 7/10 | review-pending | Exact for-the-turn expiry of all temporary Marcus properties still needs a card-level lifecycle proof.; Final collection delivery gates pending |
 | [BT21-097](cards/BT21-097.md) | App Link | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |
 | [BT21-098](cards/BT21-098.md) | Ragnarok Cannon | 2 / 1 / 1 / 1 / 0 | 5/10 | review-pending | Public Security hand/trash proof passes; Delay still uses a seeded aged Option and needs public placement-to-aging review.; Final collection delivery gates pending |
 | [BT21-099](cards/BT21-099.md) | Xros Up | 2 / 1 / 1 / 1 / 0 | 5/10 | integration-review | Full clause-by-clause fidelity review pending; Final collection delivery gates pending |

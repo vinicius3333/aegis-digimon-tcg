@@ -1,11 +1,18 @@
 # Open findings
 
-## Current status after the second-pass 084 checkpoint
+## Current status after the v7 collection gate
 
-The full collection/mechanism run is green at 1878/1878 (121 files), plus the separate grant-duration mechanism 1/1. Historical “pending execution” and “uncommitted” notes below describe earlier snapshots. All named shared fixes and card fixes through 084 have atomic delivery commits. BT21-069 is delivered by cb86ea589; BT21-081 by 61ee00248. Public 073/077 forced-attack lifecycle gaps now have green producers, including explicit Collision blocking and expiration for 077.
+The full collection and mechanism run passes 1992/1992 across 126 files, including all 102 cards. Typecheck and style for 147 changed code/data paths pass. The ledger totals 590/1020 with no final 10/10 cards. Green execution does not establish full printed-clause acceptance.
 
-Outstanding strict proof includes earlier 004/005 upstream-rejection negatives; 038 target-lock behavior; 042 and 076 same-source OPT after restoring the main-effect card; 044 Tamer deletion/recovery timing and OPT; 051 Blast Digivolve; 055 inherited real discard producer; 081 Q4594 simultaneous copies; 077 Q4587 unaffected recipient comparison; public App Fusion recipes for 023/059/101 and review of normal declaration access. Later 085–102 need the same second-pass scrutiny, especially actual Delay aging, activation/refusal, controller filters, and cost zones. Additional per-card clause review remains recorded in the ledger. No unsupported card receives 10/10.
+Public color/kind boundaries for 004, inherited target lock for 038, same-source once-per-turn for 042/076, both App Fusion orders for 101, and eligible refusals for 009/013/096 now have passing evidence. WarGrowlmon has actual Retaliation and opponent-turn expiry proof. Sunarizamon has a real MagnaAngemon source-trash attack producer.
 
+Remaining questions include 005 opponent-turn Link isolation, 044 Tamer deletion/recovery timing and once-per-turn, 051 Blast Digivolve, 081 simultaneous Owen copies (Q4594), 077 unaffected recipients (Q4587), public App Fusion for 023/059/073 and normal declaration access, and all remaining ledger gaps. Reviews replace stale zero scores for 062/073/075/082 with explicit provisional scores and missing scenarios. Earlier notes below are historical snapshots superseded by newer evidence.
+
+## Resolved: Tamer-source external evolution watchers
+
+The exact Japanese Q6671 distinguishes external Digimon would/did-evolve events from the destination When Digivolving keyword. The committed English wording omits the Digimon subject in one phrase; see the source comparison in cards/BT21-013.md.
+
+`logs/tamer-evolution-watcher-red-v1.log` reproduces Takato incorrectly suspending after public Tamer-to-Agunimon evolution. Commit 47791d062 snapshots effective source kinds before mutation in manual and effect-driven evolution, then excludes the external Digimon-evolution watcher buses for a non-Digimon source. Destination effects, bonus draw and ordinary evolution watchers remain intact. Four dedicated mechanisms also prove runtime Tamer-as-Digimon grants on both paths. The expanded v7 collection run is green; independent review found no concrete defect in the final engine diff.
 
 ## Resolved: BT21-062 optional cost without an available Option
 

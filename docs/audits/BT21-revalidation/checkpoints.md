@@ -79,3 +79,9 @@ All **1928/1928** assertions pass across **122 files** in `logs/collection-mecha
 Twenty-two atomic card commits through `66cfda08d` correct the reactive BT21-090 Delay payload and strengthen public proofs through BT21-102 plus earlier strict gaps. The ledger is independently recalculated to **556/1020**, **0/102 final 10/10**. BT21-004/038/042 have accepted provisional8/10; all delivery points remain withheld. The exact Japanese Q6671 separates external Digimon-evolution watchers from destination When Digivolving; the report records the English ambiguity and rejects suppressing Agunimon's destination effect. A worker draft copying013into014 was discarded beforecommit and no014production change entered synchronization.
 
 Next bounded proof work: genuine public refusals009/013, actualRetaliation+expiry076, eligibleattackrefusal096. Earlier mechanism and card gaps remain in the ledger. This checkpoint is incomplete and does not mark the worktree complete.
+
+## Stable evolution-watcher and refusal checkpoint v7
+
+All **1992/1992** assertions pass across **126 files** in `logs/collection-mechanisms-second-pass-v7.log`. Typecheck passes in `logs/typecheck-strict-evolution-v2.log`; 147 changed code/data paths pass Oxfmt/Oxlint. `git diff --check` is clean. Card modules and generated effects are unchanged from the verified 102-record, 18-change BT21 synchronization snapshot.
+
+Commit `47791d062` fixes external Digimon-evolution watchers for Tamer-only sources while retaining destination effects and runtime Digimon-kind grants. Five atomic card commits through `fc759fee1` strengthen public refusal, source-trash, Retaliation and duration evidence. Independent reviews replace stale zero scores with precise remaining gaps for062/073/075/082. The recalculated collection is **590/1020**, **0/102 final 10/10**; all delivery points remain withheld. Next work addresses those explicit gaps and remaining earlier mechanism questions.
