@@ -2,7 +2,7 @@
 
 Reproduce: `node internal-docs/audits/BT20/revalidation/recalculate.mjs`. Scores use the established five dimensions (0–2 each). Pending scores reflect missing accepted evidence. Historical reports do not contribute. Final delivery points require explicit lead review and recorded gates.
 
-Verified: 102/102; total 1020/1020; mean 10/10. Collection complete: all card evidence and validation gates are accepted at pushed commit 6cc6c17b0523df616199cde7bc04b1b874513f63; [review PR](https://github.com/vinicius3333/aegis-digimon-tcg/pull/4721).
+Verified: 102/102; total 1020/1020; mean 10/10. Collection complete: all card evidence and validation gates are accepted at pushed commit 822e75a9f5486a99df23cf25108bc771c34c8f38; [review PR](https://github.com/vinicius3333/aegis-digimon-tcg/pull/4721).
 
 | Card | Name | Catalog/rules | IR | Behavior | Peer/stack | Gates | Total | Evidence |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |

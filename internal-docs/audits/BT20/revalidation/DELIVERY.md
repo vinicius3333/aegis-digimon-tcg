@@ -23,3 +23,7 @@ Astra owned integration, shared engine changes, generated catalogs and delivery.
 The final fixes include selecting an own-stack play source, offering Omekamon activation before its suspension cost, exposing Black Sabbath's Trash/Main activation and paying its full six-memory/return cost. Earlier commits correct shared timing, evolution, targeting, optional-cost, source-identity and continuous-effect gaps described in the per-card reports.
 
 No BT20 ambiguity or unsupported clause remains accepted. This is not a claim that every unrelated repository test passes: the BT22-007 standalone zero-DP On Play fixture fails under both old and new source-play code, while its eight affected source mechanisms pass. The separate legacy P-176 paid-evolution limitation remains outside BT20; legal paid peer routes are used. These limits are recorded in the gate evidence.
+
+## Authorized integration into main
+
+The user subsequently authorized merging PR4721. Main at `9bb623a88` is integrated in merge commit `2884e3097`; evidence is pushed through `822e75a9f`. The renewed gates pass 969 collection, 473 mechanism and 180 shared DNA tests, full workspace/final API typecheck, scoped catalog and style/diff checks. Four card proofs were reviewed and renewed; the other 98 artifact sets are unchanged. See [MERGE-MAIN.md](MERGE-MAIN.md) for the corrected DNA expectations and [merge-main-gates.json](merge-main-gates.json) for exact commands/results. These gates supersede the earlier snapshot above.
