@@ -66,6 +66,34 @@ describe("BT20-048 Dorumon", () => {
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("nonmatch").instanceId]);
   });
 
+  it("returns all revealed cards to the bottom when either requested category is absent", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT20-048", as: "dorumon" }],
+        deck: [
+          { card: "BT20-047", as: "first" },
+          { card: "BT20-047", as: "second" },
+          { card: "BT20-047", as: "third" },
+        ],
+      },
+    });
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dorumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-048") &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual([]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("first").instanceId,
+      s.inst("second").instanceId,
+      s.inst("third").instanceId,
+    ]);
+  });
+
   it("uses the 0-cost route only over a black level-2 X Antibody source", async () => {
     for (const [base, expectedMemory] of [
       ["BT13-005", 1],

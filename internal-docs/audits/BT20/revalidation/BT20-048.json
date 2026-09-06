@@ -1,0 +1,36 @@
+{
+  "cardId": "BT20-048",
+  "status": "ready-for-coordinator-verification",
+  "scores": {
+    "catalogRules": 2,
+    "irTrace": 2,
+    "behavioralProof": 2,
+    "peerStackProof": 1,
+    "deliveryGates": 0
+  },
+  "evidence": [
+    "BT20-048.test.ts: X Antibody + Chronicle Tamer selection and exact rest-to-bottom identity",
+    "BT20-048.test.ts: all-nonmatch reveal control and empty-category bottoming",
+    "BT20-048.test.ts: alternate/ordinary evolution costs and inherited opponent-turn DP boundary",
+    "current-collection-green-results.json"
+  ],
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-048.test.ts --maxWorkers=1 --no-file-parallelism",
+      "result": "not run by worker; coordinator owns Vitest"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/current-collection-green-results.json",
+      "result": "PASS: 6 cases for BT20-048;734 total tests. See current-collection-green-results.json."
+    }
+  ],
+  "gaps": [
+    "Coordinator focused/collection, mechanism/typecheck, and lint gates pending",
+    "Chronicle Option positive remains unproven in this card file"
+  ],
+  "reviewStatus": "Full collection execution passed at this draft checkpoint. Strict clause acceptance, sensitivity and final delivery review remain pending; provisional scores do not count in the ledger."
+}
