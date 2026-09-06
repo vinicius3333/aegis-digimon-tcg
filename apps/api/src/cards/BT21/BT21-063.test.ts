@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -92,18 +91,49 @@ describe("BT21-063 Gumdramon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT21-063", as: "gumdramon" }],
-          hand: [{ card: "BT1-009", as: "nonmatching" }],
+          hand: [
+            { card: "BT21-063", as: "gumdramon" },
+            { card: "BT1-009", as: "nonmatching" },
+          ],
           deck: ["BT1-010", "BT1-011"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 4;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("gumdramon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gumdramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("gumdramon").instanceId),
+    );
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("nonmatching").instanceId)).toBe(true);
     expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("publicly uses the zero-cost Hero alternate evolution route", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-002", as: "heroEgg" }],
+        hand: [{ card: "BT21-063", as: "gumdramon" }],
+      },
+    });
+    s.state.memory = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("heroEgg").permanentId,
+        instanceId: s.inst("gumdramon").instanceId,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("heroEgg").topCard.cardId === "BT21-063");
+    expect(s.state.memory).toBe(1);
   });
 
   it("executes Save by placing itself under an own Tamer on deletion", async () => {
