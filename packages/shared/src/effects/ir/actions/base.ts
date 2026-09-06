@@ -29,6 +29,8 @@ export interface ActionBase {
    * trash prevents Y from firing).
    */
   abortOnDecline?: boolean;
+  /** Declining this optional action releases its enclosing once-per-turn activation. */
+  preserveOncePerTurnOnDecline?: boolean;
   /**
    * The action's activation cost may be paid even when its following target currently has no
    * candidates. Used only where a card ruling explicitly permits that processing condition.
