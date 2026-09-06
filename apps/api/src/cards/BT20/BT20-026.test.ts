@@ -56,7 +56,7 @@ describe("BT20-026 MegaSeadramon (X Antibody)", () => {
             { card: "BT20-025", as: "level5" },
             { card: "BT20-014", as: "locked" },
           ],
-          deck: ["BT20-001"],
+          deck: ["BT1-010"],
         },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
@@ -69,13 +69,40 @@ describe("BT20-026 MegaSeadramon (X Antibody)", () => {
     expect(s.perm("locked").isSuspended).toBe(false);
   });
 
+  it("publicly plays for 8, returns one of two level-4 Digimon, and leaves suspension unrestricted without sources", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT20-026", as: "megaX" }] },
+        1: {
+          battleArea: [
+            { card: "BT20-023", as: "returned" },
+            { card: "BT20-023", as: "retained" },
+            { card: "BT20-025", as: "level5" },
+          ],
+          deck: ["BT20-010"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    preferred.push(s.perm("returned").permanentId, s.perm("retained").permanentId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("megaX").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 2);
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("BT20-023");
+    expect(s.perm("level5")).toBeDefined();
+    expect(observe(s.engine).isRestricted(s.perm("retained"), "suspend")).toBe(false);
+  });
+
   it("as an inherited source prevents a Blocker from changing the host's attack target on your turn", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT20-027", as: "host", under: ["BT20-026"] }] },
         1: {
           battleArea: [{ card: "BT20-044", dp: 10000, as: "blocker" }],
-          security: ["BT20-001", "BT20-001"],
+          security: ["BT1-010", "BT1-010"],
         },
       },
       { autoAcceptOptional: true },
@@ -122,7 +149,7 @@ describe("BT20-026 MegaSeadramon (X Antibody)", () => {
     const protectedHost = setupEngine(
       {
         0: { battleArea: [{ card: "BT20-027", as: "host", under: ["BT20-026"] }] },
-        1: { battleArea: [{ card: "BT20-047", dp: 10000, as: "blocker" }], security: ["BT20-001"] },
+        1: { battleArea: [{ card: "BT20-047", dp: 10000, as: "blocker" }], security: ["BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -146,7 +173,7 @@ describe("BT20-026 MegaSeadramon (X Antibody)", () => {
     const unprotectedHost = setupEngine(
       {
         0: { battleArea: [{ card: "BT20-027", as: "host" }] },
-        1: { battleArea: [{ card: "BT20-047", dp: 10000, as: "blocker" }], security: ["BT20-001"] },
+        1: { battleArea: [{ card: "BT20-047", dp: 10000, as: "blocker" }], security: ["BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -185,7 +212,7 @@ describe("BT20-026 MegaSeadramon (X Antibody)", () => {
           battleArea: [{ card: "BT15-029", as: "base" }],
           hand: [{ card: "BT20-026", as: "megaX" }, "BT20-010"],
           deck: ["BT20-010", "BT20-010", "BT20-010"],
-          security: ["BT20-001"],
+          security: ["BT1-010"],
         },
         1: { battleArea: [{ card: "BT20-025", as: "restricted" }], hand: ["BT20-010"], deck: ["BT20-010", "BT20-010"] },
       },

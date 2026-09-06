@@ -1,6 +1,6 @@
 {
   "cardId": "BT20-026",
-  "status": "awaiting-lead-review",
+  "status": "awaiting-delivery-gates",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
@@ -9,19 +9,19 @@
     "deliveryGates": 0
   },
   "evidence": [
-    "Catalog: MegaSeadramon (X Antibody) level5 blue Aquatic/X Antibody; alternate MegaSeadramon cost0; On Play/When Digivolving returns one opposing level4-or-lower Digimon to deck bottom, then if MegaSeadramon/X Antibody is in stack, one opposing Digimon cannot suspend until opponent turn end; inherited Your Turn prevents this attack target changing.",
-    "BT20-026.ts exclusively registers IR and maps entry return boundary, conditional until-opponent-turn-end suspend restriction, field-bound inherited attack-target restriction, and MegaSeadramon alternate requirement.",
-    "BT20-026.test.ts proves exact level4/5 return boundary, restriction effect, legal public Blue Lv.4 evolution, field-only treatment, inherited attack-target lock, Examon DNA integration, negative X Antibody-trait-only handling, and positive exact X Antibody/Rule Name sources.",
-    "Added public Blocker comparison through real block windows: protected host rejects Blocker redirection and completes a security check; unprotected control declares the Blocker and completes combat without a security win.",
-    "Added real turn-boundary retry: public BT1-070 effect suspension fails before opponent turn end and succeeds during the following opponent turn.",
-    "014-040-results.json",
-    "named-x-clause-red.log",
-    "named-x-019-102-red.log",
-    "named-x-026-028-red.log",
-    "named-x-green-results.json",
-    "named-x-mechanism-results.json"
+    "Public play pays 8 and bottom-decks exactly one of two eligible level-4 Digimon while retaining the other and a level-5 control. No source-qualified suspension lock is granted on standalone play.",
+    "Public MegaSeadramon -> MegaSeadramon X alternate evolution is free. Exact-name/Rule Name sources gate the suspension restriction; X-Antibody-trait-only sources do not. Public attack attempts prove the lock and its real opponent-turn expiry.",
+    "A legal inherited host completes an actual security attack while Blocker cannot change its target. A bare host comparison permits the change; controller-turn scope is checked.",
+    "BT20-026.test.ts; committed catalog and card-specific KB query reviewed by lead and Luna.",
+    "reactive-movement-affected-results.json: 552 passing affected mechanism tests.",
+    "collection-after-reactive-delay-results.json",
+    "reactive-movement-gates.json"
   ],
-  "commands": [
+  "gaps": [
+    "Atomic commit/push and final hash-bound acceptance pending."
+  ],
+  "reviewStatus": "Lead integrated and reviewed the current public proofs; earlier report prose and unexecuted worker handoffs are superseded by this clause map. No final score until delivery gates and artifact hashes are recorded.",
+  "historicalCommands": [
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-026.test.ts --maxWorkers=1 --no-file-parallelism",
       "result": "not run by worker; coordinator owns Vitest"
@@ -51,11 +51,26 @@
       "result": "Passed; named-x-lint.log and named-x-format-check.log"
     }
   ],
-  "gaps": [
-    "Focused execution for the added public attack-rejection proof is pending coordinator execution.",
-    "Delivery gates pending coordinator collection, mechanism, typecheck, lint.",
-    "Lead review: verify the attack restriction/Blocker comparative case resolves a real security check and cannot pass through an empty-security win.",
-    "Final strict clause acceptance, whole-collection revalidation, typecheck/style and pushed delivery gates remain pending."
-  ],
-  "reviewStatus": "Focused execution passed; clause-by-clause lead acceptance remains pending. Provisional worker scores do not contribute to the ledger."
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+      "result": "10 cases passed for BT20-026; 836 total passed, zero failed."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "Passed shared/API/web; reactive-movement-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "All102 synchronized; see reactive-movement-gates.json for the temporary watchdog adjustment and restored script."
+    },
+    {
+      "command": "Commands in reactive-movement-gates.json",
+      "result": "552 affected mechanism cases and changed-file lint/format passed without warnings."
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-026",
+      "result": "8 intended state/assertion failures with registered effects disabled; production restored. See BT20-026-runtime-disabled.json. Runner reproduction is per-card; batch invocation is retained in014-026-runtime-sensitivity.log."
+    }
+  ]
 }
