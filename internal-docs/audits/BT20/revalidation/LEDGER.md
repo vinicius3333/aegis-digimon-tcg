@@ -2,58 +2,58 @@
 
 Reproduce: `node internal-docs/audits/BT20/revalidation/recalculate.mjs`. Scores use the established five dimensions (0–2 each). Pending scores reflect missing accepted evidence. Historical reports do not contribute. Final delivery points require explicit lead review and recorded gates.
 
-Verified: 0/102; total 91/1020; mean 0.892/10. Collection remains in progress until all delivery gates, push, and PR are recorded.
+Verified: 0/102; total 80/1020; mean 0.784/10. Collection remains in progress until all delivery gates, push, and PR are recorded.
 
 | Card | Name | Catalog/rules | IR | Behavior | Peer/stack | Gates | Total | Evidence |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | BT20-001 | DemiVeemon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 | [report](BT20-001.md) |
-| BT20-002 | Bebydomon | 2/2 | 2/2 | 1/2 | 1/2 | 0/2 | 6/10 | [report](BT20-002.md) |
+| BT20-002 | Bebydomon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 | [report](BT20-002.md) |
 | BT20-003 | Bibimon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 | [report](BT20-003.md) |
-| BT20-004 | Pinamon | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 | [report](BT20-004.md) |
-| BT20-005 | Kapurimon | 2/2 | 1/2 | 1/2 | 2/2 | 0/2 | 6/10 | [report](BT20-005.md) |
+| BT20-004 | Pinamon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 | [report](BT20-004.md) |
+| BT20-005 | Kapurimon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 | [report](BT20-005.md) |
 | BT20-006 | DemiMeramon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 | [report](BT20-006.md) |
-| BT20-007 | Dracomon | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 | [report](BT20-007.md) |
+| BT20-007 | Dracomon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 | [report](BT20-007.md) |
 | BT20-008 | Huckmon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 | [report](BT20-008.md) |
 | BT20-009 | Veemon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 | [report](BT20-009.md) |
-| BT20-010 | Ryudamon | 2/2 | 2/2 | 1/2 | 1/2 | 0/2 | 6/10 | [report](BT20-010.md) |
-| BT20-011 | ExVeemon | 2/2 | 2/2 | 1/2 | 1/2 | 0/2 | 6/10 | [report](BT20-011.md) |
-| BT20-012 | Ginryumon | 2/2 | 2/2 | 1/2 | 1/2 | 0/2 | 6/10 | [report](BT20-012.md) |
-| BT20-013 | BaoHuckmon | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 | [report](BT20-013.md) |
-| BT20-014 | SaviorHuckmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-015 | Hisyaryumon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-016 | Paildramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-017 | Jesmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-018 | Ouryumon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-019 | Jesmon (X Antibody) | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-020 | Imperialdramon: Fighter Mode | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-021 | Jesmon GX | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-022 | Crabmon (X Antibody) | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-023 | Coredramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-024 | Seadramon (X Antibody) | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-025 | Wingdramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-026 | MegaSeadramon (X Antibody) | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-027 | Slayerdramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-028 | GigaSeadramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-029 | Pulsemon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-030 | Liollmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-031 | Liamon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-032 | Bulkmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-033 | LoaderLeomon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-034 | Boutmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-035 | Kazuchimon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-036 | BanchoLeomon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-037 | Chaosmon: Valdur Arm | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-038 | Falcomon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-039 | Diatrymon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-040 | Coredramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-041 | Crowmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-042 | Groundramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-043 | Varodurumon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-044 | Breakdramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-045 | Examon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-046 | Espimon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-047 | Solarmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
-| BT20-048 | Dorumon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-010 | Ryudamon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 | [report](BT20-010.md) |
+| BT20-011 | ExVeemon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-011.md) |
+| BT20-012 | Ginryumon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-012.md) |
+| BT20-013 | BaoHuckmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-013.md) |
+| BT20-014 | SaviorHuckmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-014.md) |
+| BT20-015 | Hisyaryumon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-015.md) |
+| BT20-016 | Paildramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-016.md) |
+| BT20-017 | Jesmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-017.md) |
+| BT20-018 | Ouryumon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-018.md) |
+| BT20-019 | Jesmon (X Antibody) | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-019.md) |
+| BT20-020 | Imperialdramon: Fighter Mode | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-020.md) |
+| BT20-021 | Jesmon GX | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-021.md) |
+| BT20-022 | Crabmon (X Antibody) | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-022.md) |
+| BT20-023 | Coredramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-023.md) |
+| BT20-024 | Seadramon (X Antibody) | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-024.md) |
+| BT20-025 | Wingdramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-025.md) |
+| BT20-026 | MegaSeadramon (X Antibody) | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-026.md) |
+| BT20-027 | Slayerdramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-027.md) |
+| BT20-028 | GigaSeadramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-028.md) |
+| BT20-029 | Pulsemon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-029.md) |
+| BT20-030 | Liollmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-030.md) |
+| BT20-031 | Liamon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-031.md) |
+| BT20-032 | Bulkmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-032.md) |
+| BT20-033 | LoaderLeomon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-033.md) |
+| BT20-034 | Boutmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-034.md) |
+| BT20-035 | Kazuchimon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-035.md) |
+| BT20-036 | BanchoLeomon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-036.md) |
+| BT20-037 | Chaosmon: Valdur Arm | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-037.md) |
+| BT20-038 | Falcomon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-038.md) |
+| BT20-039 | Diatrymon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-039.md) |
+| BT20-040 | Coredramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-040.md) |
+| BT20-041 | Crowmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-041.md) |
+| BT20-042 | Groundramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-042.md) |
+| BT20-043 | Varodurumon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-043.md) |
+| BT20-044 | Breakdramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-044.md) |
+| BT20-045 | Examon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-045.md) |
+| BT20-046 | Espimon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-046.md) |
+| BT20-047 | Solarmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-047.md) |
+| BT20-048 | Dorumon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | [unaccepted draft](BT20-048.md) |
 | BT20-049 | Blimpmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
 | BT20-050 | HoverEspimon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
 | BT20-051 | Raptordramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |

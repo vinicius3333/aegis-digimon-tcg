@@ -3,67 +3,145 @@
     "BT20-001": {
       "reviewed": true,
       "gatesPassed": false,
-      "review": "Luna B independent review plus lead target-scope integration and passing sensitivity proof"
+      "review": "Legal-stack evidence rerun with memory capped at 10.",
+      "artifacts": {
+        "apps/api/src/cards/BT20/BT20-001.ts": "92eb228af715dc506d78decbd4c7fadea3e273839c2096e099575b8ea40284cf",
+        "apps/api/src/cards/BT20/BT20-001.test.ts": "24ea811e3f35e8163e7aa25fdc06ab3fdc06f9265738e9812b5b59ce9684db27",
+        "internal-docs/audits/BT20/revalidation/BT20-001.json": "04f60cf4fc625202cd517d2f164105bd8344208fd89958ced771b74646c72842",
+        "internal-docs/audits/BT20/revalidation/BT20-001.md": "788cc4157072318807b2c514effa368536344c8beed7ee93efb786630e94c84b"
+      }
     },
     "BT20-002": {
       "reviewed": true,
       "gatesPassed": false,
-      "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open."
+      "review": "Both independent printed-text branches now have public legal egg evolutions and a real breeding-area move; the legal no-text route remains negative.",
+      "artifacts": {
+        "apps/api/src/cards/BT20/BT20-002.ts": "4c58f95b6a06bd6b0a5733534dc66d842e40a8509250d1f5acd0c53d194f37ff",
+        "apps/api/src/cards/BT20/BT20-002.test.ts": "ae2dd9a1617399e56786c80085b5321748d454c4070fcacd526935f71d581524",
+        "internal-docs/audits/BT20/revalidation/BT20-002.json": "5ee53fc45520f7092a17f88f013e6102276b4de95a6f7f385c7144aef02def16",
+        "internal-docs/audits/BT20/revalidation/BT20-002.md": "d79d4ceccd8b468d56ee781de682389a8aa98c06f6143f81ef66d11df5105ddc"
+      }
     },
     "BT20-003": {
       "reviewed": true,
       "gatesPassed": false,
-      "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open."
+      "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open.",
+      "artifacts": {
+        "apps/api/src/cards/BT20/BT20-003.ts": "2102cd77e81dbda8f15cef3e95afd777fe5b2386b38952725ebcfad73705dfbd",
+        "apps/api/src/cards/BT20/BT20-003.test.ts": "71155e1c20d8824b840ddf3c36e8223b871081a38144076ad3e4a7c38dd924da",
+        "internal-docs/audits/BT20/revalidation/BT20-003.json": "c932e1fcfde14a2803aca2fed536d591629e37c443a70ba2f07a85880e9eefe3",
+        "internal-docs/audits/BT20/revalidation/BT20-003.md": "9eb3c0547ff4e2261bddb5a165e98c3d3ef7d1a45f471ed1e087d691a16689a9"
+      }
     },
     "BT20-004": {
       "reviewed": true,
       "gatesPassed": false,
-      "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open."
+      "review": "Real-turn reset passed after the shared Overflow origin correction (9cf46a768); exact final memory is 6.",
+      "artifacts": {
+        "apps/api/src/cards/BT20/BT20-004.ts": "539360ff401bcc03d1512588293b89ceb48f0be22461ec0bc3472452f01c393a",
+        "apps/api/src/cards/BT20/BT20-004.test.ts": "078adfa93761ec1d3ad1aaa0f5dcfac45710806be923a1b547e80d1168c82211",
+        "internal-docs/audits/BT20/revalidation/BT20-004.json": "b4c1777640eadf5103eb58c497453366fbbdafb4f5609b74082da45007c0f5a6",
+        "internal-docs/audits/BT20/revalidation/BT20-004.md": "347252941e1286c671be158064512eb9a7ccee9040f29e942e393e48ce931367"
+      }
     },
     "BT20-005": {
       "reviewed": true,
       "gatesPassed": false,
-      "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open."
+      "review": "Q4284 cross-family ordering and checked-card area gap resolved in 69730d6a0, with 313 passing mechanism tests.",
+      "artifacts": {
+        "apps/api/src/cards/BT20/BT20-005.ts": "a5e7428e2552cffe8f22a4728df0929f0f20550e06a5a9e06397f700545cae23",
+        "apps/api/src/cards/BT20/BT20-005.test.ts": "c538baded2f82b68a70fe8d794e952c11c0ed6fa5af0332e4d7c1cab8c8cc58f",
+        "internal-docs/audits/BT20/revalidation/BT20-005.json": "b6b994f5b3584372e53bad458b239d94c3e57891ecac4aabecc5d32847297311",
+        "internal-docs/audits/BT20/revalidation/BT20-005.md": "f0550c999970f148786732844a34a4d46baf506adf701dcb1c2329ef6166ee8e"
+      }
     },
     "BT20-006": {
       "reviewed": true,
       "gatesPassed": false,
-      "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open."
+      "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open.",
+      "artifacts": {
+        "apps/api/src/cards/BT20/BT20-006.ts": "55904d67dcdf482e2ab47b2f7148ee69028c2b39fee7d24d6d590e736e237cf6",
+        "apps/api/src/cards/BT20/BT20-006.test.ts": "334bc393666fd48bd6aa8faa188ea1c90be6d5960a12ce2df5babdde32f852fd",
+        "internal-docs/audits/BT20/revalidation/BT20-006.json": "69372b8d77af671e27f5eb9332bea66cb29dc526eb715065d69a691979e87766",
+        "internal-docs/audits/BT20/revalidation/BT20-006.md": "ab3bcffd59a4646e4bd2ac8585d497d34c4477d30ecbcab5ac4debab797ff919"
+      }
     },
     "BT20-007": {
       "reviewed": true,
       "gatesPassed": false,
-      "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open."
+      "review": "Natural Start Main acceptance, feasible refusal and no-match paths pass; legal breeding evolutions and the inherited host prove +2000 only in battle on the owner turn.",
+      "artifacts": {
+        "apps/api/src/cards/BT20/BT20-007.ts": "89af2c817d55bd57048aa9c11bfadc3516c505a43ce91530fd1b109ce772c0d5",
+        "apps/api/src/cards/BT20/BT20-007.test.ts": "5e079b7cda04195bd0d9c973316a80117998c7a72817ebc3e2f365acd20aef04",
+        "internal-docs/audits/BT20/revalidation/BT20-007.json": "1048d2c5365451e14696d4737fec82d52aa937dd2c9df2b2f61a7f73f536dc78",
+        "internal-docs/audits/BT20/revalidation/BT20-007.md": "21167c0159cfbad028a1a8914894cbac68f2171d423610b1cd8e2f3b17f1465b"
+      }
     },
     "BT20-008": {
       "reviewed": true,
       "gatesPassed": false,
-      "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open."
+      "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open.",
+      "artifacts": {
+        "apps/api/src/cards/BT20/BT20-008.ts": "8ae98721bf2ec492b72d411d144bc22a2ad440406da623cb77733ebe540ae596",
+        "apps/api/src/cards/BT20/BT20-008.test.ts": "35c01c11561995f4d4a07cedb2068d07be283544229318e658839bf731727a7f",
+        "internal-docs/audits/BT20/revalidation/BT20-008.json": "427cd651bf504a281a74de7f43c56b61559922fe45d62cd363f2b2fdf3cfee86",
+        "internal-docs/audits/BT20/revalidation/BT20-008.md": "1c6de59c79249e7e1f1e91258c0cd7b2e0c5e34f6c348701d46da0293aa91569"
+      }
     },
     "BT20-009": {
       "reviewed": true,
       "gatesPassed": false,
-      "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open."
+      "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open.",
+      "artifacts": {
+        "apps/api/src/cards/BT20/BT20-009.ts": "45cb750ccdf56c767c8aaa19c132c24c8030fb801dc058683838f521a76e9d7c",
+        "apps/api/src/cards/BT20/BT20-009.test.ts": "1131c7d9f4c238292c96d52b400a1e185267f907f5ff164495df4935f2ad4091",
+        "internal-docs/audits/BT20/revalidation/BT20-009.json": "c767384960caab3c1d49aa3989d1081a46b4baa5f7a5448fd87fc52cccf17a42",
+        "internal-docs/audits/BT20/revalidation/BT20-009.md": "9b9a6e10b7c9af578e00464aeb59a121b9fd43b48c7972b0660d5d9462121ad1"
+      }
     },
     "BT20-010": {
       "reviewed": true,
       "gatesPassed": false,
-      "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open."
+      "review": "Chronicle-only Raptordramon evolution proves cost reduction and inherited transition; the explicit alternate black X Antibody egg route proves zero cost.",
+      "artifacts": {
+        "apps/api/src/cards/BT20/BT20-010.ts": "9d3cfc4fa737fa7a69b4f0abb3413b417791de069c7e2c3e958394475df22e2c",
+        "apps/api/src/cards/BT20/BT20-010.test.ts": "c3075791f1758f43a01379fb50a1450e13dae5cd228d305cfda1472572bc970c",
+        "internal-docs/audits/BT20/revalidation/BT20-010.json": "6af6c5f805a7e5de8c450f6b73f122db9963fd29098ed93d43398dc404432b50",
+        "internal-docs/audits/BT20/revalidation/BT20-010.md": "8009bd4e9c30d4d3135485492a02990a450690b9bfbe7121213caa5bcb30a96b"
+      }
     },
     "BT20-011": {
       "reviewed": true,
       "gatesPassed": false,
-      "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open."
+      "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open.",
+      "artifacts": {
+        "apps/api/src/cards/BT20/BT20-011.ts": "315614e4933ee8e4a67495c31e43d87fb5f6f0b9cb4f577c225872efa9efe5c4",
+        "apps/api/src/cards/BT20/BT20-011.test.ts": "ed662b110be435b0f416a233157aabd34e2cfc25eae2b93e9d7c8b182bbf1253",
+        "internal-docs/audits/BT20/revalidation/BT20-011.json": "583398b11a7f78ebd81542f0b91cf510944b9dc05c43d406b8a56015038b0b1b",
+        "internal-docs/audits/BT20/revalidation/BT20-011.md": "8f8f63f21a1c7ac9261dbfe803678bba90008b5c4ea7ae65ad1a5b430021bf89"
+      }
     },
     "BT20-012": {
       "reviewed": true,
       "gatesPassed": false,
-      "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open."
+      "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open.",
+      "artifacts": {
+        "apps/api/src/cards/BT20/BT20-012.ts": "8cac8a43dcbdb323cf878d36a46b6c8533357e1c6d169a6d99def94cdd19a1c5",
+        "apps/api/src/cards/BT20/BT20-012.test.ts": "0792555b4db905be25b9a9d541512bbf223d1f263144592aa05c55a3d210c54f",
+        "internal-docs/audits/BT20/revalidation/BT20-012.json": "cc4854f401a3814a653eb135040c47636720443229f8becdaddf7c8c2f0b824e",
+        "internal-docs/audits/BT20/revalidation/BT20-012.md": "ef6b4c88e618b4342ef86ad4b843006aae8c44866c9dc056831da44c349ff9e9"
+      }
     },
     "BT20-013": {
       "reviewed": true,
       "gatesPassed": false,
-      "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open."
+      "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open.",
+      "artifacts": {
+        "apps/api/src/cards/BT20/BT20-013.ts": "08021af9aba845850414ab71453619365849b2f617507eb7e1f94cd06ff8ab9d",
+        "apps/api/src/cards/BT20/BT20-013.test.ts": "96136e07644aa50891e9a09f14bb87f9bb566517194855c3229dc07605b09646",
+        "internal-docs/audits/BT20/revalidation/BT20-013.json": "44b4deb20591a8456002171f78e8195cc3451c49f1b01294d0da93cf05b83036",
+        "internal-docs/audits/BT20/revalidation/BT20-013.md": "214b9dfa526c76b6629acb83718585c032533bd5596d99cc5e3a675d5069b59b"
+      }
     }
   }
 }
