@@ -8,31 +8,31 @@ Reaudit all 343 committed cards across 23 ST sets. ST11 has no distinct card IDs
 
 Three gpt-5.6-luna workers share this isolated worktree, with disjoint card/report ownership. The coordinator owns planning, shared engine changes, integration, final validation, atomic commits and pushing the branch. Workers do not commit or alter shared files without coordination.
 
-| Set  | Cards | Luna worker | Current status                                             |
-| ---- | ----: | ----------- | ---------------------------------------------------------- |
-| ST1  |    16 | coordinator | Reviewed 16/16 at 10/10; 45 tests; pushed 2ae4cde25        |
-| ST2  |    16 | st01_08     | Luna evidence received; coordinator review pending         |
-| ST3  |    16 | st01_08     | Luna evidence received; coordinator review pending         |
-| ST4  |    16 | st01_08     | Luna evidence received; coordinator review pending         |
-| ST5  |    16 | st01_08     | Luna evidence received; coordinator review pending         |
-| ST6  |    16 | st01_08     | Luna evidence received; coordinator review pending         |
-| ST7  |    12 | st01_08     | Luna evidence received; coordinator review pending         |
-| ST8  |    12 | st01_08     | Luna evidence received; coordinator review pending         |
-| ST9  |    15 | st09_17     | Reviewed 15/15 at 10/10; 42 tests; pushed 82690ac36     |
-| ST10 |    15 | coordinator | Reviewed 15/15 at 10/10; 61 tests; pushed 256c4170c                         |
-| ST12 |    16 | st09_17     | Solarmon activation fixed in 3241ceb87; collection pending |
-| ST13 |    16 | st09_17     | Baseline failures under correction                         |
-| ST14 |    12 | st09_17     | Baseline failures under correction                         |
-| ST15 |    16 | st09_17     | Baseline failures under correction                         |
-| ST16 |    16 | st09_17     | Baseline failures under correction                         |
-| ST17 |    13 | st09_17     | Baseline failures under correction                         |
-| ST18 |    15 | st18_24     | Proof gaps recorded at 8–9/10; strengthening               |
-| ST19 |    15 | reviewer    | Reviewed proof batch; 76 tests; pushed 3be2d8628           |
-| ST20 |    15 | reviewer    | Reviewed 15/15 at 10/10; 90 tests; pushed 490e5035f  |
-| ST21 |    15 | st18_24     | Initial tests green; detailed proof review queued          |
-| ST22 |    14 | st18_24     | Initial tests green; detailed proof review queued          |
-| ST23 |    15 | st18_24     | Initial tests green; detailed proof review queued          |
-| ST24 |    15 | st18_24     | Initial tests green; detailed proof review queued          |
+| Set  | Cards | Luna worker | Current status                                |
+| ---- | ----: | ----------- | --------------------------------------------- |
+| ST1  |    16 | coordinator | Reviewed at 10/10; 45 tests; pushed 2ae4cde25 |
+| ST2  |    16 | coordinator | Reviewed at 10/10; 53 tests; pushed e4cae2ca2 |
+| ST3  |    16 | coordinator | Reviewed at 10/10; 44 tests; pushed b5370e8bd |
+| ST4  |    16 | coordinator | Reviewed at 10/10; 37 tests; pushed 60f348a33 |
+| ST5  |    16 | coordinator | Reviewed at 10/10; 43 tests; pushed 990a208af |
+| ST6  |    16 | coordinator | Reviewed at 10/10; 30 tests; pushed 30424ca6e |
+| ST7  |    12 | coordinator | Reviewed at 10/10; 33 tests; pushed e691fc0be |
+| ST8  |    12 | coordinator | Reviewed at 10/10; 30 tests; pushed 80da9e750 |
+| ST9  |    15 | coordinator | Reviewed at 10/10; 42 tests; pushed 2a84edfbf |
+| ST10 |    15 | coordinator | Reviewed at 10/10; 61 tests; pushed 256c4170c |
+| ST12 |    16 | coordinator | Reviewed at 10/10; 96 tests; pushed b7cb50885 |
+| ST13 |    16 | coordinator | Reviewed at 10/10; 59 tests; pushed fc8b1e4cc |
+| ST14 |    12 | coordinator | Reviewed at 10/10; 39 tests; pushed 4a24eb9c2 |
+| ST15 |    16 | coordinator | Reviewed at 10/10; 53 tests; pushed fe1a1854b |
+| ST16 |    16 | coordinator | Reviewed at 10/10; 46 tests; pushed 8ee3b0d61 |
+| ST17 |    13 | coordinator | Reviewed at 10/10; 37 tests; pushed 4df4c40ba |
+| ST18 |    15 | coordinator | Reviewed at 10/10; 62 tests; pushed bacf4bbb6 |
+| ST19 |    15 | coordinator | Reviewed at 10/10; 76 tests; pushed 3be2d8628 |
+| ST20 |    15 | coordinator | Reviewed at 10/10; 90 tests; pushed 76a7ee663 |
+| ST21 |    15 | coordinator | Reviewed at 10/10; 74 tests; pushed f1ef6b289 |
+| ST22 |    14 | coordinator | Reviewed at 10/10; 68 tests; pushed eae2d9026 |
+| ST23 |    15 | coordinator | Reviewed at 10/10; 64 tests; pushed 214b05462 |
+| ST24 |    15 | coordinator | Reviewed at 10/10; 60 tests; pushed fd67e7fb4 |
 
 ## Execution and evidence
 
@@ -72,7 +72,7 @@ Three gpt-5.6-luna workers share this isolated worktree, with disjoint card/repo
 
 The baseline does not certify the other cards' full printed contracts. Luna clause review and proof-gap correction remain in progress across all 23 collections.
 
-## Current correction checkpoint
+## Earlier correction checkpoint (historical)
 
 - Effect-deletion grant activation is fixed in pushed commit b4fdb4071; 23 affected files / 217 tests passed. See ST16-15-DELETION-AUDIT.md. Battle deletion follow-up is delivered in 6e50b8246; four focused ST16-15 tests and 56 combat regression tests passed.
 - ST12-03 cost-reduction activation is delivered in 3241ceb87: ten card cases, direct/nested reducer controls, breeding and free-play coverage. See ST12-03-COST-AUDIT.md. ST15-10 asynchronous evolution proof is corrected in 8387fa337 with observable inherited Reboot; focused 3/3 passed.
@@ -80,7 +80,7 @@ The baseline does not certify the other cards' full printed contracts. Luna clau
 - User requested care with tests: keep targeted single-worker runs, inspect results, and avoid repeating broad suites without changed scope or a concrete unresolved failure.
 - Entire scope remains 343 cards / 23 collections. ST1, ST9, ST10, ST19 and ST20 reviewed batches are pushed. ST12 has 94 green tests and additional coordinator evidence corrections; ST13 Delay timing, ST18 granted Vortex, and ST21 proof quality remain under review. Other detailed reviews remain pending. Shared-engine conformance passed 28 files / 387 tests after the Solarmon fix; shared/web/API typechecks passed after correcting ST20 test typing.
 
-## Reviewed collection checkpoint
+## Earlier reviewed collection checkpoint (historical)
 
 - ST9: 17 files / 42 tests; pushed 82690ac36, including exact reveal remainder,
   distinct suspended targets, Security return and duration negatives.
@@ -95,3 +95,26 @@ The baseline does not certify the other cards' full printed contracts. Luna clau
   Delay requires explicit activation after a real turn transition, granted Vortex
   requires a real end-turn attack, and Alliance requires an observed keyword/payment
   outcome. The coordinator has returned weak proofs for correction.
+
+## Earlier integration checkpoint (historical)
+
+Nineteen collections have reviewed and pushed proof batches. ST15, ST17, ST22 and ST23 remain open; this is not overall completion. Current per-collection reports are `ST*-PROOF-AUDIT.md`, superseding provisional Luna ledgers.
+
+- ST12 Gankoomon now selects exact Huckmon while preserving Sistermon name matching; the isolated BaoHuckmon negative fails the previous filter.
+- ST2 Tsunomon now recognizes its own host being blocked by a source-less opponent.
+- ST13 Delay is explicitly activated after a real turn transition; the fixture must mark the Option as placed by an effect. Four-source DNA has resolved security and board outcomes.
+- Shared Vortex timing supports printed and live granted Vortex at End of Your Turn. BT26-045 grant/refusal/loss and EX7-064 alternate end-turn orderings are proven. Commit 094d81b1c; mechanism regression 10 files / 79 tests; conformance plus ST18/ST21 60 files / 523 tests passed serially.
+- Coordinator regression for ST3/4/5/6/7/8/14/16/17 initially had one ST3-15 fixture failure (memory perspective when manually handing off the turn). After correction the full ST3 rerun passed 19 files / 44 tests; the other eight collections had passed in that combined run.
+- Current ST22 correction isolates the own Option color waiver when the card is under another card; 4 focused/mechanism files / 38 tests passed. Final conformance and all-ST serial regression will run after remaining changes settle.
+- All test runs in this checkpoint explicitly use `--pool=forks --maxWorkers=1 --no-file-parallelism`. No merge has been performed.
+
+## Final verified checkpoint
+
+All 343 cards across all 23 starter collections have been recalculated at 10/10. The authoritative closeout is [ST-REAUDIT-RESULTS.md](ST-REAUDIT-RESULTS.md), with a [343-card evidence ledger](ST-REAUDIT-EVIDENCE.json). Earlier checkpoint warnings above are retained as history and superseded by this final result.
+
+- Final combined serial run: **440 files / 1955 tests passed**, no failed or skipped cases, 61.61 seconds. This contains **389 collection files / 1242 tests** and **51 conformance/affected-mechanism files / 713 tests**.
+- Every card has its direct compiled module, reviewed printed-clause evidence and passing focused file; no audited card adds a legacy `registerCard` registration. ST19-12 additionally registers its distinct synthetic Familiar Token through IR.
+- `NODE_OPTIONS=--max-old-space-size=3072 pnpm -r --workspace-concurrency=1 typecheck`: shared, API and web passed serially.
+- Final tests use `TEST_HEAP_MB=3072` plus `--pool=forks --maxWorkers=1 --no-file-parallelism`. Earlier SIGKILL/ENOSPC attempts are excluded from passing evidence.
+- Card and mechanism corrections were committed atomically and pushed through `76a7ee663`; the final documentation closeout is committed and pushed separately. Draft PR #4716 carries the complete scope.
+- Changed-file lint/format and `git diff --check` are required for this final documentation checkpoint. The Orca completion marker is applied only after the closeout commit is pushed.
