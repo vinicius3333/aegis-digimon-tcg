@@ -1,0 +1,161 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 [Main] on-play body fires on a real playCard (not dead) > deletes the opponent's highest-DP Digimon and lands in the battle area 22ms
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 Raging Serpentine > models the conditional use reduction, highest-DP deletion, and Delay digivolution 1ms
+ × src/cards/BT21/BT21-093.test.ts > BT21-093 Raging Serpentine > arms reactive Delay from two public security attacks and free-evolves a legal host 29ms
+   → expected { ok: false, reason: 'wrong-phase' } to deeply equal { ok: true }
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 Raging Serpentine > with 3 opposing security pays a use cost of 4 4ms
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 Raging Serpentine > with 4 opposing security pays a use cost of 8 4ms
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 Raging Serpentine > Security deletes only one opposing highest-DP Digimon 2ms
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 [Main] reveal-and-add > adds the [Davis Motomiya] and [Free] cards from the reveal to hand, trashes the rest 6ms
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 [Main] reveal-and-add > does not treat a non-Armor hand card as a valid Delay destination 8ms
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > keeps the Armor Form trash watcher separate from its Delay payload 1ms
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > Security activates the full Main reveal and places the option 4ms
+ ✓ src/cards/BT21/BT21-094.test.ts > BT21-094 Delay watcher > proves public Armor Purge trashes the Armor Form top card 50ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > binds one qualifying Digimon so Blocker and conditional DP share the target 0ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > start of main without an opposing Digimon gains NaN memory 1ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > start of main with an opposing Digimon gains NaN memory 1ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > whenPlayed suspends Takato and gives the selected Hero Blocker and +2000 DP at 10 total trash 4ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > whenOneOfYoursDigivolves suspends Takato and gives the selected Hero Blocker and +2000 DP at 10 total trash 3ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > naturally triggers the when-played watcher from a qualifying Digimon play 4ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > naturally triggers the digivolve watcher from a legal qualifying evolution 6ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > expires the public Blocker and DP grant after the opponent's turn ends 16ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > at 9 total trash grants Blocker but not the conditional +2000 DP 4ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > accepts any own Digimon as the event subject, while declining pays no cost 2ms
+ ✓ src/cards/BT21/BT21-089.test.ts > BT21-089 Takato Matsuki > plays itself from Security without paying cost 5ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > keeps the inherited-Tamer watcher separate from the Delay digivolution payload 1ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > pays a Hybrid from hand, draws 2, and places itself in the battle area 5ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > declining the Hybrid cost neither draws nor places the option 4ms
+ × src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > waives red color while an own non-red Tamer has an inherited-effect source 3ms
+   → expected { ok: false, …(1) } to deeply equal { ok: true }
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > does not waive color from an opponent inherited-effect Tamer 1ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > does not waive color from an unrelated own Tamer without inherited effects 0ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > Security may play an inherited-effect Tamer from trash, then adds itself to hand 3ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > publicly resolves Security by attacking into Spirit Evolution! 4ms
+ × src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > does not resolve a same-turn Delay trigger from a public inherited-effect Tamer play 12ms
+   → expected { ok: false, …(1) } to deeply equal { ok: true }
+ × src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > declines an aged public Delay trigger without disposing the Option or Hybrid 12ms
+   → Could not end seat 0's Main phase: decision-pending
+ × src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > accepts an aged public Delay trigger as free evolution over the inherited Tamer 15ms
+   → expected false to be true // Object.is equality
+stdout | src/cards/BT21/BT21-092.test.ts > BT21-092 Can't Turn My Back! > moves only Digimon source cards under a Tamer and reduces the played card by that count
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 6
+
+ ✓ src/cards/BT21/BT21-092.test.ts > BT21-092 Can't Turn My Back! > encodes stack transfer, counted reduction, color waiver, and Security play 0ms
+ ✓ src/cards/BT21/BT21-092.test.ts > BT21-092 Can't Turn My Back! > moves only Digimon source cards under a Tamer and reduces the played card by that count 6ms
+ ✓ src/cards/BT21/BT21-092.test.ts > BT21-092 Can't Turn My Back! > waives color with a Xros Heart Digimon and rejects the option without one 1ms
+ ✓ src/cards/BT21/BT21-092.test.ts > BT21-092 Can't Turn My Back! > does not borrow an opponent's Xros Heart trait for the color waiver 0ms
+ ✓ src/cards/BT21/BT21-092.test.ts > BT21-092 Can't Turn My Back! > Security plays a cost-5 Xros Heart Tamer from trash without paying cost 4ms
+ ✓ src/cards/BT21/BT21-092.test.ts > BT21-092 Can't Turn My Back! > does not play a Xros Heart card above the Security play-cost ceiling 5ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > waives red color while an own non-red Tamer has an inherited-effect source
+AssertionError: expected { ok: false, …(1) } to deeply equal { ok: true }
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
++   "ok": false,
++   "reason": "color-requirement-unmet",
+  }
+
+ ❯ src/cards/BT21/BT21-091.test.ts:118:100
+    116|     await s.ready();
+    117|
+    118|     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.i…
+       |                                                                                                    ^
+    119|       ok: true,
+    120|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > does not resolve a same-turn Delay trigger from a public inherited-effect Tamer play
+AssertionError: expected { ok: false, …(1) } to deeply equal { ok: true }
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
++   "ok": false,
++   "reason": "decision-pending",
+  }
+
+ ❯ src/cards/BT21/BT21-091.test.ts:221:100
+    219|     });
+    220|     await settle(() => s.state.players[0]!.battleArea.some((p) => p.to…
+    221|     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.i…
+       |                                                                                                    ^
+    222|       ok: true,
+    223|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > declines an aged public Delay trigger without disposing the Option or Hybrid
+Error: Could not end seat 0's Main phase: decision-pending
+ ❯ Object.endMainPhaseIfOpen src/engine/testkit/advance.ts:44:15
+     42|       const ended = engine.applyIntent(seat, { type: "endPhase" });
+     43|       if (!ended.ok) {
+     44|         throw new Error(`Could not end seat ${seat}'s Main phase: ${en…
+       |               ^
+     45|       }
+     46|     },
+ ❯ Object.runTurn src/engine/testkit/advance.ts:60:12
+ ❯ src/cards/BT21/BT21-091.test.ts:257:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > accepts an aged public Delay trigger as free evolution over the inherited Tamer
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/cards/BT21/BT21-091.test.ts:331:84
+    329|       s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId …
+    330|     );
+    331|     expect(s.state.players[0]!.trash.some((card) => card.instanceId ==…
+       |                                                                                    ^
+    332|     const evolved = s.state.players[0]!.battleArea.find((p) => p.topCa…
+    333|     expect(evolved.stack.some((card) => card.instanceId === s.inst("ta…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  src/cards/BT21/BT21-093.test.ts > BT21-093 Raging Serpentine > arms reactive Delay from two public security attacks and free-evolves a legal host
+AssertionError: expected { ok: false, reason: 'wrong-phase' } to deeply equal { ok: true }
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
++   "ok": false,
++   "reason": "wrong-phase",
+  }
+
+ ❯ src/cards/BT21/BT21-093.test.ts:154:7
+    152|         target: { kind: "player" },
+    153|       }),
+    154|     ).toEqual({ ok: true });
+       |       ^
+    155|     await settle(() => !observe(s.engine).isAttacking() && s.state.pla…
+    156|     await settle(() => s.perm("eligible2").topCard.instanceId === s.in…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  2 failed | 3 passed (5)
+      Tests  5 failed | 34 passed (39)
+   Start at  18:50:42
+   Duration  9.19s (transform 83%, import 14%, tests 3%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-089.test.ts src/cards/BT21/BT21-091.test.ts src/cards/BT21/BT21-092.test.ts src/cards/BT21/BT21-093.test.ts src/cards/BT21/BT21-094.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

@@ -1,0 +1,83 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > keeps the Delay payload separate from the placement watcher 2ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > naturally gains Delay when an effect places a card under an own Digimon 24ms
+ × src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > reacts only to a later public Canoweissmon placement and free-evolves a legal host 128ms
+   → expected false to be true // Object.is equality
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > reveals three cards, adds a Gammamon-text card, and places itself 3ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > Q4733 waives the color requirement for a Gammamon-text card in breeding 2ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > does not waive the color requirement without a Gammamon-text card on the field 0ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > does not use an opponent's Gammamon-text card for the color waiver 1ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > Security may play a cost-4 Gammamon-text card from trash, then places itself 4ms
+ ✓ src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > Security may choose the hand source for its cost-4-or-less Gammamon-text play 3ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > deletes exactly one lowest-play-cost opposing Digimon and places itself in the battle area 3ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > keeps Main deletion, Galacticmon Delay payload, and Security Vemmon play separate 0ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > Q4623 naturally deletes the lowest-cost Digimon when Galacticmon attacks 8ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > Q4624 trashes security to one when the Delay deletion is prevented 10ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > never offers an Option card to the Security play 2ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > Security plays a cost-6-or-less Vemmon-text card from trash and adds itself to hand 3ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > Security also plays a cost-6-or-less Vemmon-text card from hand 5ms
+ ✓ src/cards/BT21/BT21-099.test.ts > BT21-099 Xros Up > executes the Main placement by moving a Save Digimon from hand under an own Tamer 2ms
+ ✓ src/cards/BT21/BT21-099.test.ts > BT21-099 Xros Up > places Save from hand/trash under a Tamer and offers Save digivolution from trash 0ms
+ ✓ src/cards/BT21/BT21-099.test.ts > BT21-099 Xros Up > Security plays a cost-5-or-less Save Digimon from trash and adds itself to hand 3ms
+ ✓ src/cards/BT21/BT21-099.test.ts > BT21-099 Xros Up > publicly performs the optional placement and free Save digivolution in sequence 5ms
+ ✓ src/cards/BT21/BT21-099.test.ts > BT21-099 Xros Up > publicly refuses both optional Main actions while retaining eligible Save cards 9ms
+ ✓ src/cards/BT21/BT21-099.test.ts > BT21-099 Xros Up > leaves both optional Main actions inert when no Save cards are available 8ms
+ ✓ src/cards/BT21/BT21-099.test.ts > BT21-099 Xros Up > publicly plays a cost-5-or-less Save Digimon from hand during Security 5ms
+ ✓ src/cards/BT21/BT21-097.test.ts > BT21-097 App Link > verifies the Appmon waiver, reveal-and-place Main, Delay Link, and Security placement 0ms
+ ✓ src/cards/BT21/BT21-097.test.ts > BT21-097 App Link > reveals an Appmon/App Driver card, trashes the rest, and places itself 3ms
+ ✓ src/cards/BT21/BT21-097.test.ts > BT21-097 App Link > Q4734 waives color for an Appmon Digimon in breeding 1ms
+ × src/cards/BT21/BT21-097.test.ts > BT21-097 App Link > ages a publicly played Option before activating Delay at a later own turn 10ms
+   → expected false to be true // Object.is equality
+ ✓ src/cards/BT21/BT21-097.test.ts > BT21-097 App Link > publicly places itself from Security without changing memory 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-090.test.ts > BT21-090 The Strongest of Brothers > reacts only to a later public Canoweissmon placement and free-evolves a legal host
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/cards/BT21/BT21-090.test.ts:150:84
+    148|
+    149|     expect(s.state.memory).toBe(3);
+    150|     expect(s.state.players[0]!.trash.some((card) => card.instanceId ==…
+       |                                                                                    ^
+    151|     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instan…
+    152|       true,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/cards/BT21/BT21-097.test.ts > BT21-097 App Link > ages a publicly played Option before activating Delay at a later own turn
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/cards/BT21/BT21-097.test.ts:118:91
+    116|     // CR 16-17-3: Delay gained this turn cannot activate during this …
+    117|     await advance(s.engine).runTurn(0);
+    118|     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instan…
+       |                                                                                           ^
+    119|     expect(s.perm("recipient").linked).toHaveLength(0);
+    120|     expect(s.state.players[0]!.hand.some((card) => card.instanceId ===…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed | 2 passed (4)
+      Tests  2 failed | 26 passed (28)
+   Start at  18:55:24
+   Duration  7.06s (transform 82%, import 15%, tests 4%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-090.test.ts src/cards/BT21/BT21-097.test.ts src/cards/BT21/BT21-098.test.ts src/cards/BT21/BT21-099.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

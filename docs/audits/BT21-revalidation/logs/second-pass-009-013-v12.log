@@ -1,0 +1,42 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+stdout | src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > plays Haru for free when this stack gets linked with zero existing Tamers
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 2
+
+stdout | src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > plays Haru for free when this stack gets linked with one existing Tamers
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 2
+
+stdout | src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > plays Haru from a naturally linked Gatchmon stack
+[WinCheck] seat 0 wins (reason: security) — turn 0, phase Main, memory 2
+
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > encodes every Digivolve, Link, linked Raid, and linked-trigger clause 1ms
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > digivolves for zero from Appmon and rejects a non-Appmon/non-Hero level 2 15ms
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > plays Haru for free when this stack gets linked with zero existing Tamers 16ms
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > plays Haru for free when this stack gets linked with one existing Tamers 9ms
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > plays Haru from a naturally linked Gatchmon stack 5ms
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > does not play Haru with two Tamers or when another Digimon gets linked 3ms
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > does not activate the inherited trigger during the opponent's turn 1ms
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > may decline and plays at most one Haru across repeated link events 7ms
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > proves Once Per Turn through two public links on the same Gatchmon 11ms
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > links to an Appmon for 1 memory, adds 2000 DP, and grants Raid 1ms
+ ✓ src/cards/BT21/BT21-009.test.ts > BT21-009 Gatchmon > uses Raid from the linked host to redirect a player attack 6ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — alternate digivolution conditions > may digivolve from a red Tamer for cost 2 0ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — alternate digivolution conditions > may digivolve from BurningGreymon for cost 0 0ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — alternate digivolution conditions > may NOT digivolve from a non-red Tamer 0ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — [When Digivolving] placement > is registered 0ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — [When Digivolving] placement > places the card under THIS Digimon when no red Tamer is in play 1ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — [When Digivolving] placement > offers the red Tamer with inherited effects alongside this Digimon 0ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — observable game behavior > digivolves from BurningGreymon for 0 and bottoms a selected Hero card from hand 4ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — observable game behavior > publicly digivolves from a red Tamer through the printed cost-2 alternate route 4ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — observable game behavior > publicly places a Hero under a qualifying red inherited-effect Tamer 2ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — observable game behavior > publicly places an eligible Hero from trash under the qualifying red Tamer only 3ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — observable game behavior > leaves placement empty when no Hybrid/Hero source exists 2ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — observable game behavior > when attacking, pays the matching red Hero evolution cost reduced by 1 6ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — observable game behavior > does not offer a non-Hybrid/non-Hero attack evolution 2ms
+ ✓ src/cards/BT21/BT21-013.test.ts > BT21-013 Agunimon — observable game behavior > grants inherited +2000 DP only during its controller's turn 1ms
+
+ Test Files  2 passed (2)
+      Tests  25 passed (25)
+   Start at  19:13:01
+   Duration  7.22s (transform 84%, import 15%, tests 1%)

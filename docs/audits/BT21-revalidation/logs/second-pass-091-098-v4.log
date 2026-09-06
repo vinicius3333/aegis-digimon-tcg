@@ -1,0 +1,82 @@
+
+ RUN  v5.0.0 /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api
+
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 [Main] on-play body fires on a real playCard (not dead) > deletes the opponent's highest-DP Digimon and lands in the battle area 20ms
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 Raging Serpentine > models the conditional use reduction, highest-DP deletion, and Delay digivolution 1ms
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 Raging Serpentine > arms reactive Delay from two public security attacks and free-evolves a legal host 42ms
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 Raging Serpentine > with 3 opposing security pays a use cost of 4 2ms
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 Raging Serpentine > with 4 opposing security pays a use cost of 8 2ms
+ ✓ src/cards/BT21/BT21-093.test.ts > BT21-093 Raging Serpentine > Security deletes only one opposing highest-DP Digimon 1ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > keeps the inherited-Tamer watcher separate from the Delay digivolution payload 1ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > pays a Hybrid from hand, draws 2, and places itself in the battle area 5ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > declining the Hybrid cost neither draws nor places the option 1ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > waives red color for an own non-red Tamer with printed inherited effects 1ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > does not waive color from an opponent inherited-effect Tamer 1ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > does not waive color from an unrelated own Tamer without inherited effects 0ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > Security may play an inherited-effect Tamer from trash, then adds itself to hand 4ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > publicly resolves Security by attacking into Spirit Evolution! 3ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > does not resolve a same-turn Delay trigger from a public inherited-effect Tamer play 4ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > declines an aged public Delay trigger without disposing the Option or Hybrid 17ms
+ ✓ src/cards/BT21/BT21-091.test.ts > BT21-091 Spirit Evolution! > accepts an aged public Delay trigger as free evolution over the inherited Tamer 21ms
+ ✓ src/cards/BT21/BT21-095.test.ts > BT21-095 Wind Guardians > keeps the face-up-security color waiver and security/Main branches faithful 0ms
+ ✓ src/cards/BT21/BT21-095.test.ts > BT21-095 Wind Guardians > returns the bottom security card and places itself face-up as security 3ms
+ ✓ src/cards/BT21/BT21-095.test.ts > BT21-095 Wind Guardians > Q4609/Q4610 works with zero security: it only places itself face-up 1ms
+ ✓ src/cards/BT21/BT21-095.test.ts > BT21-095 Wind Guardians > waives its color only for its controller's face-up-security condition 1ms
+ ✓ src/cards/BT21/BT21-095.test.ts > BT21-095 Wind Guardians > Security plays a level-5 WG Digimon from hand without paying cost 6ms
+ ✓ src/cards/BT21/BT21-095.test.ts > BT21-095 Wind Guardians > Security rejects an over-level hand target (direct timing supplement) 9ms
+ ✓ src/cards/BT21/BT21-095.test.ts > BT21-095 Wind Guardians > publicly declines an eligible level-5 WG Security play and leaves the card in hand 6ms
+ ✓ src/cards/BT21/BT21-095.test.ts > BT21-095 Wind Guardians > publicly grants Vortex to existing and newly played own WG Digimon while face-up in Security 3ms
+ ✓ src/cards/BT21/BT21-095.test.ts > BT21-095 Wind Guardians > loses the Security Vortex grant when the face-up source is checked 8ms
+ ✓ src/cards/BT21/BT21-096.test.ts > BT21-096 The Champion Ultimate Fighter! > turns a Marcus Damon into a 12000 DP Rush Digimon and starts its Digimon attack 5ms
+ ✓ src/cards/BT21/BT21-096.test.ts > BT21-096 The Champion Ultimate Fighter! > targets the chosen Marcus permanent and carries the temporary Digimon grants 0ms
+ ✓ src/cards/BT21/BT21-096.test.ts > BT21-096 The Champion Ultimate Fighter! > Q4620 may decline the attack while retaining the temporary Digimon treatment 3ms
+ ✓ src/cards/BT21/BT21-096.test.ts > BT21-096 The Champion Ultimate Fighter! > Security plays Marcus from trash for free, then adds itself to hand 2ms
+ ✓ src/cards/BT21/BT21-096.test.ts > BT21-096 The Champion Ultimate Fighter! > Security also plays an eligible Marcus from hand and returns the Option 2ms
+ × src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > deletes exactly one lowest-play-cost opposing Digimon and places itself in the battle area 3ms
+   → permanent for "option" (inst-162) is no longer on the board: expected undefined to be defined
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > keeps Main deletion, Galacticmon Delay payload, and Security Vemmon play separate 0ms
+ × src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > Q4623 naturally deletes the lowest-cost Digimon when Galacticmon attacks 15ms
+   → optionId is not defined
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > Q4624 trashes security to one when the Delay deletion is prevented 14ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > never offers an Option card to the Security play 2ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > Security plays a cost-6-or-less Vemmon-text card from trash and adds itself to hand 5ms
+ ✓ src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > Security also plays a cost-6-or-less Vemmon-text card from hand 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > deletes exactly one lowest-play-cost opposing Digimon and places itself in the battle area
+AssertionError: permanent for "option" (inst-162) is no longer on the board: expected undefined to be defined
+ ❯ Object.perm src/engine/testkit/harness.ts:431:89
+    429|           ? findPermanentById(state, entry.id)
+    430|           : findPermanentContainingInstance(state, entry.id);
+    431|       expect(found, `permanent for "${alias}" (${entry.id}) is no long…
+       |                                                                                         ^
+    432|       return found as Permanent;
+    433|     },
+ ❯ src/cards/BT21/BT21-098.test.ts:25:24
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/cards/BT21/BT21-098.test.ts > BT21-098 Ragnarok Cannon > Q4623 naturally deletes the lowest-cost Digimon when Galacticmon attacks
+ReferenceError: optionId is not defined
+ ❯ src/cards/BT21/BT21-098.test.ts:112:73
+    110|     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.p…
+    111|     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId ==…
+    112|     expect(s.state.players[0]!.trash.some((card) => card.instanceId ==…
+       |                                                                         ^
+    113|   });
+    114|
+ ❯ Proxy.some ../../node_modules/.pnpm/@colyseus+schema@3.0.76/node_modules/@colyseus/schema/src/types/custom/ArraySchema.ts:566:27
+ ❯ src/cards/BT21/BT21-098.test.ts:112:38
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed | 4 passed (5)
+      Tests  2 failed | 36 passed (38)
+   Start at  18:54:01
+   Duration  7.19s (transform 82%, import 14%, tests 3%)
+
+undefined
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt21-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: vitest run src/cards/BT21/BT21-091.test.ts src/cards/BT21/BT21-093.test.ts src/cards/BT21/BT21-095.test.ts src/cards/BT21/BT21-096.test.ts src/cards/BT21/BT21-098.test.ts --maxWorkers=1 --no-file-parallelism --pool=forks --no-fsModuleCache --reporter=verbose

@@ -71,3 +71,11 @@ GulusGammamon's exact-name alternate and no-target optional costs are corrected 
 ## Tagiru union correction and 085–088 focused checkpoint
 
 43/43 assertions pass across four files in `logs/second-pass-085-088-v4.log`; each card is committed atomically through af82bf5a8. Hero-only evolution exposed an ignored alternative in Tagiru’s replacement filter; supported Save/Hero union encoding fixes it without a shared engine change. Set sync/check confirms 102 records, 17 semantic changes against baseline, and no changes outside BT21. These focused results supplement the prior full green checkpoint; final collection/typecheck/style delivery gates remain pending after current additions. Scores and collection status remain incomplete.
+
+## Stable public-proof checkpoint v6
+
+All **1928/1928** assertions pass across **122 files** in `logs/collection-mechanisms-second-pass-v6.log`, including all 102 BT21 card files and grant-duration ownership. Shared/API/web typecheck passes in `logs/typecheck-second-pass-v8.log`; 144 changed code/data paths pass Oxfmt/Oxlint in `logs/style-second-pass-v4.log`. Set check confirms 102 synchronized records, 18 semantic changes against baseline, and none outside BT21. `git diff --check` passes.
+
+Twenty-two atomic card commits through `66cfda08d` correct the reactive BT21-090 Delay payload and strengthen public proofs through BT21-102 plus earlier strict gaps. The ledger is independently recalculated to **556/1020**, **0/102 final 10/10**. BT21-004/038/042 have accepted provisional8/10; all delivery points remain withheld. The exact Japanese Q6671 separates external Digimon-evolution watchers from destination When Digivolving; the report records the English ambiguity and rejects suppressing Agunimon's destination effect. A worker draft copying013into014 was discarded beforecommit and no014production change entered synchronization.
+
+Next bounded proof work: genuine public refusals009/013, actualRetaliation+expiry076, eligibleattackrefusal096. Earlier mechanism and card gaps remain in the ledger. This checkpoint is incomplete and does not mark the worktree complete.
