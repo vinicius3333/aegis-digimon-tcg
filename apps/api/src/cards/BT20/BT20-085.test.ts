@@ -4,6 +4,8 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-085.js";
 import "./index.js";
+import "../BT1/BT1-013.js";
+import "./BT20-047.js";
 
 describe("BT20-085 Shoto Kazama", () => {
   it("models the Start of Main Phase bottom-deck cost and gated follow-up", () => {
