@@ -86,6 +86,71 @@ describe("BT21-037 compiled implementation", () => {
     expect(s.perm("veemon").currentDP).toBe(8000);
   });
 
+  it("uses Piercing in a public battle to delete a Digimon and check security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-037", as: "lighdramon", enteredThisTurn: false }],
+          security: ["BT1-001"],
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "defender", dp: 3000, suspended: true }],
+          security: ["BT1-002"],
+          deck: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const defenderId = s.perm("defender").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("lighdramon").permanentId,
+        target: { kind: "permanent", permanentId: defenderId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === defenderId)).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
+  it("uses Armor Purge in a public battle and leaves its Veemon source", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-032", as: "source" }], hand: [{ card: "BT21-037", as: "lighdramon" }] },
+        1: { battleArea: [{ card: "BT10-055", as: "stronger", suspended: true }], security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("lighdramon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard.cardId === "BT21-037");
+    const attackerId = s.perm("source").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attackerId,
+        target: { kind: "permanent", permanentId: s.perm("stronger").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(s.events.some((event) => event.kind === "combatResolved")).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some((p) => p.permanentId === attackerId && p.topCard.cardId === "BT21-032"),
+    ).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT21-037")).toBe(true);
+  });
+
   it("suspends exactly one opponent and gives itself +2000 DP", async () => {
     const s = setupEngine(
       {
