@@ -1,0 +1,36 @@
+{
+  "cardId": "BT20-064",
+  "status": "ready-for-coordinator-verification",
+  "scores": {
+    "catalogRules": 2,
+    "irTrace": 2,
+    "behavioralProof": 2,
+    "peerStackProof": 2,
+    "deliveryGates": 0
+  },
+  "evidence": [
+    "BT20-064.test.ts: exact Bowmon and level-2 SEEKERS public zero-cost evolution routes with source stack assertions",
+    "BT20-064.test.ts: mixed reveal adds exact SoC/SEEKERS and Eiji identities while bottoming BT20-047",
+    "BT20-064.test.ts: no-match reveal leaves all three cards in deck and adds none",
+    "BT20-064.test.ts: inherited +2000 controller-turn, standalone and opponent-turn boundaries",
+    "current-collection-green-results.json"
+  ],
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-064.test.ts --maxWorkers=1 --no-file-parallelism",
+      "result": "not run by worker; coordinator owns Vitest"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed after test and report additions"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/current-collection-green-results.json",
+      "result": "PASS: 6 cases for BT20-064;734 total tests. See current-collection-green-results.json."
+    }
+  ],
+  "gaps": [
+    "Coordinator focused/collection, mechanism/typecheck, and lint gates pending"
+  ],
+  "reviewStatus": "Full collection execution passed at this draft checkpoint. Strict clause acceptance, sensitivity and final delivery review remain pending; provisional scores do not count in the ledger."
+}
