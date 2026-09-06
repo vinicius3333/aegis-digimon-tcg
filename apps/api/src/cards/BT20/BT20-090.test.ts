@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { EffectTiming, type Seat } from "@aegis/shared";
 import { setupEngine, type BoardSpec, type EngineSetup } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-090.js";
+import "../BT11/BT11-079.js";
 import "./index.js";
 
 // A3 for BT20-090 (Yuuki — Purple Tamer).
