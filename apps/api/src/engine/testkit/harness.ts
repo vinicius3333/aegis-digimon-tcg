@@ -534,14 +534,17 @@ function findPermanentForDecisionId(state: GameState, id: string): Permanent | u
  * for truthiness, so an optional-chained probe that can yield `undefined` is a legal predicate.
  */
 export async function settle(predicate: () => boolean | undefined = () => false, maxTicks = 500): Promise<void> {
+  // Awaiting the same fulfilled promise still yields one microtask per tick, without
+  // allocating another promise for every step of the drain.
+  const tick = Promise.resolve();
   for (let i = 0; i < maxTicks * 10; i++) {
-    await Promise.resolve();
+    await tick;
     if (predicate()) {
       // A production action may publish its observable milestone before the final action in
       // the same effect continuation (P-130 suspends before its trailing GainMemory). Give
       // that continuation one turn through the microtask queue before callers inspect state.
       await new Promise<void>((resolve) => setTimeout(resolve, 0));
-      for (let flush = 0; flush < 20; flush += 1) await Promise.resolve();
+      for (let flush = 0; flush < 20; flush += 1) await tick;
       return;
     }
   }
