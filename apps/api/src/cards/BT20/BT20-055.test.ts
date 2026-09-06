@@ -59,6 +59,22 @@ describe("BT20-055 Invisimon", () => {
     expect(s.state.players[0]!.security).toHaveLength(0);
   });
 
+  it("naturally plays from face-up security at the opponent's turn end", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "BT20-055", as: "invisimon", faceUp: true }] },
+      1: { deck: ["BT20-001"] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-055"));
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-055")).toBe(true);
+  });
+
   it("de-digivolves by 2, flips the next face-down card, then deletes at one source on both entries", async () => {
     for (const mode of ["play", "digivolve"] as const) {
       const s = setupEngine(
@@ -68,13 +84,13 @@ describe("BT20-055 Invisimon", () => {
             hand: [{ card: "BT20-055", as: "invisimon" }],
           },
           1: {
-            battleArea: [{ card: "BT20-053", under: ["BT20-051", "BT20-048", "BT13-005"], as: "target" }],
+            battleArea: [{ card: "BT20-053", under: ["BT13-005", "BT20-048", "BT20-051"], as: "target" }],
             security: [{ card: "BT20-047", faceUp: true }, "BT20-047", "BT20-047"],
           },
         },
         { autoSelectCards: true },
       );
-      s.state.memory = mode === "play" ? 11 : 3;
+      s.state.memory = mode === "play" ? 10 : 3;
       const result =
         mode === "play"
           ? s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("invisimon").instanceId })
@@ -86,8 +102,40 @@ describe("BT20-055 Invisimon", () => {
       expect(result).toEqual({ ok: true });
       await settle(() => s.state.players[1]!.battleArea.length === 0);
       expect(s.state.players[1]!.security.map((card) => card.faceUp)).toEqual([true, true, false]);
-      expect(s.state.memory).toBe(0);
+      expect(s.state.memory).toBe(mode === "play" ? -1 : 0);
     }
+  });
+
+  it("deletes only the opponent Digimon with at most one source remaining after De-Digivolve 2", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT20-055", as: "invisimon" }] },
+        1: {
+          battleArea: [
+            { card: "BT20-056", as: "ineligible", under: ["BT13-005", "BT20-048", "BT20-051", "BT20-053"] },
+            { card: "BT20-048", as: "eligible", under: ["BT13-005"] },
+          ],
+          security: ["BT20-047", "BT20-047", "BT20-047"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const ineligibleId = s.perm("ineligible").permanentId;
+    preferred.push(ineligibleId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("invisimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.some((p) => p.permanentId === ineligibleId) &&
+        s.state.players[1]!.battleArea.length === 1,
+    );
+    expect(s.state.players[1]!.battleArea.map((p) => p.permanentId)).toEqual([ineligibleId]);
+    expect(s.perm("ineligible").stack).toHaveLength(2);
+    expect(s.perm("ineligible").topCard.cardId).toBe("BT20-051");
   });
 
   it("Q4388 may move Invisimon itself and lets the promoted HoverEspimon draw", async () => {
