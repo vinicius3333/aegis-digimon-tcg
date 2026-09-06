@@ -3,6 +3,8 @@ import { Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./index.js";
+import "../BT9/BT9-111.js";
+import "../BT14/BT14-087.js";
 import { compiled } from "./BT20-003.js";
 
 describe("BT20-003 Bibimon", () => {
@@ -121,5 +123,87 @@ describe("BT20-003 Bibimon", () => {
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual([matchingCard, "BT20-003"]);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-085")).toBe(true);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === matchingCard)).toBe(true);
+  });
+
+  it("proves same-turn OPT after a public memory-gain reopening of Main and End of Your Turn", async () => {
+    const preferred: string[] = [];
+    const options = {
+      autoAcceptOptional: true,
+      autoSelectCards: true,
+      autoOrderTriggers: false,
+      preferInstanceIds: preferred,
+    };
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-031", as: "host", under: ["BT14-087", "BT20-003"] },
+            { card: "BT9-111", as: "ouryuken", under: ["BT20-005", "BT20-010", "BT20-012", "BT20-053", "BT20-056"] },
+            { card: "BT17-086", as: "qualifyingTamer" },
+          ],
+          deck: ["BT20-010", "BT20-011", "BT20-012", "BT20-013", "BT20-014", "BT20-015"],
+        },
+        1: { battleArea: [{ card: "BT20-010", as: "opponent" }], deck: ["BT20-010", "BT20-011", "BT20-012"] },
+      },
+      options,
+    );
+    preferred.push(s.perm("host").stack[0]!.instanceId); // Reuse Eiji so its inherited effect can detach it on the next window.
+    s.state.memory = 3;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+
+    async function chooseTrigger(cardId: string): Promise<void> {
+      await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+      const decision = s.decisions.find(({ req }) => req.decisionId === s.state.pendingDecision?.decisionId);
+      if (decision?.req.kind !== "orderTriggers") throw new Error(`missing order prompt for ${cardId}`);
+      const index = decision.req.options?.triggerCardIds?.findIndex((id) => id === cardId) ?? -1;
+      if (index < 0) throw new Error(`missing ${cardId} in order prompt`);
+      const key = decision.req.options?.triggerKeys?.[index];
+      expect(key).toBeDefined();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.req.decisionId,
+          response: { kind: "orderTriggers", order: [key!] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.decisionId !== decision.req.decisionId);
+    }
+
+    // The first End of Your Turn window must detach the existing Eiji, then place the
+    // eligible field Tamer, and finally let Ouryuken return four X sources for +4 memory.
+    await chooseTrigger("BT14-087");
+    await chooseTrigger("BT20-003");
+    // The final remaining Ouryuken effect resolves automatically.
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("ouryuken").stack).toHaveLength(1);
+    expect(s.perm("host").stack.some((card) => card.cardId === "BT14-087")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT17-086")).toBe(true);
+
+    // Main reopened in the same turn. Eiji detaches again during the second EOT,
+    // restoring the no-Tamer condition while Bibimon's Once Per Turn identity stays used.
+    expect(s.events.filter((event) => event.kind === "phaseChanged" && event.phase === Phase.Main)).toHaveLength(2);
+    options.autoOrderTriggers = true;
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => s.state.pendingDecision === undefined);
+    await turn;
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT20-003"]);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT17-086")).toBe(true);
+    expect(
+      s.events.filter((event) => event.kind === "effectResolved" && event.sourceCardId === "BT20-003"),
+    ).toHaveLength(1);
+    options.autoOrderTriggers = true;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(0);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT14-087", "BT20-003"]);
+    expect(
+      s.events.filter((event) => event.kind === "effectResolved" && event.sourceCardId === "BT20-003"),
+    ).toHaveLength(2);
   });
 });
