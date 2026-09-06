@@ -60,6 +60,92 @@ describe("BT21-076 WarGrowlmon", () => {
     expect(observe(s.engine).hasKeyword(wargrowlmon!, "Retaliation")).toBe(true);
   });
 
+  it("deletes both combatants when evolution-granted Retaliation loses to printed higher DP", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-068", as: "host", under: ["BT21-064"] }],
+          hand: [{ card: "BT21-076", as: "wargrowlmon" }],
+          deck: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+        1: { battleArea: [{ card: "BT10-055", as: "higher", suspended: true }], security: ["BT1-004"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const attackerId = s.inst("wargrowlmon").instanceId;
+    const defenderId = s.inst("higher").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: attackerId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("host"), "Retaliation"));
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT21-064", "BT21-068"]);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Retaliation")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("higher").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.trash.some((card) => card.instanceId === defenderId) && !observe(s.engine).isAttacking(),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === attackerId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === defenderId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((c) => c.instanceId === attackerId)).toBe(true);
+    expect(s.state.players[1]!.trash.some((c) => c.instanceId === defenderId)).toBe(true);
+  });
+
+  it("keeps play-granted Raid and Retaliation through the opponent turn, then expires them", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT21-076", as: "wargrowlmon" }, "BT1-010"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: { deck: ["BT1-009", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wargrowlmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.length === 2);
+    expect(observe(s.engine).hasKeyword(s.perm("wargrowlmon"), "Raid")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("wargrowlmon"), "Retaliation")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(observe(s.engine).hasKeyword(s.perm("wargrowlmon"), "Raid")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("wargrowlmon"), "Retaliation")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextOwnTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(observe(s.engine).hasKeyword(s.perm("wargrowlmon"), "Raid")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("wargrowlmon"), "Retaliation")).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextOwnTurn;
+  });
+
   it.each([
     [0, 5],
     [9, 5],
