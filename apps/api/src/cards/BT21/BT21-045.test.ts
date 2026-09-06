@@ -123,7 +123,7 @@ describe("BT21-045 compiled implementation", () => {
             { card: "BT1-085", as: "tamer" },
           ],
         },
-        1: { security: ["BT1-001", "BT1-001"] },
+        1: { security: ["BT1-001", "BT1-001", "BT1-002"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -135,9 +135,11 @@ describe("BT21-045 compiled implementation", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("tamer").isSuspended && s.state.players[1]!.security.length === 0);
+    await settle(() => s.perm("tamer").isSuspended && s.state.players[1]!.security.length === 1);
     expect(s.perm("tamer").isSuspended).toBe(true);
     expect(s.perm("shine").currentDP).toBe(15000);
+    await advance(s.engine).runTurn(0);
+    expect(s.perm("shine").currentDP).toBe(12000);
   });
 
   it("deletes at the 9000 DP boundary and shares the budget with When Attacking", async () => {
@@ -203,6 +205,49 @@ describe("BT21-045 compiled implementation", () => {
     expect(
       s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("higher").permanentId),
     ).toBe(true);
+  });
+
+  it("uses the alternate Hero evolution route for 3 and rejects a non-Hero level-5 base", async () => {
+    const legal = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-023", as: "heroBase" }],
+          hand: [{ card: "BT21-045", as: "shine" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    legal.state.memory = 4;
+    await legal.ready();
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("heroBase").permanentId,
+        instanceId: legal.inst("shine").instanceId,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.perm("heroBase").topCard.cardId === "BT21-045");
+    expect(legal.state.memory).toBe(1);
+
+    const invalid = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-020", as: "wrongBase" }],
+        hand: [{ card: "BT21-045", as: "shine" }],
+      },
+    });
+    invalid.state.memory = 4;
+    await invalid.ready();
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("wrongBase").permanentId,
+        instanceId: invalid.inst("shine").instanceId,
+        alternateRequirementIndex: 1,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(invalid.state.memory).toBe(4);
   });
 
   it("does not pay the attack cost or grant bonuses without an eligible Tamer", async () => {
