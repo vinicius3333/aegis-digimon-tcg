@@ -1,6 +1,6 @@
 {
   "cardId": "BT20-018",
-  "status": "awaiting-lead-review",
+  "status": "awaiting-delivery-gates",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
@@ -9,11 +9,22 @@
     "deliveryGates": 0
   },
   "evidence": [
-    "internal-docs/audits/BT20/revalidation/BT20-018.md",
-    "apps/api/src/cards/BT20/BT20-018.test.ts",
-    "014-040-results.json"
+    "Public play and legal Hisyaryumon evolution apply De-Digivolve 2. A multi-level enemy stack loses exactly its top two cards and retains its legal level-4 base.",
+    "Public attack through BT20-087 pays the reduced Ouryumon evolution cost 2 and offers free breeding evolution from hand/trash; feasible refusal and non-attack entry retain legal candidates.",
+    "Wrong-trait and above-level-6 breeding candidates have otherwise legal ordinary evolution bases. The attacking base is explicitly chosen for BT20-087, and the Ouryumon trigger is asserted before exclusion.",
+    "Public security removals delete one tied-lowest enemy only once per turn and reset on a later turn. Both security-stack seats are covered.",
+    "A legal Alphamon: Ouryuken host trashes the identified security top; another legal level-7 host does not. Public Garurumon unsuspension proves inherited OPT and next-turn reset with security counts 6 -> 4 -> 3 -> 1.",
+    "P-176 is an out-of-collection peer encoding limitation: omitted payCost makes its printed paid evolution free. These proofs use correctly paid BT20-087 and do not depend on P-176.",
+    "BT20-018.test.ts; committed catalog and card-specific KB query reviewed by lead and Luna.",
+    "reactive-movement-affected-results.json: 552 passing affected mechanism tests.",
+    "collection-after-reactive-delay-results.json",
+    "reactive-movement-gates.json"
   ],
-  "commands": [
+  "gaps": [
+    "Atomic commit/push and final hash-bound acceptance pending."
+  ],
+  "reviewStatus": "Lead integrated and reviewed the current public proofs; earlier report prose and unexecuted worker handoffs are superseded by this clause map. No final score until delivery gates and artifact hashes are recorded.",
+  "historicalCommands": [
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-018.test.ts --maxWorkers=1 --no-file-parallelism",
       "result": "pending lead execution"
@@ -23,8 +34,26 @@
       "result": "9 tests passed for this card; 160 total passed; 014-040-results.json"
     }
   ],
-  "gaps": [
-    "lead focused/mechanism/collection/typecheck/lint gates pending"
-  ],
-  "reviewStatus": "Focused execution passed; clause-by-clause lead acceptance remains pending. Provisional worker scores do not contribute to the ledger."
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+      "result": "15 cases passed for BT20-018; 836 total passed, zero failed."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "Passed shared/API/web; reactive-movement-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "All102 synchronized; see reactive-movement-gates.json for the temporary watchdog adjustment and restored script."
+    },
+    {
+      "command": "Commands in reactive-movement-gates.json",
+      "result": "552 affected mechanism cases and changed-file lint/format passed without warnings."
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-018",
+      "result": "5 intended state/assertion failures with registered effects disabled; production restored. See BT20-018-runtime-disabled.json. Runner reproduction is per-card; batch invocation is retained in014-026-runtime-sensitivity.log."
+    }
+  ]
 }
