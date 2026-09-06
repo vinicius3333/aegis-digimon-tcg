@@ -111,6 +111,29 @@ describe("BT21-076 WarGrowlmon", () => {
     expect(s.state.memory).toBe(1);
   });
 
+  it("leaves the top card unchanged when a public attack has no eligible evolution target", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-076", as: "wargrowlmon" }] },
+        1: { security: ["BT1-001", "BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("wargrowlmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    expect(s.perm("wargrowlmon").topCard.cardId).toBe("BT21-076");
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
   it("uses the attack evolution only once per turn", async () => {
     const s = setupEngine(
       {
@@ -149,6 +172,74 @@ describe("BT21-076 WarGrowlmon", () => {
     expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
     await settle(() => s.state.players[1]!.security.length === 1);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("top").instanceId)).toBe(true);
+  });
+
+  it("trashes the opponent's security after a public battle deletes a legal inherited stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-064", as: "guilmon", suspended: true }],
+          hand: [
+            { card: "BT21-068", as: "growlmon" },
+            { card: "BT21-076", as: "wargrowlmon" },
+            { card: "BT21-079", as: "megidramon" },
+          ],
+          deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-084", as: "attacker" }],
+          security: [
+            { card: "BT1-009", as: "topSecurity" },
+            { card: "BT1-010", as: "bottomSecurity" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("guilmon").permanentId,
+        instanceId: s.inst("growlmon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("guilmon").topCard.instanceId === s.inst("growlmon").instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("guilmon").permanentId,
+        instanceId: s.inst("wargrowlmon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("guilmon").topCard.instanceId === s.inst("wargrowlmon").instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("guilmon").permanentId,
+        instanceId: s.inst("megidramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("guilmon").topCard.instanceId === s.inst("megidramon").instanceId);
+    expect(s.perm("guilmon").stack.map((card) => card.cardId)).toEqual(["BT21-064", "BT21-068", "BT21-076"]);
+    expect(s.perm("guilmon").isSuspended).toBe(true);
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    const topSecurityId = s.inst("topSecurity").instanceId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("guilmon").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === topSecurityId)).toBe(true);
   });
 
   it("uses the Growlmon alternate evolution route for 3", async () => {
