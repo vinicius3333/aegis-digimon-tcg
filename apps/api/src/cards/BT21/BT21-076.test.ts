@@ -45,7 +45,7 @@ describe("BT21-076 WarGrowlmon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 20;
+    s.state.memory = 10;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wargrowlmon").instanceId })).toEqual({
       ok: true,
@@ -66,7 +66,11 @@ describe("BT21-076 WarGrowlmon", () => {
     [10, 4],
     [20, 3],
   ])("attack evolution with %i total trash cards costs %i", async (trashCount, expectedCost) => {
-    const trash = Array.from({ length: trashCount }, (_, index) => ({ card: "BT1-009", as: `trash${index}` }));
+    const trashPool = ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"];
+    const trash = Array.from({ length: trashCount }, (_, index) => ({
+      card: trashPool[Math.floor(index / 4)]!,
+      as: `trash${index}`,
+    }));
     const s = setupEngine(
       {
         0: {
@@ -155,6 +159,83 @@ describe("BT21-076 WarGrowlmon", () => {
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("wargrowlmon"));
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("second").instanceId)).toBe(true);
+  });
+
+  it("keeps WarGrowlmon on top across two public attacks after Cyclonic Kick unsuspends it", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-064", as: "guilmon" },
+            { card: "BT1-089", as: "mimi" },
+          ],
+          hand: [
+            { card: "BT21-068", as: "growlmon" },
+            { card: "BT21-076", as: "wargrowlmon" },
+            { card: "BT21-079", as: "megidramon" },
+            { card: "BT4-108", as: "cyclonic" },
+          ],
+          deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+        },
+        1: { security: ["BT1-005", "BT1-006", "BT1-007"], deck: ["BT1-008"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("guilmon").permanentId,
+        instanceId: s.inst("growlmon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("guilmon").topCard.instanceId === s.inst("growlmon").instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("guilmon").permanentId,
+        instanceId: s.inst("wargrowlmon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("guilmon").topCard.instanceId === s.inst("wargrowlmon").instanceId);
+    expect(s.perm("guilmon").stack.map((card) => card.cardId)).toEqual(["BT21-064", "BT21-068"]);
+    expect(s.state.memory).toBe(5);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("guilmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 2);
+    expect(s.perm("guilmon").isSuspended).toBe(true);
+    expect(s.perm("guilmon").topCard.instanceId).toBe(s.inst("wargrowlmon").instanceId);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("megidramon").instanceId)).toBe(true);
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cyclonic").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.perm("guilmon").isSuspended);
+    expect(s.state.memory).toBe(1);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("guilmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 1);
+    expect(s.perm("guilmon").topCard.instanceId).toBe(s.inst("wargrowlmon").instanceId);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("megidramon").instanceId)).toBe(true);
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
   });
 
   it("inherited deletion trashes the opponent's top security", async () => {
