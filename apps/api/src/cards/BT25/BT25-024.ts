@@ -1,9 +1,8 @@
-// @ts-nocheck
 // Hand-authored override for BT25-024 (Lekismon).
 // runtime-effect fix: SubTrigger fireCondition checks that the triggering Digimon is red.
 // KB Q6287: triggers on all played/digivolved Digimon, but can only activate when red.
 // KB Q6288: references the Digimon AFTER it digivolves.
-// Official English card text: digivolve into Crescemon in the trash (the committed catalog says hand).
+// Official English card text and catalog: digivolve into Crescemon in the trash.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
