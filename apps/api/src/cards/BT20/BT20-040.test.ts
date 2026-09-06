@@ -107,6 +107,47 @@ describe("BT20-040 Coredramon", () => {
     expect(nonmatching.perm("coredramon").topCard.cardId).toBe("BT20-040");
   });
 
+  it("supports the printed Dracomon evolution and preserves an optional response when declined", async () => {
+    const evolved = setupEngine({
+      0: { battleArea: [{ card: "BT11-022", as: "dracomon" }], hand: [{ card: "BT20-040", as: "coredramon" }] },
+    });
+    evolved.state.memory = 2;
+    expect(
+      evolved.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: evolved.perm("dracomon").permanentId,
+        instanceId: evolved.inst("coredramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => evolved.perm("dracomon").topCard.cardId === "BT20-040" && evolved.state.pendingDecision === undefined,
+    );
+    expect(evolved.perm("dracomon").stack.map((card) => card.cardId)).toEqual(["BT11-022"]);
+
+    const declined = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-040", as: "coredramon" }],
+          hand: [
+            { card: "BT20-023", as: "played" },
+            { card: "BT20-042", as: "groundramon" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    declined.state.memory = 10;
+    await declined.ready();
+    expect(
+      declined.engine.applyIntent(0, { type: "playCard", instanceId: declined.inst("played").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => declined.state.players[0]!.battleArea.length === 2 && declined.state.pendingDecision === undefined,
+    );
+    expect(declined.perm("coredramon").topCard.cardId).toBe("BT20-040");
+    expect(declined.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT20-042");
+  });
+
   it("uses Raid and grants its inherited host +2000 DP only on its controller's turn", async () => {
     const raid = setupEngine({
       0: { battleArea: [{ card: "BT20-040", dp: 5000, as: "coredramon" }] },
