@@ -26,7 +26,7 @@ async function runYourTurn(s: EngineSetup): Promise<void> {
       effectKey: effects[0]!.effectKey,
     }),
   ).toEqual({ ok: true });
-  await settle(() => s.state.pendingDecision === undefined);
+  await (s.engine as unknown as { mainVerbChain: Promise<void> }).mainVerbChain;
 }
 
 describe("ST20-10 Agumon", () => {

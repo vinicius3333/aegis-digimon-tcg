@@ -31,3 +31,5 @@ pnpm --filter @aegis/api exec vitest run src/cards/ST9 --pool=forks --maxWorkers
 ```
 
 Result: 17 test files passed, 42 tests passed. `git diff --check` passed.
+
+Final combined-run correction: ST9-13 duration evidence now uses ST9-12 as neutral evolution material. ST9-11 has a real inherited +1000 DP effect, which must not be mistaken for the expired +4000 temporary boost. The test awaits the completed evolution action, proves the boost first and then its expiry. Full ST9/ST20 regression passed 33 files / 132 tests; ST9 remains 17 files / 42 tests.

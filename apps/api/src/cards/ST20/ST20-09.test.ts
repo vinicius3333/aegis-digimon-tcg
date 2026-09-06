@@ -35,6 +35,7 @@ describe("ST20-09 MegaKabuterimon", () => {
       expect(s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "ST20-09")).toBe(true);
       expect(observe(s.engine).hasKeyword(s.perm("source"), "Alliance")).toBe(grantsAlliance);
       expect(s.events.some(({ kind }) => kind === "attackDeclared")).toBe(false);
+      await (s.engine as unknown as { mainVerbChain: Promise<void> }).mainVerbChain;
       await advance(s.engine).runTurn(0);
       expect(observe(s.engine).hasKeyword(s.perm("source"), "Alliance")).toBe(false);
     },

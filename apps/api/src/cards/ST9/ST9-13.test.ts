@@ -49,7 +49,11 @@ describe("ST9-13 GranKuwagamon", () => {
 
   it("expires its digivolving DP boost at the end of the turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "ST9-11", as: "base" }], hand: [{ card: "ST9-13", as: "gran" }], deck: ["BT1-005"] },
+      0: {
+        battleArea: [{ card: "ST9-12", as: "base" }],
+        hand: [{ card: "ST9-13", as: "gran" }],
+        deck: ["BT1-010", "BT1-010"],
+      },
       1: { deck: ["BT1-001", "BT1-006"] },
     });
     s.state.memory = 10;
@@ -61,6 +65,8 @@ describe("ST9-13 GranKuwagamon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").currentDP === s.perm("base").baseDP + 4000);
+    await (s.engine as unknown as { mainVerbChain: Promise<void> }).mainVerbChain;
+    expect(s.perm("base").currentDP).toBe(s.perm("base").baseDP + 4000);
     await advance(s.engine).runTurn(0);
     expect(s.perm("base").currentDP).toBe(s.perm("base").baseDP);
   });
