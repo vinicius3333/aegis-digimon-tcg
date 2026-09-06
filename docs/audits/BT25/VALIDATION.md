@@ -92,3 +92,27 @@ The 874 count includes in-progress neighboring tests. Reproduction from a later 
 - `pnpm effects:sync:set -- --set BT25 --base a924de971` and matching `effects:check:set`: PASS, 104 records, 24 semantic module differences against base, no outside-set effects changes.
 - Targeted Oxlint: exit 0. Queued-card warnings remain in 038 and later cards, recorded in `fifth-wave-lint.log`; no findings in the newly integrated reviewed cards or shared engine files. Oxfmt check passes (`fifth-wave-format.log`). `git diff --check` passes.
 - Recalculation: **26/104 verified**, first001–026; remaining cards are not implied correct by this collection run. Engine count-two/single-Tamer payment remains a distinct open gap for035.
+
+## Sixth integration checkpoint in progress
+
+- The shared count-two/one-host payment fix is committed in `77e83af45`; its affected regression command passes **294 tests / 11 files**. See ENGINE-MULTI-CARD-COST-REGRESSION.md.
+- Independent review rerun for 027–032 passes **85 tests / 6 files**, including exact Elecmon recovery identity and corrected Patamon/Liollmon alternate boundaries. Log: `/tmp/bt25-audit-logs/review-027-032.log`.
+- Full shared/API/web `pnpm typecheck` passes (`sixth-wave-typecheck.log`). Set-scoped sync/check passes 104 records, 27 semantic deltas against base and zero outside-set differences; the subsequent Bearmon green-boundary change requires resynchronization before the next green collection gate.
+- First expanded collection run: **1002 passed, 1 failed / 111 files**, with the sole failure in a new Junomon predicate using an asserted permanent lookup before field entry (`sixth-wave-collection.log`).
+- Second expanded collection run: **1016 passed, 2 failed / 111 files** (`sixth-wave-collection-green.log`; the filename is an intended destination, not a passing-result claim). Failures were the stale 048 generated snapshot and a 049 test incorrectly expecting normal Option use to be rejected after its discount was exhausted. The corrected 049 test passes and asserts the second Option pays its normal cost while another face-down source remains available.
+- Oxlint exits zero. Warnings remain in unapproved queued/reviewed cards (including conditional assertions in 035, subsequently refactored); logs are in `sixth-wave-lint.log`. No suppressions were added. Full formatting and the next green collection gate remain pending while workers correct fixtures.
+- Root review rejects illegal stacks even where focused tests pass. Remaining source-level, stack, timing, and choice gaps are now recorded per card through 049. Recalculated inventory: **26/104 approved, 48 scored, 424 assigned points**. These provisional scores do not imply collection completion.
+
+## Seventh integration checkpoint: 32 cards approved
+
+The stable snapshot through `11ee506ef` passes `pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/multiCardFaceDownCost.test.ts src/engine/appFusionLinkPlacement.test.ts --maxWorkers=1 --no-file-parallelism`: **1,050 tests / 112 files**. Log: `/tmp/bt25-audit-logs/seventh-wave-collection.log`.
+
+- Full `pnpm typecheck`: shared/API/web PASS (`seventh-wave-typecheck.log`).
+- BT25 scoped effects sync/check: 104 records, 29 semantic deltas against base, zero outside-set changes (`seventh-wave-effects-sync.log`, `seventh-wave-effects-check.log`).
+- Affected App Fusion/evolution/link/primitives suite: **229 tests / 7 files**, exact command in ENGINE-APP-FUSION-REGRESSION.md. Earlier count-two payment run remains **294 / 11 files**; no subsequent cost implementation change invalidates that result.
+- Independent focused review: 027–032 **85 tests**, 033/034/037/038 **60 tests**, and corrected 043 **14 tests**. These passing counts do not replace clause review.
+- Oxfmt check PASS on 280 matching files (`seventh-wave-format.log`). Oxlint exits zero; warnings remain in unapproved cards (`seventh-wave-lint.log`). `git diff --check` passes.
+- Newly approved: 027, 028, 030, 031, 032, 033. Current total **32/104**. The whole inventory is recalculated: **55 scored, 481 assigned points, 49 unscored**. Earlier provisional totals and gaps are superseded by current per-card entries.
+- App Fusion link movement is fixed; its normal public-intent entry is still missing. Q6313 needs an actual zero-DP intermediate/Arts ordering proof, and 053's inherited controller filter needs a negative test and correction. These remain explicit gaps below 10/10.
+
+Commit `1ad9482f9` contains BT25-054 GreatGrizzlymon proofs; its subject mistakenly names a different card. The file paths, catalog identity and evidence identify GreatGrizzlymon correctly. The commit is retained without rewriting branch history.
