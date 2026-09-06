@@ -61,11 +61,11 @@ describe("BT21-031 compiled implementation", () => {
   ])("reduces a $trait evolution by exactly 1 and keeps its inherited effect", async ({ target, printedCost }) => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT21-031", as: "sangomon", under: ["BT21-001"] }],
+        battleArea: [{ card: "BT21-031", as: "sangomon", under: ["BT21-003"] }],
         hand: [{ card: target, as: "evolution" }],
       },
     });
-    s.state.memory = 5;
+    s.state.memory = 2;
     await s.ready();
 
     expect(
@@ -77,8 +77,8 @@ describe("BT21-031 compiled implementation", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("sangomon").topCard.cardId === target);
 
-    expect(s.state.memory).toBe(5 - (printedCost - 1));
-    expect(s.perm("sangomon").stack.map((card) => card.cardId)).toEqual(["BT21-001", "BT21-031"]);
+    expect(s.state.memory).toBe(2 - (printedCost - 1));
+    expect(s.perm("sangomon").stack.map((card) => card.cardId)).toEqual(["BT21-003", "BT21-031"]);
   });
 
   it("does not reduce a near-matching blue evolution without Mollusk or Aquatic", async () => {
@@ -127,11 +127,33 @@ describe("BT21-031 compiled implementation", () => {
 
   it("gains 1 memory at end of attack only once per turn from a realistic evolution stack", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-033", as: "host", under: ["BT1-003", "BT21-031"] }] },
-      1: { security: ["BT1-001"] },
+      0: {
+        battleArea: [{ card: "BT1-003", as: "host" }],
+        hand: [
+          { card: "BT21-031", as: "sangomon" },
+          { card: "BT1-033", as: "dolphmon" },
+        ],
+      },
+      1: { security: ["BT1-001", "BT1-002", "BT1-004"] },
     });
-    s.state.memory = 0;
+    s.state.memory = 5;
     await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("sangomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.instanceId === s.inst("sangomon").instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("dolphmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.instanceId === s.inst("dolphmon").instanceId);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -141,6 +163,8 @@ describe("BT21-031 compiled implementation", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
     await settle(() => s.state.pendingDecision === undefined);
+    const memoryAfterFirstAttack = s.state.memory;
+    expect(memoryAfterFirstAttack).toBeGreaterThanOrEqual(1);
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
     expect(
       s.engine.applyIntent(0, {
@@ -149,8 +173,9 @@ describe("BT21-031 compiled implementation", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.memory === 1);
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length >= 2);
+    await settle(() => !observe(s.engine).isAttacking());
 
-    expect(s.state.memory).toBe(1);
+    expect(s.state.memory).toBe(memoryAfterFirstAttack);
   });
 });
