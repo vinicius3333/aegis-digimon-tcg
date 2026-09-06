@@ -253,7 +253,6 @@ describe("BT21-009 Gatchmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT21-005", as: "appmonEgg" }],
           hand: [
             { card: "BT21-009", as: "gatchmon" },
             { card: "BT21-009", as: "firstLink" },
@@ -267,32 +266,67 @@ describe("BT21-009 Gatchmon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 5;
+    s.state.memory = 10;
     await s.ready();
     expect(
       s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("appmonEgg").permanentId,
+        type: "playCard",
         instanceId: s.inst("gatchmon").instanceId,
-        alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("appmonEgg").topCard.cardId === "BT21-009");
+    await settle(() => s.perm("gatchmon").topCard.cardId === "BT21-009");
 
     for (const link of ["firstLink", "secondLink"] as const) {
       expect(
         s.engine.applyIntent(0, {
           type: "linkCard",
           instanceId: s.inst(link).instanceId,
-          targetPermanentId: s.perm("appmonEgg").permanentId,
+          targetPermanentId: s.perm("gatchmon").permanentId,
         }),
       ).toEqual({ ok: true });
-      await settle(() => s.perm("appmonEgg").linked.some((card) => card.instanceId === s.inst(link).instanceId));
+      await settle(() => s.perm("gatchmon").linked.some((card) => card.instanceId === s.inst(link).instanceId));
     }
 
     expect(s.state.players[0]!.battleArea.filter((p) => p.topCard.cardId === "BT21-084")).toHaveLength(1);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("secondHaru").instanceId)).toBe(true);
-    expect(s.state.memory).toBe(3);
+    expect(s.state.memory).toBe(5);
+  });
+
+  it("publicly declines an eligible Haru after playing and linking Gatchmon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT21-009", as: "gatchmon" },
+            { card: "BT21-009", as: "link" },
+            { card: "BT21-084", as: "haru" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("gatchmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("gatchmon").topCard.cardId === "BT21-009");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("gatchmon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("gatchmon").linked.some((card) => card.instanceId === s.inst("link").instanceId));
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("haru").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.filter((p) => p.topCard.cardId === "BT21-084")).toHaveLength(0);
   });
 
   it("links to an Appmon for 1 memory, adds 2000 DP, and grants Raid", async () => {
