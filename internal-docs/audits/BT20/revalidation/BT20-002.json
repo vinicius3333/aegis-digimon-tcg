@@ -1,0 +1,38 @@
+{
+  "cardId": "BT20-002",
+  "status": "in-progress",
+  "scores": {
+    "catalogRules": 2,
+    "irTrace": 2,
+    "behavioralProof": 1,
+    "peerStackProof": 1,
+    "deliveryGates": 0
+  },
+  "evidence": [
+    "Catalog and KB: blue level 2 Digi-Egg; inherited When Attacking Once Per Turn draws 1 when this Digimon has Dracomon or Examon in its text; Q4281/Q4282 apply.",
+    "BT20-002.ts has exactly one registerIrCard and exact inherited OncePerTurn selfTopHasText draw IR.",
+    "BT20-002.test.ts uses immediate pre-attack hand counts: first public attack draws exactly one; public BT1-036 Garurumon On Play unsuspends the host for a second same-turn attack with no second draw; after a complete opponent turn and automatic draw, the next own-turn attack draws exactly one.",
+    "001-013-results.json"
+  ],
+  "commands": [
+    {
+      "command": "node tools/kb/query.mjs card BT20-002",
+      "result": "Q4281 and Q4282 returned."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-001.test.ts src/cards/BT20/BT20-002.test.ts src/cards/BT20/BT20-003.test.ts --maxWorkers=1 --no-file-parallelism",
+      "result": "ENOSPC before collection writing apps/api/node_modules/.vite-temp/vitest.config.ts timestamp."
+    },
+    {
+      "command": "git diff --check",
+      "result": "Passed."
+    },
+    {
+      "command": "Lead focused run of BT20-001 through BT20-013 with --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json",
+      "result": "2 assertions/tests in focused file: passed; 001-013-results.json"
+    }
+  ],
+  "gaps": [
+    "Add independent Examon-text host and public egg-to-host source transition proof."
+  ]
+}
