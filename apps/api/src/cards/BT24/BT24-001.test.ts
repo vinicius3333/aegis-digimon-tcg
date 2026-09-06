@@ -1,7 +1,7 @@
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT24-001.js";
 import "../index.js";
 
@@ -79,5 +79,43 @@ describe("BT24-001 Gigimon", () => {
     await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 1 });
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  it("handles opponent security removal through the production trash primitive", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT24-001"] }] },
+        1: {
+          security: [{ card: "BT1-001", as: "removed" }],
+          battleArea: [{ card: "BT1-009", as: "target", dp: 3000 }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.trashFromSecurity(1, 1);
+
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("triggers from a public attack and security check", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "attacker", under: ["BT24-001"] }] },
+        1: { security: ["BT1-001"], battleArea: [{ card: "BT1-009", as: "target", dp: 3000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && s.state.players[1]!.battleArea.length === 0);
   });
 });
