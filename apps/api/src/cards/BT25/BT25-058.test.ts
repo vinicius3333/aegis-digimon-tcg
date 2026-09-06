@@ -1,52 +1,10 @@
-import { describe, expect, it, vi } from "vitest";
-import {
-  digivolutionRequirementsFor,
-  EffectDuration,
-  EffectTiming,
-  getCardDefinition,
-  type CardDefinition,
-  type Permanent,
-  type Seat,
-} from "@aegis/shared";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { EffectContext, GameAccess, Primitives, DecisionApi } from "../../engine/effects/EffectContext.js";
+import { describe, expect, it } from "vitest";
+import { digivolutionRequirementsFor, EffectDuration, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { getEffectModule } from "../../engine/effects/registry.js";
 import "./BT25-058.js";
 import { compiled } from "./BT25-058.js";
-
-function def(cardId: string, kinds: string[], over: Partial<CardDefinition> = {}): CardDefinition {
-  return {
-    cardId,
-    set: "BT25",
-    nameEn: cardId,
-    kinds: kinds as never,
-    colors: ["Green"] as never,
-    types: ["TS"] as never,
-    level: 6,
-    playCost: 6,
-    dp: 7000,
-    evoCosts: [],
-    maxCountInDeck: 4,
-    ...over,
-  };
-}
-
-function permanent(id: string, seat: Seat, cardId: string, stack: unknown[] = []): Permanent {
-  return {
-    permanentId: id,
-    controllerSeat: seat,
-    topCard: { instanceId: `${id}-top`, cardId, ownerSeat: seat, faceUp: true },
-    stack,
-    linked: [],
-    inBreeding: false,
-    isSuspended: false,
-    baseDP: 7000,
-    currentDP: 7000,
-  } as unknown as Permanent;
-}
 
 describe("BT25-058 Callismon", () => {
   it("registers the mandatory de-digivolve followed by the optional battle for both effect events", () => {
@@ -163,6 +121,83 @@ describe("BT25-058 Callismon", () => {
     ).toEqual({ ok: false, reason: "invalid-evolution" });
     expect(s.state.memory).toBe(4);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT25-058"]);
+  });
+
+  it("uses Blocker through a public opponent attack", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT25-058", as: "callismon" }], security: ["BT1-001"] },
+      1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 6000 }] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("callismon"), "Blocker")).toBe(true);
+    const attackerId = s.perm("attacker").permanentId;
+    const securityBefore = s.state.players[0]!.security.length;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("callismon").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === attackerId));
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(false);
+    expect(s.state.players[0]!.security.length).toBe(securityBefore);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("callismon").permanentId),
+    ).toBe(true);
+  });
+
+  it("uses Reboot to unsuspend at the start of its controller's turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT25-058", as: "callismon", suspended: true }], deck: ["BT1-001"] },
+      1: { deck: ["BT1-002"] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("callismon"), "Reboot")).toBe(true);
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("callismon").isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
+  });
+
+  it("uses Fortitude after a real deletion and trashes one source", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT25-058", as: "callismon", under: ["BT25-073"] }] } },
+      { autoDeclineOptional: true },
+    );
+    await s.ready();
+    const instanceId = s.perm("callismon").topCard.instanceId;
+    expect(observe(s.engine).hasKeyword(s.perm("callismon"), "Fortitude")).toBe(true);
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("callismon").permanentId], "byEffect")).toBe(1);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === instanceId),
+    );
+    const replay = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.instanceId === instanceId);
+    expect(replay).toBeDefined();
+    expect(replay?.topCard?.cardId).toBe("BT25-058");
+    expect(replay?.stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).not.toContain("BT25-058");
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT25-073");
+  });
+
+  it("does not replay Fortitude when deletion has no source", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT25-058", as: "callismon" }] } },
+      { autoDeclineOptional: true },
+    );
+    await s.ready();
+    const id = s.perm("callismon").permanentId;
+    expect(await advance(s.engine).verb.deletePermanent([id], "byEffect")).toBe(1);
+    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === id));
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT25-058");
   });
 
   it("fires When Digivolving once and shares that Once Per Turn budget with When Attacking", async () => {
@@ -295,6 +330,26 @@ describe("BT25-058 Callismon", () => {
     expect(observe(declined.engine).hasRestriction(declined.perm("target").permanentId, "unsuspend")).toBe(true);
   });
 
+  it("expires the cannot-unsuspend restriction at the opponent's turn end", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT25-058", as: "callismon" }], deck: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }], deck: ["BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 13;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("callismon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasRestriction(s.perm("target"), "unsuspend"));
+    expect(observe(s.engine).hasRestriction(s.perm("target"), "unsuspend")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    expect(observe(s.engine).hasRestriction(s.perm("target"), "unsuspend")).toBe(false);
+  });
+
   it("When Attacking includes opponent Tamers and Digimon, with the player attack as the combat boundary", async () => {
     const s = setupEngine(
       {
@@ -360,9 +415,9 @@ describe("BT25-058 Callismon", () => {
         0: {
           battleArea: [
             { card: "BT25-058", as: "callismon" },
-            { card: "BT1-020", as: "effectBase" },
+            { card: "BT1-009", as: "effectBase" },
           ],
-          hand: [{ card: "BT1-009", as: "effectEvolution" }],
+          hand: [{ card: "BT25-066", as: "effectEvolution" }],
         },
         1: { battleArea: [{ card: "BT24-017", as: "opponent", under: ["BT1-020"] }] },
       },
@@ -387,5 +442,51 @@ describe("BT25-058 Callismon", () => {
     await advance(battle.engine).verb.playInstances([battle.inst("trigger").instanceId], "BT25-058");
     await settle(() => battle.state.players[1]!.battleArea.length === 0);
     expect(battle.state.players[1]!.battleArea).toHaveLength(0); // Q6348 direct battle uses DP rules and deletes the loser
+  });
+
+  it("does not trigger All Turns for an ordinary play", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT25-058", as: "callismon" }], hand: [{ card: "BT1-009", as: "ordinary" }] },
+        1: { battleArea: [{ card: "BT24-017", as: "opponent", under: ["BT1-020"] }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ordinary").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("ordinary").instanceId,
+      ),
+    );
+    expect(s.perm("opponent").stack).toHaveLength(1);
+  });
+
+  it("does not trigger All Turns for a normal digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-058", as: "callismon" },
+            { card: "BT25-062", as: "base" },
+          ],
+          hand: [{ card: "BT25-066", as: "evolution" }],
+        },
+        1: { battleArea: [{ card: "BT24-017", as: "opponent", under: ["BT1-020"] }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.instanceId === s.inst("evolution").instanceId);
+    expect(s.perm("opponent").stack).toHaveLength(1);
   });
 });

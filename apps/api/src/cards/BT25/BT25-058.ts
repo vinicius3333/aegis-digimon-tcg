@@ -1,10 +1,9 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { CardEffect, CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const opponentDigimonOrTamer = { controller: "opponent", kind: ["Digimon", "Tamer"] };
-const opponentDigimon = { controller: "opponent", kind: ["Digimon"] };
-const triggeredDigimon = { controllerDefault: "any", kind: ["Digimon"] };
+const opponentDigimonOrTamer: Filter = { controller: "opponent", kind: ["Digimon", "Tamer"] };
+const opponentDigimon: Filter = { controller: "opponent", kind: ["Digimon"] };
+const triggeredDigimon: Filter = { controllerDefault: "any", kind: ["Digimon"] };
 
 export const compiled: CompiledCard = {
   effects: [
@@ -30,7 +29,7 @@ export const compiled: CompiledCard = {
         { keyword: "Fortitude", raw: "＜Fortitude＞" },
       ],
     },
-    ...(["OnPlay", "WhenDigivolving", "WhenAttacking"] as const).map((trigger) => ({
+    ...(["OnPlay", "WhenDigivolving", "WhenAttacking"] as const).map((trigger): CardEffect => ({
       trigger,
       frequency: "OncePerTurn",
       sharedUseKey: "ir-shared-0",
