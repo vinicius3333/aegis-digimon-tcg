@@ -42,6 +42,37 @@ describe("BT20-050 HoverEspimon", () => {
     expect(s.state.players[1]!.security.map((card) => card.faceUp)).toEqual([true, true, false]);
   });
 
+  it("keeps the ordinary black evolution route distinct from the Cyborg/Machine alternate", async () => {
+    const ordinary = setupEngine({
+      0: { battleArea: [{ card: "BT20-048", as: "base" }], hand: [{ card: "BT20-050", as: "hover" }] },
+    });
+    ordinary.state.memory = 3;
+    expect(
+      ordinary.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: ordinary.perm("base").permanentId,
+        instanceId: ordinary.inst("hover").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => ordinary.perm("base").topCard.cardId === "BT20-050" && ordinary.state.pendingDecision === undefined,
+    );
+    expect(ordinary.state.memory).toBe(0);
+
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "BT20-007", as: "redBase" }], hand: [{ card: "BT20-050", as: "hover" }] },
+    });
+    invalid.state.memory = 3;
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("redBase").permanentId,
+        instanceId: invalid.inst("hover").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(invalid.perm("redBase").topCard.cardId).toBe("BT20-007");
+  });
+
   it("draws exactly once across repeated end-of-attack windows in one turn", async () => {
     const s = setupEngine({
       0: {
