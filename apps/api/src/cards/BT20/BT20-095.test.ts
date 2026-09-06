@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-095.js";
 import "./index.js";
+import "./BT20-010.js";
+import "./BT20-049.js";
 
 describe("BT20-095 Fellowship of Hope's Keepers", () => {
   it("reveals and places itself for the Main effect", () => {
