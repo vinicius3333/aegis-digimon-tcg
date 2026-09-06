@@ -100,4 +100,72 @@ describe("BT20-021 Jesmon GX", () => {
     expect(s.perm("gx").isSuspended).toBe(false);
     expect(s.state.players[1]!.security).toHaveLength(2);
   });
+  it("publicly evolves Jesmon X into GX and optionally places a Royal Knight at stack bottom", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-019", as: "xAntibody", under: ["BT20-017"] }],
+          hand: [
+            { card: "BT20-021", as: "gx" },
+            { card: "BT20-017", as: "royalKnightCost" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT20-014", dp: 12000, as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("xAntibody").permanentId,
+        instanceId: s.inst("gx").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("xAntibody").topCard.cardId === "BT20-021");
+    expect(s.perm("xAntibody").stack.map((card) => card.cardId)).toContain("BT20-017");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("royalKnightCost").instanceId)).toBe(
+      false,
+    );
+  });
+
+  it("allows the optional Royal Knight placement and deletion to be refused", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-021", as: "gx" }], hand: [{ card: "BT20-017", as: "royalKnightCost" }] },
+        1: { battleArea: [{ card: "BT20-014", dp: 12000, as: "target" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("gx"));
+    await settle(() => false, 20);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("royalKnightCost").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  it("naturally resolves the attack trigger placement at bottom and source-DP deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-021", as: "gx", under: ["BT20-019", "BT20-017"] }],
+          hand: [{ card: "BT20-056", as: "royalKnight" }],
+        },
+        1: { battleArea: [{ card: "BT20-014", dp: 12000, as: "target" }], security: ["BT20-001", "BT20-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gx").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-014"));
+    expect(s.perm("gx").stack[0]?.cardId).toBe("BT20-056");
+    expect(s.state.players[1]!.security.length).toBeLessThan(2);
+  });
 });
