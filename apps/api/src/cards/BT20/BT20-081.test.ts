@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-081.js";
 import "./index.js";
@@ -163,5 +162,116 @@ describe("BT20-081 Fenriloogamon: Takemikazuchi", () => {
     // The reactivated When Digivolving effect applies its second -10000/delete pass,
     // so both opposing Digimon are gone after the attack.
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("public Counter Blast DNA consumes Fenriloogamon field plus Kazuchimon hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-080", as: "fenriloogamon" }],
+          hand: [
+            { card: "BT20-035", as: "kazuchimon" },
+            { card: "BT20-081", as: "takemikazuchi" },
+          ],
+          security: ["BT1-001"],
+        },
+        1: { battleArea: [{ card: "BT20-010", as: "attacker" }], security: ["BT1-001"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    const opened = s.events.findLast((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("counter window did not open");
+    const choice = opened.eligibleCounters.find((entry) => entry.instanceId === s.inst("takemikazuchi").instanceId);
+    expect(choice).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondCounter",
+        sourceInstanceId: choice!.instanceId,
+        effectKey: choice!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-081"));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).not.toContain("BT20-035");
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-081")).toBe(true);
+  });
+
+  it("passing the Blast DNA counter preserves both materials and Examon while the attack resolves", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-080", as: "fenriloogamon" }],
+          hand: [
+            { card: "BT20-035", as: "kazuchimon" },
+            { card: "BT20-081", as: "takemikazuchi" },
+          ],
+          security: ["BT1-001"],
+        },
+        1: { battleArea: [{ card: "BT20-010", as: "attacker" }], security: ["BT1-001"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    expect(s.engine.applyIntent(0, { type: "respondCounter" })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT20-035", "BT20-081"]);
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard.cardId)).toEqual(["BT20-080"]);
+  });
+
+  it("does not offer Blast DNA for a wrong hand name or a breeding-area field material", async () => {
+    for (const setup of [
+      {
+        battleArea: [{ card: "BT20-080", as: "field" }],
+        hand: [
+          { card: "BT20-080", as: "wrong" },
+          { card: "BT20-081", as: "result" },
+        ],
+      },
+      {
+        breeding: { card: "BT20-080", as: "breeding" },
+        hand: [
+          { card: "BT20-035", as: "hand" },
+          { card: "BT20-081", as: "result" },
+        ],
+      },
+    ]) {
+      const s = setupEngine(
+        { 0: setup, 1: { battleArea: [{ card: "BT20-010", as: "attacker" }], security: ["BT1-001"] } },
+        { autoDeclineOptional: true },
+      );
+      s.state.turnSeat = 1;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          !s.events.some((event) => event.kind === "counterWindowOpened") ||
+          s.events.some((event) => event.kind === "securityChecked"),
+      );
+      expect(s.events.some((event) => event.kind === "counterWindowOpened")).toBe(false);
+    }
   });
 });
