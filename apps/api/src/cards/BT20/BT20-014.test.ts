@@ -108,7 +108,7 @@ describe("BT20-014 SaviorHuckmon", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-010")).toBe(true);
   });
 
-  it("allows the end-turn Jesmon evolution to be refused after publicly suspending another Digimon", async () => {
+  it("refuses the public end-turn Jesmon evolution while another unsuspended Digimon can pay its cost", async () => {
     const s = setupEngine(
       {
         0: {
@@ -123,19 +123,13 @@ describe("BT20-014 SaviorHuckmon", () => {
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("other").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("other").isSuspended);
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("savior"));
-    await settle(() => false, 20);
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await ownTurn;
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("jesmon").instanceId)).toBe(true);
     expect(s.perm("savior").topCard.cardId).toBe("BT20-014");
-    expect(s.perm("other").isSuspended).toBe(true);
+    expect(s.perm("other").isSuspended).toBe(false);
   });
 
   it("applies inherited Alliance on a legal public stack and clears it after the real turn", async () => {
