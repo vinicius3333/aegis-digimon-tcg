@@ -68,7 +68,7 @@ describe("BT21-068 Growlmon", () => {
           hand: [{ card: "BT21-068", as: "growlmon" }],
           deck: ["BT1-009", "BT1-010"],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+        1: { battleArea: [{ card: "BT1-014", as: "target" }] },
       },
       { autoSelectCards: true },
     );
@@ -173,5 +173,44 @@ describe("BT21-068 Growlmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("guilmon").topCard.instanceId === s.inst("growlmon").instanceId);
     expect(s.state.memory).toBe(1);
+  });
+
+  it("gains inherited memory when a public battle deletes a legal Growlmon stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-068", as: "host", suspended: true }],
+          hand: [{ card: "ST6-11", as: "evolution" }],
+          deck: ["BT1-001"],
+        },
+        1: { battleArea: [{ card: "BT10-055", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "ST6-11");
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT21-068"]);
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    const before = s.state.memory;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("host").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    // Seat 0 gains memory while seat 1 is active: the active-seat gauge decreases.
+    expect(s.state.memory).toBe(before - 1);
   });
 });
