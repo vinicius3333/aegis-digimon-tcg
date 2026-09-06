@@ -316,7 +316,13 @@ export class CombatController {
    * locked in (`redirectTarget`). Undefined when no attack is resolving.
    */
   private currentAttack:
-    | { attackerPermanentId: string; attackerCardId: string; seat: Seat; target: AttackTarget }
+    | {
+        attackerPermanentId: string;
+        attackerCardId: string;
+        seat: Seat;
+        target: AttackTarget;
+        piercingTriggered?: boolean;
+      }
     | undefined;
   /**
    * Set by {@link endAttack} when an effect (e.g. BT23-069) ends the in-flight attack: the
@@ -788,6 +794,13 @@ export class CombatController {
         this.access.isBattleAreaDigimon(attacker, this.hooks.continuous)
       ) {
         await this.resolveDigimonBattle(attacker, defender);
+        // A direct effect battle during this same attack can satisfy Piercing even
+        // when the ordinary battle's loser is protected (BT25-020 Q6280/Q6281).
+        // Process it once, after a successful Digimon attack, before End of Attack.
+        if (this.currentAttack?.piercingTriggered && this.attackerStillValid(attacker) && !this.endRequested) {
+          this.currentAttack.piercingTriggered = false;
+          await this.hooks.checkSecurity(this.access.opponentOf(attackerSeat), attacker.permanentId, "piercing");
+        }
       }
 
       // 5. End of attack (AttackProcess.EndAttack, cs:473-484).
@@ -1133,12 +1146,12 @@ export class CombatController {
    * resolve.ts; here we apply it to authoritative state and narrate.
    */
   async resolveBattle(attacker: Permanent, defender: Permanent): Promise<void> {
-    // An effect-created direct battle is not an attack. In particular, a Piercing
-    // winner does not perform a security check here (EX11-074 Q5955-Q5959).
-    await this.resolveDigimonBattle(attacker, defender, false);
+    // Direct battles never check security here. They can record Piercing for the
+    // same attacking Digimon; another Digimon's battle cannot (EX11-074 Q5957-Q5959).
+    await this.resolveDigimonBattle(attacker, defender);
   }
 
-  private async resolveDigimonBattle(attacker: Permanent, defender: Permanent, allowPiercing = true): Promise<void> {
+  private async resolveDigimonBattle(attacker: Permanent, defender: Permanent): Promise<void> {
     const continuous = this.hooks.continuous;
     const outcome = resolvePermanentBattle({
       attackerPermanentId: attacker.permanentId,
@@ -1504,7 +1517,7 @@ export class CombatController {
     // passive recomputation, but before any captured win/deletion reaction can grant
     // it too late or remove it through Fortitude (EX8-045 Q3931).
     await this.hooks.refreshContinuousEffects?.();
-    const piercingTriggered = allowPiercing && this.hooks.hasPierce?.(attacker.permanentId) === true;
+    const piercingTriggered = this.hooks.hasPierce?.(attacker.permanentId) === true;
     if (winningSeat === attacker.controllerSeat) await resolveBattleWon();
     for (const resolveReaction of deletionReactions) await resolveReaction();
 
@@ -1575,6 +1588,9 @@ export class CombatController {
     const attackerSurvived = this.access.permanentById(attacker.permanentId) !== undefined;
     const defenderDeleted = deleted.includes(defender.permanentId);
     if (attackerSurvived && defenderDeleted) {
+      if (piercingTriggered && this.currentAttack?.attackerPermanentId === attacker.permanentId) {
+        this.currentAttack.piercingTriggered = true;
+      }
       // System A: fire the top-level WhenBattleDeleteOpponent timing for the surviving attacker.
       // The trigger carries both the attacker (who fires the effect) and the deleted defender.
       await this.hooks.fireTiming(EffectTiming.OnBattleDeleteOpponent, {
@@ -1594,22 +1610,6 @@ export class CombatController {
         deletedInstanceIds,
         deletedWasStackInstanceIds,
       });
-
-      // ＜Piercing＞ (consume seam): a piercing attacker that won a permanent battle and
-      // deleted the defender performs the defending player's security check before
-      // end-of-attack. Port of CardController.OnDetermineDoSecurityCheck (the mandatory
-      // pre-end-of-attack check, Comprehensive Rules §16-7); reuses the validated
-      // runSecurityCheck hand-off rather than building a new security path. The pierce
-      // grant is server-only state (ModifierLedger.hasPierce), never client-supplied.
-      if (piercingTriggered) {
-        // "piercing": this attack was successful against a DIGIMON, so an empty security
-        // stack must not end the game (Comprehensive Rules 11-5-1-2 / 16-7).
-        await this.hooks.checkSecurity(
-          this.access.opponentOf(attacker.controllerSeat),
-          attacker.permanentId,
-          "piercing",
-        );
-      }
     }
 
     // A defending Digimon can also be the surviving battle winner and delete the attacker.
