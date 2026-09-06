@@ -134,6 +134,62 @@ describe("BT21-075 SkullGreymon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost5").instanceId)).toBe(true);
   });
 
+  it("does not cross the ADVENTURE trait boundary for a cheap non-ADVENTURE card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-075", as: "skullgreymon" }],
+          trash: [{ card: "BT1-009", as: "nonAdventure" }],
+        },
+        1: { battleArea: [{ card: "BT10-055", as: "victim", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    const nonAdventureId = s.inst("nonAdventure").instanceId;
+    const victimId = s.perm("victim").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("skullgreymon").permanentId,
+        target: { kind: "permanent", permanentId: victimId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-075")).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === victimId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === nonAdventureId)).toBe(true);
+  });
+
+  it("does not play an eligible ADVENTURE card from the opponent's trash", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-075", as: "skullgreymon" }] },
+        1: {
+          battleArea: [{ card: "BT10-055", as: "victim", suspended: true }],
+          trash: [{ card: "BT21-057", as: "opponentAdventure" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    const opponentAdventureId = s.inst("opponentAdventure").instanceId;
+    const victimId = s.perm("victim").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("skullgreymon").permanentId,
+        target: { kind: "permanent", permanentId: victimId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-075")).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === victimId)).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === opponentAdventureId)).toBe(true);
+  });
+
   it("executes the inherited deletion play from a realistic stack", async () => {
     const s = setupEngine(
       {
