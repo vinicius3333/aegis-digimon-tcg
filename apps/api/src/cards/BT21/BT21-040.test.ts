@@ -97,6 +97,22 @@ describe("BT21-040 Agumon", () => {
     expect(await digivolvesForFour(board({ heroTamers: 3 }))).toBe(true);
   });
 
+  it("keeps the optional ShineGreymon evolution closed during the opponent's turn", async () => {
+    const s = board({ opponentLv6: true });
+    s.state.turnSeat = 1;
+    await s.ready();
+    const handId = s.inst("shine").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("agumon").topCard.instanceId,
+        effectKey: EFFECT_KEY,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === handId)).toBe(true);
+    expect(s.state.memory).toBe(10);
+  });
+
   it("keeps it shut when neither alternative holds", async () => {
     // FAILS-WHEN-REVERTED: flattening both alternatives into one filter made this board — two
     // Hero Tamers and no level 6 opposite — indistinguishable from the ones above.
