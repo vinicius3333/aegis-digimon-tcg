@@ -176,4 +176,14 @@ describe("BT21-046 compiled implementation", () => {
       expect.arrayContaining(["BT21-046", "BT20-044", "BT20-027"]),
     );
   });
+
+  it("resolves inherited DNA through the production turn lifecycle", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-044", as: "breakdramon", under: ["BT21-046"] }, { card: "BT20-027", as: "slayerdramon" }], hand: [{ card: "BT20-045", as: "examon" }], deck: ["BT1-001"] },
+      1: { deck: ["BT1-002"] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    await s.ready();
+    await advance(s.engine).runTurn(0);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-045")).toBe(true);
+  });
 });
