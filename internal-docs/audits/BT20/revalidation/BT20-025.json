@@ -1,6 +1,6 @@
 {
   "cardId": "BT20-025",
-  "status": "awaiting-lead-review",
+  "status": "awaiting-delivery-gates",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
@@ -9,15 +9,19 @@
     "deliveryGates": 0
   },
   "evidence": [
-    "Catalog: Wingdramon level5 blue/red Sky Dragon; alternate Coredramon cost3; On Play/When Digivolving deletes one opponent Digimon at 6000 DP or less; All Turns field-only treated as Lv6 Slayerdramon for Examon DNA; inherited Security Attack +1.",
-    "BT20-025.ts exclusively registers IR and maps both deletion timings, field-only Slayerdramon name and Examon level treatment, inherited Security Attack +1, and Coredramon alternate requirement.",
-    "BT20-025.test.ts proves exact 6000 boundary, natural public Coredramon\u2192Wingdramon evolution, field/breeding identity boundary, inherited keyword, and Examon Blast DNA treatment.",
-    "Added public two-check Security Attack comparison and ordinary Examon DNA route using Breakdramon + Slayerdramon.",
-    "014-040-results.json",
-    "collection-after-name-fix-results.json",
-    "public-followups-typecheck.log"
+    "Public play pays 7 and deletes one 6000-DP target while retaining 6001. Public Coredramon alternate evolution explicitly selects and pays cost 3.",
+    "Field-only Slayerdramon/level-6 treatment participates in actual Examon Blast DNA with a realistic source stack. Wingdramon in hand is excluded; ordinary field Slayerdramon/Breakdramon DNA is a comparison.",
+    "A legal Slayerdramon host carrying Wingdramon makes two actual security checks versus one without the source. Intervening optional unsuspend is explicitly answered so the whole attack completes.",
+    "BT20-025.test.ts; committed catalog and card-specific KB query reviewed by lead and Luna.",
+    "reactive-movement-affected-results.json: 552 passing affected mechanism tests.",
+    "collection-after-reactive-delay-results.json",
+    "reactive-movement-gates.json"
   ],
-  "commands": [
+  "gaps": [
+    "Atomic commit/push and final hash-bound acceptance pending."
+  ],
+  "reviewStatus": "Lead integrated and reviewed the current public proofs; earlier report prose and unexecuted worker handoffs are superseded by this clause map. No final score until delivery gates and artifact hashes are recorded.",
+  "historicalCommands": [
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-025.test.ts --maxWorkers=1 --no-file-parallelism",
       "result": "not run by worker; coordinator owns Vitest"
@@ -39,8 +43,26 @@
       "result": "Passed changed-file style and diff gates."
     }
   ],
-  "gaps": [
-    "Delivery gates pending coordinator collection, mechanism, typecheck, lint."
-  ],
-  "reviewStatus": "Latest public additions pass in the 790-test collection snapshot. Provisional report; final clause acceptance remains pending."
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+      "result": "9 cases passed for BT20-025; 836 total passed, zero failed."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "Passed shared/API/web; reactive-movement-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "All102 synchronized; see reactive-movement-gates.json for the temporary watchdog adjustment and restored script."
+    },
+    {
+      "command": "Commands in reactive-movement-gates.json",
+      "result": "552 affected mechanism cases and changed-file lint/format passed without warnings."
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-025",
+      "result": "4 intended state/assertion failures with registered effects disabled; production restored. See BT20-025-runtime-disabled.json. Runner reproduction is per-card; batch invocation is retained in014-026-runtime-sensitivity.log."
+    }
+  ]
 }

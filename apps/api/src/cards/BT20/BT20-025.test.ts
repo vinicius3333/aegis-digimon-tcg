@@ -6,6 +6,7 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-025.js";
 import "./index.js";
 import "../EX3/EX3-074.js";
+import "./BT20-045.js";
 
 describe("BT20-025 Wingdramon", () => {
   it("deletes up to 6000 DP and is treated as Slayerdramon only while in play", () => {
@@ -57,6 +58,29 @@ describe("BT20-025 Wingdramon", () => {
     expect(s.perm("tooLarge")).toBeDefined();
   });
 
+  it("publicly plays for 7 and deletes one opposing Digimon at 6000 DP or less", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT20-025", as: "wingdramon" }] },
+        1: {
+          battleArea: [
+            { card: "BT20-014", dp: 6000, as: "eligible" },
+            { card: "BT20-014", dp: 6001, as: "tooLarge" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wingdramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("tooLarge")).toBeDefined();
+  });
+
   it("is Slayerdramon only on the field and grants inherited Security Attack +1", async () => {
     const field = setupEngine({ 0: { battleArea: [{ card: "BT20-025", as: "wingdramon" }] } });
     await field.ready();
@@ -82,8 +106,8 @@ describe("BT20-025 Wingdramon", () => {
             { card: "BT20-044", as: "breakdramon" },
             { card: "BT20-045", as: "examon" },
           ],
-          security: ["BT20-001", "BT20-002"],
-          deck: ["BT20-001", "BT20-002"],
+          security: ["BT1-010", "BT1-010"],
+          deck: ["BT1-010", "BT1-010"],
         },
         1: { battleArea: [{ card: "BT20-009", as: "attacker" }] },
       },
@@ -132,12 +156,14 @@ describe("BT20-025 Wingdramon", () => {
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
+        useAlternateCost: true,
         permanentId: s.perm("coredramon").permanentId,
         instanceId: s.inst("wingdramon").instanceId,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("coredramon").topCard.cardId === "BT20-025");
     expect(s.perm("coredramon").stack.map((card) => card.cardId)).toContain("BT20-023");
+    expect(s.state.memory).toBe(0);
     expect(
       s.state.players[1]!.battleArea.some(
         (permanent) => permanent.topCard.cardId === "BT20-014" && permanent.baseDP === 6000,
@@ -150,11 +176,43 @@ describe("BT20-025 Wingdramon", () => {
     ).toBe(true);
   });
 
+  it("does not offer Blast DNA when Wingdramon is only in hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-044", as: "breakdramon" }],
+          hand: [
+            { card: "BT20-025", as: "handWingdramon" },
+            { card: "BT20-045", as: "examon" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT20-010", as: "attacker" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.events.some((event) => event.kind === "counterWindowOpened")).toBe(false);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("examon").instanceId);
+  });
+
   it("makes a legal Wingdramon stack perform two security checks", async () => {
-    const withInherited = setupEngine({
-      0: { battleArea: [{ card: "BT20-027", dp: 12000, as: "attacker", under: ["BT20-025"] }] },
-      1: { security: ["BT1-015", "BT1-015"] },
-    });
+    const withInherited = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-027", dp: 12000, as: "attacker", under: ["BT20-025"] }] },
+        1: { security: ["BT1-015", "BT1-015"] },
+      },
+      { autoDeclineOptional: true },
+    );
+    await withInherited.ready();
     expect(
       withInherited.engine.applyIntent(0, {
         type: "attack",
@@ -164,11 +222,16 @@ describe("BT20-025 Wingdramon", () => {
     ).toEqual({ ok: true });
     await settle(() => withInherited.state.players[1]!.security.length === 0);
     expect(withInherited.state.players[0]!.battleArea).toHaveLength(1);
+    expect(withInherited.state.players[1]!.security).toHaveLength(0);
 
-    const withoutInherited = setupEngine({
-      0: { battleArea: [{ card: "BT20-027", dp: 12000, as: "attacker" }] },
-      1: { security: ["BT1-015", "BT1-015"] },
-    });
+    const withoutInherited = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-027", dp: 12000, as: "attacker" }] },
+        1: { security: ["BT1-015", "BT1-015"] },
+      },
+      { autoDeclineOptional: true },
+    );
+    await withoutInherited.ready();
     expect(
       withoutInherited.engine.applyIntent(0, {
         type: "attack",
