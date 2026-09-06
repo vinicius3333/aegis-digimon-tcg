@@ -75,7 +75,7 @@ describe("BT21-021 OmniShoutmon", () => {
         },
       ],
     });
-    expect(compiled.digiXrosRequirement).toEqual([{ materials: [{ names: ["Shoutmon"] }], count: 2 }]);
+    expect(compiled.digiXrosRequirement).toEqual([{ materials: [{ names: ["Shoutmon"] }], count: 2, maxMaterials: 1 }]);
     expect(compiled.digivolutionRequirement).toEqual([
       { namesExact: ["Shoutmon"], cost: 4, isAlternate: true },
       { level: 4, traits: ["Xros Heart", "Hero"], cost: 3, isAlternate: true },
@@ -120,6 +120,51 @@ describe("BT21-021 OmniShoutmon", () => {
     await advance(s.engine).fire(EffectTiming.EndOfAttack, s.perm("omni"));
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT10-007"));
     expect(s.state.memory).toBe(3);
+  });
+
+  it("uses DigiXros with exactly one Shoutmon material through the public play intent", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-021", as: "material" }], hand: [{ card: "BT21-021", as: "omni" }] },
+    });
+    s.state.memory = 7;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("omni").instanceId,
+        digiXros: { materialInstanceIds: [s.perm("material").topCard.instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-021"));
+    expect(s.state.memory).toBe(1);
+    expect(
+      s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === s.inst("omni").instanceId)?.stack.map(
+        (card) => card.instanceId,
+      ),
+    ).toEqual([s.inst("material").instanceId]);
+  });
+
+  it("rejects a DigiXros intent offering two materials for the one-material recipe", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT21-011", as: "first" },
+          { card: "BT21-011", as: "second" },
+        ],
+        hand: [{ card: "BT21-021", as: "omni" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("omni").instanceId,
+        digiXros: { materialInstanceIds: [s.perm("first").topCard.instanceId, s.perm("second").topCard.instanceId] },
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("omni").instanceId);
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard.cardId)).toEqual(["BT21-011", "BT21-011"]);
   });
 
   it("Q4530 publicly plays an eligible Tamer at end of attack, then deletes and saves itself", async () => {

@@ -71723,7 +71723,7 @@
       { "namesExact": ["Shoutmon"], "cost": 4, "isAlternate": true },
       { "level": 4, "traits": ["Xros Heart", "Hero"], "cost": 3, "isAlternate": true }
     ],
-    "digiXrosRequirement": [{ "materials": [{ "names": ["Shoutmon"] }], "count": 2 }]
+    "digiXrosRequirement": [{ "materials": [{ "names": ["Shoutmon"] }], "count": 2, "maxMaterials": 1 }]
   },
   "BT21-022": {
     "effects": [

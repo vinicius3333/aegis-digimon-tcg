@@ -152,6 +152,7 @@ export const compiled: CompiledCard = {
         },
       ],
       count: 2,
+      maxMaterials: 1,
     },
   ],
 };
