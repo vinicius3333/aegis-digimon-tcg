@@ -1,0 +1,110 @@
+# BT20 current evidence ledger
+
+Reproduce: `node internal-docs/audits/BT20/revalidation/recalculate.mjs`. Scores use the established five dimensions (0–2 each). Pending scores reflect missing accepted evidence. Historical reports do not contribute. Final delivery points require explicit lead review and recorded gates.
+
+Verified: 0/102; total 0/1020; mean 0/10. Collection remains in progress until all delivery gates, push, and PR are recorded.
+
+| Card | Name | Catalog/rules | IR | Behavior | Peer/stack | Gates | Total | Evidence |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| BT20-001 | DemiVeemon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-002 | Bebydomon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-003 | Bibimon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-004 | Pinamon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-005 | Kapurimon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-006 | DemiMeramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-007 | Dracomon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-008 | Huckmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-009 | Veemon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-010 | Ryudamon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-011 | ExVeemon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-012 | Ginryumon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-013 | BaoHuckmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-014 | SaviorHuckmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-015 | Hisyaryumon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-016 | Paildramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-017 | Jesmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-018 | Ouryumon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-019 | Jesmon (X Antibody) | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-020 | Imperialdramon: Fighter Mode | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-021 | Jesmon GX | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-022 | Crabmon (X Antibody) | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-023 | Coredramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-024 | Seadramon (X Antibody) | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-025 | Wingdramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-026 | MegaSeadramon (X Antibody) | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-027 | Slayerdramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-028 | GigaSeadramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-029 | Pulsemon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-030 | Liollmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-031 | Liamon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-032 | Bulkmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-033 | LoaderLeomon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-034 | Boutmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-035 | Kazuchimon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-036 | BanchoLeomon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-037 | Chaosmon: Valdur Arm | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-038 | Falcomon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-039 | Diatrymon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-040 | Coredramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-041 | Crowmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-042 | Groundramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-043 | Varodurumon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-044 | Breakdramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-045 | Examon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-046 | Espimon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-047 | Solarmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-048 | Dorumon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-049 | Blimpmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-050 | HoverEspimon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-051 | Raptordramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-052 | Oblivimon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-053 | Grademon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-054 | Bulbmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-055 | Invisimon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-056 | Alphamon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-057 | Gankoomon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-058 | Raidenmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-059 | Gankoomon (X Antibody) | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-060 | Alphamon: Ouryuken | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-061 | Impmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-062 | Candlemon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-063 | Ghostmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-064 | Loogamon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-065 | Wormmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-066 | Stingmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-067 | Soulmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-068 | Bakemon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-069 | Punkmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-070 | Loogarmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-071 | Soloogarmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-072 | Phantomon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-073 | MetalPhantomon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-074 | Dinobeemon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-075 | Loudmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-076 | Imperialdramon: Dragon Mode | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-077 | HeavyMetaldramon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-078 | Reapermon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-079 | Necromon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-080 | Fenriloogamon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-081 | Fenriloogamon: Takemikazuchi | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-082 | DeathXmon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-083 | Omekamon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-084 | Sistermon Ciel (Awakened) | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-085 | Shoto Kazama | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-086 | Altea | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-087 | Kota Domoto & Yuji Musya | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-088 | Violet Inboots | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-089 | Code Cracker Fang & Hacker Judge | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-090 | Yuuki | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-091 | Cool Boy | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-092 | Battle NPC | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-093 | Unleash the Dragon Gene | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-094 | Emperor Dragon of Calamity | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-095 | Fellowship of Hope's Keepers | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-096 | Black Sabbath | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-097 | The Apostle of Doom Descends! | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-098 | Apparition Legion | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-099 | Singularity of Chaos | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-100 | The Last Guardian | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-101 | Zephagamon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-102 | Omnimon (X Antibody) | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |

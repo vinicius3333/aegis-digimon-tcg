@@ -1,0 +1,3859 @@
+{
+  "baseline": "a924de971e0b43ad9ebd8f82a454d495ff880a60",
+  "cards": [
+    {
+      "cardId": "BT20-001",
+      "set": "BT20",
+      "nameEn": "DemiVeemon",
+      "colors": [
+        "Red"
+      ],
+      "kinds": [
+        "DigiEgg"
+      ],
+      "level": 2,
+      "playCost": -1,
+      "dp": 0,
+      "evoCosts": [],
+      "forms": [
+        "In-Training"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "types": [
+        "Baby Dragon"
+      ],
+      "inheritedEffectText": "[Your Turn] This Digimon with 4 or more digivolution cards gets +2000 DP.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-001"
+    },
+    {
+      "cardId": "BT20-002",
+      "set": "BT20",
+      "nameEn": "Bebydomon",
+      "colors": [
+        "Blue"
+      ],
+      "kinds": [
+        "DigiEgg"
+      ],
+      "level": 2,
+      "playCost": -1,
+      "dp": 0,
+      "evoCosts": [],
+      "forms": [
+        "In-Training"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "types": [
+        "Baby Dragon"
+      ],
+      "inheritedEffectText": "[When Attacking] [Once Per Turn] If this Digimon has [Dracomon]/[Examon] in its text, ＜Draw 1＞.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-002"
+    },
+    {
+      "cardId": "BT20-003",
+      "set": "BT20",
+      "nameEn": "Bibimon",
+      "colors": [
+        "Yellow"
+      ],
+      "kinds": [
+        "DigiEgg"
+      ],
+      "level": 2,
+      "playCost": -1,
+      "dp": 0,
+      "evoCosts": [],
+      "forms": [
+        "In-Training"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "types": [
+        "Lesser",
+        "Abadin Electronics",
+        "SEEKERS"
+      ],
+      "inheritedEffectText": "[End of Your Turn] [Once Per Turn] You may place 1 of your Tamers with [Pulsemon] in its text or the [SoC]/[SEEKERS] trait as the bottom digivolution card of this Digimon with no Tamer cards in its digivolution cards.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-003"
+    },
+    {
+      "cardId": "BT20-004",
+      "set": "BT20",
+      "nameEn": "Pinamon",
+      "colors": [
+        "Green"
+      ],
+      "kinds": [
+        "DigiEgg"
+      ],
+      "level": 2,
+      "playCost": -1,
+      "dp": 0,
+      "evoCosts": [],
+      "forms": [
+        "In-Training"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "types": [
+        "Bird",
+        "ACCEL"
+      ],
+      "inheritedEffectText": "[Your Turn] [Once Per Turn] When any of your Digimon with the [ACCEL] trait are played, this Digimon may digivolve into a Digimon card with the [ACCEL] trait in the hand with the digivolution cost reduced by 2.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-004"
+    },
+    {
+      "cardId": "BT20-005",
+      "set": "BT20",
+      "nameEn": "Kapurimon",
+      "colors": [
+        "Black"
+      ],
+      "kinds": [
+        "DigiEgg"
+      ],
+      "level": 2,
+      "playCost": -1,
+      "dp": 0,
+      "evoCosts": [],
+      "forms": [
+        "In-Training"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "types": [
+        "Lesser",
+        "LIBERATOR"
+      ],
+      "inheritedEffectText": "[Your Turn] When this Digimon checks a face-up security card, this Digimon gains ＜Jamming＞ for the turn.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-005"
+    },
+    {
+      "cardId": "BT20-006",
+      "set": "BT20",
+      "nameEn": "DemiMeramon",
+      "colors": [
+        "Purple"
+      ],
+      "kinds": [
+        "DigiEgg"
+      ],
+      "level": 2,
+      "playCost": -1,
+      "dp": 0,
+      "evoCosts": [],
+      "forms": [
+        "In-Training"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "types": [
+        "Flame",
+        "LIBERATOR"
+      ],
+      "inheritedEffectText": "[On Deletion] You may return 1 Digimon card with the [Ghost] trait from your trash to the hand.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-006"
+    },
+    {
+      "cardId": "BT20-007",
+      "set": "BT20",
+      "nameEn": "Dracomon",
+      "colors": [
+        "Red"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 3,
+      "playCost": 3,
+      "dp": 1000,
+      "evoCosts": [
+        {
+          "color": "Red",
+          "level": 2,
+          "memoryCost": 0
+        }
+      ],
+      "forms": [
+        "Rookie"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "types": [
+        "Dragon"
+      ],
+      "effectText": "[Digivolve] [Bebydomon]: Cost 0 \n\n[Start of Your Main Phase] By trashing 1 card with [Dracomon]/[Examon] in its text in your hand, ＜Draw 1＞ and gain 1 memory.",
+      "inheritedEffectText": "[Your Turn] This Digimon gets +2000 DP.",
+      "rarity": "R",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-007"
+    },
+    {
+      "cardId": "BT20-008",
+      "set": "BT20",
+      "nameEn": "Huckmon",
+      "colors": [
+        "Red"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 3,
+      "playCost": 3,
+      "dp": 1000,
+      "evoCosts": [
+        {
+          "color": "Red",
+          "level": 2,
+          "memoryCost": 0
+        }
+      ],
+      "forms": [
+        "Rookie"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "types": [
+        "Mini Dragon"
+      ],
+      "effectText": "[Start of Your Main Phase] By trashing 1 card with [Huckmon]/[Sistermon] in its name or the [Royal Knight] trait in your hand, ＜Draw 1＞ and gain 1 memory.",
+      "inheritedEffectText": "[Your Turn] All of your Digimon get +1000 DP.",
+      "rarity": "U",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-008"
+    },
+    {
+      "cardId": "BT20-009",
+      "set": "BT20",
+      "nameEn": "Veemon",
+      "colors": [
+        "Red"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 3,
+      "playCost": 3,
+      "dp": 1000,
+      "evoCosts": [
+        {
+          "color": "Red",
+          "level": 2,
+          "memoryCost": 0
+        },
+        {
+          "color": "Purple",
+          "level": 2,
+          "memoryCost": 0
+        }
+      ],
+      "forms": [
+        "Rookie"
+      ],
+      "attributes": [
+        "Free"
+      ],
+      "types": [
+        "Mini Dragon"
+      ],
+      "effectText": "[Your Turn] When any of your purple Digimon are played, this Digimon may digivolve into a Digimon card with the [Free] trait in the hand with the digivolution cost reduced by 1.",
+      "inheritedEffectText": "[Your Turn] This Digimon gets +2000 DP.",
+      "rarity": "U",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-009"
+    },
+    {
+      "cardId": "BT20-010",
+      "set": "BT20",
+      "nameEn": "Ryudamon",
+      "colors": [
+        "Red",
+        "Black"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 3,
+      "playCost": 3,
+      "dp": 1000,
+      "evoCosts": [
+        {
+          "color": "Red",
+          "level": 2,
+          "memoryCost": 1
+        },
+        {
+          "color": "Black",
+          "level": 2,
+          "memoryCost": 1
+        }
+      ],
+      "forms": [
+        "Rookie"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "types": [
+        "Beast",
+        "X Antibody",
+        "Chronicle"
+      ],
+      "effectText": "[Digivolve] Black Lv.2 w/[X Antibody] trait: Cost 0 \n\n[Your Turn] When this Digimon would digivolve into [Ginryumon] or a Digimon card with the [Chronicle] trait, reduce the digivolution cost by 1.",
+      "inheritedEffectText": "[Your Turn] This Digimon gets +2000 DP.",
+      "rarity": "U",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-010"
+    },
+    {
+      "cardId": "BT20-011",
+      "set": "BT20",
+      "nameEn": "ExVeemon",
+      "colors": [
+        "Red"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "playCost": 4,
+      "dp": 4000,
+      "evoCosts": [
+        {
+          "color": "Red",
+          "level": 3,
+          "memoryCost": 2
+        },
+        {
+          "color": "Purple",
+          "level": 3,
+          "memoryCost": 2
+        }
+      ],
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Free"
+      ],
+      "types": [
+        "Mythical Dragon"
+      ],
+      "effectText": "[On Play] [When Digivolving] Delete 1 of your opponent's Digimon with 3000 DP or less. Then, if it's your turn, 2 of your Digimon may DNA digivolve into a Digimon card with [Imperialdramon] in its name or the [Free] trait in the hand.",
+      "inheritedEffectText": "[Your Turn] This Digimon gets +2000 DP.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-011"
+    },
+    {
+      "cardId": "BT20-012",
+      "set": "BT20",
+      "nameEn": "Ginryumon",
+      "colors": [
+        "Red",
+        "Black"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "playCost": 5,
+      "dp": 6000,
+      "evoCosts": [
+        {
+          "color": "Red",
+          "level": 3,
+          "memoryCost": 3
+        },
+        {
+          "color": "Black",
+          "level": 3,
+          "memoryCost": 3
+        }
+      ],
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "types": [
+        "Beast Dragon",
+        "X Antibody",
+        "Chronicle"
+      ],
+      "effectText": "[Digivolve] [Ryudamon]/Lv.3 w/[Chronicle] trait: Cost 2 \n\n[When Attacking] This Digimon may digivolve into [Hisyaryumon] or a Digimon card with the [Chronicle] trait in the hand.",
+      "inheritedEffectText": "[Your Turn] This Digimon gets +2000 DP.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-012"
+    },
+    {
+      "cardId": "BT20-013",
+      "set": "BT20",
+      "nameEn": "BaoHuckmon",
+      "colors": [
+        "Red"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "playCost": 5,
+      "dp": 5000,
+      "evoCosts": [
+        {
+          "color": "Red",
+          "level": 3,
+          "memoryCost": 2
+        }
+      ],
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "types": [
+        "Dinosaur"
+      ],
+      "effectText": "[Main] [Once Per Turn] You may play 1 Digimon with [Sistermon]/[Gankoomon] in its name from your hand with the play cost reduced by 2.",
+      "inheritedEffectText": "[Your Turn] All of your Digimon get +1000 DP.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-013"
+    },
+    {
+      "cardId": "BT20-014",
+      "set": "BT20",
+      "nameEn": "SaviorHuckmon",
+      "colors": [
+        "Red"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 5,
+      "playCost": 7,
+      "dp": 7000,
+      "evoCosts": [
+        {
+          "color": "Red",
+          "level": 4,
+          "memoryCost": 3
+        }
+      ],
+      "forms": [
+        "Ultimate"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "types": [
+        "Dragonkin"
+      ],
+      "effectText": "[On Play] [When Digivolving] Delete 1 of your opponent's Digimon with 5000 DP or less.\n[End of Your Turn] By suspending 1 of your other Digimon, this Digimon may digivolve into a Digimon card with [Jesmon] in its name in the hand without paying the cost.",
+      "inheritedEffectText": "[Your Turn] This Digimon with the [Royal Knight] trait gains ＜Alliance＞.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-014"
+    },
+    {
+      "cardId": "BT20-015",
+      "set": "BT20",
+      "nameEn": "Hisyaryumon",
+      "colors": [
+        "Red",
+        "Black"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 5,
+      "playCost": 7,
+      "dp": 7000,
+      "evoCosts": [
+        {
+          "color": "Red",
+          "level": 4,
+          "memoryCost": 4
+        },
+        {
+          "color": "Black",
+          "level": 4,
+          "memoryCost": 4
+        }
+      ],
+      "forms": [
+        "Ultimate"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "types": [
+        "Beast Dragon",
+        "X Antibody",
+        "Chronicle"
+      ],
+      "effectText": "[Digivolve] [Ginryumon]/Lv.4 w/[Chronicle] trait: Cost 3 \n\n[On Play] [When Digivolving] You may play 1 [Dorumon]/[Ryudamon] from your hand to your empty breeding area without paying the cost. Then, if during an attack, until the end of your opponent's turn, 1 of your Digimon gains ＜Security A. +1＞ and gets +5000 DP.",
+      "inheritedEffectText": "[Your Turn] This Digimon doesn't activate [Security] effects on Option cards it checks.",
+      "rarity": "R",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-015"
+    },
+    {
+      "cardId": "BT20-016",
+      "set": "BT20",
+      "nameEn": "Paildramon",
+      "colors": [
+        "Red",
+        "Purple"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 5,
+      "playCost": 8,
+      "dp": 8000,
+      "evoCosts": [
+        {
+          "color": "Red",
+          "level": 4,
+          "memoryCost": 4
+        },
+        {
+          "color": "Purple",
+          "level": 4,
+          "memoryCost": 4
+        }
+      ],
+      "forms": [
+        "Ultimate"
+      ],
+      "attributes": [
+        "Free"
+      ],
+      "types": [
+        "Dragonkin"
+      ],
+      "effectText": "[On Play] [When Digivolving] For the turn, 1 of your Digimon gains ＜Piercing＞ and gets +4000 DP. Then, this Digimon may attack.\n[All Turns] When any of your [Paildramon]/[Dinobeemon] would be deleted, 2 of your Digimon may DNA digivolve into [Imperialdramon: Dragon Mode] in the hand.",
+      "inheritedEffectText": "＜Security A. +1＞.",
+      "rarity": "U",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-016"
+    },
+    {
+      "cardId": "BT20-017",
+      "set": "BT20",
+      "nameEn": "Jesmon",
+      "colors": [
+        "Red"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "playCost": 11,
+      "dp": 11000,
+      "evoCosts": [
+        {
+          "color": "Red",
+          "level": 5,
+          "memoryCost": 3
+        }
+      ],
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "types": [
+        "Holy Warrior",
+        "Royal Knight"
+      ],
+      "effectText": "[On Play] [When Digivolving] You may play 1 [Atho, RenxE9 & Por] Token (Digimon/White/6000 DP/＜Reboot＞/＜Blocker＞/＜Decoy (Red/Black)＞)\n[Your Turn] [Once Per Turn] When any of your other Digimon are played, delete 1 of your opponent's Digimon with 8000 DP or less. Then, 1 of your Digimon may attack.",
+      "rarity": "R",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-017"
+    },
+    {
+      "cardId": "BT20-018",
+      "set": "BT20",
+      "nameEn": "Ouryumon",
+      "colors": [
+        "Red",
+        "Black"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "playCost": 12,
+      "dp": 11000,
+      "evoCosts": [
+        {
+          "color": "Red",
+          "level": 5,
+          "memoryCost": 3
+        },
+        {
+          "color": "Black",
+          "level": 5,
+          "memoryCost": 3
+        }
+      ],
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "types": [
+        "Beast Dragon",
+        "X Antibody",
+        "Chronicle"
+      ],
+      "effectText": "＜Piercing＞ \n[On Play] [When Digivolving] ＜De-Digivolve 2＞ 1 of your opponent's Digimon. Then, if during an attack, 1 of your Digimon in the breeding area may digivolve into a level 6 or lower [Chronicle] trait Digimon card in the hand or trash without paying the cost.\n[All Turns] [Once Per Turn] When security stacks are removed from, delete 1 of your opponent's Digimon with the lowest DP.",
+      "inheritedEffectText": "[When Attacking] [Once Per Turn] If this Digimon is [Alphamon: Ouryuken], trash your opponent's top security card.",
+      "rarity": "R",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-018"
+    },
+    {
+      "cardId": "BT20-019",
+      "set": "BT20",
+      "nameEn": "Jesmon (X Antibody)",
+      "colors": [
+        "Red"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "playCost": 12,
+      "dp": 12000,
+      "evoCosts": [
+        {
+          "color": "Red",
+          "level": 5,
+          "memoryCost": 4
+        }
+      ],
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "types": [
+        "Holy Warrior",
+        "X Antibody",
+        "Royal Knight"
+      ],
+      "effectText": "[Digivolve] [Jesmon]: Cost 1 \n\n＜Alliance＞ \n[When Digivolving] if [Jesmon]/[X Antibody] is in this Digimon's digivolution cards, for the turn, 1 of your Digimon isn't affected by your opponent's effects. Then, 1 of your Digimon may attack.\n[Your Turn] All of your Digimon with [Sistermon] in their names or the [Royal Knight] trait gain ＜Piercing＞ and can also attack unsuspended Digimon.",
+      "inheritedEffectText": "[Your Turn] While this Digimon is [Jesmon GX], all of your Digimon gain ＜Piercing＞ and can also attack unsuspended Digimon.",
+      "rarity": "R",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-019"
+    },
+    {
+      "cardId": "BT20-020",
+      "set": "BT20",
+      "nameEn": "Imperialdramon: Fighter Mode",
+      "colors": [
+        "Red",
+        "Purple"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "playCost": 13,
+      "dp": 13000,
+      "evoCosts": [
+        {
+          "color": "Red",
+          "level": 5,
+          "memoryCost": 5
+        },
+        {
+          "color": "Purple",
+          "level": 5,
+          "memoryCost": 5
+        }
+      ],
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "types": [
+        "Ancient Dragonkin"
+      ],
+      "effectText": "[Digivolve] [Imperialdramon: Dragon Mode]: Cost 2 \n\n＜Raid＞.\n＜Piercing＞ \n[When Digivolving] Your opponent can't play Digimon or Tamers by effects until the end of their turn. Then, if [Imperialdramon: Dragon Mode] is in this Digimon's digivolution cards, trash your opponent's top security card.\n[All Turns] [Once Per Turn] When your opponent's security stack is removed from, delete 1 of their Digimon with as much or less DP as this Digimon.",
+      "rarity": "SR",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-020"
+    },
+    {
+      "cardId": "BT20-021",
+      "set": "BT20",
+      "nameEn": "Jesmon GX",
+      "colors": [
+        "Red",
+        "Black"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 7,
+      "playCost": 9,
+      "dp": 16000,
+      "evoCosts": [
+        {
+          "color": "Red",
+          "level": 6,
+          "memoryCost": 6
+        },
+        {
+          "color": "Black",
+          "level": 6,
+          "memoryCost": 6
+        }
+      ],
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "types": [
+        "Holy Warrior",
+        "X Antibody",
+        "Royal Knight"
+      ],
+      "effectText": "[Hand] [Counter] ＜Blast Digivolve＞ \n[On Play] [When Digivolving] [When Attacking] [Once Per Turn] By placing 1 [Royal Knight] trait card from your hand or trash as this Digimon's bottom digivolution card, delete 1 of your opponent's Digimon with as much or less DP as this Digimon.\n[When Attacking] [Once Per Turn] This Digimon unsuspends. Then, for every 2 [Royal Knight] trait cards in this Digimon's digivolution cards, trash your opponent's top security card.",
+      "rarity": "SR",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-021",
+      "isAce": true,
+      "overflowMemory": 5
+    },
+    {
+      "cardId": "BT20-022",
+      "set": "BT20",
+      "nameEn": "Crabmon (X Antibody)",
+      "colors": [
+        "Blue"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 3,
+      "playCost": 4,
+      "dp": 2000,
+      "evoCosts": [
+        {
+          "color": "Blue",
+          "level": 2,
+          "memoryCost": 0
+        }
+      ],
+      "forms": [
+        "Rookie"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "types": [
+        "Crustacean",
+        "X Antibody"
+      ],
+      "effectText": "[Digivolve] [Crabmon]: Cost 0 \n\n[On Play] [When Digivolving] 1 of your Digimon can't be deleted in battle until the end of your opponent's turn.",
+      "inheritedEffectText": "[When Attacking] [Once Per Turn] If you have 7 or fewer cards in your hand, ＜Draw 1＞.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-022"
+    },
+    {
+      "cardId": "BT20-023",
+      "set": "BT20",
+      "nameEn": "Coredramon",
+      "colors": [
+        "Blue",
+        "Red"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "playCost": 5,
+      "dp": 5000,
+      "evoCosts": [
+        {
+          "color": "Blue",
+          "level": 3,
+          "memoryCost": 3
+        },
+        {
+          "color": "Red",
+          "level": 3,
+          "memoryCost": 3
+        }
+      ],
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "types": [
+        "Dragon"
+      ],
+      "effectText": "[Digivolve] Lv.3 w/[Dracomon] in name: Cost 2 \n\n＜Jamming＞ \n[Your Turn] When any of your green Digimon with [Dracomon]/[Examon] in their texts are played, this Digimon may digivolve into [Wingdramon] in the hand with the digivolution cost reduced by 2.",
+      "inheritedEffectText": "[Your Turn] This Digimon gets +2000 DP.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-023"
+    },
+    {
+      "cardId": "BT20-024",
+      "set": "BT20",
+      "nameEn": "Seadramon (X Antibody)",
+      "colors": [
+        "Blue"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "playCost": 6,
+      "dp": 6000,
+      "evoCosts": [
+        {
+          "color": "Blue",
+          "level": 3,
+          "memoryCost": 2
+        }
+      ],
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "types": [
+        "Aquatic",
+        "X Antibody"
+      ],
+      "effectText": "[Digivolve] [Seadramon]: Cost 0 \n\n[On Play] [When Digivolving] Return 1 of your opponent's level 3 Digimon to the bottom of the deck. Then, if [Seadramon]/[X Antibody] is in this Digimon's digivolution cards, 1 of your opponent's Tamers can't suspend until the end of their turn.",
+      "inheritedEffectText": "[When Attacking] [Once Per Turn] If you have 7 or fewer cards in your hand, ＜Draw 1＞.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-024"
+    },
+    {
+      "cardId": "BT20-025",
+      "set": "BT20",
+      "nameEn": "Wingdramon",
+      "colors": [
+        "Blue",
+        "Red"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 5,
+      "playCost": 7,
+      "dp": 7000,
+      "evoCosts": [
+        {
+          "color": "Blue",
+          "level": 4,
+          "memoryCost": 4
+        },
+        {
+          "color": "Red",
+          "level": 4,
+          "memoryCost": 4
+        }
+      ],
+      "forms": [
+        "Ultimate"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "types": [
+        "Sky Dragon"
+      ],
+      "effectText": "[Digivolve] [Coredramon]: Cost 3 \n\n[On Play] [When Digivolving] Delete 1 of your opponent's Digimon with 6000 DP or less.\n[All Turns] This Digimon is also treated as Lv.6 [Slayerdramon] for [Examon]'s DNA digivolution.",
+      "inheritedEffectText": "＜Security A. +1＞.",
+      "rarity": "U",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-025"
+    },
+    {
+      "cardId": "BT20-026",
+      "set": "BT20",
+      "nameEn": "MegaSeadramon (X Antibody)",
+      "colors": [
+        "Blue"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 5,
+      "playCost": 8,
+      "dp": 8000,
+      "evoCosts": [
+        {
+          "color": "Blue",
+          "level": 4,
+          "memoryCost": 3
+        }
+      ],
+      "forms": [
+        "Ultimate"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "types": [
+        "Aquatic",
+        "X Antibody"
+      ],
+      "effectText": "[Digivolve] [MegaSeadramon]: Cost 0 \n\n[On Play] [When Digivolving] Return 1 of your opponent's level 4 or lower Digimon to the bottom of the deck. Then, if [MegaSeadramon]/[X Antibody] is in this Digimon's digivolution cards, 1 of your opponent's Digimon can't suspend until the end of their turn.",
+      "inheritedEffectText": "[Your Turn] This Digimon's attack target can't change.",
+      "rarity": "R",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-026"
+    },
+    {
+      "cardId": "BT20-027",
+      "set": "BT20",
+      "nameEn": "Slayerdramon",
+      "colors": [
+        "Blue",
+        "Red"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "playCost": 12,
+      "dp": 12000,
+      "evoCosts": [
+        {
+          "color": "Blue",
+          "level": 5,
+          "memoryCost": 4
+        },
+        {
+          "color": "Red",
+          "level": 5,
+          "memoryCost": 4
+        }
+      ],
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "types": [
+        "Dragonkin"
+      ],
+      "effectText": "[Digivolve] [Wingdramon]/[Groundramon]: Cost 3 \n\n＜Piercing＞ \n[On Play] [When Digivolving] Trash any 3 digivolution cards of 1 of your opponent's Digimon. Then, delete 1 of their Digimon with no digivolution cards.\n[All Turns] [Once Per Turn] When your opponent's security stack is removed from, 1 of your Digimon with [Dracomon]/[Examon] in its text may unsuspend.",
+      "inheritedEffectText": "[All Turns] [Once Per Turn] When any of your Digimon with [Dracomon]/[Examon] in their texts would leave the battle area other than in battle by suspending this Digimon, they don't leave.",
+      "rarity": "R",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-027"
+    },
+    {
+      "cardId": "BT20-028",
+      "set": "BT20",
+      "nameEn": "GigaSeadramon",
+      "colors": [
+        "Blue",
+        "Black"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "playCost": 13,
+      "dp": 13000,
+      "evoCosts": [
+        {
+          "color": "Blue",
+          "level": 5,
+          "memoryCost": 5
+        },
+        {
+          "color": "Black",
+          "level": 5,
+          "memoryCost": 5
+        }
+      ],
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "types": [
+        "Cyborg",
+        "X Antibody",
+        "Aquatic"
+      ],
+      "effectText": "[Digivolve] [MetalSeadramon]: Cost 2 \n\n＜Security A. +1＞.\n＜Reboot＞.\n＜Blocker＞ \n[When Digivolving] [When Attacking] [Once Per Turn] From the digivolution cards of this Digimon with [MetalSeadramon]/[X Antibody] in its digivolution cards, you may play 1 level 5 or lower Digimon card without paying the cost.\n[All Turns] [Once Per Turn] When any of your Digimon are played from digivolution cards, ＜De-Digivolve 2＞ 1 of your opponent's Digimon.",
+      "rarity": "SR",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-028"
+    },
+    {
+      "cardId": "BT20-029",
+      "set": "BT20",
+      "nameEn": "Pulsemon",
+      "colors": [
+        "Yellow",
+        "Green"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 3,
+      "playCost": 3,
+      "dp": 1000,
+      "evoCosts": [
+        {
+          "color": "Purple",
+          "level": 2,
+          "memoryCost": 1
+        },
+        {
+          "color": "Green",
+          "level": 2,
+          "memoryCost": 1
+        }
+      ],
+      "forms": [
+        "Rookie"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "types": [
+        "Beastkin",
+        "Abadin Electronics",
+        "SEEKERS"
+      ],
+      "effectText": "[Digivolve] [Bibimon]/Lv.2 w/[SEEKERS] trait: Cost 0 \n\n[Your Turn] When this Digimon would digivolve into a Digimon card with [Pulsemon] in its name or [SEEKERS] trait, reduce the digivolution cost by 1.",
+      "inheritedEffectText": "[All Turns] [Once Per Turn] When this Digimon deletes your opponent's Digimon in battle. gain 1 memory.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-029"
+    },
+    {
+      "cardId": "BT20-030",
+      "set": "BT20",
+      "nameEn": "Liollmon",
+      "colors": [
+        "Yellow",
+        "Black"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 3,
+      "playCost": 3,
+      "dp": 1000,
+      "evoCosts": [
+        {
+          "color": "Yellow",
+          "level": 2,
+          "memoryCost": 1
+        },
+        {
+          "color": "Black",
+          "level": 2,
+          "memoryCost": 1
+        }
+      ],
+      "forms": [
+        "Rookie"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "types": [
+        "Holy Beast",
+        "ACCEL"
+      ],
+      "effectText": "[Digivolve] [Frimon]/Lv.2 w/[ACCEL] trait: Cost 0 \n\n[On Play] Reveal the top 3 cards of your deck. Add 1 Digimon card with [Chaosmon] in its name or the [ACCEL] trait and 1 Option card with the [ACCEL] trait among them to the hand. Return the rest to the bottom of the deck",
+      "inheritedEffectText": "＜Barrier＞.",
+      "rarity": "U",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-030"
+    },
+    {
+      "cardId": "BT20-031",
+      "set": "BT20",
+      "nameEn": "Liamon",
+      "colors": [
+        "Yellow",
+        "Black"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "playCost": 4,
+      "dp": 5000,
+      "evoCosts": [
+        {
+          "color": "Yellow",
+          "level": 3,
+          "memoryCost": 3
+        },
+        {
+          "color": "Black",
+          "level": 3,
+          "memoryCost": 3
+        }
+      ],
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "types": [
+        "Holy Beast",
+        "ACCEL"
+      ],
+      "effectText": "[Digivolve] Lv.3 w/[ACCEL] trait: Cost 2 \n\n[On Play] [When Digivolving] 1 of your opponent's Digimon gets -3000 DP for the turn.",
+      "inheritedEffectText": "＜Barrier＞.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-031"
+    },
+    {
+      "cardId": "BT20-032",
+      "set": "BT20",
+      "nameEn": "Bulkmon",
+      "colors": [
+        "Yellow",
+        "Green"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "playCost": 6,
+      "dp": 6000,
+      "evoCosts": [
+        {
+          "color": "Purple",
+          "level": 3,
+          "memoryCost": 3
+        },
+        {
+          "color": "Green",
+          "level": 3,
+          "memoryCost": 3
+        }
+      ],
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "types": [
+        "Dragonkin",
+        "Abadin Electronics",
+        "SEEKERS"
+      ],
+      "effectText": "[Digivolve] [Pulsemon]/Lv.3 w/[SEEKERS] trait: Cost 2 \n\n[On Play] [When Digivolving] If you have 3 or more security cards, you may add your top security card to the hand. Then, if you have 2 or fewer security cards, ＜Recovery +1 (Deck)＞.",
+      "inheritedEffectText": "[All Turns] [Once Per Turn] When this Digimon deletes your opponent's Digimon in battle, gain 1 memory.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-032"
+    },
+    {
+      "cardId": "BT20-033",
+      "set": "BT20",
+      "nameEn": "LoaderLeomon",
+      "colors": [
+        "Yellow",
+        "Black"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 5,
+      "playCost": 6,
+      "dp": 6000,
+      "evoCosts": [
+        {
+          "color": "Yellow",
+          "level": 4,
+          "memoryCost": 4
+        },
+        {
+          "color": "Black",
+          "level": 4,
+          "memoryCost": 4
+        }
+      ],
+      "forms": [
+        "Ultimate"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "types": [
+        "Machine",
+        "ACCEL"
+      ],
+      "effectText": "[Digivolve] Lv.4 w/[ACCEL] trait: Cost 3 \n\n[On Play] [When Digivolving] Until the end of your opponent's turn, 1 of their Digimon can't activate [When Digivolving] effects and gets -3000 DP.",
+      "inheritedEffectText": "[Opponent's Turn] [Once Per Turn] When one of your opponent's Digimon attacks, you may change the attack target to this Digimon.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-033"
+    },
+    {
+      "cardId": "BT20-034",
+      "set": "BT20",
+      "nameEn": "Boutmon",
+      "colors": [
+        "Yellow",
+        "Green"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 5,
+      "playCost": 7,
+      "dp": 7000,
+      "evoCosts": [
+        {
+          "color": "Purple",
+          "level": 4,
+          "memoryCost": 4
+        },
+        {
+          "color": "Green",
+          "level": 4,
+          "memoryCost": 4
+        }
+      ],
+      "forms": [
+        "Ultimate"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "types": [
+        "Beastkin",
+        "Abadin Electronics",
+        "SEEKERS"
+      ],
+      "effectText": "[Digivolve] Lv.4 w/[Pulsemon] in text or Lv.4 w/[SEEKERS] trait: Cost 3 \n\n＜Fortitude＞ \n[All Turns] When Tamer cards are placed in this Digimon's digivolution cards, 1 of your opponent's Digimon can't activate [When Digivolving] effects until the end of their turn.",
+      "inheritedEffectText": "[All Turns] [Once Per Turn] When this Digimon deletes your opponent's Digimon in battle, trash their top security card.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-034"
+    },
+    {
+      "cardId": "BT20-035",
+      "set": "BT20",
+      "nameEn": "Kazuchimon",
+      "colors": [
+        "Yellow",
+        "Green"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "playCost": 12,
+      "dp": 12000,
+      "evoCosts": [
+        {
+          "color": "Purple",
+          "level": 5,
+          "memoryCost": 4
+        },
+        {
+          "color": "Green",
+          "level": 5,
+          "memoryCost": 4
+        }
+      ],
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "types": [
+        "Shaman",
+        "Abadin Electronics",
+        "SEEKERS"
+      ],
+      "effectText": "[Digivolve] Lv.5 w/[Pulsemon] in text or Lv.5 w/[SEEKERS] trait: Cost 3 \n\n＜Fortitude＞ \n[When Digivolving] Suspend 1 of your opponent's Digimon or Tamers. Then, 1 of their Digimon or Tamers can't unsuspend until the end of their turn.\n[All Turns] When Tamer cards are placed in this Digimon's digivolution cards, activate 1 of this Digimon's [When Digivolving] effects. Then, 1 of your Digimon may attack your opponent's Digimon.",
+      "inheritedEffectText": "[All Turns] [Once Per Turn] When your security stack is removed from, if this Digimon has [Fenriloogamon] in its name, ＜Recovery +1 (Deck)＞.",
+      "rarity": "R",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-035"
+    },
+    {
+      "cardId": "BT20-036",
+      "set": "BT20",
+      "nameEn": "BanchoLeomon",
+      "colors": [
+        "Yellow",
+        "Black"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "playCost": 12,
+      "dp": 12000,
+      "evoCosts": [
+        {
+          "color": "Yellow",
+          "level": 5,
+          "memoryCost": 4
+        },
+        {
+          "color": "Black",
+          "level": 5,
+          "memoryCost": 4
+        }
+      ],
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "types": [
+        "Beastkin",
+        "Boss",
+        "ACCEL"
+      ],
+      "effectText": "[Digivolve] Lv.5 w/[ACCEL] trait: Cost 3 \n\nWhen this card would be played, if you have a Digimon with the [ACCEL] trait, reduce the play cost by 5.\n[On Play] [When Digivolving] ＜De-Digivolve 2＞ 1 of your opponent's Digimon. Then, 1 of their Digimon gets -5000 DP until the end of their turn.\n[End of Your Turn] This Digimon and any of your other Digimon may DNA digivolve into a Digimon card with [Chaosmon] in its name in the hand. Then, the DNA digivolved Digimon may attack.",
+      "inheritedEffectText": "[Opponent's Turn] [Once Per Turn] When one of your opponent's Digimon attacks, you may change the attack target to this Digimon.",
+      "rarity": "U",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-036"
+    },
+    {
+      "cardId": "BT20-037",
+      "set": "BT20",
+      "nameEn": "Chaosmon: Valdur Arm",
+      "colors": [
+        "Yellow",
+        "Green"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 7,
+      "playCost": 15,
+      "dp": 15000,
+      "evoCosts": [
+        {
+          "color": "Yellow",
+          "level": 6,
+          "memoryCost": 5
+        },
+        {
+          "color": "Green",
+          "level": 6,
+          "memoryCost": 5
+        }
+      ],
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "types": [
+        "Unique"
+      ],
+      "effectText": "＜Security A. +1＞.\n＜Partition (Yellow Lv.6 + Green/Black Lv.6)＞ \n[When Digivolving] For each of this Digimon's level 6 digivolution cards, suspend 1 of your opponent's Digimon or Tamers and gain 1 memory. Then none of their Digimon or Tamers can activate [On Play] effects or unsuspend until the end of their turn.",
+      "rarity": "SR",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-037"
+    },
+    {
+      "cardId": "BT20-038",
+      "set": "BT20",
+      "nameEn": "Falcomon",
+      "colors": [
+        "Green",
+        "Yellow"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 3,
+      "playCost": 3,
+      "dp": 1000,
+      "evoCosts": [
+        {
+          "color": "Green",
+          "level": 2,
+          "memoryCost": 1
+        },
+        {
+          "color": "Yellow",
+          "level": 2,
+          "memoryCost": 1
+        }
+      ],
+      "forms": [
+        "Rookie"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "types": [
+        "Avian",
+        "ACCEL"
+      ],
+      "effectText": "[Digivolve] [Pinamon]/Lv.2 w/[ACCEL] trait: Cost 0 \n\n[Your Turn] When this Digimon would digivolve into a Digimon card with the [ACCEL] trait, reduce the digivolution cost by 1.",
+      "inheritedEffectText": "＜Piercing＞.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-038"
+    },
+    {
+      "cardId": "BT20-039",
+      "set": "BT20",
+      "nameEn": "Diatrymon",
+      "colors": [
+        "Green",
+        "Yellow"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "playCost": 4,
+      "dp": 5000,
+      "evoCosts": [
+        {
+          "color": "Green",
+          "level": 3,
+          "memoryCost": 3
+        },
+        {
+          "color": "Yellow",
+          "level": 3,
+          "memoryCost": 3
+        }
+      ],
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "types": [
+        "Ancient Bird",
+        "ACCEL"
+      ],
+      "effectText": "[Digivolve] Lv.3 w/[ACCEL] trait: Cost 2 \n\n[On Play] [When Digivolving] Suspend 1 of your opponent's Digimon.",
+      "inheritedEffectText": "＜Piercing＞.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-039"
+    },
+    {
+      "cardId": "BT20-040",
+      "set": "BT20",
+      "nameEn": "Coredramon",
+      "colors": [
+        "Green",
+        "Red"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "playCost": 5,
+      "dp": 5000,
+      "evoCosts": [
+        {
+          "color": "Green",
+          "level": 3,
+          "memoryCost": 3
+        },
+        {
+          "color": "Red",
+          "level": 3,
+          "memoryCost": 3
+        }
+      ],
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "types": [
+        "Dragon"
+      ],
+      "effectText": "[Digivolve] Lv.3 w/[Dracomon] in name: Cost 2 \n\n＜Raid＞ \n[Your Turn] When any of your blue Digimon with [Dracomon]/[Examon] in their texts are played, this Digimon may digivolve into [Groundramon] in the hand with the digivolution cost reduced by 2.",
+      "inheritedEffectText": "[Your Turn] This Digimon gets +2000 DP.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-040"
+    },
+    {
+      "cardId": "BT20-041",
+      "set": "BT20",
+      "nameEn": "Crowmon",
+      "colors": [
+        "Green",
+        "Yellow"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 5,
+      "playCost": 6,
+      "dp": 6000,
+      "evoCosts": [
+        {
+          "color": "Green",
+          "level": 4,
+          "memoryCost": 4
+        },
+        {
+          "color": "Yellow",
+          "level": 4,
+          "memoryCost": 4
+        }
+      ],
+      "forms": [
+        "Ultimate"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "types": [
+        "Mysterious Bird",
+        "ACCEL"
+      ],
+      "effectText": "[Digivolve] Lv.4 w/[ACCEL] trait: Cost 3 \n\n[On Play] [When Digivolving] Suspend 1 of your opponent's Digimon and 1 of your Digimon gets +3000 DP for the turn. Then, 1 of your Digimon may attack.",
+      "inheritedEffectText": "[When Attacking] [Once Per Turn] 1 of your opponent's Digimon gets -4000 DP for the turn.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-041"
+    },
+    {
+      "cardId": "BT20-042",
+      "set": "BT20",
+      "nameEn": "Groundramon",
+      "colors": [
+        "Green",
+        "Red"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 5,
+      "playCost": 7,
+      "dp": 7000,
+      "evoCosts": [
+        {
+          "color": "Green",
+          "level": 4,
+          "memoryCost": 4
+        },
+        {
+          "color": "Red",
+          "level": 4,
+          "memoryCost": 4
+        }
+      ],
+      "forms": [
+        "Ultimate"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "types": [
+        "Earth Dragon"
+      ],
+      "effectText": "[Digivolve] [Coredramon]: Cost 3 \n\n[On Play] [When Digivolving] Suspend 1 of your opponent's Digimon or Tamers. Then, 1 of their Digimon or Tamers can't unsuspend until the end of their turn.\n[All Turns] This Digimon is also treated as Lv.6 [Breakdramon] for [Examon]'s DNA digivolution.",
+      "inheritedEffectText": "[All Turns] [Once Per Turn] When this Digimon deletes your opponent's Digimon in battle, trash their top security card.",
+      "rarity": "U",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-042"
+    },
+    {
+      "cardId": "BT20-043",
+      "set": "BT20",
+      "nameEn": "Varodurumon",
+      "colors": [
+        "Green",
+        "Yellow"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "playCost": 12,
+      "dp": 12000,
+      "evoCosts": [
+        {
+          "color": "Green",
+          "level": 5,
+          "memoryCost": 4
+        },
+        {
+          "color": "Yellow",
+          "level": 5,
+          "memoryCost": 4
+        }
+      ],
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "types": [
+        "Holy Bird",
+        "ACCEL"
+      ],
+      "effectText": "[Digivolve] Lv.5 w/[ACCEL] trait: Cost 3 \n\nWhen this card would be played, if you have a Digimon with the [ACCEL] trait, reduce the play cost by 5.\n[On Play] [When Digivolving] Suspend all of your opponent's Digimon and 1 of your Digimon gets +3000 DP for the turn. Then, 1 of your Digimon may attack.\n[End of Your Turn] This Digimon and any of your other Digimon may DNA digivolve into a Digimon card with [Chaosmon] in its name in the hand. Then, the DNA digivolved Digimon may attack.",
+      "inheritedEffectText": "[When Attacking] [Once Per Turn] 1 of your opponent's Digimon gets -4000 DP for the turn.",
+      "rarity": "U",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-043"
+    },
+    {
+      "cardId": "BT20-044",
+      "set": "BT20",
+      "nameEn": "Breakdramon",
+      "colors": [
+        "Green",
+        "Red"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "playCost": 12,
+      "dp": 12000,
+      "evoCosts": [
+        {
+          "color": "Green",
+          "level": 5,
+          "memoryCost": 4
+        },
+        {
+          "color": "Red",
+          "level": 5,
+          "memoryCost": 4
+        }
+      ],
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "types": [
+        "Machine Dragon"
+      ],
+      "effectText": "[Digivolve] [Groundramon]/[Wingdramon]: Cost 3 \n\n＜Blocker＞ \n[On Play] [When Digivolving] Suspend 2 of your opponent's Digimon or Tamers. Then, 1 of your Digimon may attack.\n[All Turns] [Once Per Turn] When any of your Digimon with [Dracomon]/[Examon] in their texts delete 1 your opponent's Digimon in battle, delete 1 of their suspended Digimon or Tamers.",
+      "inheritedEffectText": "[All Turns] [Once Per Turn] When any of your Digimon with [Dracomon]/[Examon] in their texts delete your opponent's Digimon in battle, delete 1 of their suspended Digimon or Tamers.",
+      "rarity": "R",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-044"
+    },
+    {
+      "cardId": "BT20-045",
+      "set": "BT20",
+      "nameEn": "Examon",
+      "colors": [
+        "Green",
+        "Red",
+        "Blue"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 7,
+      "playCost": 9,
+      "dp": 15000,
+      "evoCosts": [
+        {
+          "color": "Green",
+          "level": 6,
+          "memoryCost": 5
+        },
+        {
+          "color": "Red",
+          "level": 6,
+          "memoryCost": 5
+        },
+        {
+          "color": "Blue",
+          "level": 6,
+          "memoryCost": 5
+        }
+      ],
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "types": [
+        "Holy Warrior",
+        "Royal Knight"
+      ],
+      "effectText": "[Hand] [Counter] ＜Blast DNA Digivolve ([Breakdramon] + [Slayerdramon])＞.\n＜Raid＞.\n＜Piercing＞.\n＜Blocker＞.\n＜Evade＞ \n[When Digivolving] If DNA digivolving, return all of your opponent's Digimon with the highest DP to the bottom of the deck.\n[All Turns] [Once Per Turn] When any Digimon suspend, this Digimon may unsuspend.",
+      "rarity": "SR",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-045",
+      "isAce": true,
+      "overflowMemory": 5
+    },
+    {
+      "cardId": "BT20-046",
+      "set": "BT20",
+      "nameEn": "Espimon",
+      "colors": [
+        "Black",
+        "Blue"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 3,
+      "playCost": 3,
+      "dp": 1000,
+      "evoCosts": [
+        {
+          "color": "Black",
+          "level": 2,
+          "memoryCost": 1
+        },
+        {
+          "color": "Blue",
+          "level": 2,
+          "memoryCost": 1
+        }
+      ],
+      "forms": [
+        "Rookie"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "types": [
+        "Cyborg",
+        "LIBERATOR"
+      ],
+      "effectText": "[Digivolve] [Kapurimon]: Cost 0 \n\n[Your Turn] When this Digimon would digivolve into a Digimon card with the [Cyborg]/[Machine] trait, reduce the digivolution cost by 1.",
+      "inheritedEffectText": "[All Turns] This Digimon gets +1000 DP.",
+      "rarity": "U",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-046"
+    },
+    {
+      "cardId": "BT20-047",
+      "set": "BT20",
+      "nameEn": "Solarmon",
+      "colors": [
+        "Black"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 3,
+      "playCost": 3,
+      "dp": 2000,
+      "evoCosts": [
+        {
+          "color": "Black",
+          "level": 2,
+          "memoryCost": 0
+        }
+      ],
+      "forms": [
+        "Rookie"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "types": [
+        "Machine"
+      ],
+      "effectText": "＜Blocker＞.",
+      "inheritedEffectText": "＜Reboot＞.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-047"
+    },
+    {
+      "cardId": "BT20-048",
+      "set": "BT20",
+      "nameEn": "Dorumon",
+      "colors": [
+        "Black",
+        "Yellow"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 3,
+      "playCost": 3,
+      "dp": 1000,
+      "evoCosts": [
+        {
+          "color": "Black",
+          "level": 2,
+          "memoryCost": 1
+        },
+        {
+          "color": "Yellow",
+          "level": 2,
+          "memoryCost": 1
+        }
+      ],
+      "forms": [
+        "Rookie"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "types": [
+        "Beast",
+        "X Antibody",
+        "Chronicle"
+      ],
+      "effectText": "[Digivolve] Black Lv.2 w/[X Antibody] trait: Cost 0 \n\n[On Play] Reveal the top 3 cards of your deck. Add 1 card with [X Antibody] trait and 1 Tamer card or Option card with the [Chronicle] trait among them to the hand. Return the rest to the bottom of the deck.",
+      "inheritedEffectText": "[Opponent's Turn] This Digimon gets +2000 DP.",
+      "rarity": "U",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-048"
+    },
+    {
+      "cardId": "BT20-049",
+      "set": "BT20",
+      "nameEn": "Blimpmon",
+      "colors": [
+        "Black"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "playCost": 4,
+      "dp": 4000,
+      "evoCosts": [
+        {
+          "color": "Black",
+          "level": 3,
+          "memoryCost": 2
+        }
+      ],
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "types": [
+        "Machine"
+      ],
+      "effectText": "[On Play] [When Digivolving] 1 of your opponent's Digimon can't attack players until the end of their turn.",
+      "inheritedEffectText": "＜Reboot＞.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-049"
+    },
+    {
+      "cardId": "BT20-050",
+      "set": "BT20",
+      "nameEn": "HoverEspimon",
+      "colors": [
+        "Black",
+        "Blue"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "playCost": 4,
+      "dp": 4000,
+      "evoCosts": [
+        {
+          "color": "Black",
+          "level": 3,
+          "memoryCost": 3
+        },
+        {
+          "color": "Blue",
+          "level": 3,
+          "memoryCost": 3
+        }
+      ],
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "types": [
+        "Cyborg",
+        "LIBERATOR"
+      ],
+      "effectText": "[Digivolve] Lv.3 w/[Cyborg]/[Machine] trait: Cost 2 \n\n[When Digivolving] Flip your opponent's top face-down security card face-up.\n[End of Attack] [Once Per Turn] ＜Draw 1＞.",
+      "inheritedEffectText": "[All Turns] This Digimon gets +1000 DP.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-050"
+    },
+    {
+      "cardId": "BT20-051",
+      "set": "BT20",
+      "nameEn": "Raptordramon",
+      "colors": [
+        "Black",
+        "Yellow"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "playCost": 5,
+      "dp": 6000,
+      "evoCosts": [
+        {
+          "color": "Black",
+          "level": 3,
+          "memoryCost": 3
+        },
+        {
+          "color": "Yellow",
+          "level": 3,
+          "memoryCost": 3
+        }
+      ],
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "types": [
+        "Cyborg",
+        "X Antibody",
+        "Chronicle"
+      ],
+      "effectText": "[Digivolve] [Dorumon]/Lv.3 w/[Chronicle] trait: Cost 2 \n\n[When Digivolving] If you have 1 or fewer Tamers, you may play 1 [Kota Domoto] from your hand without paying the cost.",
+      "inheritedEffectText": "[Opponent's Turn] This Digimon gets +2000 DP.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-051"
+    },
+    {
+      "cardId": "BT20-052",
+      "set": "BT20",
+      "nameEn": "Oblivimon",
+      "colors": [
+        "Black",
+        "Blue"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 5,
+      "playCost": 7,
+      "dp": 7000,
+      "evoCosts": [
+        {
+          "color": "Black",
+          "level": 4,
+          "memoryCost": 4
+        },
+        {
+          "color": "Blue",
+          "level": 4,
+          "memoryCost": 4
+        }
+      ],
+      "forms": [
+        "Ultimate"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "types": [
+        "Cyborg",
+        "LIBERATOR"
+      ],
+      "effectText": "[Digivolve] Lv.4 w/[Cyborg]/[Machine] trait: Cost 3 \n\n[Security] [End of Opponent's Turn] Play this card without paying the cost.\n[When Digivolving] Flip your opponent's top face-down security card face-up.\n[Your Turn] When your Digimon checks a face-up security card, you may place the top card of this Digimon face-up at the bottom of the security stack.",
+      "inheritedEffectText": "[Your Turn] This Digimon's attack target can't be switched.",
+      "rarity": "U",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-052"
+    },
+    {
+      "cardId": "BT20-053",
+      "set": "BT20",
+      "nameEn": "Grademon",
+      "colors": [
+        "Black",
+        "Yellow"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 5,
+      "playCost": 7,
+      "dp": 7000,
+      "evoCosts": [
+        {
+          "color": "Black",
+          "level": 4,
+          "memoryCost": 4
+        },
+        {
+          "color": "Yellow",
+          "level": 4,
+          "memoryCost": 4
+        }
+      ],
+      "forms": [
+        "Ultimate"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "types": [
+        "Warrior",
+        "X Antibody",
+        "Chronicle"
+      ],
+      "effectText": "[Digivolve] [Raptordramon]/Lv.4 w/[Chronicle] trait: Cost 3 \n\n[On Play] [When Digivolving] You may play 1 [Dorumon]/[Ryudamon] from your hand to your empty breeding area without paying the cost. Then, if during an attack until the end of your opponent's turn, 1 of your Digimon isn't affected by your opponent's Digimon's effects and gets +5000 DP.",
+      "inheritedEffectText": "[Opponent's Turn] [Once Per Turn] When one of your opponent's Digimon attacks, you may change the attack target to this Digimon.",
+      "rarity": "U",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-053"
+    },
+    {
+      "cardId": "BT20-054",
+      "set": "BT20",
+      "nameEn": "Bulbmon",
+      "colors": [
+        "Black"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 5,
+      "playCost": 7,
+      "dp": 7000,
+      "evoCosts": [
+        {
+          "color": "Black",
+          "level": 4,
+          "memoryCost": 3
+        }
+      ],
+      "forms": [
+        "Ultimate"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "types": [
+        "Machine"
+      ],
+      "effectText": "＜Blocker＞ \n[Opponent's Turn] When this Digimon would leave the battle area, you may play 1 play cost 4 or lower Digimon card from this Digimon's digivolution cards without paying the cost.",
+      "inheritedEffectText": "[Opponent's Turn] [Once Per Turn] When one of your opponent's Digimon attacks, you may change the attack target to this Digimon.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-054"
+    },
+    {
+      "cardId": "BT20-055",
+      "set": "BT20",
+      "nameEn": "Invisimon",
+      "colors": [
+        "Black",
+        "Blue"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "playCost": 11,
+      "dp": 11000,
+      "evoCosts": [
+        {
+          "color": "Black",
+          "level": 5,
+          "memoryCost": 3
+        },
+        {
+          "color": "Blue",
+          "level": 5,
+          "memoryCost": 3
+        }
+      ],
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "types": [
+        "Cyborg",
+        "LIBERATOR"
+      ],
+      "effectText": "[Security] [End of Opponent's Turn] Play this card without paying the cost.\n[On Play] [When Digivolving] ＜De-Digivolve 2＞ 1 of your opponent's Digimon and flip your opponent's top face-down security card face up. Then, delete 1 of your opponent's Digimon with 1 or fewer digivolution cards.\n[Your Turn] When your Digimon checks a face-up security card, you may place the top card of this Digimon face-up at the bottom of your security stack.",
+      "rarity": "SR",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-055"
+    },
+    {
+      "cardId": "BT20-056",
+      "set": "BT20",
+      "nameEn": "Alphamon",
+      "colors": [
+        "Black",
+        "Yellow"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "playCost": 12,
+      "dp": 11000,
+      "evoCosts": [
+        {
+          "color": "Black",
+          "level": 5,
+          "memoryCost": 3
+        },
+        {
+          "color": "Yellow",
+          "level": 5,
+          "memoryCost": 3
+        }
+      ],
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "types": [
+        "Holy Warrior",
+        "X Antibody",
+        "Royal Knight",
+        "Chronicle"
+      ],
+      "effectText": "＜Barrier＞ \n[On Play] [When Digivolving] ＜Recovery +1 (Deck)＞. Then, if during an attack, 1 of your Digimon in the breeding area may digivolve into a level 6 or lower [Chronicle] trait Digimon card in the hand or trash without paying the cost.\n[All Turns] [Once Per Turn] When security stacks are removed from, 1 of your opponent's Digimon gets -8000 DP for the turn.",
+      "inheritedEffectText": "[All Turns] [Once Per Turn] When this Digimon would leave the battle area other than by your effects, if this Digimon is [Alphamon: Ouryuken], by trashing your top security card, it doesn't leave.",
+      "rarity": "R",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-056"
+    },
+    {
+      "cardId": "BT20-057",
+      "set": "BT20",
+      "nameEn": "Gankoomon",
+      "colors": [
+        "Black"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "playCost": 12,
+      "dp": 12000,
+      "evoCosts": [
+        {
+          "color": "Black",
+          "level": 5,
+          "memoryCost": 4
+        },
+        {
+          "color": "Red",
+          "level": 5,
+          "memoryCost": 4
+        }
+      ],
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "types": [
+        "Holy Warrior",
+        "Royal Knight"
+      ],
+      "effectText": "When this card would be played, if you have a Digimon with [Huckmon]/[Jesmon]/[Sistermon] in its name, reduce the play cost by 4.\n＜Reboot＞.\n＜Blocker＞ \n[On Play] [When Digivolving] 1 of your Digimon may digivolve into a level 6 or lower Digimon card with [Huckmon]/[Jesmon]/[Sistermon] in its name or the [Royal Knight] trait in the hand or trash without paying the cost.",
+      "rarity": "R",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-057"
+    },
+    {
+      "cardId": "BT20-058",
+      "set": "BT20",
+      "nameEn": "Raidenmon",
+      "colors": [
+        "Black"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "playCost": 12,
+      "dp": 12000,
+      "evoCosts": [
+        {
+          "color": "Black",
+          "level": 5,
+          "memoryCost": 4
+        }
+      ],
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "types": [
+        "Machine"
+      ],
+      "effectText": "[On Play] [When Digivolving] Delete 1 of your opponent's Digimon with a play cost of 7 or less.\n[All Turns] When this Digimon would leave the battle area, you may play 1 Digimon card with a play cost 11 or lower and the [Cyborg]/[Machine] trait from this Digimon's digivolution cards without paying the cost.\n\n[DigiXros -2] [Raijinmon] x [Fujinmon] x [Suijinmon]",
+      "rarity": "U",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-058"
+    },
+    {
+      "cardId": "BT20-059",
+      "set": "BT20",
+      "nameEn": "Gankoomon (X Antibody)",
+      "colors": [
+        "Black"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "playCost": 13,
+      "dp": 13000,
+      "evoCosts": [
+        {
+          "color": "Black",
+          "level": 5,
+          "memoryCost": 5
+        },
+        {
+          "color": "Red",
+          "level": 5,
+          "memoryCost": 5
+        }
+      ],
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "types": [
+        "Holy Warrior",
+        "X Antibody",
+        "Royal Knight"
+      ],
+      "effectText": "[Digivolve] [Gankoomon]: Cost 2 \n\n[When Digivolving] ＜De-Digivolve 2＞ 1 of your opponent's Digimon. Then, if [Gankoomon]/[X Antibody] is in this Digimon's digivolution cards, until the end of your opponent's turn, none of your Digimon are affected by your opponent's Digimon's effects.\n[Opponent's Turn] All of your Digimon with [Sistermon]/[Huckmon] in their names or the [Royal Knight] trait gain ＜Reboot＞ and ＜Blocker＞.",
+      "inheritedEffectText": "[Opponent's Turn] While this Digimon is [Jesmon GX] all of your Digimon gain ＜Reboot＞ and ＜Blocker＞.",
+      "rarity": "R",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-059"
+    },
+    {
+      "cardId": "BT20-060",
+      "set": "BT20",
+      "nameEn": "Alphamon: Ouryuken",
+      "colors": [
+        "Black",
+        "Yellow",
+        "Red"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 7,
+      "playCost": 9,
+      "dp": 16000,
+      "evoCosts": [
+        {
+          "color": "Black",
+          "level": 6,
+          "memoryCost": 6
+        },
+        {
+          "color": "Yellow",
+          "level": 6,
+          "memoryCost": 6
+        },
+        {
+          "color": "Red",
+          "level": 6,
+          "memoryCost": 6
+        }
+      ],
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "types": [
+        "NO DATA",
+        "X Antibody",
+        "Royal Knight",
+        "Chronicle"
+      ],
+      "effectText": "[Hand] [Counter] ＜Blast DNA Digivolve ([Alphamon] + [Ouryumon])＞ \n[On Play] [When Digivolving] 1 of your opponent's Digimon gets -15000 DP until the end of their turn. Then, if DNA digivolving, trash your opponent's top security card and ＜Recovery +1 (Deck)＞ \n[All Turns] [Once Per Turn] When security stacks are removed from, gain 3 memory.",
+      "rarity": "SR",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-060",
+      "isAce": true,
+      "overflowMemory": 5
+    },
+    {
+      "cardId": "BT20-061",
+      "set": "BT20",
+      "nameEn": "Impmon",
+      "colors": [
+        "Purple",
+        "Red"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 3,
+      "playCost": 3,
+      "dp": 1000,
+      "evoCosts": [
+        {
+          "color": "Purple",
+          "level": 2,
+          "memoryCost": 1
+        },
+        {
+          "color": "Red",
+          "level": 2,
+          "memoryCost": 1
+        }
+      ],
+      "forms": [
+        "Rookie"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "types": [
+        "Evil",
+        "LIBERATOR"
+      ],
+      "effectText": "[Digivolve] [Yaamon]: Cost 0 \n\n[On Play] Reveal the top 3 cards of your deck. Add 1 card with the [Evil]/[Dark Dragon]/[Evil Dragon] trait and 1 [Yuuki] among them to the hand. Return the rest to the bottom of the deck.",
+      "inheritedEffectText": "[Your Turn] This Digimon gets +2000 DP.",
+      "rarity": "U",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-061"
+    },
+    {
+      "cardId": "BT20-062",
+      "set": "BT20",
+      "nameEn": "Candlemon",
+      "colors": [
+        "Purple"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 3,
+      "playCost": 3,
+      "dp": 1000,
+      "evoCosts": [
+        {
+          "color": "Purple",
+          "level": 2,
+          "memoryCost": 0
+        }
+      ],
+      "forms": [
+        "Rookie"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "types": [
+        "Flame",
+        "Ghost"
+      ],
+      "effectText": "＜Retaliation＞.",
+      "inheritedEffectText": "[On Deletion] By trashing 1 card in your hand, delete 1 of your opponent's level 4 or lower Digimon.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-062"
+    },
+    {
+      "cardId": "BT20-063",
+      "set": "BT20",
+      "nameEn": "Ghostmon",
+      "colors": [
+        "Purple"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 3,
+      "playCost": 3,
+      "dp": 1000,
+      "evoCosts": [
+        {
+          "color": "Purple",
+          "level": 2,
+          "memoryCost": 0
+        }
+      ],
+      "forms": [
+        "Rookie"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "types": [
+        "Ghost",
+        "LIBERATOR"
+      ],
+      "effectText": "[On Play] Reveal the top 3 cards of your deck. Add 1 card with the [Ghost] trait and 1 card with the [LIBERATOR] trait among them to the hand. Return the rest to the bottom of the deck.",
+      "inheritedEffectText": "[On Deletion] Gain 1 memory.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-063"
+    },
+    {
+      "cardId": "BT20-064",
+      "set": "BT20",
+      "nameEn": "Loogamon",
+      "colors": [
+        "Purple",
+        "Red"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 3,
+      "playCost": 3,
+      "dp": 1000,
+      "evoCosts": [
+        {
+          "color": "Red",
+          "level": 2,
+          "memoryCost": 1
+        },
+        {
+          "color": "Yellow",
+          "level": 2,
+          "memoryCost": 1
+        }
+      ],
+      "forms": [
+        "Rookie"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "types": [
+        "Dark Animal",
+        "X Antibody",
+        "SoC",
+        "SEEKERS"
+      ],
+      "effectText": "[Digivolve] [Bowmon]/Lv.2 w/[SEEKERS] trait: Cost 0 \n\n[On Play] Reveal the top 3 cards of your deck. Add 1 card with the [SoC]/[SEEKERS] trait and 1 [Eiji Nagasumi] among them to the hand. Return the rest to the bottom of the deck.",
+      "inheritedEffectText": "[Your Turn] This Digimon gets +2000 DP.",
+      "rarity": "U",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-064"
+    },
+    {
+      "cardId": "BT20-065",
+      "set": "BT20",
+      "nameEn": "Wormmon",
+      "colors": [
+        "Purple"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 3,
+      "playCost": 3,
+      "dp": 1000,
+      "evoCosts": [
+        {
+          "color": "Purple",
+          "level": 2,
+          "memoryCost": 0
+        },
+        {
+          "color": "Red",
+          "level": 2,
+          "memoryCost": 0
+        }
+      ],
+      "forms": [
+        "Rookie"
+      ],
+      "attributes": [
+        "Free"
+      ],
+      "types": [
+        "Larva"
+      ],
+      "effectText": "[On Play] By trashing 1 card in your hand, give 1 of your opponent's Digimon \"[On Deletion] Lose 1 memory.\" until the end of their turn.",
+      "inheritedEffectText": "＜Retaliation＞.",
+      "rarity": "R",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-065"
+    },
+    {
+      "cardId": "BT20-066",
+      "set": "BT20",
+      "nameEn": "Stingmon",
+      "colors": [
+        "Purple"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "playCost": 4,
+      "dp": 4000,
+      "evoCosts": [
+        {
+          "color": "Purple",
+          "level": 3,
+          "memoryCost": 2
+        },
+        {
+          "color": "Red",
+          "level": 3,
+          "memoryCost": 2
+        }
+      ],
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Free"
+      ],
+      "types": [
+        "Insectoid"
+      ],
+      "effectText": "[On Play] [When Digivolving] Delete 1 of your opponent's level 3 Digimon. Then, if it's your turn, 2 of your Digimon may DNA digivolve into a Digimon card with [Imperialdramon] in its name or the [Free] trait in the hand.",
+      "inheritedEffectText": "＜Retaliation＞.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-066"
+    },
+    {
+      "cardId": "BT20-067",
+      "set": "BT20",
+      "nameEn": "Soulmon",
+      "colors": [
+        "Purple"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "playCost": 4,
+      "dp": 4000,
+      "evoCosts": [
+        {
+          "color": "Purple",
+          "level": 3,
+          "memoryCost": 2
+        }
+      ],
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "types": [
+        "Ghost"
+      ],
+      "effectText": "[On Play] [When Digivolving] 1 of your Digimon gains ＜Retaliation＞ until the end of your opponent's turn.",
+      "inheritedEffectText": "[On Deletion] By trashing 1 card in your hand, delete 1 of your opponent's level 4 or lower Digimon.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-067"
+    },
+    {
+      "cardId": "BT20-068",
+      "set": "BT20",
+      "nameEn": "Bakemon",
+      "colors": [
+        "Purple"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "playCost": 4,
+      "dp": 4000,
+      "evoCosts": [
+        {
+          "color": "Purple",
+          "level": 3,
+          "memoryCost": 2
+        }
+      ],
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "types": [
+        "Ghost",
+        "LIBERATOR"
+      ],
+      "effectText": "[When Digivolving] If you have 1 or fewer Tamers, you may play 1 [Violet Inboots] from your hand without paying the cost.",
+      "inheritedEffectText": "[On Deletion] Gain 1 memory.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-068"
+    },
+    {
+      "cardId": "BT20-069",
+      "set": "BT20",
+      "nameEn": "Punkmon",
+      "colors": [
+        "Purple",
+        "Red"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "playCost": 5,
+      "dp": 5000,
+      "evoCosts": [
+        {
+          "color": "Purple",
+          "level": 3,
+          "memoryCost": 3
+        },
+        {
+          "color": "Red",
+          "level": 3,
+          "memoryCost": 3
+        }
+      ],
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "types": [
+        "Dark Dragon",
+        "LIBERATOR"
+      ],
+      "effectText": "[Digivolve] Lv.3 w/[Evil] trait: Cost 2 \n\n[On Play] [When Digivolving] Trash 1 card in your hand. Then, until the end of your opponent's turn, 1 of your Digimon gains ＜Blocker＞ and ＜Retaliation＞.",
+      "inheritedEffectText": "[Your Turn] This Digimon gets +2000 DP.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-069"
+    },
+    {
+      "cardId": "BT20-070",
+      "set": "BT20",
+      "nameEn": "Loogarmon",
+      "colors": [
+        "Purple",
+        "Red"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "playCost": 6,
+      "dp": 6000,
+      "evoCosts": [
+        {
+          "color": "Red",
+          "level": 3,
+          "memoryCost": 3
+        },
+        {
+          "color": "Yellow",
+          "level": 3,
+          "memoryCost": 3
+        }
+      ],
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "types": [
+        "Dark Animal",
+        "X Antibody",
+        "SoC",
+        "SEEKERS"
+      ],
+      "effectText": "[Digivolve] [Loogamon]/Lv.3 w/[SEEKERS] trait: Cost 2 \n\n[On Play] [When Digivolving] By trashing 1 card in your hand, you may return 1 card with the [SoC]/[SEEKERS] trait from your trash to the hand.",
+      "inheritedEffectText": "[Your Turn] This Digimon gets +2000 DP.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-070"
+    },
+    {
+      "cardId": "BT20-071",
+      "set": "BT20",
+      "nameEn": "Soloogarmon",
+      "colors": [
+        "Purple",
+        "Red"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 5,
+      "playCost": 7,
+      "dp": 7000,
+      "evoCosts": [
+        {
+          "color": "Red",
+          "level": 4,
+          "memoryCost": 4
+        },
+        {
+          "color": "Yellow",
+          "level": 4,
+          "memoryCost": 4
+        }
+      ],
+      "forms": [
+        "Ultimate"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "types": [
+        "Dark Animal",
+        "X Antibody",
+        "SoC",
+        "SEEKERS"
+      ],
+      "effectText": "[Digivolve] [Loogarmon]/Lv.4 w/[SEEKERS] trait: Cost 3 \n\n[On Play] [When Digivolving] By trashing 1 card in your hand, for the turn 1 of your Digimon gains ＜Raid＞ and gets +3000 DP.\n[All Turns] When Tamer cards are placed in this Digimon's digivolution cards, delete 1 of your opponent's Digimon with 6000 DP or less.",
+      "inheritedEffectText": "[Your Turn] This Digimon with the [SoC]/[SEEKERS] trait doesn't activate [Security] effects on Option cards it checks.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-071"
+    },
+    {
+      "cardId": "BT20-072",
+      "set": "BT20",
+      "nameEn": "Phantomon",
+      "colors": [
+        "Purple"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 5,
+      "playCost": 7,
+      "dp": 7000,
+      "evoCosts": [
+        {
+          "color": "Purple",
+          "level": 4,
+          "memoryCost": 3
+        }
+      ],
+      "forms": [
+        "Ultimate"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "types": [
+        "Ghost",
+        "LIBERATOR"
+      ],
+      "effectText": "＜Execute＞ \n[On Deletion] You may play 1 level 4 or lower Digimon card with the [Ghost] trait from your trash without paying the cost.",
+      "inheritedEffectText": "[On Deletion] You may play 1 level 4 or lower Digimon card with the [Ghost] trait from your trash without paying the cost.",
+      "rarity": "U",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-072"
+    },
+    {
+      "cardId": "BT20-073",
+      "set": "BT20",
+      "nameEn": "MetalPhantomon",
+      "colors": [
+        "Purple",
+        "Black"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 5,
+      "playCost": 7,
+      "dp": 7000,
+      "evoCosts": [
+        {
+          "color": "Purple",
+          "level": 4,
+          "memoryCost": 4
+        },
+        {
+          "color": "Black",
+          "level": 4,
+          "memoryCost": 4
+        }
+      ],
+      "forms": [
+        "Ultimate"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "types": [
+        "Cyborg",
+        "X-Antibody",
+        "Ghost"
+      ],
+      "effectText": "＜Blocker＞ \n[On Play] [When Digivolving] By deleting 1 of your Digimon, delete 1 of your opponent's level 5 or lower Digimon.",
+      "inheritedEffectText": "[On Deletion] ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-073"
+    },
+    {
+      "cardId": "BT20-074",
+      "set": "BT20",
+      "nameEn": "Dinobeemon",
+      "colors": [
+        "Purple",
+        "Red"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 5,
+      "playCost": 8,
+      "dp": 8000,
+      "evoCosts": [
+        {
+          "color": "Purple",
+          "level": 4,
+          "memoryCost": 4
+        },
+        {
+          "color": "Red",
+          "level": 4,
+          "memoryCost": 4
+        }
+      ],
+      "forms": [
+        "Ultimate"
+      ],
+      "attributes": [
+        "Free"
+      ],
+      "types": [
+        "Mutant"
+      ],
+      "effectText": "[On Play] [When Digivolving] You may return 1 Digimon card with [Imperialdramon] in its name or the [Free] trait from your trash to the hand.\n[All Turns] When any of your [Dinobeemon]/[Paildramon] would be returned to hands or decks, 2 of your Digimon may DNA digivolve into [Imperialdramon: Dragon Mode] in the hand.",
+      "inheritedEffectText": "[Your Turn] This Digimon doesn't activate [Security] effects on Option cards it checks.",
+      "rarity": "U",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-074"
+    },
+    {
+      "cardId": "BT20-075",
+      "set": "BT20",
+      "nameEn": "Loudmon",
+      "colors": [
+        "Purple",
+        "Red"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 5,
+      "playCost": 8,
+      "dp": 8000,
+      "evoCosts": [
+        {
+          "color": "Purple",
+          "level": 4,
+          "memoryCost": 4
+        },
+        {
+          "color": "Red",
+          "level": 4,
+          "memoryCost": 4
+        }
+      ],
+      "forms": [
+        "Ultimate"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "types": [
+        "Cyborg",
+        "LIBERATOR",
+        "Dark Dragon"
+      ],
+      "effectText": "[Digivolve] Lv.4 w/[Dark Dragon]/[Evil Dragon] trait: Cost 3 \n\n[On Play] [When Digivolving] Trash 2 cards in your hand. Then, for the turn, 1 of your Digimon gains ＜Raid＞ and ＜Piercing＞ and gets +4000 DP.",
+      "inheritedEffectText": "[Your Turn] While you have 4 or fewer cards in your hand, all of your Digimon with the [Dark Dragon]/[Evil Dragon] trait gain ＜Security A. +1＞.",
+      "rarity": "U",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-075"
+    },
+    {
+      "cardId": "BT20-076",
+      "set": "BT20",
+      "nameEn": "Imperialdramon: Dragon Mode",
+      "colors": [
+        "Purple",
+        "Red"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "playCost": 7,
+      "dp": 12000,
+      "evoCosts": [
+        {
+          "color": "Purple",
+          "level": 5,
+          "memoryCost": 4
+        },
+        {
+          "color": "Red",
+          "level": 5,
+          "memoryCost": 4
+        }
+      ],
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "types": [
+        "Ancient Dragon"
+      ],
+      "effectText": "[Hand] [Counter] ＜Blast DNA Digivolve ([DinoBeemon] + [Paildramon])＞ \n[On Play] [When Digivolving] Delete 1 of your opponent's Digimon with 11000 DP or less. Then, if DNA digivolving, this Digimon may digivolve into [Imperialdramon: Fighter Mode] in the hand or trash without paying the cost.",
+      "rarity": "R",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-076",
+      "isAce": true,
+      "overflowMemory": 4
+    },
+    {
+      "cardId": "BT20-077",
+      "set": "BT20",
+      "nameEn": "HeavyMetaldramon",
+      "colors": [
+        "Purple",
+        "Red"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "playCost": 7,
+      "dp": 12000,
+      "evoCosts": [
+        {
+          "color": "Purple",
+          "level": 5,
+          "memoryCost": 4
+        },
+        {
+          "color": "Red",
+          "level": 5,
+          "memoryCost": 4
+        }
+      ],
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "types": [
+        "Evil Dragon",
+        "LIBERATOR"
+      ],
+      "effectText": "[Digivolve] Lv.5 w/[Dark Dragon]/[Evil Dragon] trait: Cost 3 \n\n[Hand] [Counter] ＜Blast Digivolve＞ \n[On Play] [When Digivolving] Trash cards in your hand until it has 4 left. Then, play 1 8000 DP or lower Digimon card from your trash without paying the cost. For each card this effect trashed, remove 2000 from this effect's DP maximum.\n[All Turns] All of your [Dark Dragon]/[Evil Dragon] trait Digimon gain ＜Rush＞ and ＜Blocker＞ and get +2000 DP.",
+      "rarity": "SR",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-077-Errata",
+      "isAce": true,
+      "overflowMemory": 4
+    },
+    {
+      "cardId": "BT20-078",
+      "set": "BT20",
+      "nameEn": "Reapermon",
+      "colors": [
+        "Purple",
+        "Black"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "playCost": 11,
+      "dp": 11000,
+      "evoCosts": [
+        {
+          "color": "Purple",
+          "level": 5,
+          "memoryCost": 3
+        },
+        {
+          "color": "Black",
+          "level": 5,
+          "memoryCost": 3
+        }
+      ],
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "types": [
+        "Cyborg",
+        "Ghost"
+      ],
+      "effectText": "＜Collision＞.\n＜Blocker＞ \n[All Turns] [Once Per Turn] When effects digivolve your opponent's Digimon, ＜De-Digivolve 1＞ 1 of your opponent's Digimon \n[On Deletion] Delete 1 of your opponent's play cost 4 or lower Digimon or Tamers.",
+      "rarity": "U",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-078"
+    },
+    {
+      "cardId": "BT20-079",
+      "set": "BT20",
+      "nameEn": "Necromon",
+      "colors": [
+        "Purple"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "playCost": 12,
+      "dp": 12000,
+      "evoCosts": [
+        {
+          "color": "Purple",
+          "level": 5,
+          "memoryCost": 4
+        }
+      ],
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "types": [
+        "Ghost",
+        "LIBERATOR"
+      ],
+      "effectText": "＜Security A. +1＞.\n＜Execute＞ \n[On Play] [When Digivolving] Delete 1 of your opponent's Digimon with the lowest level.\n[On Play] [On Deletion] You may play 1 level 5 or lower Digimon card with the [Ghost] trait from your trash without paying the cost.",
+      "rarity": "SR",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-079"
+    },
+    {
+      "cardId": "BT20-080",
+      "set": "BT20",
+      "nameEn": "Fenriloogamon",
+      "colors": [
+        "Purple",
+        "Red"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "playCost": 12,
+      "dp": 12000,
+      "evoCosts": [
+        {
+          "color": "Red",
+          "level": 5,
+          "memoryCost": 4
+        },
+        {
+          "color": "Yellow",
+          "level": 5,
+          "memoryCost": 4
+        }
+      ],
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "types": [
+        "Dark Animal",
+        "X Antibody",
+        "SoC",
+        "SEEKERS"
+      ],
+      "effectText": "[Digivolve] [Soloogarmon]/Lv.5 w/[SEEKERS] trait: Cost 3 \n\n＜Scapegoat＞ \n[When Digivolving] You may play 1 level 4 or lower [SoC]/[SEEKERS] trait Digimon card from your trash without paying the cost.\n[All Turns] When Tamer cards are placed in this Digimon's digivolution cards, activate 1 of this Digimon's [When Digivolving] effects. Then, 1 of your Digimon may attack a player.",
+      "inheritedEffectText": "[All Turns] [Once Per Turn] When any of your opponent's Digimon are deleted, if this Digimon has [Fenriloogamon] in its name, trash your opponent's top security card.",
+      "rarity": "R",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-080"
+    },
+    {
+      "cardId": "BT20-081",
+      "set": "BT20",
+      "nameEn": "Fenriloogamon: Takemikazuchi",
+      "colors": [
+        "Purple",
+        "Yellow"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 7,
+      "playCost": 9,
+      "dp": 16000,
+      "evoCosts": [
+        {
+          "color": "Purple",
+          "level": 6,
+          "memoryCost": 6
+        },
+        {
+          "color": "Yellow",
+          "level": 6,
+          "memoryCost": 6
+        }
+      ],
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "types": [
+        "Dark Animal",
+        "X Antibody",
+        "SoC",
+        "SEEKERS"
+      ],
+      "effectText": "[Hand] [Counter] ＜Blast DNA Digivolve ([Fenriloogamon] + [Kazuchimon])＞ \n[On Play] [When Digivolving] 2 of your opponent's Digimon get -10000 DP for the turn. Then, if a Tamer card is in this Digimon's digivolution cards, delete 1 of your opponent's 10000 DP or lower Digimon.\n[When Attacking] By trashing your top security card, activate 1 of this Digimon's [When Digivolving] effects.",
+      "rarity": "SR",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-081",
+      "isAce": true,
+      "overflowMemory": 5
+    },
+    {
+      "cardId": "BT20-082",
+      "set": "BT20",
+      "nameEn": "DeathXmon",
+      "colors": [
+        "Purple",
+        "Black"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 7,
+      "playCost": 15,
+      "dp": 15000,
+      "evoCosts": [
+        {
+          "color": "Purple",
+          "level": 6,
+          "memoryCost": 5
+        }
+      ],
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Virus"
+      ],
+      "types": [
+        "Unanalyzable",
+        "X Program"
+      ],
+      "effectText": "＜Security A. +1＞.\n＜Reboot＞.\n＜Blocker＞ \n[All Turns] When this Digimon would leave the battle area by effects, by returning 3 cards with [Dex]/[DeathX] in their names from your trash to the bottom of the deck, it doesn't leave.\n[End of All Turns] [Once Per Turn] Delete all Digimon with the lowest level.",
+      "rarity": "SR",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-082"
+    },
+    {
+      "cardId": "BT20-083",
+      "set": "BT20",
+      "nameEn": "Omekamon",
+      "colors": [
+        "White"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "playCost": 5,
+      "dp": 5000,
+      "evoCosts": [],
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "types": [
+        "Puppet",
+        "X Antibody",
+        "LIBERATOR"
+      ],
+      "effectText": "＜Blocker＞ \n[On Play] If you have 1 or fewer security cards, this Digimon may digivolve into [Omnimon (X Antibody)] in the hand, ignoring digivolution requirements and without paying the cost.\n[On Deletion] You may place this card as the bottom digivolution card of your [King Drasil_7D6] in the breeding area.",
+      "inheritedEffectText": "[Breeding] [Opponent's Turn] When your security stack is removed from, by suspending this Digimon, play 1 [Omekamon] from this Digimon's digivolution cards without paying the cost.",
+      "rarity": "R",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-083"
+    },
+    {
+      "cardId": "BT20-084",
+      "set": "BT20",
+      "nameEn": "Sistermon Ciel (Awakened)",
+      "colors": [
+        "White"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 4,
+      "playCost": 5,
+      "dp": 6000,
+      "evoCosts": [],
+      "forms": [
+        "Champion"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "types": [
+        "Puppet"
+      ],
+      "effectText": "[Digivolve] [Sistermon Ciel]: Cost 1 \n\n[Trash] [All Turns] When any of your Digimon are played, 1 of your [Sistermon Ciel]s may digivolve into this card without paying the cost.\n[On Play] [When Digivolving] 1 of your opponent's Digimon or Tamers can't suspend until the end of their turn.\n[End of All Turns] Place this Digimon's top stacked card as the top security card.",
+      "rarity": "R",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-084"
+    },
+    {
+      "cardId": "BT20-085",
+      "set": "BT20",
+      "nameEn": "Shoto Kazama",
+      "colors": [
+        "Green"
+      ],
+      "kinds": [
+        "Tamer"
+      ],
+      "playCost": 3,
+      "dp": 0,
+      "evoCosts": [],
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "types": [
+        "LIBERATOR"
+      ],
+      "effectText": "[Start of Your Main Phase] By returning this Tamer to the bottom of the deck, you may play 1 [Shoto Kazama] from your hand without paying the cost. Then, if you don't have a Digimon, you may play 1 level 3 Digimon card with [Avian]/[Bird] in any of its traits from your trash without paying the cost.\n[End of Your Turn] By suspending this Tamer, suspend 1 of your opponent's Digimon and, until the end of their turn, 1 of your Digimon with the [Vortex Warriors] trait gets +2000 DP.",
+      "securityEffectText": "[Security] Play this card without paying the cost.",
+      "rarity": "R",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-085"
+    },
+    {
+      "cardId": "BT20-086",
+      "set": "BT20",
+      "nameEn": "Altea",
+      "colors": [
+        "Black"
+      ],
+      "kinds": [
+        "Tamer"
+      ],
+      "playCost": 4,
+      "dp": 0,
+      "evoCosts": [],
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "types": [
+        "LIBERATOR"
+      ],
+      "effectText": "[Start of Your Turn] If you have 2 or less memory, set it to 3.\n[Start of Your Main Phase] By placing 1 black Digimon card with the [Cyborg]/[Machine] trait with a play cost of 4 or less from your hand or trash at the bottom of your Digimon with such trait, flip your opponent's top face down security card face up.",
+      "securityEffectText": "[Security] Play this card without paying the cost.",
+      "rarity": "U",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-086"
+    },
+    {
+      "cardId": "BT20-087",
+      "set": "BT20",
+      "nameEn": "Kota Domoto & Yuji Musya",
+      "colors": [
+        "Black",
+        "Red"
+      ],
+      "kinds": [
+        "Tamer"
+      ],
+      "playCost": 5,
+      "dp": 0,
+      "evoCosts": [],
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "types": [
+        "Chronicle"
+      ],
+      "effectText": "[Start of Your Turn] If you have 2 or less memory, set it to 3.\n[Your Turn] When one of your [Chronicle] trait Digimon attacks, by suspending this Tamer, 1 of your Digimon on the field may digivolve into a level 6 or lower [Chronicle] trait Digimon card in the hand with the digivolution cost reduced by 1.",
+      "securityEffectText": "[Security] Play this card without paying the cost.",
+      "rarity": "R",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-087"
+    },
+    {
+      "cardId": "BT20-088",
+      "set": "BT20",
+      "nameEn": "Violet Inboots",
+      "colors": [
+        "Purple"
+      ],
+      "kinds": [
+        "Tamer"
+      ],
+      "playCost": 3,
+      "dp": 0,
+      "evoCosts": [],
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "LIBERATOR"
+      ],
+      "types": [
+        "-"
+      ],
+      "effectText": "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.\n[Your Turn] When any of your [Ghost] trait Digimon are deleted, by suspending this Tamer, 1 of your Digimon may digivolve into a Digimon card with the [Ghost] trait in the hand with the digivolution cost reduced by 2.",
+      "securityEffectText": "[Security] Play this card without paying the cost.",
+      "rarity": "R",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-088"
+    },
+    {
+      "cardId": "BT20-089",
+      "set": "BT20",
+      "nameEn": "Code Cracker Fang & Hacker Judge",
+      "colors": [
+        "Purple",
+        "Yellow"
+      ],
+      "kinds": [
+        "Tamer"
+      ],
+      "playCost": 4,
+      "dp": 0,
+      "evoCosts": [],
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "types": [
+        "SoC",
+        "Abadin Electronics",
+        "SEEKERS"
+      ],
+      "effectText": "[Security] Play this card without paying the cost.\n[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.\n[All Turns] When any of your Digimon are played or digivolve, you may ＜Mind Link＞ to 1 of your Digimon with [Pulsemon] in its text or the [SoC]/[SEEKERS] trait.",
+      "securityEffectText": "[All Turns] This Digimon with [Pulsemon] in its text or the [SoC]/[SEEKERS] trait gains ＜Alliance＞ , ＜Piercing＞ and ＜Barrier＞ \n[End of All Turns] You may play 1 [Eiji Nagasumi] from this Digimon's digivolution cards without paying the cost.",
+      "rarity": "R",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-089"
+    },
+    {
+      "cardId": "BT20-090",
+      "set": "BT20",
+      "nameEn": "Yuuki",
+      "colors": [
+        "Purple"
+      ],
+      "kinds": [
+        "Tamer"
+      ],
+      "playCost": 4,
+      "dp": 0,
+      "evoCosts": [],
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "types": [
+        "LIBERATOR"
+      ],
+      "effectText": "[Start of Your Turn] If you have 2 or less memory, set it to 3.\n[End of Your Turn] If you have 4 or fewer cards in your hand, by suspending this Tamer, 1 of your Digimon with the [Dark Dragon]/[Evil Dragon] trait attacks a player.",
+      "securityEffectText": "[Security] Play this card without paying the cost.",
+      "rarity": "R",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-090"
+    },
+    {
+      "cardId": "BT20-091",
+      "set": "BT20",
+      "nameEn": "Cool Boy",
+      "colors": [
+        "White"
+      ],
+      "kinds": [
+        "Tamer"
+      ],
+      "playCost": 4,
+      "dp": 0,
+      "evoCosts": [],
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "types": [
+        "LIBERATOR"
+      ],
+      "effectText": "[Your Turn] When any of your Digimon are played or digivolve, if any of them have the [Royal Knight] trait, by suspending this Tamer, ＜Draw 1＞ and gain 1 memory.\n[Opponent's Turn] [Once Per Turn] When any of your Digimon with the [Royal Knight] trait would leave the battle area, you may play 1 [Omekamon] from your hand without paying the cost.",
+      "securityEffectText": "[Security] Play this card without paying the cost.",
+      "rarity": "SR",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-091"
+    },
+    {
+      "cardId": "BT20-092",
+      "set": "BT20",
+      "nameEn": "Battle NPC",
+      "colors": [
+        "White"
+      ],
+      "kinds": [
+        "Tamer"
+      ],
+      "playCost": 4,
+      "dp": 0,
+      "evoCosts": [],
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "types": [
+        "LIBERATOR"
+      ],
+      "effectText": "[Start of Your Turn] If you have 2 or less memory, set it to 3.\n[On Play] By placing 1 level 3 Digimon card from your hand under this Tamer, ＜Draw 1＞ \n[Start of Your Main Phase] If your don't have a Digimon, by playing 1 play cost 3 or lower Digimon card from under this Tamer without paying the cost, delete this Tamer.",
+      "securityEffectText": "[Security] Play this card without paying the cost.",
+      "rarity": "U",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-092"
+    },
+    {
+      "cardId": "BT20-093",
+      "set": "BT20",
+      "nameEn": "Unleash the Dragon Gene",
+      "colors": [
+        "Red"
+      ],
+      "kinds": [
+        "Option"
+      ],
+      "playCost": 2,
+      "dp": 0,
+      "evoCosts": [],
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "types": [
+        "Option"
+      ],
+      "effectText": "[Main] You may play 1 Digimon card with [Dracomon]/[Examon] in its text from your hand with the play cost reduced by 3. Then, place this card in the battle area.\n[All Turns] When any of your Digimon with [Dracomon]/[Examon] in their texts would leave the battle area other than in battle, ＜Delay＞.\n・2 of your Digimon may DNA digivolve into [Examon] in the hand.",
+      "securityEffectText": "[Security] You may play 1 Digimon card with [Dracomon] in its name from your hand or trash without paying the cost. Then, place this card in the battle area.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-093"
+    },
+    {
+      "cardId": "BT20-094",
+      "set": "BT20",
+      "nameEn": "Emperor Dragon of Calamity",
+      "colors": [
+        "Red",
+        "Purple"
+      ],
+      "kinds": [
+        "Option"
+      ],
+      "playCost": 3,
+      "dp": 0,
+      "evoCosts": [],
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "types": [
+        "Option"
+      ],
+      "effectText": "[Main] You may play 1 [Free] trait Digimon card from your trash with the play cost reduced by 5. Then, place this card in the battle area.\n[All Turns] When your opponent's security stack is removed from, ＜Delay＞.\n・You may play 1 [Imperialdramon: Dragon Mode] from any of your [Imperialdramon: Fighter Mode]'s digivolution cards without paying the cost.",
+      "securityEffectText": "[Security] You may play 1 level 3 Digimon card with the [Free] trait from your hand or trash without paying the cost. Then, add this card to the hand.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-094"
+    },
+    {
+      "cardId": "BT20-095",
+      "set": "BT20",
+      "nameEn": "Fellowship of Hope's Keepers",
+      "colors": [
+        "Black"
+      ],
+      "kinds": [
+        "Option"
+      ],
+      "playCost": 3,
+      "dp": 0,
+      "evoCosts": [],
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "types": [
+        "X Antibody",
+        "Chronicle"
+      ],
+      "effectText": "[Main] Reveal the top 3 cards of your deck. Add 1 [Chronicle] trait card among them to the hand. Return the rest to the top or bottom of the deck. Then, place this card in the battle area.\n[All Turns] When any of your [Chronicle] trait Digimon are deleted, ＜Delay＞.\n・By moving your level 3 or higher [Chronicle] trait Digimon from the breeding area to the battle area, it may digivolve into a [Chronicle] trait Digimon card in the hand or trash without paying the cost.",
+      "securityEffectText": "[Security] You may play 1 [Chronicle] trait card with a play cost of 5 or less from your hand or trash without paying the cost. Then, place this card in the battle area.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-095"
+    },
+    {
+      "cardId": "BT20-096",
+      "set": "BT20",
+      "nameEn": "Black Sabbath",
+      "colors": [
+        "Purple"
+      ],
+      "kinds": [
+        "Option"
+      ],
+      "playCost": 2,
+      "dp": 0,
+      "evoCosts": [],
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "types": [
+        "LIBERATOR"
+      ],
+      "effectText": "[Trash] [Main] If you have 4 or fewer cards in your hand, by paying 6 cost, return this card to the bottom of the deck and delete 1 of your opponent's unsuspended Digimon.  [Main] Trash 1 card in your hand. Then, delete 1 of your opponent's level 4 or lower Digimon.",
+      "securityEffectText": "[Security] Delete 1 of your opponent's level 6 or lower Digimon.",
+      "rarity": "U",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-096"
+    },
+    {
+      "cardId": "BT20-097",
+      "set": "BT20",
+      "nameEn": "The Apostle of Doom Descends!",
+      "colors": [
+        "Purple",
+        "Black"
+      ],
+      "kinds": [
+        "Option"
+      ],
+      "playCost": 3,
+      "dp": 0,
+      "evoCosts": [],
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "types": [
+        "X Antibody",
+        "X Program"
+      ],
+      "effectText": "[Main] 1 of your Digimon may digivolve into a level 6 or lower Digimon card with [Dex]/[DeathX] in its name in the trash with the digivolution cost reduced by 4. Then, place this card in the battle area.\n[All Turns] When any of your [DexDorugoramon] would leave the battle area, ＜Delay＞.\n・By returning 1 [Dorumon] from those Digimon's digivolution cards to the hand, you may play 1 [DeathXmon] from your trash without paying the cost.",
+      "securityEffectText": "[Security] You may play 1 [Dorumon] from your hand or trash without paying the cost. Then, add this card to the hand.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-097"
+    },
+    {
+      "cardId": "BT20-098",
+      "set": "BT20",
+      "nameEn": "Apparition Legion",
+      "colors": [
+        "Purple"
+      ],
+      "kinds": [
+        "Option"
+      ],
+      "playCost": 8,
+      "dp": 0,
+      "evoCosts": [],
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "types": [
+        "LIBERATOR"
+      ],
+      "effectText": "[Main] By returning up to 9 levels' total worth of Digimon cards from your opponent's trash to the bottom of the deck, you may play 1 [Ghost] trait Digimon card of each returned card's level from your trash without paying the costs. Then, the Digimon this effect played gain ＜Rush＞ and ＜Blocker＞ until the end of your opponent's turn.",
+      "securityEffectText": "[Security] You may play 1 level 5 or lower Digimon card with the [Ghost] trait from your trash without paying the cost.",
+      "rarity": "U",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-098"
+    },
+    {
+      "cardId": "BT20-099",
+      "set": "BT20",
+      "nameEn": "Singularity of Chaos",
+      "colors": [
+        "White"
+      ],
+      "kinds": [
+        "Option"
+      ],
+      "playCost": 2,
+      "dp": 0,
+      "evoCosts": [],
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "types": [
+        "ACCEL"
+      ],
+      "effectText": "While you have a Digimon with [Chaosmon] in its name or the [ACCEL] trait, you may ignore this card's color requirements.\n[Security] Gain 1 memory and add this card to the hand.\n[Main] You may play 1 Digimon card with the [ACCEL] trait from your hand with the play cost reduced by 4. Then, place this card as any of your Digimon's bottom digivolution card.",
+      "securityEffectText": "[End of Opponent's Turn] If this Digimon has [Chaosmon] in its name, trash your opponent's top security card and this Digimon gets -30000 DP for the turn.",
+      "rarity": "C",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-099"
+    },
+    {
+      "cardId": "BT20-100",
+      "set": "BT20",
+      "nameEn": "The Last Guardian",
+      "colors": [
+        "White"
+      ],
+      "kinds": [
+        "Option"
+      ],
+      "playCost": 4,
+      "dp": 0,
+      "evoCosts": [],
+      "forms": [
+        "-"
+      ],
+      "attributes": [
+        "-"
+      ],
+      "types": [
+        "Royal Knight"
+      ],
+      "effectText": "[Main] Reveal the top 3 cards of your deck. Add 1 [Cool Boy] and 1 card with the [Royal Knight]/[X Antibody] trait among them to the hand. Return the rest to the bottom of the deck. Then, place this card in the battle area.\n[All Turns] When any of your Digimon with [Omnimon] in its name would leave the battle area, ＜Delay＞ \n・1 of those Digimon doesn't leave.",
+      "securityEffectText": "[Security] You may play 1 [Omekamon]/[Cool Boy] from your hand or trash without paying the cost. Then, place this card in the battle area.",
+      "rarity": "U",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-100"
+    },
+    {
+      "cardId": "BT20-101",
+      "set": "BT20",
+      "nameEn": "Zephagamon",
+      "colors": [
+        "Green"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 6,
+      "playCost": 8,
+      "dp": 13000,
+      "evoCosts": [
+        {
+          "color": "Green",
+          "level": 5,
+          "memoryCost": 5
+        }
+      ],
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Data"
+      ],
+      "types": [
+        "Magic Knight",
+        "Vortex Warriors",
+        "LIBERATOR",
+        "Bird Dragon"
+      ],
+      "effectText": "[Digivolve] Play cost 10 or higher Lv.6 w/[Vortex Warriors] trait: Cost 1 \n\n[Hand] [Counter] ＜Blast Digivolve＞.\n＜Piercing＞.\n＜Vortex＞.\n＜Blocker＞ \n[All Turns] [Once Per Turn] When any Digimon suspend, this Digimon may unsuspend.\n[On Play] [When Digivolving] You may suspend 1 Digimon. Then, for every 2 suspended Digimon, you may return 1 of your opponent's suspended Digimon to the bottom of the deck.",
+      "rarity": "UR",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-101",
+      "isAce": true,
+      "overflowMemory": 4
+    },
+    {
+      "cardId": "BT20-102",
+      "set": "BT20",
+      "nameEn": "Omnimon (X Antibody)",
+      "colors": [
+        "Blue",
+        "White",
+        "Red"
+      ],
+      "kinds": [
+        "Digimon"
+      ],
+      "level": 7,
+      "playCost": 16,
+      "dp": 16000,
+      "evoCosts": [
+        {
+          "color": "Blue",
+          "level": 6,
+          "memoryCost": 6
+        },
+        {
+          "color": "Red",
+          "level": 6,
+          "memoryCost": 6
+        }
+      ],
+      "forms": [
+        "Mega"
+      ],
+      "attributes": [
+        "Vaccine"
+      ],
+      "types": [
+        "Holy Warrior",
+        "X Antibody",
+        "Royal Knight",
+        "LIBERATOR"
+      ],
+      "effectText": "[Digivolve] [Omnimon]: Cost 2 \n\n＜Raid＞.\n＜Piercing＞.\n＜Blocker＞ \n[On Play] [When Digivolving] If [Omnimon]/[X Antibody] is in this Digimon's digivolution cards, choose 1 of both players' Digimon and delete all other Digimon. Then, return 1 of your opponent's Digimon to the bottom of the deck.\n[End of Your Turn] [Once Per Turn] 1 of your Digimon may gain ＜Rush＞ for the turn and attack without suspending.",
+      "rarity": "UR",
+      "maxCountInDeck": 4,
+      "imageId": "BT20-102"
+    }
+  ]
+}

@@ -1,5 +1,9 @@
 # BT20 Card Audit Ledger
 
+> Historical claims below are undergoing independent revalidation as of 2026-09-06.
+> The collection is currently incomplete. Current evidence lives in
+> `internal-docs/audits/BT20/revalidation/PLAN.md` and `ledger.json`.
+
 ## Collection closeout
 
 - Final status: 102/102 cards verified at 10/10; every production module has `coverage: "full"`, an empty residual list, exactly one `registerIrCard` call, no `registerCard` call, and no `@ts-nocheck` directive.

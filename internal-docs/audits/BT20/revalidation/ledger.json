@@ -1,0 +1,1858 @@
+{
+  "set": "BT20",
+  "baseline": "a924de971e0b43ad9ebd8f82a454d495ff880a60",
+  "status": "in-progress",
+  "dimensions": [
+    "catalogRules",
+    "irTrace",
+    "behavioralProof",
+    "peerStackProof",
+    "deliveryGates"
+  ],
+  "summary": {
+    "cards": 102,
+    "verified": 0,
+    "totalPoints": 0,
+    "maximumPoints": 1020,
+    "meanScore": 0,
+    "percentVerified": 0
+  },
+  "cards": [
+    {
+      "cardId": "BT20-001",
+      "name": "DemiVeemon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-002",
+      "name": "Bebydomon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-003",
+      "name": "Bibimon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-004",
+      "name": "Pinamon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-005",
+      "name": "Kapurimon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-006",
+      "name": "DemiMeramon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-007",
+      "name": "Dracomon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-008",
+      "name": "Huckmon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-009",
+      "name": "Veemon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-010",
+      "name": "Ryudamon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-011",
+      "name": "ExVeemon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-012",
+      "name": "Ginryumon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-013",
+      "name": "BaoHuckmon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-014",
+      "name": "SaviorHuckmon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-015",
+      "name": "Hisyaryumon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-016",
+      "name": "Paildramon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-017",
+      "name": "Jesmon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-018",
+      "name": "Ouryumon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-019",
+      "name": "Jesmon (X Antibody)",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-020",
+      "name": "Imperialdramon: Fighter Mode",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-021",
+      "name": "Jesmon GX",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-022",
+      "name": "Crabmon (X Antibody)",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-023",
+      "name": "Coredramon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-024",
+      "name": "Seadramon (X Antibody)",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-025",
+      "name": "Wingdramon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-026",
+      "name": "MegaSeadramon (X Antibody)",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-027",
+      "name": "Slayerdramon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-028",
+      "name": "GigaSeadramon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-029",
+      "name": "Pulsemon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-030",
+      "name": "Liollmon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-031",
+      "name": "Liamon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-032",
+      "name": "Bulkmon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-033",
+      "name": "LoaderLeomon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-034",
+      "name": "Boutmon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-035",
+      "name": "Kazuchimon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-036",
+      "name": "BanchoLeomon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-037",
+      "name": "Chaosmon: Valdur Arm",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-038",
+      "name": "Falcomon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-039",
+      "name": "Diatrymon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-040",
+      "name": "Coredramon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-041",
+      "name": "Crowmon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-042",
+      "name": "Groundramon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-043",
+      "name": "Varodurumon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-044",
+      "name": "Breakdramon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-045",
+      "name": "Examon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-046",
+      "name": "Espimon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-047",
+      "name": "Solarmon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-048",
+      "name": "Dorumon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-049",
+      "name": "Blimpmon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-050",
+      "name": "HoverEspimon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-051",
+      "name": "Raptordramon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-052",
+      "name": "Oblivimon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-053",
+      "name": "Grademon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-054",
+      "name": "Bulbmon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-055",
+      "name": "Invisimon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-056",
+      "name": "Alphamon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-057",
+      "name": "Gankoomon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-058",
+      "name": "Raidenmon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-059",
+      "name": "Gankoomon (X Antibody)",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-060",
+      "name": "Alphamon: Ouryuken",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-061",
+      "name": "Impmon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-062",
+      "name": "Candlemon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-063",
+      "name": "Ghostmon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-064",
+      "name": "Loogamon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-065",
+      "name": "Wormmon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-066",
+      "name": "Stingmon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-067",
+      "name": "Soulmon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-068",
+      "name": "Bakemon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-069",
+      "name": "Punkmon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-070",
+      "name": "Loogarmon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-071",
+      "name": "Soloogarmon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-072",
+      "name": "Phantomon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-073",
+      "name": "MetalPhantomon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-074",
+      "name": "Dinobeemon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-075",
+      "name": "Loudmon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-076",
+      "name": "Imperialdramon: Dragon Mode",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-077",
+      "name": "HeavyMetaldramon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-078",
+      "name": "Reapermon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-079",
+      "name": "Necromon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-080",
+      "name": "Fenriloogamon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-081",
+      "name": "Fenriloogamon: Takemikazuchi",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-082",
+      "name": "DeathXmon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-083",
+      "name": "Omekamon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-084",
+      "name": "Sistermon Ciel (Awakened)",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-085",
+      "name": "Shoto Kazama",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-086",
+      "name": "Altea",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-087",
+      "name": "Kota Domoto & Yuji Musya",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-088",
+      "name": "Violet Inboots",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-089",
+      "name": "Code Cracker Fang & Hacker Judge",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-090",
+      "name": "Yuuki",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-091",
+      "name": "Cool Boy",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-092",
+      "name": "Battle NPC",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-093",
+      "name": "Unleash the Dragon Gene",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-094",
+      "name": "Emperor Dragon of Calamity",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-095",
+      "name": "Fellowship of Hope's Keepers",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-096",
+      "name": "Black Sabbath",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-097",
+      "name": "The Apostle of Doom Descends!",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-098",
+      "name": "Apparition Legion",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-099",
+      "name": "Singularity of Chaos",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-100",
+      "name": "The Last Guardian",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-101",
+      "name": "Zephagamon",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    },
+    {
+      "cardId": "BT20-102",
+      "name": "Omnimon (X Antibody)",
+      "status": "pending",
+      "scores": {
+        "catalogRules": 0,
+        "irTrace": 0,
+        "behavioralProof": 0,
+        "peerStackProof": 0,
+        "deliveryGates": 0
+      },
+      "total": 0,
+      "evidence": [],
+      "commands": [],
+      "gaps": [
+        "Independent revalidation pending; historical 10/10 is not current evidence."
+      ]
+    }
+  ]
+}
