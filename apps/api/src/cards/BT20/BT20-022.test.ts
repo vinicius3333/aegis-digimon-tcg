@@ -62,6 +62,23 @@ describe("BT20-022 Crabmon (X Antibody)", () => {
     expect(s.perm("protected")).toBeDefined();
   });
 
+  it("reaches Crabmon (X Antibody) from a legal Crabmon stack through public evolution", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT15-019", as: "crabmon" }], hand: [{ card: "BT20-022", as: "crabmonX" }] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("crabmon").permanentId,
+        instanceId: s.inst("crabmonX").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("crabmon").topCard.cardId === "BT20-022");
+    expect(s.perm("crabmon").topCard.cardId).toBe("BT20-022");
+    expect(s.perm("crabmon").stack.map((card) => card.cardId)).toEqual(["BT15-019"]);
+  });
+
   it("inherits Draw 1 at exactly 7 hand cards and only once per turn", async () => {
     const hand = Array.from({ length: 7 }, () => "BT20-001");
     const s = setupEngine({
