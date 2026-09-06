@@ -52,16 +52,26 @@ describe("BT21-059 Timemon", () => {
   });
 
   it("links for 2, grants 3000 DP, and resolves its linked De-Digivolve", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT21-009", as: "host" }],
+          battleArea: [
+            { card: "BT21-009", as: "host" },
+            { card: "BT21-045", as: "ownOther", under: ["BT21-042"] },
+          ],
           hand: [{ card: "BT21-059", as: "timemon" }],
         },
-        1: { battleArea: [{ card: "BT21-045", as: "opponent", under: ["BT21-042", "BT21-044"] }] },
+        1: {
+          battleArea: [
+            { card: "BT21-045", as: "opponent", under: ["BT21-042", "BT21-044"] },
+            { card: "BT21-045", as: "otherOpponent", under: ["BT21-042"] },
+          ],
+        },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.perm("opponent").topCard.instanceId);
     s.state.memory = 3;
     await s.ready();
     const baseDp = s.perm("host").currentDP;
@@ -77,6 +87,31 @@ describe("BT21-059 Timemon", () => {
 
     expect(s.state.memory).toBe(1);
     expect(s.perm("host").currentDP).toBe(baseDp + 3000);
+    expect(s.perm("opponent").topCard.cardId).toBe("BT21-044");
+    expect(s.perm("opponent").stack.map((card) => card.cardId)).toEqual(["BT21-042"]);
+    expect(s.perm("otherOpponent").topCard.cardId).toBe("BT21-045");
+    expect(s.perm("ownOther").topCard.cardId).toBe("BT21-045");
+  });
+
+  it("refuses the paid link requirement for a non-Appmon card without spending memory", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-009", as: "host" }],
+        hand: [{ card: "BT1-009", as: "nonAppmon" }],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("nonAppmon").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("nonAppmon").instanceId)).toBe(true);
   });
 
   it("de-digivolves once when Timemon itself receives a real link card", async () => {
