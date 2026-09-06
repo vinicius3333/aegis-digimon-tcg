@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming } from "@aegis/shared";
-import { setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-091.js";
 import "./index.js";
 
@@ -225,5 +225,25 @@ describe("BT20-091 [Opponent's Turn][Once Per Turn] play Omekamon when a Royal K
     expect(p0?.battleArea.some((p) => p.permanentId === royalKnightId)).toBe(false);
     // Omekamon stayed in hand: the clause is [Opponent's Turn] only.
     expect(p0?.hand.some((c) => c.instanceId === omekamonInstanceId)).toBe(true);
+  });
+});
+
+describe("BT20-091 Security deployment", () => {
+  it("plays itself from security through a public security check", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-010", as: "attacker" }] },
+      1: { security: [{ card: COOL_BOY, as: "securityCoolBoy" }] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === COOL_BOY));
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === COOL_BOY)).toBe(true);
   });
 });
