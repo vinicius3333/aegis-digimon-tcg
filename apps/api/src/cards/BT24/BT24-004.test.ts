@@ -1,7 +1,7 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT24-004.js";
 import "../index.js";
 
@@ -63,5 +63,24 @@ describe("BT24-004 Wanyamon", () => {
       subjectPermanentId: s.perm("ownIliad").permanentId,
     });
     expect(s.state.players[0]!.hand).toHaveLength(1);
+  });
+
+  it("fires from the public play intent for your Iliad Digimon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-029", as: "host", under: ["BT24-004"] }],
+        hand: [{ card: "BT24-022", as: "playedIliad" }],
+        deck: [{ card: "BT1-001", as: "drawn" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("playedIliad").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
   });
 });

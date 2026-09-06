@@ -66,4 +66,31 @@ describe("BT24-006 Tapmon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(1);
     expect(s.state.players[0]!.trash).toHaveLength(1);
   });
+
+  it("fires from the public link intent when another Appmon is linked to this host", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-009", as: "host", under: ["BT24-006"] }],
+          hand: [{ card: "BT24-053", as: "link" }, { card: "BT4-022", as: "startingHand" }],
+          deck: [{ card: "BT4-022", as: "drawn" }, "BT4-022"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.length === 1);
+
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(s.state.players[0]!.trash).toHaveLength(1);
+  });
 });
