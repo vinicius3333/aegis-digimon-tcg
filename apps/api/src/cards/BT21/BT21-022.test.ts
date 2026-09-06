@@ -322,4 +322,93 @@ describe("BT21-022 Canoweissmon", () => {
     await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
   });
+
+  it("declines the inherited protection through a public Gaia Force choice", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-028", as: "host", under: ["BT21-010", "BT21-019", "BT21-022"] }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "redSource" }],
+          hand: [{ card: "ST1-16", as: "gaiaForce" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    expect(s.perm("host").topCard.cardId).toBe("BT21-028");
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT21-010", "BT21-019", "BT21-022"]);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaiaForce").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT21-010", "BT21-019", "BT21-022", "BT21-028"]),
+    );
+    expect(s.state.memory).toBe(2);
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
+  });
+
+  it("does not use the inherited protection for a public owner-effect deletion", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-028", as: "host", under: ["BT21-010", "BT21-019", "BT21-022"] },
+            { card: "BT2-067", as: "purpleSource" },
+          ],
+          hand: [{ card: "BT2-109", as: "heatViper" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    preferred.push(s.perm("host").topCard.instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("heatViper").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.memory).toBe(5);
+  });
+
+  it("does not use the inherited protection when a public battle deletes Canoweissmon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-028", as: "host", suspended: true, under: ["BT21-010", "BT21-019", "BT21-022"] }],
+        },
+        1: { battleArea: [{ card: "BT21-030", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    const attackerId = s.perm("attacker").permanentId;
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: attackerId,
+        target: { kind: "permanent", permanentId: hostId },
+      }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(true);
+  });
 });
