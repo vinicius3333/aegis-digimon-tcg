@@ -1,0 +1,635 @@
+{
+  "date": "2026-09-06",
+  "baseCommit": "9ba114cc7f196db6f71c13a85f743677c0a4e18c",
+  "implementationAndTestsCommit": "70e956f6278b815598c997c22955c7bcf95456c8",
+  "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT26 --maxWorkers=1 --no-file-parallelism --reporter=default --reporter=json --outputFile.json=/tmp/bt26-final-results.json",
+  "files": 104,
+  "passedTests": 993,
+  "failedTests": 0,
+  "cards": [
+    {
+      "cardId": "BT26-001",
+      "score": 10,
+      "tests": 9,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-002",
+      "score": 10,
+      "tests": 6,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-003",
+      "score": 10,
+      "tests": 8,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-004",
+      "score": 10,
+      "tests": 7,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-005",
+      "score": 10,
+      "tests": 6,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-006",
+      "score": 10,
+      "tests": 10,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-007",
+      "score": 10,
+      "tests": 9,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-008",
+      "score": 10,
+      "tests": 8,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-009",
+      "score": 10,
+      "tests": 8,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-010",
+      "score": 10,
+      "tests": 15,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-011",
+      "score": 10,
+      "tests": 9,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-012",
+      "score": 10,
+      "tests": 12,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-013",
+      "score": 10,
+      "tests": 10,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-014",
+      "score": 10,
+      "tests": 9,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-015",
+      "score": 10,
+      "tests": 10,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-016",
+      "score": 10,
+      "tests": 15,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-017",
+      "score": 10,
+      "tests": 12,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-018",
+      "score": 10,
+      "tests": 9,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-019",
+      "score": 10,
+      "tests": 11,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-020",
+      "score": 10,
+      "tests": 6,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-021",
+      "score": 10,
+      "tests": 9,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-022",
+      "score": 10,
+      "tests": 13,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-023",
+      "score": 10,
+      "tests": 11,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-024",
+      "score": 10,
+      "tests": 11,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-025",
+      "score": 10,
+      "tests": 11,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-026",
+      "score": 10,
+      "tests": 11,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-027",
+      "score": 10,
+      "tests": 6,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-028",
+      "score": 10,
+      "tests": 10,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-029",
+      "score": 10,
+      "tests": 10,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-030",
+      "score": 10,
+      "tests": 8,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-031",
+      "score": 10,
+      "tests": 10,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-032",
+      "score": 10,
+      "tests": 10,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-033",
+      "score": 10,
+      "tests": 9,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-034",
+      "score": 10,
+      "tests": 7,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-035",
+      "score": 10,
+      "tests": 6,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-036",
+      "score": 10,
+      "tests": 9,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-037",
+      "score": 10,
+      "tests": 9,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-038",
+      "score": 10,
+      "tests": 7,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-039",
+      "score": 10,
+      "tests": 11,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-040",
+      "score": 10,
+      "tests": 11,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-041",
+      "score": 10,
+      "tests": 10,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-042",
+      "score": 10,
+      "tests": 11,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-043",
+      "score": 10,
+      "tests": 6,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-044",
+      "score": 10,
+      "tests": 7,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-045",
+      "score": 10,
+      "tests": 7,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-046",
+      "score": 10,
+      "tests": 6,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-047",
+      "score": 10,
+      "tests": 11,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-048",
+      "score": 10,
+      "tests": 7,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-049",
+      "score": 10,
+      "tests": 7,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-050",
+      "score": 10,
+      "tests": 9,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-051",
+      "score": 10,
+      "tests": 6,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-052",
+      "score": 10,
+      "tests": 7,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-053",
+      "score": 10,
+      "tests": 10,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-054",
+      "score": 10,
+      "tests": 6,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-055",
+      "score": 10,
+      "tests": 10,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-056",
+      "score": 10,
+      "tests": 10,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-057",
+      "score": 10,
+      "tests": 8,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-058",
+      "score": 10,
+      "tests": 9,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-059",
+      "score": 10,
+      "tests": 11,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-060",
+      "score": 10,
+      "tests": 10,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-061",
+      "score": 10,
+      "tests": 7,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-062",
+      "score": 10,
+      "tests": 10,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-063",
+      "score": 10,
+      "tests": 14,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-064",
+      "score": 10,
+      "tests": 6,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-065",
+      "score": 10,
+      "tests": 8,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-066",
+      "score": 10,
+      "tests": 8,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-067",
+      "score": 10,
+      "tests": 11,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-068",
+      "score": 10,
+      "tests": 10,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-069",
+      "score": 10,
+      "tests": 11,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-070",
+      "score": 10,
+      "tests": 14,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-071",
+      "score": 10,
+      "tests": 7,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-072",
+      "score": 10,
+      "tests": 8,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-073",
+      "score": 10,
+      "tests": 13,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-074",
+      "score": 10,
+      "tests": 13,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-075",
+      "score": 10,
+      "tests": 9,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-076",
+      "score": 10,
+      "tests": 10,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-077",
+      "score": 10,
+      "tests": 11,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-078",
+      "score": 10,
+      "tests": 12,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-079",
+      "score": 10,
+      "tests": 16,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-080",
+      "score": 10,
+      "tests": 12,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-081",
+      "score": 10,
+      "tests": 10,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-082",
+      "score": 10,
+      "tests": 18,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-083",
+      "score": 10,
+      "tests": 11,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-084",
+      "score": 10,
+      "tests": 12,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-085",
+      "score": 10,
+      "tests": 11,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-086",
+      "score": 10,
+      "tests": 10,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-087",
+      "score": 10,
+      "tests": 7,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-088",
+      "score": 10,
+      "tests": 9,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-089",
+      "score": 10,
+      "tests": 9,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-090",
+      "score": 10,
+      "tests": 11,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-091",
+      "score": 10,
+      "tests": 13,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-092",
+      "score": 10,
+      "tests": 9,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-093",
+      "score": 10,
+      "tests": 10,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-094",
+      "score": 10,
+      "tests": 10,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-095",
+      "score": 10,
+      "tests": 10,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-096",
+      "score": 10,
+      "tests": 8,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-097",
+      "score": 10,
+      "tests": 8,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-098",
+      "score": 10,
+      "tests": 8,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-099",
+      "score": 10,
+      "tests": 9,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-100",
+      "score": 10,
+      "tests": 9,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-101",
+      "score": 10,
+      "tests": 9,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-102",
+      "score": 10,
+      "tests": 8,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-103",
+      "score": 10,
+      "tests": 8,
+      "status": "passed"
+    },
+    {
+      "cardId": "BT26-104",
+      "score": 10,
+      "tests": 10,
+      "status": "passed"
+    }
+  ]
+}
