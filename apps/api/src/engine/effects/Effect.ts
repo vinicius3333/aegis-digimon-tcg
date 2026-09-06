@@ -28,6 +28,8 @@ export interface Effect {
   costWindow?: "play" | "digivolve";
   /** True when this pay-time effect is itself a play-cost reducer. */
   isPlayCostReduction?: boolean;
+  /** Own use requirement; may be evaluated for an Option stored under another card. */
+  isColorWaiverStatic?: boolean;
   /**
    * Ordering tier inside a continuous recomputation. Effects that read a keyword
    * granted by another continuous effect run after ordinary providers, so their
