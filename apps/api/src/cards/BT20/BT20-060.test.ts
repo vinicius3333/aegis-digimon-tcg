@@ -93,6 +93,32 @@ describe("BT20-060 Alphamon: Ouryuken", () => {
     }
   });
 
+  it("expires the -15000 reduction at the real end of the opponent's turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT20-060", as: "ouryuken" }],
+          deck: ["BT1-010", "BT1-010", "BT1-010"],
+        },
+        1: { battleArea: [{ card: "BT20-057", dp: 20000, as: "target" }], deck: ["BT1-010", "BT1-010"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 9;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ouryuken").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").currentDP === 5000);
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    expect(s.perm("target").currentDP).toBe(20000);
+  });
+
   it("Q4398 Blast DNA finishes security trash and Recovery before deleting a 0-DP target", async () => {
     const s = setupEngine(
       {

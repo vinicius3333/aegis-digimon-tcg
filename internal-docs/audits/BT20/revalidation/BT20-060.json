@@ -13,6 +13,7 @@
     "BT20-060.test.ts: Q4398 public opponent attack/counter response, exact material stack, trash/Recovery-before-0-DP deletion",
     "BT20-060.test.ts: public counter-window refusal when Ouryumon material is absent",
     "BT20-060.test.ts: once-per-turn cross-stack memory, Overflow, metadata, and exact source identities",
+    "Unexecuted public natural-turn test: normal BT20-060 play cost 9, -15000 target, and return to printed DP after opponent turn",
     "blast-dna-resolution.md",
     "blast-dna-affected-suites.log"
   ],
@@ -28,10 +29,14 @@
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/engine/blastDnaCounter.test.ts src/cards/BT20/BT20-060.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
       "result": "22/22 passed; 9 card tests"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-final-collection-results.json",
+      "result": "All current colocated cases pass within894/894; final independent acceptance remains pending."
     }
   ],
   "gaps": [
-    "Natural cross-stack once-per-turn/reset and Q4399/Q4726 timing evidence remain pending.",
+    "Independent review: natural opponent-turn-end expiry of the -15000 effect remains unproven; Q4399/Q4726 remain shared timing evidence.",
     "Full lead clause/stack review and final collection gates pending."
   ],
   "reviewStatus": "Corrected Counter fixtures executed by lead; complete clause and collection acceptance remains pending."
