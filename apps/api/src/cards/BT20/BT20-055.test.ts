@@ -84,7 +84,7 @@ describe("BT20-055 Invisimon", () => {
             hand: [{ card: "BT20-055", as: "invisimon" }],
           },
           1: {
-            battleArea: [{ card: "BT20-053", under: ["BT13-005", "BT20-048", "BT20-051"], as: "target" }],
+            battleArea: [{ card: "BT20-053", under: ["BT13-005", "BT20-048", "BT20-050"], as: "target" }],
             security: [{ card: "BT20-047", faceUp: true }, "BT20-047", "BT20-047"],
           },
         },
@@ -113,7 +113,7 @@ describe("BT20-055 Invisimon", () => {
         0: { hand: [{ card: "BT20-055", as: "invisimon" }] },
         1: {
           battleArea: [
-            { card: "BT20-056", as: "ineligible", under: ["BT13-005", "BT20-048", "BT20-051", "BT20-053"] },
+            { card: "BT20-056", as: "ineligible", under: ["BT13-005", "BT20-048", "BT20-050", "BT20-053"] },
             { card: "BT20-048", as: "eligible", under: ["BT13-005"] },
           ],
           security: ["BT20-047", "BT20-047", "BT20-047"],
@@ -135,7 +135,7 @@ describe("BT20-055 Invisimon", () => {
     );
     expect(s.state.players[1]!.battleArea.map((p) => p.permanentId)).toEqual([ineligibleId]);
     expect(s.perm("ineligible").stack).toHaveLength(2);
-    expect(s.perm("ineligible").topCard.cardId).toBe("BT20-051");
+    expect(s.perm("ineligible").topCard.cardId).toBe("BT20-050");
   });
 
   it("Q4388 may move Invisimon itself and lets the promoted HoverEspimon draw", async () => {

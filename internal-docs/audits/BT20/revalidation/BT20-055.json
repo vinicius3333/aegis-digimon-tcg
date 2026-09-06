@@ -12,7 +12,7 @@
     "apps/api/src/cards/BT20/BT20-055.ts",
     "apps/api/src/cards/BT20/BT20-055.test.ts",
     "internal-docs/audits/BT20/revalidation/BT20-055.md",
-    "BT20-055.test.ts: unexecuted public mixed delete boundary after De-Digivolve 2",
+    "BT20-055.test.ts: public mixed delete boundary after De-Digivolve 2 uses a legal level-4 BT20-050 predecessor under BT20-053; optional face-up top-card movement acceptance/refusal preserves source identity",
     "BT20-055.test.ts: unexecuted natural runOneTurn Security play at the opponent's turn end",
     "current-collection-green-results.json",
     "collection-after-name-fix-results.json",
@@ -46,6 +46,10 @@
     {
       "command": "pnpm exec oxlint <changed public-proof test files>; pnpm exec oxfmt <same files>; git diff --check",
       "result": "Passed changed-file style and diff gates."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-final-collection-results.json",
+      "result": "All current colocated cases pass within894/894; final independent acceptance remains pending."
     }
   ],
   "gaps": [
