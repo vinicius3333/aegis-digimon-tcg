@@ -20,6 +20,8 @@ export type Intent =
       alternateRequirementIndex?: number;
       /** Explicitly use the card's Blast Digivolve waiver; omitted for a normal evolution. */
       useBlastDigivolve?: boolean;
+      /** Declare App Fusion using this linked card on the chosen battle-area Digimon. */
+      appFusionLinkInstanceId?: string;
     } // stack hand card onto a permanent; boolean remains the first-match compatibility path
   | { type: "hatchEgg" } // breeding: move top egg to raising area
   | { type: "moveFromBreeding"; permanentId: string } // move raised Digimon to battle area

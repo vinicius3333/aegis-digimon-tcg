@@ -1,4 +1,5 @@
 import { ArraySchema } from "@colyseus/schema";
+import { moveLinkOntoStack } from "../actions/digivolveState.js";
 import {
   CardKind,
   DECK_BOTTOM,
@@ -1663,9 +1664,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const carriedSuspended = permanent.isSuspended;
     const priorTop = permanent.topCard;
     pushOnStack(permanent, priorTop);
-    permanent.linked.splice(linkIndex, 1);
-    selectedLink.faceUp = true;
-    pushOnStack(permanent, selectedLink);
+    moveLinkOntoStack(permanent, selectedLink.instanceId);
     setTopCard(permanent, instance);
     continuous.reanchorCustomEffectGrants(priorTop.instanceId, instance.instanceId);
     const dp = definition.dp;
