@@ -107,4 +107,62 @@ describe("BT20-099 Singularity of Chaos", () => {
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-010");
     expect(s.perm("chaosmon").currentDP).toBe(10000);
   });
+
+  it("public Security check gains memory and returns the Option to hand", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-010", as: "attacker" }] },
+      1: { security: [{ card: "BT20-099", faceUp: true }] },
+    });
+    await s.ready();
+    s.state.turnSeat = 0;
+    const before = s.state.memory;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.some((card) => card.cardId === "BT20-099"));
+    expect(s.state.players[1]!.hand.map((card) => card.cardId)).toContain("BT20-099");
+    expect(s.state.memory).toBe(before - 1);
+  });
+
+  it("declines an available ACCEL play, then still places itself under an ally", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-083", as: "ally" }],
+          hand: [
+            { card: "BT20-099", as: "option" },
+            { card: "BT20-061", as: "nonAccel" },
+            { card: "BT20-030", as: "availableAccel" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("ally").stack.some((card) => card.cardId === "BT20-099"));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT20-061", "BT20-030"]),
+    );
+    expect(s.perm("ally").stack.map((card) => card.cardId)).toContain("BT20-099");
+  });
+  it("requires its printed White color without a Chaosmon or ACCEL Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-010", as: "nonMatching" }], hand: [{ card: "BT20-099", as: "option" }] },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toMatchObject({
+      ok: false,
+    });
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT20-099"]);
+    expect(s.state.memory).toBe(10);
+  });
 });
