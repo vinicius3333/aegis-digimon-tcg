@@ -4,6 +4,10 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-077.js";
+import "./BT20-070.js";
+import "./BT20-074.js";
+import "./BT20-075.js";
+import "../BT21/BT21-077.js";
 import "./index.js";
 
 describe("BT20-077 HeavyMetaldramon", () => {
