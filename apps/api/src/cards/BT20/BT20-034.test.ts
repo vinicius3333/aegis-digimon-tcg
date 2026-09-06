@@ -4,6 +4,10 @@ import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-034.js";
 import "./index.js";
+import "./BT20-003.js";
+import "../BT14/BT14-087.js";
+import "../BT1/BT1-036.js";
+import "./BT20-043.js";
 
 describe("BT20-034 Boutmon", () => {
   it("has Fortitude, restricts one opponent Digimon after a Tamer enters the stack, and trashes security on inherited battle deletion", () => {
@@ -84,6 +88,71 @@ describe("BT20-034 Boutmon", () => {
     expect(
       observe(unrelatedHost.engine).isRestricted(unrelatedHost.perm("target"), "cannotActivateWhenDigivolving"),
     ).toBe(false);
+  });
+
+  it("publicly replays the same Fortitude Digimon after it is deleted in battle", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-034", suspended: true, as: "boutmon", under: ["BT20-032"] }],
+          security: ["BT1-010"],
+          deck: ["BT1-010", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-010", dp: 13000, as: "attacker" }],
+          security: ["BT1-010"],
+          deck: ["BT1-010", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const originalInstanceId = s.inst("boutmon").instanceId;
+    await s.ready();
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("boutmon").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === originalInstanceId),
+    );
+    const replayed = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard.instanceId === originalInstanceId,
+    );
+    expect(replayed).toBeDefined();
+    expect(replayed!.stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT20-032")).toBe(true);
+  });
+
+  it("publicly places a matching Tamer through Bibimon's inherited end-of-turn effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-034", as: "boutmon", under: ["BT20-003", "BT20-029", "BT20-032"] },
+            { card: "BT14-087", as: "tamer" },
+          ],
+          deck: ["BT1-010", "BT1-010"],
+        },
+        1: { battleArea: [{ card: "BT20-010", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const hostId = s.perm("boutmon").permanentId;
+    await s.ready();
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+    await settle(() => s.perm("boutmon").stack.some((card) => card.instanceId === s.inst("tamer").instanceId));
+    expect(s.perm("boutmon").stack.some((card) => card.instanceId === s.inst("tamer").instanceId)).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "cannotActivateWhenDigivolving")).toBe(true);
+    expect(hostId).toBe(s.perm("boutmon").permanentId);
   });
 
   it("publicly evolves from a level-4 Digimon with Pulsemon in its text and rejects a level-3 source", async () => {
@@ -200,6 +269,128 @@ describe("BT20-034 Boutmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.players[1]!.security.length === 1);
     expect(s.state.players[0]!.battleArea).toContain(s.perm("host"));
+  });
+
+  it("does not trash security when its host and the opponent leave simultaneously", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-043", dp: 12000, as: "host", under: ["BT20-034"] }] },
+      1: {
+        battleArea: [{ card: "BT20-010", dp: 12000, suspended: true, as: "opponent" }],
+        security: ["BT1-010", "BT1-010"],
+        deck: ["BT1-010", "BT1-010"],
+      },
+    });
+    const hostId = s.perm("host").permanentId;
+    const opponentId = s.perm("opponent").permanentId;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "permanent", permanentId: opponentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === opponentId)).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+
+  it("resets inherited security trash after a real turn while the host remains over Boutmon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-035", dp: 12000, as: "host", under: ["BT20-034"] }],
+          hand: [{ card: "BT1-036", as: "garurumon" }, "BT1-010"],
+          security: ["BT1-010"],
+          deck: ["BT1-010", "BT1-010", "BT1-010"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT20-010", dp: 1000, suspended: true, as: "first" },
+            { card: "BT20-010", dp: 1000, suspended: true, as: "second" },
+            { card: "BT20-010", dp: 3000, suspended: true, as: "third" },
+          ],
+          security: ["BT1-010", "BT1-010"],
+          deck: ["BT1-010", "BT1-010", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const hostId = s.perm("host").permanentId;
+    const firstId = s.perm("first").permanentId;
+    const secondId = s.perm("second").permanentId;
+    const thirdId = s.perm("third").permanentId;
+    await s.ready();
+    s.state.memory = 6;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "permanent", permanentId: firstId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 1 &&
+        !s.state.players[1]!.battleArea.some((p) => p.permanentId === firstId),
+    );
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.memory).toBe(6);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("garurumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("garurumon").instanceId));
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "permanent", permanentId: secondId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === secondId));
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, { type: "attack", attackerPermanentId: thirdId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.filter((event) => event.kind === "combatResolved").length === 3);
+    expect(s.perm("third").isSuspended).toBe(true);
+    expect(s.perm("host").topCard.cardId).toBe("BT20-035");
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextOwnTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "permanent", permanentId: thirdId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some((p) => p.permanentId === thirdId) &&
+        s.state.players[1]!.security.length === 0,
+    );
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT20-034")).toBe(false);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toContain("BT20-034");
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextOwnTurn;
   });
 
   it("does not trash security when another allied Digimon deletes in battle", async () => {

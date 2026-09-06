@@ -1,6 +1,6 @@
 {
   "cardId": "BT20-034",
-  "status": "awaiting-lead-review",
+  "status": "lead-verified",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
@@ -11,13 +11,45 @@
   "evidence": [
     "apps/api/src/cards/BT20/BT20-034.test.ts: public Bulkmon\u2192Boutmon evolution and illegal Lv.3 refusal",
     "apps/api/src/cards/BT20/BT20-034.test.ts: exact selected-vs-other restriction target and real opponent-turn expiry",
+    "apps/api/src/cards/BT20/BT20-034.test.ts: public BT20-003 inherited End of Your Turn placement of matching BT14-087 Tamer arms the restriction on a legal evolution stack",
     "apps/api/src/cards/BT20/BT20-034.test.ts: Fortitude, natural inherited battle deletion/security trash, and negative source scope",
-    "Unexecuted public opponent evolution proves a restricted When Digivolving effect does not resolve",
+    "apps/api/src/cards/BT20/BT20-034.test.ts: public BT20-035 over BT20-034 deletes twice with BT1-036 unsuspension, then deletes after a real opponent turn to prove inherited Once Per Turn reset and source-stack preservation",
+    "apps/api/src/cards/BT20/BT20-034.test.ts: equal-DP public simultaneous host/opponent deletion proves Q4341 inherited suppression",
+    "Public opponent evolution proves a restricted When Digivolving effect does not resolve",
     "014-040-results.json",
     "collection-after-name-fix-results.json",
-    "public-followups-typecheck.log"
+    "public-followups-typecheck.log",
+    "Public Fortitude battle deletion replays the same Boutmon instance without its legal032 Lv4 source; Q4341 equal-DP battle proves simultaneous host/opponent loss does not trash security.",
+    "Lead independently reviewed current clauses and legal stacks; final894 collection,543 affected mechanisms, typecheck, scoped sync/style and meaningful restored runtime mutation pass. Delivery credit is hash-bound in acceptance.json after push."
   ],
   "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-final-collection-results.json",
+      "result": "11/11 colocated cases pass; full collection/mechanism894/894."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/overallTimingRestrictions.test.ts src/engine/effects/continuous.test.ts src/engine/effects/primitives.test.ts src/engine/effects/interpreter.test.ts src/engine/continuousLifecycle.test.ts src/engine/continuousRecomputeConcurrency.test.ts src/engine/continuousSubtriggerAccumulation.test.ts src/engine/effects/restrictionEnforcement.test.ts src/engine/effects/restrictionConsumers.guard.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/subTriggerFireSites.guard.test.ts src/engine/combat/restrictionProjection.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round4-affected-results.json",
+      "result": "543/543 affected cases pass."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "Pass; round4-final-typecheck.log"
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-034",
+      "result": "4 meaningful assertion failures with registered effects disabled; original module restored. Runtime-disabled JSON/log and aggregate result retained."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "102 records already synchronized; round4-scoped-check.log"
+    },
+    {
+      "command": "Changed-file oxlint/oxfmt and git diff --check",
+      "result": "Pass; round4-gates.json and exact paths in round4-style-paths.json."
+    }
+  ],
+  "gaps": [],
+  "historicalCommands": [
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-034.test.ts --maxWorkers=1 --no-file-parallelism",
       "result": "not run by worker; coordinator owns Vitest"
@@ -43,9 +75,17 @@
       "result": "Passed changed-file style and diff gates."
     }
   ],
-  "gaps": [
-    "Coordinator focused/collection Vitest, mechanism/typecheck, and lint gates pending",
-    "New public restriction proof and coordinator focused/collection Vitest, mechanism/typecheck, and lint gates pending"
-  ],
-  "reviewStatus": "Latest public additions pass in the 790-test collection snapshot. Provisional report; final clause acceptance remains pending."
+  "executedCases": [
+    "BT20-034 Boutmon has Fortitude, restricts one opponent Digimon after a Tamer enters the stack, and trashes security on inherited battle deletion",
+    "BT20-034 Boutmon has Fortitude and restricts an opponent after a Tamer enters its source stack",
+    "BT20-034 Boutmon publicly replays the same Fortitude Digimon after it is deleted in battle",
+    "BT20-034 Boutmon publicly places a matching Tamer through Bibimon's inherited end-of-turn effect",
+    "BT20-034 Boutmon publicly evolves from a level-4 Digimon with Pulsemon in its text and rejects a level-3 source",
+    "BT20-034 Boutmon restricts exactly one selected opposing Digimon and expires at the real opponent turn end",
+    "BT20-034 Boutmon suppresses a restricted target's When Digivolving effect on a public evolution",
+    "BT20-034 Boutmon inherits one opposing top-security trash after its host deletes in battle",
+    "BT20-034 Boutmon does not trash security when its host and the opponent leave simultaneously",
+    "BT20-034 Boutmon resets inherited security trash after a real turn while the host remains over Boutmon",
+    "BT20-034 Boutmon does not trash security when another allied Digimon deletes in battle"
+  ]
 }
