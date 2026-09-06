@@ -5,6 +5,11 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./index.js";
 import { compiled } from "./BT20-071.js";
+import "../BT2/BT2-107.js";
+import "./BT20-032.js";
+import "./BT20-059.js";
+import "./BT20-070.js";
+import "./BT20-080.js";
 
 // A3 for BT20-071 (Soloogarmon — Purple Lv.6 Digimon).
 //
@@ -66,7 +71,6 @@ describe("BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP",
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    const _p0 = s.state.players[0];
 
     const bulkmonPerm = s.perm("bulkmonPerm");
     const soloogarmonInst = s.inst("soloogarmonInst");
@@ -107,8 +111,14 @@ describe("BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP",
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: BULKMON, as: "base" }, { card: KOROMON, dp: 1000, as: "ally" }],
-          hand: [{ card: SOLOOGARMON, as: "soloogarmon" }, { card: AGUMON, as: "cost" }],
+          battleArea: [
+            { card: BULKMON, as: "base" },
+            { card: KOROMON, dp: 1000, as: "ally" },
+          ],
+          hand: [
+            { card: SOLOOGARMON, as: "soloogarmon" },
+            { card: AGUMON, as: "cost" },
+          ],
         },
       },
       { autoAcceptOptional: false, autoSelectCards: true },
@@ -201,6 +211,33 @@ describe("BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP",
       s.state.turnSeat = 1;
       await advance(s.engine).recompute();
       expect(observe(s.engine).suppressesSecurityEffect(s.perm("host"), "BT20-096")).toBe(false);
+    }
+  });
+
+  it("actually suppresses an Option security effect only for the qualifying inherited host", async () => {
+    for (const [host, expectedMemory] of [
+      ["BT20-080", 0],
+      ["BT20-059", -2],
+    ] as const) {
+      const s = setupEngine({
+        0: { battleArea: [{ card: host, under: ["BT20-071"], as: "host" }] },
+        1: { security: [{ card: "BT2-107", as: "optionSecurity" }] },
+      });
+      s.state.memory = 0;
+      s.state.turnSeat = 0;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("host").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() =>
+        s.events.some((event) => event.kind === "securityChecked" && event.revealedCardId === "BT2-107"),
+      );
+      expect(s.state.memory).toBe(expectedMemory);
+      expect(s.state.players[1]!.security).toHaveLength(0);
     }
   });
 });
