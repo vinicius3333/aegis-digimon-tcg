@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { definitionMatches } from "../../engine/effects/interpreter/matching/definition.js";
 import "../index.js";
 import { compiled } from "./BT23-012.js";
 
@@ -218,5 +219,17 @@ describe("BT23-012 Garudamon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("recipient"), "Raid")).toBe(false);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+
+  it("proves the synthetic CS plus Sea Animal level boundary without catalog mutation", () => {
+    const deletion = compiled.effects.find((effect) => effect.trigger === "OnDeletion")!;
+    const play = deletion.actions.find((action) => action.kind === "PlayWithoutCost")!;
+    const filter = play.target.filter;
+    const realWhamon = getCardDefinition("BT23-023")!;
+    const mixedLevel4 = { ...realWhamon, level: 4 };
+    const seaOnlyLevel4 = { ...mixedLevel4, types: ["Sea Animal"] };
+    expect(definitionMatches(filter, mixedLevel4)).toBe(true);
+    expect(definitionMatches(filter, seaOnlyLevel4)).toBe(false);
+    expect(definitionMatches(filter, realWhamon)).toBe(false);
   });
 });
