@@ -1,6 +1,6 @@
 {
   "cardId": "BT20-081",
-  "status": "ready-for-focused-run",
+  "status": "lead-verified",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
@@ -11,10 +11,51 @@
   "evidence": [
     "apps/api/src/cards/BT20/BT20-081.ts",
     "apps/api/src/cards/BT20/BT20-081.test.ts",
-    "internal-docs/audits/BT20/revalidation/BT20-081.md",
-    "current-collection-green-results.json"
+    "node tools/kb/query.mjs card BT20-081",
+    "round5-final-collection-results.json",
+    "round5-mechanism-results.json",
+    "BT20-081-runtime-disabled.json",
+    "round5-gates.json"
   ],
   "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-final-collection-results.json",
+      "result": "9/9 colocated cases pass; 968/968 full collection/mechanism cases."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/effects/interpreter/actions/play.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/builders.test.ts src/engine/actions/activateEffect.test.ts src/engine/actions/playCard.test.ts src/engine/useOption.test.ts src/engine/effectOptionUseCost.test.ts src/engine/decisions/minEnforcement.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/primitives.test.ts src/cards/BT7/BT7-063.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-mechanism-results.json",
+      "result": "465/465 affected mechanism cases pass."
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-081",
+      "result": "4 meaningful assertion failures with runtime effects disabled; original production module restored. Per-card JSON/log and aggregate retained."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "PASS; round5-final-typecheck.log. Final API test-source check also passes in round5-final-api-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "PASS; all 102 records synchronized, round5-scoped-check.log."
+    },
+    {
+      "command": "Changed-file oxlint/oxfmt --check and git diff --check",
+      "result": "PASS; round5-gates.json, round5-style-paths.json and final style logs."
+    }
+  ],
+  "gaps": [],
+  "executedCases": [
+    "BT20-081 Fenriloogamon: Takemikazuchi provides Blast DNA Digivolve from hand",
+    "BT20-081 Fenriloogamon: Takemikazuchi gives two distinct opposing Digimon -10000 DP and conditionally deletes one at 10000 DP or lower",
+    "BT20-081 Fenriloogamon: Takemikazuchi trashes the top security card to optionally reactivate one When Digivolving effect when attacking",
+    "BT20-081 Fenriloogamon: Takemikazuchi applies the DP reduction to two distinct recipients before the conditional delete is eligible",
+    "BT20-081 Fenriloogamon: Takemikazuchi naturally gives two distinct opposing Digimon -10000, then deletes one after the Tamer check",
+    "BT20-081 Fenriloogamon: Takemikazuchi pays the top-security cost to reactivate When Digivolving during an attack",
+    "BT20-081 Fenriloogamon: Takemikazuchi public Counter Blast DNA consumes Fenriloogamon field plus Kazuchimon hand",
+    "BT20-081 Fenriloogamon: Takemikazuchi passing the Blast DNA counter preserves both materials and Examon while the attack resolves",
+    "BT20-081 Fenriloogamon: Takemikazuchi does not offer Blast DNA for a wrong hand name or a breeding-area field material"
+  ],
+  "historicalCommands": [
     {
       "command": "node tools/kb/query.mjs card BT20-081",
       "result": "Q4405-Q4407 retrieved"
@@ -32,8 +73,5 @@
       "result": "PASS: 9 cases for BT20-081;734 total tests. See current-collection-green-results.json."
     }
   ],
-  "gaps": [
-    "Lead validation gates pending."
-  ],
-  "reviewStatus": "Full collection execution passed at this draft checkpoint. Strict clause acceptance, sensitivity and final delivery review remain pending; provisional scores do not count in the ledger."
+  "reviewStatus": "Current printed clauses, KB/errata, exclusive IR registration, legal public paths and negative controls independently reviewed. Delivery credit requires the pushed, hash-bound acceptance record."
 }
