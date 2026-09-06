@@ -84,6 +84,28 @@ describe("BT21-048 compiled implementation", () => {
   });
 
   it("may suspend an own Digimon and may decline without suspending anything", async () => {
+    const preferred: string[] = [];
+    const publicOwn = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT21-048", as: "mushroomon" }],
+          battleArea: [{ card: "BT1-009", as: "ownTarget" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(publicOwn.perm("ownTarget").topCard.instanceId);
+    publicOwn.state.memory = 4;
+    await publicOwn.ready();
+    expect(
+      publicOwn.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: publicOwn.inst("mushroomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => publicOwn.perm("ownTarget").isSuspended);
+    expect(publicOwn.perm("ownTarget").isSuspended).toBe(true);
+
     const accepted = setupEngine(
       {
         0: {
@@ -139,7 +161,7 @@ describe("BT21-048 compiled implementation", () => {
       {
         0: { battleArea: [{ card: "BT21-034", as: "host", under: [{ card: "BT21-048", as: "source" }] }] },
         1: {
-          battleArea: [{ card: "BT1-009", as: "target", dp: 2000, suspended: true }],
+          battleArea: [{ card: "BT1-009", as: "target", suspended: true }],
           security: [{ card: "BT1-010", as: "security" }],
         },
       },
