@@ -1,23 +1,58 @@
 {
   "cardId": "BT20-046",
-  "status": "awaiting-lead-review",
+  "status": "lead-verified",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
     "behavioralProof": 2,
-    "peerStackProof": 1,
+    "peerStackProof": 2,
     "deliveryGates": 0
   },
   "evidence": [
-    "BT20-046.test.ts: battle-area versus breeding public evolution cost comparison for Q4369",
-    "BT20-046.test.ts: inherited +1000 DP on both turn seats",
-    "BT20-046.ts: battle-area source and Cyborg/Machine destination IR boundaries",
-    "BT20-046.test.ts: unexecuted public black Lv.4 Machine versus non-Cyborg/non-Machine evolution cost comparison, stack transition, and inherited DP",
-    "current-collection-green-results.json",
-    "collection-after-name-fix-results.json",
-    "public-followups-typecheck.log"
+    "apps/api/src/cards/BT20/BT20-046.ts",
+    "apps/api/src/cards/BT20/BT20-046.test.ts",
+    "node tools/kb/query.mjs card BT20-046",
+    "round5-final-collection-results.json",
+    "round5-mechanism-results.json",
+    "BT20-046-runtime-disabled.json",
+    "round5-gates.json"
   ],
   "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-final-collection-results.json",
+      "result": "6/6 colocated cases pass; 968/968 full collection/mechanism cases."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/effects/interpreter/actions/play.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/builders.test.ts src/engine/actions/activateEffect.test.ts src/engine/actions/playCard.test.ts src/engine/useOption.test.ts src/engine/effectOptionUseCost.test.ts src/engine/decisions/minEnforcement.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/primitives.test.ts src/cards/BT7/BT7-063.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-mechanism-results.json",
+      "result": "465/465 affected mechanism cases pass."
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-046",
+      "result": "4 meaningful assertion failures with runtime effects disabled; original production module restored. Per-card JSON/log and aggregate retained."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "PASS; round5-final-typecheck.log. Final API test-source check also passes in round5-final-api-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "PASS; all 102 records synchronized, round5-scoped-check.log."
+    },
+    {
+      "command": "Changed-file oxlint/oxfmt --check and git diff --check",
+      "result": "PASS; round5-gates.json, round5-style-paths.json and final style logs."
+    }
+  ],
+  "gaps": [],
+  "executedCases": [
+    "BT20-046 Espimon reduces a battle-area Espimon's digivolution into a Cyborg or Machine by 1",
+    "BT20-046 Espimon grants the inherited +1000 DP continuously on all turns",
+    "BT20-046 Espimon reduces the Cyborg alternate evolution in battle but not in breeding",
+    "BT20-046 Espimon publicly evolves into a black Lv.4 Machine with the exact cost boundary",
+    "BT20-046 Espimon publicly evolves into a black Lv.4 non-Cyborg/non-Machine with the exact cost boundary",
+    "BT20-046 Espimon grants +1000 DP to its inherited host on both players' turns"
+  ],
+  "historicalCommands": [
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-046.test.ts --maxWorkers=1 --no-file-parallelism",
       "result": "not run by worker; coordinator owns Vitest"
@@ -47,9 +82,5 @@
       "result": "All current colocated cases pass within894/894; final independent acceptance remains pending."
     }
   ],
-  "gaps": [
-    "Coordinator focused/collection, mechanism/typecheck, and lint gates pending",
-    "Coordinator must execute the new Machine/nonmatching destination comparison and collection gates"
-  ],
-  "reviewStatus": "Latest public additions pass in the 790-test collection snapshot. Provisional report; final clause acceptance remains pending."
+  "reviewStatus": "Current printed clauses, KB/errata, exclusive IR registration, legal public paths and negative controls independently reviewed. Delivery credit requires the pushed, hash-bound acceptance record."
 }
