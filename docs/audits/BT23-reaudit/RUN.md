@@ -31,3 +31,9 @@ First review: returned BT23-001–006 for missing legal evolution transitions, o
 Effects check retry completed build and failed: BT23 effects.json records are stale. Full baseline catalog-sync equality passed, so inspect formatting/canonicalization before claiming a semantic change. Official set-scoped sync then failed at its 30000ms formatter timeout; no catalog mutation occurred.
 
 Set-scoped synchronization and check now passed after capacity recovered: pnpm effects:sync:set -- --set BT23 --base a924de971e0b43ad9ebd8f82a454d495ff880a60; pnpm effects:check:set -- --set BT23 --base a924de971e0b43ad9ebd8f82a454d495ff880a60. Both reported zero semantic changes and zero semantic or byte changes outside BT23. The sync normalizes BT23 record formatting only (102 records). Logs: /tmp/bt23-astra-audit/effects-sync-retry.log and effects-check.log.
+
+Coordinator review checkpoint: accepted focused evidence for BT23-001, 002, 004, 005, 006, 007 at 8/10; final collection gates remain pending. BT23-004–006 integration: 3 files, 20 tests passed. BT23-002: 6 tests passed.
+
+Strengthening final-state assertions exposed false-positive tests: BT23-003 reset test previously awaited suspension without asserting it; adding explicit suspension assertions fails on the first attack. Combined 002/003 rerun: 1 file passed, 1 failed; 13 passed, 1 failed. No current acceptance for 003.
+
+Link integration with stronger preconditions and exact zone assertions: 5 files, 77 passed, 3 failed. Two failures are the same linkState test imported by the conformance suite: the setup leaves a trim decision unresolved and both links remain; the third is absent seeded Piercing before replacement. Worker fixture corrections are pending. The DP production fix is not committed or declared verified. Log: /tmp/bt23-astra-audit/link-integration.log.

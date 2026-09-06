@@ -4,16 +4,16 @@ Baseline: a924de971e0b43ad9ebd8f82a454d495ff880a60. Current status: INCOMPLETE. 
 
 Scoring: catalog/rules, IR trace, behavioral proof, peer/stack proof, delivery gates, each 0–2. Unreviewed rows carry zero current evidence credit. Reports live in BT23-reaudit/CARD-ID.md.
 
-Current aggregate: 16/1020; 0/102 cards independently accepted at 10/10. All 102 modules and colocated tests exist.
+Current aggregate: 48/1020; 0/102 cards independently accepted at 10/10. All 102 modules and colocated tests exist.
 
 | Card     | Name                               | Catalog |  IR | Behavior | Peer/stack | Gates | Score | Status / evidence                                                   |
 | -------- | ---------------------------------- | ------: | --: | -------: | ---------: | ----: | ----: | ------------------------------------------------------------------- |
 | BT23-001 | Flickmon                           |       2 |   2 |        2 |          2 |     0 |  8/10 | Reviewed; [evidence](BT23-reaudit/BT23-001.md); final gates pending |
-| BT23-002 | Yokomon                            |       0 |   0 |        0 |          0 |     0 |  0/10 | In review; proof expansion requested                                |
+| BT23-002 | Yokomon                            |       2 |   2 |        2 |          2 |     0 |  8/10 | Reviewed; [evidence](BT23-reaudit/BT23-002.md); final gates pending |
 | BT23-003 | Motimon                            |       0 |   0 |        0 |          0 |     0 |  0/10 | In review; proof expansion requested                                |
-| BT23-004 | DemiMeramon                        |       0 |   0 |        0 |          0 |     0 |  0/10 | In review; proof expansion requested                                |
-| BT23-005 | Elizamon                           |       0 |   0 |        0 |          0 |     0 |  0/10 | In review; proof expansion requested                                |
-| BT23-006 | Huckmon                            |       0 |   0 |        0 |          0 |     0 |  0/10 | In review; proof expansion requested                                |
+| BT23-004 | DemiMeramon                        |       2 |   2 |        2 |          2 |     0 |  8/10 | Reviewed; [evidence](BT23-reaudit/BT23-004.md); final gates pending |
+| BT23-005 | Elizamon                           |       2 |   2 |        2 |          2 |     0 |  8/10 | Reviewed; [evidence](BT23-reaudit/BT23-005.md); final gates pending |
+| BT23-006 | Huckmon                            |       2 |   2 |        2 |          2 |     0 |  8/10 | Reviewed; [evidence](BT23-reaudit/BT23-006.md); final gates pending |
 | BT23-007 | Musclemon                          |       2 |   2 |        2 |          2 |     0 |  8/10 | Reviewed; [evidence](BT23-reaudit/BT23-007.md); final gates pending |
 | BT23-008 | Greymon                            |       0 |   0 |        0 |          0 |     0 |  0/10 | In review; proof expansion requested                                |
 | BT23-009 | Coachmon                           |       0 |   0 |        0 |          0 |     0 |  0/10 | In review; proof expansion requested                                |
