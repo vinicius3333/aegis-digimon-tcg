@@ -77,4 +77,34 @@ describe("BT20-011 ExVeemon", () => {
     await advance(s.engine).recompute();
     expect(s.perm("host").currentDP).toBe(8000);
   });
+
+  it("can decline the optional DNA branch while still resolving the deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST6-06", as: "material" }],
+          hand: [
+            { card: "BT20-011", as: "exVeemon" },
+            { card: "BT20-016", as: "dnaCandidate" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT20-010", dp: 3000, as: "low" },
+            { card: "BT20-012", dp: 3001, as: "high" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("exVeemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-010"));
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-012")).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("dnaCandidate").instanceId);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["ST6-06", "BT20-011"]);
+    expect(s.state.memory).toBe(0);
+  });
 });
