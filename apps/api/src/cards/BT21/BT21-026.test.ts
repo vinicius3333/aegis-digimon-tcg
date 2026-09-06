@@ -60,7 +60,7 @@ describe("BT21-026 WarGreymon", () => {
     { opponents: 2, expectedCost: 7 },
     { opponents: 6, expectedCost: 0 },
   ])("pays $expectedCost with $opponents opposing Digimon", async ({ opponents, expectedCost }) => {
-    const opposingCards = Array.from({ length: opponents }, () => "BT1-009");
+    const opposingCards = ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"].slice(0, opponents);
     const s = setupEngine({
       0: { hand: [{ card: "BT21-026", as: "wargreymon" }] },
       1: { battleArea: opposingCards },
@@ -121,6 +121,34 @@ describe("BT21-026 WarGreymon", () => {
     await advance(s.engine).verb.deletePermanent([s.perm("second").permanentId], "byEffect");
 
     expect(s.perm("wargreymon").isSuspended).toBe(true);
+  });
+
+  it("unsuspends from a public attack that deletes an opposing Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-026", as: "wargreymon", suspended: true },
+            { card: "BT21-062", as: "attacker" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT21-007", as: "target", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.perm("wargreymon").isSuspended);
+    expect(s.perm("wargreymon").isSuspended).toBe(false);
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("target").permanentId),
+    ).toBe(false);
   });
 
   it("stays suspended when its controller's Digimon is deleted or the optional effect is declined", async () => {
