@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-020.js";
 import "../index.js";
 
@@ -62,14 +63,14 @@ describe("BT21-020 Aldamon", () => {
   });
 
   it.each([
-    ["Agunimon", "BT21-013", 3],
-    ["BurningGreymon", "BT21-014", 3],
-    ["no matching source", "BT21-019", 4],
-  ])("pays the correct cost with %s in its evolution cards", async (_label, source, expectedCost) => {
+    ["Agunimon", "BT21-014", "BT21-013", 3],
+    ["BurningGreymon", "BT21-013", "BT21-014", 3],
+    ["no matching source", "BT21-014", "BT1-009", 4],
+  ])("pays the correct cost with %s in its evolution cards", async (_label, top, source, expectedCost) => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT21-014", as: "level4", under: [source] }],
+          battleArea: [{ card: top, as: "level4", under: [source] }],
           hand: [{ card: "BT21-020", as: "aldamon" }],
         },
       },
@@ -141,19 +142,27 @@ describe("BT21-020 Aldamon", () => {
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
-  it("plays its deletion Tamer from a real battle deletion", async () => {
+  it.each([
+    ["hand", true],
+    ["trash", true],
+    ["hand", false],
+    ["trash", false],
+  ] as const)("resolves the public deletion Tamer choice from %s with accept=%s", async (zone, accept) => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT21-020", as: "aldamon", suspended: true }],
-          hand: [{ card: "BT21-082", as: "tamer" }],
+          [zone]: [{ card: "BT21-082", as: "tamer" }],
         },
         1: { battleArea: [{ card: "BT21-062", as: "attacker" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: accept, autoDeclineOptional: !accept, autoSelectCards: true },
     );
     s.state.turnSeat = 1;
+    s.state.memory = 3;
     await s.ready();
+    const aldamonId = s.inst("aldamon").instanceId;
+    const tamerId = s.inst("tamer").instanceId;
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
@@ -161,8 +170,14 @@ describe("BT21-020 Aldamon", () => {
         target: { kind: "permanent", permanentId: s.perm("aldamon").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-082"));
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-082")).toBe(true);
+    await settle(
+      () => s.state.players[0]!.trash.some((card) => card.instanceId === aldamonId) && !observe(s.engine).isAttacking(),
+    );
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === aldamonId)).toBe(true);
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === tamerId)).toBe(accept);
+    expect(s.state.players[0]![zone].some((card) => card.instanceId === tamerId)).toBe(!accept);
+    expect(s.state.memory).toBe(3);
   });
 
   it("fires inherited deletion from a legal level-6 host after battle deletion", async () => {
@@ -172,7 +187,7 @@ describe("BT21-020 Aldamon", () => {
           battleArea: [{ card: "BT1-025", as: "host", suspended: true, under: ["BT21-020"] }],
           hand: [{ card: "BT21-082", as: "tamer" }],
         },
-        1: { battleArea: [{ card: "BT21-062", as: "attacker", dp: 16000 }] },
+        1: { battleArea: [{ card: "BT21-062", as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
