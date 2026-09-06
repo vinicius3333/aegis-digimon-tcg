@@ -58,6 +58,7 @@ describe("BT20-038 Falcomon", () => {
         security: ["BT20-001"],
       },
     });
+    await s.ready();
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -65,6 +66,29 @@ describe("BT20-038 Falcomon", () => {
         target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.players[1]!.security.length === 0);
+    await settle(
+      () => s.events.some((event) => event.kind === "securityChecked") && s.state.pendingDecision === undefined,
+    );
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
+  it("reaches Falcomon from a legal Pinamon egg through a public zero-cost evolution", async () => {
+    const s = setupEngine({
+      0: { breeding: { card: "BT20-004", as: "pinamon" }, hand: [{ card: "BT20-038", as: "falcomon" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("pinamon").permanentId,
+        instanceId: s.inst("falcomon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("pinamon").topCard.cardId === "BT20-038");
+    expect(s.perm("pinamon").stack.map((card) => card.cardId)).toEqual(["BT20-004"]);
+    expect(s.state.memory).toBe(5);
   });
 });
