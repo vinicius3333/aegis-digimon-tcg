@@ -149,17 +149,27 @@ describe("BT21-016 Shoutmon (King Version)", () => {
 
   it("performs a security check after deleting a suspended Digimon by battle with Piercing", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT21-016", as: "king" }] },
+      0: { battleArea: [{ card: "BT21-011", as: "base" }], hand: [{ card: "BT21-016", as: "king" }] },
       1: {
-        battleArea: [{ card: "BT1-009", as: "target", dp: 1000, suspended: true }],
+        battleArea: [{ card: "BT1-009", as: "target", suspended: true }],
         security: ["BT1-001"],
       },
     });
+    s.state.memory = 2;
     await s.ready();
     expect(
       s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("king").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("king").instanceId);
+    expect(
+      s.engine.applyIntent(0, {
         type: "attack",
-        attackerPermanentId: s.perm("king").permanentId,
+        attackerPermanentId: s.perm("base").permanentId,
         target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: true });
@@ -170,31 +180,41 @@ describe("BT21-016 Shoutmon (King Version)", () => {
   it("public Raid redirects to the highest-DP unsuspended target, then Piercing checks security", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT21-016", as: "king" }] },
+        0: { battleArea: [{ card: "BT21-011", as: "base" }], hand: [{ card: "BT21-016", as: "king" }] },
         1: {
           battleArea: [
-            { card: "BT1-009", as: "low", dp: 3000 },
-            { card: "BT1-010", as: "high", dp: 4000 },
-            { card: "BT1-009", as: "suspendedHigher", dp: 6000, suspended: true },
+            { card: "BT1-010", as: "low" },
+            { card: "BT1-009", as: "high" },
+            { card: "BT10-055", as: "suspendedHigher", suspended: true },
           ],
           security: ["BT1-001"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 2;
     const highId = s.perm("high").permanentId;
     await s.ready();
     expect(
       s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("king").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("king").instanceId);
+    expect(
+      s.engine.applyIntent(0, {
         type: "attack",
-        attackerPermanentId: s.perm("king").permanentId,
+        attackerPermanentId: s.perm("base").permanentId,
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === highId));
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === highId)).toBe(false);
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("low").permanentId)).toBe(true);
-    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT1-009" && p.isSuspended)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT10-055" && p.isSuspended)).toBe(true);
     expect(s.events.some((event) => event.kind === "securityChecked")).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
@@ -205,7 +225,7 @@ describe("BT21-016 Shoutmon (King Version)", () => {
       {
         0: {
           battleArea: [
-            { card: "BT21-016", as: "king" },
+            { card: "BT21-016", as: "king", under: ["BT21-011"] },
             { card: "BT21-083", as: "tamer" },
           ],
           hand: [
@@ -231,7 +251,7 @@ describe("BT21-016 Shoutmon (King Version)", () => {
       {
         0: {
           battleArea: [
-            { card: "BT21-016", as: "king", suspended: true },
+            { card: "BT21-016", as: "king", suspended: true, under: ["BT21-011"] },
             { card: "BT21-083", as: "tamer" },
           ],
           hand: [{ card: "BT21-011", as: "eligible" }],
@@ -265,7 +285,7 @@ describe("BT21-016 Shoutmon (King Version)", () => {
       {
         0: {
           battleArea: [
-            { card: "BT21-016", as: "king" },
+            { card: "BT21-016", as: "king", under: ["BT21-011"] },
             { card: "BT21-083", as: "tamer" },
           ],
           hand: [{ card: "BT21-011", as: "eligible" }],
