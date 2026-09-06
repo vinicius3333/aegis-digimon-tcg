@@ -104238,7 +104238,7 @@
                 "filter": {
                   "controllerDefault": "mine",
                   "nameOrTrait": [
-                    { "tokens": ["Thomas H. Norstein"], "match": "trait" },
+                    { "tokens": ["Thomas H. Norstein"], "match": "name" },
                     { "tokens": ["DATA SQUAD"], "match": "trait" }
                   ]
                 },
@@ -104392,13 +104392,13 @@
                 "kind": "Digivolve",
                 "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
                 "into": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Crescemon"], "match": "name" }] },
-                "from": ["hand"],
+                "from": ["trash"],
                 "reduceCost": 1,
                 "payCost": true,
                 "optional": true
               }
             ],
-            "raw": "When your Digimon are played, if any of them are red, this Digimon may digivolve into [Crescemon] in the hand with the cost reduced by 1."
+            "raw": "When your Digimon are played, if any of them are red, this Digimon may digivolve into [Crescemon] in the trash with the cost reduced by 1."
           },
           {
             "kind": "SubTrigger",
@@ -104410,13 +104410,13 @@
                 "kind": "Digivolve",
                 "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
                 "into": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Crescemon"], "match": "name" }] },
-                "from": ["hand"],
+                "from": ["trash"],
                 "reduceCost": 1,
                 "payCost": true,
                 "optional": true
               }
             ],
-            "raw": "When your Digimon digivolve, if any of them are red, this Digimon may digivolve into [Crescemon] in the hand with the cost reduced by 1."
+            "raw": "When your Digimon digivolve, if any of them are red, this Digimon may digivolve into [Crescemon] in the trash with the cost reduced by 1."
           }
         ]
       },
