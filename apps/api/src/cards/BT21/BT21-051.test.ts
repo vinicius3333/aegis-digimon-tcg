@@ -94,6 +94,44 @@ describe("BT21-051 Puppetmon", () => {
     expect(s.state.memory).toBe(3);
   });
 
+  it("refuses the alternate evolution from a level-5 without the WG trait", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-044", as: "nonWG" }], hand: [{ card: "BT21-051", as: "puppetmon" }] },
+    });
+    s.state.memory = 4;
+    await s.ready();
+    const handId = s.inst("puppetmon").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("nonWG").permanentId,
+        instanceId: handId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === handId)).toBe(true);
+    expect(s.state.memory).toBe(4);
+  });
+
+  it("publicly keeps the de-digivolve result when no suspended target exists", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT21-051", as: "puppetmon" }] },
+        1: { battleArea: [{ card: "BT21-045", as: "stacked", under: ["BT21-042", "BT21-044"] }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("puppetmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea[0]?.topCard.cardId === "BT21-042");
+    expect(s.state.players[1]!.battleArea[0]!.topCard.cardId).toBe("BT21-042");
+    expect(s.state.players[1]!.deck).toHaveLength(0);
+    expect(s.state.memory).toBe(3);
+  });
+
   it("alternate-digivolves from a level-5 WG Digimon for 3", async () => {
     const s = setupEngine({
       0: {
