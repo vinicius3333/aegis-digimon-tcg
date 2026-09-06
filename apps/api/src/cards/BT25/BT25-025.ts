@@ -1,6 +1,3 @@
-// @ts-nocheck
-// HAND-AUTHORED OVERRIDE (no AUTO-GENERATED header => the generator preserves this file).
-// Runtime fix: Decode's non-battle leave replacement is executable below.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
