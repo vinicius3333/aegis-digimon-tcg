@@ -3,6 +3,8 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-094.js";
 import "./index.js";
+import "./BT20-011.js";
+import "./BT20-074.js";
 
 describe("BT20-094 Emperor Dragon of Calamity", () => {
   it("reduces the optional Free Digimon trash play by 5 and then places itself", () => {
