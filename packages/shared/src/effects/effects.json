@@ -75634,41 +75634,46 @@
         "trigger": "EndOfYourTurn",
         "actions": [
           {
-            "kind": "SelectBind",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Reptile", "Dragonkin"], "match": "trait" }]
-              },
-              "count": 1,
-              "bindAs": "piercingTarget"
-            },
+            "kind": "CostGatedBlock",
             "cost": {
               "kind": "suspend",
               "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
               "raw": "By suspending this Tamer"
             },
             "optional": true,
-            "abortOnDecline": true
-          },
-          {
-            "kind": "GainKeyword",
-            "target": {
-              "fromSelectionRef": "piercingTarget",
-              "filter": { "controller": "mine", "kind": ["Digimon"] },
-              "count": 1
-            },
-            "keyword": { "keyword": "Piercing", "raw": "＜Piercing＞" },
-            "duration": "forTheTurn"
-          },
-          {
-            "kind": "Attack",
-            "target": {
-              "fromSelectionRef": "piercingTarget",
-              "filter": { "controller": "mine", "kind": ["Digimon"] },
-              "count": 1
-            }
+            "abortOnDecline": true,
+            "actions": [
+              {
+                "kind": "SelectBind",
+                "target": {
+                  "filter": {
+                    "controller": "mine",
+                    "kind": ["Digimon"],
+                    "nameOrTrait": [{ "tokens": ["Reptile", "Dragonkin"], "match": "trait" }]
+                  },
+                  "count": 1,
+                  "bindAs": "piercingTarget"
+                }
+              },
+              {
+                "kind": "GainKeyword",
+                "target": {
+                  "fromSelectionRef": "piercingTarget",
+                  "filter": { "controller": "mine", "kind": ["Digimon"] },
+                  "count": 1
+                },
+                "keyword": { "keyword": "Piercing", "raw": "＜Piercing＞" },
+                "duration": "forTheTurn"
+              },
+              {
+                "kind": "Attack",
+                "target": {
+                  "fromSelectionRef": "piercingTarget",
+                  "filter": { "controller": "mine", "kind": ["Digimon"] },
+                  "count": 1
+                }
+              }
+            ]
           }
         ]
       },
