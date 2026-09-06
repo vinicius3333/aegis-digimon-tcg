@@ -84,7 +84,7 @@ describe("BT21-072 Arresterdramon Superior Mode", () => {
         alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0);
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 0);
 
     expect(s.perm("base").isSuspended).toBe(true);
     expect(s.state.memory).toBe(1);
@@ -140,6 +140,32 @@ describe("BT21-072 Arresterdramon Superior Mode", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === s.inst("superior").instanceId);
     expect(s.state.memory).toBe(1);
+  });
+
+  it("refuses both alternate routes from a neutral Lv4 without Save text or Hero", async () => {
+    for (const alternateRequirementIndex of [0, 1] as const) {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: "BT1-016", as: "ineligible" }],
+          hand: [{ card: "BT21-072", as: "superior" }],
+        },
+      });
+      s.state.memory = 4;
+      await s.ready();
+      const handId = s.inst("superior").instanceId;
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("ineligible").permanentId,
+          instanceId: handId,
+          alternateRequirementIndex,
+        }),
+      ).toMatchObject({ ok: false });
+      expect(s.state.players[0]!.hand.some((card) => card.instanceId === handId)).toBe(true);
+      expect(s.perm("ineligible").topCard.cardId).toBe("BT1-016");
+      expect(s.state.memory).toBe(4);
+    }
   });
 
   it("proves inherited +2000 DP on a legal Lv4-to-Lv5 evolution stack", async () => {
