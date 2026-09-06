@@ -2,6 +2,7 @@ import { Zone } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-043.js";
 import "../index.js";
 
@@ -101,7 +102,12 @@ describe("BT21-043 compiled implementation", () => {
           battleArea: [{ card: "BT21-009", as: "host" }],
           hand: [{ card: "BT21-043", as: "sociamon" }],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "target", dp: 5000 },
+            { card: "BT1-010", as: "other", dp: 6000 },
+          ],
+        },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
@@ -123,6 +129,7 @@ describe("BT21-043 compiled implementation", () => {
     expect(s.state.memory).toBe(2);
     expect(s.perm("host").currentDP).toBe(baseDp + 3000);
     expect(s.perm("target").currentDP).toBe(3000);
+    expect(s.perm("other").currentDP).toBe(6000);
   });
 
   it("plays after a real Security battle and resolves its On Play debuff", async () => {
@@ -153,6 +160,7 @@ describe("BT21-043 compiled implementation", () => {
     const played = s.events.findIndex((event) => event.kind === "cardPlayed" && event.cardId === "BT21-043");
     expect(checked).toBeGreaterThanOrEqual(0);
     expect(played).toBeGreaterThan(checked);
+    expect(observe(s.engine).isAttacking()).toBe(false);
   });
 
   it("expires the play and digivolution debuff at the opponent's turn end", async () => {
