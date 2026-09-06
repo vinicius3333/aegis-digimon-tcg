@@ -1,5 +1,6 @@
 import { digivolutionRequirementsFor } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT25-064.js";
@@ -109,5 +110,23 @@ describe("BT25-064 ToyAgumon", () => {
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Reboot")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("standalone"), "Reboot")).toBe(false);
+  });
+
+  it("uses inherited Reboot during the opponent's unsuspend phase", async () => {
+    const s = setupEngine({
+      0: {
+        deck: ["BT1-001"],
+        battleArea: [{ card: "BT1-013", as: "host", under: [{ card: CARD_ID, faceUp: false }], suspended: true }],
+      },
+      1: { deck: ["BT1-002"] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Reboot")).toBe(true);
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("host").isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
   });
 });
