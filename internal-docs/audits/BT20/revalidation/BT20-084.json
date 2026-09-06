@@ -1,0 +1,40 @@
+{
+  "cardId": "BT20-084",
+  "status": "awaiting-lead-review",
+  "scores": {
+    "catalogRules": 2,
+    "irTrace": 2,
+    "behavioralProof": 2,
+    "peerStackProof": 2,
+    "deliveryGates": 0
+  },
+  "evidence": [
+    "BT20-084.test.ts: public trash-triggered Sistermon Ciel evolution",
+    "BT20-084.test.ts: On Play and When Digivolving opposing suspend lock",
+    "BT20-084.test.ts: top stacked card moves to top security at End of All Turns",
+    "BT20-084.ts: exclusive registerIrCard and exact trash/entry/security IR",
+    "current-collection-green-results.json"
+  ],
+  "commands": [
+    {
+      "command": "node tools/kb/query.mjs card BT20-084",
+      "result": "Q4412-Q4414 retrieved"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-084.test.ts --maxWorkers=1 --no-file-parallelism",
+      "result": "pending lead execution"
+    },
+    {
+      "command": "git diff --check",
+      "result": "pending lead validation"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/current-collection-green-results.json",
+      "result": "PASS: 6 cases for BT20-084;734 total tests. See current-collection-green-results.json."
+    }
+  ],
+  "gaps": [
+    "Lead focused/collection execution, typecheck, lint, and delivery gates pending"
+  ],
+  "reviewStatus": "Full collection execution passed at this draft checkpoint. Strict clause acceptance, sensitivity and final delivery review remain pending; provisional scores do not count in the ledger."
+}

@@ -96,4 +96,46 @@ describe("BT20-084 Sistermon Ciel (Awakened)", () => {
     expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("stackTop").instanceId);
     expect(s.perm("awakened").stack).toHaveLength(0);
   });
+
+  it("locks one opposing Digimon for both public entry routes until opponent turn end", async () => {
+    for (const route of ["play", "evolve"] as const) {
+      const s =
+        route === "play"
+          ? setupEngine(
+              {
+                0: { hand: [{ card: "BT20-084", as: "awakened" }] },
+                1: { battleArea: [{ card: "BT20-010", as: "target" }] },
+              },
+              { autoAcceptOptional: true, autoSelectCards: true },
+            )
+          : setupEngine(
+              {
+                0: { battleArea: [{ card: "BT6-084", as: "ciel" }], hand: [{ card: "BT20-084", as: "awakened" }] },
+                1: { battleArea: [{ card: "BT20-010", as: "target" }] },
+              },
+              { autoAcceptOptional: true, autoSelectCards: true },
+            );
+      s.state.memory = route === "play" ? 5 : 1;
+      const result =
+        route === "play"
+          ? s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("awakened").instanceId })
+          : s.engine.applyIntent(0, {
+              type: "digivolve",
+              permanentId: s.perm("ciel").permanentId,
+              instanceId: s.inst("awakened").instanceId,
+            });
+      expect(result).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.events.some(
+            (event) =>
+              event.kind === "effectResolved" &&
+              event.sourceCardId === "BT20-084" &&
+              (event.timing === "OnPlay" || event.timing === "WhenDigivolving"),
+          ) && s.state.pendingDecision === undefined,
+      );
+      await advance(s.engine).verb.suspend([s.perm("target").permanentId], 0);
+      expect(s.perm("target").isSuspended).toBe(false);
+    }
+  });
 });
