@@ -931,6 +931,18 @@ export class GameEngine {
       finishEffectBody: () => {
         this.effectResolutionDepth = Math.max(0, this.effectResolutionDepth - 1);
       },
+      resolveAttackTimingWindow: async (drain) => {
+        // An effect-directed attack pauses its enclosing effect bodies while the
+        // attack's pending effects resolve. State-based rules run between those
+        // effects, even though the enclosing card will resume after combat.
+        const pausedDepth = this.effectResolutionDepth;
+        this.effectResolutionDepth = 0;
+        try {
+          await drain();
+        } finally {
+          this.effectResolutionDepth = pausedDepth;
+        }
+      },
       baseGrantedDigivolve: (seat, base, evolving) => this.matchBaseGrantedDigivolve(seat, base, evolving),
       emit: (event) => this.hooks.emit(event),
       nextPermanentId: () => this.nextPermanentId(),
@@ -4345,6 +4357,9 @@ export class GameEngine {
       chooseOrder: (seat, active, timing) => this.resolverDecisions.chooseOrder(seat, active, timing),
       askOptional: (seat, collected) => this.resolverDecisions.askOptional(seat, collected),
       onResolving: (timing, collected) => {
+        // A deferred trigger belongs to its original event, not every nested resolver that
+        // can see this pending pool. Retire it before its body can open another window.
+        this.pendingNestedTimingEffects = this.pendingNestedTimingEffects.filter((pending) => pending !== collected);
         this.hooks.emit({
           kind: "effectTriggered",
           seat: collected.source.ownerSeat,

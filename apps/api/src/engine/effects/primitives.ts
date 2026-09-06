@@ -117,6 +117,8 @@ export interface PrimitivesEngine {
   beginEffectBody?(): void;
   /** Notify the engine that one triggered effect body has completely resolved. */
   finishEffectBody?(): void;
+  /** Pause enclosing card bodies while an effect-directed attack drains pending effects. */
+  resolveAttackTimingWindow?(drain: () => Promise<void>): Promise<void>;
   /** The authoritative match state (the only state these verbs read/mutate). */
   readonly state: GameState;
   /** Resolve a static evolution path granted by the base permanent. */
@@ -5447,7 +5449,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       attackMechanic: opts?.attackMechanic,
       afterAttackDeclaration: opts?.afterAttackDeclaration,
       afterAttackTriggers: opts?.afterAttackTriggers,
-      drainTimingWindow: opts?.drainTimingWindow,
+      drainTimingWindow: opts?.drainTimingWindow
+        ? () => engine.resolveAttackTimingWindow?.(opts.drainTimingWindow!) ?? opts.drainTimingWindow!()
+        : undefined,
     });
   };
 

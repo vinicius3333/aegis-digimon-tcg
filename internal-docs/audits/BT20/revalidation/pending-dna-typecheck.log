@@ -1,0 +1,30 @@
+
+> aegis@1.1.0 typecheck /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna
+> pnpm --filter @aegis/shared build && pnpm -r typecheck
+
+
+> @aegis/shared@1.1.0 build /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/packages/shared
+> tsc -p tsconfig.json && pnpm run copy:data
+
+
+> @aegis/shared@1.1.0 copy:data /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/packages/shared
+> node scripts/copy-data.mjs
+
+copy-data: cards/data/cards.json -> dist
+copy-data: effects/effects.json -> dist
+copy-data: effects/generated-digivolve-overrides.json -> dist
+Scope: 3 of 4 workspace projects
+packages/shared typecheck$ tsc --noEmit -p tsconfig.json
+packages/shared typecheck: Done
+apps/web typecheck$ tsc --noEmit -p tsconfig.json
+apps/api typecheck$ tsc --noEmit -p tsconfig.json
+apps/web typecheck: Done
+apps/api typecheck: src/cards/BT20/BT20-026.test.ts(93,87): error TS2304: Cannot find name 'observe'.
+apps/api typecheck: src/cards/BT20/BT20-026.test.ts(139,99): error TS2304: Cannot find name 'observe'.
+apps/api typecheck: src/cards/BT20/BT20-026.test.ts(159,72): error TS2304: Cannot find name 'observe'.
+apps/api typecheck: src/cards/BT20/BT20-091.test.ts(239,11): error TS2304: Cannot find name 'settle'.
+apps/api typecheck: Failed
+/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @aegis/api@1.1.0 typecheck: `tsc --noEmit -p tsconfig.json`
+Exit status 2
+ ELIFECYCLE  Command failed with exit code 2.

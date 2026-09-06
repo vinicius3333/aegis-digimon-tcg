@@ -4,6 +4,9 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-036.js";
 import "./index.js";
+import "../P/P-221.js";
+import "../BT13/BT13-087.js";
+import "../BT16/BT16-036.js";
 
 describe("BT20-036 BanchoLeomon", () => {
   it("de-digivolves and lowers DP on entry, then DNA-digivolves this Digimon with another before the attack", () => {
@@ -141,6 +144,7 @@ describe("BT20-036 BanchoLeomon", () => {
   });
 
   it("does not declare a second End of Your Turn attack while the first copy's attack is resolving", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -148,24 +152,117 @@ describe("BT20-036 BanchoLeomon", () => {
             { card: "BT20-036", as: "first" },
             { card: "BT20-036", as: "second" },
             { card: "BT13-087", as: "firstPartner" },
-            { card: "BT13-087", as: "secondPartner" },
+            { card: "BT20-058", as: "secondPartner" },
           ],
           hand: [
             { card: "P-221", as: "firstChaosmon" },
-            { card: "P-221", as: "secondChaosmon" },
+            { card: "BT16-036", as: "secondChaosmon" },
             { card: "BT20-001", as: "playable" },
           ],
           deck: ["BT20-001", "BT20-001", "BT20-001", "BT20-001"],
         },
         1: { security: ["BT20-001", "BT20-001", "BT20-001"], deck: ["BT20-001", "BT20-001", "BT20-001"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds: preferred },
     );
+    const firstBanchoCardId = s.perm("first").topCard.instanceId;
+    const firstPartnerCardId = s.perm("firstPartner").topCard.instanceId;
+    const secondBanchoCardId = s.perm("second").topCard.instanceId;
+    const secondPartnerCardId = s.perm("secondPartner").topCard.instanceId;
+    // Both partners are preferred in board order; the first is consumed before
+    // the second selection, leaving the second pair available during combat.
+    preferred.push(s.perm("firstPartner").permanentId, s.perm("secondPartner").permanentId);
+    // End Main passes at -3: first P-221 pays 5, then printed BT16 DNA costs 0.
     s.state.memory = 3;
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
     await turn;
+    const results = s.state.players[0]!.battleArea.filter((permanent) =>
+      ["P-221", "BT16-036"].includes(permanent.topCard.cardId),
+    );
+    expect(results).toHaveLength(2);
+    expect(
+      results.some(
+        (permanent) =>
+          permanent.stack.some((card) => card.instanceId === firstBanchoCardId) &&
+          permanent.stack.some((card) => card.instanceId === firstPartnerCardId),
+      ),
+    ).toBe(true);
+    expect(
+      results.some(
+        (permanent) =>
+          permanent.stack.some((card) => card.instanceId === secondBanchoCardId) &&
+          permanent.stack.some((card) => card.instanceId === secondPartnerCardId),
+      ),
+    ).toBe(true);
+    expect(s.state.players[0]!.hand.filter((card) => ["P-221", "BT16-036"].includes(card.cardId))).toHaveLength(0);
     expect(s.events.filter((event) => event.kind === "attackDeclared")).toHaveLength(1);
+  });
+
+  it("exposes the DNA result's When Digivolving and When Attacking effects as one player-ordered pool", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-036", as: "bancho" },
+            { card: "BT13-087", as: "partner" },
+          ],
+          hand: [{ card: "P-221", as: "chaosmon" }],
+          deck: ["BT20-001", "BT20-002"],
+        },
+        1: {
+          battleArea: [{ card: "BT20-010", dp: 25000, as: "target" }],
+          security: ["BT20-001", "BT20-002"],
+          deck: ["BT20-003", "BT20-004"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+    );
+    s.state.memory = 3; // Paying DNA cost 5 crosses the gauge and completes this turn.
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(2); // choose before the first check removes anything
+    const firstRequest = s.decisions.find(({ req }) => req.decisionId === s.state.pendingDecision?.decisionId)!.req;
+    if (firstRequest.kind !== "orderTriggers") throw new Error("DNA attack trigger order decision missing");
+    expect(firstRequest.options?.triggerCardIds).toEqual(["P-221", "P-221", "P-221"]);
+    const keys = firstRequest.options?.triggerKeys ?? [];
+    expect(keys).toHaveLength(3);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: firstRequest.decisionId,
+        response: { kind: "orderTriggers", order: [keys[0]!] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "orderTriggers" &&
+        s.state.pendingDecision.decisionId !== firstRequest.decisionId,
+    );
+    const secondRequest = s.decisions.find(({ req }) => req.decisionId === s.state.pendingDecision?.decisionId)!.req;
+    if (secondRequest.kind !== "orderTriggers") throw new Error("second DNA trigger order decision missing");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: secondRequest.decisionId,
+        response: { kind: "orderTriggers", order: [keys[1]!] },
+      }),
+    ).toEqual({ ok: true });
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => false, 200);
+    await settle(
+      () => s.state.pendingDecision === undefined && s.events.some((event) => event.kind === "combatResolved"),
+    );
+    expect(s.state.pendingDecision).toBeUndefined();
+    await turn;
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("P-221");
+    expect(s.state.players[1]!.battleArea[0]!.currentDP).toBe(5000);
   });
 });

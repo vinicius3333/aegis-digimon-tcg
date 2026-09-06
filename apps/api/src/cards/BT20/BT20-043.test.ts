@@ -26,7 +26,7 @@ describe("BT20-043 Varodurumon", () => {
           optional: true,
           materials: { filter: { controller: "mine", kind: ["Digimon"] }, count: 2, includeRef: "self" },
         },
-        { kind: "Attack", optional: true, condition: { kind: "ifThisEffectActed" } },
+        { kind: "Attack", optional: true, condition: { kind: "bindingExists", ref: "dnaDigivolvedByThisEffect" } },
       ],
     });
   });
@@ -71,6 +71,57 @@ describe("BT20-043 Varodurumon", () => {
     await settle(() => s.perm("first").isSuspended && s.perm("second").isSuspended);
     expect(s.perm("accel").currentDP).toBe(9000);
     expect(s.state.memory).toBe(5);
+  });
+
+  it("suspends every opposing Digimon, buffs exactly one ally, and leaves the second ally unchanged", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-041", dp: 6000, as: "accel" },
+            { card: "BT20-010", dp: 1000, as: "firstAlly" },
+            { card: "BT20-011", dp: 2000, as: "secondAlly" },
+          ],
+          hand: [{ card: "BT20-043", as: "varodurumon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT20-010", as: "opponentOne" },
+            { card: "BT20-011", as: "opponentTwo" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("firstAlly").permanentId, s.perm("firstAlly").topCard.instanceId);
+    s.state.memory = 12;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("varodurumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("opponentOne").isSuspended && s.perm("opponentTwo").isSuspended);
+    expect(s.perm("firstAlly").currentDP).toBe(4000);
+    expect(s.perm("secondAlly").currentDP).toBe(2000);
+    expect(s.state.memory).toBe(5);
+  });
+
+  it("reaches Varodurumon through a public ACCEL level-5 evolution with the exact alternate cost", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-041", as: "accelBase" }], hand: [{ card: "BT20-043", as: "varodurumon" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("accelBase").permanentId,
+        instanceId: s.inst("varodurumon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("accelBase").topCard.cardId === "BT20-043");
+    expect(s.perm("accelBase").stack.map((card) => card.cardId)).toEqual(["BT20-041"]);
+    expect(s.state.memory).toBe(2);
   });
 
   it("DNA digivolves itself with another own Digimon, attacks, and applies inherited -4000 DP", async () => {

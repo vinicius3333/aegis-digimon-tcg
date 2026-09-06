@@ -66311,6 +66311,7 @@
           },
           {
             "kind": "Attack",
+            "drainTimingWindowDuringAttack": true,
             "target": { "filter": { "boundRef": "dnaDigivolvedByThisEffect" }, "count": 1 },
             "withoutSuspending": false,
             "optional": true,
@@ -66716,14 +66717,16 @@
               "nameOrTrait": [{ "tokens": ["Chaosmon"], "match": "name" }]
             },
             "payCost": true,
-            "optional": true
+            "optional": true,
+            "bindResultAs": "dnaDigivolvedByThisEffect"
           },
           {
             "kind": "Attack",
-            "target": { "filter": { "controllerDefault": "mine", "kind": ["Digimon"] }, "count": 1 },
+            "drainTimingWindowDuringAttack": true,
+            "target": { "filter": { "boundRef": "dnaDigivolvedByThisEffect" }, "count": 1 },
             "withoutSuspending": false,
             "optional": true,
-            "condition": { "kind": "ifThisEffectActed" }
+            "condition": { "kind": "bindingExists", "ref": "dnaDigivolvedByThisEffect" }
           }
         ]
       },

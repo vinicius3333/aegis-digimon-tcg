@@ -1,0 +1,44 @@
+{
+  "cardId": "BT20-043",
+  "status": "awaiting-lead-review",
+  "scores": {
+    "catalogRules": 2,
+    "irTrace": 2,
+    "behavioralProof": 1,
+    "peerStackProof": 2,
+    "deliveryGates": 0
+  },
+  "evidence": [
+    "apps/api/src/cards/BT20/BT20-043.ts",
+    "apps/api/src/cards/BT20/BT20-043.test.ts",
+    "apps/api/src/engine/effects/pendingDnaAttackTriggers.test.ts",
+    "internal-docs/audits/BT20/revalidation/BT20-043.md",
+    "pending-dna-resolution.md and pending-dna-final-focus.log"
+  ],
+  "commands": [
+    {
+      "command": "node tools/kb/query.mjs card BT20-043",
+      "result": "Q4361-Q4362 retrieved"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-043.test.ts --maxWorkers=1 --no-file-parallelism",
+      "result": "pending lead execution"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/effects/pendingDnaAttackTriggers.test.ts --maxWorkers=1 --no-file-parallelism",
+      "result": "pending lead execution"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-036.test.ts src/cards/BT20/BT20-043.test.ts src/engine/effects/pendingDnaAttackTriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+      "result": "PASS: 3 files / 17 tests; pending-dna-final-focus.log"
+    }
+  ],
+  "gaps": [
+    "Full printed-clause lead acceptance, inherited once-per-turn reset/negative-path review, duration coverage, mutation sensitivity, full collection gates and delivery remain pending."
+  ],
+  "reviewStatus": "Focused DNA timing and affected mechanisms passed. Whole-card acceptance remains pending; provisional score is not accepted ledger credit."
+}

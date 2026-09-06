@@ -12,7 +12,9 @@
     "BT20-036.test.ts: public BT20-033 ACCEL evolution and ordinary-control full-cost play at memory 7",
     "BT20-036.test.ts: public ACCEL play cost reduction, De-Digivolve 2/source-zone result, and -5000 DP",
     "BT20-036.test.ts: natural inherited attack redirection and end-turn Chaosmon DNA/attack resolution",
-    "014-040-results.json"
+    "BT20-036.test.ts Q4346: live preference IDs force two distinct Bancho/partner DNA merges; both P-221 results exist while only one attack is declared",
+    "014-040-results.json",
+    "pending-dna-resolution.md and pending-dna-final-focus.log"
   ],
   "commands": [
     {
@@ -26,12 +28,14 @@
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-014.test.ts src/cards/BT20/BT20-015.test.ts src/cards/BT20/BT20-016.test.ts src/cards/BT20/BT20-017.test.ts src/cards/BT20/BT20-018.test.ts src/cards/BT20/BT20-019.test.ts src/cards/BT20/BT20-020.test.ts src/cards/BT20/BT20-021.test.ts src/cards/BT20/BT20-022.test.ts src/cards/BT20/BT20-023.test.ts src/cards/BT20/BT20-024.test.ts src/cards/BT20/BT20-025.test.ts src/cards/BT20/BT20-026.test.ts src/cards/BT20/BT20-027.test.ts src/cards/BT20/BT20-028.test.ts src/cards/BT20/BT20-029.test.ts src/cards/BT20/BT20-030.test.ts src/cards/BT20/BT20-031.test.ts src/cards/BT20/BT20-032.test.ts src/cards/BT20/BT20-033.test.ts src/cards/BT20/BT20-034.test.ts src/cards/BT20/BT20-035.test.ts src/cards/BT20/BT20-036.test.ts src/cards/BT20/BT20-037.test.ts src/cards/BT20/BT20-038.test.ts src/cards/BT20/BT20-039.test.ts src/cards/BT20/BT20-040.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/014-040-results.json",
       "result": "6 tests passed for this card; 160 total passed; 014-040-results.json"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-036.test.ts src/cards/BT20/BT20-043.test.ts src/engine/effects/pendingDnaAttackTriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+      "result": "PASS: 3 files / 17 tests; pending-dna-final-focus.log"
     }
   ],
   "gaps": [
-    "Coordinator focused/collection, mechanism/typecheck, and lint gates pending",
-    "Dedicated Q4345 order-choice proof pending; Q4346 real-turn attackDeclared count awaits coordinator result",
-    "Lead review: Q4345 When Digivolving/When Attacking simultaneous ordering still needs an actual pending-decision assertion."
+    "Full printed-clause lead acceptance, inherited once-per-turn reset/negative-path review, duration coverage, mutation sensitivity, full collection gates and delivery remain pending."
   ],
-  "reviewStatus": "Focused execution passed; clause-by-clause lead acceptance remains pending. Provisional worker scores do not contribute to the ledger."
+  "reviewStatus": "Focused DNA timing and affected mechanisms passed. Whole-card acceptance remains pending; provisional score is not accepted ledger credit."
 }
