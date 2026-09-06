@@ -195,7 +195,7 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     const seat = cost.controller === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
     const candidates = ctx.game.player(seat).battleArea.filter((permanent) => {
       if (permanent.topCard === undefined || !isTamer(ctx.game.definitionOf(permanent.topCard))) return false;
-      return permanent.stack[0]?.faceUp === false;
+      return permanent.stack.some((card) => card.faceUp === false);
     });
     return candidates.length >= (cost.count ?? 1);
   }
@@ -203,7 +203,7 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     const seat = cost.controller === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
     const candidates = ctx.game.player(seat).battleArea.filter((permanent) => {
       if (permanent.topCard === undefined || !isDigimon(ctx.game.definitionOf(permanent.topCard))) return false;
-      return permanent.stack[0]?.faceUp === false;
+      return permanent.stack.some((card) => card.faceUp === false);
     });
     return candidates.length >= (cost.count ?? 1);
   }
@@ -602,10 +602,11 @@ export async function payCost(
       const seat = cost.controller === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
       const hosts = ctx.game.player(seat).battleArea.filter((permanent) => {
         if (permanent.topCard === undefined || !isTamer(ctx.game.definitionOf(permanent.topCard))) return false;
-        return permanent.stack[0] !== undefined && !permanent.stack[0].faceUp;
+        return permanent.stack.some((card) => card.faceUp === false);
       });
       const candidates = hosts.flatMap((host) => {
-        const bottomFaceDown = host.stack[0]?.faceUp === false ? host.stack[0] : undefined;
+        // Stacks are bottom-first: Q4785 skips face-up cards below the cost card.
+        const bottomFaceDown = host.stack.find((card) => card.faceUp === false);
         return bottomFaceDown === undefined ? [] : [{ hostId: host.permanentId, cardId: bottomFaceDown.instanceId }];
       });
       const count = cost.count ?? 1;
@@ -641,7 +642,8 @@ export async function payCost(
       const candidates: { hostId: string; cardId: string }[] = [];
       for (const host of ctx.game.player(seat).battleArea) {
         if (host.topCard === undefined || !isDigimon(ctx.game.definitionOf(host.topCard))) continue;
-        const bottomFaceDown = host.stack[0]?.faceUp === false ? host.stack[0] : undefined;
+        // Stacks are bottom-first: Q4785 skips face-up cards below the cost card.
+        const bottomFaceDown = host.stack.find((card) => card.faceUp === false);
         if (bottomFaceDown !== undefined) {
           candidates.push({ hostId: host.permanentId, cardId: bottomFaceDown.instanceId });
         }

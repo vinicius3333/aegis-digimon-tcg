@@ -465,11 +465,12 @@ function optionUseCandidates(
       .player(seat)
       .battleArea.filter(
         (permanent) =>
-          permanent.topCard !== undefined &&
-          ctx.game.definitionOf(permanent.topCard).kinds.includes(requiredHostKind) &&
-          permanent.stack[0]?.faceUp === false,
+          permanent.topCard !== undefined && ctx.game.definitionOf(permanent.topCard).kinds.includes(requiredHostKind),
       )
-      .map((permanent) => permanent.stack[0]!);
+      .flatMap((permanent) => {
+        const bottomFaceDown = permanent.stack.find((card) => card.faceUp === false);
+        return bottomFaceDown === undefined ? [] : [bottomFaceDown];
+      });
     if (bottomCards.length >= required) bottomCards.forEach(addIfEligible);
   }
   // A normal digivolution-card trash cost can likewise create the requested
