@@ -89,4 +89,46 @@ describe("BT20-013 BaoHuckmon", () => {
     expect(s.perm("host").currentDP).toBe(7000);
     expect(s.perm("ally").currentDP).toBe(1000);
   });
+  it("allows refusal and matches the alternate Gankoomon name branch", async () => {
+    const refused = setupEngine(
+      { 0: { battleArea: [{ card: "BT20-013", as: "bao" }], hand: [{ card: "BT20-084", as: "candidate" }] } },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    refused.state.memory = 5;
+    await refused.ready();
+    const effect = (observe(refused.engine).activatableEffects(refused.perm("bao")) as { effectKey: string }[])[0]!;
+    expect(
+      refused.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: refused.perm("bao").topCard.instanceId,
+        effectKey: effect.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => false, 20);
+    expect(
+      refused.state.players[0]!.hand.some((card) => card.instanceId === refused.inst("candidate").instanceId),
+    ).toBe(true);
+    expect(refused.state.memory).toBe(5);
+
+    const gankoomon = setupEngine(
+      { 0: { battleArea: [{ card: "BT20-013", as: "bao" }], hand: [{ card: "BT20-057", as: "gankoomon" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    gankoomon.state.memory = 10;
+    await gankoomon.ready();
+    const gankEffect = (
+      observe(gankoomon.engine).activatableEffects(gankoomon.perm("bao")) as { effectKey: string }[]
+    )[0]!;
+    expect(
+      gankoomon.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: gankoomon.perm("bao").topCard.instanceId,
+        effectKey: gankEffect.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      gankoomon.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-057"),
+    );
+    expect(gankoomon.state.memory).toBe(4); // BaoHuckmon -2 plus Gankoomon's printed -4 reduction (Q4294)
+  });
 });
