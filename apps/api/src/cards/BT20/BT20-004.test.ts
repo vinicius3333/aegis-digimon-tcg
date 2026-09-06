@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { irNode } from "../../engine/testkit/irNode.js";
 import "./index.js";
@@ -171,5 +172,66 @@ describe("BT20-004 Pinamon", () => {
     await settle(() => s.perm("egg").topCard.cardId === "BT20-030");
     expect(s.perm("egg").stack.map((card) => card.cardId)).toEqual(["BT20-004"]);
     expect(s.state.memory).toBe(3);
+  });
+
+  it("resets the optional ACCEL evolution after a real turn cycle", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-030", as: "host", under: ["BT20-004"] }],
+          hand: [
+            { card: "BT20-030", as: "firstAccel" },
+            { card: "BT20-030", as: "sameTurnAccel" },
+            { card: "BT20-030", as: "nextTurnAccel" },
+            { card: "BT20-031", as: "liamon" },
+            { card: "BT20-033", as: "loaderLeomon" },
+          ],
+          deck: ["BT20-040", "BT20-041", "BT20-042", "BT20-043", "BT20-044", "BT20-045"],
+        },
+        1: { deck: ["BT20-040", "BT20-041", "BT20-042", "BT20-043"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstAccel").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("host").topCard.cardId === "BT20-031");
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT20-004", "BT20-030"]);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sameTurnAccel").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.hand.every((card) => card.instanceId !== s.inst("sameTurnAccel").instanceId),
+    );
+    expect(s.perm("host").topCard.cardId).toBe("BT20-031");
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT20-004", "BT20-030"]);
+
+    // Complete both lifecycle promises through the production turn machine. As in the other
+    // focused reset proof, runOneTurn does not pass the memory gauge frame between seats.
+    s.state.memory = 0;
+    s.state.turnSeat = 1;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    // Fund the next production turn before starting its asynchronous lifecycle. The turn
+    // machine owns the gauge frame while it advances through Active/Draw/Breeding.
+    s.state.memory = 10;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nextTurnAccel").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("host").topCard.cardId === "BT20-033");
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT20-004", "BT20-030", "BT20-031"]);
+    expect(s.state.memory).toBe(6); // play cost 3 + LoaderLeomon's reduced evolution cost 1
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
   });
 });
