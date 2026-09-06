@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-059.js";
@@ -103,5 +104,65 @@ describe("BT21-059 Timemon", () => {
 
     expect(s.state.memory).toBe(1);
     expect(observe(s.engine).hasKeyword(s.perm("timemon"), "Blocker")).toBe(true);
+  });
+
+  it("does not repeat Timemon's Your Turn linked trigger on a second public link", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-059", as: "timemon" }],
+          hand: [
+            { card: "BT21-053", as: "watchmon" },
+            { card: "BT21-041", as: "calendamon" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT21-045", as: "opponent", under: ["BT21-042", "BT21-044"] }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("watchmon").instanceId,
+        targetPermanentId: s.perm("timemon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("opponent").topCard.cardId === "BT21-044");
+    expect(s.state.memory).toBe(4);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("calendamon").instanceId,
+        targetPermanentId: s.perm("timemon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("timemon").linked.some((card) => card.cardId === "BT21-041"));
+    expect(s.perm("opponent").topCard.cardId).toBe("BT21-044");
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("App Fuses the two available distinct recipe names through the production verb", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-053", as: "watchmon", linked: [{ card: "BT21-041", as: "calendamon" }] }],
+          hand: [{ card: "BT21-059", as: "timemon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+
+    const fused = await advance(s.engine).verb.appFuseInto(
+      s.perm("watchmon").permanentId,
+      s.inst("timemon").instanceId,
+    );
+    expect(fused?.topCard.cardId).toBe("BT21-059");
+    await settle(() => s.perm("watchmon").topCard.cardId === "BT21-059");
+    expect(s.perm("watchmon").topCard.cardId).toBe("BT21-059");
   });
 });
