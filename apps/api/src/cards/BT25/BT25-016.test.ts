@@ -77,7 +77,7 @@ describe("BT25-016 GrapLeomon", () => {
   });
 
   it("applies inherited Security Attack +1 from a realistic evolution stack", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-010", as: "host", under: ["BT25-016"] }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-026", as: "host", under: ["BT25-016"] }] } });
     await s.ready();
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);
   });
@@ -350,7 +350,7 @@ describe("BT25-016 GrapLeomon", () => {
           security: ["BT1-001"],
         },
         1: {
-          battleArea: [{ card: "BT1-010", as: "attacker", dp: 12000, under: ["BT16-042"] }],
+          battleArea: [{ card: "BT1-076", as: "attacker", dp: 12000, under: ["BT16-042"] }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

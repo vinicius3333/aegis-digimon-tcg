@@ -62,16 +62,24 @@ describe("BT25-038 Shakkoumon", () => {
   it("watches only the controller's security additions/removals", () => {
     const effects = BT25_038.effects?.filter((entry) => entry.trigger === "AllTurns");
     expect(effects).toHaveLength(2);
-    for (const effect of effects ?? []) {
-      const watcher = effect.actions?.[0] as { event?: string; sourceFilter?: unknown; fireCondition?: unknown };
-      if (watcher.event === "whenAddSecurity") {
-        expect(watcher.fireCondition).toEqual({ kind: "triggerSecurityIsYours" });
-        expect(watcher.sourceFilter).toBeUndefined();
-      } else {
-        expect(watcher.sourceFilter).toEqual({ controller: "mine" });
-      }
-      expect(effect.frequency).toBe("OncePerTurn");
-    }
+    const watchers = (effects ?? []).map((effect) => ({
+      frequency: effect.frequency,
+      watcher: effect.actions?.[0] as { event?: string; sourceFilter?: unknown; fireCondition?: unknown },
+    }));
+    expect(watchers).toEqual(
+      expect.arrayContaining([
+        {
+          frequency: "OncePerTurn",
+          watcher: expect.objectContaining({
+            event: "whenAddSecurity",
+            fireCondition: { kind: "triggerSecurityIsYours" },
+          }),
+        },
+        { frequency: "OncePerTurn", watcher: expect.objectContaining({ sourceFilter: { controller: "mine" } }) },
+      ]),
+    );
+    const addWatcher = watchers.find(({ watcher }) => watcher.event === "whenAddSecurity");
+    expect(addWatcher?.watcher.sourceFilter).toBeUndefined();
   });
 
   it("places a qualifying Digimon from this Digimon's stack at the chosen security edge", async () => {
@@ -116,12 +124,12 @@ describe("BT25-038 Shakkoumon", () => {
         0: {
           battleArea: [
             { card: "BT25-038", as: "shakkou" },
-            { card: "BT1-062", as: "ownHost", under: [{ card: "BT1-053", as: "ownStack" }] },
+            { card: "BT1-060", as: "ownHost", under: [{ card: "BT1-053", as: "ownStack" }] },
             { card: "BT24-102", as: "tamer", under: [{ card: "BT1-060", as: "tamerStack" }] },
           ],
           security: [{ card: "BT1-009", as: "existing" }],
         },
-        1: { battleArea: [{ card: "BT1-062", as: "opponentHost", under: [{ card: "BT1-001" }, { card: "BT1-060" }] }] },
+        1: { battleArea: [{ card: "BT1-062", as: "opponentHost", under: [{ card: "BT1-053" }, { card: "BT1-060" }] }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 1 },
     );

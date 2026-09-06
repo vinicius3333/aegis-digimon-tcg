@@ -531,7 +531,7 @@ describe("BT25-027 MachGaogamon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT25-018", as: "host", under: [{ card: "BT25-027", as: "inherited" }] },
+            { card: "BT1-044", as: "host", under: [{ card: "BT25-027", as: "inherited" }] },
             { card: "BT1-085", as: "tamer", under: [{ card: "BT1-001", as: "cost", faceUp: false }] },
           ],
         },

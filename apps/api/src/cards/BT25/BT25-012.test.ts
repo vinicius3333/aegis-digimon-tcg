@@ -293,9 +293,9 @@ describe("BT25-012 Grizzlymon", () => {
       types: ["Beast", "Iliad", "TS"],
     });
 
-    const inherited = setupEngine({ 0: { battleArea: [{ card: "BT1-010", as: "host", under: ["BT25-012"] }] } });
+    const inherited = setupEngine({ 0: { battleArea: [{ card: "BT1-021", as: "host", under: ["BT25-012"] }] } });
     await inherited.ready();
-    expect(inherited.perm("host").currentDP).toBe(3000);
+    expect(inherited.perm("host").currentDP).toBe(8000);
 
     const invalid = setupEngine({
       0: { battleArea: [{ card: "BT1-010", as: "base" }], hand: [{ card: "BT25-012", as: "grizzlymon" }] },

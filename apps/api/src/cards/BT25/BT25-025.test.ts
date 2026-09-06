@@ -180,7 +180,7 @@ describe("BT25-025 Aegiochusmon: Blue", () => {
           battleArea: [{ card: "BT1-016", as: "ally", suspended: true }],
           hand: [{ card: "BT25-025", as: "source" }],
         },
-        1: { battleArea: [{ card: "BT25-026", as: "stacked", under: ["BT1-016", "BT1-014"] }] },
+        1: { battleArea: [{ card: "BT25-026", as: "stacked", under: ["BT1-009", "BT1-016"] }] },
       },
       { autoSelectCards: true },
     );

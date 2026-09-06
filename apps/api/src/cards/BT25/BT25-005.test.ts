@@ -85,7 +85,7 @@ describe("BT25-005 Pagumon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT25-085", as: "host", under: ["BT25-005"] }],
+          battleArea: [{ card: "BT25-085", as: "host", under: ["BT25-005", "BT10-058", "BT10-062", "BT10-064"] }],
           hand: [
             { card: "EX7-066", as: "neutralOption" },
             { card: "BT24-081", as: "extraTarget" },
@@ -113,7 +113,14 @@ describe("BT25-005 Pagumon", () => {
     await settle(() => s.perm("host").topCard?.instanceId === s.inst("extraTarget").instanceId);
 
     expect(s.perm("host").topCard?.cardId).toBe("BT24-081");
-    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["EX7-066", "BT25-005", "BT25-085"]);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual([
+      "EX7-066",
+      "BT25-005",
+      "BT10-058",
+      "BT10-062",
+      "BT10-064",
+      "BT25-085",
+    ]);
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });
@@ -124,7 +131,7 @@ describe("BT25-005 Pagumon", () => {
         0: {
           battleArea: [
             { card: "BT25-085", as: "wrongHost" },
-            { card: "BT25-085", as: "host", under: ["BT25-005"] },
+            { card: "BT25-085", as: "host", under: ["BT25-005", "BT10-058", "BT10-062", "BT10-064"] },
           ],
           hand: [
             { card: "EX7-066", as: "source" },
@@ -144,12 +151,12 @@ describe("BT25-005 Pagumon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("target").instanceId);
   });
 
-  it("uses the Q6252 text-only destination through a legal red Lv.5 host stack", async () => {
+  it("uses the Q6252 text-only destination through a legal black Lv.5 host stack", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX7-011", as: "host", under: ["BT25-005", "BT25-008", "BT25-013"] }],
+          battleArea: [{ card: "BT10-013", as: "host", under: ["BT25-005", "BT10-058", "BT10-062"] }],
           hand: [
             { card: "BT25-085", as: "optionSource" },
             { card: "EX7-066", as: "placedSource" },
@@ -192,9 +199,9 @@ describe("BT25-005 Pagumon", () => {
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual([
       "EX7-066",
       "BT25-005",
-      "BT25-008",
-      "BT25-013",
-      "EX7-011",
+      "BT10-058",
+      "BT10-062",
+      "BT10-013",
     ]);
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.hand).toHaveLength(0);
@@ -204,9 +211,9 @@ describe("BT25-005 Pagumon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX7-010", as: "host", under: ["BT25-005"] }],
+          battleArea: [{ card: "BT10-062", as: "host", under: ["BT25-005", "BT10-058"] }],
           hand: [
-            { card: "EX7-011", as: "evolution" },
+            { card: "BT10-064", as: "evolution" },
             { card: "BT7-015", as: "target" },
           ],
         },
@@ -223,8 +230,8 @@ describe("BT25-005 Pagumon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard?.instanceId === s.inst("evolution").instanceId);
-    expect(s.perm("host").topCard?.cardId).toBe("EX7-011");
-    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT25-005", "EX7-010"]);
+    expect(s.perm("host").topCard?.cardId).toBe("BT10-064");
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT25-005", "BT10-058", "BT10-062"]);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT7-015");
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -237,7 +244,7 @@ describe("BT25-005 Pagumon", () => {
             {
               card: "BT25-085",
               as: "host",
-              under: ["BT25-005", { card: "EX7-066", as: "placedSource" }],
+              under: ["BT25-005", "BT10-058", "BT10-062", "BT10-064", { card: "EX7-066", as: "placedSource" }],
             },
           ],
           hand: [{ card: "BT24-081", as: "target" }],
@@ -263,7 +270,7 @@ describe("BT25-005 Pagumon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT25-085", as: "host", under: ["BT25-005"] }],
+          battleArea: [{ card: "BT25-085", as: "host", under: ["BT25-005", "BT10-058", "BT10-062", "BT10-064"] }],
           hand: [
             { card: "EX7-066", as: "firstSource" },
             { card: "EX7-066", as: "secondSource" },
@@ -304,7 +311,7 @@ describe("BT25-005 Pagumon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT25-085", as: "host", under: ["BT25-005"] }],
+          battleArea: [{ card: "BT25-085", as: "host", under: ["BT25-005", "BT10-058", "BT10-062", "BT10-064"] }],
           hand: [
             { card: "EX7-066", as: "firstSource" },
             { card: "EX7-066", as: "secondSource" },
