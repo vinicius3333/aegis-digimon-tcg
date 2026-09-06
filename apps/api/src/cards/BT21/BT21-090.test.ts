@@ -49,17 +49,23 @@ describe("BT21-090 The Strongest of Brothers", () => {
       {
         0: {
           battleArea: [
-            { card: "BT21-090", as: "option" },
+            { card: "BT1-009", as: "color" },
             { card: "BT17-086", as: "leon" },
             { card: "BT17-030", as: "pulsemon" },
           ],
+          hand: [{ card: "BT21-090", as: "option" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
     s.state.turnSeat = 0;
-    s.perm("option").placedByEffect = true;
+    s.state.memory = 10;
     await s.ready();
+    const optionId = s.inst("option").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId));
 
     const [effect] = observe(s.engine).activatableEffects(s.perm("leon")) as { effectKey: string }[];
     expect(effect).toBeDefined();
