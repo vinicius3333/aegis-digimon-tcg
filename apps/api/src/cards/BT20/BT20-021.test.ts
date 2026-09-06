@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-021.js";
 import "./index.js";
 
@@ -91,7 +92,10 @@ describe("BT20-021 Jesmon GX", () => {
             },
           ],
         },
-        1: { security: ["BT20-001", "BT20-002", "BT20-003", "BT20-004"] },
+        1: {
+          battleArea: [{ card: "BT20-010", dp: 1000, as: "low" }],
+          security: ["BT20-001", "BT20-002", "BT20-003", "BT20-004"],
+        },
       },
       { autoOrderTriggers: true },
     );
@@ -99,6 +103,18 @@ describe("BT20-021 Jesmon GX", () => {
     await settle(() => !s.perm("gx").isSuspended && s.state.players[1]!.security.length === 2);
     expect(s.perm("gx").isSuspended).toBe(false);
     expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+
+  it("counts a Royal Knight Option in the evolution stack for security scaling", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT20-021", suspended: true, as: "gx", under: ["BT20-017", "BT20-019", "BT10-110"] }],
+      },
+      1: { security: ["BT20-001", "BT20-002"] },
+    });
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("gx"));
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
   it("publicly evolves Jesmon X into GX and optionally places a Royal Knight at stack bottom", async () => {
     const s = setupEngine(
@@ -167,5 +183,50 @@ describe("BT20-021 Jesmon GX", () => {
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-014"));
     expect(s.perm("gx").stack[0]?.cardId).toBe("BT20-056");
     expect(s.state.players[1]!.security.length).toBeLessThan(2);
+  });
+
+  it.each([
+    ["placement first", 0, 2],
+    ["unsuspend first", 1, 3],
+  ] as const)("manually orders simultaneous attack effects (%s)", async (_label, firstIndex, expectedSecurity) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-021", as: "gx", under: ["BT20-019"] }],
+          hand: [{ card: "BT20-017", as: "royalKnight" }],
+        },
+        1: {
+          battleArea: [{ card: "BT20-010", dp: 1000, as: "low" }],
+          security: ["BT20-001", "BT20-002", "BT20-003", "BT20-004"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gx").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    const firstRequest = s.decisions.find(({ req }) => req.decisionId === s.state.pendingDecision?.decisionId)!.req;
+    if (firstRequest.kind !== "orderTriggers") throw new Error("attack trigger order decision missing");
+    expect(firstRequest.options?.triggerKeys).toHaveLength(2);
+    const keys = firstRequest.options?.triggerKeys ?? [];
+    const firstKey = keys[firstIndex]!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: firstRequest.decisionId,
+        response: { kind: "orderTriggers", order: [firstKey] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    expect(s.perm("gx").isSuspended).toBe(false);
+    expect(s.perm("gx").stack.map((card) => card.cardId)).toEqual(["BT20-017", "BT20-019"]);
+    expect(s.state.players[1]!.security).toHaveLength(expectedSecurity);
   });
 });
