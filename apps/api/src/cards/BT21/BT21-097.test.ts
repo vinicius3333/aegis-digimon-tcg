@@ -1,7 +1,7 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-097.js";
 import "../index.js";
 
@@ -45,10 +45,10 @@ describe("BT21-097 App Link", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT21-041", as: "color" }],
+          battleArea: [{ card: "BT21-084", as: "color" }],
           hand: [{ card: "BT21-097", as: "option" }],
           deck: [
-            { card: "BT21-041", as: "appmon" },
+            { card: "BT21-084", as: "appmon" },
             { card: "BT1-009", as: "restA" },
             { card: "BT1-010", as: "restB" },
           ],
@@ -69,10 +69,10 @@ describe("BT21-097 App Link", () => {
     );
   });
 
-  it("Q4734 waives color for an Appmon in breeding", async () => {
+  it("Q4734 waives color for an Appmon Digimon in breeding", async () => {
     const s = setupEngine({
       0: {
-        breeding: { card: "BT21-041", as: "appmon" },
+        breeding: { card: "BT21-009", as: "appmon" },
         hand: [{ card: "BT21-097", as: "option" }],
         deck: ["BT1-009", "BT1-010", "BT1-011"],
       },
@@ -84,46 +84,79 @@ describe("BT21-097 App Link", () => {
     });
   });
 
-  it("Q4621 uses public end-of-turn Delay to link only a Link-capable card to one of your Digimon", async () => {
+  it("ages a publicly played Option before activating Delay at a later own turn", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "BT21-097", as: "option" },
+            { card: "BT21-084", as: "appmon" },
             { card: "BT22-016", as: "recipient" },
           ],
           hand: [
+            { card: "BT21-097", as: "option" },
             { card: "ST22-08", as: "eligible" },
             { card: "BT22-016", as: "noLink" },
           ],
+          deck: ["BT21-084", "BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+        },
+        1: {
+          battleArea: [{ card: "BT22-016", as: "opponent" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    const optionId = s.perm("option").topCard.instanceId;
-    s.perm("option").placedByEffect = true;
-    s.state.turnSeat = 0;
-    s.state.isFirstPlayersFirstTurn = true;
+    s.state.memory = 10;
     await s.ready();
 
-    const turn = s.engine.runOneTurn();
-    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
-    await settle(() => mainPhase.isOpen, 500);
-    expect(mainPhase.isOpen).toBe(true);
-    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
-    await turn;
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const optionId = s.inst("option").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId));
+
+    // CR 16-17-3: Delay gained this turn cannot activate during this same turn.
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId)).toBe(true);
+    expect(s.perm("recipient").linked).toHaveLength(0);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("noLink").instanceId)).toBe(true);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
     expect(s.perm("recipient").linked.some((card) => card.instanceId === s.inst("eligible").instanceId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("noLink").instanceId)).toBe(true);
+    expect(s.perm("opponent").linked).toHaveLength(0);
   });
 
-  it("Security places itself without changing memory", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "BT21-097", as: "option" }] } });
+  it("publicly places itself from Security without changing memory", async () => {
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "BT21-097", as: "option" }] },
+        1: { battleArea: [{ card: "BT21-032", as: "attacker", dp: 2000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
     s.state.memory = 0;
     await s.ready();
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
-    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[0]!.battleArea.length === 1);
     expect(s.state.players[0]!.battleArea[0]!.topCard.instanceId).toBe(s.inst("option").instanceId);
     expect(s.state.memory).toBe(0);
   });
