@@ -15,9 +15,47 @@
     "round5-final-collection-results.json",
     "round5-mechanism-results.json",
     "BT20-085-runtime-disabled.json",
-    "round5-gates.json"
+    "round5-gates.json",
+    "merge-main-collection.json",
+    "merge-main-gates.json",
+    "MERGE-MAIN.md"
   ],
   "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/merge-main-collection.json",
+      "result": "PASS: 6 colocated cases; 969/969 full collection tests after merging main."
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-085",
+      "result": "PASS: meaningful state assertions fail when registered behavior is disabled; production restored. Per-card JSON/log retained."
+    },
+    {
+      "command": "See merge-main-gates.json for exact mechanism, shared DNA, typecheck, scoped catalog, style and diff commands",
+      "result": "Integration validation recorded in merge-main-gates.json."
+    }
+  ],
+  "gaps": [],
+  "executedCases": [
+    "BT20-085 Shoto Kazama models the Start of Main Phase bottom-deck cost and gated follow-up",
+    "BT20-085 Shoto Kazama gates the Vortex Warriors DP effect on the suspend cost",
+    "BT20-085 Shoto Kazama registers exactly one security play effect",
+    "BT20-085 Shoto Kazama only processes the after-Then Avian/Bird play after returning this Tamer",
+    "BT20-085 Shoto Kazama separates the opposing suspend target from the own Vortex Warriors DP target",
+    "BT20-085 Shoto Kazama plays the exact Shoto instance from a public security check without cost"
+  ],
+  "historicalCommands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-085.test.ts --maxWorkers=1 --no-file-parallelism",
+      "result": "not run by worker"
+    },
+    {
+      "command": "git diff --check",
+      "result": "not run after report write"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/current-collection-green-results.json",
+      "result": "PASS: 5 cases for BT20-085;734 total tests. See current-collection-green-results.json."
+    },
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-final-collection-results.json",
       "result": "6/6 colocated cases pass; 968/968 full collection/mechanism cases."
@@ -43,28 +81,6 @@
       "result": "PASS; round5-gates.json, round5-style-paths.json and final style logs."
     }
   ],
-  "gaps": [],
-  "executedCases": [
-    "BT20-085 Shoto Kazama models the Start of Main Phase bottom-deck cost and gated follow-up",
-    "BT20-085 Shoto Kazama gates the Vortex Warriors DP effect on the suspend cost",
-    "BT20-085 Shoto Kazama registers exactly one security play effect",
-    "BT20-085 Shoto Kazama only processes the after-Then Avian/Bird play after returning this Tamer",
-    "BT20-085 Shoto Kazama separates the opposing suspend target from the own Vortex Warriors DP target",
-    "BT20-085 Shoto Kazama plays the exact Shoto instance from a public security check without cost"
-  ],
-  "historicalCommands": [
-    {
-      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-085.test.ts --maxWorkers=1 --no-file-parallelism",
-      "result": "not run by worker"
-    },
-    {
-      "command": "git diff --check",
-      "result": "not run after report write"
-    },
-    {
-      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/current-collection-green-results.json",
-      "result": "PASS: 5 cases for BT20-085;734 total tests. See current-collection-green-results.json."
-    }
-  ],
-  "reviewStatus": "Current printed clauses, KB/errata, exclusive IR registration, legal public paths and negative controls independently reviewed. Delivery credit requires the pushed, hash-bound acceptance record."
+  "reviewStatus": "Astra reviewed the main integration correction; pushed delivery and current hashes are recorded in acceptance.json.",
+  "integrationReview": "A real own turn and opponent turn prove the suspension, +2000 DP and expiry. ST18-10 supplies the Vortex Warriors trait without an unrelated Vortex attack, preserving natural timing instead of injecting an End Turn event."
 }

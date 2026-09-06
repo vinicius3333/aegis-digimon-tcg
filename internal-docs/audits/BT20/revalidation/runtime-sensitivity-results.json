@@ -237,39 +237,6 @@
     ]
   },
   {
-    "cardId": "BT20-011",
-    "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-011.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/internal-docs/audits/BT20/revalidation/BT20-011-runtime-disabled.json",
-    "exitCode": 1,
-    "passed": 2,
-    "failed": 4,
-    "assertions": [
-      {
-        "name": "BT20-011 ExVeemon on play deletes only a 3000-DP target then performs the optional paid DNA evolution",
-        "failures": [
-          "AssertionError: expected true to be false // Object.is equality\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-011.test.ts:64:97\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
-        ]
-      },
-      {
-        "name": "BT20-011 ExVeemon publicly triggers deletion and paid DNA on When Digivolving during its owner's turn",
-        "failures": [
-          "AssertionError: expected true to be false // Object.is equality\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-011.test.ts:102:100\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
-        ]
-      },
-      {
-        "name": "BT20-011 ExVeemon excludes its DNA branch on the opponent's turn through a public battle-deletion trigger",
-        "failures": [
-          "AssertionError: expected true to be false // Object.is equality\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-011.test.ts:156:104\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
-        ]
-      },
-      {
-        "name": "BT20-011 ExVeemon observably grants its inherited host +2000 DP only during its controller's turn",
-        "failures": [
-          "AssertionError: expected 8000 to be 10000 // Object.is equality\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-011.test.ts:164:38\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
-        ]
-      }
-    ]
-  },
-  {
     "cardId": "BT20-012",
     "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-012.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/internal-docs/audits/BT20/revalidation/BT20-012-runtime-disabled.json",
     "exitCode": 1,
@@ -385,45 +352,6 @@
         "name": "BT20-015 Hisyaryumon actually suppresses an Option Security effect only with the inherited Hisyaryumon source",
         "failures": [
           "AssertionError: expected -2 to be +0 // Object.is equality\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-015.test.ts:265:30\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
-        ]
-      }
-    ]
-  },
-  {
-    "cardId": "BT20-016",
-    "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-016.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/internal-docs/audits/BT20/revalidation/BT20-016-runtime-disabled.json",
-    "exitCode": 1,
-    "passed": 3,
-    "failed": 6,
-    "assertions": [
-      {
-        "name": "BT20-016 Paildramon on play gives one bound ally Piercing and +4000 while allowing the Paildramon attack to be declined",
-        "failures": [
-          "AssertionError: expected false to be true // Object.is equality\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-016.test.ts:69:57\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
-        ]
-      },
-      {
-        "name": "BT20-016 Paildramon publicly evolves, buffs itself, Pierces in its optional attack, and expires both grants at turn end",
-        "failures": [
-          "AssertionError: expected 10000 to be 14000 // Object.is equality\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-016.test.ts:104:38\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
-        ]
-      },
-      {
-        "name": "BT20-016 Paildramon provides inherited Security Attack +1 from a realistic evolution stack",
-        "failures": [
-          "AssertionError: expected +0 to be 1 // Object.is equality\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-016.test.ts:118:79\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
-        ]
-      },
-      {
-        "name": "BT20-016 Paildramon proves inherited Security Attack +1 with an actual extra security check",
-        "failures": [
-          "AssertionError: expected ArraySchema{ items: [ …(2) ], …(5) } to have a length of 1 but got 2\n    at Proxy.<anonymous> (file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/index.OVGXnVRj.js:2137:20)\n    at Proxy.<anonymous> (file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/index.OVGXnVRj.js:1934:14)\n    at Proxy.methodWrapper (file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1700:25)\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-016.test.ts:140:44\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
-        ]
-      },
-      {
-        "name": "BT20-016 Paildramon replaces Paildramon's deletion by DNA digivolving it and Dinobeemon into Dragon Mode",
-        "failures": [
-          "AssertionError: expected 1 to be +0 // Object.is equality\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-016.test.ts:162:86\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
         ]
       }
     ]
@@ -1456,39 +1384,6 @@
         "name": "BT20-044 Breakdramon limits both resident and inherited deletion watchers once per turn, then resets next turn",
         "failures": [
           "AssertionError: expected true to be false // Object.is equality\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-044.test.ts:204:96\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
-        ]
-      }
-    ]
-  },
-  {
-    "cardId": "BT20-045",
-    "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-045.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/internal-docs/audits/BT20/revalidation/BT20-045-runtime-disabled.json",
-    "exitCode": 1,
-    "passed": 7,
-    "failed": 5,
-    "assertions": [
-      {
-        "name": "BT20-045 Examon ACE carries ACE metadata and all four battle keywords",
-        "failures": [
-          "AssertionError: expected false to be true // Object.is equality\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-045.test.ts:52:68\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
-        ]
-      },
-      {
-        "name": "BT20-045 Examon ACE uses public Blocker and Evade combat decisions",
-        "failures": [
-          "AssertionError: expected false to be true // Object.is equality\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-045.test.ts:302:72\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
-        ]
-      },
-      {
-        "name": "BT20-045 Examon ACE unsuspends once when either player's Digimon suspends",
-        "failures": [
-          "AssertionError: expected true to be false // Object.is equality\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-045.test.ts:344:44\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
-        ]
-      },
-      {
-        "name": "BT20-045 Examon ACE spends the public once-per-turn unsuspend, then resets after a completed turn",
-        "failures": [
-          "AssertionError: expected true to be false // Object.is equality\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-045.test.ts:377:42\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
         ]
       }
     ]
@@ -3057,33 +2952,6 @@
     ]
   },
   {
-    "cardId": "BT20-085",
-    "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-085.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/internal-docs/audits/BT20/revalidation/BT20-085-runtime-disabled.json",
-    "exitCode": 1,
-    "passed": 3,
-    "failed": 3,
-    "assertions": [
-      {
-        "name": "BT20-085 Shoto Kazama only processes the after-Then Avian/Bird play after returning this Tamer",
-        "failures": [
-          "AssertionError: expected [ 'BT20-085' ] to deeply equal ArrayContaining [\"BT20-085\", \"BT1-013\"]\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-085.test.ts:87:96\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
-        ]
-      },
-      {
-        "name": "BT20-085 Shoto Kazama separates the opposing suspend target from the own Vortex Warriors DP target",
-        "failures": [
-          "AssertionError: expected false to be true // Object.is equality\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-085.test.ts:119:41\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
-        ]
-      },
-      {
-        "name": "BT20-085 Shoto Kazama plays the exact Shoto instance from a public security check without cost",
-        "failures": [
-          "AssertionError: expected false to be true // Object.is equality\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-085.test.ts:151:90\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
-        ]
-      }
-    ]
-  },
-  {
     "cardId": "BT20-086",
     "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-086.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/internal-docs/audits/BT20/revalidation/BT20-086-runtime-disabled.json",
     "exitCode": 1,
@@ -3298,6 +3166,144 @@
         "name": "BT20-078 Reapermon — On Deletion deletes cheap opponent permanent [On Deletion] deletes a cost-3 opponent Tamer while preserving a cost-5 Tamer",
         "failures": [
           "AssertionError: expected true to be false // Object.is equality\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-078.test.ts:250:88\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
+        ]
+      }
+    ]
+  },
+  {
+    "cardId": "BT20-011",
+    "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-011.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/internal-docs/audits/BT20/revalidation/BT20-011-runtime-disabled.json",
+    "exitCode": 1,
+    "passed": 2,
+    "failed": 4,
+    "assertions": [
+      {
+        "name": "BT20-011 ExVeemon on play deletes only a 3000-DP target then performs the optional paid DNA evolution",
+        "failures": [
+          "AssertionError: expected true to be false // Object.is equality\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-011.test.ts:64:97\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
+        ]
+      },
+      {
+        "name": "BT20-011 ExVeemon publicly triggers deletion and paid DNA on When Digivolving during its owner's turn",
+        "failures": [
+          "AssertionError: expected true to be false // Object.is equality\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-011.test.ts:103:100\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
+        ]
+      },
+      {
+        "name": "BT20-011 ExVeemon excludes its DNA branch on the opponent's turn through a public battle-deletion trigger",
+        "failures": [
+          "AssertionError: expected true to be false // Object.is equality\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-011.test.ts:157:104\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
+        ]
+      },
+      {
+        "name": "BT20-011 ExVeemon observably grants its inherited host +2000 DP only during its controller's turn",
+        "failures": [
+          "AssertionError: expected 8000 to be 10000 // Object.is equality\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-011.test.ts:165:38\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
+        ]
+      }
+    ]
+  },
+  {
+    "cardId": "BT20-085",
+    "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-085.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/internal-docs/audits/BT20/revalidation/BT20-085-runtime-disabled.json",
+    "exitCode": 1,
+    "passed": 3,
+    "failed": 3,
+    "assertions": [
+      {
+        "name": "BT20-085 Shoto Kazama only processes the after-Then Avian/Bird play after returning this Tamer",
+        "failures": [
+          "AssertionError: expected [ 'BT20-085' ] to deeply equal ArrayContaining [\"BT20-085\", \"BT1-013\"]\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-085.test.ts:88:96\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
+        ]
+      },
+      {
+        "name": "BT20-085 Shoto Kazama separates the opposing suspend target from the own Vortex Warriors DP target",
+        "failures": [
+          "AssertionError: expected false to be true // Object.is equality\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-085.test.ts:125:41\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
+        ]
+      },
+      {
+        "name": "BT20-085 Shoto Kazama plays the exact Shoto instance from a public security check without cost",
+        "failures": [
+          "AssertionError: expected false to be true // Object.is equality\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-085.test.ts:157:90\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
+        ]
+      }
+    ]
+  },
+  {
+    "cardId": "BT20-016",
+    "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-016.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/internal-docs/audits/BT20/revalidation/BT20-016-runtime-disabled.json",
+    "exitCode": 1,
+    "passed": 3,
+    "failed": 6,
+    "assertions": [
+      {
+        "name": "BT20-016 Paildramon on play gives one bound ally Piercing and +4000 while allowing the Paildramon attack to be declined",
+        "failures": [
+          "AssertionError: expected false to be true // Object.is equality\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-016.test.ts:69:57\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
+        ]
+      },
+      {
+        "name": "BT20-016 Paildramon publicly evolves, buffs itself, Pierces in its optional attack, and expires both grants at turn end",
+        "failures": [
+          "AssertionError: expected 10000 to be 14000 // Object.is equality\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-016.test.ts:104:38\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
+        ]
+      },
+      {
+        "name": "BT20-016 Paildramon provides inherited Security Attack +1 from a realistic evolution stack",
+        "failures": [
+          "AssertionError: expected +0 to be 1 // Object.is equality\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-016.test.ts:118:79\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
+        ]
+      },
+      {
+        "name": "BT20-016 Paildramon proves inherited Security Attack +1 with an actual extra security check",
+        "failures": [
+          "AssertionError: expected ArraySchema{ items: [ …(2) ], …(5) } to have a length of 1 but got 2\n    at Proxy.<anonymous> (file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/index.OVGXnVRj.js:2137:20)\n    at Proxy.<anonymous> (file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/index.OVGXnVRj.js:1934:14)\n    at Proxy.methodWrapper (file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1700:25)\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-016.test.ts:140:44\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
+        ]
+      },
+      {
+        "name": "BT20-016 Paildramon replaces Paildramon's deletion by DNA digivolving it and Dinobeemon into Dragon Mode",
+        "failures": [
+          "AssertionError: expected 1 to be +0 // Object.is equality\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-016.test.ts:162:86\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
+        ]
+      }
+    ]
+  },
+  {
+    "cardId": "BT20-045",
+    "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-045.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/internal-docs/audits/BT20/revalidation/BT20-045-runtime-disabled.json",
+    "exitCode": 1,
+    "passed": 7,
+    "failed": 6,
+    "assertions": [
+      {
+        "name": "BT20-045 Examon ACE carries ACE metadata and all four battle keywords",
+        "failures": [
+          "AssertionError: expected false to be true // Object.is equality\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-045.test.ts:52:68\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
+        ]
+      },
+      {
+        "name": "BT20-045 Examon ACE publicly accepts the printed ordinary DNA route and returns all tied highest-DP opponents",
+        "failures": [
+          "AssertionError: expected [ 'BT20-010', 'BT20-011', 'BT20-012' ] to deeply equal [ 'BT20-012' ]\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-045.test.ts:128:89\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
+        ]
+      },
+      {
+        "name": "BT20-045 Examon ACE uses public Blocker and Evade combat decisions",
+        "failures": [
+          "AssertionError: expected false to be true // Object.is equality\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-045.test.ts:354:72\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
+        ]
+      },
+      {
+        "name": "BT20-045 Examon ACE unsuspends once when either player's Digimon suspends",
+        "failures": [
+          "AssertionError: expected true to be false // Object.is equality\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-045.test.ts:396:44\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
+        ]
+      },
+      {
+        "name": "BT20-045 Examon ACE spends the public once-per-turn unsuspend, then resets after a completed turn",
+        "failures": [
+          "AssertionError: expected true to be false // Object.is equality\n    at /Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/apps/api/src/cards/BT20/BT20-045.test.ts:429:42\n    at file:///Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit-bt20-astra-luna/node_modules/.pnpm/vitest@5.0.0_@types+node@22.19.19_@vitest+ui@5.0.0_jsdom@25.0.1_vite@6.4.2_@types+node@22.19.19_tsx@4.22.3_/node_modules/vitest/dist/chunks/run.CQOUYP-x.js:2783:20"
         ]
       }
     ]

@@ -1,12 +1,12 @@
 {
   "cardId": "BT20-016",
-  "status": "verified",
+  "status": "lead-verified",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
     "behavioralProof": 2,
     "peerStackProof": 2,
-    "deliveryGates": 2
+    "deliveryGates": 0
   },
   "evidence": [
     "Public On Play buffs a selected ally by +4000 and Piercing while allowing this Paildramon attack to be refused.",
@@ -17,10 +17,13 @@
     "reactive-movement-affected-results.json: 552 passing affected mechanism tests.",
     "collection-after-reactive-delay-results.json",
     "reactive-movement-gates.json",
-    "BT20-016-runtime-disabled.json"
+    "BT20-016-runtime-disabled.json",
+    "merge-main-collection.json",
+    "merge-main-gates.json",
+    "MERGE-MAIN.md"
   ],
   "gaps": [],
-  "reviewStatus": "Lead accepted all printed clauses, legal public stack and negative-path evidence, meaningful runtime sensitivity, green final gates and pushed code delivery. Collection completion remains separate.",
+  "reviewStatus": "Astra reviewed the main integration correction; pushed delivery and current hashes are recorded in acceptance.json.",
   "historicalCommands": [
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-016.test.ts --maxWorkers=1 --no-file-parallelism",
@@ -41,9 +44,7 @@
     {
       "command": "pnpm exec oxlint <changed public-proof test files>; pnpm exec oxfmt <same files>; git diff --check",
       "result": "Passed changed-file style and diff gates."
-    }
-  ],
-  "commands": [
+    },
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
       "result": "9 cases passed for BT20-016; 836 total passed, zero failed."
@@ -69,5 +70,31 @@
       "result": "Clean diff and successful branch push through 2a2a2b113d370435d513bfdb0b569a05a1c46e12."
     }
   ],
-  "deliveryCommit": "2a2a2b113d370435d513bfdb0b569a05a1c46e12"
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/merge-main-collection.json",
+      "result": "PASS: 9 colocated cases; 969/969 full collection tests after merging main."
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-016",
+      "result": "PASS: meaningful state assertions fail when registered behavior is disabled; production restored. Per-card JSON/log retained."
+    },
+    {
+      "command": "See merge-main-gates.json for exact mechanism, shared DNA, typecheck, scoped catalog, style and diff commands",
+      "result": "Integration validation recorded in merge-main-gates.json."
+    }
+  ],
+  "deliveryCommit": "2a2a2b113d370435d513bfdb0b569a05a1c46e12",
+  "integrationReview": "The public opponent-turn leave-play replacement DNA digivolves into Imperialdramon: Dragon Mode at its printed zero cost. Memory stays four and neither material remains a separate permanent. Overflow is inactive while the resulting ACE remains on the field. This corrects the old four-memory payment expectation.",
+  "executedCases": [
+    "BT20-016 Paildramon gives one Digimon Piercing and +4000 before optionally attacking on both triggers",
+    "BT20-016 Paildramon on play gives one bound ally Piercing and +4000 while allowing the Paildramon attack to be declined",
+    "BT20-016 Paildramon publicly evolves, buffs itself, Pierces in its optional attack, and expires both grants at turn end",
+    "BT20-016 Paildramon provides inherited Security Attack +1 from a realistic evolution stack",
+    "BT20-016 Paildramon proves inherited Security Attack +1 with an actual extra security check",
+    "BT20-016 Paildramon replaces Paildramon's deletion by DNA digivolving it and Dinobeemon into Dragon Mode",
+    "BT20-016 Paildramon publicly replaces a battle deletion with DNA and consumes exactly the two field materials",
+    "BT20-016 Paildramon lets the owner refuse the replacement when legal materials exist, so the battled Paildramon is deleted",
+    "BT20-016 Paildramon does not replace the battle deletion when the hand result is a wrong name"
+  ]
 }
