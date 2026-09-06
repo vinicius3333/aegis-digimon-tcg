@@ -233,4 +233,60 @@ describe("BT20-053 Grademon", () => {
     await settle(() => s.state.players[0]!.security.length === 0);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-056")).toBe(true);
   });
+
+  it("resets inherited attack redirection on a later opponent turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-056", under: ["BT20-053"], dp: 10000, as: "host" }],
+          security: ["BT20-047", "BT20-047"],
+          deck: ["BT1-010", "BT1-010"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT20-047", dp: 1000, as: "attacker" },
+            { card: "BT20-047", dp: 1000, as: "nextAttacker" },
+          ],
+          deck: ["BT1-010", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    const nextAttackerId = s.perm("nextAttacker").permanentId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[0]!.security.length === 2);
+    expect(s.perm("host").isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await firstTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const secondTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, { type: "attack", attackerPermanentId: nextAttackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[0]!.security.length === 2);
+    expect(s.perm("host").isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await secondTurn;
+  });
 });
