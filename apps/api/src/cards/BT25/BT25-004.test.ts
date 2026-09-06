@@ -49,7 +49,6 @@ import "../index.js";
  */
 
 const LINKABLE = "BT21-009"; // [Social] (attribute) [Appmon] trait, printed "[Link] [Appmon] trait: Cost 1"
-const _NON_TRAIT_LINKABLE = "BT25-045"; // [Appmon]-trait link card WITHOUT Social/Tool/Game — the grant must NOT apply
 
 let seq = 0;
 function card(cardId: string, seat: Seat): CardInstance {
@@ -309,6 +308,44 @@ describe("BT25-004 Tapmon — cross-actor WhenWouldLink link-cost reduction (doc
     expect(reverted.memoryPaid).toBe(1);
   });
 
+  it("does not reduce a link card outside the Social, Tool, and Game trait set", async () => {
+    const reducedTrait = await runLinkWithGrant({ installGrant: true, linkCardId: "BT21-009" });
+    const unrelatedTrait = await runLinkWithGrant({ installGrant: true, linkCardId: "BT21-047" });
+
+    expect(reducedTrait.memoryPaid).toBe(0);
+    expect(unrelatedTrait.memoryPaid).toBe(1);
+    expect(unrelatedTrait.linkedCount).toBe(1);
+  });
+
+  it("reduces public Tool and Game link intents by 1", async () => {
+    for (const [alias, linkCard] of [
+      ["toolLink", "BT21-041"],
+      ["gameLink", "BT25-045"],
+    ] as const) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT21-009", as: "host", under: ["BT25-004"] }],
+            hand: [{ card: linkCard, as: alias }],
+          },
+        },
+        { autoAcceptOptional: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "linkCard",
+          instanceId: s.inst(alias).instanceId,
+          targetPermanentId: s.perm("host").permanentId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("host").linked.length === 1);
+      expect(s.state.memory).toBe(10);
+    }
+  });
+
   it("works from a legal evolution stack through the live engine", async () => {
     const s = setupEngine(
       {
@@ -333,5 +370,109 @@ describe("BT25-004 Tapmon — cross-actor WhenWouldLink link-cost reduction (doc
     // BT21-009 costs 1 to link; the inherited Tapmon grant reduces this legal stack's link to 0.
     expect(s.state.memory).toBe(10);
     expect(s.perm("host").stack.map((stackCard) => stackCard.cardId)).toEqual(["BT25-004"]);
+  });
+
+  it("uses a public link intent, allows refusal, and consumes the reduction once across repeated declarations", async () => {
+    const declined = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-009", as: "host", under: ["BT25-004"] }],
+          hand: [{ card: "BT21-009", as: "link" }],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    declined.state.memory = 10;
+    await declined.ready();
+    expect(
+      declined.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: declined.inst("link").instanceId,
+        targetPermanentId: declined.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => declined.perm("host").linked.length === 1);
+    expect(declined.state.memory).toBe(9);
+
+    const repeated = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-009", as: "host", under: ["BT25-004"] }],
+          hand: [
+            { card: "BT21-009", as: "firstLink" },
+            { card: "BT21-009", as: "secondLink" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    repeated.state.memory = 10;
+    await repeated.ready();
+    for (const alias of ["firstLink", "secondLink"] as const) {
+      expect(
+        repeated.engine.applyIntent(0, {
+          type: "linkCard",
+          instanceId: repeated.inst(alias).instanceId,
+          targetPermanentId: repeated.perm("host").permanentId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => repeated.perm("host").linked.length === (alias === "firstLink" ? 1 : 2));
+    }
+    expect(repeated.state.memory).toBe(9);
+  });
+
+  it("allows a public refusal and then accepts the reduction on a later declaration", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-009", as: "host", under: ["BT25-004"] }],
+          hand: [
+            { card: "BT21-009", as: "firstLink" },
+            { card: "BT21-009", as: "secondLink" },
+          ],
+        },
+      },
+      { autoAcceptOptional: false },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("firstLink").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const declined = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: declined.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.length === 1);
+    expect(s.state.memory).toBe(9);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("secondLink").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const accepted = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: accepted.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.length === 2);
+    expect(s.state.memory).toBe(9);
   });
 });

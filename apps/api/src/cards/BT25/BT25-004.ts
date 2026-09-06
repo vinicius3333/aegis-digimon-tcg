@@ -1,6 +1,4 @@
-// HAND-AUTHORED OVERRIDE (no AUTO-GENERATED header => the generator preserves this file).
-//
-// BT25-004 Tapmon — link-cost-reduction (the cross-actor WhenWouldLink form). Authored against
+// BT25-004 Tapmon — link-cost-reduction (the cross-actor WhenWouldLink form), authored against
 // general link rules apply — BT25-089 Q6422 "can't link a no-<Link> card", Q6423 "multiple link
 // reductions don't stack on one declaration").
 //
