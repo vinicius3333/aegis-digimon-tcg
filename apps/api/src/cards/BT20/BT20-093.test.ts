@@ -83,4 +83,27 @@ describe("BT20-093 Unleash the Dragon Gene", () => {
     );
     expect(s.state.memory).toBe(0);
   });
+
+  it("declines the optional Main play for a nonmatching Digimon and still places the Option", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "redSource" }],
+          hand: [
+            { card: "BT20-093", as: "option" },
+            { card: "BT20-010", as: "nonmatching" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-093"));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("nonmatching").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(2);
+  });
 });
