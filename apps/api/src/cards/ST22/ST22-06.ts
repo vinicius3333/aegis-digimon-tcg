@@ -20,7 +20,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //
 // Fixes vs prior IR:
 // - OnPlay/WhenDigivolving: changed Trash+activate to UseOptionWithoutCost with proper
-//   trait filters and "from hand or under Tamers" (from:["hand","digivolutionCards"]).
+//   trait filters and "from hand or under Tamers" (from:["hand","underTamers"]).
 // - AllTurns: added missing whenOptionUsed SubTrigger alongside whenSecurityRemoved.
 const compiled: CompiledCard = {
   effects: [
@@ -36,7 +36,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [{ tokens: ["Onmyōjutsu", "Plug-In"], match: "trait" }],
             },
             count: 1,
-            from: ["hand", "digivolutionCards"],
+            from: ["hand", "underTamers"],
           },
           payCost: false,
           optional: true,
@@ -55,7 +55,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [{ tokens: ["Onmyōjutsu", "Plug-In"], match: "trait" }],
             },
             count: 1,
-            from: ["hand", "digivolutionCards"],
+            from: ["hand", "underTamers"],
           },
           payCost: false,
           optional: true,
