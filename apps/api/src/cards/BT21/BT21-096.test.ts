@@ -1,6 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-096.js";
@@ -35,6 +33,7 @@ describe("BT21-096 The Champion Ultimate Fighter!", () => {
     expect(observe(s.engine).hasKeyword(s.perm("marcus"), "Rush")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("marcus"), "digivolve")).toBe(true);
     expect(observe(s.engine).canAttackUnsuspended(s.perm("marcus"))).toBe(true);
+    expect(s.state.memory).toBe(6);
     expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
   });
 
@@ -83,15 +82,53 @@ describe("BT21-096 The Champion Ultimate Fighter!", () => {
           security: [{ card: "BT21-096", as: "option" }],
           trash: [{ card: "BT4-092", as: "marcus" }],
         },
+        1: { battleArea: [{ card: "BT1-019", as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.turnSeat = 1;
     s.state.memory = 0;
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId));
     expect(s.state.players[0]!.battleArea[0]!.topCard.instanceId).toBe(s.inst("marcus").instanceId);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("Security also plays an eligible Marcus from hand and returns the Option", async () => {
+    const s = setup(
+      {
+        0: {
+          security: [{ card: "BT21-096", as: "option" }],
+          hand: [{ card: "BT4-092", as: "marcus" }],
+        },
+        1: { battleArea: [{ card: "BT1-019", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("marcus").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("marcus").instanceId)).toBe(false);
     expect(s.state.memory).toBe(0);
   });
 });
