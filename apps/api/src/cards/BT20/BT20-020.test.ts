@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-020.js";
+import "./BT20-071.js";
+import "./BT20-080.js";
 import "./index.js";
 
 describe("BT20-020 Imperialdramon: Fighter Mode", () => {
@@ -82,8 +83,9 @@ describe("BT20-020 Imperialdramon: Fighter Mode", () => {
           hand: [{ card: "BT20-020", as: "fighterMode" }],
         },
         1: {
-          battleArea: [{ card: "BT20-015", as: "hisyaryumon" }],
-          hand: [{ card: "BT20-010", as: "blockedRookie" }],
+          battleArea: [{ card: "BT20-071", as: "soloogarmon" }],
+          hand: [{ card: "BT20-080", as: "fenriloogamon" }],
+          trash: [{ card: "BT20-070", as: "blockedDigimon" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -99,9 +101,21 @@ describe("BT20-020 Imperialdramon: Fighter Mode", () => {
     await settle(() => s.perm("dragonMode").topCard.cardId === "BT20-020");
 
     s.state.turnSeat = 1;
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("hisyaryumon"));
-    expect(s.state.players[1]!.breeding).toBeUndefined();
-    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("blockedRookie").instanceId);
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("soloogarmon").permanentId,
+        instanceId: s.inst("fenriloogamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("soloogarmon").topCard.cardId === "BT20-080");
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("blockedDigimon").instanceId);
+    expect(
+      s.state.players[1]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("blockedDigimon").instanceId,
+      ),
+    ).toBe(false);
   });
 
   it("once per turn deletes an opposing Digimon at the source-DP boundary after opponent security is removed", async () => {
