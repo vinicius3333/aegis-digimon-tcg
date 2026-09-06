@@ -493,12 +493,17 @@ describe("BT25-028 Dianamon", () => {
   });
 
   it("inherited When Attacking prevents one opponent Digimon from suspending", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT25-028", as: "diana" }], hand: [{ card: "BT1-084", as: "omnimon" }] },
-        1: { security: ["BT1-001", "BT1-001"] },
+        0: {
+          battleArea: [{ card: "BT25-028", as: "diana" }],
+          hand: [{ card: "BT1-084", as: "omnimon" }],
+          deck: ["BT1-001", "BT1-001", "BT1-001"],
+        },
+        1: { security: ["BT1-001", "BT1-001"], deck: ["BT1-001", "BT1-001", "BT1-001"] },
       },
-      { autoDeclineOptional: true, autoSelectCards: true },
+      { autoDeclineOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     s.state.memory = 10;
     await s.ready();
@@ -522,13 +527,17 @@ describe("BT25-028 Dianamon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision === undefined);
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(observe(s.engine).isAttacking()).toBe(false);
 
     await advance(s.engine).verb.suspend([target.permanentId, tamer.permanentId]);
     expect(target.isSuspended).toBe(false);
     expect(tamer.isSuspended).toBe(true);
 
-    // Duration expiry is covered by the public low-stack test above, which exercises the same untilOpponentTurnEnd IR.
+    // If a second use were incorrectly available, selection would now restrict the Tamer.
+    preferred.push(tamer.permanentId);
+    await advance(s.engine).verb.unsuspend([tamer.permanentId]);
+    expect(tamer.isSuspended).toBe(false);
     await advance(s.engine).verb.unsuspend([s.perm("diana").permanentId]);
     expect(
       s.engine.applyIntent(0, {
@@ -537,9 +546,21 @@ describe("BT25-028 Dianamon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision === undefined);
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(observe(s.engine).isAttacking()).toBe(false);
     await advance(s.engine).verb.suspend([tamer.permanentId]);
     expect(tamer.isSuspended).toBe(true);
+
+    // The inherited restriction lasts through the opponent's current turn only.
+    // Run that turn publicly, then verify the previously protected Digimon can suspend.
+    s.state.turnSeat = 1;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    expect(observe(s.engine).isRestricted(target, "beSuspended")).toBe(false);
+    await advance(s.engine).verb.suspend([target.permanentId]);
+    expect(target.isSuspended).toBe(true);
   });
 
   it("inherited When Attacking can instead choose an opposing Tamer", async () => {
