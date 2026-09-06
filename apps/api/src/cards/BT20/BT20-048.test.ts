@@ -66,6 +66,33 @@ describe("BT20-048 Dorumon", () => {
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("nonmatch").instanceId]);
   });
 
+  it("adds a Chronicle Option from a mixed reveal pool", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT20-048", as: "dorumon" }],
+          deck: [
+            { card: "BT20-010", as: "xAntibody" },
+            { card: "BT20-095", as: "chronicleOption" },
+            { card: "BT20-047", as: "nonmatch" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dorumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("chronicleOption").instanceId),
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("xAntibody").instanceId, s.inst("chronicleOption").instanceId]),
+    );
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("nonmatch").instanceId]);
+  });
+
   it("returns all revealed cards to the bottom when either requested category is absent", async () => {
     const s = setupEngine({
       0: {

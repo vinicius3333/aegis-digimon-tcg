@@ -1,6 +1,6 @@
 {
   "cardId": "BT20-048",
-  "status": "ready-for-coordinator-verification",
+  "status": "awaiting-lead-review",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
@@ -10,9 +10,12 @@
   },
   "evidence": [
     "BT20-048.test.ts: X Antibody + Chronicle Tamer selection and exact rest-to-bottom identity",
+    "BT20-048.test.ts: mixed X Antibody + Chronicle Option BT20-095 selection and exact rest-to-bottom identity",
     "BT20-048.test.ts: all-nonmatch reveal control and empty-category bottoming",
     "BT20-048.test.ts: alternate/ordinary evolution costs and inherited opponent-turn DP boundary",
-    "current-collection-green-results.json"
+    "current-collection-green-results.json",
+    "collection-after-name-fix-results.json",
+    "public-followups-typecheck.log"
   ],
   "commands": [
     {
@@ -26,11 +29,23 @@
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/current-collection-green-results.json",
       "result": "PASS: 6 cases for BT20-048;734 total tests. See current-collection-green-results.json."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/effects/pendingDnaAttackTriggers.test.ts src/engine/effects/nameExactMatch.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-name-fix-results.json",
+      "result": "7 cases pass for BT20-048; all 790/790 pass. Final independent clause acceptance/delivery still pending."
+    },
+    {
+      "command": "pnpm --filter @aegis/api typecheck",
+      "result": "Passed; public-followups-typecheck.log"
+    },
+    {
+      "command": "pnpm exec oxlint <changed public-proof test files>; pnpm exec oxfmt <same files>; git diff --check",
+      "result": "Passed changed-file style and diff gates."
     }
   ],
   "gaps": [
     "Coordinator focused/collection, mechanism/typecheck, and lint gates pending",
-    "Chronicle Option positive remains unproven in this card file"
+    "new Chronicle Option positive is unexecuted pending coordinator validation"
   ],
-  "reviewStatus": "Full collection execution passed at this draft checkpoint. Strict clause acceptance, sensitivity and final delivery review remain pending; provisional scores do not count in the ledger."
+  "reviewStatus": "Latest public additions pass in the 790-test collection snapshot. Provisional report; final clause acceptance remains pending."
 }
