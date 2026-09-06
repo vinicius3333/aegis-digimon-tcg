@@ -4,7 +4,7 @@ Baseline: a924de971e0b43ad9ebd8f82a454d495ff880a60. Current status: INCOMPLETE. 
 
 Scoring: catalog/rules, IR trace, behavioral proof, peer/stack proof, delivery gates, each 0–2. Unreviewed rows carry zero current evidence credit. Reports live in BT23-reaudit/CARD-ID.md.
 
-Current aggregate: 48/1020; 0/102 cards independently accepted at 10/10. All 102 modules and colocated tests exist.
+Current aggregate: 71/1020; 0/102 cards independently accepted at 10/10. All 102 modules and colocated tests exist.
 
 | Card     | Name                               | Catalog |  IR | Behavior | Peer/stack | Gates | Score | Status / evidence                                                   |
 | -------- | ---------------------------------- | ------: | --: | -------: | ---------: | ----: | ----: | ------------------------------------------------------------------- |
@@ -17,9 +17,9 @@ Current aggregate: 48/1020; 0/102 cards independently accepted at 10/10. All 102
 | BT23-007 | Musclemon                          |       2 |   2 |        2 |          2 |     0 |  8/10 | Reviewed; [evidence](BT23-reaudit/BT23-007.md); final gates pending |
 | BT23-008 | Greymon                            |       0 |   0 |        0 |          0 |     0 |  0/10 | In review; proof expansion requested                                |
 | BT23-009 | Coachmon                           |       0 |   0 |        0 |          0 |     0 |  0/10 | In review; proof expansion requested                                |
-| BT23-010 | GeoGreymon                         |       0 |   0 |        0 |          0 |     0 |  0/10 | Queued                                                              |
-| BT23-011 | Birdramon                          |       0 |   0 |        0 |          0 |     0 |  0/10 | Queued                                                              |
-| BT23-012 | Garudamon                          |       0 |   0 |        0 |          0 |     0 |  0/10 | Queued                                                              |
+| BT23-010 | GeoGreymon                         |       2 |   2 |        2 |          2 |     0 |  8/10 | Reviewed; final gates pending; [evidence](BT23-reaudit/BT23-010.md) |
+| BT23-011 | Birdramon                          |       2 |   2 |        2 |          2 |     0 |  8/10 | Reviewed; final gates pending; [evidence](BT23-reaudit/BT23-011.md) |
+| BT23-012 | Garudamon                          |       2 |   2 |        2 |          1 |     0 |  7/10 | Mixed-trait proof pending; [evidence](BT23-reaudit/BT23-012.md)     |
 | BT23-013 | Jesmon                             |       0 |   0 |        0 |          0 |     0 |  0/10 | Queued                                                              |
 | BT23-014 | Gallantmon                         |       0 |   0 |        0 |          0 |     0 |  0/10 | Queued                                                              |
 | BT23-015 | Phoenixmon                         |       0 |   0 |        0 |          0 |     0 |  0/10 | Queued                                                              |

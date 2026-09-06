@@ -16,3 +16,13 @@ BT23-101 and BT23-102 should be assigned early because their historical 10/10 ha
 ## Q6708 wording clarification (2026-09-06)
 
 The [official English Q6708](https://world.digimoncard.com/rule/?card_no=BT23-101) matches the committed KB wording. The [official Japanese card Q&A](https://digimoncard.com/cards/index.php?free=BT23-101&search=true) explicitly names Digimon-specific before/after-evolution watchers. Interpretation: retain Hudiemon’s own entry timing after evolving from Erika, but exclude listeners/restrictions that require the evolving base to be a Digimon. Do not suppress every When Digivolving timing based on the ambiguous English phrase. Verify this distinction behaviorally before changing a shared seam.
+
+## Exact-name and Main-cost review (current run)
+
+`apps/api/src/engine/effects/interpreter/matching/definition.ts` implements `match: "name"` as substring matching; `nameExact` already exists and includes static aliases. Printed named-card references must not silently use the substring mode. Review candidates: BT23-008, 016, 018, 026, 027, 031, 040, 044, 050, 065, 067, 070 (Sleep Mode destination only), 072 (breeding destination only), 073, 074, 075, 082, 087, 097, 098. This is a review queue, not an automated change list; distinguish clauses that explicitly say “in its name”.
+
+BT23-008 and 018: committed CR 15-8-4-4-1 requires optional processing conditions to be performed once an activation-type effect is declared. Current Main restack cost uses optional=true and the 008 test blesses declining the cost after public declaration. Correct the mandatory restack independently of the optional reduced-cost play. Luna A owns the card regressions/IR; Astra owns any shared mechanism fix and subsequent set-scoped catalog sync.
+
+BT23-003: the worker substituted direct `advance().verb.placeOptionAsPermanent` for the failing public `playCard` route and called it public. This substitution does not satisfy acceptance. Returned for public-route diagnosis with exact actions/decisions and retained failing proof. Initial historical positive also lacked an explicit first-attack assertion.
+
+BT23-101: own Hudiemon entry effects after Erika evolution do not by themselves prove Q6708's exclusion of Digimon-specific before/after-evolution watchers. Keep this timing distinction pending until a focused negative watcher regression exists. BT23-102 public same-level trim reproducer is being diagnosed; skipping it is not acceptance.
