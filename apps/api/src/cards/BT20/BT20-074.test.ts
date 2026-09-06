@@ -125,6 +125,30 @@ describe("BT20-074 Dinobeemon", () => {
     }
   });
 
+  it("may decline the optional trash return and leaves the eligible card in trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT20-074", as: "dinobeemon" }],
+          trash: [{ card: "BT20-076", as: "eligible" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 8;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dinobeemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-074"),
+    );
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("eligible").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).not.toContain("BT20-076");
+  });
+
   it("Q4400 DNA digivolves a returning material and the new Imperialdramon remains in battle", async () => {
     const s = setupEngine(
       {
