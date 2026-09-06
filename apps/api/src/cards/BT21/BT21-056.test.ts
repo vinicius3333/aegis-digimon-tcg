@@ -150,4 +150,53 @@ describe("BT21-056 Vemmon", () => {
     await settle(() => s.perm("host").topCard.instanceId === s.inst("galacticmon").instanceId);
     expect(s.state.memory).toBe(2);
   });
+
+  it("carries the inherited reduction through a legal public egg-to-Vemmon stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-006", as: "egg" }],
+          hand: [
+            { card: "BT21-056", as: "vemmon" },
+            { card: "BT21-058", as: "snatchmon" },
+            { card: "BT21-060", as: "destromon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 12;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("vemmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.cardId === "BT21-056");
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("snatchmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.cardId === "BT21-058");
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("destromon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.cardId === "BT21-060");
+    expect(s.perm("egg").stack.map((card) => card.cardId)).toEqual(["BT21-006", "BT21-056", "BT21-058"]);
+    expect(s.perm("egg").stack.filter((card) => card.cardId === "BT21-056")).toHaveLength(1);
+    expect(s.perm("egg").stack.some((card) => card.cardId === "BT21-058")).toBe(true);
+    expect(s.state.memory).toBe(5);
+  });
 });
