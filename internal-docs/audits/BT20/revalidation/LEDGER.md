@@ -2,11 +2,11 @@
 
 Reproduce: `node internal-docs/audits/BT20/revalidation/recalculate.mjs`. Scores use the established five dimensions (0–2 each). Pending scores reflect missing accepted evidence. Historical reports do not contribute. Final delivery points require explicit lead review and recorded gates.
 
-Verified: 0/102; total 0/1020; mean 0/10. Collection remains in progress until all delivery gates, push, and PR are recorded.
+Verified: 0/102; total 8/1020; mean 0.078/10. Collection remains in progress until all delivery gates, push, and PR are recorded.
 
 | Card | Name | Catalog/rules | IR | Behavior | Peer/stack | Gates | Total | Evidence |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
-| BT20-001 | DemiVeemon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
+| BT20-001 | DemiVeemon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 | [report](BT20-001.md) |
 | BT20-002 | Bebydomon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
 | BT20-003 | Bibimon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |
 | BT20-004 | Pinamon | 0/2 | 0/2 | 0/2 | 0/2 | 0/2 | 0/10 | pending |

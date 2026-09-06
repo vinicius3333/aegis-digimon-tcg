@@ -1,0 +1,28 @@
+{
+  "cardId": "BT20-001",
+  "status": "reviewed-pending-delivery",
+  "scores": {
+    "catalogRules": 2,
+    "irTrace": 2,
+    "behavioralProof": 2,
+    "peerStackProof": 2,
+    "deliveryGates": 0
+  },
+  "evidence": [
+    "BT20-001.md",
+    "apps/api/src/cards/BT20/BT20-001.test.ts",
+    "BT20-001-focused.log",
+    "BT20-001-sensitivity.log"
+  ],
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-001.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000",
+      "result": "1 file / 2 tests passed"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-001.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 -t 'observably grants'",
+      "result": "Intentional mutation amount2000→0 failed: actual13000 versus15000; production restored; full focused rerun passed."
+    }
+  ],
+  "gaps": []
+}
