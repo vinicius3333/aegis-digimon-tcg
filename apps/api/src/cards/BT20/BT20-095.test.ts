@@ -77,6 +77,30 @@ describe("BT20-095 Fellowship of Hope's Keepers", () => {
     expect(s.state.memory).toBe(0);
   });
 
+  it.each([
+    [0, "BT20-047", "BT20-049"],
+    [1, "BT20-047", "BT20-049"],
+  ] as const)("publicly honors the reveal remainder top/bottom choice (option %s)", async (choice, first, second) => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT20-095", as: "option" }],
+          battleArea: ["BT20-047"],
+          deck: ["BT20-010", first, second, "BT1-010"],
+        },
+      },
+      { autoSelectCards: true, autoChooseOption: true, preferOptionIndex: choice },
+    );
+    s.state.memory = 3;
+    const optionId = s.inst("option").instanceId;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId));
+    const ids = s.state.players[0]!.deck.map((card) => card.cardId);
+    if (choice === 0) expect(ids.slice(0, 2)).toEqual([first, second]);
+    else expect(ids.slice(-2)).toEqual([first, second]);
+  });
+
   it.each([true, false])(
     "public Security may play a cost-5-or-less Chronicle from hand before placement (%s)",
     async (accept) => {
@@ -106,6 +130,39 @@ describe("BT20-095 Fellowship of Hope's Keepers", () => {
       expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === optionId)).toBe(true);
     },
   );
+
+  it("public Security accepts Chronicle play cost 5 but refuses a cost-7 Chronicle", async () => {
+    for (const [candidate, accepted] of [
+      ["BT20-012", true],
+      ["BT20-015", false],
+    ] as const) {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT20-010", as: "attacker" }] },
+          1: {
+            security: [{ card: "BT20-095", as: "option" }],
+            hand: [{ card: candidate, as: "candidate" }],
+            deck: ["BT1-010", "BT1-010", "BT1-010"],
+          },
+        },
+        { autoAcceptOptional: true, autoDeclineOptional: false, autoSelectCards: true },
+      );
+      const optionId = s.inst("option").instanceId;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === optionId));
+      expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === candidate)).toBe(accepted);
+      expect(s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("candidate").instanceId)).toBe(
+        !accepted,
+      );
+    }
+  });
 
   it.each(["hand", "trash", "refuse", "wrongTrait", "egg"] as const)(
     "immediately resolves the prior-turn Delay after public deletion: %s",
