@@ -1,21 +1,64 @@
 {
   "cardId": "BT20-056",
-  "status": "ready-for-focused-run",
+  "status": "lead-verified",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
-    "behavioralProof": 1,
-    "peerStackProof": 1,
+    "behavioralProof": 2,
+    "peerStackProof": 2,
     "deliveryGates": 0
   },
   "evidence": [
     "apps/api/src/cards/BT20/BT20-056.ts",
     "apps/api/src/cards/BT20/BT20-056.test.ts",
-    "BT20-056.test.ts: added a real opponent turn, own turn, and later opponent turn to prove the security-removal Once Per Turn penalty resets without a manual usage reset",
-    "internal-docs/audits/BT20/revalidation/BT20-056.md",
-    "current-collection-green-results.json"
+    "node tools/kb/query.mjs card BT20-056",
+    "round5-final-collection-results.json",
+    "round5-mechanism-results.json",
+    "BT20-056-runtime-disabled.json",
+    "round5-gates.json"
   ],
   "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/overallTimingRestrictions.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-final-collection-results.json",
+      "result": "12/12 colocated cases pass; 968/968 full collection/mechanism cases."
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/engine/sourcePlayChoice.test.ts src/engine/optionTrashActivation.test.ts src/engine/effects/interpreter/actions/play.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/builders.test.ts src/engine/actions/activateEffect.test.ts src/engine/actions/playCard.test.ts src/engine/useOption.test.ts src/engine/effectOptionUseCost.test.ts src/engine/decisions/minEnforcement.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/primitives.test.ts src/cards/BT7/BT7-063.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/round5-mechanism-results.json",
+      "result": "465/465 affected mechanism cases pass."
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-056",
+      "result": "8 meaningful assertion failures with runtime effects disabled; original production module restored. Per-card JSON/log and aggregate retained."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "PASS; round5-final-typecheck.log. Final API test-source check also passes in round5-final-api-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "PASS; all 102 records synchronized, round5-scoped-check.log."
+    },
+    {
+      "command": "Changed-file oxlint/oxfmt --check and git diff --check",
+      "result": "PASS; round5-gates.json, round5-style-paths.json and final style logs."
+    }
+  ],
+  "gaps": [],
+  "executedCases": [
+    "BT20-056 Alphamon — On Play Recovery +1 compiles Barrier, attack-gated breeding digivolution, and inherited protection",
+    "BT20-056 Alphamon — On Play Recovery +1 does not use the breeding-area digivolution clause outside an attack",
+    "BT20-056 Alphamon — On Play Recovery +1 [On Play] ＜Recovery +1 (Deck)＞ — a card moves from deck to security",
+    "BT20-056 Alphamon — On Play Recovery +1 [All Turns] when security is removed, opponent Digimon gets -8000 DP",
+    "BT20-056 Alphamon — On Play Recovery +1 public security check from either controller activates the opponent-Digimon penalty",
+    "BT20-056 Alphamon — On Play Recovery +1 publishes Barrier at runtime",
+    "BT20-056 Alphamon — On Play Recovery +1 uses Barrier only for battle deletion (accept=true)",
+    "BT20-056 Alphamon — On Play Recovery +1 uses Barrier only for battle deletion (accept=false)",
+    "BT20-056 Alphamon — On Play Recovery +1 Q4389/Q4724 recovers, evolves breeding free during an attack, and suppresses its entry effect",
+    "BT20-056 Alphamon — On Play Recovery +1 applies the security-removal DP penalty only once per turn",
+    "BT20-056 Alphamon — On Play Recovery +1 resets the security-removal penalty after a real opponent turn",
+    "BT20-056 Alphamon — On Play Recovery +1 inherits paid leave prevention only for Alphamon: Ouryuken and not from your effects"
+  ],
+  "historicalCommands": [
     {
       "command": "node tools/kb/query.mjs card BT20-056",
       "result": "Q4389, Q4390, Q4724 retrieved"
@@ -37,10 +80,5 @@
       "result": "All current colocated cases pass within894/894; final independent acceptance remains pending."
     }
   ],
-  "gaps": [
-    "Public breeding-area digivolution during an attack remains unproven.",
-    "Public inherited Ouryuken leave-prevention battle proof remains pending.",
-    "Lead focused/mechanism/collection execution and delivery gates pending."
-  ],
-  "reviewStatus": "Full collection execution passed at this draft checkpoint. Strict clause acceptance, sensitivity and final delivery review remain pending; provisional scores do not count in the ledger."
+  "reviewStatus": "Current printed clauses, KB/errata, exclusive IR registration, legal public paths and negative controls independently reviewed. Delivery credit requires the pushed, hash-bound acceptance record."
 }
