@@ -16,18 +16,24 @@
       "modulePresent": true,
       "testPresent": true,
       "legacyRegistration": false,
-      "status": "pending",
+      "status": "in_progress",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        2,
+        1,
+        1,
         0
       ],
       "evidence": "BT24-reaudit/BT24-001.md",
-      "commands": [],
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT24/BT24-001.test.ts src/cards/BT24/BT24-002.test.ts src/cards/BT24/BT24-003.test.ts src/cards/BT24/BT24-004.test.ts src/cards/BT24/BT24-005.test.ts src/cards/BT24/BT24-006.test.ts src/cards/BT24/BT24-007.test.ts src/cards/BT24/BT24-008.test.ts src/cards/BT24/BT24-009.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "This focused file passed; 7 failures in other evolving batch files; not delivery gate",
+          "log": "/tmp/bt24-first-nine.log"
+        }
+      ],
       "gaps": [
-        "Independent clause, runtime and execution validation pending."
+        "Passing current focused proof; missing public egg evolution, opponent-turn boundary and OPT reset; review pending."
       ]
     },
     {
@@ -36,18 +42,24 @@
       "modulePresent": true,
       "testPresent": true,
       "legacyRegistration": false,
-      "status": "pending",
+      "status": "in_progress",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        2,
+        1,
+        1,
         0
       ],
       "evidence": "BT24-reaudit/BT24-002.md",
-      "commands": [],
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT24/BT24-001.test.ts src/cards/BT24/BT24-002.test.ts src/cards/BT24/BT24-003.test.ts src/cards/BT24/BT24-004.test.ts src/cards/BT24/BT24-005.test.ts src/cards/BT24/BT24-006.test.ts src/cards/BT24/BT24-007.test.ts src/cards/BT24/BT24-008.test.ts src/cards/BT24/BT24-009.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "This focused file passed; 7 failures in other evolving batch files; not delivery gate",
+          "log": "/tmp/bt24-first-nine.log"
+        }
+      ],
       "gaps": [
-        "Independent clause, runtime and execution validation pending."
+        "Passing current focused proof; missing public egg evolution, simultaneous EOT ordering Q5575 and OPT reset; review pending."
       ]
     },
     {
@@ -56,18 +68,24 @@
       "modulePresent": true,
       "testPresent": true,
       "legacyRegistration": false,
-      "status": "pending",
+      "status": "in_progress",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        2,
+        1,
+        1,
         0
       ],
       "evidence": "BT24-reaudit/BT24-003.md",
-      "commands": [],
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT24/BT24-001.test.ts src/cards/BT24/BT24-002.test.ts src/cards/BT24/BT24-003.test.ts src/cards/BT24/BT24-004.test.ts src/cards/BT24/BT24-005.test.ts src/cards/BT24/BT24-006.test.ts src/cards/BT24/BT24-007.test.ts src/cards/BT24/BT24-008.test.ts src/cards/BT24/BT24-009.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "This focused file passed; 7 failures in other evolving batch files; not delivery gate",
+          "log": "/tmp/bt24-first-nine.log"
+        }
+      ],
       "gaps": [
-        "Independent clause, runtime and execution validation pending."
+        "Passing current focused proof; legal breeding stack and own-turn Temple removal positive added; Q5576 Barrier prevention, Q5585 extra check and OPT reset remain unproven."
       ]
     },
     {
@@ -76,7 +94,7 @@
       "modulePresent": true,
       "testPresent": true,
       "legacyRegistration": false,
-      "status": "pending",
+      "status": "in_progress",
       "scores": [
         0,
         0,
@@ -87,7 +105,7 @@
       "evidence": "BT24-reaudit/BT24-004.md",
       "commands": [],
       "gaps": [
-        "Independent clause, runtime and execution validation pending."
+        "Public evolution fixture correction and focused rerun in progress."
       ]
     },
     {
@@ -96,18 +114,24 @@
       "modulePresent": true,
       "testPresent": true,
       "legacyRegistration": false,
-      "status": "pending",
+      "status": "in_progress",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        2,
+        1,
+        1,
         0
       ],
       "evidence": "BT24-reaudit/BT24-005.md",
-      "commands": [],
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT24/BT24-005.test.ts src/cards/BT24/BT24-056.test.ts src/cards/BT24/BT24-catalog-sync.test.ts src/engine/effects/digivolveCandidateLegality.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subtriggers.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS: 7 files, 510 tests; 005 has 9, 056 has 12",
+          "log": "/tmp/bt24-first-mechanisms.log"
+        }
+      ],
       "gaps": [
-        "Independent clause, runtime and execution validation pending."
+        "Natural Mind Link path needs full ordering/visibility assertions; OPT reset and collection delivery open."
       ]
     },
     {
@@ -116,7 +140,7 @@
       "modulePresent": true,
       "testPresent": true,
       "legacyRegistration": false,
-      "status": "pending",
+      "status": "in_progress",
       "scores": [
         0,
         0,
@@ -127,7 +151,7 @@
       "evidence": "BT24-reaudit/BT24-006.md",
       "commands": [],
       "gaps": [
-        "Independent clause, runtime and execution validation pending."
+        "Public evolution fixture correction and exact draw/trash identity proof in progress."
       ]
     },
     {
@@ -136,18 +160,30 @@
       "modulePresent": true,
       "testPresent": true,
       "legacyRegistration": false,
-      "status": "pending",
+      "status": "in_progress",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        2,
+        1,
+        1,
         0
       ],
       "evidence": "BT24-reaudit/BT24-007.md",
-      "commands": [],
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT24/BT24-007.test.ts src/cards/BT24/BT24-008.test.ts src/cards/BT24/BT24-009.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS 3 files/30 tests after lead integration review; 2026-09-06",
+          "log": "/tmp/bt24-integrated-007-009.log"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT24/BT24-007.test.ts src/cards/BT24/BT24-011.test.ts src/cards/BT24/BT24-014.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "007 PASS including corrected nonvacuous refusal; 011/014 draft fixtures failed",
+          "log": "/tmp/bt24-007-011-014.log"
+        }
+      ],
       "gaps": [
-        "Independent clause, runtime and execution validation pending."
+        "Full legal evolved battle stack effect, own-turn rejection, OPT reset, and broader Demon-versus-Titan/near-trait comparisons remain pending.",
+        "Final mechanism/collection/static/delivery gates pending."
       ]
     },
     {
@@ -156,18 +192,25 @@
       "modulePresent": true,
       "testPresent": true,
       "legacyRegistration": false,
-      "status": "pending",
+      "status": "in_progress",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        2,
+        1,
+        1,
         0
       ],
       "evidence": "BT24-reaudit/BT24-008.md",
-      "commands": [],
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT24/BT24-007.test.ts src/cards/BT24/BT24-008.test.ts src/cards/BT24/BT24-009.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS 3 files/30 tests after lead integration review; 2026-09-06",
+          "log": "/tmp/bt24-integrated-007-009.log"
+        }
+      ],
       "gaps": [
-        "Independent clause, runtime and execution validation pending."
+        "OPT reset, fully evolved stack moved from breeding to battle, and Q5578 security-effect priority interaction remain pending.",
+        "Final mechanism/collection/static/delivery gates pending."
       ]
     },
     {
@@ -176,18 +219,25 @@
       "modulePresent": true,
       "testPresent": true,
       "legacyRegistration": false,
-      "status": "pending",
+      "status": "in_progress",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        2,
+        1,
+        1,
         0
       ],
       "evidence": "BT24-reaudit/BT24-009.md",
-      "commands": [],
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT24/BT24-007.test.ts src/cards/BT24/BT24-008.test.ts src/cards/BT24/BT24-009.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS 3 files/30 tests after lead integration review; 2026-09-06",
+          "log": "/tmp/bt24-integrated-007-009.log"
+        }
+      ],
       "gaps": [
-        "Independent clause, runtime and execution validation pending."
+        "Inherited optional refusal, OPT and reset, own-turn boundary, full multi-step stack interaction, and Q5579 attack/Alliance behavior remain pending.",
+        "Final mechanism/collection/static/delivery gates pending."
       ]
     },
     {
@@ -196,18 +246,18 @@
       "modulePresent": true,
       "testPresent": true,
       "legacyRegistration": false,
-      "status": "pending",
+      "status": "in_progress",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        2,
+        1,
+        1,
         0
       ],
       "evidence": "BT24-reaudit/BT24-010.md",
       "commands": [],
       "gaps": [
-        "Independent clause, runtime and execution validation pending."
+        "10 focused tests passed; lead review and full clause/stack completeness pending."
       ]
     },
     {
@@ -216,18 +266,18 @@
       "modulePresent": true,
       "testPresent": true,
       "legacyRegistration": false,
-      "status": "pending",
+      "status": "in_progress",
       "scores": [
-        0,
-        0,
-        0,
+        2,
+        2,
+        1,
         0,
         0
       ],
       "evidence": "BT24-reaudit/BT24-011.md",
       "commands": [],
       "gaps": [
-        "Independent clause, runtime and execution validation pending."
+        "9 focused tests passed but root found vacuous Raid refusal security assertion; correction pending."
       ]
     },
     {
@@ -236,10 +286,10 @@
       "modulePresent": true,
       "testPresent": true,
       "legacyRegistration": false,
-      "status": "pending",
+      "status": "in_progress",
       "scores": [
-        0,
-        0,
+        2,
+        2,
         0,
         0,
         0
@@ -247,7 +297,7 @@
       "evidence": "BT24-reaudit/BT24-012.md",
       "commands": [],
       "gaps": [
-        "Independent clause, runtime and execution validation pending."
+        "Public opponent deletion replacement and inherited security-removal proof drafted; focused execution pending."
       ]
     },
     {
@@ -256,18 +306,18 @@
       "modulePresent": true,
       "testPresent": true,
       "legacyRegistration": false,
-      "status": "pending",
+      "status": "in_progress",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        2,
+        1,
+        1,
         0
       ],
       "evidence": "BT24-reaudit/BT24-013.md",
       "commands": [],
       "gaps": [
-        "Independent clause, runtime and execution validation pending."
+        "10 focused tests passed; lead review and full clause/stack completeness pending."
       ]
     },
     {
@@ -276,18 +326,18 @@
       "modulePresent": true,
       "testPresent": true,
       "legacyRegistration": false,
-      "status": "pending",
+      "status": "in_progress",
       "scores": [
-        0,
-        0,
-        0,
+        2,
+        2,
+        1,
         0,
         0
       ],
       "evidence": "BT24-reaudit/BT24-014.md",
       "commands": [],
       "gaps": [
-        "Independent clause, runtime and execution validation pending."
+        "Natural Decode and Security Attack tests in correction; focused rerun pending."
       ]
     },
     {
@@ -1116,18 +1166,24 @@
       "modulePresent": true,
       "testPresent": true,
       "legacyRegistration": false,
-      "status": "pending",
+      "status": "in_progress",
       "scores": [
-        0,
-        0,
-        0,
-        0,
+        2,
+        2,
+        1,
+        1,
         0
       ],
       "evidence": "BT24-reaudit/BT24-056.md",
-      "commands": [],
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT24/BT24-005.test.ts src/cards/BT24/BT24-056.test.ts src/cards/BT24/BT24-catalog-sync.test.ts src/engine/effects/digivolveCandidateLegality.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subtriggers.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS: 7 files, 510 tests; 005 has 9, 056 has 12",
+          "log": "/tmp/bt24-first-mechanisms.log"
+        }
+      ],
       "gaps": [
-        "Independent clause, runtime and execution validation pending."
+        "Printed-text discrepancy corrected and synchronized; public opponent hand/deck returns, Blocker combat and link boundaries remain."
       ]
     },
     {
@@ -2050,5 +2106,42 @@
         "Independent clause, runtime and execution validation pending."
       ]
     }
-  ]
+  ],
+  "checkpoints": [
+    {
+      "command": "pnpm install --frozen-lockfile",
+      "result": "PASS; dependencies installed in this worktree"
+    },
+    {
+      "command": "pnpm --filter @aegis/shared build",
+      "result": "PASS after transient ENOSPC failures; host still low on disk"
+    },
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT24 src/engine/deckInteractionsBT24.test.ts --maxWorkers=1 --no-file-parallelism",
+      "result": "INITIAL INTEGRATION: 102/106 files and 884/888 tests passed; includes in-progress worker additions; failures BT24-002,006,008,009 are being corrected; not a pristine baseline",
+      "log": "/tmp/bt24-reaudit-baseline.log"
+    },
+    {
+      "command": "pnpm -r --workspace-concurrency=1 typecheck",
+      "result": "PASS shared/API/web after correcting007 trigger payload",
+      "log": "/tmp/bt24-checkpoint-typecheck-2.log"
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT24 --base a924de971e0b43ad9ebd8f82a454d495ff880a60",
+      "result": "PASS:102 BT24 records; outside-set unchanged",
+      "log": "/tmp/bt24-effects-check.log"
+    },
+    {
+      "command": "pnpm exec oxlint apps/api/src/cards/BT24/BT24-007.test.ts apps/api/src/cards/BT24/BT24-005.test.ts apps/api/src/cards/BT24/BT24-056.ts apps/api/src/cards/BT24/BT24-056.test.ts",
+      "result": "PASS zero errors; existing any warnings",
+      "log": "/tmp/bt24-stable-lint.log"
+    }
+  ],
+  "summary": {
+    "catalogCards": 102,
+    "certified10": 0,
+    "scoredPoints": 74,
+    "maximumPoints": 1020,
+    "complete": false
+  }
 }
