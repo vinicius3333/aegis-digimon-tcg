@@ -124,3 +124,17 @@ Inspect and rerun each focused test, then affected mechanism suites, full BT20 s
 | BT20-100 | The Last Guardian | pending |
 | BT20-101 | Zephagamon | pending |
 | BT20-102 | Omnimon (X Antibody) | pending |
+
+## Checkpoint: complete draft inventory and shared DNA timing
+
+All 102 catalog cards now have independent revalidation draft reports. Draft coverage does not equal acceptance: the current hash-bound ledger remains 80/1020, with zero cards receiving final 10/10. New independent review found a missing behavioral once-per-turn/reset assertion for003; it is being added before acceptance is renewed.
+
+The shared DNA timing change has three public mechanism cases, passes 17 focused tests and535 affected engine/peer tests, and synchronizes only036/043 in the generated effects catalog. It retires deferred triggers once, binds Varodurumon's result, and permits state-based rules between pending effects before Counter.
+
+The first current whole-BT20 run plus that mechanism passed716 of730 tests, with14 failures across11 card files. These exposed stale Main Blast DNA fixtures and fixture issues involving target suspension, Security target choice/completion, evolution levels, incoming-turn memory and Main pass timing. Exact failures are retained in `current-collection-results.json`; root and workers are correcting them in non-overlapping files, then will rerun focused failures and the whole collection. No completion gate is waived.
+
+## Checkpoint: 734-test green draft and renewed early-card acceptance
+
+The corrected full BT20 plus DNA-mechanism run passes734/734 tests (`current-collection-green-results.json`). Subsequent targeted public proofs for003/015/016/020 pass27 tests; six style-strengthened card files pass42 tests.003 now has a completely public same-turn OPT and next-own-turn reset with a state-failing mutation, replacing the earlier seam-only limitation. The hash-bound ledger renews001–013 at8/10 each (104/1020 total), pending final delivery credit.
+
+Independent review continues across the remaining cards. Recent findings include missing isolated trait branches, actual restriction/Barrier interactions, natural expiry and OPT resets. These are being filled before any final10/10 claim. Green draft tests and saved commits remain checkpoints, not collection completion.

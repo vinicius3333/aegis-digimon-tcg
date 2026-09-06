@@ -25,12 +25,12 @@
     "BT20-003": {
       "reviewed": true,
       "gatesPassed": false,
-      "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open.",
+      "review": "Root public Eiji/Ouryuken Main-reopening scenario proves eligible same-turn refusal and next-own-turn reset; removal of OPT fails the intended final-source assertion. Final delivery gates pending.",
       "artifacts": {
         "apps/api/src/cards/BT20/BT20-003.ts": "2102cd77e81dbda8f15cef3e95afd777fe5b2386b38952725ebcfad73705dfbd",
-        "apps/api/src/cards/BT20/BT20-003.test.ts": "71155e1c20d8824b840ddf3c36e8223b871081a38144076ad3e4a7c38dd924da",
-        "internal-docs/audits/BT20/revalidation/BT20-003.json": "c932e1fcfde14a2803aca2fed536d591629e37c443a70ba2f07a85880e9eefe3",
-        "internal-docs/audits/BT20/revalidation/BT20-003.md": "9eb3c0547ff4e2261bddb5a165e98c3d3ef7d1a45f471ed1e087d691a16689a9"
+        "apps/api/src/cards/BT20/BT20-003.test.ts": "582fc6492f591e9140543123aa727f55c248580888461b2a57162bbeb7ef65f8",
+        "internal-docs/audits/BT20/revalidation/BT20-003.json": "69447e5cf4b533e7054912b0b81545838bc5614716e7e2f3b41ea7d11ee160cd",
+        "internal-docs/audits/BT20/revalidation/BT20-003.md": "248be386ef5fe100872733cde99f3208fc7c2b5e2ec14dde2b52e05193e2094f"
       }
     },
     "BT20-004": {
@@ -113,34 +113,34 @@
     "BT20-011": {
       "reviewed": true,
       "gatesPassed": false,
-      "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open.",
+      "review": "Root public fixture corrections passed focused and full734-test run; independent Luna clause review found no remaining substantive gap. Final delivery gates pending.",
       "artifacts": {
         "apps/api/src/cards/BT20/BT20-011.ts": "315614e4933ee8e4a67495c31e43d87fb5f6f0b9cb4f577c225872efa9efe5c4",
-        "apps/api/src/cards/BT20/BT20-011.test.ts": "ed662b110be435b0f416a233157aabd34e2cfc25eae2b93e9d7c8b182bbf1253",
-        "internal-docs/audits/BT20/revalidation/BT20-011.json": "583398b11a7f78ebd81542f0b91cf510944b9dc05c43d406b8a56015038b0b1b",
-        "internal-docs/audits/BT20/revalidation/BT20-011.md": "8f8f63f21a1c7ac9261dbfe803678bba90008b5c4ea7ae65ad1a5b430021bf89"
+        "apps/api/src/cards/BT20/BT20-011.test.ts": "ce409c679bdeeaccc89db37c31c5181732926bbb53992dc5744d89cc90965c33",
+        "internal-docs/audits/BT20/revalidation/BT20-011.json": "e6ecaaed6ce4fb734f04fe5eee24a0b939fb13ec212a4721f691036db2669c19",
+        "internal-docs/audits/BT20/revalidation/BT20-011.md": "eb556f99483de70033e4883886d97b26a787b0029877cd04925f25a92de4e801"
       }
     },
     "BT20-012": {
       "reviewed": true,
       "gatesPassed": false,
-      "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open.",
+      "review": "Root public fixture corrections passed focused and full734-test run; independent Luna clause review found no remaining substantive gap. Final delivery gates pending.",
       "artifacts": {
         "apps/api/src/cards/BT20/BT20-012.ts": "8cac8a43dcbdb323cf878d36a46b6c8533357e1c6d169a6d99def94cdd19a1c5",
-        "apps/api/src/cards/BT20/BT20-012.test.ts": "0792555b4db905be25b9a9d541512bbf223d1f263144592aa05c55a3d210c54f",
-        "internal-docs/audits/BT20/revalidation/BT20-012.json": "cc4854f401a3814a653eb135040c47636720443229f8becdaddf7c8c2f0b824e",
-        "internal-docs/audits/BT20/revalidation/BT20-012.md": "ef6b4c88e618b4342ef86ad4b843006aae8c44866c9dc056831da44c349ff9e9"
+        "apps/api/src/cards/BT20/BT20-012.test.ts": "b6d4bff87e426e37ab3948cd8e5120caa380f7a83e911af70a36c83456fe6bc9",
+        "internal-docs/audits/BT20/revalidation/BT20-012.json": "7cf3ecf85c07d3ba5c57aa4c8e164a2ee9efd23d29081a6d51de906c4d647894",
+        "internal-docs/audits/BT20/revalidation/BT20-012.md": "5dabb81da47a7b5b8556fb22920e40c0e7e45aaac7b4b74316df5824bd8aba99"
       }
     },
     "BT20-013": {
       "reviewed": true,
       "gatesPassed": false,
-      "review": "Lead reviewed current evidence; listed gaps and final delivery gates remain open.",
+      "review": "Root public fixture corrections passed focused and full734-test run; independent Luna clause review found no remaining substantive gap. Final delivery gates pending.",
       "artifacts": {
         "apps/api/src/cards/BT20/BT20-013.ts": "08021af9aba845850414ab71453619365849b2f617507eb7e1f94cd06ff8ab9d",
-        "apps/api/src/cards/BT20/BT20-013.test.ts": "96136e07644aa50891e9a09f14bb87f9bb566517194855c3229dc07605b09646",
-        "internal-docs/audits/BT20/revalidation/BT20-013.json": "44b4deb20591a8456002171f78e8195cc3451c49f1b01294d0da93cf05b83036",
-        "internal-docs/audits/BT20/revalidation/BT20-013.md": "214b9dfa526c76b6629acb83718585c032533bd5596d99cc5e3a675d5069b59b"
+        "apps/api/src/cards/BT20/BT20-013.test.ts": "75e7fb9c0d25b3e009c0b86d3b1b6204868f4e549a3fcd2b8c8a588da8738be5",
+        "internal-docs/audits/BT20/revalidation/BT20-013.json": "f81e34f2586ef1a355c5204ffa2ceb5e3d41fd95101f6efeb25f8dede67c135f",
+        "internal-docs/audits/BT20/revalidation/BT20-013.md": "ffe09106c52a6a2ae8da4a353bb1c2ed29942beace3f9005fd49405be3aaa712"
       }
     }
   }
