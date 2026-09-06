@@ -133,4 +133,46 @@ describe("BT21-035 compiled implementation", () => {
 
     expect(s.perm("flamedramon").currentDP).toBe(8000);
   });
+
+  it("expires the When Digivolving bonus after the opponent's production turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-035", as: "flame" }], deck: ["BT1-001"] },
+      1: { deck: ["BT1-002"] },
+    });
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("flame"));
+    expect(s.perm("flame").currentDP).toBe(8000);
+    await advance(s.engine).runTurn(0);
+    expect(s.perm("flame").currentDP).toBe(8000);
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("flame").currentDP).toBe(6000);
+  });
+
+  it("naturally unsuspends after Raid switches its public attack target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-035", as: "flame" }],
+          hand: [{ card: "BT21-075", as: "skull" }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "blocker", dp: 5000 }], security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("skull").instanceId })).toEqual({ ok: true });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("flame"), "Raid"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("flame").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("flame").isSuspended).toBe(false);
+  });
 });
