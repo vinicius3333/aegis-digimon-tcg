@@ -5,6 +5,11 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-024.js";
 import "./index.js";
+import "./BT20-026.js";
+import "./BT20-087.js";
+import "./BT20-018.js";
+import "../BT1/BT1-010.js";
+import "../BT1/BT1-036.js";
 
 describe("BT20-024 Seadramon (X Antibody)", () => {
   it("returns a level 3 Digimon and conditionally restricts a Tamer on both entry triggers", () => {
@@ -52,7 +57,7 @@ describe("BT20-024 Seadramon (X Antibody)", () => {
             { card: "BT20-023", as: "level4" },
             { card: "BT20-087", as: "tamer" },
           ],
-          deck: ["BT20-001"],
+          deck: ["BT1-010"],
         },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
@@ -87,7 +92,7 @@ describe("BT20-024 Seadramon (X Antibody)", () => {
               { card: "BT20-022", as: "level3" },
               { card: "BT20-087", as: "tamer" },
             ],
-            deck: ["BT20-001"],
+            deck: ["BT1-010"],
           },
         },
         { autoSelectCards: true },
@@ -116,7 +121,7 @@ describe("BT20-024 Seadramon (X Antibody)", () => {
             { card: "BT20-022", as: "level3" },
             { card: "BT20-087", as: "tamer" },
           ],
-          deck: ["BT20-001"],
+          deck: ["BT1-010"],
         },
       },
       { autoSelectCards: true },
@@ -134,14 +139,154 @@ describe("BT20-024 Seadramon (X Antibody)", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT20-026", as: "host", under: ["BT20-024"] }],
-        hand: Array.from({ length: 7 }, () => "BT20-001"),
-        deck: ["BT20-003", "BT20-004"],
+        hand: Array.from({ length: 7 }, () => "BT1-010"),
+        deck: ["BT1-010", "BT1-010"],
       },
     });
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
     expect(s.state.players[0]!.hand).toHaveLength(8);
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
     expect(s.state.players[0]!.hand).toHaveLength(8);
+  });
+
+  it("draws from an actual public attack once at seven cards, then resets next turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-026", as: "host", under: ["BT20-024"] }],
+          hand: [{ card: "BT1-036", as: "unsuspend" }, ...Array.from({ length: 6 }, () => "BT1-010")],
+          deck: ["BT1-010", "BT1-010", "BT1-010", "BT1-010"],
+        },
+        1: { security: Array.from({ length: 8 }, () => "BT1-010"), deck: ["BT1-010", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.filter((event) => event.kind === "combatResolved").length >= 1);
+    expect(s.state.players[0]!.hand).toHaveLength(8);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("unsuspend").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.perm("host").isSuspended);
+    expect(s.state.players[0]!.hand).toHaveLength(7);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.filter((event) => event.kind === "combatResolved").length >= 2);
+    expect(s.state.players[0]!.hand).toHaveLength(7);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    const nextOwnTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.players[0]!.hand).toHaveLength(8);
+    const cheap = s.state.players[0]!.hand.find((card) => card.cardId === "BT1-010")!;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: cheap.instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length === 7);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.filter((event) => event.kind === "combatResolved").length >= 3);
+    expect(s.state.players[0]!.hand).toHaveLength(8);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextOwnTurn;
+  });
+
+  it("expires the opposing-Tamer suspend restriction at the end of the opponent's turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-022", under: ["BT9-109"], as: "base" }],
+          hand: [{ card: "BT20-024", as: "seadramonX" }],
+          security: ["BT1-010", "BT1-010", "BT1-010", "BT1-010"],
+          deck: ["BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT20-015", under: ["BT20-010", "BT20-012"], as: "attacker" },
+            { card: "BT20-087", as: "tamer" },
+          ],
+          hand: [{ card: "BT20-018", as: "evolution" }],
+          security: ["BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010"],
+          deck: ["BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("seadramonX").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT20-024");
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 3);
+    expect(s.perm("attacker").topCard.cardId).toBe("BT20-015");
+    expect(s.perm("tamer").isSuspended).toBe(false);
+    expect(s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("evolution").instanceId)).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const nextOpponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("attacker").topCard.cardId === "BT20-018");
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("evolution").instanceId)).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await nextOpponentTurn;
   });
 
   it("reaches Seadramon (X Antibody) from a legal Seadramon stack through public evolution", async () => {
@@ -171,7 +316,7 @@ describe("BT20-024 Seadramon (X Antibody)", () => {
             { card: "BT20-022", as: "level3" },
             { card: "BT20-023", as: "level4" },
           ],
-          deck: ["BT20-001"],
+          deck: ["BT1-010"],
         },
       },
       { autoSelectCards: true },

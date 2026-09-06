@@ -1,6 +1,6 @@
 {
   "cardId": "BT20-024",
-  "status": "awaiting-lead-review",
+  "status": "awaiting-delivery-gates",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
@@ -9,17 +9,19 @@
     "deliveryGates": 0
   },
   "evidence": [
-    "internal-docs/audits/BT20/revalidation/BT20-024.md",
-    "apps/api/src/cards/BT20/BT20-024.test.ts",
-    "Added an unexecuted public it.each ordinary-evolution matrix: BT15-021 Gomamon (X Antibody) trait-only negative, BT9-109 X Antibody name positive, and EX5-070 Rule Name positive; each also observes the unconditional bounce and conditional Tamer restriction.",
-    "014-040-results.json",
-    "named-x-clause-red.log",
-    "named-x-019-102-red.log",
-    "named-x-026-028-red.log",
-    "named-x-green-results.json",
-    "named-x-mechanism-results.json"
+    "Public play and legal Seadramon evolution bottom-deck the one eligible opposing level-3 target and retain higher levels.",
+    "Exact Seadramon/X Antibody and Rule Name stack positives gate the Tamer lock; X-Antibody-trait-only sources do not. During the real opponent turn, BT20-087 cannot suspend to evolve its attacker; after expiry it pays the suspension and reduced evolution cost.",
+    "A legal MegaSeadramon X host carrying Seadramon X draws on an actual attack at seven hand cards, not on the same-turn repeat, and draws again after a real turn cycle. A cheap public play restores the eligible hand count after the normal turn draw; eight cards is a negative control.",
+    "BT20-024.test.ts; committed catalog and card-specific KB query reviewed by lead and Luna.",
+    "reactive-movement-affected-results.json: 552 passing affected mechanism tests.",
+    "collection-after-reactive-delay-results.json",
+    "reactive-movement-gates.json"
   ],
-  "commands": [
+  "gaps": [
+    "Atomic commit/push and final hash-bound acceptance pending."
+  ],
+  "reviewStatus": "Lead integrated and reviewed the current public proofs; earlier report prose and unexecuted worker handoffs are superseded by this clause map. No final score until delivery gates and artifact hashes are recorded.",
+  "historicalCommands": [
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-024.test.ts --maxWorkers=1 --no-file-parallelism",
       "result": "pending lead execution"
@@ -49,9 +51,26 @@
       "result": "Passed; named-x-lint.log and named-x-format-check.log"
     }
   ],
-  "gaps": [
-    "lead focused/mechanism/collection/typecheck/lint gates pending; local additions unexecuted",
-    "Final strict clause acceptance, whole-collection revalidation, typecheck/style and pushed delivery gates remain pending."
-  ],
-  "reviewStatus": "Focused execution passed; clause-by-clause lead acceptance remains pending. Provisional worker scores do not contribute to the ledger."
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+      "result": "11 cases passed for BT20-024; 836 total passed, zero failed."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "Passed shared/API/web; reactive-movement-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "All102 synchronized; see reactive-movement-gates.json for the temporary watchdog adjustment and restored script."
+    },
+    {
+      "command": "Commands in reactive-movement-gates.json",
+      "result": "552 affected mechanism cases and changed-file lint/format passed without warnings."
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-024",
+      "result": "8 intended state/assertion failures with registered effects disabled; production restored. See BT20-024-runtime-disabled.json. Runner reproduction is per-card; batch invocation is retained in014-026-runtime-sensitivity.log."
+    }
+  ]
 }
