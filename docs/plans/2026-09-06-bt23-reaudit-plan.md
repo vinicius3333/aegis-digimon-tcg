@@ -10,7 +10,7 @@ Astra owns planning, decomposition, review, the ledger, shared engine and testki
 
 ## Work queue
 
-Initial batches: Luna A BT23-001–003; Luna B BT23-004–006; Luna C BT23-007–009. After review, dispatch successive disjoint three-card batches through BT23-102. Blocked cards retain exact gaps and are revisited after shared fixes; other cards continue. Each report records full catalog/KB contract, executable mapping, named behavior assertions, exact commands/results, peer and legal evolution-stack evidence, score components, and remaining gaps.
+Initial batches: Luna A BT23-001–003; Luna B BT23-004–006; Luna C BT23-007–009. After review, dispatch disjoint three-card batches through BT23-102. Prioritize BT23-101–102 after the first batches because coordinator inspection found predominantly structural/injected proof; details are in docs/audits/BT23-reaudit/REVIEW-NOTES.md. Blocked cards retain exact gaps and are revisited after shared fixes; other cards continue. Each report records full catalog/KB contract, executable mapping, named behavior assertions, exact commands/results, peer and legal evolution-stack evidence, score components, and remaining gaps.
 
 ## Scoring
 
