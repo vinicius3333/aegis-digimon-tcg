@@ -68,13 +68,13 @@ describe("BT20-057 Gankoomon", () => {
           hand: [{ card: "BT20-057", as: "gankoomon" }],
         },
       });
-      s.state.memory = 12;
+      s.state.memory = 10;
       await s.ready();
       expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gankoomon").instanceId })).toEqual({
         ok: true,
       });
       await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-057"));
-      expect(s.state.memory).toBe(qualifying ? 4 : 0);
+      expect(s.state.memory).toBe(qualifying ? 2 : -2);
     }
   });
 
@@ -142,7 +142,7 @@ describe("BT20-057 Gankoomon", () => {
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 12;
+    s.state.memory = 10;
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gankoomon").instanceId })).toEqual({
       ok: true,
