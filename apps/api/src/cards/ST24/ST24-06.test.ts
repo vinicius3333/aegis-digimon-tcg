@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "../index.js";
 
 describe("ST24-06 RizeGreymon", () => {
@@ -113,5 +114,32 @@ describe("ST24-06 RizeGreymon", () => {
     expect(
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("option").instanceId),
     ).toBe(false);
+  });
+
+  it("prevents a legal host from leaving by paying one bottom face-down Tamer card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST24-07", as: "host", under: [{ card: "ST24-06" }] },
+            { card: "ST24-13", as: "tamer", under: [{ card: "BT1-001", as: "under", faceUp: false }] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    expect(await advance(s.engine).verb.deletePermanent([hostId])).toBe(0);
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === hostId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((c) => c.instanceId === s.inst("under").instanceId)).toBe(true);
+  });
+
+  it("allows the host to leave when the inherited replacement cost cannot be paid", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "ST24-07", as: "host", under: [{ card: "ST24-06" }] }] } });
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    expect(await advance(s.engine).verb.deletePermanent([hostId])).toBe(1);
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === hostId)).toBe(false);
   });
 });

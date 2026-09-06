@@ -29,6 +29,7 @@ describe("ST12-11 [When Digivolving] plays Huckmon or Sistermon-name from trash 
           // Place a Huckmon in the owner's trash.
           trash: [{ card: HUCKMON, as: "huckmon" }],
           hand: [{ card: GANKOOMON, as: "card" }],
+          deck: ["ST1-02", "ST1-02"],
         },
         1: {
           battleArea: [
@@ -62,6 +63,66 @@ describe("ST12-11 [When Digivolving] plays Huckmon or Sistermon-name from trash 
     expect(s.perm("target2").topCard.cardId).toBe("ST12-04");
   });
 
+  it("plays a Sistermon-name card but rejects BaoHuckmon as Huckmon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: LV5_BASE, as: "base" }],
+          trash: [
+            { card: "ST12-13", as: "sistermon" },
+            { card: "ST12-06", as: "baoHuckmon" },
+          ],
+          hand: [{ card: GANKOOMON, as: "card" }],
+          deck: ["ST1-02", "ST1-02"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    const sistermonId = s.inst("sistermon").instanceId;
+    const baoHuckmonId = s.inst("baoHuckmon").instanceId;
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("card").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === sistermonId));
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === sistermonId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === baoHuckmonId)).toBe(true);
+  });
+
+  it("does not treat BaoHuckmon as the exact Huckmon name", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: LV5_BASE, as: "base" }],
+          trash: [{ card: "ST12-06", as: "baoHuckmon" }],
+          hand: [{ card: GANKOOMON, as: "card" }],
+          deck: ["ST1-02", "ST1-02"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    const baoHuckmonId = s.inst("baoHuckmon").instanceId;
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("card").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === GANKOOMON));
+
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === baoHuckmonId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === baoHuckmonId)).toBe(false);
+  });
+
   it("does NOT play from trash when trash has no Huckmon or Sistermon", async () => {
     const s = setupEngine(
       {
@@ -70,6 +131,7 @@ describe("ST12-11 [When Digivolving] plays Huckmon or Sistermon-name from trash 
           // Trash has a non-matching card.
           trash: [{ card: "BT1-009", as: "other" }], // Monodramon — not Huckmon or Sistermon
           hand: [{ card: GANKOOMON, as: "card" }],
+          deck: ["ST1-02", "ST1-02"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
@@ -98,6 +160,7 @@ describe("ST12-11 [When Digivolving] plays Huckmon or Sistermon-name from trash 
           battleArea: [{ card: LV5_BASE, as: "base" }],
           trash: [{ card: HUCKMON, as: "huckmon" }],
           hand: [{ card: GANKOOMON, as: "card" }],
+          deck: ["ST1-02", "ST1-02"],
         },
       },
       { autoOrderTriggers: true },
@@ -135,19 +198,20 @@ describe("ST12-11 [When Digivolving] plays Huckmon or Sistermon-name from trash 
             { card: "ST12-10", as: "jesmonTwo" },
           ],
           hand: [
-            { card: "ST12-12", as: "sisterOne" },
-            { card: "ST12-12", as: "sisterTwo" },
+            { card: "ST12-13", as: "sisterOne" },
+            { card: "ST12-13", as: "sisterTwo" },
           ],
         },
         1: {
-          battleArea: [{ card: "ST12-10", as: "target", under: ["ST12-08", "ST12-04", "ST12-08"] }],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          battleArea: [{ card: "ST12-10", as: "target", under: ["ST12-04", "ST12-06", "ST12-08"] }],
+          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-001", "BT1-002"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
 
     const target = s.perm("target");
+    const combat = (s.engine as unknown as { combat: { isAttacking: boolean } }).combat;
     s.state.memory = 10;
     expect(
       s.engine.applyIntent(0, {
@@ -156,7 +220,12 @@ describe("ST12-11 [When Digivolving] plays Huckmon or Sistermon-name from trash 
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => target.stack.length === 2);
+    await settle(() => !combat.isAttacking && s.state.players[1]!.security.length === 3);
+    expect(s.state.players[1]!.security).toHaveLength(3);
+    expect(target.stack).toHaveLength(2);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("sisterOne").instanceId)).toBe(
+      true,
+    );
 
     expect(
       s.engine.applyIntent(0, {
@@ -165,7 +234,12 @@ describe("ST12-11 [When Digivolving] plays Huckmon or Sistermon-name from trash 
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 1);
+    await settle(() => !combat.isAttacking && s.state.players[1]!.security.length === 1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(combat.isAttacking).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("sisterTwo").instanceId)).toBe(
+      true,
+    );
 
     // A second effect-play in the same turn must not consume Gankoomon's OPT again.
     expect(target.stack).toHaveLength(2);

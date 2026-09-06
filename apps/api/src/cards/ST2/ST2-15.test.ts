@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, getCardDefinition, getCompiledCard } from "@aegis/shared";
+import { EffectDuration, EffectTiming, getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -19,8 +19,8 @@ import "../index.js";
 //
 // Card IDs used:
 //   ST2-15   — Kaiser Nail (Option, the card under test)
-//   BT1-009  — Greymon (Lv.4 Digimon, used as the base on the field)
-//   BT10-074 — Lv.4 Purple Digimon, placed as a digi-card under BT1-009 (legal play target)
+//   ST2-10   — Plesiomon (Lv.6 Digimon, used as the host on the field)
+//   BT10-074 — Lv.4 Purple Digimon, placed as a digi-card under the host (legal play target)
 
 describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your Digimon", () => {
   it("loads the complete shared IR artifact without residual clauses", () => {
@@ -69,8 +69,7 @@ describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your
           battleArea: [
             // A Digimon on p0's battle area with a Digimon digi-card (BT10-074) in its stack.
             {
-              card: "BT1-009",
-              dp: 6000,
+              card: "ST2-10",
               as: "baseDigimon",
               suspended: true,
               under: [
@@ -90,10 +89,12 @@ describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your
     const baseDigimon = s.perm("baseDigimon");
     const digiCardId = s.inst("digiCard").instanceId;
 
-    // Plenty of memory to play the Option (ST2-15 costs 3).
-    s.state.memory = 3;
+    // Pay only Kaiser Nail's printed cost of 4.
+    s.state.memory = 4;
 
-    const initialBattleCount = p0.battleArea.length; // 1
+    await advance(s.engine).verb.modifyDP(baseDigimon.permanentId, 4000, EffectDuration.UntilEachTurnEnd);
+    expect(baseDigimon.currentDP).toBe(baseDigimon.baseDP + 4000);
+    const initialBattleCount = p0.battleArea.length;
 
     // Play Kaiser Nail as an Option card.
     const result = s.engine.applyIntent(0, {
@@ -110,6 +111,11 @@ describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your
     const played = p0.battleArea.find((p) => p.topCard?.cardId === "BT10-074")!;
     expect(played).toBeDefined();
     expect(played.isSuspended).toBe(false);
+    expect(played.topCard.instanceId).toBe(digiCardId);
+    expect(played.currentDP).toBe(getCardDefinition("BT10-074")!.dp);
+    expect(baseDigimon.currentDP).toBe(baseDigimon.baseDP + 4000);
+    expect(p0.battleArea).toHaveLength(initialBattleCount + 1);
+    expect(s.state.memory).toBe(0);
 
     // The digi-card should no longer be under the base Digimon's stack.
     expect(baseDigimon.stack.some((c) => c.instanceId === digiCardId)).toBe(false);
@@ -182,7 +188,7 @@ describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your
       return (
         latest !== undefined &&
         latest.decisionId === s.state.pendingDecision?.decisionId &&
-        latest.kind === "selectCards" &&
+        latest.kind === "optional" &&
         latest.sourceCardId === "ST2-15"
       );
     });
@@ -257,7 +263,8 @@ describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your
     });
     expect(result.ok).toBe(true);
 
-    await settle(() => false, 100);
+    await settle(() => p0.trash.some((card) => card.instanceId === s.inst("kaiserNail").instanceId));
+    expect(p0.trash.some((card) => card.instanceId === s.inst("kaiserNail").instanceId)).toBe(true);
 
     // No new Digimon was played (no valid target).
     expect(p0.battleArea.length).toBe(initialBattleCount);

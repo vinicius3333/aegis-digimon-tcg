@@ -63,4 +63,51 @@ describe("ST17-08 MegaGargomon", () => {
     await settle(() => !s.perm("mega").isSuspended);
     expect(s.perm("mega").isSuspended).toBe(false);
   });
+
+  it("Blast Digivolves from hand in a real Counter window without paying memory", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST17-07", as: "base" }],
+          hand: [{ card: "ST17-08", as: "mega" }],
+          security: ["BT1-001"],
+          deck: ["BT1-002", "BT1-002"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }], security: ["BT1-001"], deck: ["BT1-002", "BT1-002"] },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await s.ready();
+    const attackerId = s.perm("attacker").permanentId;
+    expect(
+      s.engine.applyIntent(1, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("counter window did not open");
+    const eligible = opened.eligibleCounters.find((entry) => entry.instanceId === s.inst("mega").instanceId);
+    expect(eligible).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondCounter",
+        sourceInstanceId: eligible!.instanceId,
+        effectKey: eligible!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("base").topCard?.cardId === "ST17-08" && s.events.some((event) => event.kind === "blockWindowOpened"),
+    );
+    expect(s.perm("base").topCard?.cardId).toBe("ST17-08");
+    expect(s.state.memory).toBe(0);
+    expect(s.events.some((event) => event.kind === "counterResolved")).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("base").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(false);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+  });
 });

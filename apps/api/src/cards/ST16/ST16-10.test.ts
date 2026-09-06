@@ -22,4 +22,23 @@ describe("ST16-10 Mammothmon", () => {
 
     expect(observe(s.engine).hasKeyword(s.perm("mammothmon"), "Blocker")).toBe(true);
   });
+
+  it("deletes the opposing attacker when its host loses a real battle through inherited Retaliation", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST1-10", as: "attacker" }] },
+      1: { battleArea: [{ card: "ST2-11", as: "mammothmon", suspended: true, under: ["ST16-10"] }] },
+    });
+    const attackerId = s.perm("attacker").permanentId;
+    const mammothId = s.perm("mammothmon").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attackerId,
+        target: { kind: "permanent", permanentId: mammothId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some((p) => p.permanentId === attackerId));
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === attackerId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === mammothId)).toBe(false);
+  });
 });

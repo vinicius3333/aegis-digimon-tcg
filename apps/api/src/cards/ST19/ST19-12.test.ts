@@ -65,4 +65,26 @@ describe("ST19-12 Familiar Token", () => {
     expect(s.perm("cendrill").isSuspended).toBe(false);
     expect(s.events.some((event) => (event as { kind?: string }).kind === "attackDeclared")).toBe(true);
   });
+
+  it("may decline playing the two Familiar Tokens when digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST19-10", as: "host" }], hand: [{ card: "ST19-12", as: "cendrill" }] },
+        1: {},
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("cendrill").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "ST19-12"));
+    expect(s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "ST19-12")).toBe(true);
+    await settle(() => s.perm("host").topCard.cardId === "ST19-12");
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "TOKEN-Familiar-Token")).toBe(false);
+  });
 });

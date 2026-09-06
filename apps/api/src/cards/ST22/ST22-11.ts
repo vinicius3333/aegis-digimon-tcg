@@ -61,9 +61,9 @@ const compiled: CompiledCard = {
             count: 1,
             isSelf: true,
           },
-          linkTo: {
-            controller: "mine",
-            kind: ["Digimon"],
+          recipient: {
+            filter: { controller: "mine", kind: ["Digimon"] },
+            count: 1,
           },
           payCost: false,
           optional: true,
@@ -76,26 +76,19 @@ const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: 1,
+            bindAs: "rebootRecipient",
           },
           keyword: {
             keyword: "Reboot",
             raw: "＜Reboot＞",
           },
           duration: "untilOpponentTurnEnd",
-          optional: true,
         },
         {
           kind: "ModifyDP",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-            },
-            count: 1,
-          },
+          target: { fromSelectionRef: "rebootRecipient" },
           amount: 3000,
           duration: "untilOpponentTurnEnd",
-          optional: true,
         },
       ],
     },

@@ -59,6 +59,42 @@ export function engageActivatedEffect(): CardEffect {
   };
 }
 
+/** Printed or dynamically granted Vortex schedules an optional end-of-turn attack. */
+export function vortexActivatedEffect(): CardEffect {
+  return {
+    trigger: "EndOfYourTurn",
+    condition: { kind: "selfHasKeyword", keyword: "Vortex" },
+    actions: [
+      {
+        kind: "Attack",
+        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+        vortex: true,
+        optional: true,
+        abortOnDecline: true,
+      },
+    ],
+  };
+}
+
+/** Printed Vortex cards with an authored end-turn attack need no synthesized copy. */
+export function hasExplicitVortexEndOfTurnAttack(compiled: CompiledCard): boolean {
+  const rootKeywords = (compiled as CompiledCard & { keywords?: Array<{ keyword?: string }> }).keywords ?? [];
+  const printsVortex =
+    rootKeywords.some(({ keyword }) => keyword === "Vortex") ||
+    compiled.effects.some(
+      (effect) => effect.isInherited !== true && (effect.keywords ?? []).some(({ keyword }) => keyword === "Vortex"),
+    );
+  return (
+    printsVortex &&
+    compiled.effects.some(
+      (effect) =>
+        effect.isInherited !== true &&
+        effect.trigger === "EndOfYourTurn" &&
+        (effect.actions ?? []).some((action) => action.kind === "Attack"),
+    )
+  );
+}
+
 /** True when Engage is printed but no explicit end-of-turn attack already implements it. */
 export function declaresUnimplementedEngageKeyword(compiled: CompiledCard): boolean {
   const rootKeywords = (compiled as CompiledCard & { keywords?: Array<{ keyword?: string }> }).keywords ?? [];

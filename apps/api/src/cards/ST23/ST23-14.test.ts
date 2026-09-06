@@ -62,4 +62,39 @@ describe("ST23-14 Reina Sakuya & Makoto Kuonji", () => {
     expect(s.perm("tamer").isSuspended).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("glowing"), "Jamming")).toBe(false);
   });
+
+  it("uses the granted Jamming to survive a security Digimon battle", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST23-14", as: "tamer", under: [{ card: "BT1-001", faceUp: false }] },
+            { card: "ST23-11", as: "glowing" },
+          ],
+          hand: [{ card: "ST23-12", as: "trigger" }],
+          trash: [{ card: "ST23-03", as: "returnTarget" }],
+        },
+        1: { security: ["ST1-10"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("trigger").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("glowing"), "Jamming"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("glowing").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("glowing").permanentId)).toBe(true);
+  });
 });

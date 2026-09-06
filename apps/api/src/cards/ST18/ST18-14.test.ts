@@ -66,4 +66,59 @@ describe("ST18-14 Shoto Kazama", () => {
       actions: [{ kind: "PlayWithoutCost", payCost: false }],
     });
   });
+
+  it("pays by suspending itself to redirect an attack from the player to an opponent Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST18-14", as: "shoto" },
+            { card: "BT1-009", as: "attacker", dp: 7000 },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 3000 }], security: ["BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.perm("shoto").isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("may decline redirection without suspending the Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST18-14", as: "shoto" },
+            { card: "BT1-009", as: "attacker", dp: 7000 },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 3000 }], security: ["BT1-011"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "ST18-14")).toBe(true);
+    expect(s.perm("shoto").isSuspended).toBe(false);
+  });
 });

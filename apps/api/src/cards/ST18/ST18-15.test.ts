@@ -41,4 +41,28 @@ describe("ST18-15 Anemoi Embrace", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("ST18-03");
   });
+
+  it("still resolves the then-unsuspend when the first effect did not suspend your Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "ST18-15", as: "option" }],
+          battleArea: [{ card: "ST18-03", as: "ownTarget", suspended: true }],
+        },
+        1: { battleArea: [{ card: "ST18-03", as: "opponentTarget" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.perm("ownTarget").isSuspended);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.perm("ownTarget").isSuspended).toBe(false);
+    expect(s.perm("opponentTarget").isSuspended).toBe(false);
+    expect(s.state.players[1]!.deck.some((card) => card.cardId === "ST18-03")).toBe(false);
+  });
 });

@@ -75,8 +75,8 @@ describe("＜Overclock＞ end-of-turn attack synthesis", () => {
   const endOfTurn = (cardId: string) =>
     irCardModule(cardId, getCompiledCard(cardId)!).effectsForTiming(EffectTiming.OnEndTurn, source(cardId));
 
-  it("synthesizes exactly one EndOfYourTurn attack for keyword-only cards", () => {
-    // Before the fix each of these had zero OnEndTurn effects (the keyword was inert).
+  it("synthesizes one Overclock attack alongside the conditional Vortex trigger", () => {
+    // Each card has one Overclock effect and one inactive-unless-granted Vortex effect.
     for (const id of [
       "EX11-024",
       "ST19-08",
@@ -88,17 +88,67 @@ describe("＜Overclock＞ end-of-turn attack synthesis", () => {
       "BT22-040",
       "BT22-042",
     ]) {
-      expect(endOfTurn(id), id).toHaveLength(1);
+      expect(endOfTurn(id)).toHaveLength(2);
     }
   });
 
   it("does not double-emit for cards that already hand-author the attack", () => {
-    expect(endOfTurn("EX7-030")).toHaveLength(1);
-    expect(endOfTurn("BT22-036")).toHaveLength(1);
+    expect(endOfTurn("EX7-030")).toHaveLength(2);
+    expect(endOfTurn("BT22-036")).toHaveLength(2);
   });
 
-  it("does not synthesize for a card without ＜Overclock＞", () => {
-    expect(endOfTurn("BT1-009")).toHaveLength(0);
+  it("adds no extra attack beyond the latent Vortex trigger for a card without ＜Overclock＞", () => {
+    // Every compiled Digimon carries one conditional Vortex trigger so live grants from
+    // another permanent can schedule their attack; BT1-009 has no active Vortex, so collection
+    // drops that trigger before resolution.
+    expect(endOfTurn("BT1-009")).toHaveLength(1);
+  });
+});
+
+describe("＜Vortex＞ end-of-turn attack synthesis", () => {
+  const endOfTurn = (cardId: string) =>
+    irCardModule(cardId, getCompiledCard(cardId)!).effectsForTiming(EffectTiming.OnEndTurn, source(cardId));
+
+  it("synthesizes one optional Vortex attack and does not duplicate explicit attacks", () => {
+    expect(endOfTurn("BT20-101")).toHaveLength(1);
+    expect(endOfTurn("BT1-009")).toHaveLength(1);
+  });
+
+  it("accepts the optional end-of-turn Vortex attack against an unsuspended Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: ["AD1-001"], deck: ["AD1-001"], battleArea: [{ card: "BT20-101", as: "vortexer", dp: 8000 }] },
+        1: { hand: ["AD1-001"], deck: ["AD1-001"], battleArea: [{ card: "BT1-009", as: "target", dp: 1000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    const turn = s.engine.runOneTurn();
+    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+    await settle(() => mainPhase.isOpen, 500);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(true);
+  });
+
+  it("leaves the board unchanged when the optional end-of-turn Vortex attack is declined", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: ["AD1-001"], deck: ["AD1-001"], battleArea: [{ card: "BT20-101", as: "vortexer", dp: 8000 }] },
+        1: { hand: ["AD1-001"], deck: ["AD1-001"], battleArea: [{ card: "BT1-009", as: "target", dp: 1000 }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    const turn = s.engine.runOneTurn();
+    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+    await settle(() => mainPhase.isOpen, 500);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
   });
 });
 

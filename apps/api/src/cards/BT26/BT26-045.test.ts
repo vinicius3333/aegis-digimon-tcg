@@ -45,6 +45,105 @@ describe("BT26-045 GranKuwagamon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("granKuwagamon"), "Vortex")).toBe(true);
   });
 
+  it("schedules a live granted recipient at the real end-of-turn window", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-045", as: "granKuwagamon", suspended: true },
+            { card: "ST9-12", as: "recipient" },
+          ],
+          hand: ["AD1-001"],
+          deck: ["AD1-001"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 3000 }], hand: ["AD1-001"], deck: ["AD1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.isFirstPlayersFirstTurn = true;
+    const recipient = s.perm("recipient");
+    const targetId = s.perm("target").permanentId;
+    recipient.enterFieldTurnCount = s.state.turnCount;
+    const turn = s.engine.runOneTurn();
+    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+    await settle(() => mainPhase.isOpen, 500);
+    await advance(s.engine).verb.suspend([s.perm("granKuwagamon").permanentId]);
+    s.perm("recipient").enterFieldTurnCount = s.state.turnCount;
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(observe(s.engine).hasKeyword(recipient, "Vortex")).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.events.filter((event) => event.kind === "attackDeclared")).toEqual([
+      expect.objectContaining({
+        attackerPermanentId: recipient.permanentId,
+        target: { kind: "permanent", permanentId: targetId },
+      }),
+    ]);
+  });
+
+  it("allows declining the live granted recipient's optional Vortex attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-045", as: "granKuwagamon", suspended: true },
+            { card: "ST9-12", as: "recipient" },
+          ],
+          hand: ["AD1-001"],
+          deck: ["AD1-001"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 3000 }], hand: ["AD1-001"], deck: ["AD1-001"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.isFirstPlayersFirstTurn = true;
+    const turn = s.engine.runOneTurn();
+    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+    await settle(() => mainPhase.isOpen, 500);
+    await advance(s.engine).verb.suspend([s.perm("granKuwagamon").permanentId]);
+    s.perm("recipient").enterFieldTurnCount = s.state.turnCount;
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
+    expect(s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "ST9-12")).toBe(true);
+  });
+
+  it("loses the live granted Vortex keyword after its Your Turn duration expires", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-045", as: "granKuwagamon", suspended: true },
+            { card: "ST9-12", as: "recipient" },
+          ],
+          hand: ["AD1-001"],
+          deck: ["AD1-001"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 3000 }], hand: ["AD1-001"], deck: ["AD1-001"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const recipient = s.perm("recipient");
+    expect(observe(s.engine).hasKeyword(recipient, "Vortex")).toBe(true);
+    s.state.isFirstPlayersFirstTurn = true;
+    const turn = s.engine.runOneTurn();
+    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+    await settle(() => mainPhase.isOpen, 500);
+    await advance(s.engine).verb.suspend([s.perm("granKuwagamon").permanentId]);
+    s.perm("recipient").enterFieldTurnCount = s.state.turnCount;
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
+    s.state.turnCount += 1;
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+    expect(observe(s.engine).hasKeyword(recipient, "Vortex")).toBe(false);
+  });
+
   it("reduces its play cost only when its hand is strictly smaller at announcement (Q7036/Q7037)", async () => {
     const reduced = setupEngine({
       0: { hand: [{ card: "BT26-045", as: "granKuwagamon" }] },

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { PlayerState } from "@aegis/shared";
-import { makeDigimon as digimon, setupEngine as setup, settle, type EngineSetup } from "../testkit/harness.js";
+import { makeDigimon as digimon, setupEngine as setup, settle } from "../testkit/harness.js";
 import "../../cards/index.js";
 
 /**
@@ -19,22 +19,13 @@ import "../../cards/index.js";
 const NON_KEYWORD_CARD = "AD1-001";
 const VORTEX_CARD = "BT20-101"; // printed <Vortex>, no <Rush>
 
-function attackDeclare(s: EngineSetup, attackerPermanentId: string, targetPermanentId: string) {
-  return s.engine.applyIntent(0, {
-    type: "attack",
-    attackerPermanentId,
-    target: { kind: "permanent", permanentId: targetPermanentId },
-    vortex: true,
-  });
-}
-
 describe("<Vortex> (Comprehensive Rules §16-33) — same-turn-attack grant", () => {
   it("a <Vortex> Digimon may declare a Vortex attack the very turn it was played", async () => {
     // BT20-101 also prints "[All Turns] [Once Per Turn] When any Digimon suspend, this Digimon
     // may unsuspend". Now that combat suspension fires `whenSuspended`, declaring the attack
-    // opens that optional prompt mid-flow; left unanswered it stalls the attack. Declining is
-    // the branch this test wants — it is about summoning sickness, not about the unsuspend.
-    const s = setup({ autoDeclineOptional: true });
+    // opens an optional prompt mid-flow. Answer the nested choices so the end-turn attack
+    // completes and the test observes the actual same-turn attack outcome.
+    const s = setup({ autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true });
     const p0 = s.state.players[0] as PlayerState;
     const p1 = s.state.players[1] as PlayerState;
 
@@ -46,7 +37,12 @@ describe("<Vortex> (Comprehensive Rules §16-33) — same-turn-attack grant", ()
     p1.battleArea.push(target);
     await s.engine.recomputeContinuousEffects(); // pick up the printed <Vortex> grant
 
-    expect(attackDeclare(s, vortexer.permanentId, target.permanentId)).toEqual({ ok: true });
+    s.state.isFirstPlayersFirstTurn = true;
+    const turn = s.engine.runOneTurn();
+    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+    await settle(() => mainPhase.isOpen, 500);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
     await settle(() => !p1.battleArea.some((p) => p.permanentId === target.permanentId));
 
     // The Vortex attack resolved -- the target (much lower DP) was deleted, and the attack

@@ -130,6 +130,8 @@ export interface CombatTrigger {
   fortitudeInstanceIds?: string[];
   /** Deleted host top-card identity for every card moved with it; pending effects require that host in trash. */
   deletedHostInstanceByInstanceId?: Record<string, string>;
+  /** Event-time custom grants, captured before battle deletion drops recipient availability. */
+  customEffectGrantsSnapshot?: TriggerInfo["customEffectGrantsSnapshot"];
 }
 
 /**
@@ -187,6 +189,8 @@ export interface CombatHooks {
    * Optional so the combat unit tests (minimal hooks) keep the base behavior (no teardown).
    */
   dropPermanentSubscriptions?: (permanentId: string) => void;
+  /** Capture custom named-effect grants while battle recipients are still live. */
+  snapshotCustomEffectGrants?: (departingInstanceIds: readonly string[]) => TriggerInfo["customEffectGrantsSnapshot"];
   /**
    * Resolve a successful, unblocked player-directed attack against `defenderSeat`
    * by running the security check (subsystem: security-and-win-check). The engine
@@ -1446,21 +1450,31 @@ export class CombatController {
     const deletedHostInstanceByInstanceId: Record<string, string> = {};
     const battleOpponentPermanentIdByInstanceId: Record<string, string> = {};
     const deletedEffectiveColorsByInstanceId: Record<string, CardColor[]> = {};
+    // Material Save relocates cards before the battle deletion is finalized. Resolve it for
+    // every loser first so the grant snapshot below describes the cards that will really leave.
+    for (const permanentId of postCardPreventionDeletedIds) {
+      if (this.hasKeyword(permanentId, "MaterialSave")) {
+        await this.hooks.materialSave?.(permanentId);
+      }
+    }
+    // Capture custom-grant eligibility while every battle loser is still live. Material Save
+    // has now run, so this set reflects the cards that will actually leave play.
+    const departingInstanceIds = postCardPreventionDeletedIds.flatMap((permanentId) => {
+      const permanent = this.access.permanentById(permanentId);
+      return permanent === undefined
+        ? []
+        : [
+            ...(permanent.topCard === undefined ? [] : [permanent.topCard.instanceId]),
+            ...permanent.stack.map((card) => card.instanceId),
+            ...permanent.linked.map((card) => card.instanceId),
+          ];
+    });
+    const customEffectGrantsSnapshot = this.hooks.snapshotCustomEffectGrants?.(departingInstanceIds);
     const tokenDeletionCandidates = postCardPreventionDeletedIds.flatMap((permanentId) => {
       const top = this.access.permanentById(permanentId)?.topCard;
       return top !== undefined && getCardDefinition(top.cardId)?.isToken === true ? [top] : [];
     });
     for (const permanentId of postCardPreventionDeletedIds) {
-      // ＜Material Save＞ (§16-21): a plain "when deleted" reaction (no cause restriction), so
-      // it applies to a battle death exactly like an effect deletion. Must run BEFORE the
-      // stack-id capture / movement below — it relocates the chosen cards out from under this
-      // still-live permanent, so they are correctly excluded from what gets trashed. Gated on
-      // the keyword HERE (a cheap synchronous check) rather than inside the hook so a battle
-      // death with no Material Save holder — the overwhelming majority — never pays for the
-      // extra microtask hop of an awaited hook call it doesn't need.
-      if (this.hasKeyword(permanentId, "MaterialSave")) {
-        await this.hooks.materialSave?.(permanentId);
-      }
       const stackIds = this.access.permanentById(permanentId)?.stack.map((c) => c.instanceId) ?? [];
       const linkedIds = this.access.permanentById(permanentId)?.linked.map((c) => c.instanceId) ?? [];
       const hostInstanceId = this.access.permanentById(permanentId)?.topCard?.instanceId;
@@ -1529,6 +1543,7 @@ export class CombatController {
         deletedWasLinkedInstanceIds,
         deletedLinkHostInstanceByLinkedInstanceId,
         deletedHostInstanceByInstanceId,
+        ...(customEffectGrantsSnapshot === undefined ? {} : { customEffectGrantsSnapshot }),
         fortitudeInstanceIds: [...fortitudeReplayInstanceIds.values()].filter((instanceId) =>
           deletedInstanceIds.includes(instanceId),
         ),

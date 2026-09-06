@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../P/P-236.js";
 import "./ST23-04.js";
 
@@ -78,5 +79,42 @@ describe("ST23-04 Murasamemon", () => {
       });
     }
     expect(card?.effects.find((effect) => effect.isInherited)).toMatchObject({ frequency: "OncePerTurn" });
+  });
+
+  it("resolves Alliance in a real attack and suspends the chosen ally", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "ST23-04", as: "attacker" },
+          { card: "ST23-03", as: "ally" },
+        ],
+      },
+      1: { security: ["ST1-09", "ST1-09"] },
+    });
+    const attacker = s.perm("attacker");
+    const ally = s.perm("ally");
+    await s.engine.recomputeContinuousEffects();
+    expect(observe(s.engine).hasKeyword(attacker, "Alliance")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attacker.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    const combat = (
+      s.engine as unknown as {
+        combat: { hasOpenAllianceDecision: boolean; allianceDecisionPermanentId?: string; isAttacking: boolean };
+      }
+    ).combat;
+    await settle(() => combat.hasOpenAllianceDecision);
+    expect(combat.allianceDecisionPermanentId).toBe(attacker.permanentId);
+    expect(s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: ally.permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !combat.isAttacking && ally.isSuspended && s.state.players[1]!.security.length === 0);
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === attacker.permanentId)).toBe(true);
+    expect(ally.isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(0);
   });
 });

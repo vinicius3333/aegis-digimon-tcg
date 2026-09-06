@@ -1448,6 +1448,7 @@ export interface Primitives {
       ignoreSummoningSickness?: boolean;
       attackPlayer?: boolean;
       attackPlayerOnly?: boolean;
+      vortex?: boolean;
       attackMechanic?: string;
       /** Resolve an attack-cost payload after attack declaration and before declaration-triggered effects. */
       afterAttackDeclaration?: () => Promise<void>;

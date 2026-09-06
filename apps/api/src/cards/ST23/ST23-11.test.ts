@@ -77,4 +77,24 @@ describe("ST23-11 Wolvermon", () => {
     expect(s.state.memory).toBe(0);
     expect(s.perm("tamer").stack.some((card) => card.instanceId === underId)).toBe(true);
   });
+
+  it("redirects a real player attack with inherited Blocker", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST1-02", as: "attacker" }] },
+      1: { battleArea: [{ card: "ST15-10", as: "host", under: ["ST23-11"] }], security: ["BT1-001"] },
+    });
+    const attackerId = s.perm("attacker").permanentId;
+    const hostId = s.perm("host").permanentId;
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: hostId })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(s.events.find((event) => event.kind === "combatResolved")).toMatchObject({
+      deletedPermanentIds: [attackerId],
+    });
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === hostId)).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
 });

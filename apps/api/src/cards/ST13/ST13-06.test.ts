@@ -14,6 +14,7 @@ describe("ST13-06 RagnaLoardmon", () => {
             { card: "ST13-14", as: "black", under: ["ST13-11", "ST13-12", "ST13-13"] },
           ],
           hand: [{ card: "ST13-06", as: "ragnaLoardmon" }],
+          deck: ["BT1-010"],
         },
         1: {
           battleArea: [
@@ -76,6 +77,42 @@ describe("ST13-06 RagnaLoardmon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[1]!.security).toHaveLength(2);
     expect(observe(s.engine).hasKeyword(s.perm("red"), "Blitz")).toBe(true);
+  });
+
+  it("deletes exactly one target with four DNA sources", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST13-05", as: "red", under: ["ST13-04"] },
+            { card: "ST13-14", as: "black", under: ["ST13-13"] },
+          ],
+          hand: [{ card: "ST13-06", as: "ragnaLoardmon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT9-112", as: "cost20" },
+            { card: "BT1-009", as: "cost2" },
+          ],
+          security: ["BT1-001", "BT1-002"],
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("red").permanentId, s.perm("black").permanentId],
+        instanceId: s.inst("ragnaLoardmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1 && s.state.players[1]!.battleArea.length === 1);
+
+    expect(s.perm("ragnaLoardmon").stack).toHaveLength(4);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "ST13-06")).toBe(true);
   });
 
   it("unsuspends once per turn when either player loses security", async () => {

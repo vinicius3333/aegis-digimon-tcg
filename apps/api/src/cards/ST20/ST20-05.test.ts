@@ -46,4 +46,30 @@ describe("ST20-05 Gatomon", () => {
       s.state.players[1]!.battleArea.find((perm) => perm.permanentId === s.perm("target").permanentId)?.currentDP,
     ).toBe(3000);
   });
+
+  it("plays itself at the end of its security battle", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "AD1-005", as: "attacker" }] },
+        1: { security: [{ card: "ST20-05", as: "securityGatomon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("securityGatomon").instanceId),
+    );
+    expect(
+      s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("securityGatomon").instanceId),
+    ).toBe(true);
+    expect(s.state.players[1]!.security.some((card) => card.instanceId === s.inst("securityGatomon").instanceId)).toBe(
+      false,
+    );
+  });
 });

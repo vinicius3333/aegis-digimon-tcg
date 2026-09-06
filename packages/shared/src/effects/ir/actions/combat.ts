@@ -10,6 +10,8 @@ export interface AttackAction extends ActionBase {
   /** Who attacks ("this Digimon", "1 of your Digimon"). */
   target: Target;
   withoutSuspending?: boolean;
+  /** Declare this as the keyword's Vortex attack. */
+  vortex?: boolean;
   /** The attack may target the player directly. */
   attackPlayer?: boolean;
   /** Name of the keyword mechanic that declared this attack. */

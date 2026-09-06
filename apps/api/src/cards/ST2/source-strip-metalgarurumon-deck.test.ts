@@ -1,11 +1,66 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "./ST2-01.js";
+import "./ST2-03.js";
 import "./ST2-06.js";
 import "./ST2-08.js";
 import "./ST2-11.js";
 
 describe("ST2 source-strip MetalGarurumon deck gauntlet", () => {
+  it("evolves the blue line and strips a level-6 opponent across two attacks", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST2-03", as: "host", under: ["ST2-01"] }],
+          hand: [
+            { card: "ST2-06", as: "garurumon" },
+            { card: "ST2-08", as: "weregarurumon" },
+            { card: "ST2-11", as: "metalgarurumon" },
+          ],
+          deck: ["ST2-02", "ST2-04", "ST2-05", "ST2-10"],
+        },
+        1: {
+          battleArea: [{ card: "ST1-10", as: "opponent", under: ["ST1-01", "ST1-03"] }],
+          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const host = s.perm("host");
+    for (const [alias, memory] of [
+      ["garurumon", 8],
+      ["weregarurumon", 5],
+      ["metalgarurumon", 1],
+    ] as const) {
+      const next = s.inst(alias);
+      expect(
+        s.engine.applyIntent(0, { type: "digivolve", permanentId: host.permanentId, instanceId: next.instanceId }),
+      ).toEqual({ ok: true });
+      await settle(() => host.topCard.instanceId === next.instanceId);
+      expect(s.state.memory).toBe(memory);
+    }
+    expect(host.stack.map(({ cardId }) => cardId)).toEqual(["ST2-01", "ST2-03", "ST2-06", "ST2-08"]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["ST2-02", "ST2-04", "ST2-05"]);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: host.permanentId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 4);
+    expect(host.isSuspended).toBe(false);
+    // Gabumon's level-5 ceiling excludes this opponent; only Garurumon strips a source.
+    expect(s.perm("opponent").stack.map(({ cardId }) => cardId)).toEqual(["ST1-03"]);
+    expect(observe(s.engine).keywordAmount(host, "SecurityAttack")).toBe(0);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: host.permanentId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 2);
+    expect(s.perm("opponent").stack).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(host.isSuspended).toBe(true);
+  });
+
   it("turns on WereGarurumon mid-attack, checks twice, unsuspends once, and attacks again", async () => {
     const s = setupEngine(
       {

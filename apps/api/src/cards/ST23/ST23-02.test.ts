@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./ST23-02.js";
 
 describe("ST23-02 Liollmon", () => {
@@ -66,5 +68,21 @@ describe("ST23-02 Liollmon", () => {
     await settle(() => s.perm("liollmon").topCard?.cardId === "ST23-03" && s.state.memory === 0);
 
     expect(s.state.memory).toBe(0);
+  });
+  it("uses inherited Barrier to trash security and survive a battle deletion", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST23-03", as: "host", under: ["ST23-02"] }], security: ["BT1-001"] },
+    });
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Barrier")).toBe(true);
+    const deletion = advance(s.engine).verb.deletePermanent([hostId], "byBattle");
+    await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
+    expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: hostId, accept: true })).toEqual({
+      ok: true,
+    });
+    expect(await deletion).toBe(0);
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === hostId)).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(0);
   });
 });

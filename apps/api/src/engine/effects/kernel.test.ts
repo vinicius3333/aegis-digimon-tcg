@@ -4,7 +4,7 @@ import type { CardSource } from "./CardSource.js";
 import type { EffectContext, GameAccess } from "./EffectContext.js";
 import type { Effect } from "./Effect.js";
 import { UseTracker, isOverMaxPerTurn, passesPlacementGuard, canTrigger, canActivate } from "./kernel.js";
-import { breeding, onPlay, security, staticModifier, whenAttacking } from "./builders.js";
+import { colorWaiverStatic, breeding, onPlay, security, staticModifier, whenAttacking } from "./builders.js";
 
 // --- Lightweight fakes (the kernel and builders are pure; no real schema needed) ---
 
@@ -184,6 +184,23 @@ describe("passesPlacementGuard (inherited/linked vs printed)", () => {
       maxCountInDeck: 4,
     }),
   };
+
+  it("evaluates only an Option's own color waiver beneath a host during continuous recomputation", () => {
+    const source = fakeSource({
+      instanceId: "ess#1",
+      permanent: () => permanent,
+      definition: { ...fakeSource().definition, kinds: [CardKind.Option] },
+    });
+    const ctx = { ...fakeContext(source, digimonTop), continuousPass: true };
+    const opts = { source, effectKey: "waiver", description: "", resolve: async () => {} };
+    const waiver = colorWaiverStatic(opts);
+    expect(canActivate(waiver, ctx, new UseTracker())).toBe(true);
+    expect(canActivate(staticModifier(opts), ctx, new UseTracker())).toBe(false);
+    expect(canActivate(onPlay(opts), ctx, new UseTracker())).toBe(false);
+    expect(canActivate(waiver, { ...ctx, continuousPass: false }, new UseTracker())).toBe(false);
+    const conditional = colorWaiverStatic({ ...opts, when: () => false });
+    expect(canTrigger(conditional, ctx, new UseTracker())).toBe(false);
+  });
 
   it("inherited effect activates only when its source is a STACK card (not the top)", () => {
     const essSource = fakeSource({ instanceId: "ess#1", permanent: () => permanent });

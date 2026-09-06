@@ -20,4 +20,16 @@ describe("ST18-02 Biyomon", () => {
     expect(s.state.players[0]!.trash).toHaveLength(1);
     expect(s.state.players[0]!.trash[0]!.cardId).toBe("ST18-01");
   });
+
+  it("does not replay when deleted without digivolution cards", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "ST18-02", as: "biyomon" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const instanceId = s.perm("biyomon").topCard!.instanceId;
+    await advance(s.engine).verb.deletePermanent([s.perm("biyomon").permanentId], "byEffect");
+    await settle();
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === instanceId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === instanceId)).toBe(true);
+  });
 });

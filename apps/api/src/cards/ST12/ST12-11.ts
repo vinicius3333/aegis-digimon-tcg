@@ -17,7 +17,10 @@ const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
-              nameOrTrait: [{ tokens: ["Huckmon", "Sistermon"], match: "name" }],
+              nameOrTrait: [
+                { tokens: ["Huckmon"], match: "nameExact" },
+                { tokens: ["Sistermon"], match: "name" },
+              ],
             },
             count: 1,
           },

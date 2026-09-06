@@ -19,8 +19,11 @@ describe("ST13-01 Sakuttomon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.memory === 1);
+    await settle(
+      () => s.state.memory === 1 && s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "ST13-04"),
+    );
     expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "ST13-04")).toBe(true);
   });
 
   it("does not gain memory when a Legend-Arms Digimon is played normally", async () => {

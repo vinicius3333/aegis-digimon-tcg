@@ -55,4 +55,33 @@ describe("ST20-15 Island of Adventure", () => {
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("tamer").instanceId));
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("tamer").instanceId)).toBe(true);
   });
+
+  it("places itself face up even when there is no top security card to add", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "AD1-005", as: "whiteDigimon" }],
+        hand: [{ card: "ST20-15", as: "option" }],
+      },
+    });
+    s.state.memory = 10;
+    const optionId = s.inst("option").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === optionId));
+    expect(s.state.players[0]!.security[0]).toMatchObject({ instanceId: optionId, faceUp: true });
+  });
+
+  it("cannot ignore its color requirement while an Island is already face up in security", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "ST20-07", as: "adventure" }],
+        hand: [{ card: "ST20-15", as: "option" }],
+        security: [{ card: "ST20-15", as: "existingIsland", faceUp: true }],
+      },
+    });
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: false,
+      reason: "color-requirement-unmet",
+    });
+  });
 });

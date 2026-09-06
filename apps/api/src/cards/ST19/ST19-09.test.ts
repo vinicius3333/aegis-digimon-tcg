@@ -63,4 +63,28 @@ describe("ST19-09 Pandamon", () => {
       expect.arrayContaining([s.inst("tooHigh").instanceId, s.inst("wrongTrait").instanceId]),
     );
   });
+
+  it("may decline the optional On Deletion play", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "AD1-001", as: "attacker", dp: 5000 }] },
+        1: {
+          battleArea: [{ card: "ST19-09", as: "panda", dp: 1000, suspended: true }],
+          hand: [{ card: "ST19-02", as: "puppet" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("panda").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "ST19-09"));
+    expect(s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "ST19-09")).toBe(true);
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("puppet").instanceId)).toBe(true);
+  });
 });

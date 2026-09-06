@@ -33,4 +33,24 @@ describe("ST23-10 Pristimon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-002")).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-003")).toBe(true);
   });
+  it("redirects a real player attack with inherited Blocker", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST23-02", as: "attacker" }] },
+      1: { battleArea: [{ card: "ST5-06", as: "host", under: ["ST23-10"] }], security: ["BT1-001"] },
+    });
+    const attackerId = s.perm("attacker").permanentId;
+    const hostId = s.perm("host").permanentId;
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: hostId })).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some((p) => p.permanentId === attackerId));
+    expect(s.events.find((event) => event.kind === "combatResolved")).toMatchObject({
+      kind: "combatResolved",
+      deletedPermanentIds: [attackerId],
+    });
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === hostId)).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
 });

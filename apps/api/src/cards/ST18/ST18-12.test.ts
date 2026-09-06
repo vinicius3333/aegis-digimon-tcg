@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -66,6 +65,41 @@ describe("ST18-12 Zephagamon", () => {
 
     expect(s.perm("zephagamon").currentDP).toBe(14000);
     expect(observe(s.engine).hasRestriction(s.perm("zephagamon"), "beAffected", "Digimon")).toBe(true);
+  });
+
+  it("rejects a forged Main-phase Vortex intent", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST18-12", as: "zephagamon", dp: 11000 }] },
+      1: { battleArea: [{ card: "BT1-010", as: "target", dp: 3000 }], security: ["BT1-011"] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("zephagamon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+        vortex: true,
+      }),
+    ).toEqual({ ok: false, reason: "wrong-phase" });
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  it("accepts the optional Vortex attack at end of turn", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: ["AD1-001"], deck: ["AD1-001"], battleArea: [{ card: "ST18-12", as: "zephagamon", dp: 11000 }] },
+        1: { hand: ["AD1-001"], deck: ["AD1-001"], battleArea: [{ card: "BT1-010", as: "target", dp: 3000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.isFirstPlayersFirstTurn = true;
+    const turn = s.engine.runOneTurn();
+    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+    await settle(() => mainPhase.isOpen, 500);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
   it("publishes Vortex, the unrestricted Digimon targets, and the Bird Dragon rule trait", () => {

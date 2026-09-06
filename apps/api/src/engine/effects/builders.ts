@@ -466,7 +466,10 @@ export const handResidentStatic = (opts: BuilderOptions): Effect => build(opts, 
  * something else (a keyword grant, a DP modifier, ...) keeps the on-field guard
  * untouched, so this does not let unrelated statics leak off the battle area.
  */
-export const colorWaiverStatic = (opts: BuilderOptions): Effect => build(opts, { baseGuard: () => true });
+export const colorWaiverStatic = (opts: BuilderOptions): Effect => ({
+  ...build(opts, { baseGuard: () => true }),
+  isColorWaiverStatic: true,
+});
 
 /** Persistent effects whose source is a face-up card in the security stack. */
 export const securityStatic = (opts: BuilderOptions): Effect =>

@@ -35,4 +35,31 @@ describe("ST4-04 Palmon", () => {
     await settle(() => s.state.players[1]!.security.length === 0);
     expect(s.perm("host").currentDP).toBe(baseDp);
   });
+
+  it("does not activate when a player attack is redirected by Blocker", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST4-10", under: ["ST4-04"], as: "host" }] },
+        1: { battleArea: [{ card: "ST4-08", as: "blocker" }], security: ["ST4-03"] },
+      },
+      { autoSelectCards: true },
+    );
+    const baseDp = s.perm("host").currentDP;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some(({ kind }) => kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(s.events.some((event) => event.kind === "combatResolved")).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.perm("host").currentDP).toBe(baseDp);
+  });
 });
