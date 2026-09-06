@@ -1,6 +1,6 @@
 {
   "cardId": "BT20-020",
-  "status": "awaiting-lead-review",
+  "status": "awaiting-delivery-gates",
   "scores": {
     "catalogRules": 2,
     "irTrace": 2,
@@ -9,14 +9,19 @@
     "deliveryGates": 0
   },
   "evidence": [
-    "Catalog: Imperialdramon: Fighter Mode level 6 red/purple Ancient Dragonkin; alternate Imperialdramon: Dragon Mode cost2; Raid and Piercing; When Digivolving opponent cannot effect-play Digimon/Tamers until their turn end, then trash top opponent security if Dragon Mode is in stack; All Turns Once Per Turn when opponent security is removed, delete one opposing Digimon with DP no greater than this Digimon.",
-    "BT20-020.ts exclusively registers IR and maps keywords, restriction duration/by-effect scope, conditional security trash, security-removal watcher with relative source-DP boundary, once-per-turn frequency, and alternate requirement.",
-    "BT20-020.test.ts proves public Dragon Mode\u2192Fighter evolution, Raid/Piercing, 2-cost payment, conditional security trash, opponent breeding effect-play block, source-DP boundaries and once-per-turn, plus natural attack-triggered security-removal deletion.",
-    "014-040-results.json",
-    "collection-after-name-fix-results.json",
-    "public-followups-typecheck.log"
+    "Public Dragon Mode -> Fighter Mode pays 2, trashes identified top security and provides Raid/Piercing. Ordinary level-5 evolution without Dragon Mode sources does not trash security.",
+    "Actual opponent effect plays of Digimon and exact Kota Domoto via BT20-051 are blocked through the opponent turn, while ordinary Tamer play remains legal. After actual expiry both effect-play paths succeed.",
+    "Actual opponent-security checks trigger one enemy deletion within Fighter Mode DP. Exact boundary, higher-DP survival, wrong-security-seat exclusion, same-turn OPT and next-turn reset are covered.",
+    "BT20-020.test.ts; committed catalog and card-specific KB query reviewed by lead and Luna.",
+    "reactive-movement-affected-results.json: 552 passing affected mechanism tests.",
+    "collection-after-reactive-delay-results.json",
+    "reactive-movement-gates.json"
   ],
-  "commands": [
+  "gaps": [
+    "Atomic commit/push and final hash-bound acceptance pending."
+  ],
+  "reviewStatus": "Lead integrated and reviewed the current public proofs; earlier report prose and unexecuted worker handoffs are superseded by this clause map. No final score until delivery gates and artifact hashes are recorded.",
+  "historicalCommands": [
     {
       "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-020.test.ts --maxWorkers=1 --no-file-parallelism",
       "result": "not run by worker; coordinator owns Vitest"
@@ -38,9 +43,26 @@
       "result": "Passed changed-file style and diff gates."
     }
   ],
-  "gaps": [
-    "Natural refusal path is inapplicable to mandatory printed clauses; full Q4309 security-order interaction remains coordinator review.",
-    "Delivery gates pending coordinator collection, mechanism, typecheck, lint."
-  ],
-  "reviewStatus": "Latest public additions pass in the 790-test collection snapshot. Provisional report; final clause acceptance remains pending."
+  "commands": [
+    {
+      "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT20 src/engine/replacementRecomputeBarrier.test.ts src/engine/targetedBreedingMoveCost.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=15000 --reporter=json --outputFile=../../internal-docs/audits/BT20/revalidation/collection-after-reactive-delay-results.json",
+      "result": "10 cases passed for BT20-020; 836 total passed, zero failed."
+    },
+    {
+      "command": "pnpm typecheck",
+      "result": "Passed shared/API/web; reactive-movement-typecheck.log."
+    },
+    {
+      "command": "pnpm effects:check:set -- --set BT20",
+      "result": "All102 synchronized; see reactive-movement-gates.json for the temporary watchdog adjustment and restored script."
+    },
+    {
+      "command": "Commands in reactive-movement-gates.json",
+      "result": "552 affected mechanism cases and changed-file lint/format passed without warnings."
+    },
+    {
+      "command": "node internal-docs/audits/BT20/revalidation/check-runtime-sensitivity.mjs BT20-020",
+      "result": "4 intended state/assertion failures with registered effects disabled; production restored. See BT20-020-runtime-disabled.json. Runner reproduction is per-card; batch invocation is retained in014-026-runtime-sensitivity.log."
+    }
+  ]
 }
