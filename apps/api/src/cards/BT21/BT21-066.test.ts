@@ -2,6 +2,7 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-066.js";
 import "../index.js";
 
@@ -141,6 +142,38 @@ describe("BT21-066 Arresterdramon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("hero").topCard.cardId === "BT21-066");
     expect(s.state.memory).toBe(1);
+    expect(s.perm("hero").currentDP).toBe(8000);
+  });
+
+  it("publicly plays a Hunter Tamer for free on the When Digivolving trigger", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-063", as: "hero" }],
+          hand: [
+            { card: "BT21-066", as: "arrester" },
+            { card: "BT12-087", as: "hunter" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("hero").permanentId,
+        instanceId: s.inst("arrester").instanceId,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("hero").topCard.cardId === "BT21-066");
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT12-087"));
+
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT12-087")).toBe(true);
   });
 
   it.each([
@@ -193,6 +226,43 @@ describe("BT21-066 Arresterdramon", () => {
 
     expect(s.perm("tamer").stack.map((card) => card.instanceId)).toContain(selfId);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("saved").instanceId)).toBe(true);
+  });
+
+  it("publicly triggers On Deletion after losing a battle and Saves under an own Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-066", as: "arrester" },
+            { card: "BT21-080", as: "tamer" },
+          ],
+          hand: [{ card: "BT21-063", as: "saved" }],
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT10-055", as: "opponent", suspended: true }],
+          security: [{ card: "BT1-009" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const arresterId = s.inst("arrester").instanceId;
+    const savedId = s.inst("saved").instanceId;
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("arrester").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("opponent").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved") && !observe(s.engine).isAttacking());
+    await settle(() => s.perm("tamer").stack.some((card) => card.instanceId === arresterId));
+
+    expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual(expect.arrayContaining([arresterId, savedId]));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-066")).toBe(false);
   });
 
   it("gives its evolution host +2000 DP only during its controller's turn", async () => {
