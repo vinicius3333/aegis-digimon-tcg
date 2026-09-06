@@ -96,6 +96,46 @@ describe("BT25-035 Cougarmon", () => {
     expect(s.perm("opponent").currentDP).toBe(4000);
   });
 
+  it.each([
+    ["wrong trait", { hand: [{ card: "BT1-010", as: "candidate" }], trash: [], battleArea: undefined }],
+    ["illegal level", { hand: [{ card: "BT25-043", as: "candidate" }], trash: [], battleArea: undefined }],
+    ["wrong zone", { hand: [], trash: [{ card: "BT25-041", as: "candidate" }], battleArea: undefined }],
+    [
+      "opponent stack",
+      { hand: [], trash: [], battleArea: [{ card: "BT25-043", as: "opponent", dp: 7000, under: ["BT25-041"] }] },
+    ],
+  ])("does not spend two usable bottom face-down cards for a %s candidate", async (_label, candidateZone) => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT25-035", as: "cougarmon" }, ...candidateZone.hand],
+          trash: candidateZone.trash,
+          battleArea: [
+            {
+              card: "BT25-090",
+              as: "tamer",
+              under: [
+                { card: "BT1-001", faceUp: false },
+                { card: "BT1-002", faceUp: false },
+              ],
+            },
+          ],
+        },
+        1: { battleArea: candidateZone.battleArea ?? [{ card: "BT1-009", as: "opponent", dp: 7000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cougarmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("opponent").currentDP === 4000);
+    expect(s.perm("cougarmon").topCard?.cardId).toBe("BT25-035");
+    expect(s.perm("tamer").stack.map((card) => card.cardId)).toEqual(["BT1-001", "BT1-002"]);
+    expect(s.perm("opponent").currentDP).toBe(4000);
+  });
+
   it("keeps the -3000 DP result when the optional free digivolution is declined", async () => {
     const s = setupEngine(
       {
@@ -343,6 +383,78 @@ describe("BT25-035 Cougarmon", () => {
     advance(s.engine).endMainPhaseIfOpen(0);
     await turn;
     expect(s.perm("opponent").currentDP).toBe(7000);
+  });
+
+  it("uses the ordinary yellow Lv.3 evolution at its printed cost 2", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-032", as: "yellowBase" }],
+          hand: [{ card: "BT25-035", as: "cougarmon" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 7000 }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("yellowBase").permanentId,
+        instanceId: s.inst("cougarmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("yellowBase").topCard.cardId === "BT25-035");
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("yellowBase").stack.map((card) => card.cardId)).toEqual(["BT25-032"]);
+  });
+
+  it("uses the Glowing Dawn alternate from an off-color green Lv.3 at cost 2", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-046", as: "greenBase" }],
+          hand: [{ card: "BT25-035", as: "cougarmon" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 7000 }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("greenBase").permanentId,
+        instanceId: s.inst("cougarmon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("greenBase").topCard.cardId === "BT25-035");
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("greenBase").stack.map((card) => card.cardId)).toEqual(["BT25-046"]);
+  });
+
+  it("rejects a wrong-color non-Glowing-Dawn Lv.3 source", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "redBase" }],
+        hand: [{ card: "BT25-035", as: "cougarmon" }],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    const result = s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("redBase").permanentId,
+      instanceId: s.inst("cougarmon").instanceId,
+    });
+    expect(result).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("redBase").topCard.cardId).toBe("BT1-009");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT25-035");
+    expect(s.state.memory).toBe(5);
   });
 
   it.each([

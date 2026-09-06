@@ -82,6 +82,49 @@ describe("BT25-041 Murasamemon", () => {
     expect(refused.state.players[1]!.battleArea).toHaveLength(1);
   });
 
+  it("pays the ordinary yellow level-4 evolution cost", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-051", as: "yellowBase" }], hand: [{ card: "BT25-041", as: "murasamemon" }] },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("yellowBase").permanentId,
+        instanceId: s.inst("murasamemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("yellowBase").topCard?.cardId === "BT25-041");
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("rejects a wrong-color, non-Glowing Dawn source on the alternate and ordinary routes", async () => {
+    const alternate = setupEngine({
+      0: { battleArea: [{ card: "BT1-019", as: "redBase" }], hand: [{ card: "BT25-041", as: "murasamemon" }] },
+    });
+    await alternate.ready();
+    expect(
+      alternate.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: alternate.perm("redBase").permanentId,
+        instanceId: alternate.inst("murasamemon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toMatchObject({ ok: false });
+    const ordinary = setupEngine({
+      0: { battleArea: [{ card: "BT1-019", as: "redBase" }], hand: [{ card: "BT25-041", as: "murasamemon" }] },
+    });
+    await ordinary.ready();
+    expect(
+      ordinary.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: ordinary.perm("redBase").permanentId,
+        instanceId: ordinary.inst("murasamemon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+  });
+
   it("keeps both payment choices and both play/use choices", () => {
     for (const trigger of ["WhenDigivolving", "WhenAttacking"] as const) {
       const effect = BT25_041.effects?.find((entry) => entry.trigger === trigger);
@@ -139,6 +182,36 @@ describe("BT25-041 Murasamemon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "ST23-13"));
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "ST23-13")).toBe(true);
     expect(s.state.memory).toBe(2);
+  });
+
+  it("uses a Glowing Dawn Option after paying with the top security card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-041", as: "murasamemon" }],
+          hand: [{ card: "P-236", as: "option" }],
+          security: [{ card: "BT1-009", as: "securityCost" }],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("murasamemon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "P-236"));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "P-236")).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.hand).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("securityCost").instanceId }),
+    );
   });
 
   it("resolves the public When Digivolving choice with security payment and reduced play cost", async () => {
@@ -232,7 +305,7 @@ describe("BT25-041 Murasamemon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT25-057", as: "murasamemon", suspended: true, under: [{ card: "BT25-041", as: "source" }] },
+            { card: "ST23-05", as: "murasamemon", suspended: true, under: [{ card: "BT25-041", as: "source" }] },
             { card: "ST23-13", as: "tamer", under: [{ card: "BT1-009", as: "bottomCost", faceUp: false }] },
           ],
         },

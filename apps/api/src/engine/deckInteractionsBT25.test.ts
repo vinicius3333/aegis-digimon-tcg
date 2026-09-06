@@ -33,12 +33,39 @@ describe("BT25 deck-specific interaction oracles", () => {
         },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }], security: ["BT1-090", "BT1-090"] },
       },
-      { autoDeclineOptional: true, autoSelectCards: true },
+      { autoSelectCards: true },
     );
     s.state.memory = 10;
     digivolve(s, "base", "junomon");
-    await settle(() => s.perm("base").topCard?.cardId === "BT25-044");
-    await settle(() => false, 40);
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const placement = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: placement.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "optional" &&
+        s.state.players[0]!.trash.some((card) => card.cardId === "BT25-034"),
+    );
+    const freePlay = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: freePlay.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("base").topCard?.cardId === "BT25-044" &&
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.trash.some((card) => card.cardId === "BT25-034") &&
+        s.state.players[1]!.security.length === 1,
+    );
     expect(s.state.players[0]!.security).toHaveLength(2);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT25-034")).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(1);

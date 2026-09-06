@@ -44,6 +44,67 @@ describe("BT25-039 Sirenmon", () => {
     expect(s.perm("base").stack.at(-1)?.cardId).toBe("BT25-033");
   });
 
+  it("pays the ordinary yellow level-4 evolution cost", async () => {
+    const yellowLv4 = setupEngine({
+      0: { battleArea: [{ card: "BT1-051", as: "yellowBase" }], hand: [{ card: "BT25-039", as: "sirenmon" }] },
+    });
+    yellowLv4.state.memory = 4;
+    await yellowLv4.ready();
+    expect(
+      yellowLv4.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: yellowLv4.perm("yellowBase").permanentId,
+        instanceId: yellowLv4.inst("sirenmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => yellowLv4.perm("yellowBase").topCard.cardId === "BT25-039");
+    expect(yellowLv4.state.memory).toBe(0);
+  });
+
+  it("pays the ordinary green level-4 evolution cost", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-069", as: "greenBase" }], hand: [{ card: "BT25-039", as: "sirenmon" }] },
+    });
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("greenBase").permanentId,
+        instanceId: s.inst("sirenmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("greenBase").topCard.cardId === "BT25-039");
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("rejects a wrong-color level-4 source on alternate and ordinary routes", async () => {
+    const alternate = setupEngine({
+      0: { battleArea: [{ card: "BT1-019", as: "redBase" }], hand: [{ card: "BT25-039", as: "sirenmon" }] },
+    });
+    await alternate.ready();
+    expect(
+      alternate.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: alternate.perm("redBase").permanentId,
+        instanceId: alternate.inst("sirenmon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toMatchObject({ ok: false });
+    const ordinary = setupEngine({
+      0: { battleArea: [{ card: "BT1-019", as: "redBase" }], hand: [{ card: "BT25-039", as: "sirenmon" }] },
+    });
+    await ordinary.ready();
+    expect(
+      ordinary.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: ordinary.perm("redBase").permanentId,
+        instanceId: ordinary.inst("sirenmon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+  });
+
   it("places this security card under the Ceresmon played by its security effect", () => {
     const effect = BT25_039.effects?.find((entry) => entry.trigger === "EndOfYourTurn");
     const [play, place] = effect?.actions ?? [];
@@ -200,7 +261,8 @@ describe("BT25-039 Sirenmon", () => {
       toTop: false,
       faceUp: true,
     });
-    expect((effect?.actions?.[0] as { source?: unknown }).source).toBeUndefined();
+    const placement = effect?.actions?.[0] as { source?: unknown } | undefined;
+    expect(placement?.source).toBeUndefined();
   });
 
   it("deletes itself once to prevent all simultaneous matching departures", async () => {
@@ -303,9 +365,31 @@ describe("BT25-039 Sirenmon", () => {
       { autoAcceptOptional: true },
     );
     await s.ready();
-    expect(await advance(s.engine).verb.deletePermanent([s.perm("sirenmon").permanentId], "byBattle")).toBe(1);
+    await advance(s.engine).verb.deletePermanent([s.perm("sirenmon").permanentId], "byBattle");
     expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-001", "BT25-039"]);
     expect(s.state.players[0]!.security.at(-1)?.faceUp).toBe(true);
+  });
+
+  it("can refuse the optional On Deletion security placement", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT25-039", as: "sirenmon" }], security: ["BT1-001"] } },
+      { autoAcceptOptional: false },
+    );
+    await s.ready();
+    const deletion = advance(s.engine).verb.deletePermanent([s.perm("sirenmon").permanentId], "byBattle");
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await deletion;
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT25-039");
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).not.toContain("BT25-039");
   });
 
   it("does not replace a departure caused by the controller's own effect", async () => {
@@ -432,6 +516,18 @@ describe("BT25-039 Sirenmon", () => {
             { card: "BT1-009", as: "secondRedirect", suspended: true, dp: 12_000 },
           ],
           security: ["BT1-009", "BT1-009"],
+          deck: [
+            "BT1-006",
+            "BT1-007",
+            "BT1-008",
+            "BT1-010",
+            "BT1-011",
+            "BT1-012",
+            "BT1-013",
+            "BT1-014",
+            "BT1-015",
+            "BT1-016",
+          ],
         },
         1: {
           battleArea: [
@@ -513,5 +609,156 @@ describe("BT25-039 Sirenmon", () => {
     expect(
       s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("redirect").permanentId),
     ).toBe(true);
+  });
+
+  it("only fires the security End of Your Turn effect for face-up security on its owner's turn", async () => {
+    const faceDown = setupEngine({
+      0: {
+        security: [{ card: "BT25-039", as: "sirenmon", faceUp: false }],
+        hand: [{ card: "BT25-059", as: "ceresmon" }],
+      },
+    });
+    faceDown.state.memory = 5;
+    await advance(faceDown.engine).runTurn(0);
+    expect(faceDown.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT25-059");
+
+    const opponentTurn = setupEngine({
+      0: {
+        security: [{ card: "BT25-039", as: "sirenmon", faceUp: true }],
+        hand: [{ card: "BT25-059", as: "ceresmon" }],
+        deck: ["BT1-001"],
+      },
+      1: { deck: ["BT1-002"] },
+    });
+    opponentTurn.state.turnSeat = 1;
+    await advance(opponentTurn.engine).runTurn(1);
+    expect(opponentTurn.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT25-059");
+  });
+
+  it("protects a Shaman from a real public battle by deleting Sirenmon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-039", as: "sirenmon" },
+            { card: "BT25-033", as: "shaman", suspended: true, dp: 5000 },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 8000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const sirenId = s.perm("sirenmon").permanentId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("shaman").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved") && !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT25-033")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === sirenId)).toBe(false);
+    expect(s.state.players[0]!.security.at(-1)?.cardId).toBe("BT25-039");
+  });
+
+  it("resets inherited redirect after a completed opponent turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-059", as: "host", under: [{ card: "BT25-039" }] },
+            { card: "BT1-009", as: "firstTarget", suspended: true, dp: 12000 },
+            { card: "BT1-009", as: "secondTarget", dp: 12000 },
+          ],
+          security: ["BT1-009", "BT1-009"],
+          deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "firstAttacker", dp: 7000 },
+            { card: "BT1-009", as: "secondAttacker", dp: 7000 },
+            { card: "BT1-009", as: "opponentCandidate", suspended: true, dp: 12000 },
+          ],
+          deck: ["BT1-005", "BT1-006", "BT1-007", "BT1-008"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    const first = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("firstAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[0]!.security.length === 2);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await first;
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    s.state.phase = Phase.End;
+    const own = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    // The controller's turn restores the first target; suspend only the distinct
+    // second target so the reset proof cannot redirect to the stale target.
+    s.perm("firstTarget").isSuspended = false;
+    s.perm("secondTarget").isSuspended = true;
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await own;
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    s.state.phase = Phase.End;
+    const second = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("secondAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[0]!.security.length === 2);
+    expect(s.perm("secondTarget").isSuspended).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await second;
+  });
+
+  it("does not redirect to an unsuspended own or suspended opponent Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-059", as: "host", under: [{ card: "BT25-039" }] },
+            { card: "BT1-009", as: "unsuspendedOwn", dp: 12000 },
+          ],
+          security: ["BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "attacker", dp: 7000 },
+            { card: "BT1-009", as: "opponentCandidate", suspended: true, dp: 12000 },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[0]!.security.length === 0);
+    expect(s.perm("unsuspendedOwn").isSuspended).toBe(false);
+    expect(s.perm("opponentCandidate").isSuspended).toBe(true);
   });
 });

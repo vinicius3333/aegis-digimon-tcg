@@ -52,6 +52,42 @@ describe("BT25-029 MirageGaogamon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("base"), "Evade")).toBe(true);
   });
 
+  it("pays the ordinary blue evolution cost from a legal level-5 host", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT25-027", as: "base" }], hand: [{ card: "BT25-029", as: "mirage" }] },
+    });
+    await s.ready();
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("mirage").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT25-029");
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toContain("BT25-027");
+  });
+
+  it("pays the ordinary black evolution cost from a non-Gaogamon level-5 host", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT11-071", as: "blackBase" }], hand: [{ card: "BT25-029", as: "mirage" }] },
+    });
+    await s.ready();
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("blackBase").permanentId,
+        instanceId: s.inst("mirage").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("blackBase").topCard.cardId === "BT25-029");
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("blackBase").stack.map((card) => card.cardId)).toContain("BT11-071");
+  });
+
   it("reboots on the opponent turn and blocks a public attack", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT25-029", as: "mirage", suspended: true }], security: ["BT1-001"] },
@@ -122,6 +158,7 @@ describe("BT25-029 MirageGaogamon", () => {
     ).toEqual({ ok: true });
     await settle(() => legal.perm("blackMach").topCard.cardId === "BT25-029");
     expect(legal.perm("blackMach").stack.map((card) => card.cardId)).toContain("BT5-068");
+    expect(legal.state.memory).toBe(2);
 
     const invalid = setupEngine({
       0: { battleArea: [{ card: "BT25-026", as: "nearMatch" }], hand: [{ card: "BT25-029", as: "mirage" }] },
@@ -136,6 +173,54 @@ describe("BT25-029 MirageGaogamon", () => {
         alternateRequirementIndex: 0,
       }),
     ).toMatchObject({ ok: false });
+  });
+
+  it("rejects an off-color non-Gaogamon, non-DATA SQUAD level-5 source on both routes", async () => {
+    const alternate = setupEngine({
+      0: { battleArea: [{ card: "BT25-055", as: "greenBase" }], hand: [{ card: "BT25-029", as: "mirage" }] },
+    });
+    await alternate.ready();
+    alternate.state.memory = 4;
+    expect(
+      alternate.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: alternate.perm("greenBase").permanentId,
+        instanceId: alternate.inst("mirage").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toMatchObject({ ok: false });
+
+    const ordinary = setupEngine({
+      0: { battleArea: [{ card: "BT25-055", as: "greenBase" }], hand: [{ card: "BT25-029", as: "mirage" }] },
+    });
+    await ordinary.ready();
+    ordinary.state.memory = 4;
+    expect(
+      ordinary.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: ordinary.perm("greenBase").permanentId,
+        instanceId: ordinary.inst("mirage").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+  });
+
+  it("pays the DATA SQUAD alternate from a non-Gaogamon legal source", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT26-076", as: "purpleBase" }], hand: [{ card: "BT25-029", as: "mirage" }] },
+    });
+    await s.ready();
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("purpleBase").permanentId,
+        instanceId: s.inst("mirage").instanceId,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("purpleBase").topCard.cardId === "BT25-029");
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("purpleBase").stack.map((card) => card.cardId)).toContain("BT26-076");
   });
 
   it("returns level 5 but excludes level 6 from the first return boundary", async () => {

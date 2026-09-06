@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT25_044 } from "./BT25-044.js";
 import { wouldBePlayedSelfReducersFor } from "../../engine/effects/interpreter/registration/reducers.js";
 import "../index.js";
@@ -26,6 +27,7 @@ describe("BT25-044 Junomon", () => {
         op: "trashTop",
         controller: "mine",
         amount: 1,
+        optional: true,
         abortOnDecline: true,
         cost: {
           kind: "place",
@@ -58,6 +60,7 @@ describe("BT25-044 Junomon", () => {
       from: ["hand", "trash"],
       payCost: false,
       optional: true,
+      preserveOncePerTurnOnDecline: true,
       target: {
         filter: {
           controller: "mine",
@@ -81,6 +84,7 @@ describe("BT25-044 Junomon", () => {
       ok: true,
     });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT25-044"));
+    expect(s.state.pendingDecision).toBeUndefined();
 
     expect(s.state.players[0]!.security).toHaveLength(1);
     expect(s.state.players[1]!.security).toHaveLength(1);
@@ -110,6 +114,78 @@ describe("BT25-044 Junomon", () => {
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
 
+  it("can refuse the On Play security placement while another Digimon is eligible", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT25-044", as: "junomon" }],
+          security: ["BT1-001", "BT1-002"],
+          battleArea: [{ card: "BT1-009", as: "other" }],
+        },
+        1: { security: ["BT1-003"] },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    s.state.memory = 12;
+    const play = s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("junomon").instanceId });
+    expect(play).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision!;
+    expect(decision.promptText).toMatch(/security/i);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-044")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("other").permanentId)).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("can refuse the When Digivolving security placement while another Digimon is eligible", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-039", as: "base" },
+            { card: "BT1-009", as: "other" },
+          ],
+          hand: [{ card: "BT25-044", as: "junomon" }],
+          security: ["BT1-001", "BT1-002"],
+        },
+        1: { security: ["BT1-003"] },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    const evolve = s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("junomon").instanceId,
+      alternateRequirementIndex: 0,
+    });
+    expect(evolve).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision!;
+    expect(decision.promptText).toMatch(/security/i);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("base").topCard.cardId).toBe("BT25-044");
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("other").permanentId)).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
   it("plays through the legal TS level-5 alternate evolution and resolves both security removals", async () => {
     const s = setupEngine(
       {
@@ -135,8 +211,47 @@ describe("BT25-044 Junomon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT25-044");
+    expect(s.state.pendingDecision).toBeUndefined();
     expect(s.state.players[0]!.trash).toContainEqual(expect.objectContaining({ cardId: "BT1-009" }));
     expect(s.state.players[1]!.trash).toContainEqual(expect.objectContaining({ cardId: "BT1-002" }));
+  });
+
+  it("pays the ordinary yellow level-5 evolution cost", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT25-041", as: "base" }], hand: [{ card: "BT25-044", as: "junomon" }] } },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("junomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "BT25-044");
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT25-041"]);
+  });
+
+  it("pays the ordinary purple level-5 evolution cost", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT25-083", as: "base" }], hand: [{ card: "BT25-044", as: "junomon" }] } },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("junomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "BT25-044");
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT25-083"]);
   });
 
   it("applies the Q7004 five-cost reduction at six total security and not at seven", async () => {
@@ -170,13 +285,44 @@ describe("BT25-044 Junomon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    unreduced.state.memory = 12;
+    unreduced.state.memory = 11;
     await unreduced.ready();
     expect(
       unreduced.engine.applyIntent(0, { type: "playCard", instanceId: unreduced.inst("junomon").instanceId }),
     ).toEqual({ ok: true });
     await settle(() => unreduced.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-044"));
-    expect(unreduced.state.memory).toBe(0);
+    expect(unreduced.state.memory).toBe(-1);
+  });
+
+  it("causally stacks two five-cost reductions on an effect-driven Junomon play (Q7004)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-029", as: "tsBase" }],
+          security: [{ card: "BT1-001", as: "securityCard" }],
+          hand: [
+            { card: "BT26-033", as: "jupitermon" },
+            { card: "BT25-044", as: "junomon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("tsBase").permanentId,
+        instanceId: s.inst("jupitermon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT25-044"));
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).not.toContain("BT25-044");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-001");
   });
 
   it("reacts once per turn only to removal from its own security and filters the free play", async () => {
@@ -205,8 +351,65 @@ describe("BT25-044 Junomon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT24-030", "BT1-009"]);
 
     await advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
-    await settle(() => false, 40);
+    await settle(() => s.state.players[0]!.security.length === 0);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT24-030", "BT1-009"]);
+  });
+
+  it("preserves the security-removal play after refusal, then consumes it on acceptance", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-044", as: "junomon" }],
+          hand: [
+            { card: "BT25-034", as: "firstAngel" },
+            { card: "BT25-034", as: "secondAngel" },
+          ],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+        1: { security: ["BT1-004"] },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    await s.ready();
+
+    const first = advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decline = s.state.pendingDecision!;
+    expect(decline.promptText).toMatch(/play/i);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decline.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await first;
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("firstAngel").instanceId);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+
+    const second = advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const accept = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: accept.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await second;
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("firstAngel").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("firstAngel").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("secondAngel").instanceId);
+
+    await advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.battleArea.filter((p) => p.topCard?.cardId === "BT25-034")).toHaveLength(1);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("secondAngel").instanceId);
   });
 
   it("can play the matching free-play card from trash", async () => {
@@ -230,13 +433,46 @@ describe("BT25-044 Junomon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-009"]);
   });
 
+  it("resets the Once Per Turn security-removal play on the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-044", as: "junomon" }],
+          hand: [
+            { card: "BT25-034", as: "firstAngel" },
+            { card: "BT25-034", as: "secondAngel" },
+          ],
+          security: ["BT1-001", "BT1-002"],
+        },
+        1: { security: ["BT1-003"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("firstAngel").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("firstAngel").instanceId)).toBe(
+      true,
+    );
+    await advance(s.engine).runTurn(0);
+    await advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("secondAngel").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("secondAngel").instanceId)).toBe(
+      true,
+    );
+  });
+
   it("naturally reacts when an opponent security check removes its security card", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT25-044", as: "junomon" }],
           hand: [{ card: "BT25-034", as: "angel" }],
-          security: [{ card: "BT1-090", as: "security" }],
+          security: [{ card: "AD1-020", as: "securityEffect" }],
         },
         1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 7000 }] },
       },
@@ -253,6 +489,19 @@ describe("BT25-044 Junomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT25-034"));
 
+    const securityEffectResolved = s.events.findIndex(
+      (event) => event.kind === "effectResolved" && event.sourceCardId === "AD1-020" && event.timing === "OnPlay",
+    );
+    const junomonTriggered = s.events.findIndex(
+      (event) =>
+        event.kind === "effectTriggered" && event.sourceCardId === "BT25-044" && event.timing === "whenSecurityRemoved",
+    );
+    expect(securityEffectResolved).toBeGreaterThanOrEqual(0);
+    expect(junomonTriggered).toBeGreaterThan(securityEffectResolved);
+
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("angel").instanceId)).toBe(false);
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 });

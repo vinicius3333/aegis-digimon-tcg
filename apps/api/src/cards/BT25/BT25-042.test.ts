@@ -275,4 +275,51 @@ describe("BT25-042 ClavisAngemon", () => {
     expect(s.state.memory).toBe(0);
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT25-040"]);
   });
+
+  it.each([
+    ["ordinary yellow", "BT1-058", "yellowBase"],
+    ["ordinary black", "BT10-064", "blackBase"],
+  ] as const)("uses the %s Lv.5 evolution at its printed cost 4", async (_label, source, alias) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: source, as: alias }],
+          hand: [{ card: "BT25-042", as: "clavis" }],
+          security: ["BT1-001"],
+          deck: ["BT1-002"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm(alias).permanentId,
+        instanceId: s.inst("clavis").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm(alias).topCard?.cardId === "BT25-042");
+    expect(s.state.memory).toBe(0);
+    expect(s.perm(alias).stack.map((card) => card.cardId)).toEqual([source]);
+  });
+
+  it("rejects a wrong-color non-trait Lv.3 source on the ordinary route", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "redBase" }], hand: [{ card: "BT25-042", as: "clavis" }] },
+    });
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("redBase").permanentId,
+        instanceId: s.inst("clavis").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("redBase").topCard.cardId).toBe("BT1-009");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT25-042");
+    expect(s.state.memory).toBe(4);
+  });
 });

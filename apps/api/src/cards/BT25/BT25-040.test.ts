@@ -177,6 +177,50 @@ describe("BT25-040 MagnaAngemon", () => {
     expect(s.state.players[0]!.security).toHaveLength(0);
   });
 
+  it("pays the ordinary yellow level-4 evolution cost", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-051", as: "yellowBase" }], hand: [{ card: "BT25-040", as: "magna" }] },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("yellowBase").permanentId,
+        instanceId: s.inst("magna").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("yellowBase").topCard?.cardId === "BT25-040");
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("rejects a wrong-color non-TS source on the TS alternate route and ordinary evolution", async () => {
+    const alternate = setupEngine({
+      0: { battleArea: [{ card: "BT1-019", as: "redBase" }], hand: [{ card: "BT25-040", as: "magna" }] },
+    });
+    await alternate.ready();
+    expect(
+      alternate.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: alternate.perm("redBase").permanentId,
+        instanceId: alternate.inst("magna").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toMatchObject({ ok: false });
+    const ordinary = setupEngine({
+      0: { battleArea: [{ card: "BT1-019", as: "redBase" }], hand: [{ card: "BT25-040", as: "magna" }] },
+    });
+    await ordinary.ready();
+    expect(
+      ordinary.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: ordinary.perm("redBase").permanentId,
+        instanceId: ordinary.inst("magna").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+  });
+
   it("offers Ascension in a real battle and accepts or refuses the security replacement", async () => {
     const run = async (accept: boolean) => {
       const s = setupEngine(
@@ -352,7 +396,7 @@ describe("BT25-040 MagnaAngemon", () => {
   it("reacts to a real own security removal, suppresses the second removal, and expires at turn end", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-009", as: "host", under: ["BT25-040"] }],
+        battleArea: [{ card: "BT1-062", as: "host", under: ["BT25-040"] }],
         security: ["BT1-010", "BT1-011"],
       },
       1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 10000 }] },
@@ -368,6 +412,47 @@ describe("BT25-040 MagnaAngemon", () => {
     advance(s.engine).endMainPhaseIfOpen(0);
     await turn;
     expect(s.perm("opponent").currentDP).toBe(10000);
+  });
+
+  it("orders a real security effect before the inherited removal trigger", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-062", as: "host", under: ["BT25-040"] }],
+          security: [{ card: "AD1-020", as: "securityTamer" }],
+          deck: ["BT1-001"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 10000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "securityChecked") &&
+        !observe(s.engine).isAttacking() &&
+        s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("securityTamer").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea).toContainEqual(
+      expect.objectContaining({ topCard: expect.objectContaining({ instanceId: s.inst("securityTamer").instanceId }) }),
+    );
+    expect(s.perm("attacker").currentDP).toBe(6000);
+    const securityEffect = s.events.findIndex(
+      (event) => event.kind === "effectResolved" && event.sourceCardId === "AD1-020",
+    );
+    const inheritedReaction = s.events.findIndex(
+      (event) => event.kind === "effectTriggered" && event.sourceCardId === "BT25-040",
+    );
+    expect(securityEffect).toBeGreaterThanOrEqual(0);
+    expect(inheritedReaction).toBeGreaterThan(securityEffect);
   });
 
   it("keeps the accepted -8000 through its own turn, then expires at opponent turn end", async () => {

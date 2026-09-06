@@ -50,6 +50,69 @@ describe("BT25-037 Pegasusmon", () => {
     }
   });
 
+  it("pays the ordinary yellow level-3 evolution cost", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-045", as: "yellowBase" }], hand: [{ card: "BT25-037", as: "pegasus" }] },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("yellowBase").permanentId,
+        instanceId: s.inst("pegasus").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("yellowBase").topCard?.cardId === "BT25-037");
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("pays the ordinary black level-3 evolution cost", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT10-058", as: "blackBase" }], hand: [{ card: "BT25-037", as: "pegasus" }] },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("blackBase").permanentId,
+        instanceId: s.inst("pegasus").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("blackBase").topCard?.cardId === "BT25-037");
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("rejects a wrong-color non-TS level-3 source on both alternate routes and ordinary evolution", async () => {
+    for (const alternateRequirementIndex of [0, 1]) {
+      const s = setupEngine({
+        0: { battleArea: [{ card: "BT1-009", as: "redBase" }], hand: [{ card: "BT25-037", as: "pegasus" }] },
+      });
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("redBase").permanentId,
+          instanceId: s.inst("pegasus").instanceId,
+          useAlternateCost: true,
+          alternateRequirementIndex,
+        }),
+      ).toMatchObject({ ok: false });
+    }
+    const ordinary = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "redBase" }], hand: [{ card: "BT25-037", as: "pegasus" }] },
+    });
+    await ordinary.ready();
+    expect(
+      ordinary.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: ordinary.perm("redBase").permanentId,
+        instanceId: ordinary.inst("pegasus").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+  });
+
   it.each(["OnPlay", "WhenDigivolving"] as const)(
     "%s adds the top security card to hand, then may place an Angel from hand on top",
     async (trigger) => {
@@ -223,6 +286,45 @@ describe("BT25-037 Pegasusmon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 0);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT25-037");
+  });
+
+  it("refuses Armor Purge after a real battle and trashes the full legal stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-037", as: "pegasus", suspended: true, under: ["BT24-020"] }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 10000 }] },
+      },
+      { autoAcceptOptional: false },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("pegasus").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision !== undefined);
+    const decision = s.state.pendingDecision!;
+    expect(decision.kind).toBe("selectCards");
+    expect(JSON.parse(decision.payloadJson).candidateInstanceIds).toEqual([s.inst("pegasus").instanceId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT25-037", "BT24-020"]),
+    );
+    expect(s.state.players[0]!.trash.filter((card) => ["BT25-037", "BT24-020"].includes(card.cardId))).toHaveLength(2);
   });
 
   it.each([

@@ -37,6 +37,55 @@ describe("BT25-043 Habakirimon", () => {
     expect(s.state.players[0]!.security).toHaveLength(2);
   });
 
+  it("uses the ordinary yellow Lv.5 evolution at its printed cost 4", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-058", as: "yellowBase" }],
+        hand: [{ card: "BT25-043", as: "habakiri" }],
+        security: ["BT1-009"],
+        deck: ["BT1-010", "BT1-011"],
+      },
+    });
+    s.state.memory = 6;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("yellowBase").permanentId,
+        instanceId: s.inst("habakiri").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("yellowBase").topCard.cardId === "BT25-043");
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("yellowBase").stack.map((card) => card.cardId)).toEqual(["BT1-058"]);
+  });
+
+  it("uses the ordinary purple-only Lv.5 evolution at its printed cost 4 when Glowing Dawn is present", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT24-076", as: "purpleBase" },
+          { card: "BT25-041", as: "glowingDawn" },
+        ],
+        hand: [{ card: "BT25-043", as: "habakiri" }],
+        security: ["BT1-009"],
+        deck: ["BT1-010", "BT1-011"],
+      },
+    });
+    s.state.memory = 6;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("purpleBase").permanentId,
+        instanceId: s.inst("habakiri").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("purpleBase").topCard.cardId === "BT25-043");
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("purpleBase").stack.map((card) => card.cardId)).toEqual(["BT24-076"]);
+  });
+
   it("recovers first, then trashes the top security of a player with the most security", () => {
     for (const trigger of ["WhenDigivolving", "WhenAttacking"] as const) {
       const effect = BT25_043.effects?.find((entry) => entry.trigger === trigger);
@@ -53,7 +102,8 @@ describe("BT25-043 Habakirimon", () => {
         amount: 1,
         recover: false,
       });
-      expect((effect?.actions?.[1] as { optional?: boolean }).optional).toBeUndefined();
+      const exchange = effect?.actions?.[1] as { optional?: boolean } | undefined;
+      expect(exchange?.optional).toBeUndefined();
       expect(effect?.actions?.[2]).toMatchObject({ condition: { kind: "ifThisEffectActed" } });
     }
   });
@@ -211,9 +261,10 @@ describe("BT25-043 Habakirimon", () => {
         0: {
           battleArea: [{ card: "BT1-060", as: "base" }],
           hand: [{ card: "BT25-043", as: "dualCard" }],
+          security: ["BT1-001"],
           deck: ["BT1-001", "BT1-002"],
         },
-        1: { battleArea: [{ card: "BT1-080", as: "target", dp: 8000 }] },
+        1: { battleArea: [{ card: "BT25-039", as: "target", dp: 8000 }], security: ["BT1-003", "BT1-004", "BT1-005"] },
       },
       { autoSelectCards: false, autoDeclineOptional: true },
     );
@@ -239,8 +290,57 @@ describe("BT25-043 Habakirimon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT25-043");
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "selectCards" &&
+        s.state.pendingDecision.promptText === "Trash the top security card of 1 player with the most security cards?",
+    );
+    const mostSecurity = s.state.pendingDecision!;
+    expect(JSON.parse(mostSecurity.payloadJson).candidateInstanceIds).toEqual(["opponent"]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: mostSecurity.decisionId,
+        response: { kind: "selectCards", instanceIds: ["opponent"] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some(
+          (event) =>
+            event.kind === "effectResolved" && event.sourceCardId === "BT25-043" && event.timing === "WhenDigivolving",
+        ) &&
+        s.events.some(
+          (event) =>
+            event.kind === "effectResolved" &&
+            event.sourceCardId === "BT25-039" &&
+            event.timing === "OnDestroyedAnyone",
+        ),
+    );
     expect(s.perm("base").stack.map((card) => card.cardId)).toContain("BT1-060");
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT25-043")).toBe(false);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT25-039")).toBe(false);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT25-039");
+    const habakiriResolved = s.events.findIndex(
+      (event) => event.kind === "effectResolved" && event.sourceCardId === "BT25-043" && event.timing === "OnUseOption",
+    );
+    const targetMoved = s.events.findIndex(
+      (event) => event.kind === "cardsMoved" && event.instanceIds.includes(s.inst("target").instanceId),
+    );
+    const whenDigivolvingResolved = s.events.findIndex(
+      (event) =>
+        event.kind === "effectResolved" && event.sourceCardId === "BT25-043" && event.timing === "WhenDigivolving",
+    );
+    const onDeletionResolved = s.events.findIndex(
+      (event) =>
+        event.kind === "effectResolved" && event.sourceCardId === "BT25-039" && event.timing === "OnDestroyedAnyone",
+    );
+    expect(habakiriResolved).toBeGreaterThanOrEqual(0);
+    expect(targetMoved).toBeGreaterThan(habakiriResolved);
+    expect(whenDigivolvingResolved).toBeGreaterThan(targetMoved);
+    expect(onDeletionResolved).toBeGreaterThan(whenDigivolvingResolved);
   });
 
   it("does not rule-delete a Digimon at 0 DP until the Option effect has finished", async () => {
@@ -317,6 +417,96 @@ describe("BT25-043 Habakirimon", () => {
     expect(s.state.players[0]!.security).toContainEqual(
       expect.objectContaining({ instanceId: s.inst("optionCost").instanceId }),
     );
+  });
+
+  it("refuses then accepts Habakirimon's replacement cost across two opponent effects", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-043", as: "habakiri" },
+            { card: "BT25-032", as: "firstGlowingDawn", dp: 5000 },
+            { card: "BT25-035", as: "secondGlowingDawn", dp: 5000 },
+          ],
+          security: ["BT1-001", "BT1-002"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-010", as: "redSource" }],
+          hand: [
+            { card: "ST1-16", as: "firstGaia" },
+            { card: "ST1-16", as: "secondGaia" },
+          ],
+          deck: ["BT1-003"],
+        },
+      },
+      { autoSelectCards: false, autoAcceptOptional: false },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 20;
+    await s.ready();
+    const sourceId = s.perm("habakiri").permanentId;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("firstGaia").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const firstTarget = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: firstTarget.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("firstGlowingDawn").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decline = s.state.pendingDecision!;
+    expect(decline.promptText).toBe("Prevent leaving the battle area?");
+    expect(decline.payloadJson).toContain("trashing your top security card");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decline.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "ST1-16"));
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("firstGlowingDawn").instanceId,
+      ),
+    ).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === sourceId)).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("secondGaia").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const secondTarget = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: secondTarget.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("secondGlowingDawn").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const accept = s.state.pendingDecision!;
+    expect(accept.promptText).toBe("Prevent leaving the battle area?");
+    expect(accept.payloadJson).toContain("trashing your top security card");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: accept.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("secondGlowingDawn").instanceId,
+      ),
+    ).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(1);
   });
 
   it("applies both Option DP reductions only for the current turn", async () => {
@@ -457,8 +647,6 @@ describe("BT25-043 Habakirimon", () => {
     s.state.turnSeat = 1;
     s.state.memory = 10;
     const opponentTurn = s.engine.runOneTurn();
-    await advance(s.engine).waitForMainPhase(1);
-    advance(s.engine).endMainPhaseIfOpen(1);
     await opponentTurn;
     s.state.turnSeat = 0;
     s.state.memory = 10;

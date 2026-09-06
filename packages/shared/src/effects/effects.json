@@ -105264,6 +105264,7 @@
               },
               "count": 1
             },
+            "from": ["hand"],
             "payCost": false,
             "optional": true
           }
@@ -106251,6 +106252,7 @@
             "op": "trashTop",
             "controller": "mine",
             "amount": 1,
+            "optional": true,
             "abortOnDecline": true,
             "cost": {
               "kind": "place",
@@ -106281,6 +106283,7 @@
             "op": "trashTop",
             "controller": "mine",
             "amount": 1,
+            "optional": true,
             "abortOnDecline": true,
             "cost": {
               "kind": "place",
@@ -106315,6 +106318,7 @@
                 "target": {
                   "filter": {
                     "controller": "mine",
+                    "kind": ["Digimon"],
                     "playCostLte": 8,
                     "nameOrTrait": [{ "tokens": ["Angel", "Archangel", "Iliad"], "match": "trait" }]
                   },
@@ -106322,7 +106326,8 @@
                 },
                 "from": ["hand", "trash"],
                 "payCost": false,
-                "optional": true
+                "optional": true,
+                "preserveOncePerTurnOnDecline": true
               }
             ]
           }
@@ -107934,7 +107939,10 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 3, "traits": ["TS"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [
+      { "level": 3, "colors": ["Black"], "cost": 2, "isAlternate": false },
+      { "level": 3, "traits": ["TS"], "cost": 2, "isAlternate": true }
+    ]
   },
   "BT25-067": {
     "effects": [

@@ -46,6 +46,39 @@ describe("BT25-064 ToyAgumon", () => {
     ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 
+  it("ordinary-digivolves from a legal black non-TS level 2 Digi-Egg for 0", async () => {
+    const s = setupEngine({
+      0: { breeding: { card: "BT11-005", as: "blackEgg" }, hand: [{ card: CARD_ID, as: "toy" }] },
+    });
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("blackEgg").permanentId,
+        instanceId: s.inst("toy").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("blackEgg").topCard?.cardId === CARD_ID);
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("blackEgg").stack.map((card) => card.cardId)).toEqual(["BT11-005"]);
+  });
+
+  it("rejects ordinary evolution from a wrong-color level 2 Digi-Egg", async () => {
+    const s = setupEngine({
+      0: { breeding: { card: "BT1-001", as: "redEgg" }, hand: [{ card: CARD_ID, as: "toy" }] },
+    });
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("redEgg").permanentId,
+        instanceId: s.inst("toy").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("redEgg").topCard?.cardId).toBe("BT1-001");
+  });
+
   it("reveals exactly 3, mandatorily adds one Option and one distinct TS card, and bottoms the rest", async () => {
     const s = setupEngine(
       {
@@ -98,11 +131,34 @@ describe("BT25-064 ToyAgumon", () => {
     ]);
   });
 
+  it("returns all three cards to the deck bottom when neither reveal pool matches", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: CARD_ID, as: "toy" }],
+        deck: [
+          { card: "BT1-009", as: "miss1" },
+          { card: "BT1-013", as: "miss2" },
+          { card: "BT1-015", as: "miss3" },
+        ],
+      },
+    });
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("toy").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("toy").instanceId));
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("miss1").instanceId,
+      s.inst("miss2").instanceId,
+      s.inst("miss3").instanceId,
+    ]);
+  });
+
   it("grants inherited Reboot only while ToyAgumon is under a host", async () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT1-013", as: "host", under: [CARD_ID] },
+          { card: "BT25-066", as: "host", under: [CARD_ID] },
           { card: CARD_ID, as: "standalone" },
         ],
       },
@@ -114,19 +170,23 @@ describe("BT25-064 ToyAgumon", () => {
 
   it("uses inherited Reboot during the opponent's unsuspend phase", async () => {
     const s = setupEngine({
-      0: {
-        deck: ["BT1-001"],
-        battleArea: [{ card: "BT1-013", as: "host", under: [{ card: CARD_ID, faceUp: false }], suspended: true }],
+      0: { deck: ["BT1-001"] },
+      1: {
+        deck: ["BT1-002"],
+        battleArea: [
+          { card: "BT25-066", as: "host", under: [CARD_ID], suspended: true },
+          { card: CARD_ID, as: "standalone", suspended: true },
+        ],
       },
-      1: { deck: ["BT1-002"] },
     });
-    s.state.turnSeat = 1;
+    s.state.turnSeat = 0;
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Reboot")).toBe(true);
     const turn = s.engine.runOneTurn();
-    await advance(s.engine).waitForMainPhase(1);
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.perm("host").isSuspended).toBe(false);
-    advance(s.engine).endMainPhaseIfOpen(1);
+    expect(s.perm("standalone").isSuspended).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
     await turn;
   });
 });

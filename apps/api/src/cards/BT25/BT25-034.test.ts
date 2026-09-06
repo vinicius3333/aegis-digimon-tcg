@@ -78,6 +78,52 @@ describe("BT25-034 Angemon", () => {
     ).toMatchObject({ ok: false });
   });
 
+  it("pays the ordinary yellow level-3 evolution cost from a non-TS source", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-045", as: "yellowBase" }], hand: [{ card: "BT25-034", as: "angemon" }] },
+    });
+    s.state.memory = 2;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("yellowBase").permanentId,
+        instanceId: s.inst("angemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("yellowBase").topCard?.cardId === "BT25-034");
+    expect(s.state.memory).toBe(0);
+    expect(observe(s.engine).hasKeyword(s.perm("yellowBase"), "Ascension")).toBe(true);
+  });
+
+  it("rejects a wrong-color, non-TS level-3 source on both evolution routes", async () => {
+    const alternate = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "redBase" }], hand: [{ card: "BT25-034", as: "angemon" }] },
+    });
+    await alternate.ready();
+    expect(
+      alternate.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: alternate.perm("redBase").permanentId,
+        instanceId: alternate.inst("angemon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toMatchObject({ ok: false });
+
+    const ordinary = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "redBase" }], hand: [{ card: "BT25-034", as: "angemon" }] },
+    });
+    await ordinary.ready();
+    expect(
+      ordinary.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: ordinary.perm("redBase").permanentId,
+        instanceId: ordinary.inst("angemon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+  });
+
   it("plays an eligible hand card after direct effect trash from security", async () => {
     const s = setupEngine(
       {
@@ -95,6 +141,35 @@ describe("BT25-034 Angemon", () => {
 
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toContain("BT25-031");
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("securityAngemon").instanceId);
+  });
+
+  it("can refuse the optional hand play after direct security trash", async () => {
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "BT25-034", as: "securityAngemon" }], hand: [{ card: "BT25-031", as: "iliadHand" }] },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    await s.ready();
+    const trash = advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision!;
+    expect(decision.promptText).toMatch(/play/i);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await trash;
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.hand).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("iliadHand").instanceId }),
+    );
+    expect(s.state.players[0]!.trash).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("securityAngemon").instanceId }),
+    );
   });
 
   it("does not trigger from a security reveal without a direct effect trash", async () => {
@@ -285,6 +360,42 @@ describe("BT25-034 Angemon", () => {
       expect.objectContaining({ instanceId: s.inst("angemon").instanceId }),
     );
     expect(s.state.players[0]!.security[0]).toMatchObject({ instanceId: s.inst("angemon").instanceId, faceUp: false });
+  });
+
+  it("refuses Ascension after the real battle deletion and leaves existing security unchanged", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-034", as: "angemon", suspended: true }],
+          security: [{ card: "BT1-001", as: "security" }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 10000 }] },
+      },
+      { autoAcceptOptional: false },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("angemon").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const selection = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: selection.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT25-034");
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-001"]);
   });
 
   it("allows inherited Barrier refusal and no-security deletion", async () => {

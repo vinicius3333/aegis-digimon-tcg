@@ -101,14 +101,76 @@ describe("BT25-065 Monodramon", () => {
     expect(s.perm("tsBase").topCard?.cardId).toBe(CARD_ID);
   });
 
+  it("ordinary-digivolves from a black non-TS level 2 source for zero", async () => {
+    const s = setupEngine({
+      0: { breeding: { card: "BT11-005", as: "blackEgg" }, hand: [{ card: CARD_ID, as: "monodramon" }] },
+    });
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("blackEgg").permanentId,
+        instanceId: s.inst("monodramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("blackEgg").topCard?.cardId === CARD_ID);
+    expect(s.state.memory).toBe(3);
+
+    const wrongColor = setupEngine({
+      0: { breeding: { card: "BT1-001", as: "redEgg" }, hand: [{ card: CARD_ID, as: "monodramon" }] },
+    });
+    expect(
+      wrongColor.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: wrongColor.perm("redEgg").permanentId,
+        instanceId: wrongColor.inst("monodramon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
+
+  it("enforces the ordinary color boundary and the alternate TS trait boundary", async () => {
+    const nonTs = setupEngine({
+      0: { breeding: { card: "BT11-005", as: "blackEgg" }, hand: [{ card: CARD_ID, as: "monodramon" }] },
+    });
+    nonTs.state.memory = 3;
+    // The public intent flag requests the alternate route, but the engine falls
+    // back to the independently legal ordinary black Lv2 route for this source.
+    expect(
+      nonTs.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: nonTs.perm("blackEgg").permanentId,
+        instanceId: nonTs.inst("monodramon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => nonTs.perm("blackEgg").topCard?.cardId === CARD_ID);
+    expect(nonTs.state.memory).toBe(3);
+    const wrongColor = setupEngine({
+      0: { breeding: { card: "BT26-001", as: "redTsEgg" }, hand: [{ card: CARD_ID, as: "monodramon" }] },
+    });
+    expect(
+      wrongColor.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: wrongColor.perm("redTsEgg").permanentId,
+        instanceId: wrongColor.inst("monodramon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => wrongColor.perm("redTsEgg").topCard?.cardId === CARD_ID);
+  });
+
   it("applies inherited +1000 DP when Monodramon is in a realistic evolution stack", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-013", dp: 4000, as: "host", under: [CARD_ID] }],
+        battleArea: [{ card: "BT10-062", dp: 5000, as: "host", under: [CARD_ID] }],
       },
     });
     await s.ready();
-    expect(s.perm("host").currentDP).toBe(5000);
+    expect(s.perm("host").currentDP).toBe(6000);
+
+    const absent = setupEngine({ 0: { battleArea: [{ card: "BT10-062", as: "host" }] } });
+    await absent.ready();
+    expect(absent.perm("host").currentDP).toBe(5000);
   });
 
   it("draws only when this physical copy suspends, including on the opponent's turn", async () => {
@@ -131,9 +193,25 @@ describe("BT25-065 Monodramon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-001"]);
   });
 
+  it("proves play cost 3 through the public play intent", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: CARD_ID, as: "monodramon" }], deck: ["BT1-001"] },
+        1: { deck: ["BT1-002"] },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("monodramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("monodramon").topCard?.cardId === CARD_ID);
+    expect(s.state.memory).toBe(2);
+  });
+
   it("loses 2 memory only when this Monodramon attacks a player during its turn", async () => {
     const valid = setupEngine({
-      0: { battleArea: [{ card: CARD_ID, as: "monodramon" }] },
+      0: { battleArea: [{ card: CARD_ID, as: "monodramon" }], deck: [{ card: "BT1-001", as: "drawn" }] },
       1: { security: ["BT1-010"] },
     });
     valid.state.memory = 5;
@@ -146,6 +224,7 @@ describe("BT25-065 Monodramon", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(valid.engine).isAttacking());
     expect(valid.state.memory).toBe(3);
+    expect(valid.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([valid.inst("drawn").instanceId]);
 
     const otherAttacker = setupEngine({
       0: {
@@ -188,9 +267,13 @@ describe("BT25-065 Monodramon", () => {
     opponentTurn.state.turnSeat = 1;
     opponentTurn.state.memory = 5;
     await opponentTurn.ready();
-    await advance(opponentTurn.engine).fireSubTrigger("whenAttacking", {
-      attackerPermanentId: opponentTurn.perm("monodramon").permanentId,
-    });
+    expect(
+      opponentTurn.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: opponentTurn.perm("monodramon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: false, reason: "not-your-turn" });
     expect(opponentTurn.state.memory).toBe(5);
   });
 });

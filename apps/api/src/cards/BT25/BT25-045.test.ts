@@ -71,10 +71,14 @@ interface RunResult {
  * much memory the engine charged for the link and how many cards landed. A linkable BT21-009 sits
  * in the controller's hand; BT25-045 is the on-field recipient ("link a card to this Digimon").
  */
-async function runLinkEffect(compiled: CompiledCard, optionalAnswers: boolean[] = [true]): Promise<RunResult> {
+async function runLinkEffect(
+  compiled: CompiledCard,
+  optionalAnswers: boolean[] = [true],
+  turnSeat: Seat = 0,
+): Promise<RunResult> {
   seq = 0;
   const state = new GameState();
-  state.turnSeat = 0;
+  state.turnSeat = turnSeat;
   state.memory = 10; // ample headroom so a positive link cost is actually paid
   for (const seat of [0, 1] as Seat[]) {
     const player = new PlayerState();
@@ -168,6 +172,7 @@ async function runLinkEffect(compiled: CompiledCard, optionalAnswers: boolean[] 
 
   const before = state.memory;
   if (
+    state.turnSeat === recipient.controllerSeat &&
     compiled.effects?.some((e) => e.actions?.some((a) => (a as { kind?: string }).kind === "GrantLinkCostReduction"))
   ) {
     for (const e of effects) {
@@ -280,18 +285,28 @@ describe("BT25-045 Onmon — recipient-scoped link-cost reduction", () => {
     expect(declined.memoryPaid).toBe(1);
   });
 
+  it("does not grant the reduction during the opponent turn", async () => {
+    const opponentTurn = await runLinkEffect(BT25_045, [true], 1);
+    expect(opponentTurn.linkedCount).toBe(1);
+    expect(opponentTurn.memoryPaid).toBe(1);
+  });
+
   it("suspends exactly one opponent Digimon when Onmon is linked", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT21-009", as: "host" }],
+          battleArea: [
+            { card: "BT21-009", as: "host" },
+            { card: "BT1-009", as: "own", dp: 3000 },
+          ],
           hand: [{ card: "BT25-045", as: "onmon" }],
         },
         1: {
           battleArea: [
             { card: "BT1-009", as: "target", dp: 3000 },
             { card: "BT1-013", as: "other", dp: 5000 },
+            { card: "BT1-089", as: "opponentTamer" },
           ],
         },
       },
@@ -317,6 +332,8 @@ describe("BT25-045 Onmon — recipient-scoped link-cost reduction", () => {
     expect(s.state.memory).toBe(2);
     expect(s.perm("target").isSuspended).toBe(true);
     expect(s.perm("other").isSuspended).toBe(false);
+    expect(s.perm("own").isSuspended).toBe(false);
+    expect(s.perm("opponentTamer").isSuspended).toBe(false);
   });
 
   it("reduces a qualifying link once per turn and does not reduce the second link", async () => {
@@ -378,6 +395,72 @@ describe("BT25-045 Onmon — recipient-scoped link-cost reduction", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("onmon").linked.length === 1);
     expect(s.state.memory).toBe(2);
+  });
+
+  it("reduces Social, Tool, and Game links through one public same-turn refusal/acceptance sequence", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-045", as: "onmon" }],
+          hand: [
+            { card: "BT21-009", as: "social" },
+            { card: "BT21-041", as: "tool" },
+            { card: "BT21-054", as: "game" },
+          ],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("social").instanceId,
+        targetPermanentId: s.perm("onmon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const declined = s.state.pendingDecision!;
+    expect(declined.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: declined.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("onmon").linked.length === 1);
+    expect(s.state.memory).toBe(2);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("tool").instanceId,
+        targetPermanentId: s.perm("onmon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const accepted = s.state.pendingDecision!;
+    expect(accepted.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: accepted.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("onmon").linked.length === 2);
+    expect(s.state.memory).toBe(2);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("game").instanceId,
+        targetPermanentId: s.perm("onmon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("onmon").linked.length === 3);
+    expect(s.state.memory).toBe(1);
   });
 
   it("resets the link reduction budget on a real next turn", async () => {
@@ -469,7 +552,7 @@ describe("BT25-045 Onmon — recipient-scoped link-cost reduction", () => {
   it("digivolves for zero from a level-2 Appmon", async () => {
     const s = setupEngine({
       0: {
-        breeding: { card: "BT21-005", as: "base" },
+        breeding: { card: "BT22-003", as: "base" },
         hand: [{ card: "BT25-045", as: "onmon" }],
       },
     });
@@ -487,5 +570,48 @@ describe("BT25-045 Onmon — recipient-scoped link-cost reduction", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === s.inst("onmon").instanceId);
     expect(s.state.memory).toBe(3);
+  });
+
+  it("uses the ordinary green Lv.2 evolution at its printed zero cost", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "ST23-01", as: "greenEgg" }],
+        hand: [{ card: "BT25-045", as: "onmon" }],
+      },
+    });
+    s.state.memory = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("greenEgg").permanentId,
+        instanceId: s.inst("onmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("greenEgg").topCard.instanceId === s.inst("onmon").instanceId);
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("greenEgg").stack.map((stackCard) => stackCard.cardId)).toEqual(["ST23-01"]);
+  });
+
+  it("rejects a wrong-color non-Appmon Lv.2 source on the ordinary route", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-001", as: "redEgg" }],
+        hand: [{ card: "BT25-045", as: "onmon" }],
+      },
+    });
+    s.state.memory = 1;
+    await s.ready();
+
+    const result = s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("redEgg").permanentId,
+      instanceId: s.inst("onmon").instanceId,
+    });
+    expect(result).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("redEgg").topCard.cardId).toBe("BT1-001");
+    expect(s.state.players[0]!.hand.map((handCard) => handCard.cardId)).toContain("BT25-045");
+    expect(s.state.memory).toBe(1);
   });
 });
