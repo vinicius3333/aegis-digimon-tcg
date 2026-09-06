@@ -44,12 +44,6 @@
           "reportedBy": "Luna focused run and Astra combined integration rerun"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts --maxWorkers=1 --no-file-parallelism",
-          "result": "PASS",
-          "tests": 874,
-          "reportedBy": "Astra third-wave integration; includes in-progress neighboring tests"
-        },
-        {
           "command": "pnpm typecheck",
           "result": "PASS"
         },
@@ -69,6 +63,12 @@
         {
           "command": "git diff --check",
           "result": "PASS"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 940,
+          "reportedBy": "Astra fifth integration; all110files, includes pending-card tests"
         }
       ],
       "owner": "astra_review",
@@ -117,12 +117,6 @@
           "reportedBy": "Luna focused run; Astra final integration pending"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts --maxWorkers=1 --no-file-parallelism",
-          "result": "PASS",
-          "tests": 874,
-          "reportedBy": "Astra third-wave integration; includes in-progress neighboring tests"
-        },
-        {
           "command": "pnpm typecheck",
           "result": "PASS"
         },
@@ -142,6 +136,12 @@
         {
           "command": "git diff --check",
           "result": "PASS"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 940,
+          "reportedBy": "Astra fifth integration; all110files, includes pending-card tests"
         }
       ],
       "owner": "astra_review",
@@ -190,12 +190,6 @@
           "reportedBy": "Luna focused run and Astra combined integration rerun"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts --maxWorkers=1 --no-file-parallelism",
-          "result": "PASS",
-          "tests": 874,
-          "reportedBy": "Astra third-wave integration; includes in-progress neighboring tests"
-        },
-        {
           "command": "pnpm typecheck",
           "result": "PASS"
         },
@@ -215,6 +209,12 @@
         {
           "command": "git diff --check",
           "result": "PASS"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 940,
+          "reportedBy": "Astra fifth integration; all110files, includes pending-card tests"
         }
       ],
       "owner": "astra_review",
@@ -263,12 +263,6 @@
           "reportedBy": "Luna focused run; Astra final integration pending"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts --maxWorkers=1 --no-file-parallelism",
-          "result": "PASS",
-          "tests": 874,
-          "reportedBy": "Astra third-wave integration; includes in-progress neighboring tests"
-        },
-        {
           "command": "pnpm typecheck",
           "result": "PASS"
         },
@@ -288,6 +282,12 @@
         {
           "command": "git diff --check",
           "result": "PASS"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 940,
+          "reportedBy": "Astra fifth integration; all110files, includes pending-card tests"
         }
       ],
       "owner": "astra_review",
@@ -336,12 +336,6 @@
           "reportedBy": "Luna focused run; Astra source/test review; integration rerun pending"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts --maxWorkers=1 --no-file-parallelism",
-          "result": "PASS",
-          "tests": 874,
-          "reportedBy": "Astra third-wave integration; includes in-progress neighboring tests"
-        },
-        {
           "command": "pnpm typecheck",
           "result": "PASS"
         },
@@ -361,6 +355,12 @@
         {
           "command": "git diff --check",
           "result": "PASS"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 940,
+          "reportedBy": "Astra fifth integration; all110files, includes pending-card tests"
         }
       ],
       "owner": "astra_review",
@@ -409,12 +409,6 @@
           "reportedBy": "Luna focused run and Astra combined integration rerun"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts --maxWorkers=1 --no-file-parallelism",
-          "result": "PASS",
-          "tests": 874,
-          "reportedBy": "Astra third-wave integration; includes in-progress neighboring tests"
-        },
-        {
           "command": "pnpm typecheck",
           "result": "PASS"
         },
@@ -434,6 +428,12 @@
         {
           "command": "git diff --check",
           "result": "PASS"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 940,
+          "reportedBy": "Astra fifth integration; all110files, includes pending-card tests"
         }
       ],
       "owner": "astra_review",
@@ -491,12 +491,6 @@
           "reportedBy": "Luna focused run and Astra combined integration rerun"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts --maxWorkers=1 --no-file-parallelism",
-          "result": "PASS",
-          "tests": 874,
-          "reportedBy": "Astra third-wave integration; includes in-progress neighboring tests"
-        },
-        {
           "command": "pnpm typecheck",
           "result": "PASS"
         },
@@ -516,6 +510,12 @@
         {
           "command": "git diff --check",
           "result": "PASS"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 940,
+          "reportedBy": "Astra fifth integration; all110files, includes pending-card tests"
         }
       ],
       "owner": "astra_review",
@@ -576,12 +576,6 @@
           "reportedBy": "Luna focused run and Astra combined integration rerun"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts --maxWorkers=1 --no-file-parallelism",
-          "result": "PASS",
-          "tests": 874,
-          "reportedBy": "Astra third-wave integration; includes in-progress neighboring tests"
-        },
-        {
           "command": "pnpm typecheck",
           "result": "PASS"
         },
@@ -601,6 +595,12 @@
         {
           "command": "git diff --check",
           "result": "PASS"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 940,
+          "reportedBy": "Astra fifth integration; all110files, includes pending-card tests"
         }
       ],
       "owner": "astra_review",
@@ -661,12 +661,6 @@
           "reportedBy": "Luna focused run; Astra final integration pending"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts --maxWorkers=1 --no-file-parallelism",
-          "result": "PASS",
-          "tests": 874,
-          "reportedBy": "Astra third-wave integration; includes in-progress neighboring tests"
-        },
-        {
           "command": "pnpm typecheck",
           "result": "PASS"
         },
@@ -686,6 +680,12 @@
         {
           "command": "git diff --check",
           "result": "PASS"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 940,
+          "reportedBy": "Astra fifth integration; all110files, includes pending-card tests"
         }
       ],
       "owner": "luna_c",
@@ -746,12 +746,6 @@
           "reportedBy": "Luna focused run; Astra final integration pending"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts --maxWorkers=1 --no-file-parallelism",
-          "result": "PASS",
-          "tests": 874,
-          "reportedBy": "Astra third-wave integration; includes in-progress neighboring tests"
-        },
-        {
           "command": "pnpm typecheck",
           "result": "PASS"
         },
@@ -771,6 +765,12 @@
         {
           "command": "git diff --check",
           "result": "PASS"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 940,
+          "reportedBy": "Astra fifth integration; all110files, includes pending-card tests"
         }
       ],
       "owner": "astra_review",
@@ -831,12 +831,6 @@
           "reportedBy": "Luna focused run; Astra final integration pending"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts --maxWorkers=1 --no-file-parallelism",
-          "result": "PASS",
-          "tests": 874,
-          "reportedBy": "Astra third-wave integration; includes in-progress neighboring tests"
-        },
-        {
           "command": "pnpm typecheck",
           "result": "PASS"
         },
@@ -856,6 +850,12 @@
         {
           "command": "git diff --check",
           "result": "PASS"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 940,
+          "reportedBy": "Astra fifth integration; all110files, includes pending-card tests"
         }
       ],
       "owner": "astra_review",
@@ -916,12 +916,6 @@
           "reportedBy": "Luna focused run; Astra final integration pending"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts --maxWorkers=1 --no-file-parallelism",
-          "result": "PASS",
-          "tests": 874,
-          "reportedBy": "Astra third-wave integration; includes in-progress neighboring tests"
-        },
-        {
           "command": "pnpm typecheck",
           "result": "PASS"
         },
@@ -941,6 +935,12 @@
         {
           "command": "git diff --check",
           "result": "PASS"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 940,
+          "reportedBy": "Astra fifth integration; all110files, includes pending-card tests"
         }
       ],
       "owner": "luna_c",
@@ -1001,12 +1001,6 @@
           "reportedBy": "Astra focused integration run and integrated collection run"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts --maxWorkers=1 --no-file-parallelism",
-          "result": "PASS",
-          "tests": 874,
-          "reportedBy": "Astra third-wave integration; includes in-progress neighboring tests"
-        },
-        {
           "command": "pnpm typecheck",
           "result": "PASS"
         },
@@ -1026,6 +1020,12 @@
         {
           "command": "git diff --check",
           "result": "PASS"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 940,
+          "reportedBy": "Astra fifth integration; all110files, includes pending-card tests"
         }
       ],
       "owner": "astra_review",
@@ -1081,12 +1081,6 @@
           "reportedBy": "Astra focused integration run and integrated collection run"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts --maxWorkers=1 --no-file-parallelism",
-          "result": "PASS",
-          "tests": 874,
-          "reportedBy": "Astra third-wave integration; includes in-progress neighboring tests"
-        },
-        {
           "command": "pnpm typecheck",
           "result": "PASS"
         },
@@ -1106,6 +1100,12 @@
         {
           "command": "git diff --check",
           "result": "PASS"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 940,
+          "reportedBy": "Astra fifth integration; all110files, includes pending-card tests"
         }
       ],
       "owner": "astra_review",
@@ -1166,12 +1166,6 @@
           "reportedBy": "Astra focused integration run and integrated collection run"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts --maxWorkers=1 --no-file-parallelism",
-          "result": "PASS",
-          "tests": 874,
-          "reportedBy": "Astra third-wave integration; includes in-progress neighboring tests"
-        },
-        {
           "command": "pnpm typecheck",
           "result": "PASS"
         },
@@ -1191,6 +1185,12 @@
         {
           "command": "git diff --check",
           "result": "PASS"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 940,
+          "reportedBy": "Astra fifth integration; all110files, includes pending-card tests"
         }
       ],
       "owner": "astra_review",
@@ -1251,12 +1251,6 @@
           "reportedBy": "Astra focused integration run and integrated collection run"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts --maxWorkers=1 --no-file-parallelism",
-          "result": "PASS",
-          "tests": 874,
-          "reportedBy": "Astra third-wave integration; includes in-progress neighboring tests"
-        },
-        {
           "command": "pnpm typecheck",
           "result": "PASS"
         },
@@ -1276,6 +1270,12 @@
         {
           "command": "git diff --check",
           "result": "PASS"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 940,
+          "reportedBy": "Astra fifth integration; all110files, includes pending-card tests"
         }
       ],
       "owner": "astra_review",
@@ -1336,12 +1336,6 @@
           "reportedBy": "Astra focused integration run and integrated collection run"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts --maxWorkers=1 --no-file-parallelism",
-          "result": "PASS",
-          "tests": 874,
-          "reportedBy": "Astra third-wave integration; includes in-progress neighboring tests"
-        },
-        {
           "command": "pnpm typecheck",
           "result": "PASS"
         },
@@ -1361,6 +1355,12 @@
         {
           "command": "git diff --check",
           "result": "PASS"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 940,
+          "reportedBy": "Astra fifth integration; all110files, includes pending-card tests"
         }
       ],
       "owner": "astra_review",
@@ -1421,12 +1421,6 @@
           "reportedBy": "Luna focused run; Astra source/test review; integration rerun pending"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts --maxWorkers=1 --no-file-parallelism",
-          "result": "PASS",
-          "tests": 874,
-          "reportedBy": "Astra third-wave integration; includes in-progress neighboring tests"
-        },
-        {
           "command": "pnpm typecheck",
           "result": "PASS"
         },
@@ -1446,6 +1440,12 @@
         {
           "command": "git diff --check",
           "result": "PASS"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 940,
+          "reportedBy": "Astra fifth integration; all110files, includes pending-card tests"
         }
       ],
       "owner": "astra_review",
@@ -1488,29 +1488,52 @@
       "module": "apps/api/src/cards/BT25/BT25-019.ts",
       "test": "apps/api/src/cards/BT25/BT25-019.test.ts",
       "kb": "BT25-019 UltimateBrachiomon\n  Q&A (8):\n    Q6270 (2026-05-08): What position on the memory gauge does \"if your opponent has 5 or more memory\" refer to?\n      A: It refers to when the memory gauge is at 5 or further to the right on your opponent's side.\n    Q6271 (2026-05-08): What position on the memory gauge does \"if your opponent has 5 or less memory\" refer to?\n      A: It refers to when the memory gauge is at 5 or further to the left from your opponent's point of view.\n    Q6272 (2026-05-08): What does \"effects don't affect\" mean, exactly?\n      A: This effect prevents a card from being affected by effects. For example, your Digimon won't suspend if it's chosen for a \"suspend 1 of your opponent's Digimon\" effect, and its DP won't be reduced by 3000 if it's chosen for a \"1 of your opponent's Digimon gets -3000 DP\" effect.\n    Q6273 (2026-05-08): Can a card that has an \"effects don't affect\" effect be chosen for an effect?\n      A: Yes, it can be chosen. For example, a Digimon that isn't affected by effects can be chosen for a \"suspend 1 of your opponent's Digimon\" effect.\n    Q6274 (2026-05-08): Can a card that has an \"effects don't affect\" effect be given an effect?\n      A: Yes, it can. It won't be affected by it, but it can be given an effect. However, if an effect such as <Security A.> is given to a Digimon that isn't affected by effects, the Digimon won't be considered to have that effect.\n    Q6275 (2026-05-08): If a card is affected by an effect, then it later gains an \"effects don't affect\" effect, what happens to the effect that was affecting it?\n      A: As soon as it gains the \"effects don't affect\" effect, it will no longer be affected.\n    Q6276 (2026-05-08): If a card has an \"effects don't affect\" effect, it gains an effect, then it later loses the \"effects don't affect\" effect, what happens to the effect that it gained?\n      A: It will be affected by the effect as soon as it can be affected by effects.\n    Q6277 (2026-05-08): A card that has an \"effects don't affect\" effect was given an effect that triggers at a timing such as [When Attacking]. Will the effect trigger if that card later meets the trigger conditions?\n      A: If the Digimon isn't affected by effects upon the trigger timing, the effect won't trigger.\n",
-      "status": "provisional",
+      "status": "verified",
       "scores": {
         "catalogKb": 2,
         "irTrace": 2,
-        "behavior": 1,
+        "behavior": 2,
         "peersStacks": 2,
-        "validation": 1
+        "validation": 2
       },
-      "gaps": [
-        "Complete card-specific prior-effect suppression/reappearance and granted-trigger ordering review for Q6272\u2013Q6277 against shared regressions.",
-        "Final collection, catalog check, typecheck/style and delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-019.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
           "tests": 16,
-          "reportedBy": "Astra focused integration run and integrated collection run"
+          "reportedBy": "Luna focused proof and Astra integrated rerun"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 940,
+          "reportedBy": "Astra fifth integration; all110files, includes pending-card tests"
+        },
+        {
+          "command": "pnpm typecheck",
+          "result": "PASS"
+        },
+        {
+          "command": "pnpm effects:check:set -- --set BT25 --base a924de971",
+          "result": "PASS"
+        },
+        {
+          "command": "pnpm exec oxfmt --check --threads=1 apps/api/src/cards/BT25",
+          "result": "PASS"
+        },
+        {
+          "command": "pnpm exec oxlint apps/api/src/cards/BT25",
+          "result": "PASS"
+        },
+        {
+          "command": "git diff --check",
+          "result": "PASS"
         }
       ],
       "owner": "astra_review",
       "evidence": "docs/audits/BT25/evidence/BT25-019.md",
-      "reviewedBy": "Astra source/test integration review"
+      "reviewedBy": "Astra independent clause, IR, behavioral and fifth-checkpoint review"
     },
     {
       "cardId": "BT25-020",
@@ -1548,28 +1571,51 @@
       "module": "apps/api/src/cards/BT25/BT25-020.ts",
       "test": "apps/api/src/cards/BT25/BT25-020.test.ts",
       "kb": "BT25-020 Marsmon\n  Q&A (9):\n    Q6278 (2026-05-08): What does \"may battle\" mean, exactly?\n      A: This effect directly performs a battle. If this effect is activated, the chosen Digimon battle, as with the standard rules.\n    Q6279 (2026-05-08): If 2 Digimon including a Digimon that has an \"effects don't affect\" effect are chosen for a \"may battle\" effect, can those Digimon battle?\n      A: Yes, they can battle. A card that has an \"effects don't affect\" effect can still be chosen for an effect. In addition, a battle itself is a rule that compares DP, not an effect. Therefore, a Digimon that isn't affected by effects can be chosen, and then it can battle. If it loses the battle, it will be deleted as normal according to the rules.\n    Q6280 (2026-05-08): During an attack by my Digimon with <Piercing>, I activate this card's [On Play] [When Digivolving] [When Attacking] effect, the attacking Digimon and an opponent's Digimon battle, and my opponent's Digimon was deleted in battle. Then, if the attack target successfully becomes an opponent's Digimon and it's also deleted in battle, do I use that Digimon's <Piercing> to perform 2 checks?\n      A: No, you only perform 1 security check for <Piercing>. Only 1 security check can be performed during a single attack, even if <Piercing> activates multiple times. However, if the number of checks is modified by <Security A.>, that number of cards will be checked in a single security check.\n    Q6281 (2026-05-08): During an attack by my Digimon with <Piercing>, I use this card's [On Play] [When Digivolving] [When Attacking] effect to have that Digimon and an opponent's Digimon battle, and my opponent's Digimon was deleted in battle. Then, if the attack target successfully becomes an opponent's Digimon, it loses the battle, but an effect prevents it from being deleted, can I still activate that Digimon's <Piercing>?\n      A: Yes, you can. <Piercing> is an effect that triggers and activates if an opponent's Digimon is deleted in battle during the attack, and it's processed immediately before the end of attack timing. <Piercing> will still trigger if the Digimon with <Piercing> successfully attacks a Digimon, even if another battle occurs during this battle.\n    Q6282 (2026-05-08): When does \"when this Digimon wins a battle\" trigger?\n      A: It triggers when the battle is won. When the Digimon with this effect wins a battle, the opponent's Digimon that lost the battle is deleted, then the \"when this Digimon wins a battle\" effect can be activated.\n    Q6283 (2026-05-08): Does a \"when this Digimon wins a battle\" effect also trigger when a battle against a Security Digimon is won?\n      A: Yes, it triggers.\n    Q6284 (2026-05-08): A Digimon with a \"when this Digimon wins a battle\" effect won a battle, and the opponent's Digimon that lost the battle is deleted. At such times, in what order can players activate the \"when this Digimon wins a battle\" effect and the effects that trigger upon the losing Digimon being deleted?\n      A: They trigger simultaneously, so the turn player can activate their effects first.\n    Q6285 (2026-05-08): A Digimon with a \"when this Digimon wins a battle\" effect won a battle, and the opponent's Digimon lost the battle. At such times, in what order can players activate the \"when this Digimon wins a battle\" effect and the loser Digimon's effects such as \"when this Digimon would be deleted\" and \"when this Digimon would leave the battle area\" effects?\n      A: The \"when this Digimon would be deleted\" and \"when this Digimon would leave the battle area\" effects can be activated first.\n    Q6286 (2026-05-08): A Digimon with a \"when this Digimon wins a battle\" effect won a battle, and the opponent's Digimon lost the battle. At such times, can the \"when this Digimon wins a battle\" effect be activated even if an effect prevents the opponent's Digimon from being deleted?\n      A: Yes, it can be activated.\n",
-      "status": "provisional",
+      "status": "verified",
       "scores": {
         "catalogKb": 2,
         "irTrace": 2,
-        "behavior": 1,
+        "behavior": 2,
         "peersStacks": 2,
-        "validation": 1
+        "validation": 2
       },
-      "gaps": [
-        "Prove Q6280/Q6281 Piercing across multiple battles, Q6284 simultaneous ordering, non-TS battle-win negative, and turn-duration expiry.",
-        "Final collection, catalog check, typecheck/style and delivery gates pending"
-      ],
+      "gaps": [],
       "commands": [
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-020.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
-          "tests": 16,
-          "reportedBy": "Astra focused integration run and integrated collection run"
+          "tests": 22,
+          "reportedBy": "Luna focused proof and Astra integrated rerun"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 940,
+          "reportedBy": "Astra fifth integration; all110files, includes pending-card tests"
+        },
+        {
+          "command": "pnpm typecheck",
+          "result": "PASS"
+        },
+        {
+          "command": "pnpm effects:check:set -- --set BT25 --base a924de971",
+          "result": "PASS"
+        },
+        {
+          "command": "pnpm exec oxfmt --check --threads=1 apps/api/src/cards/BT25",
+          "result": "PASS"
+        },
+        {
+          "command": "pnpm exec oxlint apps/api/src/cards/BT25",
+          "result": "PASS"
+        },
+        {
+          "command": "git diff --check",
+          "result": "PASS"
         }
       ],
       "owner": "astra_review",
-      "reviewedBy": "Astra source/test integration review",
+      "reviewedBy": "Astra independent clause, IR, behavioral and fifth-checkpoint review",
       "evidence": "docs/audits/BT25/evidence/BT25-020.md"
     },
     {
@@ -1621,12 +1667,6 @@
           "reportedBy": "Astra focused integration run and integrated collection run"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts --maxWorkers=1 --no-file-parallelism",
-          "result": "PASS",
-          "tests": 874,
-          "reportedBy": "Astra third-wave integration; includes in-progress neighboring tests"
-        },
-        {
           "command": "pnpm typecheck",
           "result": "PASS"
         },
@@ -1646,6 +1686,12 @@
         {
           "command": "git diff --check",
           "result": "PASS"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 940,
+          "reportedBy": "Astra fifth integration; all110files, includes pending-card tests"
         }
       ],
       "owner": "astra_review",
@@ -1706,12 +1752,6 @@
           "reportedBy": "Luna focused run; Astra source/test review; integration rerun pending"
         },
         {
-          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts --maxWorkers=1 --no-file-parallelism",
-          "result": "PASS",
-          "tests": 874,
-          "reportedBy": "Astra third-wave integration; includes in-progress neighboring tests"
-        },
-        {
           "command": "pnpm typecheck",
           "result": "PASS"
         },
@@ -1731,6 +1771,12 @@
         {
           "command": "git diff --check",
           "result": "PASS"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 940,
+          "reportedBy": "Astra fifth integration; all110files, includes pending-card tests"
         }
       ],
       "owner": "astra_review",
@@ -1769,26 +1815,52 @@
       "module": "apps/api/src/cards/BT25/BT25-023.ts",
       "test": "apps/api/src/cards/BT25/BT25-023.test.ts",
       "kb": "BT25-023 Gaogamon\n  (no knowledge-base entries)\n",
-      "status": "provisional",
+      "status": "verified",
       "scores": {
         "catalogKb": 2,
         "irTrace": 2,
         "behavior": 2,
         "peersStacks": 2,
-        "validation": 1
+        "validation": 2
       },
-      "gaps": ["Independent final review of latest focused edits and delivery gates pending"],
+      "gaps": [],
       "commands": [
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-023.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
           "tests": 12,
-          "reportedBy": "Luna023 focused / Astra024 focused and integration"
+          "reportedBy": "Luna focused proof and Astra integrated rerun"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 940,
+          "reportedBy": "Astra fifth integration; all110files, includes pending-card tests"
+        },
+        {
+          "command": "pnpm typecheck",
+          "result": "PASS"
+        },
+        {
+          "command": "pnpm effects:check:set -- --set BT25 --base a924de971",
+          "result": "PASS"
+        },
+        {
+          "command": "pnpm exec oxfmt --check --threads=1 apps/api/src/cards/BT25",
+          "result": "PASS"
+        },
+        {
+          "command": "pnpm exec oxlint apps/api/src/cards/BT25",
+          "result": "PASS"
+        },
+        {
+          "command": "git diff --check",
+          "result": "PASS"
         }
       ],
       "owner": "astra_review",
       "evidence": "docs/audits/BT25/evidence/BT25-023.md",
-      "reviewedBy": "Astra review; final approval pending"
+      "reviewedBy": "Astra independent clause, IR, behavioral and fifth-checkpoint review"
     },
     {
       "cardId": "BT25-024",
@@ -1827,26 +1899,52 @@
       "module": "apps/api/src/cards/BT25/BT25-024.ts",
       "test": "apps/api/src/cards/BT25/BT25-024.test.ts",
       "kb": "BT25-024 Lekismon\n  Q&A (2):\n    Q6287 (2026-05-08): Does this card's [Your Turn] effect trigger even when my non-red Digimon are played or digivolve?\n      A: Yes, it triggers. However, this effect can only be activated when that Digimon is red.\n    Q6288 (2026-05-08): Does this card's [Your Turn] effect reference the card for the Digimon before or after it digivolves?\n      A: It references the Digimon after it digivolves.\n",
-      "status": "provisional",
+      "status": "verified",
       "scores": {
         "catalogKb": 2,
         "irTrace": 2,
         "behavior": 2,
         "peersStacks": 2,
-        "validation": 1
+        "validation": 2
       },
-      "gaps": ["Independent final review of latest focused edits and delivery gates pending"],
+      "gaps": [],
       "commands": [
         {
           "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-024.test.ts --maxWorkers=1 --no-file-parallelism",
           "result": "PASS",
           "tests": 15,
-          "reportedBy": "Luna023 focused / Astra024 focused and integration"
+          "reportedBy": "Luna focused proof and Astra integrated rerun"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 940,
+          "reportedBy": "Astra fifth integration; all110files, includes pending-card tests"
+        },
+        {
+          "command": "pnpm typecheck",
+          "result": "PASS"
+        },
+        {
+          "command": "pnpm effects:check:set -- --set BT25 --base a924de971",
+          "result": "PASS"
+        },
+        {
+          "command": "pnpm exec oxfmt --check --threads=1 apps/api/src/cards/BT25",
+          "result": "PASS"
+        },
+        {
+          "command": "pnpm exec oxlint apps/api/src/cards/BT25",
+          "result": "PASS"
+        },
+        {
+          "command": "git diff --check",
+          "result": "PASS"
         }
       ],
       "owner": "astra_review",
       "evidence": "docs/audits/BT25/evidence/BT25-024.md",
-      "reviewedBy": "Astra review; final approval pending"
+      "reviewedBy": "Astra independent clause, IR, behavioral and fifth-checkpoint review"
     },
     {
       "cardId": "BT25-025",
@@ -1885,14 +1983,52 @@
       "module": "apps/api/src/cards/BT25/BT25-025.ts",
       "test": "apps/api/src/cards/BT25/BT25-025.test.ts",
       "kb": "BT25-025 Aegiochusmon: Blue\n  Q&A (1):\n    Q6289 (2026-05-08): In what order do a [Security] effect, \"when [...] performs a security check\" effect, and \"when a card is removed from [...] security stack\" effect activate when they trigger simultaneously upon a security check?\n      A: [Security] effects take precedence for activation. Upon a check, a [Security] effect will immediately activate without pending activation. For other triggered effects, the turn player activates their effects first.\n",
-      "status": "in_progress",
-      "scores": null,
-      "gaps": [
-        "Root review findings in INTEGRATION-NOTES.md and ongoing worker assignments remain; focused green alone is not approval"
+      "status": "verified",
+      "scores": {
+        "catalogKb": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peersStacks": 2,
+        "validation": 2
+      },
+      "gaps": [],
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-025.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 15,
+          "reportedBy": "Luna focused proof and Astra integrated rerun"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 940,
+          "reportedBy": "Astra fifth integration; all110files, includes pending-card tests"
+        },
+        {
+          "command": "pnpm typecheck",
+          "result": "PASS"
+        },
+        {
+          "command": "pnpm effects:check:set -- --set BT25 --base a924de971",
+          "result": "PASS"
+        },
+        {
+          "command": "pnpm exec oxfmt --check --threads=1 apps/api/src/cards/BT25",
+          "result": "PASS"
+        },
+        {
+          "command": "pnpm exec oxlint apps/api/src/cards/BT25",
+          "result": "PASS"
+        },
+        {
+          "command": "git diff --check",
+          "result": "PASS"
+        }
       ],
-      "commands": [],
-      "owner": "luna_e",
-      "evidence": "docs/audits/BT25/evidence/BT25-025.md"
+      "owner": "astra_review",
+      "evidence": "docs/audits/BT25/evidence/BT25-025.md",
+      "reviewedBy": "Astra independent clause, IR, behavioral and fifth-checkpoint review"
     },
     {
       "cardId": "BT25-026",
@@ -1931,14 +2067,52 @@
       "module": "apps/api/src/cards/BT25/BT25-026.ts",
       "test": "apps/api/src/cards/BT25/BT25-026.test.ts",
       "kb": "BT25-026 Crescemon\n  Q&A (2):\n    Q6290 (2026-05-08): Does this card's [Your Turn] effect trigger even when my non-red Digimon are played or digivolve?\n      A: Yes, it triggers. However, this effect can only be activated when that Digimon is red.\n    Q6291 (2026-05-08): Does this card's [Your Turn] effect reference the card for the Digimon before or after it digivolves?\n      A: It references the Digimon after it digivolves.\n",
-      "status": "in_progress",
-      "scores": null,
-      "gaps": [
-        "Root review findings in INTEGRATION-NOTES.md and ongoing worker assignments remain; focused green alone is not approval"
+      "status": "verified",
+      "scores": {
+        "catalogKb": 2,
+        "irTrace": 2,
+        "behavior": 2,
+        "peersStacks": 2,
+        "validation": 2
+      },
+      "gaps": [],
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-026.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 20,
+          "reportedBy": "Luna focused proof and Astra integrated rerun"
+        },
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 940,
+          "reportedBy": "Astra fifth integration; all110files, includes pending-card tests"
+        },
+        {
+          "command": "pnpm typecheck",
+          "result": "PASS"
+        },
+        {
+          "command": "pnpm effects:check:set -- --set BT25 --base a924de971",
+          "result": "PASS"
+        },
+        {
+          "command": "pnpm exec oxfmt --check --threads=1 apps/api/src/cards/BT25",
+          "result": "PASS"
+        },
+        {
+          "command": "pnpm exec oxlint apps/api/src/cards/BT25",
+          "result": "PASS"
+        },
+        {
+          "command": "git diff --check",
+          "result": "PASS"
+        }
       ],
-      "commands": [],
-      "owner": "luna_e",
-      "evidence": "docs/audits/BT25/evidence/BT25-026.md"
+      "owner": "astra_review",
+      "evidence": "docs/audits/BT25/evidence/BT25-026.md",
+      "reviewedBy": "Astra independent clause, IR, behavioral and fifth-checkpoint review"
     },
     {
       "cardId": "BT25-027",
@@ -1973,11 +2147,24 @@
       "test": "apps/api/src/cards/BT25/BT25-027.test.ts",
       "kb": "BT25-027 MachGaogamon\n  (no knowledge-base entries)\n",
       "status": "in_progress",
-      "scores": null,
+      "scores": {
+        "catalogKb": 2,
+        "irTrace": 2,
+        "behavior": 1,
+        "peersStacks": 1,
+        "validation": 1
+      },
       "gaps": [
-        "Root review findings in INTEGRATION-NOTES.md and ongoing worker assignments remain; focused green alone is not approval"
+        "Review optional whole-effect activation against the paired timing; first-face-down engine gap fixed and sixteen cases green."
       ],
-      "commands": [],
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 940,
+          "note": "16 tests for this card pass within the collection; remaining gaps are not exempted."
+        }
+      ],
       "owner": "astra_review",
       "evidence": "docs/audits/BT25/evidence/BT25-027.md"
     },
@@ -2019,11 +2206,24 @@
       "test": "apps/api/src/cards/BT25/BT25-028.test.ts",
       "kb": "BT25-028 Dianamon\n  Q&A (5):\n    Q6292 (2026-05-08): Does this card's [All Turns] effect also trigger when this card itself is played or when one of my Digimon in the battle area would digivolve into this card?\n      A: Yes, it triggers.\n    Q6293 (2026-05-08): This card's [On Play] [When Digivolving] effect and [All Turns] effect triggered simultaneously when this card was played or when my Digimon digivolved into this card. If I first activate the [All Turns] effect at such times, can I DNA digivolve into [GraceNovamon] and then activate this card's [On Play] [When Digivolving] effect?\n      A: No, you can't.\n    Q6294 (2026-05-08): If an opponent's Digimon with 1 or fewer digivolution cards enters the battle area after this card's [On Play] [When Digivolving] effect activates, can that Digimon suspend?\n      A: No, it can't. This card's effect targets all of their Digimon with 1 or fewer digivolution cards, therefore even if your opponent's Digimon with 1 or fewer digivolution cards later enters the battle area, they are still affected by this effect.\n    Q6295 (2026-05-08): If an opponent's Digimon gains 2 or more digivolution cards after this card's [On Play] [When Digivolving] effect activates, can that Digimon now suspend?\n      A: Yes, it can now suspend.\n    Q6489 (2026-05-08): An opponent's Digimon attacks, and its [When Attacking] effect causes a Digimon to be played by an effect. I then activate the [All Turns] effect on my BT25-028 [Dianamon] and DNA digivolve into this card. Can I activate this card's [When Attacking] [Counter] effect during the counter timing after that?\n      A: Yes, you can.\n",
       "status": "in_progress",
-      "scores": null,
+      "scores": {
+        "catalogKb": 2,
+        "irTrace": 2,
+        "behavior": 1,
+        "peersStacks": 1,
+        "validation": 1
+      },
       "gaps": [
-        "Root review findings in INTEGRATION-NOTES.md and ongoing worker assignments remain; focused green alone is not approval"
+        "Independent inherited once-per-turn target transition still needs a discriminating second target; Q6489 and Q6293 corrected and green."
       ],
-      "commands": [],
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 940,
+          "note": "15 tests for this card pass within the collection; remaining gaps are not exempted."
+        }
+      ],
       "owner": "luna_c",
       "evidence": "docs/audits/BT25/evidence/BT25-028.md"
     },
@@ -2054,7 +2254,7 @@
         "forms": ["Mega"],
         "attributes": ["Data"],
         "types": ["Beast Knight", "DATA SQUAD"],
-        "effectText": "[Digivolve] Lv.5 w/[MachGaogamon]\u00a0in name or w/[DATA SQUAD]\u00a0trait: Cost 3 \n\n\uff1cReboot\uff1e \n\uff1cBlocker\uff1e \n\uff1cEvade\uff1e \n[When Digivolving] [When Attacking] [Once Per Turn] You may return 1 of your opponent's level 5 or lower Digimon to the hand. Then, by trashing the bottom face-down card under any of your Tamers, return 1 of your opponent's lowest level Digimon to the hand.\n[All Turns] [Once Per Turn] When effects add cards to your opponent's hand or trash cards from under your Tamers, this Digimon may unsuspend.",
+        "effectText": "[Digivolve] Lv.5 w/[Gaogamon]\u00a0in name or w/[DATA SQUAD]\u00a0trait: Cost 3 \n\n\uff1cReboot\uff1e \n\uff1cBlocker\uff1e \n\uff1cEvade\uff1e \n[When Digivolving] [When Attacking] [Once Per Turn] You may return 1 of your opponent's level 5 or lower Digimon to the hand. Then, by trashing the bottom face-down card under any of your Tamers, return 1 of your opponent's lowest level Digimon to the hand.\n[All Turns] [Once Per Turn] When effects add cards to your opponent's hand or trash cards from under your Tamers, this Digimon may unsuspend.",
         "rarity": "SR",
         "maxCountInDeck": 4,
         "imageId": "BT25-029",
@@ -2063,13 +2263,26 @@
       "module": "apps/api/src/cards/BT25/BT25-029.ts",
       "test": "apps/api/src/cards/BT25/BT25-029.test.ts",
       "kb": "BT25-029 MirageGaogamon\n  Q&A (1):\n    Q6296 (2026-05-08): I didn't activate this card's [When Digivolving] [When Attacking] effect when my Digimon digivolved into this card. If this card then attacks during the same turn, can I activate this card's [When Digivolving] [When Attacking] effect?\n      A: Yes, it can be activated.\n",
-      "status": "pending",
-      "scores": null,
+      "status": "in_progress",
+      "scores": {
+        "catalogKb": 2,
+        "irTrace": 2,
+        "behavior": 1,
+        "peersStacks": 1,
+        "validation": 1
+      },
       "gaps": [
-        "Independent clause review and reproducible focused behavioral validation pending",
-        "Official alternate name is Gaogamon, broader than catalog MachGaogamon."
+        "Complete unsuspend watcher refusal, ordinary-draw and shared event-budget negatives; action-level refusal needs subsequent-use proof."
       ],
-      "commands": []
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 940,
+          "note": "12 tests for this card pass within the collection; remaining gaps are not exempted."
+        }
+      ],
+      "evidence": "docs/audits/BT25/evidence/BT25-029.md"
     },
     {
       "cardId": "BT25-030",
@@ -2103,10 +2316,24 @@
       "module": "apps/api/src/cards/BT25/BT25-030.ts",
       "test": "apps/api/src/cards/BT25/BT25-030.test.ts",
       "kb": "BT25-030 Elecmon\n  Q&A (1):\n    Q6297 (2026-05-08): I have 0 security cards. Can I activate this card's inherited effect and perform <Recovery +1> without adding a security card to the hand?\n      A: Yes, you can.\n",
-      "status": "pending",
-      "scores": null,
-      "gaps": ["Independent clause review and reproducible focused behavioral validation pending"],
-      "commands": []
+      "status": "in_progress",
+      "scores": {
+        "catalogKb": 2,
+        "irTrace": 2,
+        "behavior": 1,
+        "peersStacks": 1,
+        "validation": 1
+      },
+      "gaps": ["Final independent review of zero-cost evolution and exact Recovery identity across reset."],
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 940,
+          "note": "11 tests for this card pass within the collection; remaining gaps are not exempted."
+        }
+      ],
+      "evidence": "docs/audits/BT25/evidence/BT25-030.md"
     },
     {
       "cardId": "BT25-031",
@@ -2140,10 +2367,26 @@
       "module": "apps/api/src/cards/BT25/BT25-031.ts",
       "test": "apps/api/src/cards/BT25/BT25-031.test.ts",
       "kb": "BT25-031 Patamon\n  (no knowledge-base entries)\n",
-      "status": "pending",
-      "scores": null,
-      "gaps": ["Independent clause review and reproducible focused behavioral validation pending"],
-      "commands": []
+      "status": "in_progress",
+      "scores": {
+        "catalogKb": 2,
+        "irTrace": 2,
+        "behavior": 1,
+        "peersStacks": 1,
+        "validation": 1
+      },
+      "gaps": [
+        "Behavioral Archangel, Three Great Angels and Four Great Dragons branches still pending; Barrier and alternate evolution now green."
+      ],
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 940,
+          "note": "10 tests for this card pass within the collection; remaining gaps are not exempted."
+        }
+      ],
+      "evidence": "docs/audits/BT25/evidence/BT25-031.md"
     },
     {
       "cardId": "BT25-032",
@@ -2177,10 +2420,24 @@
       "module": "apps/api/src/cards/BT25/BT25-032.ts",
       "test": "apps/api/src/cards/BT25/BT25-032.test.ts",
       "kb": "BT25-032 Liollmon\n  (no knowledge-base entries)\n",
-      "status": "pending",
-      "scores": null,
-      "gaps": ["Independent clause review and reproducible focused behavioral validation pending"],
-      "commands": []
+      "status": "in_progress",
+      "scores": {
+        "catalogKb": 2,
+        "irTrace": 2,
+        "behavior": 1,
+        "peersStacks": 1,
+        "validation": 1
+      },
+      "gaps": ["Independent final mixed-trait, evolution and Barrier proof review pending."],
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 940,
+          "note": "10 tests for this card pass within the collection; remaining gaps are not exempted."
+        }
+      ],
+      "evidence": "docs/audits/BT25/evidence/BT25-032.md"
     },
     {
       "cardId": "BT25-033",
@@ -2288,10 +2545,26 @@
       "module": "apps/api/src/cards/BT25/BT25-035.ts",
       "test": "apps/api/src/cards/BT25/BT25-035.test.ts",
       "kb": "BT25-035 Cougarmon\n  Q&A (3):\n    Q6299 (2026-05-08): This card's effect caused the DP of my opponent's Digimon to become 0. At such times, is the Digimon with a DP of zero deleted?\n      A: No, it isn't deleted yet. Once all of the processing for the activated effect has resolved, a rule check will occur, then all of the Digimon with 0 DP are deleted at the same time.\n    Q6300 (2026-05-08): Can I trash just 1 face-down card from under a Tamer for the conditions of this card's [On Play] [When Digivolving] effect?\n      A: No, you can't. A \"by\" condition can't be met if only some of the required actions are performed. The conditions for this [On Play] [When Digivolving] effect require you to trash the specified number of cards under your Tamer.\n    Q6301 (2026-05-08): Can I trash a total of 2 face-down cards from under multiple Tamers for the conditions of this card's [On Play] [When Digivolving] effect?\n      A: Yes, you can.\n",
-      "status": "pending",
-      "scores": null,
-      "gaps": ["Independent clause review and reproducible focused behavioral validation pending"],
-      "commands": []
+      "status": "in_progress",
+      "scores": {
+        "catalogKb": 2,
+        "irTrace": 2,
+        "behavior": 1,
+        "peersStacks": 1,
+        "validation": 1
+      },
+      "gaps": [
+        "Count-two cost rejects two face-down cards under one Tamer; inherited fixture was same-level and must be corrected with public Barrier proof."
+      ],
+      "commands": [
+        {
+          "command": "pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts --maxWorkers=1 --no-file-parallelism",
+          "result": "PASS",
+          "tests": 940,
+          "note": "8 tests for this card pass within the collection; remaining gaps are not exempted."
+        }
+      ],
+      "evidence": "docs/audits/BT25/evidence/BT25-035.md"
     },
     {
       "cardId": "BT25-036",

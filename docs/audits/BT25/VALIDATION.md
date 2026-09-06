@@ -74,3 +74,21 @@ At checkpoint `5e8f6113c` plus the explicitly in-progress 023/025–028 test edi
 Astra independently accepts the clause, IR, public behavior and legal-stack evidence for 001–018, 021 and 022. Each has its recorded focused pass, affected mechanism coverage, green integration gates above, and an atomic committed implementation/test result. The current approval section in each report supersedes its historical provisional score. These **20 card approvals do not complete the collection**. Cards 019/020 have explicit remaining mechanism/ordering proof; 023–028 remain under review, and later cards retain queued audits and official-source discrepancies. The Piercing/direct-battle investigation is currently a hypothesis, not a confirmed engine defect or passing proof.
 
 The 874 count includes in-progress neighboring tests. Reproduction from a later commit may have a larger test count as those audits expand; each approved card's focused count and command remain separately recorded. Final closeout must rerun the full collection and affected mechanisms after all 104 audits.
+
+## Fourth integration checkpoint (collection incomplete)
+
+- `pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts --maxWorkers=1 --no-file-parallelism`: 109 files, **896 passed** (`/tmp/bt25-audit-logs/fourth-wave-collection.log`). This precedes the latest neighboring worker additions.
+- `pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-020.test.ts src/engine/directBattlePiercing.test.ts src/cards/BT25/BT25-023.test.ts src/cards/BT25/BT25-025.test.ts src/cards/BT25/BT25-026.test.ts --maxWorkers=1 --no-file-parallelism`: five files, **72 passed** (`/tmp/bt25-audit-logs/integration-020-026.log`). Includes the new Marsmon ordering/non-TS/expiry cases and Astra's 025 target pool and 026 public entry refinements.
+- The affected combat run passed nine files / **222 tests** before the three additional Marsmon cases; exact command is in ENGINE-PIERCING-REGRESSION.md.
+- Full shared/API/web typecheck passed after the Piercing correction (`/tmp/bt25-audit-logs/piercing-typecheck.log`).
+- Set-scoped synchronization passed for 104 BT25 cards, with 24 semantic module deltas against the audit base and no outside-set changes (`/tmp/bt25-audit-logs/fourth-wave-effects-sync.log`).
+- Targeted Oxlint and Oxfmt pass for the integrated engine and 020/023/025/026 files.
+
+## Fifth integration checkpoint: first 26 cards approved
+
+- Full BT25 plus deck-interaction, direct-battle Piercing and bottom-face-down controls: **110 files, 940 passed**. Command: `pnpm --filter @aegis/api exec vitest run src/cards/BT25 src/engine/deckInteractionsBT25.test.ts src/engine/directBattlePiercing.test.ts src/engine/effects/bottomFaceDownCost.test.ts --maxWorkers=1 --no-file-parallelism`. Log: `/tmp/bt25-audit-logs/fifth-wave-collection.log`.
+- Affected cost mechanisms: **9 files, 274 passed**. Command: `pnpm --filter @aegis/api exec vitest run src/engine/effects/bottomFaceDownCost.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/handTrashCost.test.ts src/engine/effects/permanentPlacementCost.test.ts src/engine/effectOptionUseCost.test.ts src/cards/BT26/BT26-070.test.ts src/cards/BT26/BT26-048.test.ts src/cards/EX9/EX9-031.test.ts src/cards/BT25/BT25-027.test.ts --maxWorkers=1 --no-file-parallelism`. Log: `/tmp/bt25-audit-logs/bottom-face-down-mechanisms.log`.
+- `pnpm typecheck`: PASS shared/API/web (`fifth-wave-typecheck.log`).
+- `pnpm effects:sync:set -- --set BT25 --base a924de971` and matching `effects:check:set`: PASS, 104 records, 24 semantic module differences against base, no outside-set effects changes.
+- Targeted Oxlint: exit 0. Queued-card warnings remain in 038 and later cards, recorded in `fifth-wave-lint.log`; no findings in the newly integrated reviewed cards or shared engine files. Oxfmt check passes (`fifth-wave-format.log`). `git diff --check` passes.
+- Recalculation: **26/104 verified**, first001–026; remaining cards are not implied correct by this collection run. Engine count-two/single-Tamer payment remains a distinct open gap for035.

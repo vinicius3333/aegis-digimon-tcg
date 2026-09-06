@@ -82,3 +82,15 @@ These are review findings and queued work, not scores or passing evidence.
 - 027: initial worker edits were paused before root review. Not approved.
 - 028: Luna C is replacing illegal opponent and inherited stacks, separating accepted-once from decline/retry, proving dynamic restrictions and Q6293 pending-entry ordering, and inherited Digimon/Tamer targets and duration. Its DNA trigger is All Turns on play/evolution, not end of turn.
 - 029: queued after 028; official name-family discrepancy is in `OFFICIAL-SOURCE-CHECK.md` and awaits serialized catalog correction.
+
+## Active gaps after the fourth checkpoint
+
+- BT25-027: a normal failing public regression proves `trashBottomFaceDownUnderTamer` rejects face-up-bottom/face-down-above stacks. Q4785 explicitly selects the first face-down card from the bottom. Root owns the serialized cost/preflight correction; Luna supplies mechanism controls. Card remains below 10/10.
+- BT25-028: Astra corrected the purported blue egg (BT1-002 is red) and added explicit combat-completion and attacker-survival assertions. The stronger Q6489 test exposed unaccepted Counter decisions; Luna now answers those decisions. Targeted case passes, full focused rerun pending.
+- BT25-029: Q6296 must distinguish declining whole-effect activation from activating then declining both actions. Root traced the existing effect-level optional gate; card IR and public decision proof remain under review.
+- BT25-030: removing a type suppression exposed invalid `Cost.amount`; the security-to-hand cost uses `count`. Luna corrected the module. Current API typecheck passes; root will synchronize the BT25 catalog after neighboring edits stabilize.
+- BT25-031: initial six green tests leave trait branches, public inherited Barrier, and off-color TS evolution unproven. Audit remains in progress.
+
+Reviewed atomic delivery: 36fda83e2 (023), d10e294af (025), e4a31d5cf (026), 2d7404ffa (Piercing + 020). These commits do not constitute collection completion.
+
+Fifth checkpoint supersedes the earlier counts: 26/104 approved, 940 collection tests and 274 affected cost tests green. First-face-down ordering is delivered in37b28aaf9. Two-cost payment under one Tamer remains unresolved: current candidate enumeration takes one card per host, so035's one-host layout cannot pay despite two face-down cards. The different On Play/When Digivolving results came from different Tamer layouts, not different timing dispatch.
